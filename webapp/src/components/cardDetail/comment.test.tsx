@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import moment from 'moment'
 
@@ -51,7 +50,7 @@ describe('components/cardDetail/comment', () => {
     })
 
     test('return comment', () => {
-        const {container} = render(wrapIntl(
+        const {container} = render(wrapIntl(() =>
             <ReduxProvider store={store}>
                 <Comment
                     comment={comment}
@@ -67,7 +66,7 @@ describe('components/cardDetail/comment', () => {
     })
 
     test('return comment readonly', () => {
-        const {container} = render(wrapIntl(
+        const {container} = render(wrapIntl(() =>
             <ReduxProvider store={store}>
                 <Comment
                     comment={comment}
@@ -81,7 +80,7 @@ describe('components/cardDetail/comment', () => {
     })
 
     test('return comment and delete comment', () => {
-        const {container} = render(wrapIntl(
+        const {container} = render(wrapIntl(() =>
             <ReduxProvider store={store}>
                 <Comment
                     comment={comment}
@@ -102,7 +101,7 @@ describe('components/cardDetail/comment', () => {
 
     test('return guest comment', () => {
         const localStore = mockStateStore([], {users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
-        const {container} = render(wrapIntl(
+        const {container} = render(wrapIntl(() =>
             <ReduxProvider store={localStore}>
                 <Comment
                     comment={comment}
@@ -119,7 +118,7 @@ describe('components/cardDetail/comment', () => {
 
     test('return guest comment readonly', () => {
         const localStore = mockStateStore([], {users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
-        const {container} = render(wrapIntl(
+        const {container} = render(wrapIntl(() =>
             <ReduxProvider store={localStore}>
                 <Comment
                     comment={comment}
@@ -134,7 +133,7 @@ describe('components/cardDetail/comment', () => {
 
     test('return guest comment and delete comment', () => {
         const localStore = mockStateStore([], {users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
-        const {container} = render(wrapIntl(
+        const {container} = render(wrapIntl(() =>
             <ReduxProvider store={localStore}>
                 <Comment
                     comment={comment}

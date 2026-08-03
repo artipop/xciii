@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useEffect, useState} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 import {useHistory, useRouteMatch} from 'react-router-dom'
 
 import {useHotkeys} from '../../hooks/hotkeys'
@@ -33,8 +33,8 @@ import BoardTemplateSelectorPreview from './boardTemplateSelectorPreview'
 import BoardTemplateSelectorItem from './boardTemplateSelectorItem'
 
 type Props = {
-    title?: React.ReactNode
-    description?: React.ReactNode
+    title?: JSX.Element
+    description?: JSX.Element
     onClose?: () => void
     channelId?: string
 }
@@ -135,14 +135,14 @@ const BoardTemplateSelector = (props: Props) => {
     }
 
     return (
-        <div className={`BoardTemplateSelector__container ${onClose ? '' : 'BoardTemplateSelector__container--page'}`}>
+        <div class={`BoardTemplateSelector__container ${onClose ? '' : 'BoardTemplateSelector__container--page'}`}>
             {onClose &&
                 <div
                     onClick={onClose}
-                    className='BoardTemplateSelector__backdrop'
+                    class='BoardTemplateSelector__backdrop'
                 />}
-            <div className='BoardTemplateSelector'>
-                <div className='toolbar'>
+            <div class='BoardTemplateSelector'>
+                <div class='toolbar'>
                     {onClose &&
                         <IconButton
                             size='medium'
@@ -151,8 +151,8 @@ const BoardTemplateSelector = (props: Props) => {
                             title={'Close'}
                         />}
                 </div>
-                <div className='header'>
-                    <h1 className='title'>
+                <div class='header'>
+                    <h1 class='title'>
                         {title || (
                             <FormattedMessage
                                 id='BoardTemplateSelector.title'
@@ -160,7 +160,7 @@ const BoardTemplateSelector = (props: Props) => {
                             />
                         )}
                     </h1>
-                    <p className='description'>
+                    <p class='description'>
                         {description || (
                             <FormattedMessage
                                 id='BoardTemplateSelector.description'
@@ -169,9 +169,9 @@ const BoardTemplateSelector = (props: Props) => {
                         )}
                     </p>
                 </div>
-                <div className='templates'>
-                    <div className='templates-sidebar'>
-                        <div className='templates-list'>
+                <div class='templates'>
+                    <div class='templates-sidebar'>
+                        <div class='templates-list'>
                             <Button
                                 emphasis='link'
                                 size='medium'
@@ -186,7 +186,6 @@ const BoardTemplateSelector = (props: Props) => {
                             </Button>
                             {allTemplates.map((boardTemplate) => (
                                 <BoardTemplateSelectorItem
-                                    key={boardTemplate.id}
                                     isActive={activeTemplate?.id === boardTemplate.id}
                                     template={boardTemplate}
                                     onSelect={setActiveTemplate}
@@ -195,7 +194,7 @@ const BoardTemplateSelector = (props: Props) => {
                                 />
                             ))}
                         </div>
-                        <div className='templates-sidebar__footer'>
+                        <div class='templates-sidebar__footer'>
                             <Button
                                 emphasis='secondary'
                                 size={'medium'}
@@ -213,11 +212,11 @@ const BoardTemplateSelector = (props: Props) => {
                             </Button>
                         </div>
                     </div>
-                    <div className='templates-content'>
-                        <div className='template-preview-box'>
+                    <div class='templates-content'>
+                        <div class='template-preview-box'>
                             <BoardTemplateSelectorPreview activeTemplate={activeTemplate}/>
                         </div>
-                        <div className='buttons'>
+                        <div class='buttons'>
                             <Button
                                 filled={true}
                                 size={'medium'}
@@ -236,4 +235,4 @@ const BoardTemplateSelector = (props: Props) => {
     )
 }
 
-export default React.memo(BoardTemplateSelector)
+export default BoardTemplateSelector

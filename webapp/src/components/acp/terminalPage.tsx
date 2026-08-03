@@ -4,7 +4,7 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import React, {type JSX, useCallback, useEffect, useRef, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 import {useRouteMatch} from 'react-router-dom'
 
 import Button from '../../widgets/buttons/button'
@@ -170,16 +170,16 @@ const TerminalPage = (): JSX.Element => {
     }[status]
 
     return (
-        <div className='AcpTerminalPage'>
-            <div className='AcpTerminalPage__header'>
-                <div className='AcpTerminalPage__title'>
-                    <span className='AcpTerminalPage__agent'>{info?.agent || ''}</span>
-                    {info?.title && <span className='AcpTerminalPage__card'>{info.title}</span>}
+        <div class='AcpTerminalPage'>
+            <div class='AcpTerminalPage__header'>
+                <div class='AcpTerminalPage__title'>
+                    <span class='AcpTerminalPage__agent'>{info?.agent || ''}</span>
+                    {info?.title && <span class='AcpTerminalPage__card'>{info.title}</span>}
                 </div>
-                <div className='AcpTerminalPage__meta'>
+                <div class='AcpTerminalPage__meta'>
                     {info?.branch && <code>{info.branch}</code>}
-                    {info?.cwd && <code className='AcpTerminalPage__cwd'>{info.cwd}</code>}
-                    <span className={`AcpTerminalPage__status AcpTerminalPage__status--${status}`}>{statusText}</span>
+                    {info?.cwd && <code class='AcpTerminalPage__cwd'>{info.cwd}</code>}
+                    <span class={`AcpTerminalPage__status AcpTerminalPage__status--${status}`}>{statusText}</span>
                 </div>
                 {info?.task && (
                     <Button
@@ -190,9 +190,9 @@ const TerminalPage = (): JSX.Element => {
                     </Button>
                 )}
             </div>
-            {error && <div className='AcpTerminalPage__error'>{error}</div>}
+            {error && <div class='AcpTerminalPage__error'>{error}</div>}
             <div
-                className='AcpTerminalPage__screen'
+                class='AcpTerminalPage__screen'
                 ref={host}
             />
         </div>

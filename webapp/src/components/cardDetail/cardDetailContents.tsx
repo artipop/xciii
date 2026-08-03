@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {useIntl, IntlShape} from 'react-intl'
+import {useIntl, IntlShape} from '../../intl'
 
 import {IContentBlockWithCords, ContentBlock as ContentBlockType} from '../../blocks/contentBlock'
 import {Card} from '../../blocks/card'
@@ -100,7 +99,7 @@ const ContentBlockWithDragAndDrop = (props: ContentBlockWithDragAndDropProps) =>
             <div >
                 <div
                     ref={itemRef}
-                    className={`addToRow ${isOver ? 'dragover' : ''}`}
+                    class={`addToRow ${isOver ? 'dragover' : ''}`}
                     style={{width: '94%', height: '10px', marginLeft: '48px'}}
                 />
                 <div
@@ -109,7 +108,6 @@ const ContentBlockWithDragAndDrop = (props: ContentBlockWithDragAndDropProps) =>
 
                     {props.block.map((b, y) => (
                         <ContentBlock
-                            key={b.id}
                             block={b}
                             card={props.card}
                             readonly={props.readonly}
@@ -122,7 +120,7 @@ const ContentBlockWithDragAndDrop = (props: ContentBlockWithDragAndDropProps) =>
                 {props.x === props.contents.length - 1 && (
                     <div
                         ref={itemRef2}
-                        className={`addToRow ${isOver2 ? 'dragover' : ''}`}
+                        class={`addToRow ${isOver2 ? 'dragover' : ''}`}
                         style={{width: '94%', height: '10px', marginLeft: '48px'}}
                     />
                 )}
@@ -135,11 +133,10 @@ const ContentBlockWithDragAndDrop = (props: ContentBlockWithDragAndDropProps) =>
         <div>
             <div
                 ref={itemRef}
-                className={`addToRow ${isOver ? 'dragover' : ''}`}
+                class={`addToRow ${isOver ? 'dragover' : ''}`}
                 style={{width: '94%', height: '10px', marginLeft: '48px'}}
             />
             <ContentBlock
-                key={props.block.id}
                 block={props.block}
                 card={props.card}
                 readonly={props.readonly}
@@ -149,7 +146,7 @@ const ContentBlockWithDragAndDrop = (props: ContentBlockWithDragAndDropProps) =>
             {props.x === props.contents.length - 1 && (
                 <div
                     ref={itemRef2}
-                    className={`addToRow ${isOver2 ? 'dragover' : ''}`}
+                    class={`addToRow ${isOver2 ? 'dragover' : ''}`}
                     style={{width: '94%', height: '10px', marginLeft: '48px'}}
                 />
             )}
@@ -163,10 +160,10 @@ const CardDetailContents = (props: Props) => {
     const {contents, card, id} = props
     if (contents.length) {
         return (
-            <div className='octo-content'>
+            <div class='octo-content'>
                 {contents.map((block, x) =>
                     (
-                        <React.Fragment key={x}>
+                        <React.Fragment>
                             <ContentBlockWithDragAndDrop
                                 block={block}
                                 x={x}
@@ -183,9 +180,9 @@ const CardDetailContents = (props: Props) => {
         )
     }
     return (
-        <div className='octo-content CardDetailContents'>
-            <div className='octo-block'>
-                <div className='octo-block-margin'/>
+        <div class='octo-content CardDetailContents'>
+            <div class='octo-block'>
+                <div class='octo-block-margin'/>
                 {!props.readonly &&
                     <MarkdownEditor
                         id={id}
@@ -203,4 +200,4 @@ const CardDetailContents = (props: Props) => {
     )
 }
 
-export default React.memo(CardDetailContents)
+export default CardDetailContents

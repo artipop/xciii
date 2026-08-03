@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import './pulsating_dot.scss'
 import {Coords} from '../tutorial_tour_tip/tutorial_tour_tip_backdrop'
@@ -8,7 +8,7 @@ import {Coords} from '../tutorial_tour_tip/tutorial_tour_tip_backdrop'
 type Props = {
     targetRef?: React.RefObject<HTMLImageElement>
     className?: string
-    onClick?: (e: React.MouseEvent) => void
+    onClick?: (e: MouseEvent) => void
     coords?: Coords
 }
 
@@ -29,7 +29,7 @@ const PulsatingDot = (props: Props): JSX.Element => {
 
     return (
         <span
-            className={effectiveClassName}
+            class={effectiveClassName}
             onClick={props.onClick}
             ref={props.targetRef}
             style={{...customStyles}}

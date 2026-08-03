@@ -3,7 +3,7 @@
 
 import React, {type JSX, useCallback, useState, useEffect} from 'react'
 
-import {useIntl, FormattedMessage} from 'react-intl'
+import {useIntl, FormattedMessage} from '../../intl'
 import {generatePath, useRouteMatch} from 'react-router-dom'
 
 import Combobox from '../../widgets/combobox'
@@ -286,10 +286,10 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
         if ((userOrChannel as IUser).username) {
             const user = userOrChannel as IUser
             return (
-                <div className='user-item'>
-                    <div className='ml-3'>
+                <div class='user-item'>
+                    <div class='ml-3'>
                         <strong>{Utils.getUserDisplayName(user, clientConfig.teammateNameDisplay)}</strong>
-                        <strong className='ml-2 text-light'>{`@${user.username}`}</strong>
+                        <strong class='ml-2 text-light'>{`@${user.username}`}</strong>
                         <GuestBadge show={Boolean(user?.is_guest)}/>
                         <AdminBadge permissions={user.permissions}/>
                     </div>
@@ -328,8 +328,8 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                     }}
                 />}
             <BoardPermissionGate permissions={[Permission.ManageBoardRoles]}>
-                <div className='share-input__container'>
-                    <div className='share-input'>
+                <div class='share-input__container'>
+                    <div class='share-input'>
                         <SearchIcon/>
                         <Combobox
                             value={selectedUser ? asShareOption(selectedUser) : null}
@@ -352,7 +352,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                     </div>
                 </div>
             </BoardPermissionGate>
-            <div className='user-items'>
+            <div class='user-items'>
                 <TeamPermissionsRow/>
 
                 {boardUsers.map((user) => {
@@ -364,7 +364,6 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                     }
                     return (
                         <UserPermissionsRow
-                            key={user.id}
                             user={user}
                             member={members[user.id]}
                             teammateNameDisplay={me?.props?.teammateNameDisplay || clientConfig.teammateNameDisplay}
@@ -377,7 +376,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
             </div>
 
             {props.enableSharedBoards && !board.isTemplate && (
-                <div className='tabs-container'>
+                <div class='tabs-container'>
                     <button
                         onClick={() => setPublish(false)}
                         className={`tab-item ${!publish && 'tab-item--active'}`}
@@ -402,12 +401,12 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
             )}
             {(props.enableSharedBoards && publish && !board.isTemplate) &&
             (<BoardPermissionGate permissions={[Permission.ShareBoard]}>
-                <div className='tabs-content'>
+                <div class='tabs-content'>
                     <div>
-                        <div className='d-flex justify-content-between'>
-                            <div className='d-flex flex-column'>
-                                <div className='text-heading2'>{intl.formatMessage({id: 'ShareBoard.PublishTitle', defaultMessage: 'Publish to the web'})}</div>
-                                <div className='text-light'>{intl.formatMessage({id: 'ShareBoard.PublishDescription', defaultMessage: 'Publish and share a read-only link with everyone on the web.'})}</div>
+                        <div class='d-flex justify-content-between'>
+                            <div class='d-flex flex-column'>
+                                <div class='text-heading2'>{intl.formatMessage({id: 'ShareBoard.PublishTitle', defaultMessage: 'Publish to the web'})}</div>
+                                <div class='text-light'>{intl.formatMessage({id: 'ShareBoard.PublishDescription', defaultMessage: 'Publish and share a read-only link with everyone on the web.'})}</div>
                             </div>
                             <div>
                                 <Switch
@@ -419,10 +418,10 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                         </div>
                     </div>
                     {isSharing &&
-                            (<div className='d-flex justify-content-between tabs-inputs'>
-                                <div className='d-flex input-container'>
+                            (<div class='d-flex justify-content-between tabs-inputs'>
+                                <div class='d-flex input-container'>
                                     <a
-                                        className='shareUrl'
+                                        class='shareUrl'
                                         href={shareUrl.toString()}
                                         target='_blank'
                                         rel='noreferrer'
@@ -430,7 +429,6 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                                         {shareUrl.toString()}
                                     </a>
                                     <Tooltip
-                                        key={'regenerateToken'}
                                         title={intl.formatMessage({id: 'ShareBoard.regenerate', defaultMessage: 'Regenerate token'})}
                                     >
                                         <IconButton
@@ -479,19 +477,19 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
             )}
 
             {!publish && !board.isTemplate && (
-                <div className='tabs-content'>
+                <div class='tabs-content'>
                     <div>
-                        <div className='d-flex justify-content-between'>
-                            <div className='d-flex flex-column'>
-                                <div className='text-heading2'>{intl.formatMessage({id: 'ShareBoard.ShareInternal', defaultMessage: 'Share internally'})}</div>
-                                <div className='text-light'>{intl.formatMessage({id: 'ShareBoard.ShareInternalDescription', defaultMessage: 'Users who have permissions will be able to use this link.'})}</div>
+                        <div class='d-flex justify-content-between'>
+                            <div class='d-flex flex-column'>
+                                <div class='text-heading2'>{intl.formatMessage({id: 'ShareBoard.ShareInternal', defaultMessage: 'Share internally'})}</div>
+                                <div class='text-light'>{intl.formatMessage({id: 'ShareBoard.ShareInternalDescription', defaultMessage: 'Users who have permissions will be able to use this link.'})}</div>
                             </div>
                         </div>
                     </div>
-                    <div className='d-flex justify-content-between tabs-inputs'>
-                        <div className='d-flex input-container'>
+                    <div class='d-flex justify-content-between tabs-inputs'>
+                        <div class='d-flex input-container'>
                             <a
-                                className='shareUrl'
+                                class='shareUrl'
                                 href={boardUrl.toString()}
                                 target='_blank'
                                 rel='noreferrer'

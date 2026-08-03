@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {fireEvent, render} from '@testing-library/react'
+import {fireEvent, render} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 import {wrapIntl} from '../../testUtils'
@@ -42,7 +41,7 @@ describe('components/table/TableHeaderMenu', () => {
     view2.fields.sortOptions = []
 
     test('should match snapshot, title column', async () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <TableHeaderMenu
                 templateId={Constants.titleColumnId}
                 board={board}
@@ -51,7 +50,7 @@ describe('components/table/TableHeaderMenu', () => {
                 cards={[]}
             />,
         )
-        const {container, getByText} = render(component)
+        const {container, getByText} = render(() => component)
 
         let sort = getByText(/Sort ascending/i)
         fireEvent.click(sort)
@@ -69,7 +68,7 @@ describe('components/table/TableHeaderMenu', () => {
     })
 
     test('should match snapshot, other column', async () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <TableHeaderMenu
                 templateId={'property 1'}
                 board={board}
@@ -78,7 +77,7 @@ describe('components/table/TableHeaderMenu', () => {
                 cards={[]}
             />,
         )
-        const {container, getByText} = render(component)
+        const {container, getByText} = render(() => component)
 
         let sort = getByText(/Sort ascending/i)
         fireEvent.click(sort)

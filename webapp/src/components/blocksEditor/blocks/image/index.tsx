@@ -39,7 +39,7 @@ const Image: ContentType<FileInfo> = {
             return (
                 <img
                     data-testid='image'
-                    className='ImageView'
+                    class='ImageView'
                     src={imageDataUrl}
                 />
             )
@@ -56,14 +56,14 @@ const Image: ContentType<FileInfo> = {
             <div>
                 {props.value.file && (typeof props.value.file === 'string') && (
                     <img
-                        className='ImageView'
+                        class='ImageView'
                         src={props.value.file}
                         onClick={() => ref.current?.click()}
                     />
                 )}
                 <input
                     ref={ref}
-                    className='Image'
+                    class='Image'
                     data-testid='image-input'
                     type='file'
                     accept='image/*'

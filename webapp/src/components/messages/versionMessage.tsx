@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
-import {useIntl, FormattedMessage} from 'react-intl'
+import {useIntl, FormattedMessage} from '../../intl'
 
 import IconButton from '../../widgets/buttons/iconButton'
 import Button from '../../widgets/buttons/button'
@@ -50,8 +49,8 @@ const VersionMessage = React.memo(() => {
     }
 
     return (
-        <div className='VersionMessage'>
-            <div className='banner'>
+        <div class='VersionMessage'>
+            <div class='banner'>
                 <CompassIcon
                     icon='information-outline'
                     className='CompassIcon'

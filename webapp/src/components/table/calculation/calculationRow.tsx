@@ -46,7 +46,7 @@ const CalculationRow = (props: Props): JSX.Element => {
 
     return (
         <div
-            className={'CalculationRow octo-table-row'}
+            class={'CalculationRow octo-table-row'}
             onMouseEnter={() => setHovered(!readonly)}
             onMouseLeave={() => setHovered(false)}
         >
@@ -57,7 +57,6 @@ const CalculationRow = (props: Props): JSX.Element => {
 
                     return (
                         <Calculation
-                            key={template.id}
                             class={`octo-table-cell ${readonly ? 'disabled' : ''}`}
                             value={value}
                             menuOpen={Boolean(readonly ? false : showOptions.get(template.id))}

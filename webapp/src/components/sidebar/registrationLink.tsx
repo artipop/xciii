@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {sendFlashMessage} from '../flashMessages'
 import {Utils} from '../../utils'
@@ -51,14 +51,14 @@ const RegistrationLink = (props: Props) => {
             position='bottom-right'
             onClose={onClose}
         >
-            <div className='RegistrationLink'>
+            <div class='RegistrationLink'>
                 {signupToken && <>
-                    <div className='row'>
+                    <div class='row'>
                         {intl.formatMessage({id: 'RegistrationLink.description', defaultMessage: 'Share this link for others to create accounts:'})}
                     </div>
-                    <div className='row'>
+                    <div class='row'>
                         <a
-                            className='shareUrl'
+                            class='shareUrl'
                             href={registrationUrl}
                             target='_blank'
                             rel='noreferrer'
@@ -76,7 +76,7 @@ const RegistrationLink = (props: Props) => {
                             {wasCopied ? intl.formatMessage({id: 'RegistrationLink.copiedLink', defaultMessage: 'Copied!'}) : intl.formatMessage({id: 'RegistrationLink.copyLink', defaultMessage: 'Copy link'})}
                         </Button>
                     </div>
-                    <div className='row'>
+                    <div class='row'>
                         <Button
                             onClick={regenerateToken}
                             emphasis='secondary'
@@ -91,4 +91,4 @@ const RegistrationLink = (props: Props) => {
     )
 }
 
-export default React.memo(RegistrationLink)
+export default RegistrationLink

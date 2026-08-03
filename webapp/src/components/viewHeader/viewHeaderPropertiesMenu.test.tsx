@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
@@ -42,7 +41,7 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
     })
     test('return properties menu', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderPropertiesMenu
                         activeView={activeView}
@@ -58,7 +57,7 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
     test('return properties menu with gallery typeview', () => {
         activeView.fields.viewType = 'gallery'
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderPropertiesMenu
                         activeView={activeView}
@@ -73,7 +72,7 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
     })
     test('show menu and verify the call for showing card badges', () => {
         render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderPropertiesMenu
                         activeView={activeView}
@@ -95,7 +94,7 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
     })
     test('show menu and verify that it is not closed after clicking on the item', () => {
         render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderPropertiesMenu
                         activeView={activeView}

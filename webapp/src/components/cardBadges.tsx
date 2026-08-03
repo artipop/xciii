@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useMemo} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../intl'
 
 import {Card} from '../blocks/card'
 import {useAppSelector} from '../store/hooks'
@@ -87,7 +87,7 @@ const CardBadges = (props: Props) => {
 
     const {checkboxes} = badges
     return (
-        <div className={`CardBadges ${className || ''}`}>
+        <div class={`CardBadges ${className || ''}`}>
             {badges.description &&
                 <span title={intl.formatMessage({id: 'CardBadges.title-description', defaultMessage: 'This card has a description'})}>
                     <TextIcon/>
@@ -106,4 +106,4 @@ const CardBadges = (props: Props) => {
     )
 }
 
-export default React.memo(CardBadges)
+export default CardBadges

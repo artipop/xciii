@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import {Board, IPropertyTemplate} from '../../blocks/board'
 import {Constants} from '../../constants'
@@ -22,7 +22,7 @@ import {useColumnResize} from './tableColumnResizeContext'
 type Props = {
     readonly: boolean
     sorted: 'up'|'down'|'none'
-    name: React.ReactNode
+    name: JSX.Element
     board: Board
     activeView: BoardView
     cards: Card[]
@@ -56,7 +56,7 @@ const TableHeader = (props: Props): JSX.Element => {
 
     return (
         <div
-            className={className}
+            class={className}
             style={{
                 overflow: 'unset',
                 opacity: isDragging ? 0.5 : 1,
@@ -84,7 +84,7 @@ const TableHeader = (props: Props): JSX.Element => {
                 />
             </MenuWrapper>
 
-            <div className='octo-spacer'/>
+            <div class='octo-spacer'/>
 
             {!props.readonly &&
                 <HorizontalGrip
@@ -97,4 +97,4 @@ const TableHeader = (props: Props): JSX.Element => {
     )
 }
 
-export default React.memo(TableHeader)
+export default TableHeader

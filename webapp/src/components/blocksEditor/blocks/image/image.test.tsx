@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {render, screen, fireEvent} from '@solidjs/testing-library'
 import {mocked} from 'jest-mock'
 
 import octoClient from '../../../../octoClient'
@@ -16,7 +15,7 @@ describe('components/blocksEditor/blocks/image', () => {
         const mockedOcto = mocked(octoClient)
         mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.jpg'})
         const Component = ImageBlock.Display
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{file: 'test'}}
@@ -30,7 +29,7 @@ describe('components/blocksEditor/blocks/image', () => {
 
     test('should match Display snapshot with empty value', async () => {
         const Component = ImageBlock.Display
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{file: ''}}
@@ -44,7 +43,7 @@ describe('components/blocksEditor/blocks/image', () => {
 
     test('should match Input snapshot', async () => {
         const Component = ImageBlock.Input
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{file: 'test'}}
@@ -57,7 +56,7 @@ describe('components/blocksEditor/blocks/image', () => {
 
     test('should match Input snapshot with empty input', async () => {
         const Component = ImageBlock.Input
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{file: ''}}
@@ -71,7 +70,7 @@ describe('components/blocksEditor/blocks/image', () => {
     test('should emit onSave on change', async () => {
         const onSave = jest.fn()
         const Component = ImageBlock.Input
-        render(
+        render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{file: 'test'}}

@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {fireEvent, render, screen, within} from '@testing-library/react'
-import {createIntl} from 'react-intl'
+import {fireEvent, render, screen, within} from '@solidjs/testing-library'
+import {createIntl} from '../../intl'
 import userEvent from '@testing-library/user-event'
 import {mocked} from 'jest-mock'
 import {Provider as ReduxProvider} from 'react-redux'
@@ -53,7 +52,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
     })
     beforeEach(jest.resetAllMocks)
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
@@ -76,7 +75,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot readonly', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
@@ -100,7 +99,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
     })
     test('return kanbanColumnHeader and edit title', () => {
         const mockedPropertyNameChanged = jest.fn()
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
@@ -129,7 +128,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(container).toMatchSnapshot()
     })
     test('return kanbanColumnHeader and click on menuwrapper', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
@@ -155,7 +154,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(container).toMatchSnapshot()
     })
     test('return kanbanColumnHeader, click on menuwrapper and click on hide menu', () => {
-        render(wrapDNDIntl(
+        render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
@@ -184,7 +183,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(mockedMutator.hideViewColumn).toHaveBeenCalledTimes(1)
     })
     test('return kanbanColumnHeader, click on menuwrapper and click on delete menu', () => {
-        render(wrapDNDIntl(
+        render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
@@ -213,7 +212,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(mockedMutator.deletePropertyOption).toHaveBeenCalledTimes(1)
     })
     test('return kanbanColumnHeader, click on menuwrapper and click on blue color menu', () => {
-        render(wrapDNDIntl(
+        render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
@@ -244,7 +243,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
 
     test('return kanbanColumnHeader and click to add card', () => {
         const mockedAddCard = jest.fn()
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
@@ -271,7 +270,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
     })
     test('return kanbanColumnHeader and click KanbanCalculationMenu', () => {
         const mockedCalculationMenuOpen = jest.fn()
-        render(wrapDNDIntl(
+        render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
@@ -297,7 +296,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(mockedCalculationMenuOpen).toHaveBeenCalledTimes(1)
     })
     test('return kanbanColumnHeader and click count on KanbanCalculationMenu', () => {
-        render(wrapDNDIntl(
+        render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanColumnHeader
                     board={board}

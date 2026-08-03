@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import {IntlProvider} from 'react-intl'
+import {IntlProvider} from '../../intl'
 import {mocked} from 'jest-mock'
 
 import '@testing-library/jest-dom'
@@ -51,7 +50,7 @@ describe('components/viewHeader/dateFilter', () => {
 
     test('return dateFilter default value', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={emptyFilterClause}
@@ -63,7 +62,7 @@ describe('components/viewHeader/dateFilter', () => {
 
     test('return dateFilter invalid value', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={{
@@ -80,7 +79,7 @@ describe('components/viewHeader/dateFilter', () => {
     test('return dateFilter valid value', () => {
         const june15 = June15.getTime().toString()
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={{
@@ -109,7 +108,7 @@ describe('components/viewHeader/dateFilter', () => {
             </IntlProvider>
         )
 
-        const {container, getByText} = render(component)
+        const {container, getByText} = render(() => component)
         const input = getByText('15 de junio')
         expect(input).not.toBeNull()
         expect(container).toMatchSnapshot()
@@ -120,14 +119,14 @@ describe('components/viewHeader/dateFilter', () => {
         activeView.fields.filter.filters = [emptyFilterClause]
 
         const component =
-            wrapIntl(
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={emptyFilterClause}
                 />,
             )
         expect(component).toMatchSnapshot()
-        const {getByText, getByTitle} = render(component)
+        const {getByText, getByTitle} = render(() => component)
 
         const dayDisplay = getByText('Empty')
         userEvent.click(dayDisplay)
@@ -153,13 +152,13 @@ describe('components/viewHeader/dateFilter', () => {
         activeView.fields.filter.filters = [todayFilterClause]
 
         const component =
-            wrapIntl(
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={todayFilterClause}
                 />,
             )
-        const {container, getByText, getByTitle} = render(component)
+        const {container, getByText, getByTitle} = render(() => component)
         expect(container).toMatchSnapshot()
 
         // open modal
@@ -182,14 +181,14 @@ describe('components/viewHeader/dateFilter', () => {
         activeView.fields.filter.filters = [emptyFilterClause]
 
         const component =
-            wrapIntl(
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={emptyFilterClause}
                 />,
             )
 
-        const {container, getByText, getByTitle, getByPlaceholderText} = render(component)
+        const {container, getByText, getByTitle, getByPlaceholderText} = render(() => component)
         expect(container).toMatchSnapshot()
 
         // open modal
@@ -211,7 +210,7 @@ describe('components/viewHeader/dateFilter', () => {
 
     test('handles `Today` button click event', () => {
         const component =
-            wrapIntl(
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={emptyFilterClause}
@@ -220,7 +219,7 @@ describe('components/viewHeader/dateFilter', () => {
 
         console.log('handle today')
 
-        const {container, getByText, getByTitle} = render(component)
+        const {container, getByText, getByTitle} = render(() => component)
         expect(container).toMatchSnapshot()
 
         // To see if 'Today' button correctly selects today's date,

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
@@ -31,7 +31,7 @@ const ShareBoardButton = (props: Props) => {
     }
 
     return (
-        <div className='ShareBoardButton'>
+        <div class='ShareBoardButton'>
             <Button
                 title='Share board'
                 size='medium'
@@ -56,4 +56,4 @@ const ShareBoardButton = (props: Props) => {
     )
 }
 
-export default React.memo(ShareBoardButton)
+export default ShareBoardButton

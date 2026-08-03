@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX, useCallback} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../intl'
 
 import Combobox, {type ComboboxAction} from '../widgets/combobox'
 import type {ComboboxItem, ComboboxOption} from '../combobox'
@@ -61,8 +61,7 @@ const PersonSelector = (props: Props): JSX.Element => {
 
         return (
             <div
-                key={user.id}
-                className={isMulti ? 'MultiPerson-item' : 'Person-item'}
+                class={isMulti ? 'MultiPerson-item' : 'Person-item'}
             >
                 {profileImg && (
                     <img
@@ -141,7 +140,7 @@ const PersonSelector = (props: Props): JSX.Element => {
 
     if (readOnly) {
         return (
-            <div className={`${primaryClass}${secondaryClass}`}>
+            <div class={`${primaryClass}${secondaryClass}`}>
                 {users.map((user) => formatOptionLabel(user))}
             </div>
         )
@@ -149,7 +148,6 @@ const PersonSelector = (props: Props): JSX.Element => {
 
     return (
         <Combobox
-            key={boardUsersKey}
             loadOptions={loadOptions}
             isMulti={isMulti}
             isClearable={true}

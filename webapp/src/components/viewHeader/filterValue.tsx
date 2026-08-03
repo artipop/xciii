@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import React, {type JSX, useState} from 'react'
 
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {PropertyType} from '../../properties/types'
 import {IPropertyTemplate} from '../../blocks/board'
@@ -104,7 +104,6 @@ const FilterValue = (props: Props): JSX.Element|null => {
             <Menu>
                 {template?.options.map((o) => (
                     <Menu.Switch
-                        key={o.id}
                         id={o.id}
                         name={o.value}
                         isOn={filter.values.includes(o.id)}

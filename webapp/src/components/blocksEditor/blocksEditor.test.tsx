@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
-import {render, screen, fireEvent, act} from '@testing-library/react'
+import {render, screen, fireEvent, act} from '@solidjs/testing-library'
 
 import {mockDOM, wrapDNDIntl, mockStateStore} from '../../testUtils'
 import {TestBlockFactory} from '../../test/testBlockFactory'
@@ -51,7 +50,7 @@ describe('components/blocksEditor/blocksEditor', () => {
     test('should match snapshot on empty', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BlocksEditor
                         boardId='test-board'
@@ -70,7 +69,7 @@ describe('components/blocksEditor/blocksEditor', () => {
     test('should match snapshot with blocks', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BlocksEditor
                         boardId='test-board'
@@ -89,7 +88,7 @@ describe('components/blocksEditor/blocksEditor', () => {
     test('should call onBlockCreate after introduce text and hit enter', async () => {
         const onBlockCreated = jest.fn()
         await act(async () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BlocksEditor
                         boardId='test-board'
@@ -119,7 +118,7 @@ describe('components/blocksEditor/blocksEditor', () => {
     test.skip('should call onBlockModified after introduce text and hit enter', async () => {
         const onBlockModified = jest.fn()
         await act(async () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BlocksEditor
                         boardId='test-board'

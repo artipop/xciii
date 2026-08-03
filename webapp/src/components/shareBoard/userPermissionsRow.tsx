@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX, useRef} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import MenuWrapper from '../../widgets/menuWrapper'
 import Menu from '../../widgets/menu'
@@ -51,14 +51,14 @@ const UserPermissionsRow = (props: Props): JSX.Element => {
 
     return (
         <div
-            className='user-item'
+            class='user-item'
             ref={menuWrapperRef}
         >
-            <div className='user-item__content'>
-                <div className='ml-3'>
+            <div class='user-item__content'>
+                <div class='ml-3'>
                     <strong>{Utils.getUserDisplayName(user, teammateNameDisplay)}</strong>
-                    <strong className='ml-2 text-light'>{`@${user.username}`}</strong>
-                    {isMe && <strong className='ml-2 text-light'>{intl.formatMessage({id: 'ShareBoard.userPermissionsYouText', defaultMessage: '(You)'})}</strong>}
+                    <strong class='ml-2 text-light'>{`@${user.username}`}</strong>
+                    {isMe && <strong class='ml-2 text-light'>{intl.formatMessage({id: 'ShareBoard.userPermissionsYouText', defaultMessage: '(You)'})}</strong>}
                     <GuestBadge show={user.is_guest}/>
                     <AdminBadge permissions={user.permissions}/>
                 </div>
@@ -66,7 +66,7 @@ const UserPermissionsRow = (props: Props): JSX.Element => {
             <div>
                 <BoardPermissionGate permissions={[Permission.ManageBoardRoles]}>
                     <MenuWrapper>
-                        <button className='user-item__button'>
+                        <button class='user-item__button'>
                             {displayRole}
                             <CompassIcon
                                 icon='chevron-down'
@@ -81,7 +81,7 @@ const UserPermissionsRow = (props: Props): JSX.Element => {
                                 <Menu.Text
                                     id={MemberRole.Viewer}
                                     check={true}
-                                    icon={currentRole === MemberRole.Viewer ? <CheckIcon/> : <div className='empty-icon'/>}
+                                    icon={currentRole === MemberRole.Viewer ? <CheckIcon/> : <div class='empty-icon'/>}
                                     name={intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})}
                                     onClick={() => props.onUpdateBoardMember(member, MemberRole.Viewer)}
                                 />}
@@ -89,14 +89,14 @@ const UserPermissionsRow = (props: Props): JSX.Element => {
                                 <Menu.Text
                                     id={MemberRole.Commenter}
                                     check={true}
-                                    icon={currentRole === MemberRole.Commenter ? <CheckIcon/> : <div className='empty-icon'/>}
+                                    icon={currentRole === MemberRole.Commenter ? <CheckIcon/> : <div class='empty-icon'/>}
                                     name={intl.formatMessage({id: 'BoardMember.schemeCommenter', defaultMessage: 'Commenter'})}
                                     onClick={() => props.onUpdateBoardMember(member, MemberRole.Commenter)}
                                 />}
                             <Menu.Text
                                 id={MemberRole.Editor}
                                 check={true}
-                                icon={currentRole === MemberRole.Editor ? <CheckIcon/> : <div className='empty-icon'/>}
+                                icon={currentRole === MemberRole.Editor ? <CheckIcon/> : <div class='empty-icon'/>}
                                 name={intl.formatMessage({id: 'BoardMember.schemeEditor', defaultMessage: 'Editor'})}
                                 onClick={() => props.onUpdateBoardMember(member, MemberRole.Editor)}
                             />
@@ -104,7 +104,7 @@ const UserPermissionsRow = (props: Props): JSX.Element => {
                                 <Menu.Text
                                     id={MemberRole.Admin}
                                     check={true}
-                                    icon={currentRole === MemberRole.Admin ? <CheckIcon/> : <div className='empty-icon'/>}
+                                    icon={currentRole === MemberRole.Admin ? <CheckIcon/> : <div class='empty-icon'/>}
                                     name={intl.formatMessage({id: 'BoardMember.schemeAdmin', defaultMessage: 'Admin'})}
                                     onClick={() => props.onUpdateBoardMember(member, MemberRole.Admin)}
                                 />}

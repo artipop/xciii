@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import React, {type JSX, useEffect} from 'react'
 
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../../intl'
 
 import {useMeasurePunchouts} from '../../tutorial_tour_tip/hooks'
 
@@ -91,7 +91,6 @@ const AddPropertiesTourStep = (): JSX.Element | null => {
 
     return (
         <TourTipRenderer
-            key='AddPropertiesTourStep'
             requireCard={true}
             category={TOUR_CARD}
             step={CardTourSteps.ADD_PROPERTIES}

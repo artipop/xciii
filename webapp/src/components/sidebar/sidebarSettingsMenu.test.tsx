@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {render, act} from '@testing-library/react'
+import {render, act} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 import configureStore from 'redux-mock-store'
@@ -43,36 +42,36 @@ describe('components/sidebar/SidebarSettingsMenu', () => {
         })
     })
     test('settings menu closed should match snapshot', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <SidebarSettingsMenu activeTheme={defaultThemeName}/>
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
     test('settings menu open should match snapshot', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <SidebarSettingsMenu activeTheme={defaultThemeName}/>
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         userEvent.click(container.querySelector('.menu-entry') as Element)
         expect(container).toMatchSnapshot()
     })
 
     test('theme menu open should match snapshot', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <SidebarSettingsMenu activeTheme={defaultThemeName}/>
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         act(() => {
             userEvent.click(container.querySelector('.menu-entry') as Element)
         })
@@ -83,13 +82,13 @@ describe('components/sidebar/SidebarSettingsMenu', () => {
     })
 
     test('languages menu open should match snapshot', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <SidebarSettingsMenu activeTheme={defaultThemeName}/>
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         act(() => {
             userEvent.click(container.querySelector('.menu-entry') as Element)
         })
@@ -101,13 +100,13 @@ describe('components/sidebar/SidebarSettingsMenu', () => {
 
     test('imports menu open should match snapshot', () => {
         window.open = jest.fn()
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <SidebarSettingsMenu activeTheme={defaultThemeName}/>
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         act(() => {
             userEvent.click(container.querySelector('.menu-entry') as Element)
         })

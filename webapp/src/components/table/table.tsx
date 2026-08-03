@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import React, {type JSX, useCallback} from 'react'
 
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../intl'
 
 import {IPropertyOption, IPropertyTemplate, Board, BoardGroup} from '../../blocks/board'
 import {createBoardView, BoardView} from '../../blocks/boardView'
@@ -38,7 +38,7 @@ type Props = {
     cardIdToFocusOnRender: string
     showCard: (cardId?: string) => void
     addCard: (groupByOptionId?: string) => Promise<void>
-    onCardClicked: (e: React.MouseEvent, card: Card) => void
+    onCardClicked: (e: MouseEvent, card: Card) => void
     hiddenCardsCount: number
     showHiddenCardCountNotification: (show: boolean) => void
 }
@@ -171,12 +171,12 @@ const Table = (props: Props): JSX.Element => {
     }, [board, groupByProperty])
 
     return (
-        <div className='Table'>
+        <div class='Table'>
             <ColumnResizeProvider
                 columnWidths={activeView.fields.columnWidths}
                 onResizeColumn={resizeColumn}
             >
-                <div className='octo-table-body'>
+                <div class='octo-table-body'>
                     <TableHeaders
                         board={board}
                         cards={cards}
@@ -186,12 +186,11 @@ const Table = (props: Props): JSX.Element => {
                     />
 
                     {/* Table rows */}
-                    <div className='table-row-container'>
+                    <div class='table-row-container'>
                         {activeView.fields.groupById &&
                     visibleGroups.map((group) => {
                         return (
                             <TableGroup
-                                key={group.option.id}
                                 board={board}
                                 activeView={activeView}
                                 groupByProperty={groupByProperty}
@@ -229,11 +228,11 @@ const Table = (props: Props): JSX.Element => {
                     </div>
 
                     {/* Add New row */}
-                    <div className='octo-table-footer'>
+                    <div class='octo-table-footer'>
                         {!props.readonly && !activeView.fields.groupById &&
                         <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
                             <div
-                                className='octo-table-cell'
+                                class='octo-table-cell'
                                 onClick={() => {
                                     props.addCard('')
                                 }}

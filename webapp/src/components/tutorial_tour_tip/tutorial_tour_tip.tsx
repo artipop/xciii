@@ -3,7 +3,7 @@
 
 import React, {type CSSProperties, type JSX, useEffect, useId, useRef, useState} from 'react'
 import ReactDOM from 'react-dom'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../intl'
 import {arrow, autoUpdate, computePosition, flip, offset, shift, type Placement} from '@floating-ui/dom'
 
 import './tutorial_tour_tip.scss'
@@ -23,10 +23,10 @@ const TourTipOverlay = ({
     children,
     show,
     onClick,
-}: { children: React.ReactNode, show: boolean, onClick: (e: React.MouseEvent) => void }) =>
+}: { children: JSX.Element, show: boolean, onClick: (e: MouseEvent) => void }) =>
     (show ? ReactDOM.createPortal(
         <div
-            className='tutorial-tour-tip__overlay'
+            class='tutorial-tour-tip__overlay'
             onClick={onClick}
         >
             {children}
@@ -62,7 +62,7 @@ type TourTipBoxProps = {
     width: string | number
     className?: string
     labelledBy: string
-    children: React.ReactNode
+    children: JSX.Element
 }
 
 // What Tippy was here for. The box is portalled to the body and placed against
@@ -120,19 +120,19 @@ const TourTipBox = (props: TourTipBoxProps): JSX.Element => {
 
             // Nothing is drawn until there is somewhere to draw it, so the box
             // never appears at the top-left corner for a frame first.
-            className={`tutorial-tour-tip__positioner ${position ? 'is-positioned' : ''}`}
+            class={`tutorial-tour-tip__positioner ${position ? 'is-positioned' : ''}`}
             data-placement={resolved}
             style={position ? {transform: `translate(${Math.round(position.x)}px, ${Math.round(position.y)}px)`} : undefined}
         >
             <div
-                className={`tutorial-tour-tip__box ${props.className || ''}`}
+                class={`tutorial-tour-tip__box ${props.className || ''}`}
                 style={{maxWidth: props.width}}
                 role='dialog'
                 aria-labelledby={props.labelledBy}
             >
                 <div
                     ref={setArrowElement}
-                    className='tutorial-tour-tip__arrow'
+                    class='tutorial-tour-tip__arrow'
                     style={arrowStyle}
                 />
                 {props.children}
@@ -164,7 +164,7 @@ type Props = {
     hideNavButtons?: boolean
     hideBackdrop?: boolean
     clickThroughPunchhole?: boolean
-    onPunchholeClick?: (e: React.MouseEvent) => void
+    onPunchholeClick?: (e: MouseEvent) => void
     skipCategoryFromBackdrop?: boolean
 }
 
@@ -264,12 +264,11 @@ const TutorialTourTip = ({
 
             dots.push(
                 <div
-                    key={'dotactive' + i}
-                    className={circularRing}
+                    class={circularRing}
                 >
                     <a
                         href='#'
-                        className={classname}
+                        class={classname}
                         data-screen={i}
                         onClick={() => handleSavePreferences(i)}
                     />
@@ -284,10 +283,10 @@ const TutorialTourTip = ({
                 e.stopPropagation()
             }}
         >
-            <div className='tutorial-tour-tip__header'>
+            <div class='tutorial-tour-tip__header'>
                 <h4
                     id={titleId}
-                    className='tutorial-tour-tip__header__title'
+                    class='tutorial-tour-tip__header__title'
                 >
                     {title}
                 </h4>
@@ -303,21 +302,21 @@ const TutorialTourTip = ({
                     }}
                 />
             </div>
-            <div className='tutorial-tour-tip__body'>
+            <div class='tutorial-tour-tip__body'>
                 {screen}
             </div>
             {imageURL && (
-                <div className='tutorial-tour-tip__image'>
+                <div class='tutorial-tour-tip__image'>
                     <img
                         src={imageURL}
                         alt={'tutorial tour tip product image'}
                     />
                 </div>
             )}
-            <div className='tutorial-tour-tip__footer'>
-                <div className='tutorial-tour-tip__footer-buttons'>
-                    <div className='tutorial-tour-tip__circles-ctr'>{dots}</div>
-                    <div className={'tutorial-tour-tip__btn-ctr'}>
+            <div class='tutorial-tour-tip__footer'>
+                <div class='tutorial-tour-tip__footer-buttons'>
+                    <div class='tutorial-tour-tip__circles-ctr'>{dots}</div>
+                    <div class={'tutorial-tour-tip__btn-ctr'}>
                         {!hideNavButtons && step !== 0 && (
                             <Button
                                 title='Previous'
@@ -359,7 +358,7 @@ const TutorialTourTip = ({
                         }
                     </div>
                 </div>
-                {showOptOut && <div className='tutorial-tour-tip__opt'>
+                {showOptOut && <div class='tutorial-tour-tip__opt'>
                     <FormattedMessage
                         id='tutorial_tip.seen'
                         defaultMessage='Seen this before? '
@@ -384,7 +383,7 @@ const TutorialTourTip = ({
                 ref={triggerRef}
                 onClick={handleOpen}
                 aria-expanded={show}
-                className={`tutorial-tour-tip__pulsating-dot-ctr ${className || ''}`}
+                class={`tutorial-tour-tip__pulsating-dot-ctr ${className || ''}`}
             >
                 <PulsatingDot coords={pulsatingDotPosition}/>
             </div>

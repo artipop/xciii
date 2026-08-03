@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {Board, IPropertyTemplate} from '../../blocks/board'
 import {Card} from '../../blocks/card'
@@ -26,7 +26,7 @@ type Props = {
     visiblePropertyTemplates: IPropertyTemplate[]
     isSelected: boolean
     visibleBadges: boolean
-    onClick?: (e: React.MouseEvent, card: Card) => void
+    onClick?: (e: MouseEvent, card: Card) => void
     readonly: boolean
     onDrop: (srcCard: Card, dstCard: Card) => void
     showCard: (cardId?: string) => void
@@ -81,7 +81,7 @@ const KanbanCard = (props: Props) => {
         setShowConfirmationDialogBox(true)
     }
 
-    const handleOnClick = (e: React.MouseEvent) => {
+    const handleOnClick = (e: MouseEvent) => {
         if (props.onClick) {
             props.onClick(e, card)
         }
@@ -91,7 +91,7 @@ const KanbanCard = (props: Props) => {
         <>
             <div
                 ref={props.readonly ? undefined : cardRef}
-                className={`${className}`}
+                class={`${className}`}
                 style={{opacity: isDragging ? 0.5 : 1}}
                 onClick={handleOnClick}
             >
@@ -126,18 +126,16 @@ const KanbanCard = (props: Props) => {
                 </MenuWrapper>
                 }
 
-                <div className='octo-icontitle'>
-                    { card.fields.icon ? <div className='octo-icon'>{card.fields.icon}</div> : undefined }
+                <div class='octo-icontitle'>
+                    { card.fields.icon ? <div class='octo-icon'>{card.fields.icon}</div> : undefined }
                     <div
-                        key='__title'
-                        className='octo-titletext'
+                        class='octo-titletext'
                     >
                         {card.title || intl.formatMessage({id: 'KanbanCard.untitled', defaultMessage: 'Untitled'})}
                     </div>
                 </div>
                 {visiblePropertyTemplates.map((template) => (
                     <Tooltip
-                        key={template.id}
                         title={template.name}
                     >
                         <PropertyValueElement
@@ -158,4 +156,4 @@ const KanbanCard = (props: Props) => {
     )
 }
 
-export default React.memo(KanbanCard)
+export default KanbanCard

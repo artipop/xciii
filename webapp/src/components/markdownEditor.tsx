@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState, Suspense} from 'react'
+import {Show, Suspense, createSignal, lazy} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import {Utils} from '../utils'
 import './markdownEditor.scss'
 
-const MarkdownEditorInput = React.lazy(() => import('./markdownEditorInput/markdownEditorInput'))
+const MarkdownEditorInput = lazy(() => import('./markdownEditorInput/markdownEditorInput'))
 
 type Props = {
     id?: string
@@ -17,64 +18,60 @@ type Props = {
     onChange?: (text: string) => void
     onFocus?: () => void
     onBlur?: (text: string) => void
-    onKeyDown?: (e: React.KeyboardEvent) => void
+    onKeyDown?: (e: KeyboardEvent) => void
     onEditorCancel?: () => void
     autofocus?: boolean
     saveOnEnter?: boolean
 }
 
 const MarkdownEditor = (props: Props): JSX.Element => {
-    const {placeholderText, onFocus, onEditorCancel, onBlur, onChange, text, id, saveOnEnter} = props
-    const [isEditing, setIsEditing] = useState(Boolean(props.autofocus))
-    const html: string = Utils.htmlFromMarkdown(text || placeholderText || '')
-
-    const previewElement = (
-        <div
-            data-testid='preview-element'
-            className={text ? 'octo-editor-preview' : 'octo-editor-preview octo-placeholder'}
-            dangerouslySetInnerHTML={{__html: html}}
-            onClick={(e) => {
-                const LINK_TAG_NAME = 'a'
-                const element = e.target as Element
-                if (element.tagName.toLowerCase() === LINK_TAG_NAME) {
-                    e.stopPropagation()
-                    return
-                }
-
-                if (!props.readonly && !isEditing) {
-                    setIsEditing(true)
-                }
-            }}
-        />
-    )
+    const [isEditing, setIsEditing] = createSignal(Boolean(props.autofocus))
+    const html = (): string => Utils.htmlFromMarkdown(props.text || props.placeholderText || '')
 
     const editorOnBlur = (newText: string) => {
         setIsEditing(false)
-        onBlur && onBlur(newText)
+        props.onBlur && props.onBlur(newText)
     }
 
-    const editorElement = (
-        <Suspense fallback={<></>}>
-            <MarkdownEditorInput
-                id={id}
-                onChange={onChange}
-                onFocus={onFocus}
-                onEditorCancel={onEditorCancel}
-                onBlur={editorOnBlur}
-                initialText={text}
-                isEditing={isEditing}
-                saveOnEnter={saveOnEnter}
-            />
-        </Suspense>
-    )
+    return (
+        <div class={`MarkdownEditor octo-editor ${props.className || ''} ${isEditing() ? 'active' : ''}`}>
+            <Show
+                when={isEditing()}
+                fallback={
+                    <div
+                        data-testid='preview-element'
+                        class={props.text ? 'octo-editor-preview' : 'octo-editor-preview octo-placeholder'}
+                        innerHTML={html()}
+                        onClick={(e) => {
+                            const LINK_TAG_NAME = 'a'
+                            const element = e.target as Element
+                            if (element.tagName.toLowerCase() === LINK_TAG_NAME) {
+                                e.stopPropagation()
+                                return
+                            }
 
-    const element = (
-        <div className={`MarkdownEditor octo-editor ${props.className || ''} ${isEditing ? 'active' : ''}`}>
-            {isEditing ? editorElement : previewElement}
+                            if (!props.readonly && !isEditing()) {
+                                setIsEditing(true)
+                            }
+                        }}
+                    />
+                }
+            >
+                <Suspense fallback={<></>}>
+                    <MarkdownEditorInput
+                        id={props.id}
+                        onChange={props.onChange}
+                        onFocus={props.onFocus}
+                        onEditorCancel={props.onEditorCancel}
+                        onBlur={editorOnBlur}
+                        initialText={props.text}
+                        isEditing={isEditing()}
+                        saveOnEnter={props.saveOnEnter}
+                    />
+                </Suspense>
+            </Show>
         </div>
     )
-
-    return element
 }
 
 export {MarkdownEditor}

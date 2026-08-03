@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useState, useEffect} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import ViewMenu from '../../components/viewMenu'
 import mutator from '../../mutator'
@@ -114,8 +114,8 @@ const ViewHeader = (props: Props) => {
     const showAddViewTourStep = showTourBaseCondition && delayComplete
 
     return (
-        <div className='ViewHeader'>
-            <div className='viewSelector'>
+        <div class='ViewHeader'>
+            <div class='viewSelector'>
                 <Editable
                     value={viewTitle}
                     placeholderText='Untitled View'
@@ -146,7 +146,7 @@ const ViewHeader = (props: Props) => {
 
             </div>
 
-            <div className='octo-spacer'/>
+            <div class='octo-spacer'/>
 
             {!props.readonly && canEditBoardProperties &&
             <>
@@ -242,4 +242,4 @@ const ViewHeader = (props: Props) => {
     )
 }
 
-export default React.memo(ViewHeader)
+export default ViewHeader

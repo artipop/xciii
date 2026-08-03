@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import React, {type JSX, useState, useRef, useEffect} from 'react'
 import {useRouteMatch} from 'react-router-dom'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 import debounce from 'lodash/debounce'
 
 import {useHotkeys} from '../../hooks/hotkeys'
@@ -52,7 +52,7 @@ const ViewHeaderSearch = (): JSX.Element => {
     })
 
     return (
-        <div className='board-search-field'>
+        <div class='board-search-field'>
             <CompassIcon
                 icon='magnify'
                 className='board-search-icon'

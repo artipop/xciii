@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useCallback} from 'react'
-import {useHistory, useLocation} from 'react-router-dom'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {Show} from 'solid-js'
+import {useLocation, useNavigate} from '@solidjs/router'
+
+import {FormattedMessage, useIntl} from '../intl'
 
 import ErrorIllustration from '../svg/error-illustration'
 
@@ -12,13 +13,13 @@ import './errorPage.scss'
 import {errorDefFromId, ErrorId} from '../errors'
 
 const ErrorPage = () => {
-    const history = useHistory()
+    const navigate = useNavigate()
     const queryParams = new URLSearchParams(useLocation().search)
     const errid = queryParams.get('id')
     const intl = useIntl()
     const errorDef = errorDefFromId(errid as ErrorId, intl)
 
-    const handleButtonClick = useCallback((path: string | ((params: URLSearchParams) => string)) => {
+    const handleButtonClick = (path: string | ((params: URLSearchParams) => string)) => {
         let url = '/'
         if (typeof path === 'function') {
             url = path(queryParams)
@@ -28,9 +29,9 @@ const ErrorPage = () => {
         if (url === window.location.origin) {
             window.location.href = url
         } else {
-            history.push(url)
+            navigate(url)
         }
-    }, [history])
+    }
 
     const makeButton = ((path: string | ((params: URLSearchParams) => string), txt: string, fill: boolean) => {
         return (
@@ -51,28 +52,28 @@ const ErrorPage = () => {
     }
 
     return (
-        <div className='ErrorPage'>
+        <div class='ErrorPage'>
             <div>
-                <div className='title'>
+                <div class='title'>
                     <FormattedMessage
                         id='error.page.title'
                         defaultMessage={'Sorry, something went wrong'}
                     />
                 </div>
-                <div className='subtitle'>
+                <div class='subtitle'>
                     {errorDef.title}
                 </div>
                 <ErrorIllustration/>
                 <br/>
-                {
-                    (errorDef.button1Enabled ? makeButton(errorDef.button1Redirect, errorDef.button1Text, errorDef.button1Fill) : null)
-                }
-                {
-                    (errorDef.button2Enabled ? makeButton(errorDef.button2Redirect, errorDef.button2Text, errorDef.button2Fill) : null)
-                }
+                <Show when={errorDef.button1Enabled}>
+                    {makeButton(errorDef.button1Redirect, errorDef.button1Text, errorDef.button1Fill)}
+                </Show>
+                <Show when={errorDef.button2Enabled}>
+                    {makeButton(errorDef.button2Redirect, errorDef.button2Text, errorDef.button2Fill)}
+                </Show>
             </div>
         </div>
     )
 }
 
-export default React.memo(ErrorPage)
+export default ErrorPage

@@ -4,7 +4,7 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {IPropertyOption, IPropertyTemplate} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
@@ -128,7 +128,7 @@ const ColumnSettingsDialog = (props: Props) => {
             subtitle={<span>{intl.formatMessage({id: 'ColumnSettings.subtitle', defaultMessage: 'What happens when a card lands here, and who does it. A flow only says where the card goes next.'})}</span>}
             onClose={onClose}
         >
-            <div className='ColumnSettingsDialog__content'>
+            <div class='ColumnSettingsDialog__content'>
                 <label>
                     {intl.formatMessage({id: 'ColumnSettings.action', defaultMessage: 'On arrival'})}
                     <select
@@ -137,7 +137,6 @@ const ColumnSettingsDialog = (props: Props) => {
                     >
                         {COLUMN_ACTIONS.map((a) => (
                             <option
-                                key={a}
                                 value={a}
                             >{actionLabel(intl, a)}</option>
                         ))}
@@ -145,18 +144,17 @@ const ColumnSettingsDialog = (props: Props) => {
                 </label>
 
                 {form.action !== 'none' &&
-                    <div className='ColumnSettingsDialog__crew'>
-                        <span className='ColumnSettingsDialog__label'>
+                    <div class='ColumnSettingsDialog__crew'>
+                        <span class='ColumnSettingsDialog__label'>
                             {intl.formatMessage({id: 'ColumnSettings.crew', defaultMessage: 'Worked by'})}
                         </span>
                         {agents.length === 0 &&
-                            <span className='ColumnSettingsDialog__hint'>
+                            <span class='ColumnSettingsDialog__hint'>
                                 {intl.formatMessage({id: 'ColumnSettings.no-agents', defaultMessage: 'No agents registered yet — see “Agents…” in the board menu.'})}
                             </span>}
                         {agents.map((a) => (
                             <label
-                                key={a.name}
-                                className='ColumnSettingsDialog__agent'
+                                class='ColumnSettingsDialog__agent'
                             >
                                 <input
                                     type='checkbox'
@@ -166,7 +164,7 @@ const ColumnSettingsDialog = (props: Props) => {
                                 {a.name}
                             </label>
                         ))}
-                        <span className='ColumnSettingsDialog__hint'>
+                        <span class='ColumnSettingsDialog__hint'>
                             {intl.formatMessage({id: 'ColumnSettings.crew-hint', defaultMessage: 'Nobody chosen — the card decides, as before. With a crew, a card goes to whoever of them is free.'})}
                         </span>
                     </div>}
@@ -183,7 +181,7 @@ const ColumnSettingsDialog = (props: Props) => {
                     </label>}
 
                 {form.action !== 'none' && (form.maxRunning || 0) !== 1 && crew.length > 1 && !worktrees &&
-                    <div className='ColumnSettingsDialog__warning'>
+                    <div class='ColumnSettingsDialog__warning'>
                         {intl.formatMessage({id: 'ColumnSettings.no-worktrees', defaultMessage: 'worktreeMode is “never”, so two agents cannot work one repository at the same time: the crew will take cards one after another.'})}
                     </div>}
 
@@ -197,14 +195,13 @@ const ColumnSettingsDialog = (props: Props) => {
                             <option value=''>{intl.formatMessage({id: 'ColumnSettings.deploy-default', defaultMessage: '— the card’s own —'})}</option>
                             {deploys.map((d) => (
                                 <option
-                                    key={d.name}
                                     value={d.name}
                                 >{d.name}</option>
                             ))}
                         </select>
                     </label>}
 
-                <div className='ColumnSettingsDialog__actions'>
+                <div class='ColumnSettingsDialog__actions'>
                     <Button
                         emphasis='primary'
                         onClick={save}
@@ -217,7 +214,7 @@ const ColumnSettingsDialog = (props: Props) => {
                 </div>
 
                 {error &&
-                    <div className='ColumnSettingsDialog__error'>{error}</div>}
+                    <div class='ColumnSettingsDialog__error'>{error}</div>}
             </div>
         </Dialog>
     )
@@ -237,4 +234,4 @@ function actionLabel(intl: {formatMessage: (d: {id: string, defaultMessage: stri
     }
 }
 
-export default React.memo(ColumnSettingsDialog)
+export default ColumnSettingsDialog

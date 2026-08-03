@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {type JSX, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import cx from 'classnames'
 
@@ -48,7 +48,7 @@ const TextElement = ({block, readonly}: Props): JSX.Element => {
     }
 
     return (
-        <div className='TextElement'>
+        <div class='TextElement'>
             <MarkdownEditor
                 className={cx({'markdown-editor-error': isError})}
                 text={blockTitle}
@@ -57,7 +57,7 @@ const TextElement = ({block, readonly}: Props): JSX.Element => {
                 onBlur={handleBlur}
                 readonly={readonly}
             />
-            {isError && <div className='error-message'>{intl.formatMessage({id: 'ContentBlock.errorText', defaultMessage: 'You\'ve exceeded the size limit for this content. Please shorten it to avoid losing data.'})}</div>}
+            {isError && <div class='error-message'>{intl.formatMessage({id: 'ContentBlock.errorText', defaultMessage: 'You\'ve exceeded the size limit for this content. Please shorten it to avoid losing data.'})}</div>}
         </div>
     )
 }
@@ -79,4 +79,4 @@ contentRegistry.registerContentType({
     },
 })
 
-export default React.memo(TextElement)
+export default TextElement

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useCallback, useEffect, useState} from 'react'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../intl'
 import {useDragDropMonitor} from '@dnd-kit/react'
 import {isSortable} from '@dnd-kit/react/sortable'
 
@@ -344,9 +344,9 @@ const Sidebar = (props: Props) => {
 
     if (isHidden) {
         return (
-            <div className='Sidebar octo-sidebar hidden'>
-                <div className='octo-sidebar-header show-button'>
-                    <div className='hamburger-icon'>
+            <div class='Sidebar octo-sidebar hidden'>
+                <div class='octo-sidebar-header show-button'>
+                    <div class='hamburger-icon'>
                         <IconButton
                             icon={<HamburgerIcon/>}
                             onClick={() => {
@@ -355,7 +355,7 @@ const Sidebar = (props: Props) => {
                             }}
                         />
                     </div>
-                    <div className='show-icon'>
+                    <div class='show-icon'>
                         <IconButton
                             icon={<ShowSidebarIcon/>}
                             onClick={() => {
@@ -390,14 +390,14 @@ const Sidebar = (props: Props) => {
     }
 
     return (
-        <div className='Sidebar octo-sidebar'>
-            <div className='octo-sidebar-header'>
-                <div className='heading'>
+        <div class='Sidebar octo-sidebar'>
+            <div class='octo-sidebar-header'>
+                <div class='heading'>
                     <SidebarUserMenu/>
                 </div>
 
-                <div className='octo-spacer'/>
-                <div className='sidebarSwitcher'>
+                <div class='octo-spacer'/>
+                <div class='sidebarSwitcher'>
                     <IconButton
                         onClick={() => {
                             setUserHidden(true)
@@ -409,17 +409,16 @@ const Sidebar = (props: Props) => {
             </div>
 
             {team && team.id !== Constants.globalTeamId &&
-                <div className='WorkspaceTitle'/>
+                <div class='WorkspaceTitle'/>
             }
 
             <BoardsSwitcher/>
 
-            <div className='octo-sidebar-list'>
+            <div class='octo-sidebar-list'>
                 {
                     sidebarCategories.map((category, index) => (
                         <SidebarCategory
                             hideSidebar={hideSidebar}
-                            key={category.id}
                             activeBoardID={props.activeBoardId}
                             activeViewID={activeViewID}
                             categoryBoards={category}
@@ -434,10 +433,10 @@ const Sidebar = (props: Props) => {
                 }
             </div>
 
-            <div className='octo-spacer'/>
+            <div class='octo-spacer'/>
 
             <div
-                className='add-board'
+                class='add-board'
                 onClick={props.onBoardTemplateSelectorOpen}
             >
                 <FormattedMessage
@@ -451,4 +450,4 @@ const Sidebar = (props: Props) => {
     )
 }
 
-export default React.memo(Sidebar)
+export default Sidebar

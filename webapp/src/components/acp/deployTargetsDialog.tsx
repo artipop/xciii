@@ -4,7 +4,7 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
@@ -127,19 +127,18 @@ const DeployTargetsDialog = (props: Props) => {
             subtitle={<span>{intl.formatMessage({id: 'DeployTargets.subtitle', defaultMessage: 'Dokku hosts a card\'s branch is published to when it moves into the Deploy column. One branch becomes one app of its own, at “repository-branch.base-domain”.'})}</span>}
             onClose={onClose}
         >
-            <div className='DeployTargetsDialog__content'>
+            <div class='DeployTargetsDialog__content'>
                 {targets.length === 0 && !form &&
-                    <div className='DeployTargetsDialog__empty'>
+                    <div class='DeployTargetsDialog__empty'>
                         {intl.formatMessage({id: 'DeployTargets.empty', defaultMessage: 'No deploy targets yet.'})}
                     </div>}
 
                 {targets.map((entry) => (
                     <div
-                        className='DeployTargetsDialog__row'
-                        key={entry.name}
+                        class='DeployTargetsDialog__row'
                     >
-                        <span className='DeployTargetsDialog__name'>{entry.name}</span>
-                        <span className='DeployTargetsDialog__where'>{`${entry.sshUser || 'dokku'}@${entry.sshHost} → *.${entry.baseDomain || entry.sshHost}`}</span>
+                        <span class='DeployTargetsDialog__name'>{entry.name}</span>
+                        <span class='DeployTargetsDialog__where'>{`${entry.sshUser || 'dokku'}@${entry.sshHost} → *.${entry.baseDomain || entry.sshHost}`}</span>
                         <Button onClick={() => startEdit(entry)}>
                             {intl.formatMessage({id: 'DeployTargets.edit', defaultMessage: 'Edit'})}
                         </Button>
@@ -150,7 +149,7 @@ const DeployTargetsDialog = (props: Props) => {
                 ))}
 
                 {form &&
-                    <div className='DeployTargetsDialog__form'>
+                    <div class='DeployTargetsDialog__form'>
                         <label>
                             {intl.formatMessage({id: 'DeployTargets.name', defaultMessage: 'Name'})}
                             <input
@@ -208,13 +207,13 @@ const DeployTargetsDialog = (props: Props) => {
                                 onChange={(e) => updateForm({baseApp: e.target.value})}
                             />
                         </label>
-                        <div className='DeployTargetsDialog__hint'>
+                        <div class='DeployTargetsDialog__hint'>
                             {intl.formatMessage(
                                 {id: 'DeployTargets.hostname', defaultMessage: 'A branch is served at {host}'},
                                 {host: previewHost(form)},
                             )}
                         </div>
-                        <div className='DeployTargetsDialog__formActions'>
+                        <div class='DeployTargetsDialog__formActions'>
                             <Button
                                 emphasis='primary'
                                 onClick={saveForm}
@@ -228,7 +227,7 @@ const DeployTargetsDialog = (props: Props) => {
                     </div>}
 
                 {!form &&
-                    <div className='DeployTargetsDialog__actions'>
+                    <div class='DeployTargetsDialog__actions'>
                         <Button
                             emphasis='primary'
                             onClick={startAdd}
@@ -238,10 +237,10 @@ const DeployTargetsDialog = (props: Props) => {
                     </div>}
 
                 {error &&
-                    <div className='DeployTargetsDialog__error'>{error}</div>}
+                    <div class='DeployTargetsDialog__error'>{error}</div>}
             </div>
         </Dialog>
     )
 }
 
-export default React.memo(DeployTargetsDialog)
+export default DeployTargetsDialog

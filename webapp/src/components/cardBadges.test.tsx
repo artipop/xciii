@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
 import {TestBlockFactory} from '../test/testBlockFactory'
@@ -60,7 +59,7 @@ describe('components/cardBadges', () => {
     const store = mockStateStore([], state)
 
     it('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <CardBadges card={card}/>
             </ReduxProvider>,
@@ -69,7 +68,7 @@ describe('components/cardBadges', () => {
     })
 
     it('should match snapshot for empty card', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <CardBadges card={emptyCard}/>
             </ReduxProvider>,
@@ -78,7 +77,7 @@ describe('components/cardBadges', () => {
     })
 
     it('should render correct values', () => {
-        render(wrapDNDIntl(
+        render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <CardBadges card={card}/>
             </ReduxProvider>,

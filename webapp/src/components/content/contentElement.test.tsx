@@ -4,7 +4,7 @@ import React, {ReactElement, ReactNode} from 'react'
 
 import '@testing-library/jest-dom'
 
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import {wrapIntl} from '../../testUtils'
 
@@ -34,7 +34,7 @@ const contentBlock: ContentBlock = {
 }
 
 const wrap = (child: ReactNode): ReactElement => (
-    wrapIntl(
+    wrapIntl(() =>
         <CardDetailProvider card={card}>
             {child}
         </CardDetailProvider>,

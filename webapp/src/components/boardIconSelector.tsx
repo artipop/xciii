@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useCallback} from 'react'
+import {Show} from 'solid-js'
+import type {Component} from 'solid-js'
 
 import {BlockIcons} from '../blockIcons'
 import {Board} from '../blocks/board'
@@ -15,35 +16,33 @@ type Props = {
     readonly?: boolean
 }
 
-const BoardIconSelector = React.memo((props: Props) => {
-    const {board, size} = props
-
-    const onSelectEmoji = useCallback((emoji: string) => {
-        mutator.changeBoardIcon(board.id, board.icon, emoji)
+const BoardIconSelector: Component<Props> = (props) => {
+    const onSelectEmoji = (emoji: string) => {
+        mutator.changeBoardIcon(props.board.id, props.board.icon, emoji)
         document.body.click()
-    }, [board.id, board.icon])
-    const onAddRandomIcon = useCallback(() => mutator.changeBoardIcon(board.id, board.icon, BlockIcons.shared.randomIcon()), [board.id, board.icon])
-    const onRemoveIcon = useCallback(() => mutator.changeBoardIcon(board.id, board.icon, '', 'remove board icon'), [board.id, board.icon])
-
-    if (!board.icon) {
-        return null
     }
+    const onAddRandomIcon = () => mutator.changeBoardIcon(props.board.id, props.board.icon, BlockIcons.shared.randomIcon())
+    const onRemoveIcon = () => mutator.changeBoardIcon(props.board.id, props.board.icon, '', 'remove board icon')
 
-    let className = `octo-icon size-${size || 'm'}`
-    if (props.readonly) {
-        className += ' readonly'
+    const className = () => {
+        let name = `octo-icon size-${props.size || 'm'}`
+        if (props.readonly) {
+            name += ' readonly'
+        }
+        return name
     }
-    const iconElement = <div className={className}><span>{board.icon}</span></div>
 
     return (
-        <IconSelector
-            readonly={props.readonly}
-            iconElement={iconElement}
-            onAddRandomIcon={onAddRandomIcon}
-            onSelectEmoji={onSelectEmoji}
-            onRemoveIcon={onRemoveIcon}
-        />
+        <Show when={props.board.icon}>
+            <IconSelector
+                readonly={props.readonly}
+                iconElement={<div class={className()}><span>{props.board.icon}</span></div>}
+                onAddRandomIcon={onAddRandomIcon}
+                onSelectEmoji={onSelectEmoji}
+                onRemoveIcon={onRemoveIcon}
+            />
+        </Show>
     )
-})
+}
 
 export default BoardIconSelector

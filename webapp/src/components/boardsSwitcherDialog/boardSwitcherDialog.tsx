@@ -3,7 +3,7 @@
 import React, {type JSX, ReactNode, useRef, createRef, useState, useEffect, MutableRefObject} from 'react'
 
 import './boardSwitcherDialog.scss'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
 
@@ -78,15 +78,14 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
             }))
             return (
                 <div
-                    key={item.id}
-                    className='blockSearchResult'
+                    class='blockSearchResult'
                     onClick={() => selectBoard(item.teamId, item.id)}
                     ref={refs.current[i]}
                 >
                     {item.type === BoardTypeOpen && <Globe/>}
                     {item.type === BoardTypePrivate && <LockOutline/>}
-                    <span className='resultTitle'>{resultTitle}</span>
-                    <span className='teamTitle'>{teamTitle}</span>
+                    <span class='resultTitle'>{resultTitle}</span>
+                    <span class='teamTitle'>{teamTitle}</span>
                 </div>
             )
         })

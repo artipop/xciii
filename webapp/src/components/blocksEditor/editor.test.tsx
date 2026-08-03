@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
-import {render, screen, fireEvent, act} from '@testing-library/react'
+import {render, screen, fireEvent, act} from '@solidjs/testing-library'
 
 import {mockDOM, wrapDNDIntl, mockStateStore} from '../../testUtils'
 import {TestBlockFactory} from '../../test/testBlockFactory'
@@ -41,7 +40,7 @@ describe('components/blocksEditor/editor', () => {
     test('should match snapshot', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <Editor
                         id='block-id'
@@ -60,7 +59,7 @@ describe('components/blocksEditor/editor', () => {
     test('should match snapshot on empty', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <Editor
                         boardId='fake-board-id'
@@ -76,7 +75,7 @@ describe('components/blocksEditor/editor', () => {
     test('should call onSave after introduce text and hit enter', async () => {
         const onSave = jest.fn()
         await act(async () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <Editor
                         boardId='fake-board-id'

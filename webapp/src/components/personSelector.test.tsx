@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {render, waitFor} from '@testing-library/react'
+import {render, waitFor} from '@solidjs/testing-library'
 
 import configureStore from 'redux-mock-store'
 
@@ -76,7 +75,7 @@ describe('properties/person', () => {
 
     test('not readOnly, show username', async () => {
         const store = mockStore(state)
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <PersonSelector
                     readOnly={false}
@@ -91,7 +90,7 @@ describe('properties/person', () => {
             </ReduxProvider>,
         )
 
-        const renderResult = render(component)
+        const renderResult = render(() => component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -110,7 +109,7 @@ describe('properties/person', () => {
                 },
             },
         })
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <PersonSelector
                     readOnly={false}
@@ -125,7 +124,7 @@ describe('properties/person', () => {
             </ReduxProvider>,
         )
 
-        const renderResult = render(component)
+        const renderResult = render(() => component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -137,7 +136,7 @@ describe('properties/person', () => {
 
     test('not readOnly, show modal', async () => {
         const store = mockStore(state)
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <PersonSelector
                     readOnly={false}
@@ -152,7 +151,7 @@ describe('properties/person', () => {
             </ReduxProvider>,
         )
 
-        const renderResult = render(component)
+        const renderResult = render(() => component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -181,7 +180,7 @@ describe('properties/person', () => {
 
     test('readOnly view', async () => {
         const store = mockStore(state)
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <PersonSelector
                     readOnly={true}
@@ -196,7 +195,7 @@ describe('properties/person', () => {
             </ReduxProvider>,
         )
 
-        const renderResult = render(component)
+        const renderResult = render(() => component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -217,7 +216,7 @@ describe('properties/person', () => {
 
     test('show multiple', async () => {
         const store = mockStore(state)
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <PersonSelector
                     readOnly={false}
@@ -232,7 +231,7 @@ describe('properties/person', () => {
             </ReduxProvider>,
         )
 
-        const renderResult = render(component)
+        const renderResult = render(() => component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -243,7 +242,7 @@ describe('properties/person', () => {
     })
     test('show multiple, display modal', async () => {
         const store = mockStore(state)
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <PersonSelector
                     readOnly={false}
@@ -258,7 +257,7 @@ describe('properties/person', () => {
             </ReduxProvider>,
         )
 
-        const renderResult = render(component)
+        const renderResult = render(() => component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -286,7 +285,7 @@ describe('properties/person', () => {
 
     test('not readOnly, show me', async () => {
         const store = mockStore(state)
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <PersonSelector
                     readOnly={false}
@@ -302,7 +301,7 @@ describe('properties/person', () => {
             </ReduxProvider>,
         )
 
-        const renderResult = render(component)
+        const renderResult = render(() => component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))

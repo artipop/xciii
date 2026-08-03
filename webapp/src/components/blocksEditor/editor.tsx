@@ -35,7 +35,7 @@ export default function Editor(props: Props) {
     const CurrentBlockInput = currentBlockType?.Input
 
     return (
-        <div className='Editor'>
+        <div class='Editor'>
             {currentBlockType === null &&
                 <RootInput
                     onChange={setValue}

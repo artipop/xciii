@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react'
-import {IntlProvider} from 'react-intl'
+import {IntlProvider} from '../../intl'
 
 import userEvent from '@testing-library/user-event'
-import {act, render} from '@testing-library/react'
+import {act, render} from '@solidjs/testing-library'
 
 import DeleteBoardDialog from './deleteBoardDialog'
 
@@ -36,7 +36,7 @@ describe('components/sidebar/DeleteBoardDialog', () => {
         const rootPortalDiv = document.createElement('div')
         rootPortalDiv.id = 'focalboard-root-portal'
 
-        const {container} = render(<TestComponent/>, {container: document.body.appendChild(rootPortalDiv)})
+        const {container} = render(() =><TestComponent/>, {container: document.body.appendChild(rootPortalDiv)})
         return container
     }
 

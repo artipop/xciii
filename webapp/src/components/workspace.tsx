@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import React, {useEffect, useState} from 'react'
 import {generatePath, useRouteMatch, useHistory} from 'react-router-dom'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../intl'
 
 import {DatePropertyType} from '../properties/types'
 
@@ -175,7 +175,7 @@ const Workspace = (props: Props) => {
     }, [board, viewId])
 
     return (
-        <div className='Workspace'>
+        <div class='Workspace'>
             {!props.readonly &&
                 <Sidebar
                     onBoardTemplateSelectorOpen={openBoardTemplateSelector}
@@ -183,11 +183,11 @@ const Workspace = (props: Props) => {
                     activeBoardId={board?.id}
                 />
             }
-            <div className='mainFrame'>
+            <div class='mainFrame'>
                 {boardTemplateSelectorOpen &&
                     <BoardTemplateSelector onClose={closeBoardTemplateSelector}/>}
                 {(board?.isTemplate) &&
-                <div className='banner'>
+                <div class='banner'>
                     <FormattedMessage
                         id='Workspace.editing-board-template'
                         defaultMessage="You're editing a board template."
@@ -201,4 +201,4 @@ const Workspace = (props: Props) => {
     )
 }
 
-export default React.memo(Workspace)
+export default Workspace

@@ -35,8 +35,8 @@ function App() {
     const [data, setData] = useState<Array<BlockData<any>>>(fakeData)
 
     return (
-        <div className='App'>
-            <header className='App-header'>
+        <div class='App'>
+            <header class='App-header'>
                 <BlocksEditor
                     blocks={data}
                     onBlockCreated={async (block: BlockData<any>, afterBlock?: BlockData<any>): Promise<BlockData|null> => {

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
@@ -53,7 +52,7 @@ describe('components/calendar/toolbar', () => {
 
     test('return calendar, no date property', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <CalendarView
                         board={board}
@@ -74,7 +73,7 @@ describe('components/calendar/toolbar', () => {
         board.cardProperties.push(dateDisplayProperty)
         card.fields.properties['12345'] = JSON.stringify(rObject)
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <CalendarView
                         board={board}
@@ -95,7 +94,7 @@ describe('components/calendar/toolbar', () => {
         board.cardProperties.push(dateDisplayProperty)
         card.fields.properties['12345'] = JSON.stringify(rObject)
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <CalendarView
                         board={board}
@@ -116,7 +115,7 @@ describe('components/calendar/toolbar', () => {
     test('return calendar, without permissions', () => {
         const localStore = mockStateStore([], {...state, teams: {current: undefined}})
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={localStore}>
                     <CalendarView
                         board={board}

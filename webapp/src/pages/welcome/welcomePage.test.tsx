@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 
 import {createMemoryHistory} from 'history'
 
@@ -81,7 +80,7 @@ describe('pages/welcome', () => {
         const component = (
             <ReduxProvider store={store}>
                 {
-                    wrapIntl(
+                    wrapIntl(() =>
                         <Router history={history}>
                             <WelcomePage/>
                         </Router>,
@@ -90,7 +89,7 @@ describe('pages/welcome', () => {
             </ReduxProvider>
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(screen.getByText('Take a tour')).toBeDefined()
         expect(container).toMatchSnapshot()
     })
@@ -100,7 +99,7 @@ describe('pages/welcome', () => {
         const component = (
             <ReduxProvider store={store}>
                 {
-                    wrapIntl(
+                    wrapIntl(() =>
                         <Router history={history}>
                             <WelcomePage/>
                         </Router>,
@@ -109,7 +108,7 @@ describe('pages/welcome', () => {
             </ReduxProvider>
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(screen.getByText('Take a tour')).toBeDefined()
         expect(container).toMatchSnapshot()
     })
@@ -120,7 +119,7 @@ describe('pages/welcome', () => {
         const component = (
             <ReduxProvider store={store}>
                 {
-                    wrapIntl(
+                    wrapIntl(() =>
                         <Router history={history}>
                             <WelcomePage/>
                         </Router>,
@@ -129,7 +128,7 @@ describe('pages/welcome', () => {
             </ReduxProvider>
         )
 
-        render(component)
+        render(() => component)
         const exploreButton = screen.getByText('No thanks, I\'ll figure it out myself')
         expect(exploreButton).toBeDefined()
         userEvent.click(exploreButton)
@@ -156,7 +155,7 @@ describe('pages/welcome', () => {
         const component = (
             <ReduxProvider store={customStore}>
                 {
-                    wrapIntl(
+                    wrapIntl(() =>
                         <Router history={history}>
                             <WelcomePage/>
                         </Router>,
@@ -165,7 +164,7 @@ describe('pages/welcome', () => {
             </ReduxProvider>
         )
 
-        render(component)
+        render(() => component)
         await waitFor(() => {
             expect(history.replace).toHaveBeenCalledWith('/team/team_id_1')
         })
@@ -189,7 +188,7 @@ describe('pages/welcome', () => {
         const component = (
             <ReduxProvider store={customStore}>
                 {
-                    wrapIntl(
+                    wrapIntl(() =>
                         <Router history={history}>
                             <WelcomePage/>
                         </Router>,
@@ -198,7 +197,7 @@ describe('pages/welcome', () => {
             </ReduxProvider>
         )
 
-        render(component)
+        render(() => component)
         await waitFor(() => {
             expect(history.replace).toHaveBeenCalledWith('123')
         })
@@ -222,7 +221,7 @@ describe('pages/welcome', () => {
         const component = (
             <ReduxProvider store={localStore}>
                 {
-                    wrapIntl(
+                    wrapIntl(() =>
                         <Router history={history}>
                             <WelcomePage/>
                         </Router>,
@@ -230,7 +229,7 @@ describe('pages/welcome', () => {
                 }
             </ReduxProvider>
         )
-        render(component)
+        render(() => component)
         const exploreButton = screen.getByText('No thanks, I\'ll figure it out myself')
         expect(exploreButton).toBeDefined()
         userEvent.click(exploreButton)
@@ -248,7 +247,7 @@ describe('pages/welcome', () => {
         const component = (
             <ReduxProvider store={store}>
                 {
-                    wrapIntl(
+                    wrapIntl(() =>
                         <Router history={history}>
                             <WelcomePage/>
                         </Router>,
@@ -256,7 +255,7 @@ describe('pages/welcome', () => {
                 }
             </ReduxProvider>
         )
-        render(component)
+        render(() => component)
         const exploreButton = screen.getByText('Take a tour')
         expect(exploreButton).toBeDefined()
         userEvent.click(exploreButton)
@@ -272,7 +271,7 @@ describe('pages/welcome', () => {
         const component = (
             <ReduxProvider store={store}>
                 {
-                    wrapIntl(
+                    wrapIntl(() =>
                         <Router history={history}>
                             <WelcomePage/>
                         </Router>,
@@ -280,7 +279,7 @@ describe('pages/welcome', () => {
                 }
             </ReduxProvider>
         )
-        render(component)
+        render(() => component)
         const exploreButton = screen.getByText('No thanks, I\'ll figure it out myself')
         expect(exploreButton).toBeDefined()
         userEvent.click(exploreButton)

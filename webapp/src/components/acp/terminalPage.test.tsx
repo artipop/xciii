@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 import {TextDecoder as NodeTextDecoder, TextEncoder as NodeTextEncoder} from 'util'
 
-import React from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 import {MemoryRouter, Route} from 'react-router-dom'
-import {IntlProvider} from 'react-intl'
+import {IntlProvider} from '../../intl'
 import '@testing-library/jest-dom'
 
 import TerminalPage from './terminalPage'
@@ -64,7 +63,7 @@ class FakeSocket {
 }
 
 const renderPage = () => {
-    return render(
+    return render(() =>
         <IntlProvider locale='en'>
             <MemoryRouter initialEntries={['/acp/terminal/term-1']}>
                 <Route path='/acp/terminal/:terminalId'>

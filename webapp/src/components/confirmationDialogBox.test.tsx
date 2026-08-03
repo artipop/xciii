@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import '@testing-library/jest-dom'
-import {act, render} from '@testing-library/react'
+import {act, render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
 
 import {wrapDNDIntl} from '../testUtils'
 
@@ -29,7 +28,7 @@ describe('/components/confirmationDialogBox', () => {
 
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ConfirmationDialogBox
                         dialogBox={dialogPropsWithCnfrmBtnText}
                     />,
@@ -44,7 +43,7 @@ describe('/components/confirmationDialogBox', () => {
         let containerWithCnfrmBtnText
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ConfirmationDialogBox
                         dialogBox={dialogPropsWithCnfrmBtnText}
                     />,
@@ -57,7 +56,7 @@ describe('/components/confirmationDialogBox', () => {
 
     it('confirm button click, run onConfirm Function once', () => {
         const result = render(
-            wrapDNDIntl(<ConfirmationDialogBox dialogBox={dialogProps}/>),
+            wrapDNDIntl(() =><ConfirmationDialogBox dialogBox={dialogProps}/>),
         )
 
         userEvent.click(result.getByTitle('Confirm'))
@@ -66,7 +65,7 @@ describe('/components/confirmationDialogBox', () => {
 
     it('confirm button (with passed prop text), run onConfirm Function once', () => {
         const resultWithConfirmBtnText = render(
-            wrapDNDIntl(
+            wrapDNDIntl(() =>
                 <ConfirmationDialogBox
                     dialogBox={dialogPropsWithCnfrmBtnText}
                 />,
@@ -81,7 +80,7 @@ describe('/components/confirmationDialogBox', () => {
     })
 
     it('cancel button click runs onClose function', () => {
-        const result = render(wrapDNDIntl(
+        const result = render(wrapDNDIntl(() =>
             <ConfirmationDialogBox
                 dialogBox={dialogProps}
             />,

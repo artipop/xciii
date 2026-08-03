@@ -3,7 +3,7 @@
 import React, {ReactElement, ReactNode} from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {fireEvent, render} from '@testing-library/react'
+import {fireEvent, render} from '@solidjs/testing-library'
 
 import {act} from 'react-dom/test-utils'
 
@@ -77,7 +77,7 @@ describe('components/cardDetail/cardDetailContents', () => {
     }
     const store = mockStateStore([], state)
     const wrap = (child: ReactNode): ReactElement => (
-        wrapDNDIntl(
+        wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <CardDetailProvider card={card}>
                     {child}
@@ -98,7 +98,7 @@ describe('components/cardDetail/cardDetailContents', () => {
 
         let container: Element | undefined
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
         expect(container).toMatchSnapshot()
@@ -117,7 +117,7 @@ describe('components/cardDetail/cardDetailContents', () => {
 
         let container: Element | undefined
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
         expect(container).toMatchSnapshot()
@@ -135,7 +135,7 @@ describe('components/cardDetail/cardDetailContents', () => {
         ))
         let container: Element | undefined
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
         expect(container).toMatchSnapshot()
@@ -155,7 +155,7 @@ describe('components/cardDetail/cardDetailContents', () => {
 
         let container: Element | undefined
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
 
@@ -184,7 +184,7 @@ describe('components/cardDetail/cardDetailContents', () => {
 
         let container: Element | undefined
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
 
@@ -213,7 +213,7 @@ describe('components/cardDetail/cardDetailContents', () => {
 
         let container: Element | undefined
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
 

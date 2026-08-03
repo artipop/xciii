@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, render, screen, waitFor} from '@testing-library/react'
+import {fireEvent, render, screen, waitFor} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {MemoryRouter} from 'react-router-dom'
 import {mocked} from 'jest-mock'
@@ -107,7 +106,7 @@ describe('src/component/kanban/kanban', () => {
     })
     beforeEach(jest.resetAllMocks)
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Kanban
                     board={board}
@@ -144,7 +143,7 @@ describe('src/component/kanban/kanban', () => {
     })
     test('should match snapshot without permissions', () => {
         const localStore = mockStateStore([], {...state, teams: {current: undefined}})
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={localStore}>
                 <Kanban
                     board={board}
@@ -180,7 +179,7 @@ describe('src/component/kanban/kanban', () => {
         expect(container).toMatchSnapshot()
     })
     test('do not return a kanban with groupByProperty undefined', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Kanban
                     board={board}
@@ -221,7 +220,7 @@ describe('src/component/kanban/kanban', () => {
     // TODO(react-19): see docs/npm-dependency-warnings.md -- drives react-dnd HTML5 drag events, which dnd-kit does not listen to
     // eslint-disable-next-line no-only-tests/no-only-tests
     test.skip('return kanban and drag card to other card ', async () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Kanban
                     board={board}
@@ -272,7 +271,7 @@ describe('src/component/kanban/kanban', () => {
     // TODO(react-19): see docs/npm-dependency-warnings.md -- drives react-dnd HTML5 drag events, which dnd-kit does not listen to
     // eslint-disable-next-line no-only-tests/no-only-tests
     test.skip('return kanban and change card column', async () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Kanban
                     board={board}
@@ -323,7 +322,7 @@ describe('src/component/kanban/kanban', () => {
     // TODO(react-19): see docs/npm-dependency-warnings.md -- drives react-dnd HTML5 drag events, which dnd-kit does not listen to
     // eslint-disable-next-line no-only-tests/no-only-tests
     test.skip('return kanban and change card column to hidden column', async () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Kanban
                     board={board}
@@ -372,7 +371,7 @@ describe('src/component/kanban/kanban', () => {
     })
     test('return kanban and click on New', () => {
         const mockedAddCard = jest.fn()
-        render(wrapDNDIntl(
+        render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Kanban
                     board={board}
@@ -412,7 +411,7 @@ describe('src/component/kanban/kanban', () => {
     })
 
     test('return kanban and click on KanbanCalculationMenu', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Kanban
                     board={board}
@@ -452,7 +451,7 @@ describe('src/component/kanban/kanban', () => {
     })
 
     test('return kanban and change title on KanbanColumnHeader', async () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Kanban
                     board={board}
@@ -499,7 +498,7 @@ describe('src/component/kanban/kanban', () => {
         expect(container).toMatchSnapshot()
     })
     test('return kanban and add a group', async () => {
-        render(wrapDNDIntl(
+        render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Kanban
                     board={board}
@@ -627,7 +626,7 @@ describe('src/component/kanban/kanban', () => {
     beforeEach(jest.resetAllMocks)
     test('return kanban and click on New if view have already have defaultTemplateId', () => {
         const mockedAddCard = jest.fn()
-        render(wrapDNDIntl(
+        render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Kanban
                     board={board}

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -84,7 +83,7 @@ describe('components/acp/boardSetupWizard steps', () => {
         jest.clearAllMocks()
     })
 
-    const renderWizard = (onClose = jest.fn()) => render(wrapIntl(
+    const renderWizard = (onClose = jest.fn()) => render(wrapIntl(() =>
         <BoardSetupWizard
             board={templateBoard()}
             onClose={onClose}

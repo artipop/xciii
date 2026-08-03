@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {fireEvent, render, screen, within, act} from '@testing-library/react'
+import {fireEvent, render, screen, within, act} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
 import {mocked} from 'jest-mock'
 import {Provider as ReduxProvider} from 'react-redux'
 
@@ -149,7 +148,7 @@ describe('components/centerPanel', () => {
         jest.clearAllMocks()
     })
     test('should match snapshot for Kanban, not shared', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <CenterPanel
                     cards={[card1]}
@@ -167,7 +166,7 @@ describe('components/centerPanel', () => {
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot for Kanban', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <CenterPanel
                     cards={[card1]}
@@ -186,7 +185,7 @@ describe('components/centerPanel', () => {
     })
     test('should match snapshot for Gallery', () => {
         activeView.fields.viewType = 'gallery'
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <CenterPanel
                     cards={[card1]}
@@ -205,7 +204,7 @@ describe('components/centerPanel', () => {
     })
     test('should match snapshot for Table', () => {
         activeView.fields.viewType = 'table'
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <CenterPanel
                     cards={[card1]}
@@ -225,7 +224,7 @@ describe('components/centerPanel', () => {
     describe('return centerPanel and', () => {
         test('select one card and click background', () => {
             activeView.fields.viewType = 'table'
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CenterPanel
                         cards={[card1, card2]}
@@ -256,7 +255,7 @@ describe('components/centerPanel', () => {
 
         test('press touch 1 with readonly', () => {
             activeView.fields.viewType = 'table'
-            const {container, baseElement} = render(wrapDNDIntl(
+            const {container, baseElement} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CenterPanel
                         cards={[card1, card2]}
@@ -279,7 +278,7 @@ describe('components/centerPanel', () => {
 
         test('press touch esc for one card selected', () => {
             activeView.fields.viewType = 'table'
-            const {container, baseElement} = render(wrapDNDIntl(
+            const {container, baseElement} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CenterPanel
                         cards={[card1, card2]}
@@ -308,7 +307,7 @@ describe('components/centerPanel', () => {
         })
         test('press touch esc for two cards selected', async () => {
             activeView.fields.viewType = 'table'
-            const {container, baseElement} = render(wrapDNDIntl(
+            const {container, baseElement} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CenterPanel
                         cards={[card1, card2]}
@@ -346,7 +345,7 @@ describe('components/centerPanel', () => {
         })
         test('press touch del for one card selected', () => {
             activeView.fields.viewType = 'table'
-            const {container, baseElement} = render(wrapDNDIntl(
+            const {container, baseElement} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CenterPanel
                         cards={[card1, card2]}
@@ -374,7 +373,7 @@ describe('components/centerPanel', () => {
         })
         test('press touch ctrl+d for one card selected', () => {
             activeView.fields.viewType = 'table'
-            const {container, baseElement} = render(wrapDNDIntl(
+            const {container, baseElement} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CenterPanel
                         cards={[card1, card2]}
@@ -403,7 +402,7 @@ describe('components/centerPanel', () => {
         test('click on card to show card', () => {
             activeView.fields.viewType = 'board'
             const mockedShowCard = jest.fn()
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CenterPanel
                         cards={[card1, card2]}
@@ -428,7 +427,7 @@ describe('components/centerPanel', () => {
         })
         test('click on new card to add card', () => {
             activeView.fields.viewType = 'table'
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CenterPanel
                         cards={[card1, card2]}
@@ -450,7 +449,7 @@ describe('components/centerPanel', () => {
         })
         test('click on new card to add card template', () => {
             activeView.fields.viewType = 'table'
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CenterPanel
                         cards={[card1, card2]}
@@ -476,7 +475,7 @@ describe('components/centerPanel', () => {
         test('click on new card to add card from template', () => {
             activeView.fields.viewType = 'table'
             activeView.fields.defaultTemplateId = '1'
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CenterPanel
                         cards={[card1, card2]}
@@ -503,7 +502,7 @@ describe('components/centerPanel', () => {
         test('click on new card to edit template', () => {
             activeView.fields.viewType = 'table'
             activeView.fields.defaultTemplateId = '1'
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CenterPanel
                         cards={[card1, card2]}
@@ -637,7 +636,7 @@ describe('components/centerPanel', () => {
     test('Clicking on the Hidden card count should open a dailog', () => {
         activeView.fields.viewType = 'table'
         activeView.fields.defaultTemplateId = '1'
-        const {container, getByTitle, getByText} = render(wrapDNDIntl(
+        const {container, getByTitle, getByText} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <CenterPanel
                     cards={[card1, card2]}

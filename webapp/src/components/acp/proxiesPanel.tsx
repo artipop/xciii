@@ -4,7 +4,7 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 
@@ -121,24 +121,23 @@ const ProxiesPanel = (props: Props) => {
     const updateForm = (patch: Partial<ProxyEntry>) => setForm((f) => (f ? {...f, ...patch} : f))
 
     return (
-        <div className='ProxiesPanel'>
-            <div className='ProxiesPanel__content'>
-                <div className='ProxiesPanel__subtitle'>
+        <div class='ProxiesPanel'>
+            <div class='ProxiesPanel__content'>
+                <div class='ProxiesPanel__subtitle'>
                     {intl.formatMessage({id: 'Proxies.subtitle', defaultMessage: 'Named network configurations an agent picks from its "Proxy configuration" field above, so several agents can share one.'})}
                 </div>
 
                 {proxies.length === 0 && !form &&
-                    <div className='ProxiesPanel__empty'>
+                    <div class='ProxiesPanel__empty'>
                         {intl.formatMessage({id: 'Proxies.empty', defaultMessage: 'No proxy configurations yet.'})}
                     </div>}
 
                 {proxies.map((entry) => (
                     <div
-                        className='ProxiesPanel__row'
-                        key={entry.name}
+                        class='ProxiesPanel__row'
                     >
-                        <span className='ProxiesPanel__name'>{entry.name}</span>
-                        <span className='ProxiesPanel__proxy'>{displayProxy(entry.proxy)}</span>
+                        <span class='ProxiesPanel__name'>{entry.name}</span>
+                        <span class='ProxiesPanel__proxy'>{displayProxy(entry.proxy)}</span>
                         <Button onClick={() => startEdit(entry)}>
                             {intl.formatMessage({id: 'Proxies.edit', defaultMessage: 'Edit'})}
                         </Button>
@@ -149,7 +148,7 @@ const ProxiesPanel = (props: Props) => {
                 ))}
 
                 {form &&
-                    <div className='ProxiesPanel__form'>
+                    <div class='ProxiesPanel__form'>
                         <label>
                             {intl.formatMessage({id: 'Proxies.name', defaultMessage: 'Name'})}
                             <input
@@ -200,7 +199,7 @@ const ProxiesPanel = (props: Props) => {
                                 onChange={(e) => updateForm({caCert: e.target.value})}
                             />
                         </label>
-                        <div className='ProxiesPanel__formActions'>
+                        <div class='ProxiesPanel__formActions'>
                             <Button
                                 emphasis='primary'
                                 onClick={saveForm}
@@ -214,7 +213,7 @@ const ProxiesPanel = (props: Props) => {
                     </div>}
 
                 {!form &&
-                    <div className='ProxiesPanel__actions'>
+                    <div class='ProxiesPanel__actions'>
                         <Button
                             emphasis='primary'
                             onClick={startAdd}
@@ -224,10 +223,10 @@ const ProxiesPanel = (props: Props) => {
                     </div>}
 
                 {error &&
-                    <div className='ProxiesPanel__error'>{error}</div>}
+                    <div class='ProxiesPanel__error'>{error}</div>}
             </div>
         </div>
     )
 }
 
-export default React.memo(ProxiesPanel)
+export default ProxiesPanel

@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
@@ -49,7 +48,7 @@ describe('components/createCategory/CreateCategory', () => {
     const store = mockStateStore([thunk], state)
 
     it('base case should match snapshot', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <CreateCategory
                     onClose={jest.fn()}
@@ -60,13 +59,13 @@ describe('components/createCategory/CreateCategory', () => {
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
     it('should call onClose on being closed', () => {
         const onCloseHandler = jest.fn()
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <CreateCategory
                     onClose={onCloseHandler}
@@ -77,7 +76,7 @@ describe('components/createCategory/CreateCategory', () => {
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         const cancelBtn = container.querySelector('.createCategoryActions > .Button.danger')
         expect(cancelBtn).toBeTruthy()
         userEvent.click(cancelBtn as Element)
@@ -90,7 +89,7 @@ describe('components/createCategory/CreateCategory', () => {
     })
 
     it('should call onCreate on pressing enter', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <CreateCategory
                     onClose={jest.fn()}
@@ -101,7 +100,7 @@ describe('components/createCategory/CreateCategory', () => {
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         const inputField = container.querySelector('.categoryNameInput')
         expect(inputField).toBeTruthy()
         userEvent.type(inputField as Element, 'category name{enter}')
@@ -113,7 +112,7 @@ describe('components/createCategory/CreateCategory', () => {
     })
 
     it('should show initial value', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <CreateCategory
                     initialValue='Dwight prank ideas'
@@ -125,14 +124,14 @@ describe('components/createCategory/CreateCategory', () => {
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         const inputField = container.querySelector('.categoryNameInput')
         expect(inputField).toBeTruthy()
         expect((inputField as HTMLInputElement).value).toBe('Dwight prank ideas')
     })
 
     it('should clear input field on clicking clear icon', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <CreateCategory
                     initialValue='Dunder Mifflin'
@@ -144,7 +143,7 @@ describe('components/createCategory/CreateCategory', () => {
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         const inputField = container.querySelector('.categoryNameInput')
         expect(inputField).toBeTruthy()
         expect((inputField as HTMLInputElement).value).toBe('Dunder Mifflin')

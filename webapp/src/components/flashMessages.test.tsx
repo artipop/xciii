@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 
-import {render, act, screen} from '@testing-library/react'
+import {render, act, screen} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 
@@ -26,7 +25,7 @@ afterEach(() => {
 describe('components/flashMessages', () => {
     test('renders a flash message with high severity', () => {
         const {container} = render(
-            wrapIntl(<FlashMessages milliseconds={200}/>),
+            wrapIntl(() =><FlashMessages milliseconds={200}/>),
         )
 
         /**
@@ -48,7 +47,7 @@ describe('components/flashMessages', () => {
 
     test('renders a flash message with normal severity', () => {
         const {container} = render(
-            wrapIntl(<FlashMessages milliseconds={200}/>),
+            wrapIntl(() =><FlashMessages milliseconds={200}/>),
         )
 
         act(() => {
@@ -68,7 +67,7 @@ describe('components/flashMessages', () => {
 
     test('renders a flash message with low severity', () => {
         const {container} = render(
-            wrapIntl(<FlashMessages milliseconds={200}/>),
+            wrapIntl(() =><FlashMessages milliseconds={200}/>),
         )
 
         act(() => {
@@ -88,7 +87,7 @@ describe('components/flashMessages', () => {
 
     test('renders a flash message with low severity and custom HTML in flash message', () => {
         const {container} = render(
-            wrapIntl(<FlashMessages milliseconds={200}/>),
+            wrapIntl(() =><FlashMessages milliseconds={200}/>),
         )
 
         act(() => {
@@ -108,7 +107,7 @@ describe('components/flashMessages', () => {
 
     test('renders a flash message with low severity and check onClick on flash works', () => {
         const {container} = render(
-            wrapIntl(<FlashMessages milliseconds={200}/>),
+            wrapIntl(() =><FlashMessages milliseconds={200}/>),
         )
 
         act(() => {

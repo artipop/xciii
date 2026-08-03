@@ -4,7 +4,7 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {agentBindings} from './agentReposDialog'
 
@@ -110,22 +110,21 @@ const FlowStrip = (props: Props) => {
     }
 
     return (
-        <div className='FlowStrip'>
-            <div className='FlowStrip__head'>
-                <span className='FlowStrip__name'>{flow.flow}</span>
+        <div class='FlowStrip'>
+            <div class='FlowStrip__head'>
+                <span class='FlowStrip__name'>{flow.flow}</span>
                 {flow.branch &&
-                    <span className='FlowStrip__branch'>{flow.branch}</span>}
+                    <span class='FlowStrip__branch'>{flow.branch}</span>}
             </div>
-            <div className='FlowStrip__stages'>
+            <div class='FlowStrip__stages'>
                 {flow.stages.map((stage) => (
                     <span
-                        key={stage.nodeId}
-                        className={`FlowStrip__stage${stage.current ? ' FlowStrip__stage--current' : ''}${stage.done ? ' FlowStrip__stage--done' : ''}`}
+                        class={`FlowStrip__stage${stage.current ? ' FlowStrip__stage--current' : ''}${stage.done ? ' FlowStrip__stage--done' : ''}`}
                         title={stage.crew && stage.crew.length > 0 ? stage.crew.join(', ') : ''}
                     >{stage.column}</span>
                 ))}
             </div>
-            <div className='FlowStrip__status'>
+            <div class='FlowStrip__status'>
                 {status()}
                 {since && ` · ${since}`}
             </div>
@@ -148,4 +147,4 @@ function sinceLabel(
     }
 }
 
-export default React.memo(FlowStrip)
+export default FlowStrip

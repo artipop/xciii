@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
@@ -34,7 +33,7 @@ describe('components/permission/boardPermissionGate', () => {
     const store = mockStateStore([], state)
     test('match snapshot when the user has the permissions', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardPermissionGate
                         permissions={[Permission.ManageBoardCards]}
@@ -49,7 +48,7 @@ describe('components/permission/boardPermissionGate', () => {
 
     test('match snapshot when the user has the permissions with invert', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardPermissionGate
                         permissions={[Permission.ManageBoardCards]}
@@ -66,7 +65,7 @@ describe('components/permission/boardPermissionGate', () => {
     test('match snapshot when the user doesnt have the permissions', () => {
         const localStore = mockStateStore([], {...state, teams: {current: undefined}})
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={localStore}>
                     <BoardPermissionGate
                         permissions={[Permission.ManageBoardCards]}
@@ -82,7 +81,7 @@ describe('components/permission/boardPermissionGate', () => {
     test('match snapshot when the user doesnt have the permissions with invert', () => {
         const localStore = mockStateStore([], {...state, teams: {current: undefined}})
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={localStore}>
                     <BoardPermissionGate
                         permissions={[Permission.ManageBoardCards]}

@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
-import {IntlShape} from 'react-intl'
+import type {JSX} from 'solid-js'
+import {IntlShape} from '../../intl'
 
 import mutator from '../../mutator'
 import Menu from '../../widgets/menu'
@@ -38,14 +38,12 @@ export default function KanbanHiddenColumnItem(props: Props): JSX.Element {
     return (
         <div
             ref={drop}
-            key={group.option.id || 'empty'}
-            className={className}
+            class={className}
         >
             <MenuWrapper
                 disabled={props.readonly}
             >
                 <Label
-                    key={group.option.id || 'empty'}
                     color={group.option.color}
                 >
                     {group.option.value}

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../intl'
 
 import {Card} from '../blocks/card'
 import {ContentBlock as ContentBlockType, IContentBlockWithCords} from '../blocks/contentBlock'
@@ -63,14 +63,14 @@ const ContentBlock = (props: Props): JSX.Element => {
 
     return (
         <div
-            className='rowContents'
+            class='rowContents'
             style={{width: props.width + '%'}}
         >
             <div
                 ref={itemRef}
-                className={className}
+                class={className}
             >
-                <div className='octo-block-margin'>
+                <div class='octo-block-margin'>
                     {!props.readonly &&
                     <MenuWrapper onToggle={setMenuOpened}>
                         <IconButton icon={<OptionsIcon/>}/>
@@ -103,7 +103,6 @@ const ContentBlock = (props: Props): JSX.Element => {
                             >
                                 {contentRegistry.contentTypes.map((type) => (
                                     <AddContentMenuItem
-                                        key={type}
                                         type={type}
                                         card={card}
                                         cords={cords}
@@ -140,7 +139,7 @@ const ContentBlock = (props: Props): JSX.Element => {
                     {!props.readonly &&
                         <div
                             ref={gripRef}
-                            className='dnd-handle'
+                            class='dnd-handle'
                         >
                             <GripIcon/>
                         </div>
@@ -149,7 +148,7 @@ const ContentBlock = (props: Props): JSX.Element => {
                 {!cords.y /* That is to say if cords.y === 0 or cords.y === undefined */ &&
                     <div
                         ref={itemRef3}
-                        className={`addToRow ${isOver3 ? 'dragover' : ''}`}
+                        class={`addToRow ${isOver3 ? 'dragover' : ''}`}
                         style={{flex: 'none', height: '100%'}}
                     />
                 }
@@ -161,10 +160,10 @@ const ContentBlock = (props: Props): JSX.Element => {
             </div>
             <div
                 ref={itemRef2}
-                className={`addToRow ${isOver2 ? 'dragover' : ''}`}
+                class={`addToRow ${isOver2 ? 'dragover' : ''}`}
             />
         </div>
     )
 }
 
-export default React.memo(ContentBlock)
+export default ContentBlock

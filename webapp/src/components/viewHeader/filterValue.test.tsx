@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
@@ -50,7 +49,7 @@ describe('components/viewHeader/filterValue', () => {
     })
     test('return filterValue', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterValue
                         view={activeView}
@@ -67,7 +66,7 @@ describe('components/viewHeader/filterValue', () => {
     })
     test('return filterValue and click Status', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterValue
                         view={activeView}
@@ -89,7 +88,7 @@ describe('components/viewHeader/filterValue', () => {
         filter.values = ['test']
         activeView.fields.filter.filters = [filter]
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterValue
                         view={activeView}
@@ -111,7 +110,7 @@ describe('components/viewHeader/filterValue', () => {
         filter.values = []
         activeView.fields.filter.filters = [filter]
         render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterValue
                         view={activeView}
@@ -148,7 +147,7 @@ describe('components/viewHeader/filterValue', () => {
         // filter.values = []
         activeView.fields.filter.filters = [dateFilter]
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterValue
                         view={activeView}

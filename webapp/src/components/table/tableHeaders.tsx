@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {IPropertyTemplate, Board} from '../../blocks/board'
 import {createBoardView, BoardView, ISortOption} from '../../blocks/boardView'
@@ -106,7 +106,7 @@ const TableHeaders = (props: Props): JSX.Element => {
 
     return (
         <div
-            className='octo-table-header TableHeaders'
+            class='octo-table-header TableHeaders'
             id='mainBoardHeader'
         >
             <TableHeader
@@ -144,7 +144,6 @@ const TableHeaders = (props: Props): JSX.Element => {
                         cards={cards}
                         views={views}
                         template={template}
-                        key={template.id}
                         onDrop={onDropToColumn}
                         onAutoSizeColumn={onAutoSizeColumn}
                     />

@@ -24,8 +24,8 @@ function BlocksEditor(props: Props) {
     const contentOrder = useMemo(() => props.blocks.filter((b) => b.id).map((b) => b.id!), [props.blocks])
     return (
         <div
-            className='BlocksEditor'
-            onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
+            class='BlocksEditor'
+            onKeyDown={(e: KeyboardEvent) => {
                 if (e.key === 'ArrowUp') {
                     if (editing === null) {
                         if (afterBlock === null) {
@@ -81,10 +81,8 @@ function BlocksEditor(props: Props) {
             <SortableProvider>
                 {Object.values(props.blocks).map((d) => (
                     <div
-                        key={d.id}
                     >
                         <BlockContent
-                            key={d.id}
                             block={d}
                             editing={editing}
                             setEditing={(block) => {

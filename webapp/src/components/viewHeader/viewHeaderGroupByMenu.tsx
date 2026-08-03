@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {BoardGroup, IPropertyTemplate} from '../../blocks/board'
 import {BoardView} from '../../blocks/boardView'
@@ -70,7 +69,6 @@ const ViewHeaderGroupByMenu = (props: Props) => {
                     <>
                         {emptyVisibleGroupsCount > 0 &&
                             <Menu.Text
-                                key={'hideEmptyGroups'}
                                 id={'hideEmptyGroups'}
                                 name={intl.formatMessage({id: 'GroupBy.hideEmptyGroups', defaultMessage: 'Hide {count} empty groups'}, {count: emptyVisibleGroupsCount})}
                                 rightIcon={<HideIcon/>}
@@ -78,14 +76,12 @@ const ViewHeaderGroupByMenu = (props: Props) => {
                             />}
                         {hiddenGroupsCount > 0 &&
                             <Menu.Text
-                                key={'showHiddenGroups'}
                                 id={'showHiddenGroups'}
                                 name={intl.formatMessage({id: 'GroupBy.showHiddenGroups', defaultMessage: 'Show {count} hidden groups'}, {count: hiddenGroupsCount})}
                                 rightIcon={<ShowIcon/>}
                                 onClick={() => handleToggleGroups(true)}
                             />}
                         <Menu.Text
-                            key={'ungroup'}
                             id={''}
                             name={intl.formatMessage({id: 'GroupBy.ungroup', defaultMessage: 'Ungroup'})}
                             rightIcon={activeView.fields.groupById === '' ? <CheckIcon/> : undefined}
@@ -100,7 +96,6 @@ const ViewHeaderGroupByMenu = (props: Props) => {
                     </>}
                 {properties?.filter((o: IPropertyTemplate) => propsRegistry.get(o.type).canGroup).map((option: IPropertyTemplate) => (
                     <Menu.Text
-                        key={option.id}
                         id={option.id}
                         name={option.name}
                         rightIcon={groupByProperty?.id === option.id ? <CheckIcon/> : undefined}
@@ -118,4 +113,4 @@ const ViewHeaderGroupByMenu = (props: Props) => {
     )
 }
 
-export default React.memo(ViewHeaderGroupByMenu)
+export default ViewHeaderGroupByMenu

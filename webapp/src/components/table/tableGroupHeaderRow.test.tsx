@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {fireEvent, render} from '@testing-library/react'
+import {fireEvent, render} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
 import 'isomorphic-fetch'
@@ -43,7 +42,7 @@ const boardTreeGroup = {
 }
 
 const Wrapper: React.FC<React.PropsWithChildren> = ({children}) => {
-    return wrapDNDIntl(
+    return wrapDNDIntl(() =>
         <ColumnResizeProvider
             columnWidths={{}}
             onResizeColumn={jest.fn()}
@@ -54,7 +53,7 @@ const Wrapper: React.FC<React.PropsWithChildren> = ({children}) => {
 }
 
 test('should match snapshot, no groups', async () => {
-    const {container} = render(
+    const {container} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}
@@ -78,7 +77,7 @@ test('should match snapshot, no groups', async () => {
 })
 
 test('should match snapshot with Group', async () => {
-    const {container} = render(
+    const {container} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}
@@ -96,7 +95,7 @@ test('should match snapshot with Group', async () => {
 })
 
 test('should match snapshot on read only', async () => {
-    const {container} = render(
+    const {container} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}
@@ -119,7 +118,7 @@ test('should match snapshot, hide group', async () => {
     const collapsedOptionsView = TestBlockFactory.createBoardView(board)
     collapsedOptionsView.fields.collapsedOptionIds = [boardTreeGroup.option.id]
 
-    const {container} = render(
+    const {container} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}
@@ -147,7 +146,7 @@ test('should match snapshot, hide group', async () => {
 test('should match snapshot, add new', async () => {
     const addNew = jest.fn()
 
-    const {container} = render(
+    const {container} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}
@@ -173,7 +172,7 @@ test('should match snapshot, add new', async () => {
 })
 
 test('should match snapshot, edit title', async () => {
-    const {container, getByTitle} = render(
+    const {container, getByTitle} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}

@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import '@testing-library/jest-dom'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import 'isomorphic-fetch'
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {Router} from 'react-router-dom'
 import {createMemoryHistory} from 'history'
@@ -73,7 +72,7 @@ describe('/components/viewMenu', () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Router history={history}>
                     <ViewMenu
@@ -86,7 +85,7 @@ describe('/components/viewMenu', () => {
             </ReduxProvider>,
         )
 
-        const container = render(component)
+        const container = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -94,7 +93,7 @@ describe('/components/viewMenu', () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Router history={history}>
                     <ViewMenu
@@ -107,7 +106,7 @@ describe('/components/viewMenu', () => {
             </ReduxProvider>,
         )
 
-        const container = render(component)
+        const container = render(() => component)
         expect(container).toMatchSnapshot()
     })
 })

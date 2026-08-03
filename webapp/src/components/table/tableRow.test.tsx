@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import configureStore from 'redux-mock-store'
 
 import '@testing-library/jest-dom'
@@ -46,7 +45,7 @@ describe('components/table/TableRow', () => {
 
     const Wrapper: React.FC<React.PropsWithChildren> = ({children}) => {
         const store = mockStore(state)
-        return wrapDNDIntl(
+        return wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
                 onResizeColumn={jest.fn()}
@@ -59,7 +58,7 @@ describe('components/table/TableRow', () => {
     }
 
     test('should match snapshot', async () => {
-        const {container} = render(
+        const {container} = render(() =>
             <Wrapper>
                 <TableRow
                     board={board}
@@ -83,7 +82,7 @@ describe('components/table/TableRow', () => {
     })
 
     test('should match snapshot, read-only', async () => {
-        const {container} = render(
+        const {container} = render(() =>
             <Wrapper>
                 <TableRow
                     board={board}
@@ -107,7 +106,7 @@ describe('components/table/TableRow', () => {
     })
 
     test('should match snapshot, isSelected', async () => {
-        const {container} = render(
+        const {container} = render(() =>
             <Wrapper>
                 <TableRow
                     board={board}
@@ -131,7 +130,7 @@ describe('components/table/TableRow', () => {
     })
 
     test('should match snapshot, collapsed tree', async () => {
-        const {container} = render(
+        const {container} = render(() =>
             <Wrapper>
                 <TableRow
                     board={board}
@@ -155,7 +154,7 @@ describe('components/table/TableRow', () => {
     })
 
     test('should match snapshot, display properties', async () => {
-        const {container} = render(
+        const {container} = render(() =>
             <Wrapper>
                 <TableRow
                     board={board}
@@ -179,7 +178,7 @@ describe('components/table/TableRow', () => {
     })
 
     test('should match snapshot, resizing column', async () => {
-        const {container} = render(
+        const {container} = render(() =>
             <Wrapper>
                 <TableRow
                     board={board}

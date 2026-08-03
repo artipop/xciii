@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {type JSX, useRef, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
 import {useSortable} from '@dnd-kit/react/sortable'
 import {SortableKeyboardPlugin} from '@dnd-kit/dom/sortable'
@@ -84,7 +84,6 @@ const SidebarBoardItem = (props: Props) => {
     const generateMoveToCategoryOptions = (boardID: string) => {
         return props.allCategories.map((category) => (
             <Menu.Text
-                key={category.id}
                 id={category.id}
                 name={category.name}
                 icon={category.id === props.categoryBoards.id ? <Check/> : <Folder/>}
@@ -211,14 +210,14 @@ const SidebarBoardItem = (props: Props) => {
         >
             <div
                 ref={boardItemRef}
-                className={`SidebarBoardItem subitem ${props.isActive ? 'active' : ''}`}
+                class={`SidebarBoardItem subitem ${props.isActive ? 'active' : ''}`}
                 onClick={() => props.showBoard(board.id)}
             >
-                <div className='octo-sidebar-icon'>
+                <div class='octo-sidebar-icon'>
                     {board.icon || <CompassIcon icon='product-boards'/>}
                 </div>
                 <div
-                    className='octo-sidebar-title'
+                    class='octo-sidebar-title'
                     title={title}
                 >
                     {title}
@@ -241,8 +240,7 @@ const SidebarBoardItem = (props: Props) => {
                             position='auto'
                             parentRef={boardItemRef}
                         >
-                            <Menu.SubMenu
-                                key={`moveBlock-${board.id}`}
+                            <Menu.SubMenu`}
                                 id='moveBlock'
                                 className='boardMoveToCategorySubmenu'
                                 name={intl.formatMessage({id: 'SidebarCategories.BlocksMenu.Move', defaultMessage: 'Move To...'})}
@@ -281,8 +279,7 @@ const SidebarBoardItem = (props: Props) => {
                                 boardId={board.id}
                                 permissions={[Permission.DeleteBoard]}
                             >
-                                <Menu.Text
-                                    key={`deleteBlock-${board.id}`}
+                                <Menu.Text`}
                                     id='deleteBlock'
                                     className='text-danger'
                                     name={intl.formatMessage({id: 'Sidebar.delete-board', defaultMessage: 'Delete board'})}
@@ -298,13 +295,12 @@ const SidebarBoardItem = (props: Props) => {
             </div>
             {props.isActive && !isDragging && !props.hideViews && boardViews.map((view: BoardView) => (
                 <div
-                    key={view.id}
-                    className={`SidebarBoardItem sidebar-view-item ${view.id === currentViewId ? 'active' : ''}`}
+                    class={`SidebarBoardItem sidebar-view-item ${view.id === currentViewId ? 'active' : ''}`}
                     onClick={() => props.showView(view.id, board.id)}
                 >
                     {iconForViewType(view.fields.viewType)}
                     <div
-                        className='octo-sidebar-title'
+                        class='octo-sidebar-title'
                         title={view.title || intl.formatMessage({id: 'Sidebar.untitled-view', defaultMessage: '(Untitled View)'})}
                     >
                         {view.title || intl.formatMessage({id: 'Sidebar.untitled-view', defaultMessage: '(Untitled View)'})}
@@ -315,4 +311,4 @@ const SidebarBoardItem = (props: Props) => {
     )
 }
 
-export default React.memo(SidebarBoardItem)
+export default SidebarBoardItem

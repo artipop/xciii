@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render, waitFor} from '@testing-library/react'
-import React from 'react'
+import {render, waitFor} from '@solidjs/testing-library'
 import {MockStoreEnhanced} from 'redux-mock-store'
 
 import {Provider as ReduxProvider} from 'react-redux'
@@ -177,7 +176,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
     })
 
     test('should match snapshot', async () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <BoardTemplateSelectorPreview activeTemplate={(store.getState() as any).boards.templates[0]}/>
             </ReduxProvider>
@@ -187,7 +186,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
         expect(container).toMatchSnapshot()
     })
     test('should be null without activeTemplate', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <BoardTemplateSelectorPreview activeTemplate={null}/>
             </ReduxProvider>

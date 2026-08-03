@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 //
-import React, {type JSX, FC} from 'react'
-import {useIntl} from 'react-intl'
+import type {JSX} from 'solid-js'
+import {useIntl} from '../../intl'
 
 import {Constants} from '../../constants'
 import {Board, IPropertyTemplate} from '../../blocks/board'
@@ -19,7 +19,7 @@ type Props = {
     cards: Card[]
 }
 
-const TableHeaderMenu: FC<Props> = (props: Props): JSX.Element => {
+const TableHeaderMenu: Component<Props> = (props: Props): JSX.Element => {
     const {board, activeView, templateId, views, cards} = props
     const intl = useIntl()
     return (

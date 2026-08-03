@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {ReactElement, ReactNode} from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 
@@ -27,7 +27,7 @@ import {CardDetailProvider} from './cardDetail/cardDetailContext'
 const board = TestBlockFactory.createBoard()
 const card = TestBlockFactory.createCard(board)
 const wrap = (child: ReactNode): ReactElement => (
-    wrapIntl(
+    wrapIntl(() =>
         <CardDetailProvider card={card} >
             {child}
         </CardDetailProvider>,

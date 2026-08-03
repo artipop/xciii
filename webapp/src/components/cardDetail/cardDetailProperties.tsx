@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useEffect, useState} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {Board, IPropertyTemplate} from '../../blocks/board'
 import {Card} from '../../blocks/card'
@@ -129,17 +129,16 @@ const CardDetailProperties = (props: Props) => {
     }
 
     return (
-        <div className='octo-propertylist CardDetailProperties'>
+        <div class='octo-propertylist CardDetailProperties'>
             {board.cardProperties.map((propertyTemplate: IPropertyTemplate) => {
                 return (
                     <div
-                        key={propertyTemplate.id + '-' + propertyTemplate.type}
-                        className='octo-propertyrow'
+                        class='octo-propertyrow'
                     >
-                        {(props.readonly || !canEditBoardProperties) && <div className='octo-propertyname octo-propertyname--readonly'>{propertyTemplate.name}</div>}
+                        {(props.readonly || !canEditBoardProperties) && <div class='octo-propertyname octo-propertyname--readonly'>{propertyTemplate.name}</div>}
                         {!props.readonly && canEditBoardProperties &&
                             <MenuWrapper isOpen={propertyTemplate.id === newTemplateId}>
-                                <div className='octo-propertyname'><Button>{propertyTemplate.name}</Button></div>
+                                <div class='octo-propertyname'><Button>{propertyTemplate.name}</Button></div>
                                 <PropertyMenu
                                     propertyId={propertyTemplate.id}
                                     propertyName={propertyTemplate.name}
@@ -167,7 +166,7 @@ const CardDetailProperties = (props: Props) => {
             )}
 
             {!props.readonly && canEditBoardProperties &&
-                <div className='octo-propertyname add-property'>
+                <div class='octo-propertyname add-property'>
                     <MenuWrapper>
                         <Button>
                             <FormattedMessage
@@ -199,4 +198,4 @@ const CardDetailProperties = (props: Props) => {
     )
 }
 
-export default React.memo(CardDetailProperties)
+export default CardDetailProperties

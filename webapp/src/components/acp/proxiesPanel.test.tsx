@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -33,7 +32,7 @@ describe('components/acp/proxiesPanel', () => {
         anyWindow.go = {main: {App: bindings}}
         expect(isProxiesAvailable()).toBe(true)
 
-        render(wrapIntl(<ProxiesPanel/>))
+        render(wrapIntl(() =><ProxiesPanel/>))
         await waitFor(() => expect(screen.getByText('office')).toBeInTheDocument())
         expect(screen.getByText('http://proxy.example.com:8080')).toBeInTheDocument()
 
@@ -64,7 +63,7 @@ describe('components/acp/proxiesPanel', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(<ProxiesPanel/>))
+        render(wrapIntl(() =><ProxiesPanel/>))
         await waitFor(() => expect(screen.getByText('office')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Remove'}))

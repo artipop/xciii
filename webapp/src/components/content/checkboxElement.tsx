@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useEffect, useRef, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {createCheckboxBlock} from '../../blocks/checkboxBlock'
 import {ContentBlock} from '../../blocks/contentBlock'
@@ -42,7 +42,7 @@ const CheckboxElement = (props: Props) => {
     }, [Boolean(block.fields.value)])
 
     return (
-        <div className='CheckboxElement'>
+        <div class='CheckboxElement'>
             <input
                 type='checkbox'
                 id={`checkbox-${block.id}`}
@@ -110,4 +110,4 @@ contentRegistry.registerContentType({
     },
 })
 
-export default React.memo(CheckboxElement)
+export default CheckboxElement

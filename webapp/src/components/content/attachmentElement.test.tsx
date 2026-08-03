@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import {act} from 'react-dom/test-utils'
 import {mocked} from 'jest-mock'
 
@@ -100,7 +99,7 @@ describe('component/content/FileBlock', () => {
     const store = mockStateStore([], state)
 
     test('should match snapshot', async () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <AttachmentElement
                     block={defaultBlock}
@@ -109,7 +108,7 @@ describe('component/content/FileBlock', () => {
         )
         let fileContainer: Element | undefined
         await act(async () => {
-            const {container} = render(component)
+            const {container} = render(() => component)
             fileContainer = container
         })
         expect(fileContainer).toMatchSnapshot()
@@ -123,7 +122,7 @@ describe('component/content/FileBlock', () => {
             size: 165002,
         })
 
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <AttachmentElement
                     block={defaultBlock}
@@ -132,7 +131,7 @@ describe('component/content/FileBlock', () => {
         )
         let fileContainer: Element | undefined
         await act(async () => {
-            const {container} = render(component)
+            const {container} = render(() => component)
             fileContainer = container
         })
         expect(fileContainer).toMatchSnapshot()

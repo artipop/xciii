@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
@@ -52,7 +51,7 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
     })
     test('return NewCardButtonTemplateItem', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
@@ -68,7 +67,7 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
     })
     test('return NewCardButtonTemplateItem and edit', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
@@ -89,7 +88,7 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
 
     test('return NewCardButtonTemplateItem and add Card from template', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
@@ -106,7 +105,7 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
     })
     test('return NewCardButtonTemplateItem and delete', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
@@ -125,7 +124,7 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
     })
     test('return NewCardButtonTemplateItem and Set as default', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}

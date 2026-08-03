@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render, screen, act, waitFor} from '@testing-library/react'
+import {render, screen, act, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
 import {MockStoreEnhanced} from 'redux-mock-store'
 
 import {mocked} from 'jest-mock'
@@ -159,7 +158,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
     })
     describe('not a focalboard Plugin', () => {
         test('should match snapshot', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
                 </ReduxProvider>
@@ -170,7 +169,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
     })
     describe('a focalboard Plugin', () => {
         test('should match snapshot', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
                 </ReduxProvider>
@@ -179,7 +178,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(container).toMatchSnapshot()
         })
         test('should match snapshot without close', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector/>
                 </ReduxProvider>
@@ -188,7 +187,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(container).toMatchSnapshot()
         })
         test('should match snapshot with custom title and description', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector
                         title='test-title'
@@ -201,7 +200,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
         })
         test('return BoardTemplateSelector and click close call the onClose callback', () => {
             const onClose = jest.fn()
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector onClose={onClose}/>
                 </ReduxProvider>
@@ -213,7 +212,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(onClose).toHaveBeenCalledTimes(1)
         })
         test('return BoardTemplateSelector and click new template', () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
                 </ReduxProvider>
@@ -228,7 +227,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const newBoard = createBoard({id: 'new-board'} as Board)
             mockedMutator.addEmptyBoard.mockResolvedValue({boards: [newBoard], blocks: []})
 
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
                 </ReduxProvider>
@@ -242,7 +241,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             await waitFor(() => expect(mockedMutator.updateBoard).toHaveBeenCalledWith(newBoard, newBoard, 'linked channel'))
         })
         test('shows only the My Project Tasks template and hides the rest', () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
                 </ReduxProvider>
@@ -260,7 +259,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const newBoard = createBoard({id: 'new-board'} as Board)
             mockedMutator.addBoardFromTemplate.mockResolvedValue({boards: [newBoard], blocks: []})
 
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
                 </ReduxProvider>
@@ -288,7 +287,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const newBoard = createBoard({id: 'new-board'} as Board)
             mockedMutator.addBoardFromTemplate.mockResolvedValue({boards: [newBoard], blocks: []})
 
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector
                         onClose={jest.fn()}
@@ -319,7 +318,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const newBoard = createBoard({id: 'new-board'} as Board)
             mockedMutator.addBoardFromTemplate.mockResolvedValue({boards: [newBoard], blocks: []})
 
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
                 </ReduxProvider>

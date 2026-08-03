@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {useAppSelector} from '../../store/hooks'
 
@@ -38,7 +38,7 @@ type Props = {
     hiddenGroups: BoardGroup[]
     selectedCardIds: string[]
     readonly: boolean
-    onCardClicked: (e: React.MouseEvent, card: Card) => void
+    onCardClicked: (e: MouseEvent, card: Card) => void
     addCard: (groupByOptionId?: string, show?: boolean) => Promise<void>
     addCardFromTemplate: (cardTemplateId: string, groupByOptionId?: string) => void
     showCard: (cardId?: string) => void
@@ -212,16 +212,15 @@ const Kanban = (props: Props) => {
     }
 
     return (
-        <div className='Kanban'>
+        <div class='Kanban'>
             <div
-                className='octo-board-header'
+                class='octo-board-header'
                 id='mainBoardHeader'
             >
                 {/* Column headers */}
 
                 {visibleGroups.map((group) => (
                     <KanbanColumnHeader
-                        key={group.option.id}
                         group={group}
                         board={board}
                         activeView={activeView}
@@ -240,7 +239,7 @@ const Kanban = (props: Props) => {
                 {/* Hidden column header */}
 
                 {(hiddenGroups.length > 0 || hiddenCardsCount > 0) &&
-                    <div className='octo-board-header-cell narrow'>
+                    <div class='octo-board-header-cell narrow'>
                         <FormattedMessage
                             id='BoardComponent.hidden-columns'
                             defaultMessage='Hidden columns'
@@ -250,7 +249,7 @@ const Kanban = (props: Props) => {
 
                 {!props.readonly &&
                     <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
-                        <div className='octo-board-header-cell narrow'>
+                        <div class='octo-board-header-cell narrow'>
                             <Button
                                 onClick={addGroupClicked}
                             >
@@ -267,14 +266,13 @@ const Kanban = (props: Props) => {
             {/* Main content */}
 
             <div
-                className='octo-board-body'
+                class='octo-board-body'
                 id='mainBoardBody'
             >
                 {/* Columns */}
 
                 {visibleGroups.map((group) => (
                     <KanbanColumn
-                        key={group.option.id || 'empty'}
                         onDrop={(card: Card) => onDropToColumn(group.option, card)}
                     >
                         {group.cards.map((card, cardIndex) => (
@@ -285,7 +283,6 @@ const Kanban = (props: Props) => {
                                 board={board}
                                 visiblePropertyTemplates={visiblePropertyTemplates}
                                 visibleBadges={visibleBadges}
-                                key={card.id}
                                 readonly={props.readonly}
                                 isSelected={props.selectedCardIds.includes(card.id)}
                                 onClick={props.onCardClicked}
@@ -318,10 +315,9 @@ const Kanban = (props: Props) => {
                 {/* Hidden columns */}
 
                 {(hiddenGroups.length > 0 || hiddenCardsCount > 0) &&
-                    <div className='octo-board-column narrow'>
+                    <div class='octo-board-column narrow'>
                         {hiddenGroups.map((group) => (
                             <KanbanHiddenColumnItem
-                                key={group.option.id}
                                 group={group}
                                 activeView={activeView}
                                 intl={intl}
@@ -330,7 +326,7 @@ const Kanban = (props: Props) => {
                             />
                         ))}
                         {hiddenCardsCount > 0 &&
-                        <div className='ml-1'>
+                        <div class='ml-1'>
                             <HiddenCardCount
                                 hiddenCardsCount={hiddenCardsCount}
                                 showHiddenCardNotification={props.showHiddenCardCountNotification}

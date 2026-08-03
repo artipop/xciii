@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 /* eslint-disable max-lines */
 import React, {useState, useEffect} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../intl'
 
 import {useHotkeys} from '../hooks/hotkeys'
 import {ClientConfig} from '../config/clientConfig'
@@ -274,7 +274,7 @@ const CenterPanel = (props: Props) => {
         startBoardsTour()
     })
 
-    const backgroundClicked = (e: React.MouseEvent) => {
+    const backgroundClicked = (e: MouseEvent) => {
         if (selectedCardIds.length > 0) {
             setSelectedCardIds([])
             e.stopPropagation()
@@ -341,7 +341,7 @@ const CenterPanel = (props: Props) => {
         showCard(cardTemplateId)
     }
 
-    const cardClicked = (e: React.MouseEvent, card: Card): void => {
+    const cardClicked = (e: MouseEvent, card: Card): void => {
         const {activeView, cards} = props
 
         if (e.shiftKey) {
@@ -414,7 +414,7 @@ const CenterPanel = (props: Props) => {
 
     return (
         <div
-            className='BoardComponent'
+            class='BoardComponent'
             onClick={backgroundClicked}
         >
             {showSetup &&
@@ -434,7 +434,6 @@ const CenterPanel = (props: Props) => {
                         activeView={activeView}
                         views={views}
                         cards={cards}
-                        key={props.shownCardId}
                         cardId={props.shownCardId}
                         onClose={() => showCard(undefined)}
                         showCard={(cardId) => showCard(cardId)}
@@ -442,15 +441,14 @@ const CenterPanel = (props: Props) => {
                     />
                 </RootPortal>}
 
-            <div className='top-head'>
+            <div class='top-head'>
                 <TopBar/>
-                <div className='mid-head'>
+                <div class='mid-head'>
                     <ViewTitle
-                        key={board.id + board.title}
                         board={board}
                         readonly={props.readonly}
                     />
-                    <div className='shareButtonWrapper'>
+                    <div class='shareButtonWrapper'>
                         {showShareButton &&
                         <ShareBoardButton
                             enableSharedBoards={props.clientConfig?.enablePublicSharedBoards || false}
@@ -544,4 +542,4 @@ const CenterPanel = (props: Props) => {
     )
 }
 
-export default React.memo(CenterPanel)
+export default CenterPanel

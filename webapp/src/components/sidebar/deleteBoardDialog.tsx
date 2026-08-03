@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {type JSX, useState} from 'react'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../intl'
 
 import {Utils} from '../../utils'
 import Button from '../../widgets/buttons/button'
@@ -28,8 +28,8 @@ export default function DeleteBoardDialog(props: Props): JSX.Element {
                 toolsMenu={null}
                 className='DeleteBoardDialog'
             >
-                <div className='container'>
-                    <h2 className='header text-heading5'>
+                <div class='container'>
+                    <h2 class='header text-heading5'>
                         {props.isTemplate &&
                             <FormattedMessage
                                 id='DeleteBoardDialog.confirm-tite-template'
@@ -41,7 +41,7 @@ export default function DeleteBoardDialog(props: Props): JSX.Element {
                                 defaultMessage='Confirm delete board'
                             />}
                     </h2>
-                    <p className='body'>
+                    <p class='body'>
                         {props.isTemplate &&
                             <FormattedMessage
                                 id='DeleteBoardDialog.confirm-info-template'
@@ -59,11 +59,11 @@ export default function DeleteBoardDialog(props: Props): JSX.Element {
                                 }}
                             />}
                     </p>
-                    <div className='footer'>
+                    <div class='footer'>
                         <Button
                             size={'medium'}
                             emphasis={'tertiary'}
-                            onClick={(e: React.MouseEvent) => {
+                            onClick={(e: MouseEvent) => {
                                 e.stopPropagation()
                                 !isSubmitting && props.onClose()
                             }}
@@ -77,7 +77,7 @@ export default function DeleteBoardDialog(props: Props): JSX.Element {
                             size={'medium'}
                             filled={true}
                             danger={true}
-                            onClick={async (e: React.MouseEvent) => {
+                            onClick={async (e: MouseEvent) => {
                                 e.stopPropagation()
                                 try {
                                     setSubmitting(true)

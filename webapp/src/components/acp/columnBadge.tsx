@@ -4,7 +4,7 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {agentBindings} from './agentReposDialog'
 import {ColumnSpec, specFor} from './columnSettingsDialog'
@@ -119,14 +119,14 @@ const ColumnBadge = (props: Props) => {
 
     return (
         <span
-            className='ColumnBadge'
+            class='ColumnBadge'
             title={title}
         >
-            <span className='ColumnBadge__icon'>{actionIcon(spec.action)}</span>
+            <span class='ColumnBadge__icon'>{actionIcon(spec.action)}</span>
             {crew.length > 0 &&
-                <span className='ColumnBadge__crew'>{crew.length === 1 ? crew[0] : crew.length}</span>}
+                <span class='ColumnBadge__crew'>{crew.length === 1 ? crew[0] : crew.length}</span>}
             {limit > 0 &&
-                <span className='ColumnBadge__limit'>{limit}</span>}
+                <span class='ColumnBadge__limit'>{limit}</span>}
         </span>
     )
 }
@@ -144,4 +144,4 @@ function actionTitle(intl: {formatMessage: (d: {id: string, defaultMessage: stri
     }
 }
 
-export default React.memo(ColumnBadge)
+export default ColumnBadge

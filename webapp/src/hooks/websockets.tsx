@@ -1,21 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {useEffect} from 'react'
+import {createEffect, onCleanup} from 'solid-js'
 
 import wsClient, {WSClient} from '../wsclient'
 
-export const useWebsockets = (teamId: string, fn: (wsClient: WSClient) => () => void, deps: any[] = []): void => {
-    useEffect(() => {
-        if (!teamId) {
-            return () => {}
+// teamId is an accessor now; the deps list is gone — the effect re-runs when
+// whatever fn reads changes, which is what the list approximated.
+export const useWebsockets = (teamId: () => string, fn: (wsClient: WSClient) => () => void): void => {
+    createEffect(() => {
+        const team = teamId()
+        if (!team) {
+            return
         }
 
-        wsClient.subscribeToTeam(teamId)
+        wsClient.subscribeToTeam(team)
         const teardown = fn(wsClient)
 
-        return () => {
+        onCleanup(() => {
             teardown()
-            wsClient.unsubscribeToTeam(teamId)
-        }
-    }, [teamId, ...deps])
+            wsClient.unsubscribeToTeam(team)
+        })
+    })
 }

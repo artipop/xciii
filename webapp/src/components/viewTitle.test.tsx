@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import '@testing-library/jest-dom'
-import {act, render, screen, fireEvent} from '@testing-library/react'
+import {act, render, screen, fireEvent} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {mocked} from 'jest-mock'
 
@@ -65,7 +64,7 @@ describe('components/viewTitle', () => {
     test('should match snapshot', async () => {
         let container
         await act(async () => {
-            const result = render(wrapIntl(
+            const result = render(wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewTitle
                         board={board}
@@ -81,7 +80,7 @@ describe('components/viewTitle', () => {
     test('should match snapshot readonly', async () => {
         let container
         await act(async () => {
-            const result = render(wrapIntl(
+            const result = render(wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewTitle
                         board={board}
@@ -98,7 +97,7 @@ describe('components/viewTitle', () => {
         board.showDescription = true
         let container
         await act(async () => {
-            const result = render(wrapIntl(
+            const result = render(wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewTitle
                         board={board}
@@ -118,7 +117,7 @@ describe('components/viewTitle', () => {
         board.showDescription = false
         let container
         await act(async () => {
-            const result = render(wrapIntl(
+            const result = render(wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewTitle
                         board={board}
@@ -138,7 +137,7 @@ describe('components/viewTitle', () => {
         board.icon = ''
         let container
         await act(async () => {
-            const result = render(wrapIntl(
+            const result = render(wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewTitle
                         board={board}
@@ -156,7 +155,7 @@ describe('components/viewTitle', () => {
 
     test('change title', async () => {
         await act(async () => {
-            render(wrapIntl(
+            render(wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewTitle
                         board={board}

@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react'
-import React from 'react'
+import {render} from '@solidjs/testing-library'
 
 import {IPropertyTemplate} from '../../blocks/board'
 
@@ -16,7 +15,7 @@ describe('components/calculations/Options', () => {
             type: 'number',
         } as IPropertyTemplate
 
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <CalculationOptions
                 value={'none'}
                 onChange={() => {}}
@@ -30,7 +29,7 @@ describe('components/calculations/Options', () => {
             />,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -39,7 +38,7 @@ describe('components/calculations/Options', () => {
             type: 'number',
         } as IPropertyTemplate
 
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <CalculationOptions
                 value={'none'}
                 menuOpen={true}
@@ -60,7 +59,7 @@ describe('components/calculations/Options', () => {
             />,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 })

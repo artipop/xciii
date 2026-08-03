@@ -4,7 +4,7 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 
@@ -158,14 +158,14 @@ const CardAgent = (props: Props) => {
     }
 
     return (
-        <div className='CardAgent'>
-            <div className='CardAgent__row'>
-                <span className='CardAgent__title'>
+        <div class='CardAgent'>
+            <div class='CardAgent__row'>
+                <span class='CardAgent__title'>
                     {intl.formatMessage({id: 'CardAgent.title', defaultMessage: 'Agent'})}
                 </span>
                 {status &&
-                    <span className={`CardAgent__status CardAgent__status--${status}`}>{status}</span>}
-                <div className='CardAgent__actions'>
+                    <span class={`CardAgent__status CardAgent__status--${status}`}>{status}</span>}
+                <div class='CardAgent__actions'>
                     <Button
                         onClick={openTerminal}
                         disabled={busy}
@@ -181,15 +181,15 @@ const CardAgent = (props: Props) => {
             </div>
 
             {state.session?.branch &&
-                <div className='CardAgent__branch'>
+                <div class='CardAgent__branch'>
                     <span
-                        className='CardAgent__branchName'
+                        class='CardAgent__branchName'
                         title={state.session.worktree || undefined}
                     >
                         {state.session.branch}
                     </span>
                     {deployStatus &&
-                        <span className='CardAgent__deployStatus'>
+                        <span class='CardAgent__deployStatus'>
                             {intl.formatMessage({id: 'CardAgent.deploy-status', defaultMessage: 'deploy: {status}'}, {status: deployStatus})}
                         </span>}
                     <Button
@@ -201,11 +201,11 @@ const CardAgent = (props: Props) => {
                 </div>}
 
             {state.session?.error &&
-                <div className='CardAgent__error'>{state.session.error}</div>}
-            {error && <div className='CardAgent__error'>{error}</div>}
+                <div class='CardAgent__error'>{state.session.error}</div>}
+            {error && <div class='CardAgent__error'>{error}</div>}
 
             {repos.length > 0 &&
-                <div className='CardAgent__repoPicker'>
+                <div class='CardAgent__repoPicker'>
                     <select
                         value={repoName}
                         onChange={(e) => setRepoName(e.target.value)}
@@ -215,7 +215,6 @@ const CardAgent = (props: Props) => {
                         </option>
                         {repos.map((r) => (
                             <option
-                                key={r.name}
                                 value={r.name}
                             >{r.name}</option>
                         ))}

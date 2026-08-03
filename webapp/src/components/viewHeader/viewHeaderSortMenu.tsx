@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
-import {FormattedMessage} from 'react-intl'
+import type {JSX} from 'solid-js'
+import {FormattedMessage} from '../../intl'
 
 import {IPropertyTemplate} from '../../blocks/board'
 import {BoardView, ISortOption} from '../../blocks/boardView'
@@ -90,7 +90,6 @@ const ViewHeaderSortMenu = (props: Props) => {
                     }
                     return (
                         <Menu.Text
-                            key={option.id}
                             id={option.id}
                             name={option.name}
                             rightIcon={rightIcon}
@@ -103,4 +102,4 @@ const ViewHeaderSortMenu = (props: Props) => {
     )
 }
 
-export default React.memo(ViewHeaderSortMenu)
+export default ViewHeaderSortMenu

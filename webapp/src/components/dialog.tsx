@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useRef} from 'react'
-import {useIntl} from 'react-intl'
+import {Show} from 'solid-js'
+import type {JSX, ParentComponent} from 'solid-js'
+
+import {useIntl} from '../intl'
 
 import {useHotkeys} from '../hooks/hotkeys'
 import IconButton from '../widgets/buttons/iconButton'
@@ -11,10 +13,9 @@ import MenuWrapper from '../widgets/menuWrapper'
 import './dialog.scss'
 
 type Props = {
-    children: React.ReactNode
     size?: string
-    toolsMenu?: React.ReactNode // some dialogs may not  require a toolmenu
-    toolbar?: React.ReactNode
+    toolsMenu?: JSX.Element // some dialogs may not  require a toolmenu
+    toolbar?: JSX.Element
     hideCloseButton?: boolean
     className?: string
     title?: JSX.Element
@@ -22,8 +23,7 @@ type Props = {
     onClose: () => void
 }
 
-const Dialog = (props: Props) => {
-    const {toolsMenu, toolbar, title, subtitle, size} = props
+const Dialog: ParentComponent<Props> = (props) => {
     const intl = useIntl()
 
     const closeDialogText = intl.formatMessage({
@@ -33,48 +33,51 @@ const Dialog = (props: Props) => {
 
     useHotkeys('esc', () => props.onClose())
 
-    const isBackdropClickedRef = useRef(false)
+    let isBackdropClicked = false
 
     return (
-        <div className={`Dialog dialog-back ${props.className} size--${size || 'medium'}`}>
-            <div className='backdrop'/>
+        <div class={`Dialog dialog-back ${props.className} size--${props.size || 'medium'}`}>
+            <div class='backdrop'/>
             <div
-                className='wrapper'
+                class='wrapper'
                 onClick={(e) => {
                     e.stopPropagation()
-                    if (!isBackdropClickedRef.current) {
+                    if (!isBackdropClicked) {
                         return
                     }
-                    isBackdropClickedRef.current = false
+                    isBackdropClicked = false
                     props.onClose()
                 }}
                 onMouseDown={(e) => {
                     if (e.target === e.currentTarget) {
-                        isBackdropClickedRef.current = true
+                        isBackdropClicked = true
                     }
                 }}
             >
                 <div
                     role='dialog'
-                    className='dialog'
+                    class='dialog'
                 >
-                    <div className='toolbar'>
+                    <div class='toolbar'>
                         <div>
-                            {<h1 className='dialog-title'>{title || ''}</h1>}
-                            {subtitle && <h5 className='dialog-subtitle'>{subtitle}</h5>}
+                            {<h1 class='dialog-title'>{props.title || ''}</h1>}
+                            <Show when={props.subtitle}>
+                                <h5 class='dialog-subtitle'>{props.subtitle}</h5>
+                            </Show>
                         </div>
-                        <div className='toolbar--right'>
-                            {toolbar && <div className='d-flex'>{toolbar}</div>}
-                            {toolsMenu && <MenuWrapper>
-                                <IconButton
-                                    size='medium'
-                                    icon={<OptionsIcon/>}
-                                />
-                                {toolsMenu}
-                            </MenuWrapper>
-                            }
-                            {
-                                !props.hideCloseButton &&
+                        <div class='toolbar--right'>
+                            <Show when={props.toolbar}>
+                                <div class='d-flex'>{props.toolbar}</div>
+                            </Show>
+                            <Show when={props.toolsMenu}>
+                                <MenuWrapper menu={props.toolsMenu}>
+                                    <IconButton
+                                        size='medium'
+                                        icon={<OptionsIcon/>}
+                                    />
+                                </MenuWrapper>
+                            </Show>
+                            <Show when={!props.hideCloseButton}>
                                 <IconButton
                                     className='dialog__close'
                                     onClick={props.onClose}
@@ -82,7 +85,7 @@ const Dialog = (props: Props) => {
                                     title={closeDialogText}
                                     size='medium'
                                 />
-                            }
+                            </Show>
                         </div>
                     </div>
                     {props.children}
@@ -92,4 +95,4 @@ const Dialog = (props: Props) => {
     )
 }
 
-export default React.memo(Dialog)
+export default Dialog

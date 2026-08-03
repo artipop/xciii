@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../../intl'
 
 import {SidebarTourSteps, TOUR_SIDEBAR} from '..'
 
@@ -30,7 +30,6 @@ const SearchForBoardsTourStep = (): JSX.Element | null => {
 
     return (
         <TourTipRenderer
-            key='SearchForBoardsTourStep'
             requireCard={false}
             category={TOUR_SIDEBAR}
             step={SidebarTourSteps.SEARCH_FOR_BOARDS}

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {type JSX, useEffect, useState} from 'react'
-import {IntlShape} from 'react-intl'
+import {IntlShape} from '../../intl'
 
 import {ContentBlock} from '../../blocks/contentBlock'
 import {ImageBlock, createImageBlock} from '../../blocks/imageBlock'
@@ -48,7 +48,7 @@ const ImageElement = (props: Props): JSX.Element|null => {
 
     return (
         <img
-            className='ImageElement'
+            class='ImageElement'
             src={imageDataUrl}
             alt={block.title}
         />
@@ -82,4 +82,4 @@ contentRegistry.registerContentType({
     createComponent: (block) => <ImageElement block={block}/>,
 })
 
-export default React.memo(ImageElement)
+export default ImageElement

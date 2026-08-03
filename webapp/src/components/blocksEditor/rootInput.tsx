@@ -59,7 +59,7 @@ export default function RootInput(props: Props) {
                     props.onChange('')
                 }
             }}
-            onFocus={(e: React.FocusEvent) => {
+            onFocus={(e: FocusEvent) => {
                 e.currentTarget.scrollIntoView({block: 'center'})
             }}
             onKeyDown={(e) => {

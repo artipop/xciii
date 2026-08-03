@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {type JSX, useCallback, useEffect, useRef, useState, Fragment, useMemo} from 'react'
-import {FormattedMessage, useIntl, IntlShape} from 'react-intl'
+import {FormattedMessage, useIntl, IntlShape} from '../../intl'
 
 import {BlockIcons} from '../../blockIcons'
 import {Card} from '../../blocks/card'
@@ -197,14 +197,14 @@ const CardDetail = (props: Props): JSX.Element|null => {
 
     return (
         <>
-            <div className={`CardDetail ${limited ? ' CardDetail--is-limited' : ''}`}>
+            <div class={`CardDetail ${limited ? ' CardDetail--is-limited' : ''}`}>
                 <BlockIconSelector
                     block={card}
                     size='l'
                     readonly={props.readonly || !canEditBoardCards || limited}
                 />
                 {!props.readonly && canEditBoardCards && !card.fields.icon &&
-                    <div className='add-buttons'>
+                    <div class='add-buttons'>
                         <Button
                             emphasis='default'
                             size='small'
@@ -237,24 +237,24 @@ const CardDetail = (props: Props): JSX.Element|null => {
 
                 {/* Hidden (limited) card copy + CTA */}
 
-                {limited && <div className='CardDetail__limited-wrapper'>
+                {limited && <div class='CardDetail__limited-wrapper'>
                     <CardSkeleton
                         className='CardDetail__limited-bg'
                     />
-                    <p className='CardDetail__limited-title'>
+                    <p class='CardDetail__limited-title'>
                         <FormattedMessage
                             id='CardDetail.limited-title'
                             defaultMessage='This card is hidden'
                         />
                     </p>
-                    <p className='CardDetail__limited-body'>
+                    <p class='CardDetail__limited-body'>
                         <FormattedMessage
                             id='CardDetail.limited-body'
                             defaultMessage='Upgrade to our Professional or Enterprise plan to view archived cards, have unlimited views per boards, unlimited cards and more.'
                         />
                         <br/>
                         <a
-                            className='CardDetail__limited-link'
+                            class='CardDetail__limited-link'
                             role='button'
                             onClick={() => {
                                 props.onClose();
@@ -328,7 +328,7 @@ const CardDetail = (props: Props): JSX.Element|null => {
 
             {/* Content blocks */}
 
-            {!limited && <div className='CardDetail CardDetail--fullwidth content-blocks'>
+            {!limited && <div class='CardDetail CardDetail--fullwidth content-blocks'>
                 {newBoardsEditor && (
                     <BlocksEditor
                         boardId={card.boardId}

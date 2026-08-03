@@ -3,7 +3,7 @@
 
 import React, {type JSX, useState, KeyboardEvent} from 'react'
 
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {IUser} from '../../user'
 import {Category} from '../../store/sidebar'
@@ -82,10 +82,10 @@ const CreateCategory = (props: Props): JSX.Element => {
             className='CreateCategoryModal'
             onClose={props.onClose}
         >
-            <div className='CreateCategory'>
-                <div className='inputWrapper'>
+            <div class='CreateCategory'>
+                <div class='inputWrapper'>
                     <input
-                        className='categoryNameInput'
+                        class='categoryNameInput'
                         type='text'
                         placeholder={placeholder}
                         value={name}
@@ -97,14 +97,14 @@ const CreateCategory = (props: Props): JSX.Element => {
                     {
                         Boolean(name) &&
                         <div
-                            className='clearBtn inputWrapper__close-wrapper'
+                            class='clearBtn inputWrapper__close-wrapper'
                             onClick={() => setName('')}
                         >
                             <CloseCircle/>
                         </div>
                     }
                 </div>
-                <div className='createCategoryActions'>
+                <div class='createCategoryActions'>
                     <Button
                         size={'medium'}
                         danger={true}

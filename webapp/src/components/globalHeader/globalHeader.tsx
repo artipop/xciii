@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 //
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 import {Provider as ReduxProvider} from 'react-redux'
-import {IntlProvider} from 'react-intl'
+import {IntlProvider} from '../../intl'
 import {History} from 'history'
 
 import HelpIcon from '../../widgets/icons/help'
@@ -31,13 +31,13 @@ const HeaderItems = (props: HeaderItemProps) => {
             locale={language.split(/[_]/)[0]}
             messages={getMessages(language)}
         >
-            <div className='GlobalHeaderComponent'>
-                <span className='spacer'/>
+            <div class='GlobalHeaderComponent'>
+                <span class='spacer'/>
                 <a
                     href={helpUrl}
                     target='_blank'
                     rel='noreferrer'
-                    className='GlobalHeaderComponent__button help-button'
+                    class='GlobalHeaderComponent__button help-button'
                 >
                     <HelpIcon/>
                 </a>

@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import '@testing-library/jest-dom'
-import {act, render, screen} from '@testing-library/react'
+import {act, render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {mocked} from 'jest-mock'
 
@@ -91,7 +90,7 @@ describe('components/cardDialog', () => {
     test('should match snapshot', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CardDialog
                         board={board}
@@ -113,7 +112,7 @@ describe('components/cardDialog', () => {
         let container
         const localStore = mockStateStore([], {...state, teams: {current: undefined}})
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={localStore}>
                     <CardDialog
                         board={board}
@@ -134,7 +133,7 @@ describe('components/cardDialog', () => {
     test('return a cardDialog readonly', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CardDialog
                         board={board}
@@ -155,7 +154,7 @@ describe('components/cardDialog', () => {
     test('return cardDialog and do a close action', async () => {
         const closeFn = jest.fn()
         await act(async () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CardDialog
                         board={board}
@@ -177,7 +176,7 @@ describe('components/cardDialog', () => {
     test('return cardDialog menu content', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CardDialog
                         board={board}
@@ -199,7 +198,7 @@ describe('components/cardDialog', () => {
     })
     test('return cardDialog menu content and verify delete action', async () => {
         await act(async () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CardDialog
                         board={board}
@@ -235,7 +234,7 @@ describe('components/cardDialog', () => {
     test('return cardDialog menu content and cancel delete confirmation do nothing', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CardDialog
                         board={board}
@@ -272,7 +271,7 @@ describe('components/cardDialog', () => {
 
     test('return cardDialog menu content and do a New template from card', async () => {
         await act(async () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CardDialog
                         board={board}
@@ -296,7 +295,7 @@ describe('components/cardDialog', () => {
 
     test('return cardDialog menu content and do a copy Link', async () => {
         await act(async () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <CardDialog
                         board={board}
@@ -331,7 +330,7 @@ describe('components/cardDialog', () => {
 
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={newStore}>
                     <CardDialog
                         board={board}
@@ -366,7 +365,7 @@ describe('components/cardDialog', () => {
 
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={newStore}>
                     <CardDialog
                         board={board}

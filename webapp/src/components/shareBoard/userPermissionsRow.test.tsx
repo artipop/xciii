@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {act, render} from '@testing-library/react'
+import {act, render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import React from 'react'
 import {MemoryRouter} from 'react-router'
 
 import {BoardMember} from '../../blocks/board'
@@ -75,7 +74,7 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
         const store = mockStateStore([thunk], state)
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <UserPermissionsRow
                             user={me}
@@ -106,7 +105,7 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
         newMe.permissions = ['manage_system']
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <UserPermissionsRow
                             user={newMe}
@@ -134,7 +133,7 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
         const store = mockStateStore([thunk], state)
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <UserPermissionsRow
                             user={me}
@@ -172,7 +171,7 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
         const store = mockStateStore([thunk], testState)
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <UserPermissionsRow
                             user={me}

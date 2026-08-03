@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import FullCalendar from '@fullcalendar/react'
 import {EventChangeArg, EventInput, EventContentArg, DayCellContentArg} from '@fullcalendar/core'
@@ -155,7 +155,7 @@ const CalendarFullView = (props: Props): JSX.Element|null => {
         return (
             <>
                 <div
-                    className='EventContent'
+                    class='EventContent'
                     onClick={() => props.showCard(event.id)}
                 >
                     {!props.readonly &&
@@ -174,16 +174,14 @@ const CalendarFullView = (props: Props): JSX.Element|null => {
                             }}
                         />
                     </MenuWrapper>}
-                    <div className='octo-icontitle'>
-                        { event.extendedProps.icon ? <div className='octo-icon'>{event.extendedProps.icon}</div> : undefined }
+                    <div class='octo-icontitle'>
+                        { event.extendedProps.icon ? <div class='octo-icon'>{event.extendedProps.icon}</div> : undefined }
                         <div
-                            className='fc-event-title'
-                            key='__title'
+                            class='fc-event-title'
                         >{event.title || intl.formatMessage({id: 'CalendarCard.untitled', defaultMessage: 'Untitled'})}</div>
                     </div>
                     {visiblePropertyTemplates.map((template) => (
                         <Tooltip
-                            key={template.id}
                             title={template.name}
                         >
                             <PropertyValueElement
@@ -253,14 +251,14 @@ const CalendarFullView = (props: Props): JSX.Element|null => {
 
     const dayCellContent = (args: DayCellContentArg): JSX.Element|null => {
         return (
-            <div className={'dateContainer ' + (canAddCards ? 'with-plus' : '')}>
+            <div class={'dateContainer ' + (canAddCards ? 'with-plus' : '')}>
                 <div
-                    className='addEvent'
+                    class='addEvent'
                     onClick={() => onNewEvent({start: args.date, end: args.date})}
                 >
                     {'+'}
                 </div>
-                <div className='dateDisplay'>
+                <div class='dateDisplay'>
                     {args.dayNumberText}
                 </div>
             </div>
@@ -269,10 +267,9 @@ const CalendarFullView = (props: Props): JSX.Element|null => {
 
     return (
         <div
-            className='CalendarContainer'
+            class='CalendarContainer'
         >
             <FullCalendar
-                key={activeView.id}
                 dayCellContent={dayCellContent}
                 dayMaxEventRows={5}
                 initialDate={initialDate}

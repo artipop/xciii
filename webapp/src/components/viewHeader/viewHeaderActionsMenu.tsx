@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useState} from 'react'
-import {useIntl, IntlShape} from 'react-intl'
+import {useIntl, IntlShape} from '../../intl'
 
 import {CsvExporter} from '../../csvExporter'
 import {Archiver} from '../../archiver'
@@ -129,7 +129,6 @@ const ViewHeaderActionsMenu = (props: Props) => {
                         div behind: Menu wraps every child slot in a div. */}
                     {isPlanningAvailable() ? [
                         <Menu.Text
-                            key='planTask'
                             id='planTask'
                             name={intl.formatMessage({id: 'ViewHeader.plan-task', defaultMessage: 'Plan a task…'})}
                             onClick={() => setShowPlanning(true)}
@@ -137,7 +136,6 @@ const ViewHeaderActionsMenu = (props: Props) => {
                     ] : []}
                     {isBoardSetupAvailable() ? [
                         <Menu.Text
-                            key='boardSetup'
                             id='boardSetup'
                             name={intl.formatMessage({id: 'ViewHeader.board-setup', defaultMessage: 'Set up this board…'})}
                             onClick={() => setShowSetup(true)}
@@ -145,7 +143,6 @@ const ViewHeaderActionsMenu = (props: Props) => {
                     ] : []}
                     {isAgentReposAvailable() ? [
                         <Menu.Text
-                            key='agentRepos'
                             id='agentRepos'
                             name={intl.formatMessage({id: 'ViewHeader.agent-repos', defaultMessage: 'Repositories…'})}
                             onClick={() => setShowAgentRepos(true)}
@@ -153,7 +150,6 @@ const ViewHeaderActionsMenu = (props: Props) => {
                     ] : []}
                     {isAgentsAvailable() ? [
                         <Menu.Text
-                            key='agents'
                             id='agents'
                             name={intl.formatMessage({id: 'ViewHeader.agents', defaultMessage: 'Agents…'})}
                             onClick={() => setShowAgents(true)}
@@ -161,7 +157,6 @@ const ViewHeaderActionsMenu = (props: Props) => {
                     ] : []}
                     {isDeployTargetsAvailable() ? [
                         <Menu.Text
-                            key='deployTargets'
                             id='deployTargets'
                             name={intl.formatMessage({id: 'ViewHeader.deploy-targets', defaultMessage: 'Deploy targets…'})}
                             onClick={() => setShowDeployTargets(true)}
@@ -169,7 +164,6 @@ const ViewHeaderActionsMenu = (props: Props) => {
                     ] : []}
                     {isWorkflowsAvailable() ? [
                         <Menu.Text
-                            key='workflows'
                             id='workflows'
                             name={intl.formatMessage({id: 'ViewHeader.workflows', defaultMessage: 'Workflows…'})}
                             onClick={() => setShowWorkflows(true)}
@@ -233,4 +227,4 @@ const ViewHeaderActionsMenu = (props: Props) => {
     )
 }
 
-export default React.memo(ViewHeaderActionsMenu)
+export default ViewHeaderActionsMenu

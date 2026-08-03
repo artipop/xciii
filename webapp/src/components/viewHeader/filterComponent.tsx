@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
-import {FormattedMessage} from 'react-intl'
+import type {JSX} from 'solid-js'
+import {FormattedMessage} from '../../intl'
 
 import {FilterClause, FilterCondition, createFilterClause} from '../../blocks/filterClause'
 import {createFilterGroup, isAFilterGroupInstance} from '../../blocks/filterGroup'
@@ -69,11 +69,10 @@ const FilterComponent = (props: Props): JSX.Element => {
             onClose={props.onClose}
         >
             <div
-                className='FilterComponent'
+                class='FilterComponent'
             >
                 {filters.map((filter) => (
-                    <FilterEntry
-                        key={`${filter.propertyId}-${filter.condition}`}
+                    <FilterEntry-${filter.condition}`}
                         board={board}
                         view={activeView}
                         conditionClicked={conditionClicked}
@@ -94,4 +93,4 @@ const FilterComponent = (props: Props): JSX.Element => {
     )
 }
 
-export default React.memo(FilterComponent)
+export default FilterComponent

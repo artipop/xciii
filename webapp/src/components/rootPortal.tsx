@@ -1,29 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, useState, useLayoutEffect} from 'react'
-import ReactDOM from 'react-dom'
+import {Portal} from 'solid-js/web'
+import type {ParentComponent} from 'solid-js'
 
-type Props = {
-    children: React.ReactNode
-}
-
-const RootPortal = (props: Props): JSX.Element => {
-    const [el] = useState(document.createElement('div'))
+// Renders into #focalboard-root-portal — the node index.html provides above
+// the app root, which is what keeps dialogs over everything else.
+const RootPortal: ParentComponent = (props) => {
     const rootPortal = document.getElementById('focalboard-root-portal')
 
-    useLayoutEffect(() => {
-        if (rootPortal) {
-            rootPortal.appendChild(el)
-        }
-        return () => {
-            if (rootPortal) {
-                rootPortal.removeChild(el)
-            }
-        }
-    }, [])
-
-    return ReactDOM.createPortal(props.children, el)  // eslint-disable-line
+    return (
+        <Portal mount={rootPortal || document.body}>
+            {props.children}
+        </Portal>
+    )
 }
 
-export default React.memo(RootPortal)
+export default RootPortal

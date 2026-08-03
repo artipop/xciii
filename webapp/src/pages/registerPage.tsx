@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import React, {useState} from 'react'
 import {useHistory, Link, Redirect} from 'react-router-dom'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../intl'
 
 import {useAppDispatch, useAppSelector} from '../store/hooks'
 import {fetchMe, getLoggedIn} from '../store/users'
@@ -43,20 +43,20 @@ const RegisterPage = () => {
     }
 
     return (
-        <div className='RegisterPage'>
+        <div class='RegisterPage'>
             <form
                 onSubmit={(e: React.FormEvent) => {
                     e.preventDefault()
                     handleRegister()
                 }}
             >
-                <div className='title'>
+                <div class='title'>
                     <FormattedMessage
                         id='register.signup-title'
                         defaultMessage='Sign up for your account'
                     />
                 </div>
-                <div className='email'>
+                <div class='email'>
                     <input
                         id='login-email'
                         placeholder={'Enter email'}
@@ -64,7 +64,7 @@ const RegisterPage = () => {
                         onChange={(e) => setEmail(e.target.value.trim())}
                     />
                 </div>
-                <div className='username'>
+                <div class='username'>
                     <input
                         id='login-username'
                         placeholder={'Enter username'}
@@ -72,7 +72,7 @@ const RegisterPage = () => {
                         onChange={(e) => setUsername(e.target.value.trim())}
                     />
                 </div>
-                <div className='password'>
+                <div class='password'>
                     <input
                         id='login-password'
                         type='password'
@@ -95,7 +95,7 @@ const RegisterPage = () => {
                 />
             </Link>
             {errorMessage &&
-                <div className='error'>
+                <div class='error'>
                     {errorMessage}
                 </div>
             }
@@ -103,4 +103,4 @@ const RegisterPage = () => {
     )
 }
 
-export default React.memo(RegisterPage)
+export default RegisterPage

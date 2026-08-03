@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useEffect, useRef, useState} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {Card} from '../../blocks/card'
 import {Board, IPropertyTemplate} from '../../blocks/board'
@@ -41,7 +41,7 @@ type Props = {
     showCard: (cardId?: string) => void
     readonly: boolean
     addCard: (groupByOptionId?: string) => Promise<void>
-    onClick?: (e: React.MouseEvent<HTMLDivElement>, card: Card) => void
+    onClick?: (e: MouseEvent, card: Card) => void
     onDrop: (srcCard: Card, dstCard: Card) => void
 }
 
@@ -62,7 +62,7 @@ const TableRow = (props: Props) => {
         }
     }, [])
 
-    const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const onClick = (e: MouseEvent) => {
         props.onClick && props.onClick(e, card)
     }
 
@@ -145,13 +145,13 @@ const TableRow = (props: Props) => {
 
     return (
         <div
-            className={className}
+            class={className}
             onClick={onClick}
             ref={cardRef}
             style={{opacity: isDragging ? 0.5 : 1}}
         >
 
-            <div className='action-cell octo-table-cell-btn'>
+            <div class='action-cell octo-table-cell-btn'>
                 {!props.readonly && (
                     <IconButton icon={<CompassIcon icon='drag-vertical'/>}/>
                 )}
@@ -159,13 +159,13 @@ const TableRow = (props: Props) => {
 
             {/* Name / title */}
             <div
-                className='octo-table-cell title-cell'
+                class='octo-table-cell title-cell'
                 id='mainBoardHeader'
                 style={{width: columnResize.width(Constants.titleColumnId)}}
                 ref={(ref) => columnResize.updateRef(card.id, Constants.titleColumnId, ref)}
             >
-                <div className='octo-icontitle'>
-                    <div className='octo-icon'>{card.fields.icon}</div>
+                <div class='octo-icontitle'>
+                    <div class='octo-icon'>{card.fields.icon}</div>
                     <Editable
                         ref={titleRef}
                         value={title}
@@ -215,7 +215,7 @@ const TableRow = (props: Props) => {
                     </MenuWrapper>
                 )}
 
-                <div className='open-button'>
+                <div class='open-button'>
                     <Button onClick={() => props.showCard(props.card.id || '')}>
                         <FormattedMessage
                             id='TableRow.open'
@@ -229,8 +229,7 @@ const TableRow = (props: Props) => {
             {visiblePropertyTemplates.map((template) => {
                 return (
                     <div
-                        className='octo-table-cell'
-                        key={template.id}
+                        class='octo-table-cell'
                         style={{width: columnResize.width(template.id)}}
                         ref={(ref) => columnResize.updateRef(card.id, template.id, ref)}
                     >
@@ -250,4 +249,4 @@ const TableRow = (props: Props) => {
     )
 }
 
-export default React.memo(TableRow)
+export default TableRow

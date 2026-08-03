@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {act, render, screen} from '@testing-library/react'
+import {act, render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import React from 'react'
 import {MemoryRouter} from 'react-router'
 import {mocked} from 'jest-mock'
 
@@ -210,7 +209,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         let container
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <ShareBoard
                             onClose={jest.fn()}
@@ -240,7 +239,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         let container
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <ShareBoard
                             onClose={jest.fn()}
@@ -268,7 +267,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         let container
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <ShareBoard
                             onClose={jest.fn()}
@@ -310,7 +309,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         let container
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <ShareBoard
                             onClose={jest.fn()}
@@ -352,10 +351,10 @@ describe('src/components/shareBoard/shareBoard', () => {
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
         let container: Element | undefined
-        let result: {container: Element, rerender: (ui: React.ReactElement) => void} | undefined
+        let result: {container: Element, rerender: (ui: JSX.Element) => void} | undefined
         await act(async () => {
             result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <ShareBoard
                             onClose={jest.fn()}
@@ -396,10 +395,10 @@ describe('src/components/shareBoard/shareBoard', () => {
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
         mockedUtils.createGuid.mockReturnValue('aToken')
         let container: Element | undefined
-        let result: {container: Element, rerender: (ui: React.ReactElement) => void} | undefined
+        let result: {container: Element, rerender: (ui: JSX.Element) => void} | undefined
         await act(async () => {
             result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <ShareBoard
                             onClose={jest.fn()}
@@ -432,7 +431,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             userEvent.click(switchElement!)
             jest.runOnlyPendingTimers()
             result?.rerender(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <ShareBoard
                             onClose={jest.fn()}
@@ -461,7 +460,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <ShareBoard
                         onClose={jest.fn()}
@@ -484,7 +483,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <ShareBoard
                         onClose={jest.fn()}
@@ -525,7 +524,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         let container
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <ShareBoard
                             onClose={jest.fn()}
@@ -574,7 +573,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         let container
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <ShareBoard
                             onClose={jest.fn()}
@@ -611,7 +610,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         let container
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={myStore}>
                         <ShareBoard
                             onClose={jest.fn()}
@@ -659,7 +658,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         let container
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={myStore}>
                         <ShareBoard
                             onClose={jest.fn()}

@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import mutator from '../../mutator'
 import {Card} from '../../blocks/card'
@@ -33,7 +32,6 @@ const NewCardButtonTemplateItem = (props: Props) => {
 
     return (
         <Menu.Text
-            key={cardTemplate.id}
             id={cardTemplate.id}
             name={displayName}
             icon={<div className='Icon'>{cardTemplate.fields.icon}</div>}
@@ -81,4 +79,4 @@ const NewCardButtonTemplateItem = (props: Props) => {
     )
 }
 
-export default React.memo(NewCardButtonTemplateItem)
+export default NewCardButtonTemplateItem

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX, useState, useRef} from 'react'
-import {useIntl, FormattedMessage} from 'react-intl'
+import {useIntl, FormattedMessage} from '../intl'
 
 import Combobox from '../widgets/combobox'
 import type {ComboboxOption} from '../combobox'
@@ -74,7 +74,7 @@ const ConfirmAddUserForNotifications = (props: Props): JSX.Element => {
     }
 
     const subText = (
-        <div className='ConfirmAddUserForNotifications'>
+        <div class='ConfirmAddUserForNotifications'>
             <p>
                 <FormattedMessage
                     id='person.add-user-to-board-warning'
@@ -89,7 +89,7 @@ const ConfirmAddUserForNotifications = (props: Props): JSX.Element => {
                     values={{username: props.user.username}}
                 />
             </p>
-            <div className='permissions-title'>
+            <div class='permissions-title'>
                 <label>
                     <FormattedMessage
                         id='person.add-user-to-board-permissions'

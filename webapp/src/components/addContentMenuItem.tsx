@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
-import {useIntl} from 'react-intl'
+import type {JSX} from 'solid-js'
+import {useIntl} from '../intl'
 
 import {BlockTypes, Block} from '../blocks/block'
 import {Card} from '../blocks/card'
@@ -32,7 +32,6 @@ const AddContentMenuItem = (props: Props): JSX.Element => {
 
     return (
         <Menu.Text
-            key={type}
             id={type}
             name={handler.getDisplayText(intl)}
             icon={handler.getIcon()}
@@ -61,4 +60,4 @@ const AddContentMenuItem = (props: Props): JSX.Element => {
     )
 }
 
-export default React.memo(AddContentMenuItem)
+export default AddContentMenuItem

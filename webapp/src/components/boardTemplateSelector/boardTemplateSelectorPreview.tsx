@@ -70,11 +70,10 @@ const BoardTemplateSelectorPreview = (props: Props) => {
     }
 
     return (
-        <div className='BoardTemplateSelectorPreview'>
+        <div class='BoardTemplateSelectorPreview'>
             {activeView &&
-            <div className='top-head'>
+            <div class='top-head'>
                 <ViewTitle
-                    key={activeTemplate?.id + activeTemplate?.title}
                     board={activeTemplate}
                     readonly={true}
                 />
@@ -152,5 +151,5 @@ const BoardTemplateSelectorPreview = (props: Props) => {
     )
 }
 
-export default React.memo(BoardTemplateSelectorPreview)
+export default BoardTemplateSelectorPreview
 

@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import CardIcon from '../../widgets/icons/card'
 import Menu from '../../widgets/menu'
@@ -56,4 +55,4 @@ const EmptyCardButton = (props: Props) => {
         />)
 }
 
-export default React.memo(EmptyCardButton)
+export default EmptyCardButton

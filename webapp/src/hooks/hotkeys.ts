@@ -1,19 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {useEffect, useRef} from 'react'
+import {onCleanup, onMount} from 'solid-js'
 
 import {bindHotkey, type HotkeyHandler} from '../hotkeys'
 
-// The React half of `hotkeys.ts`, and all of it: the handler is kept in a ref so
-// it always sees the current render, which is why call sites pass no dependency
-// list — react-hotkeys-hook needed one because it rebound the shortcut instead,
-// and a handler given no dependencies quietly went on seeing the first render.
+// The Solid half of `hotkeys.ts`, and all of it. The handler closure sees the
+// component's live signals, so nothing needs re-binding — the ref dance the
+// React version did to keep the handler current is simply how closures work
+// under fine-grained reactivity.
 export function useHotkeys(shortcut: string, handler: HotkeyHandler): void {
-    const latest = useRef(handler)
-
-    useEffect(() => {
-        latest.current = handler
+    onMount(() => {
+        onCleanup(bindHotkey(shortcut, (event) => handler(event)))
     })
-
-    useEffect(() => bindHotkey(shortcut, (event) => latest.current(event)), [shortcut])
 }

@@ -47,7 +47,7 @@ const Option = (props: {data: OptionProps}): JSX.Element => {
 
     return (
         <div
-            className={`KanbanCalculationOptions_CustomOption ${props.data.activeValue === props.data.value ? 'active' : ''}`}
+            class={`KanbanCalculationOptions_CustomOption ${props.data.activeValue === props.data.value ? 'active' : ''}`}
             onMouseEnter={toggleOption}
             onMouseLeave={toggleOption}
             onClick={() => {
@@ -68,7 +68,7 @@ const Option = (props: {data: OptionProps}): JSX.Element => {
             {
                 submenu && props.data.value !== 'count' && (
                     <div
-                        className='dropdown-submenu'
+                        class='dropdown-submenu'
                         style={{top: `${height - 10}px`, left: `${menuOptionRight}px`}}
                     >
 
@@ -76,8 +76,7 @@ const Option = (props: {data: OptionProps}): JSX.Element => {
                             calculationToProperties.get(props.data.value) &&
                             calculationToProperties.get(props.data.value)!.map((property) => (
                                 <div
-                                    key={property.id}
-                                    className={`drops ${props.data.activeProperty.id === property.id ? 'active' : ''}`}
+                                    class={`drops ${props.data.activeProperty.id === property.id ? 'active' : ''}`}
                                     onClick={() => {
                                         props.data.onChange({
                                             calculation: props.data.value,

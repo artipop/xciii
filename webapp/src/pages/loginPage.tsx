@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import React, {useState} from 'react'
 import {Link, Redirect, useLocation, useHistory} from 'react-router-dom'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../intl'
 
 import {useAppDispatch, useAppSelector} from '../store/hooks'
 import {fetchMe, getLoggedIn} from '../store/users'
@@ -39,20 +39,20 @@ const LoginPage = () => {
     }
 
     return (
-        <div className='LoginPage'>
+        <div class='LoginPage'>
             <form
                 onSubmit={(e: React.FormEvent) => {
                     e.preventDefault()
                     handleLogin()
                 }}
             >
-                <div className='title'>
+                <div class='title'>
                     <FormattedMessage
                         id='login.log-in-title'
                         defaultMessage='Log in'
                     />
                 </div>
-                <div className='username'>
+                <div class='username'>
                     <input
                         id='login-username'
                         placeholder={'Enter username'}
@@ -63,7 +63,7 @@ const LoginPage = () => {
                         }}
                     />
                 </div>
-                <div className='password'>
+                <div class='password'>
                     <input
                         id='login-password'
                         type='password'
@@ -92,7 +92,7 @@ const LoginPage = () => {
                 />
             </Link>
             {errorMessage &&
-                <div className='error'>
+                <div class='error'>
                     {errorMessage}
                 </div>
             }
@@ -100,4 +100,4 @@ const LoginPage = () => {
     )
 }
 
-export default React.memo(LoginPage)
+export default LoginPage

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {FC} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {Block} from '../../blocks/block'
 import mutator from '../../mutator'
@@ -25,7 +25,7 @@ type Props = {
     readonly: boolean
 }
 
-const Comment: FC<Props> = (props: Props) => {
+const Comment: Component<Props> = (props: Props) => {
     const {comment, userId, userImageUrl} = props
     const intl = useIntl()
     const html = Utils.htmlFromMarkdown(comment.title)
@@ -34,19 +34,18 @@ const Comment: FC<Props> = (props: Props) => {
 
     return (
         <div
-            key={comment.id}
-            className='Comment comment'
+            class='Comment comment'
         >
-            <div className='comment-header'>
+            <div class='comment-header'>
                 <img
-                    className='comment-avatar'
+                    class='comment-avatar'
                     src={userImageUrl}
                 />
-                <div className='comment-username'>{user?.username}</div>
+                <div class='comment-username'>{user?.username}</div>
                 <GuestBadge show={user?.is_guest}/>
 
                 <Tooltip title={Utils.displayDateTime(date, intl)}>
-                    <div className='comment-date'>
+                    <div class='comment-date'>
                         {Utils.relativeDisplayDateTime(date, intl)}
                     </div>
                 </Tooltip>
@@ -66,7 +65,7 @@ const Comment: FC<Props> = (props: Props) => {
                 )}
             </div>
             <div
-                className='comment-text'
+                class='comment-text'
                 dangerouslySetInnerHTML={{__html: html}}
             />
         </div>

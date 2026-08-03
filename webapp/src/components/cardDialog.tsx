@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {type JSX, useState} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../intl'
 
 import {Board} from '../blocks/board'
 import {BoardView} from '../blocks/boardView'
@@ -208,7 +208,7 @@ const CardDialog = (props: Props): JSX.Element => {
         sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.delete', defaultMessage: 'Attachment Deleted Successfully.'}), severity: 'normal'})
     }
 
-    const attachBtn = (): React.ReactNode => {
+    const attachBtn = (): JSX.Element => {
         return (
             <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
                 <Button
@@ -234,7 +234,7 @@ const CardDialog = (props: Props): JSX.Element => {
                 toolbar={attachBtn()}
             >
                 {isTemplate &&
-                    <div className='banner'>
+                    <div class='banner'>
                         <FormattedMessage
                             id='CardDialog.editing-template'
                             defaultMessage="You're editing a template."
@@ -258,7 +258,7 @@ const CardDialog = (props: Props): JSX.Element => {
                     />}
 
                 {!card &&
-                    <div className='banner error'>
+                    <div class='banner error'>
                         <FormattedMessage
                             id='CardDialog.nocard'
                             defaultMessage="This card doesn't exist or is inaccessible."

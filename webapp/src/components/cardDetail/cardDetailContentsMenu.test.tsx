@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {act, render, screen} from '@testing-library/react'
+import {act, render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import React, {ReactElement, ReactNode} from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
@@ -25,7 +25,7 @@ const card = TestBlockFactory.createCard(board)
 describe('components/cardDetail/cardDetailContentsMenu', () => {
     const store = mockStateStore([], {})
     const wrap = (child: ReactNode): ReactElement => (
-        wrapIntl(
+        wrapIntl(() =>
             <ReduxProvider store={store}>
                 <CardDetailProvider card={card}>
                     {child}

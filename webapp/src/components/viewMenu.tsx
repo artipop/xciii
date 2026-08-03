@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../intl'
 import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
 
 import {Board, IPropertyTemplate} from '../blocks/board'
@@ -248,12 +247,11 @@ const ViewMenu = (props: Props) => {
     }
 
     return (
-        <div className='ViewMenu'>
+        <div class='ViewMenu'>
             <Menu>
-                <div className='view-list'>
+                <div class='view-list'>
                     {views.map((view: BoardView) => (
                         <Menu.Text
-                            key={view.id}
                             id={view.id}
                             name={view.title}
                             icon={iconForViewType(view.fields.viewType)}
@@ -290,7 +288,7 @@ const ViewMenu = (props: Props) => {
                         name={addViewText}
                         icon={<AddIcon/>}
                     >
-                        <div className='subMenu'>
+                        <div class='subMenu'>
                             <Menu.Text
                                 id='board'
                                 name={boardText}
@@ -324,4 +322,4 @@ const ViewMenu = (props: Props) => {
     )
 }
 
-export default React.memo(ViewMenu)
+export default ViewMenu

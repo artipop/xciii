@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
@@ -38,7 +37,7 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
     })
     test('return sort menu', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderSortMenu
                         activeView={activeView}
@@ -54,7 +53,7 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
     })
     test('return sort menu and do manual', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderSortMenu
                         activeView={activeView}
@@ -73,7 +72,7 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
     })
     test('return sort menu and do revert', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderSortMenu
                         activeView={activeView}
@@ -93,7 +92,7 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
     })
     test('return sort menu and do Name sort', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderSortMenu
                         activeView={activeView}

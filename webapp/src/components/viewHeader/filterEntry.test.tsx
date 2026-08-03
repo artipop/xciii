@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
@@ -73,7 +72,7 @@ describe('components/viewHeader/filterEntry', () => {
     })
     test('return filterEntry', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}
@@ -92,7 +91,7 @@ describe('components/viewHeader/filterEntry', () => {
     test('return filterEntry for boolean field', () => {
         activeView.fields.filter.filters = [booleanFilter]
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}
@@ -112,7 +111,7 @@ describe('components/viewHeader/filterEntry', () => {
     test('return filterEntry for text field', () => {
         activeView.fields.filter.filters = [textFilter]
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}
@@ -132,7 +131,7 @@ describe('components/viewHeader/filterEntry', () => {
     test('return filterEntry for date field', () => {
         activeView.fields.filter.filters = [dateFilter]
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}
@@ -152,7 +151,7 @@ describe('components/viewHeader/filterEntry', () => {
     test('return filterEntry and click on status', () => {
         activeView.fields.filter.filters = [unknownFilter]
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}
@@ -172,7 +171,7 @@ describe('components/viewHeader/filterEntry', () => {
     })
     test('return filterEntry and click on includes', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}
@@ -192,7 +191,7 @@ describe('components/viewHeader/filterEntry', () => {
     })
     test('return filterEntry and click on doesn\'t include', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}
@@ -212,7 +211,7 @@ describe('components/viewHeader/filterEntry', () => {
     })
     test('return filterEntry and click on is empty', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}
@@ -232,7 +231,7 @@ describe('components/viewHeader/filterEntry', () => {
     })
     test('return filterEntry and click on is not empty', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}
@@ -252,7 +251,7 @@ describe('components/viewHeader/filterEntry', () => {
     })
     test('return filterEntry and click on delete', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}
@@ -273,7 +272,7 @@ describe('components/viewHeader/filterEntry', () => {
     test('return filterEntry and click on different property type', () => {
         activeView.fields.filter.filters = [statusFilter]
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}
@@ -297,7 +296,7 @@ describe('components/viewHeader/filterEntry', () => {
     test('return filterEntry and click on different property type, but same filterOperation', () => {
         activeView.fields.filter.filters = [booleanFilter]
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterEntry
                         board={board}

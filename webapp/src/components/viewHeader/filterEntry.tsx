@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import type {JSX} from 'solid-js'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {FilterClause, areEqual as areFilterClausesEqual} from '../../blocks/filterClause'
 import {createFilterGroup, isAFilterGroupInstance} from '../../blocks/filterGroup'
@@ -40,14 +40,12 @@ const FilterEntry = (props: Props): JSX.Element => {
     const key = `${filter.propertyId}-${filter.condition}}`
     return (
         <div
-            className='FilterEntry'
-            key={key}
+            class='FilterEntry'
         >
             <MenuWrapper>
                 <Button>{propertyName}</Button>
                 <Menu>
                     <Menu.Text
-                        key={'title'}
                         id={'title'}
                         name={'Title'}
                         onClick={(optionId: string) => {
@@ -65,7 +63,6 @@ const FilterEntry = (props: Props): JSX.Element => {
                     />
                     {board.cardProperties.filter((o: IPropertyTemplate) => propsRegistry.get(o.type).canFilter).map((o: IPropertyTemplate) => (
                         <Menu.Text
-                            key={o.id}
                             id={o.id}
                             name={o.name}
                             onClick={(optionId: string) => {
@@ -226,7 +223,7 @@ const FilterEntry = (props: Props): JSX.Element => {
                 view={view}
                 propertyType={propertyType}
             />
-            <div className='octo-spacer'/>
+            <div class='octo-spacer'/>
             <Button
                 onClick={() => {
                     const filterGroup = createFilterGroup(view.fields.filter)
@@ -243,4 +240,4 @@ const FilterEntry = (props: Props): JSX.Element => {
     )
 }
 
-export default React.memo(FilterEntry)
+export default FilterEntry

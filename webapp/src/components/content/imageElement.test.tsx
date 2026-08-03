@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import {act} from 'react-dom/test-utils'
 
@@ -40,14 +39,14 @@ describe('components/content/ImageElement', () => {
     }
 
     test('should match snapshot', async () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ImageElement
                 block={defaultBlock}
             />,
         )
         let imageContainer: Element | undefined
         await act(async () => {
-            const {container} = render(component)
+            const {container} = render(() => component)
             imageContainer = container
         })
         expect(imageContainer).toMatchSnapshot()
@@ -61,14 +60,14 @@ describe('components/content/ImageElement', () => {
             size: 165002,
         })
 
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ImageElement
                 block={defaultBlock}
             />,
         )
         let imageContainer: Element | undefined
         await act(async () => {
-            const {container} = render(component)
+            const {container} = render(() => component)
             imageContainer = container
         })
         expect(imageContainer).toMatchSnapshot()

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen, waitFor, within} from '@testing-library/react'
+import {render, screen, waitFor, within} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -101,7 +100,7 @@ describe('components/acp/workflowsDialog', () => {
         stubBindings()
         expect(isWorkflowsAvailable()).toBe(true)
 
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
                 onClose={jest.fn()}
@@ -123,7 +122,7 @@ describe('components/acp/workflowsDialog', () => {
 
     test('edits a route: stages, outcomes and an awaited event', async () => {
         const bindings = stubBindings()
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
                 onClose={jest.fn()}
@@ -159,7 +158,7 @@ describe('components/acp/workflowsDialog', () => {
 
     test('a validation error from Go is shown, not swallowed', async () => {
         stubBindings({UpdateFlow: jest.fn().mockRejectedValue('у стадии "n1" два перехода по событию')})
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
                 onClose={jest.fn()}
@@ -179,7 +178,7 @@ describe('components/acp/workflowsDialog', () => {
     test.skip('asks for the routes of the board it was opened on, and saves them to it', async () => {
         const bindings = stubBindings()
         const board = boardWithColumns()
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <WorkflowsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -197,7 +196,7 @@ describe('components/acp/workflowsDialog', () => {
 
     test('offers the shipped routes the registry is missing, and only those', async () => {
         stubBindings()
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
                 onClose={jest.fn()}
@@ -217,7 +216,7 @@ describe('components/acp/workflowsDialog', () => {
 
     test('removing a route asks Go to forget it', async () => {
         const bindings = stubBindings()
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
                 onClose={jest.fn()}

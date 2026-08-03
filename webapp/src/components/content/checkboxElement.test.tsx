@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {ReactElement, ReactNode} from 'react'
-import {fireEvent, render, screen, waitFor} from '@testing-library/react'
+import {fireEvent, render, screen, waitFor} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import {mocked} from 'jest-mock'
 import userEvent from '@testing-library/user-event'
@@ -47,7 +47,7 @@ const cardDetailContextValue = (autoAdded: boolean): CardDetailContextType => ({
 })
 
 const wrap = (child: ReactNode): ReactElement => (
-    wrapIntl(
+    wrapIntl(() =>
         <CardDetailProvider card={card}>
             {child}
         </CardDetailProvider>,
@@ -64,7 +64,7 @@ describe('components/content/checkboxElement', () => {
                 readonly={false}
             />,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -75,7 +75,7 @@ describe('components/content/checkboxElement', () => {
                 readonly={true}
             />,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -120,7 +120,7 @@ describe('components/content/checkboxElement', () => {
     })
 
     it('should have focus when last added', () => {
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <CardDetailContext.Provider value={cardDetailContextValue(false)}>
                 <CheckboxElement
                     block={checkboxBlock}
@@ -159,7 +159,7 @@ describe('components/content/checkboxElement', () => {
         addedBlock.title = ''
         const deleteElement = jest.fn()
 
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <CardDetailContext.Provider value={cardDetailContextValue(true)}>
                 <CheckboxElement
                     block={addedBlock}

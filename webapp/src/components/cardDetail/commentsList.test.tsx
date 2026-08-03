@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 import 'isomorphic-fetch'
 
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import {act} from 'react-dom/test-utils'
 
 import {Provider as ReduxProvider} from 'react-redux'
@@ -79,7 +78,7 @@ describe('components/cardDetail/CommentsList', () => {
 
         const component = (
             <ReduxProvider store={store}>
-                {wrapIntl(
+                {wrapIntl(() =>
                     <CommentsList
                         comments={[comment1, comment2]}
                         cardId={'card_id'}
@@ -92,7 +91,7 @@ describe('components/cardDetail/CommentsList', () => {
         let container: Element | DocumentFragment | null = null
 
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
 
@@ -132,7 +131,7 @@ describe('components/cardDetail/CommentsList', () => {
 
         const component = (
             <ReduxProvider store={store}>
-                {wrapIntl(
+                {wrapIntl(() =>
                     <CommentsList
                         comments={[comment1, comment2]}
                         cardId={'card_id'}
@@ -145,7 +144,7 @@ describe('components/cardDetail/CommentsList', () => {
         let container: Element | DocumentFragment | null = null
 
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
 

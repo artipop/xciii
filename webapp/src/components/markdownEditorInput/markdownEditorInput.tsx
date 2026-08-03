@@ -156,7 +156,7 @@ const MarkdownEditorInput = (props: Props): ReactElement => {
     }
 
     return (
-        <div className='MarkdownEditorInput'>
+        <div class='MarkdownEditorInput'>
             <LexicalComposer initialConfig={initialConfig}>
                 <PlainTextPlugin
                     contentEditable={<ContentEditable className='MarkdownEditorInput__content'/>}

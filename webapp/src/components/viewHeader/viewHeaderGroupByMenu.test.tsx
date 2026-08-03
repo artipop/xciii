@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
@@ -97,7 +96,7 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
     })
     test('return groupBy menu', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderGroupByMenu
                         activeView={activeView}
@@ -113,7 +112,7 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
     })
     test('return groupBy menu and groupBy Status', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderGroupByMenu
                         activeView={activeView}
@@ -133,7 +132,7 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
     test('return groupBy menu, hideEmptyGroups and ungroup in viewType table', () => {
         activeView.fields.viewType = 'table'
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderGroupByMenu
                         activeView={activeView}
@@ -169,7 +168,7 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
         activeView.fields.hiddenOptionIds = []
 
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderGroupByMenu
                         activeView={activeView}
@@ -198,7 +197,7 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
         store = mockStateStore([], state)
 
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderGroupByMenu
                         activeView={activeView}

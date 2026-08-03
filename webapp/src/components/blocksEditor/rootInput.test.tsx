@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {render, screen, fireEvent} from '@solidjs/testing-library'
 
 import RootInput from './rootInput'
 
 describe('components/blocksEditor/rootInput', () => {
     test('should match Display snapshot', async () => {
-        const {container} = render(
+        const {container} = render(() =>
             <RootInput
                 onChange={jest.fn()}
                 value='test-value'
@@ -20,7 +19,7 @@ describe('components/blocksEditor/rootInput', () => {
     })
 
     test('should match Input snapshot', async () => {
-        const {container} = render(
+        const {container} = render(() =>
             <RootInput
                 onChange={jest.fn()}
                 value='test-value'
@@ -32,7 +31,7 @@ describe('components/blocksEditor/rootInput', () => {
     })
 
     test('should match Input snapshot with menu open', async () => {
-        const {container} = render(
+        const {container} = render(() =>
             <RootInput
                 onChange={jest.fn()}
                 value=''
@@ -47,7 +46,7 @@ describe('components/blocksEditor/rootInput', () => {
 
     test('should emit onChange event', async () => {
         const onChange = jest.fn()
-        render(
+        render(() =>
             <RootInput
                 onChange={onChange}
                 value='test-value'
@@ -65,7 +64,7 @@ describe('components/blocksEditor/rootInput', () => {
 
     test('should not emit onChangeType event when value is not empty and hit backspace', async () => {
         const onChangeType = jest.fn()
-        render(
+        render(() =>
             <RootInput
                 onChange={jest.fn()}
                 value='test-value'
@@ -82,7 +81,7 @@ describe('components/blocksEditor/rootInput', () => {
 
     test('should emit onSave event hit enter', async () => {
         const onSave = jest.fn()
-        render(
+        render(() =>
             <RootInput
                 onChange={jest.fn()}
                 value='test-value'
@@ -99,7 +98,7 @@ describe('components/blocksEditor/rootInput', () => {
 
     test('should emit onChangeType event on menu option selected', async () => {
         const onChangeType = jest.fn()
-        render(
+        render(() =>
             <RootInput
                 onChange={jest.fn()}
                 value=''

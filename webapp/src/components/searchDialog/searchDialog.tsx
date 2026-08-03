@@ -3,7 +3,7 @@
 import React, {type JSX, ReactNode, useEffect, useState} from 'react'
 
 import './searchDialog.scss'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../intl'
 
 import debounce from 'lodash/debounce'
 
@@ -23,11 +23,11 @@ type Props = {
 }
 
 export const EmptySearch = (): JSX.Element => (
-    <div className='noResults introScreen'>
-        <div className='iconWrapper'>
+    <div class='noResults introScreen'>
+        <div class='iconWrapper'>
             <Search/>
         </div>
-        <h4 className='text-heading4'>
+        <h4 class='text-heading4'>
             <FormattedMessage
                 id='FindBoardsDialog.IntroText'
                 defaultMessage='Search for boards'
@@ -37,11 +37,11 @@ export const EmptySearch = (): JSX.Element => (
 )
 
 export const EmptyResults = (props: {query: string}): JSX.Element => (
-    <div className='noResults'>
-        <div className='iconWrapper'>
+    <div class='noResults'>
+        <div class='iconWrapper'>
             <Search/>
         </div>
-        <h4 className='text-heading4'>
+        <h4 class='text-heading4'>
             <FormattedMessage
                 id='FindBoardsDialog.NoResultsFor'
                 defaultMessage='No results for "{searchQuery}"'
@@ -110,12 +110,12 @@ const SearchDialog = (props: Props): JSX.Element => {
             className='BoardSwitcherDialog'
             onClose={props.onClose}
         >
-            <div className='BoardSwitcherDialogBody'>
-                <div className='head'>
-                    <div className='queryWrapper'>
+            <div class='BoardSwitcherDialogBody'>
+                <div class='head'>
+                    <div class='queryWrapper'>
                         <Search/>
                         <input
-                            className='searchQuery'
+                            class='searchQuery'
                             placeholder='Search for boards'
                             type='text'
                             onChange={(e) => debouncedSearchHandler(e.target.value)}
@@ -124,13 +124,12 @@ const SearchDialog = (props: Props): JSX.Element => {
                         />
                     </div>
                 </div>
-                <div className='searchResults'>
+                <div class='searchResults'>
                     {/*When there are results to show*/}
                     {searchQuery && results.length > 0 &&
                         results.map((result) => (
                             <div
-                                key={Utils.uuid()}
-                                className='searchResult'
+                                class='searchResult'
                                 tabIndex={-1}
                             >
                                 {result}

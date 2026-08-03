@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 import {useHistory} from 'react-router-dom'
 
 import {Constants} from '../../constants'
@@ -32,16 +32,16 @@ const SidebarUserMenu = () => {
     const intl = useIntl()
 
     return (
-        <div className='SidebarUserMenu'>
+        <div class='SidebarUserMenu'>
             <ModalWrapper>
                 <MenuWrapper>
-                    <div className='logo'>
-                        <div className='logo-title'>
+                    <div class='logo'>
+                        <div class='logo-title'>
                             <FocalboardLogoIcon/>
                             <span>{'Focalboard'}</span>
-                            <div className='versionFrame'>
+                            <div class='versionFrame'>
                                 <div
-                                    className='version'
+                                    class='version'
                                     title={`v${Constants.versionString}`}
                                 >
                                     {`v${Constants.versionString}`}
@@ -106,4 +106,4 @@ const SidebarUserMenu = () => {
     )
 }
 
-export default React.memo(SidebarUserMenu)
+export default SidebarUserMenu

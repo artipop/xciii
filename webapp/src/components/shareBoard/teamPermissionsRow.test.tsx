@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {act, render} from '@testing-library/react'
+import {act, render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import React from 'react'
 import {MemoryRouter} from 'react-router'
 
 import {IUser} from '../../user'
@@ -76,7 +75,7 @@ describe('src/components/shareBoard/teamPermissionsRow', () => {
         const store = mockStateStore([thunk], state)
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <TeamPermissionsRow/>
                     </ReduxProvider>),
@@ -97,7 +96,7 @@ describe('src/components/shareBoard/teamPermissionsRow', () => {
         const store = mockStateStore([thunk], state)
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <TeamPermissionsRow/>
                     </ReduxProvider>),
@@ -128,7 +127,7 @@ describe('src/components/shareBoard/teamPermissionsRow', () => {
         const store = mockStateStore([thunk], testState)
         await act(async () => {
             const result = render(
-                wrapDNDIntl(
+                wrapDNDIntl(() =>
                     <ReduxProvider store={store}>
                         <TeamPermissionsRow/>
                     </ReduxProvider>),

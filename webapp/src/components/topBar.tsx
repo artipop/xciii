@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import './topBar.scss'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../intl'
 
 import HelpIcon from '../widgets/icons/help'
 import {Constants} from '../constants'
@@ -13,10 +13,10 @@ const TopBar = (): JSX.Element => {
     const focalboardFeedbackUrl = 'https://www.focalboard.com/fwlink/feedback-focalboard.html?v=' + Constants.versionString
     return (
         <div
-            className='TopBar'
+            class='TopBar'
         >
             <a
-                className='link'
+                class='link'
                 href={focalboardFeedbackUrl}
                 target='_blank'
                 rel='noreferrer'
@@ -37,4 +37,4 @@ const TopBar = (): JSX.Element => {
     )
 }
 
-export default React.memo(TopBar)
+export default TopBar

@@ -106,14 +106,13 @@ const EmojiPlugin = (): ReactElement => {
                     return null
                 }
                 return ReactDOM.createPortal(
-                    <div className='MarkdownEditorInput--emojis'>
+                    <div class='MarkdownEditorInput--emojis'>
                         <div role='listbox'>
                             {options.map((option, i) => (
                                 <div
-                                    key={option.emoji.id}
                                     role='option'
                                     aria-selected={selectedIndex === i}
-                                    className={`EmojiEntry ${selectedIndex === i ? 'EmojiEntry--selected' : ''}`}
+                                    class={`EmojiEntry ${selectedIndex === i ? 'EmojiEntry--selected' : ''}`}
                                     onMouseDown={(e) => e.preventDefault()}
                                     onMouseEnter={() => setHighlightedIndex(i)}
                                     onClick={() => {
@@ -121,8 +120,8 @@ const EmojiPlugin = (): ReactElement => {
                                         selectOptionAndCleanUp(option)
                                     }}
                                 >
-                                    <span className='EmojiEntry__native'>{option.emoji.native}</span>
-                                    <span className='EmojiEntry__colons'>{option.emoji.colons}</span>
+                                    <span class='EmojiEntry__native'>{option.emoji.native}</span>
+                                    <span class='EmojiEntry__colons'>{option.emoji.colons}</span>
                                 </div>
                             ))}
                         </div>

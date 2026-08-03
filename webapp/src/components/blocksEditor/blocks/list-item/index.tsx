@@ -25,7 +25,7 @@ const ListItem: ContentType = {
                 <li>
                     <input
                         ref={ref}
-                        className='ListItem'
+                        class='ListItem'
                         data-testid='list-item'
                         onChange={(e) => props.onChange(e.currentTarget.value)}
                         onKeyDown={(e) => {

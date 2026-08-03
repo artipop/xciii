@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {DatePropertyType} from '../../properties/types'
 
@@ -53,7 +52,6 @@ const ViewHeaderDisplayByMenu = (props: Props) => {
             <Menu>
                 {getDateProperties().length > 0 && getDateProperties().map((date: IPropertyTemplate) => (
                     <Menu.Text
-                        key={date.id}
                         id={date.id}
                         name={date.name}
                         rightIcon={activeView.fields.dateDisplayPropertyId === date.id ? <CheckIcon/> : undefined}
@@ -67,7 +65,6 @@ const ViewHeaderDisplayByMenu = (props: Props) => {
                 ))}
                 {getDateProperties().length === 0 &&
                     <Menu.Text
-                        key={'createdDate'}
                         id={'createdDate'}
                         name={createdDateName}
                         rightIcon={<CheckIcon/>}
@@ -79,4 +76,4 @@ const ViewHeaderDisplayByMenu = (props: Props) => {
     )
 }
 
-export default React.memo(ViewHeaderDisplayByMenu)
+export default ViewHeaderDisplayByMenu

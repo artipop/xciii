@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import React, {type JSX, useEffect, useState} from 'react'
 
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import Search from '../../widgets/icons/search'
 import CreateCategory from '../createCategory/createCategory'
@@ -72,9 +72,9 @@ const BoardsSwitcher = (): JSX.Element => {
     }, [])
 
     return (
-        <div className='BoardsSwitcherWrapper'>
+        <div class='BoardsSwitcherWrapper'>
             <div
-                className='BoardsSwitcher'
+                class='BoardsSwitcher'
                 onClick={() => setShowSwitcher(true)}
             >
                 <Search/>

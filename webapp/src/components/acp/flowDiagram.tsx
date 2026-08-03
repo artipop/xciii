@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useCallback, useEffect, useMemo} from 'react'
-import {useIntl, IntlShape} from 'react-intl'
+import {useIntl, IntlShape} from '../../intl'
 import {
     Background,
     Connection,
@@ -199,19 +199,19 @@ const StageNode = (props: NodeProps) => {
     const data = props.data as StageData
     const count = data.count
     return (
-        <div className={`FlowDiagram__stage FlowDiagram__stage--${data.action || 'none'}`}>
+        <div class={`FlowDiagram__stage FlowDiagram__stage--${data.action || 'none'}`}>
             <Handle
                 type='target'
                 position={Position.Left}
                 isConnectable={Boolean(data.editable)}
             />
-            <div className='FlowDiagram__column'>{data.column || '—'}</div>
-            <div className='FlowDiagram__action'>{data.actionLabel}</div>
+            <div class='FlowDiagram__column'>{data.column || '—'}</div>
+            <div class='FlowDiagram__action'>{data.actionLabel}</div>
             {count && count.cards > 0 &&
-                <span className='FlowDiagram__count'>
+                <span class='FlowDiagram__count'>
                     {count.cards}
-                    {count.running > 0 && <span className='FlowDiagram__running'>{'▶'}</span>}
-                    {count.queued > 0 && <span className='FlowDiagram__queued'>{'⏸'}</span>}
+                    {count.running > 0 && <span class='FlowDiagram__running'>{'▶'}</span>}
+                    {count.queued > 0 && <span class='FlowDiagram__queued'>{'⏸'}</span>}
                 </span>}
             <Handle
                 id={HANDLE_SUCCESS}
@@ -390,7 +390,7 @@ const FlowDiagram = (props: Props) => {
 
     return (
         <div
-            className={`FlowDiagram${editable ? ' FlowDiagram--editable' : ''}`}
+            class={`FlowDiagram${editable ? ' FlowDiagram--editable' : ''}`}
             data-testid='flow-diagram'
             style={height ? {height} : undefined}
         >
@@ -420,4 +420,4 @@ const FlowDiagram = (props: Props) => {
     )
 }
 
-export default React.memo(FlowDiagram)
+export default FlowDiagram

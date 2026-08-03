@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import configureStore from 'redux-mock-store'
 import '@testing-library/jest-dom'
 import userEvents from '@testing-library/user-event'
@@ -93,7 +92,7 @@ describe('components/table/Table', () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Table
                     board={board}
@@ -112,7 +111,7 @@ describe('components/table/Table', () => {
                 />
             </ReduxProvider>,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -123,7 +122,7 @@ describe('components/table/Table', () => {
         const mockStore = configureStore([])
         const store = mockStore({...state, teams: {current: undefined}})
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Table
                     board={board}
@@ -142,7 +141,7 @@ describe('components/table/Table', () => {
                 />
             </ReduxProvider>,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -153,7 +152,7 @@ describe('components/table/Table', () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Table
                     board={board}
@@ -173,7 +172,7 @@ describe('components/table/Table', () => {
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -184,7 +183,7 @@ describe('components/table/Table', () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Table
                     board={board}
@@ -209,7 +208,7 @@ describe('components/table/Table', () => {
                 />
             </ReduxProvider>,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -251,7 +250,7 @@ describe('components/table/Table', () => {
         const storeTest = mockStore(stateTest)
         card.limited = true
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={storeTest}>
                 <Table
                     board={boardTest}
@@ -270,7 +269,7 @@ describe('components/table/Table', () => {
                 />
             </ReduxProvider>,
         )
-        const {container, getByTitle} = render(component)
+        const {container, getByTitle} = render(() => component)
         expect(getByTitle('hidden-card-count')).toHaveTextContent('2')
         expect(container).toMatchSnapshot()
     })
@@ -364,7 +363,7 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Table
                     board={board}
@@ -383,7 +382,7 @@ describe('components/table/Table extended', () => {
                 />
             </ReduxProvider>,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -450,7 +449,7 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Table
                     board={board}
@@ -469,7 +468,7 @@ describe('components/table/Table extended', () => {
                 />
             </ReduxProvider>,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -509,7 +508,7 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Table
                     board={board}
@@ -529,7 +528,7 @@ describe('components/table/Table extended', () => {
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -601,7 +600,7 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Table
                     board={board}
@@ -621,7 +620,7 @@ describe('components/table/Table extended', () => {
             </ReduxProvider>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
@@ -654,7 +653,7 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Table
                     board={board}
@@ -674,7 +673,7 @@ describe('components/table/Table extended', () => {
             </ReduxProvider>,
         )
 
-        const {getByTitle, getByRole, getAllByTitle} = render(component)
+        const {getByTitle, getByRole, getAllByTitle} = render(() => component)
         const card1Name = getByTitle(card1.title)
         userEvents.hover(card1Name)
         const menuBtn = getAllByTitle('MenuBtn')
@@ -715,7 +714,7 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Table
                     board={board}
@@ -735,7 +734,7 @@ describe('components/table/Table extended', () => {
             </ReduxProvider>,
         )
 
-        const {getByTitle, getByRole, getAllByTitle, container} = render(component)
+        const {getByTitle, getByRole, getAllByTitle, container} = render(() => component)
         const card1Name = getByTitle(card1.title)
         userEvents.hover(card1Name)
         const menuBtn = getAllByTitle('MenuBtn')

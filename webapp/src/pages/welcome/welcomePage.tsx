@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../intl'
 
 import {useLocation, useHistory} from 'react-router-dom'
 
@@ -112,37 +111,37 @@ const WelcomePage = () => {
     }
 
     return (
-        <div className='WelcomePage'>
-            <div className='wrapper'>
-                <h1 className='text-heading9'>
+        <div class='WelcomePage'>
+            <div class='wrapper'>
+                <h1 class='text-heading9'>
                     <FormattedMessage
                         id='WelcomePage.Heading'
                         defaultMessage='Welcome To Boards'
                     />
                 </h1>
-                <div className='WelcomePage__subtitle'>
+                <div class='WelcomePage__subtitle'>
                     <FormattedMessage
                         id='WelcomePage.Description'
                         defaultMessage='Boards is a project management tool that helps define, organize, track, and manage work across teams using a familiar Kanban board view.'
                     />
                 </div>
 
-                <div className='WelcomePage__content'>
+                <div class='WelcomePage__content'>
                     {/* This image will be rendered on large screens over 2000px */}
                     <img
                         src={Utils.buildURL(BoardWelcomePNG, true)}
-                        className='WelcomePage__image WelcomePage__image--large'
+                        class='WelcomePage__image WelcomePage__image--large'
                         alt='Boards Welcome Image'
                     />
 
                     {/* This image will be rendered on small screens below 2000px */}
                     <img
                         src={Utils.buildURL(BoardWelcomeSmallPNG, true)}
-                        className='WelcomePage__image WelcomePage__image--small'
+                        class='WelcomePage__image WelcomePage__image--small'
                         alt='Boards Welcome Image'
                     />
 
-                    <div className='WelcomePage__buttons'>
+                    <div class='WelcomePage__buttons'>
                         {me?.is_guest !== true &&
                         <Button
                             onClick={startTour}
@@ -163,7 +162,7 @@ const WelcomePage = () => {
 
                         {me?.is_guest !== true &&
                         <a
-                            className='skip'
+                            class='skip'
                             onClick={skipTour}
                         >
                             <FormattedMessage
@@ -189,4 +188,4 @@ const WelcomePage = () => {
     )
 }
 
-export default React.memo(WelcomePage)
+export default WelcomePage

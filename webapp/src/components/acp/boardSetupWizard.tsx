@@ -4,7 +4,7 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
 import {UserSettings} from '../../userSettings'
@@ -226,10 +226,10 @@ const BoardSetupWizard = (props: Props) => {
         switch (step) {
         case STEP_REPO:
             return (
-                <div className='BoardSetupWizard__step'>
+                <div class='BoardSetupWizard__step'>
                     <p>{intl.formatMessage({id: 'BoardSetup.repo-why', defaultMessage: 'An agent works in a repository on your machine. A card is matched to one by its "Repositories" field, which this fills in for you.'})}</p>
                     {hasRepo &&
-                        <div className='BoardSetupWizard__known'>
+                        <div class='BoardSetupWizard__known'>
                             {intl.formatMessage({id: 'BoardSetup.repo-known', defaultMessage: 'Already registered: {names}'}, {names: registry.repos.map((r) => r.name).join(', ')})}
                         </div>}
                     <Button onClick={pickRepo}>
@@ -237,7 +237,7 @@ const BoardSetupWizard = (props: Props) => {
                     </Button>
                     {repoPath &&
                         <>
-                            <span className='BoardSetupWizard__path'>{repoPath}</span>
+                            <span class='BoardSetupWizard__path'>{repoPath}</span>
                             <label>
                                 {intl.formatMessage({id: 'BoardSetup.repo-name', defaultMessage: 'Name'})}
                                 <input
@@ -250,10 +250,10 @@ const BoardSetupWizard = (props: Props) => {
             )
         case STEP_AGENT:
             return (
-                <div className='BoardSetupWizard__step'>
+                <div class='BoardSetupWizard__step'>
                     <p>{intl.formatMessage({id: 'BoardSetup.agent-why', defaultMessage: 'The agent that picks a card up. It has to be logged in already; here it is only given a name.'})}</p>
                     {hasAgent &&
-                        <div className='BoardSetupWizard__known'>
+                        <div class='BoardSetupWizard__known'>
                             {intl.formatMessage({id: 'BoardSetup.agent-known', defaultMessage: 'Already registered: {names}'}, {names: registry.agents.map((a) => a.name).join(', ')})}
                         </div>}
                     <label>
@@ -271,19 +271,18 @@ const BoardSetupWizard = (props: Props) => {
                         >
                             {AGENT_KINDS.map((kind) => (
                                 <option
-                                    key={kind.value}
                                     value={kind.value}
                                 >{kind.label}</option>
                             ))}
                         </select>
                     </label>
                     {adapterStatus && !adapterStatus.ready &&
-                        <div className='BoardSetupWizard__warning'>{adapterStatus.detail}</div>}
+                        <div class='BoardSetupWizard__warning'>{adapterStatus.detail}</div>}
                 </div>
             )
         case STEP_DEPLOY:
             return (
-                <div className='BoardSetupWizard__step'>
+                <div class='BoardSetupWizard__step'>
                     <p>{intl.formatMessage({id: 'BoardSetup.deploy-why', defaultMessage: 'Where a card’s branch is published from the "Deploy" column. Skip it if nothing is deployed from here — everything else still works.'})}</p>
                     <label>
                         {intl.formatMessage({id: 'BoardSetup.deploy-name', defaultMessage: 'Name'})}
@@ -324,7 +323,7 @@ const BoardSetupWizard = (props: Props) => {
             )
         case STEP_BROWSER:
             return (
-                <div className='BoardSetupWizard__step'>
+                <div class='BoardSetupWizard__step'>
                     <p>{intl.formatMessage({id: 'BoardSetup.browser-why', defaultMessage: 'The "To Test" column drives a browser the agent brings itself. Without a browser MCP server a test session refuses to start; the one below is the usual answer.'})}</p>
                     <textarea
                         rows={7}
@@ -335,9 +334,9 @@ const BoardSetupWizard = (props: Props) => {
             )
         default:
             return (
-                <div className='BoardSetupWizard__step'>
+                <div class='BoardSetupWizard__step'>
                     <p>{intl.formatMessage({id: 'BoardSetup.done-how', defaultMessage: 'Drag a card into "In Progress" — creating it there does not start anything, the trigger is the move. Pick a route in the card’s "Workflow" field, or the card will only be worked on where it stands.'})}</p>
-                    <p className='BoardSetupWizard__hint'>
+                    <p class='BoardSetupWizard__hint'>
                         {intl.formatMessage({id: 'BoardSetup.done-branch', defaultMessage: 'For transitions that wait for a branch to be merged, fill the card’s "branch" property: that is the branch being watched.'})}
                     </p>
                 </div>
@@ -426,25 +425,24 @@ const BoardSetupWizard = (props: Props) => {
             subtitle={<span>{intl.formatMessage({id: 'BoardSetup.subtitle', defaultMessage: 'The board already knows how the work is organised. What it does not know is your machine.'})}</span>}
             onClose={onClose}
         >
-            <div className='BoardSetupWizard__content'>
-                <ol className='BoardSetupWizard__steps'>
+            <div class='BoardSetupWizard__content'>
+                <ol class='BoardSetupWizard__steps'>
                     {titles.map((title, i) => (
                         <li
-                            key={title}
-                            className={i === step ? 'BoardSetupWizard__stepName--current' : ''}
+                            class={i === step ? 'BoardSetupWizard__stepName--current' : ''}
                         >{title}</li>
                     ))}
                 </ol>
 
                 {body()}
 
-                <div className='BoardSetupWizard__actions'>{actions()}</div>
+                <div class='BoardSetupWizard__actions'>{actions()}</div>
 
                 {error &&
-                    <div className='BoardSetupWizard__error'>{error}</div>}
+                    <div class='BoardSetupWizard__error'>{error}</div>}
             </div>
         </Dialog>
     )
 }
 
-export default React.memo(BoardSetupWizard)
+export default BoardSetupWizard

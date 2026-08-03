@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen, act, fireEvent} from '@testing-library/react'
+import {render, screen, act, fireEvent} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import {mocked} from 'jest-mock'
 import '@testing-library/jest-dom'
-import {createIntl} from 'react-intl'
+import {createIntl} from '../../intl'
 
 import configureStore from 'redux-mock-store'
 import {Provider as ReduxProvider} from 'react-redux'
@@ -112,7 +111,7 @@ describe('components/cardDetail/CardDetailProperties', () => {
     })
 
     function renderComponent() {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <CardDetailProperties
                     board={board!}
@@ -125,7 +124,7 @@ describe('components/cardDetail/CardDetailProperties', () => {
             </ReduxProvider>,
         )
 
-        return render(component)
+        return render(() => component)
     }
 
     it('should match snapshot', async () => {

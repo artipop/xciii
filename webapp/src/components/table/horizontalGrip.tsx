@@ -37,7 +37,7 @@ function useResizable(liveOffset: OffsetCallback, finalOffset: OffsetCallback) {
 
     useEffect(() => stopResizing, [stopResizing])
 
-    return useCallback((event: React.MouseEvent) => {
+    return useCallback((event: MouseEvent) => {
         state.current = {
             initialX: event.clientX,
             lastOffset: 0,
@@ -67,11 +67,11 @@ const HorizontalGrip = (props: Props): JSX.Element => {
 
     return (
         <div
-            className='HorizontalGrip'
+            class='HorizontalGrip'
             onDoubleClick={() => onAutoSizeColumn(templateId)}
             onMouseDown={startResize}
         />
     )
 }
 
-export default React.memo(HorizontalGrip)
+export default HorizontalGrip

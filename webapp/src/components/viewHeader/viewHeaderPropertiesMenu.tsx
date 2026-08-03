@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {Constants} from '../../constants'
 import {IPropertyTemplate} from '../../blocks/board'
@@ -42,7 +41,6 @@ const ViewHeaderPropertiesMenu = (props: Props) => {
             <Menu>
                 {activeView.fields.viewType === 'gallery' &&
                     <Menu.Switch
-                        key={Constants.titleColumnId}
                         id={Constants.titleColumnId}
                         name={intl.formatMessage({id: 'default-properties.title', defaultMessage: 'Title'})}
                         isOn={visiblePropertyIds.includes(Constants.titleColumnId)}
@@ -51,7 +49,6 @@ const ViewHeaderPropertiesMenu = (props: Props) => {
                     />}
                 {properties?.map((option: IPropertyTemplate) => (
                     <Menu.Switch
-                        key={option.id}
                         id={option.id}
                         name={option.name}
                         isOn={visiblePropertyIds.includes(option.id)}
@@ -61,7 +58,6 @@ const ViewHeaderPropertiesMenu = (props: Props) => {
                 ))}
                 {canShowBadges &&
                     <Menu.Switch
-                        key={Constants.badgesColumnId}
                         id={Constants.badgesColumnId}
                         name={intl.formatMessage({id: 'default-properties.badges', defaultMessage: 'Comments and description'})}
                         isOn={visiblePropertyIds.includes(Constants.badgesColumnId)}
@@ -73,4 +69,4 @@ const ViewHeaderPropertiesMenu = (props: Props) => {
     )
 }
 
-export default React.memo(ViewHeaderPropertiesMenu)
+export default ViewHeaderPropertiesMenu

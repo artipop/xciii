@@ -19,7 +19,7 @@ const Text: ContentType = {
         return (
             <div
                 dangerouslySetInnerHTML={{__html: html}}
-                className={props.value ? 'octo-editor-preview' : 'octo-editor-preview octo-placeholder'}
+                class={props.value ? 'octo-editor-preview' : 'octo-editor-preview octo-placeholder'}
             />
         )
     },
@@ -31,7 +31,7 @@ const Text: ContentType = {
         return (
             <input
                 ref={ref}
-                className='Text'
+                class='Text'
                 onChange={(e) => props.onChange(e.currentTarget.value)}
                 onKeyDown={(e) => {
                     if (props.value === '' && e.key === 'Backspace') {

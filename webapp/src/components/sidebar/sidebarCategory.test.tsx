@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
 import {createMemoryHistory} from 'history'
 import {Router} from 'react-router-dom'
 
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
 import {Provider as ReduxProvider} from 'react-redux'
@@ -88,7 +87,7 @@ describe('components/sidebarCategory', () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
-        const component = wrapRBDNDDroppable(wrapIntl(
+        const component = wrapRBDNDDroppable(wrapIntl(() =>
             <ReduxProvider store={store}>
                 <Router history={history}>
                     <SidebarCategory
@@ -101,7 +100,7 @@ describe('components/sidebarCategory', () => {
                 </Router>
             </ReduxProvider>,
         ))
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
 
         // testing collapsed state of category
@@ -115,7 +114,7 @@ describe('components/sidebarCategory', () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
-        const component = wrapRBDNDDroppable(wrapIntl(
+        const component = wrapRBDNDDroppable(wrapIntl(() =>
             <ReduxProvider store={store}>
                 <Router history={history}>
                     <SidebarCategory
@@ -128,7 +127,7 @@ describe('components/sidebarCategory', () => {
                 </Router>
             </ReduxProvider>,
         ))
-        const {container} = render(component)
+        const {container} = render(() => component)
 
         const subItems = container.querySelectorAll('.category-title')
         expect(subItems).toBeDefined()
@@ -140,7 +139,7 @@ describe('components/sidebarCategory', () => {
         const mockStore = configureStore([])
         const store = mockStore(state)
 
-        const component = wrapRBDNDDroppable(wrapIntl(
+        const component = wrapRBDNDDroppable(wrapIntl(() =>
             <ReduxProvider store={store}>
                 <Router history={history}>
                     <SidebarCategory
@@ -154,7 +153,7 @@ describe('components/sidebarCategory', () => {
                 </Router>
             </ReduxProvider>,
         ))
-        const {container} = render(component)
+        const {container} = render(() => component)
 
         const subItems = container.querySelectorAll('.category-title')
         expect(subItems).toBeDefined()
@@ -168,7 +167,7 @@ describe('components/sidebarCategory', () => {
 
         const mockTemplateClose = jest.fn()
 
-        const component = wrapRBDNDDroppable(wrapIntl(
+        const component = wrapRBDNDDroppable(wrapIntl(() =>
             <ReduxProvider store={store}>
                 <Router history={history}>
                     <SidebarCategory
@@ -183,7 +182,7 @@ describe('components/sidebarCategory', () => {
                 </Router>
             </ReduxProvider>,
         ))
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
 
         // testing collapsed state of category
@@ -199,7 +198,7 @@ describe('components/sidebarCategory', () => {
 
         const mockTemplateClose = jest.fn()
 
-        const component = wrapRBDNDDroppable(wrapIntl(
+        const component = wrapRBDNDDroppable(wrapIntl(() =>
             <ReduxProvider store={store}>
                 <Router history={history}>
                     <SidebarCategory
@@ -214,7 +213,7 @@ describe('components/sidebarCategory', () => {
                 </Router>
             </ReduxProvider>,
         ))
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
 
         // testing collapsed state of category

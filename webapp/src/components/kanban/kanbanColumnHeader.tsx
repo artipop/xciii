@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX, useState, useEffect} from 'react'
-import {FormattedMessage, IntlShape} from 'react-intl'
+import {FormattedMessage, IntlShape} from '../../intl'
 
 import {Constants, Permission} from '../../constants'
 import {IPropertyOption, IPropertyTemplate, Board, BoardGroup} from '../../blocks/board'
@@ -77,10 +77,9 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
     const calculationProperty = groupCalculation ? props.board.cardProperties.find((property) => property.id === groupCalculation.propertyId) || defaultProperty : defaultProperty
     return (
         <div
-            key={group.option.id || 'empty'}
             ref={headerRef}
             style={{opacity: isDragging ? 0.5 : 1}}
-            className={className}
+            class={className}
         >
             {!group.option.id &&
                 <Label
@@ -151,7 +150,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                     optionId={group.option.id}
                     columnName={group.option.value}
                 />}
-            <div className='octo-spacer'/>
+            <div class='octo-spacer'/>
             {!props.readonly &&
                 <>
                     <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
@@ -168,7 +167,6 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                                     div behind: Menu wraps every child slot in a div. */}
                                 {canEditOption && isColumnSettingsAvailable() ? [
                                     <Menu.Text
-                                        key='columnAgents'
                                         id='columnAgents'
                                         name={intl.formatMessage({id: 'BoardComponent.column-agents', defaultMessage: 'Agents in this column…'})}
                                         onClick={() => setShowColumnSettings(true)}
@@ -185,7 +183,6 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                                         <Menu.Separator/>
                                         {Object.entries(Constants.menuColors).map(([key, color]) => (
                                             <Menu.Color
-                                                key={key}
                                                 id={key}
                                                 name={color}
                                                 onClick={() => mutator.changePropertyOptionColor(board.id, board.cardProperties, groupByProperty!, group.option, key)}

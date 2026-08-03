@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import React, {type JSX, useEffect} from 'react'
 
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../../intl'
 
 import {useMeasurePunchouts} from '../../tutorial_tour_tip/hooks'
 import TourTipRenderer from '../tourTipRenderer/tourTipRenderer'
@@ -84,7 +84,6 @@ const SidebarCategoriesTourStep = (): JSX.Element | null => {
 
     return (
         <TourTipRenderer
-            key='SidebardCategoriesTourStep'
             requireCard={false}
             category={TOUR_SIDEBAR}
             step={SidebarTourSteps.SIDE_BAR}

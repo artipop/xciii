@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX, useState, useEffect} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {Constants} from '../../constants'
 import {IPropertyOption, Board, IPropertyTemplate, BoardGroup} from '../../blocks/board'
@@ -58,13 +58,12 @@ const TableGroupHeaderRow = (props: Props): JSX.Element => {
 
     return (
         <div
-            key={group.option.id + 'header'}
             ref={groupHeaderRef}
             style={{opacity: isDragging ? 0.5 : 1}}
-            className={className}
+            class={className}
         >
             <div
-                className='octo-table-cell'
+                class='octo-table-cell'
                 style={{width: columnResize.width(Constants.titleColumnId)}}
                 ref={(ref) => columnResize.updateRef(group.option.id, Constants.titleColumnId, ref)}
             >
@@ -139,7 +138,6 @@ const TableGroupHeaderRow = (props: Props): JSX.Element => {
                                     <Menu.Separator/>
                                     {Object.entries(Constants.menuColors).map(([key, color]) => (
                                         <Menu.Color
-                                            key={key}
                                             id={key}
                                             name={color}
                                             onClick={() => mutator.changePropertyOptionColor(board.id, board.cardProperties, groupByProperty!, group.option, key)}
@@ -158,4 +156,4 @@ const TableGroupHeaderRow = (props: Props): JSX.Element => {
     )
 }
 
-export default React.memo(TableGroupHeaderRow)
+export default TableGroupHeaderRow

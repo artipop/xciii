@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
 import 'isomorphic-fetch'
-import {act, render} from '@testing-library/react'
+import {act, render} from '@solidjs/testing-library'
 
 import configureStore from 'redux-mock-store'
 import {Provider as ReduxProvider} from 'react-redux'
@@ -97,7 +96,7 @@ describe('components/cardDetail/CardDetail', () => {
 
         const component = (
             <ReduxProvider store={store}>
-                {wrapIntl(
+                {wrapIntl(() =>
                     <CardDetail
                         board={board}
                         activeView={view}
@@ -119,7 +118,7 @@ describe('components/cardDetail/CardDetail', () => {
         let container: Element | DocumentFragment | null = null
 
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
 
@@ -161,7 +160,7 @@ describe('components/cardDetail/CardDetail', () => {
 
         const component = (
             <ReduxProvider store={store}>
-                {wrapIntl(
+                {wrapIntl(() =>
                     <CardDetail
                         board={board}
                         activeView={view}
@@ -183,7 +182,7 @@ describe('components/cardDetail/CardDetail', () => {
         let container: Element | DocumentFragment | null = null
 
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
 
@@ -253,7 +252,7 @@ describe('components/cardDetail/CardDetail', () => {
 
         const component = (
             <ReduxProvider store={store}>
-                {wrapIntl(
+                {wrapIntl(() =>
                     <CardDetail
                         board={onboardingBoard}
                         activeView={view}
@@ -275,7 +274,7 @@ describe('components/cardDetail/CardDetail', () => {
         let container: Element | DocumentFragment | null = null
 
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
 
@@ -360,7 +359,7 @@ describe('components/cardDetail/CardDetail', () => {
 
         const component = (
             <ReduxProvider store={store}>
-                {wrapIntl(
+                {wrapIntl(() =>
                     <CardDetail
                         board={onboardingBoard}
                         activeView={view}
@@ -382,7 +381,7 @@ describe('components/cardDetail/CardDetail', () => {
         let container: Element | DocumentFragment | null = null
 
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
 
@@ -471,7 +470,7 @@ describe('components/cardDetail/CardDetail', () => {
 
         const component = (
             <ReduxProvider store={store}>
-                {wrapDNDIntl(
+                {wrapDNDIntl(() =>
                     <CardDetail
                         board={onboardingBoard}
                         activeView={view}
@@ -493,7 +492,7 @@ describe('components/cardDetail/CardDetail', () => {
         let container: Element | DocumentFragment | null = null
 
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
 
@@ -557,7 +556,7 @@ describe('components/cardDetail/CardDetail', () => {
 
         const component = (
             <ReduxProvider store={store}>
-                {wrapIntl(
+                {wrapIntl(() =>
                     <CardDetail
                         board={board}
                         activeView={view}
@@ -579,7 +578,7 @@ describe('components/cardDetail/CardDetail', () => {
         let container: Element | DocumentFragment | null = null
 
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
 

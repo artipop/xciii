@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render, within, act, waitFor} from '@testing-library/react'
+import {render, within, act, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
 import {MockStoreEnhanced} from 'redux-mock-store'
 import {Provider as ReduxProvider} from 'react-redux'
 
@@ -131,7 +130,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
     })
 
     test('should match snapshot', async () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={false}
@@ -147,7 +146,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
     })
 
     test('should match snapshot when active', async () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={true}
@@ -163,7 +162,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
     })
 
     test('should match snapshot with global template', async () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={false}
@@ -182,7 +181,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
         const onSelect = jest.fn()
         const onDelete = jest.fn()
         const onEdit = jest.fn()
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={false}
@@ -205,7 +204,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
         const onSelect = jest.fn()
         const onDelete = jest.fn()
         const onEdit = jest.fn()
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={false}
@@ -231,7 +230,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
 
         const root = document.createElement('div')
         root.setAttribute('id', 'focalboard-root-portal')
-        render(wrapDNDIntl(
+        render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={false}

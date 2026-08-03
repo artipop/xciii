@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, act} from '@testing-library/react'
+import {render, act} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
@@ -69,7 +68,7 @@ describe('components/content/TextElement', () => {
     const store = mockStateStore([], state)
 
     test('return a textElement', async () => {
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <TextElement
                     block={defaultBlock}
@@ -80,7 +79,7 @@ describe('components/content/TextElement', () => {
 
         let container: Element | undefined
         await act(async () => {
-            const result = render(component)
+            const result = render(() => component)
             container = result.container
         })
         expect(container).toMatchSnapshot()

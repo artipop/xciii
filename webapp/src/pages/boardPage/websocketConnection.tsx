@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useEffect, useState} from 'react'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../intl'
 
 import wsClient, {WSClient} from '../../wsclient'
 import {useAppSelector} from '../../store/hooks'
@@ -46,7 +46,7 @@ const WebsocketConnection = () => {
 
     if (websocketClosed) {
         return (
-            <div className='WSConnection error'>
+            <div class='WSConnection error'>
                 <a
                     href='https://www.focalboard.com/fwlink/websocket-connect-error.html'
                     target='_blank'

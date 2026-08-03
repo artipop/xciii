@@ -172,7 +172,7 @@ function DragMonitor(): null {
     return null
 }
 
-export function SortableProvider(props: {children: React.ReactNode}): JSX.Element {
+export function SortableProvider(props: {children: JSX.Element}): JSX.Element {
     return (
         <DragDropProvider
             plugins={plugins}

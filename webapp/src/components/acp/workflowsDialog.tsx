@@ -4,7 +4,7 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import React, {useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {Board, IPropertyTemplate} from '../../blocks/board'
 import {Utils, IDType} from '../../utils'
@@ -257,9 +257,9 @@ const WorkflowsDialog = (props: Props) => {
             subtitle={<span>{intl.formatMessage({id: 'Workflows.subtitle', defaultMessage: 'The route a card takes across the board: what runs in each column, and which event moves the card on. A card without a matching flow keeps the standalone trigger columns.'})}</span>}
             onClose={onClose}
         >
-            <div className='WorkflowsDialog__content'>
+            <div class='WorkflowsDialog__content'>
                 {flows.length === 0 && !form &&
-                    <div className='WorkflowsDialog__empty'>
+                    <div class='WorkflowsDialog__empty'>
                         {intl.formatMessage({id: 'Workflows.empty', defaultMessage: 'No flows yet.'})}
                     </div>}
 
@@ -267,12 +267,11 @@ const WorkflowsDialog = (props: Props) => {
                     const stages = overview.find((o) => o.flow === flow.name)
                     return (
                         <div
-                            className='WorkflowsDialog__flow'
-                            key={flow.name}
+                            class='WorkflowsDialog__flow'
                         >
-                            <div className='WorkflowsDialog__row'>
-                                <span className='WorkflowsDialog__name'>{flow.name}</span>
-                                <span className='WorkflowsDialog__route'>
+                            <div class='WorkflowsDialog__row'>
+                                <span class='WorkflowsDialog__name'>{flow.name}</span>
+                                <span class='WorkflowsDialog__route'>
                                     {stages && stages.cards > 0 ?
                                         intl.formatMessage({id: 'Workflows.cards-on-route', defaultMessage: '{count} cards on this route'}, {count: stages.cards}) :
                                         intl.formatMessage({id: 'Workflows.no-cards', defaultMessage: 'no cards on this route'})}
@@ -296,8 +295,8 @@ const WorkflowsDialog = (props: Props) => {
                 })}
 
                 {form &&
-                    <div className='WorkflowsDialog__form'>
-                        <div className='WorkflowsDialog__formHeader'>
+                    <div class='WorkflowsDialog__form'>
+                        <div class='WorkflowsDialog__formHeader'>
                             <label>
                                 {intl.formatMessage({id: 'Workflows.name', defaultMessage: 'Name'})}
                                 <input
@@ -315,7 +314,6 @@ const WorkflowsDialog = (props: Props) => {
                                 >
                                     {selectProperties.map((p) => (
                                         <option
-                                            key={p.id}
                                             value={p.name}
                                         >{p.name}</option>
                                     ))}
@@ -337,16 +335,15 @@ const WorkflowsDialog = (props: Props) => {
                             triggers={triggers}
                             onChange={(nodes, edges) => updateForm({nodes, edges})}
                         />
-                        <div className='WorkflowsDialog__hint'>
+                        <div class='WorkflowsDialog__hint'>
                             {intl.formatMessage({id: 'Workflows.canvas-hint', defaultMessage: 'Drag a stage to move it; pull from its right side to join stages (upper point — on success, lower — on failure), from the bottom point to wait for an event. Delete removes what is selected.'})}
                         </div>
 
                         {form.nodes.map((node) => (
                             <div
-                                className='WorkflowsDialog__node'
-                                key={node.id}
+                                class='WorkflowsDialog__node'
                             >
-                                <div className='WorkflowsDialog__nodeHead'>
+                                <div class='WorkflowsDialog__nodeHead'>
                                     <select
                                         value={node.column}
                                         onChange={(e) => updateNode(node.id, {column: e.target.value})}
@@ -354,7 +351,6 @@ const WorkflowsDialog = (props: Props) => {
                                         <option value=''>{intl.formatMessage({id: 'Workflows.pick-column', defaultMessage: '— pick a column —'})}</option>
                                         {columnOptions.map((c) => (
                                             <option
-                                                key={c}
                                                 value={c}
                                             >{c}</option>
                                         ))}
@@ -365,7 +361,6 @@ const WorkflowsDialog = (props: Props) => {
                                     >
                                         {ACTIONS.map((a) => (
                                             <option
-                                                key={a}
                                                 value={a}
                                             >{actionLabel(intl, a)}</option>
                                         ))}
@@ -375,7 +370,7 @@ const WorkflowsDialog = (props: Props) => {
                                     </Button>
                                 </div>
 
-                                <div className='WorkflowsDialog__outcomes'>
+                                <div class='WorkflowsDialog__outcomes'>
                                     <label>
                                         {intl.formatMessage({id: 'Workflows.on-success', defaultMessage: '✅ on success →'})}
                                         <select
@@ -385,7 +380,6 @@ const WorkflowsDialog = (props: Props) => {
                                             <option value=''>{intl.formatMessage({id: 'Workflows.stay', defaultMessage: '— stay here —'})}</option>
                                             {stageTargets(node.id).map((n) => (
                                                 <option
-                                                    key={n.id}
                                                     value={n.id}
                                                 >{n.column}</option>
                                             ))}
@@ -400,7 +394,6 @@ const WorkflowsDialog = (props: Props) => {
                                             <option value=''>{intl.formatMessage({id: 'Workflows.stay', defaultMessage: '— stay here —'})}</option>
                                             {stageTargets(node.id).map((n) => (
                                                 <option
-                                                    key={n.id}
                                                     value={n.id}
                                                 >{n.column}</option>
                                             ))}
@@ -410,8 +403,7 @@ const WorkflowsDialog = (props: Props) => {
 
                                 {waitEdges(form.edges, node.id).map((edge) => (
                                     <div
-                                        className='WorkflowsDialog__wait'
-                                        key={edge.on}
+                                        class='WorkflowsDialog__wait'
                                     >
                                         <select
                                             value={edge.on}
@@ -419,19 +411,17 @@ const WorkflowsDialog = (props: Props) => {
                                         >
                                             {waitTriggers.map((t) => (
                                                 <option
-                                                    key={t.kind}
                                                     value={t.kind}
                                                 >{t.label}</option>
                                             ))}
                                         </select>
-                                        <span className='WorkflowsDialog__arrow'>{'→'}</span>
+                                        <span class='WorkflowsDialog__arrow'>{'→'}</span>
                                         <select
                                             value={edge.to}
                                             onChange={(e) => changeEdge(node.id, edge.on, e.target.value)}
                                         >
                                             {stageTargets(node.id).map((n) => (
                                                 <option
-                                                    key={n.id}
                                                     value={n.id}
                                                 >{n.column}</option>
                                             ))}
@@ -457,7 +447,7 @@ const WorkflowsDialog = (props: Props) => {
                             </div>
                         ))}
 
-                        <div className='WorkflowsDialog__formActions'>
+                        <div class='WorkflowsDialog__formActions'>
                             <Button onClick={addNode}>
                                 {intl.formatMessage({id: 'Workflows.add-stage', defaultMessage: 'Add stage'})}
                             </Button>
@@ -471,30 +461,29 @@ const WorkflowsDialog = (props: Props) => {
                                 {intl.formatMessage({id: 'Workflows.cancel', defaultMessage: 'Cancel'})}
                             </Button>
                         </div>
-                        <div className='WorkflowsDialog__hint'>
+                        <div class='WorkflowsDialog__hint'>
                             {intl.formatMessage({id: 'Workflows.hint', defaultMessage: 'A stage runs its action when a card lands in its column — dragged by a person or moved by the flow itself. Where a stage has no transition for what happened, the card stays put and says so.'})}
                         </div>
                         {form.nodes.length > 0 && nodeName(form.nodes[0].id) === '' &&
-                            <div className='WorkflowsDialog__hint'>
+                            <div class='WorkflowsDialog__hint'>
                                 {intl.formatMessage({id: 'Workflows.pick-columns-hint', defaultMessage: 'Every stage needs a column.'})}
                             </div>}
                     </div>}
 
                 {!form && missingTemplates.length > 0 &&
-                    <div className='WorkflowsDialog__templates'>
-                        <span className='WorkflowsDialog__hint'>
+                    <div class='WorkflowsDialog__templates'>
+                        <span class='WorkflowsDialog__hint'>
                             {intl.formatMessage({id: 'Workflows.templates', defaultMessage: 'Ready-made routes, the ones the board template names:'})}
                         </span>
                         {missingTemplates.map((flow) => (
                             <Button
-                                key={flow.name}
                                 onClick={() => startFromTemplate(flow)}
                             >{flow.name}</Button>
                         ))}
                     </div>}
 
                 {!form &&
-                    <div className='WorkflowsDialog__actions'>
+                    <div class='WorkflowsDialog__actions'>
                         <Button
                             emphasis='primary'
                             onClick={startAdd}
@@ -504,7 +493,7 @@ const WorkflowsDialog = (props: Props) => {
                     </div>}
 
                 {error &&
-                    <div className='WorkflowsDialog__error'>{error}</div>}
+                    <div class='WorkflowsDialog__error'>{error}</div>}
             </div>
         </Dialog>
     )
@@ -524,4 +513,4 @@ function actionLabel(intl: {formatMessage: (d: {id: string, defaultMessage: stri
     }
 }
 
-export default React.memo(WorkflowsDialog)
+export default WorkflowsDialog

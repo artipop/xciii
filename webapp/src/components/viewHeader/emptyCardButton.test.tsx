@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
@@ -49,7 +48,7 @@ describe('components/viewHeader/emptyCardButton', () => {
     })
     test('return EmptyCardButton', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <EmptyCardButton
                         addCard={mockFunction}
@@ -61,7 +60,7 @@ describe('components/viewHeader/emptyCardButton', () => {
     })
     test('return EmptyCardButton and addCard', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <EmptyCardButton
                         addCard={mockFunction}
@@ -76,7 +75,7 @@ describe('components/viewHeader/emptyCardButton', () => {
     })
     test('return EmptyCardButton and Set Template', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <EmptyCardButton
                         addCard={mockFunction}

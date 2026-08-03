@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
@@ -46,7 +45,7 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
 
     test('return menu', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderActionsMenu
                         board={board}
@@ -65,7 +64,7 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
 
     test('return menu and verify call to csv exporter', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderActionsMenu
                         board={board}
@@ -85,7 +84,7 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
 
     test('return menu and verify call to board archive', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeaderActionsMenu
                         board={board}

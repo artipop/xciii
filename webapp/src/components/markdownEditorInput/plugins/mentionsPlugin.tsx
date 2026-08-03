@@ -176,11 +176,10 @@ const MentionsPlugin = (props: Props): ReactElement => {
                         return null
                     }
                     return ReactDOM.createPortal(
-                        <div className='MarkdownEditorInput--mentions'>
+                        <div class='MarkdownEditorInput--mentions'>
                             <div role='listbox'>
                                 {options.map((option, i) => (
                                     <Entry
-                                        key={option.mention.name}
                                         mention={option.mention}
                                         isSelected={selectedIndex === i}
                                         onClick={() => {

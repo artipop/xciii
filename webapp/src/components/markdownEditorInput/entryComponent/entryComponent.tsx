@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {ReactElement} from 'react'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../../intl'
 
 import GuestBadge from '../../../widgets/guestBadge'
 
@@ -33,31 +33,31 @@ const Entry = (props: Props): ReactElement => {
 
     return (
         <div
-            className='EntryContainer'
+            class='EntryContainer'
             role='option'
             aria-selected={isSelected}
             onMouseDown={(e) => e.preventDefault()}
             onMouseEnter={onMouseEnter}
             onClick={onClick}
         >
-            <div className='EntryComponent'>
-                <div className='EntryComponent__left'>
+            <div class='EntryComponent'>
+                <div class='EntryComponent__left'>
                     <img
                         src={mention.avatar}
-                        className='mentionSuggestionsEntryAvatar'
+                        class='mentionSuggestionsEntryAvatar'
                         role='presentation'
                     />
-                    <div className='mentionSuggestionsEntryText'>
+                    <div class='mentionSuggestionsEntryText'>
                         {mention.name}
                         {BotBadge && mention.is_bot && <BotBadge/>}
                         <GuestBadge show={mention.is_guest}/>
                     </div>
-                    <div className='mentionSuggestionsEntryText'>
+                    <div class='mentionSuggestionsEntryText'>
                         {mention.displayName}
                     </div>
                 </div>
                 {!mention.isBoardMember &&
-                    <div className='EntryComponent__hint mentionSuggestionsEntryText'>
+                    <div class='EntryComponent__hint mentionSuggestionsEntryText'>
                         <FormattedMessage
                             id='MentionSuggestion.is-not-board-member'
                             defaultMessage='(not board member)'

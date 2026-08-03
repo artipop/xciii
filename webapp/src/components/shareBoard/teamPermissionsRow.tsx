@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import MenuWrapper from '../../widgets/menuWrapper'
 import Menu from '../../widgets/menu'
@@ -89,15 +89,15 @@ const TeamPermissionsRow = (): JSX.Element => {
     )
 
     return (
-        <div className='user-item'>
+        <div class='user-item'>
             {changeRoleConfirmation && confirmationDialog}
-            <div className='user-item__content'>
-                <div className='ml-3'><strong>{intl.formatMessage({id: 'ShareBoard.teamPermissionsText', defaultMessage: 'Everyone at {teamName} Team'}, {teamName: team?.title})}</strong></div>
+            <div class='user-item__content'>
+                <div class='ml-3'><strong>{intl.formatMessage({id: 'ShareBoard.teamPermissionsText', defaultMessage: 'Everyone at {teamName} Team'}, {teamName: team?.title})}</strong></div>
             </div>
             <div>
                 <BoardPermissionGate permissions={[Permission.ManageBoardType]}>
                     <MenuWrapper>
-                        <button className='user-item__button'>
+                        <button class='user-item__button'>
                             {currentRoleName}
                             <CompassIcon
                                 icon='chevron-down'
@@ -109,7 +109,7 @@ const TeamPermissionsRow = (): JSX.Element => {
                                 <Menu.Text
                                     id={MemberRole.Editor}
                                     check={board.minimumRole === undefined || board.minimumRole === MemberRole.Editor}
-                                    icon={board.type === BoardTypeOpen && board.minimumRole === MemberRole.Editor ? <CheckIcon/> : <div className='empty-icon'/>}
+                                    icon={board.type === BoardTypeOpen && board.minimumRole === MemberRole.Editor ? <CheckIcon/> : <div class='empty-icon'/>}
                                     name={intl.formatMessage({id: 'BoardMember.schemeEditor', defaultMessage: 'Editor'})}
                                     onClick={() => setChangeRoleConfirmation(MemberRole.Editor)}
                                 />}
@@ -117,21 +117,21 @@ const TeamPermissionsRow = (): JSX.Element => {
                                 <Menu.Text
                                     id={MemberRole.Commenter}
                                     check={board.minimumRole === MemberRole.Commenter}
-                                    icon={board.type === BoardTypeOpen && board.minimumRole === MemberRole.Commenter ? <CheckIcon/> : <div className='empty-icon'/>}
+                                    icon={board.type === BoardTypeOpen && board.minimumRole === MemberRole.Commenter ? <CheckIcon/> : <div class='empty-icon'/>}
                                     name={intl.formatMessage({id: 'BoardMember.schemeCommenter', defaultMessage: 'Commenter'})}
                                     onClick={() => setChangeRoleConfirmation(MemberRole.Commenter)}
                                 />}
                             <Menu.Text
                                 id={MemberRole.Viewer}
                                 check={board.minimumRole === MemberRole.Viewer}
-                                icon={board.type === BoardTypeOpen && board.minimumRole === MemberRole.Viewer ? <CheckIcon/> : <div className='empty-icon'/>}
+                                icon={board.type === BoardTypeOpen && board.minimumRole === MemberRole.Viewer ? <CheckIcon/> : <div class='empty-icon'/>}
                                 name={intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})}
                                 onClick={() => updateBoardType(board, BoardTypeOpen, MemberRole.Viewer)}
                             />
                             <Menu.Text
                                 id={MemberRole.None}
                                 check={true}
-                                icon={board.type === BoardTypePrivate ? <CheckIcon/> : <div className='empty-icon'/>}
+                                icon={board.type === BoardTypePrivate ? <CheckIcon/> : <div class='empty-icon'/>}
                                 name={intl.formatMessage({id: 'BoardMember.schemeNone', defaultMessage: 'None'})}
                                 onClick={() => updateBoardType(board, BoardTypePrivate, MemberRole.None)}
                             />

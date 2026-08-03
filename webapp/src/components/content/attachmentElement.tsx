@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {type JSX, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import octoClient from '../../octoClient'
 
@@ -123,27 +123,27 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
     }
 
     return (
-        <div className='FileElement mr-4'>
+        <div class='FileElement mr-4'>
             {showConfirmationDialogBox && <ConfirmationDialogBox dialogBox={confirmDialogProps}/>}
-            <div className='fileElement-icon-division'>
+            <div class='fileElement-icon-division'>
                 <CompassIcon
                     icon={fileIcon}
                     className='fileElement-icon'
                 />
             </div>
-            <div className='fileElement-file-details mt-3'>
+            <div class='fileElement-file-details mt-3'>
                 <Tooltip
                     title={fileInfo.name ? fileInfo.name : ''}
                     placement='bottom'
                 >
-                    <div className='fileElement-file-name'>
+                    <div class='fileElement-file-name'>
                         {fileName}
                     </div>
                 </Tooltip>
-                {!block.isUploading && <div className='fileElement-file-ext-and-size'>
+                {!block.isUploading && <div class='fileElement-file-ext-and-size'>
                     {fileInfo.extension?.substring(1)} {fileSize}
                 </div> }
-                {block.isUploading && <div className='fileElement-file-uploading'>
+                {block.isUploading && <div class='fileElement-file-uploading'>
                     {intl.formatMessage({
                         id: 'AttachmentElement.upload-percentage',
                         defaultMessage: 'Uploading...({uploadPercent}%)',
@@ -153,23 +153,23 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
                 </div>}
             </div>
             {block.isUploading &&
-                <div className='progress'>
+                <div class='progress'>
                     <span
-                        className='progress-bar'
+                        class='progress-bar'
                         style={{width: uploadPercent + '%'}}
                     >
                         {''}
                     </span>
                 </div>}
             {!block.isUploading &&
-            <div className='fileElement-delete-download'>
+            <div class='fileElement-delete-download'>
                 <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
                     <MenuWrapper className='mt-3 fileElement-menu-icon'>
                         <IconButton
                             size='medium'
                             icon={<CompassIcon icon='dots-vertical'/>}
                         />
-                        <div className='delete-menu'>
+                        <div class='delete-menu'>
                             <Menu position='left'>
                                 <Menu.Text
                                     id='makeTemplate'
@@ -189,7 +189,7 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
                     placement='bottom'
                 >
                     <div
-                        className='fileElement-download-btn mt-3 mr-2'
+                        class='fileElement-download-btn mt-3 mr-2'
                         onClick={attachmentDownloadHandler}
                     >
                         <CompassIcon
@@ -202,4 +202,4 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
     )
 }
 
-export default React.memo(AttachmentElement)
+export default AttachmentElement

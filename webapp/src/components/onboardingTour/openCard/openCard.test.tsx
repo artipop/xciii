@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import configureStore from 'redux-mock-store'
 
@@ -49,22 +48,22 @@ describe('components/onboardingTour/addComments/OpenCardTourStep', () => {
     })
 
     test('before hover', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <OpenCardTourStep/>
             </ReduxProvider>,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
     test('after hover', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <ReduxProvider store={store}>
                 <OpenCardTourStep/>
             </ReduxProvider>,
         )
-        render(component)
+        render(() => component)
         const elements = document.querySelectorAll('.OpenCardTourStep')
         expect(elements.length).toBe(2)
         expect(elements[1]).toMatchSnapshot()

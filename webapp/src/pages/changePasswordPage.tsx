@@ -19,8 +19,8 @@ const ChangePasswordPage = () => {
 
     if (!user) {
         return (
-            <div className='ChangePasswordPage'>
-                <div className='title'>{'Change Password'}</div>
+            <div class='ChangePasswordPage'>
+                <div class='title'>{'Change Password'}</div>
                 <Link to='/login'>{'Log in first'}</Link>
             </div>
         )
@@ -39,15 +39,15 @@ const ChangePasswordPage = () => {
     }
 
     return (
-        <div className='ChangePasswordPage'>
-            <div className='title'>{'Change Password'}</div>
+        <div class='ChangePasswordPage'>
+            <div class='title'>{'Change Password'}</div>
             <form
                 onSubmit={(e: React.FormEvent) => {
                     e.preventDefault()
                     handleSubmit(user.id)
                 }}
             >
-                <div className='oldPassword'>
+                <div class='oldPassword'>
                     <input
                         id='login-oldpassword'
                         type='password'
@@ -59,7 +59,7 @@ const ChangePasswordPage = () => {
                         }}
                     />
                 </div>
-                <div className='newPassword'>
+                <div class='newPassword'>
                     <input
                         id='login-newpassword'
                         type='password'
@@ -79,7 +79,7 @@ const ChangePasswordPage = () => {
                 </Button>
             </form>
             {errorMessage &&
-                <div className='error'>
+                <div class='error'>
                     {errorMessage}
                 </div>
             }
@@ -96,4 +96,4 @@ const ChangePasswordPage = () => {
     )
 }
 
-export default React.memo(ChangePasswordPage)
+export default ChangePasswordPage

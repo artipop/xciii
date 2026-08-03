@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {type JSX, useState, useCallback} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import moment from 'moment'
 
@@ -128,7 +128,7 @@ function DateFilter(props: Props): JSX.Element {
 
     const className = 'DateFilter'
     return (
-        <div className={`DateFilter ${displayValue ? '' : 'empty'} `}>
+        <div class={`DateFilter ${displayValue ? '' : 'empty'} `}>
             <Button
                 onClick={() => setShowDialog(true)}
             >
@@ -141,10 +141,10 @@ function DateFilter(props: Props): JSX.Element {
                     onClose={() => onClose()}
                 >
                     <div
-                        className={className + '-overlayWrapper'}
+                        class={className + '-overlayWrapper'}
                     >
-                        <div className={className + '-overlay'}>
-                            <div className={'inputContainer'}>
+                        <div class={className + '-overlay'}>
+                            <div class={'inputContainer'}>
                                 <Editable
                                     value={input}
                                     placeholderText={moment.localeData(locale).longDateFormat('L')}
@@ -188,7 +188,7 @@ function DateFilter(props: Props): JSX.Element {
                             />
                             <hr/>
                             <div
-                                className='MenuOption menu-option'
+                                class='MenuOption menu-option'
                             >
                                 <Button
                                     onClick={onClear}

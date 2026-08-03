@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import {mocked} from 'jest-mock'
@@ -53,7 +52,7 @@ describe('components/viewHeader/filterComponent', () => {
     })
     test('return filterComponent', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterComponenet
                         board={board}
@@ -69,7 +68,7 @@ describe('components/viewHeader/filterComponent', () => {
     })
     test('return filterComponent and add Filter', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterComponenet
                         board={board}
@@ -90,7 +89,7 @@ describe('components/viewHeader/filterComponent', () => {
     test('return filterComponent and filter by status', () => {
         activeView.fields.filter.filters = [unknownFilter]
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterComponenet
                         board={board}
@@ -110,7 +109,7 @@ describe('components/viewHeader/filterComponent', () => {
 
     test('return filterComponent and click is empty', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <FilterComponenet
                         board={board}

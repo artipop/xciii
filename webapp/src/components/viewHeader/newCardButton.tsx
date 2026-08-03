@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import type {JSX} from 'solid-js'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {Card} from '../../blocks/card'
 import ButtonWithMenu from '../../widgets/buttons/buttonWithMenu'
@@ -64,7 +64,6 @@ const NewCardButton = (props: Props): JSX.Element => {
                     }
                     return (
                         <NewCardButtonTemplateItem
-                            key={cardTemplate.id}
                             cardTemplate={cardTemplate}
                             addCardFromTemplate={props.addCardFromTemplate}
                             editCardTemplate={props.editCardTemplate}
@@ -87,4 +86,4 @@ const NewCardButton = (props: Props): JSX.Element => {
     )
 }
 
-export default React.memo(NewCardButton)
+export default NewCardButton

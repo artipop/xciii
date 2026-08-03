@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {fireEvent, render, screen, act} from '@testing-library/react'
+import {fireEvent, render, screen, act} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
@@ -43,7 +42,7 @@ describe('components/blockIconSelector', () => {
         jest.clearAllMocks()
     })
     test('return an icon correctly', () => {
-        const {container} = render(wrapIntl(
+        const {container} = render(wrapIntl(() =>
             <BlockIconSelector
                 block={card}
                 size='l'
@@ -53,7 +52,7 @@ describe('components/blockIconSelector', () => {
     })
     test('return no element with no icon', () => {
         card.fields.icon = ''
-        const {container} = render(wrapIntl(
+        const {container} = render(wrapIntl(() =>
             <BlockIconSelector
                 block={card}
                 size='l'
@@ -62,7 +61,7 @@ describe('components/blockIconSelector', () => {
         expect(container).toMatchSnapshot()
     })
     test('return menu on click', () => {
-        const {container} = render(wrapIntl(
+        const {container} = render(wrapIntl(() =>
             <BlockIconSelector
                 block={card}
                 size='l'
@@ -72,7 +71,7 @@ describe('components/blockIconSelector', () => {
         expect(container).toMatchSnapshot()
     })
     test('return no menu in readonly', () => {
-        const {container} = render(wrapIntl(
+        const {container} = render(wrapIntl(() =>
             <BlockIconSelector
                 block={card}
                 readonly={true}
@@ -82,7 +81,7 @@ describe('components/blockIconSelector', () => {
     })
 
     test('return a new icon after click on random menu', () => {
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <BlockIconSelector
                 block={card}
                 size='l'
@@ -96,7 +95,7 @@ describe('components/blockIconSelector', () => {
     })
 
     test('return a new icon after click on EmojiPicker', () => {
-        const {container, getByRole, getAllByRole} = render(wrapIntl(
+        const {container, getByRole, getAllByRole} = render(wrapIntl(() =>
             <BlockIconSelector
                 block={card}
                 size='l'
@@ -119,7 +118,7 @@ describe('components/blockIconSelector', () => {
     })
 
     test('return no icon after click on remove menu', () => {
-        const {container, rerender} = render(wrapIntl(
+        const {container, rerender} = render(wrapIntl(() =>
             <BlockIconSelector
                 block={card}
                 size='l'
@@ -135,7 +134,7 @@ describe('components/blockIconSelector', () => {
         //simulate reset icon
         card.fields.icon = ''
 
-        rerender(wrapIntl(
+        rerender(wrapIntl(() =>
             <BlockIconSelector
                 block={card}
             />),

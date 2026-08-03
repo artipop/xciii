@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useState} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {CommentBlock, createCommentBlock} from '../../blocks/commentBlock'
 import mutator from '../../mutator'
@@ -54,9 +54,9 @@ const CommentsList = (props: Props) => {
     const intl = useIntl()
 
     const newCommentComponent = (
-        <div className='CommentsList__new'>
+        <div class='CommentsList__new'>
             <img
-                className='comment-avatar'
+                class='comment-avatar'
                 src={Utils.getProfilePicture(me?.id)}
             />
             <MarkdownEditor
@@ -87,7 +87,7 @@ const CommentsList = (props: Props) => {
     )
 
     return (
-        <div className='CommentsList'>
+        <div class='CommentsList'>
             {/* New comment */}
             {!props.readonly && newCommentComponent}
 
@@ -97,7 +97,6 @@ const CommentsList = (props: Props) => {
                 const canDeleteComment: boolean = canDeleteOthersComments || me?.id === comment.modifiedBy
                 return (
                     <Comment
-                        key={comment.id}
                         comment={comment}
                         userImageUrl={Utils.getProfilePicture(comment.modifiedBy)}
                         userId={comment.modifiedBy}
@@ -107,9 +106,9 @@ const CommentsList = (props: Props) => {
             })}
 
             {/* horizontal divider below comments */}
-            {!(comments.length === 0 && props.readonly) && <hr className='CommentsList__divider'/>}
+            {!(comments.length === 0 && props.readonly) && <hr class='CommentsList__divider'/>}
         </div>
     )
 }
 
-export default React.memo(CommentsList)
+export default CommentsList

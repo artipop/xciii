@@ -4,7 +4,7 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
@@ -133,15 +133,15 @@ const PlanningDialog = (props: Props) => {
             className='PlanningDialog'
             title={<div>{intl.formatMessage({id: 'Planning.title', defaultMessage: 'Plan a task'})}</div>}
         >
-            <div className='PlanningDialog__body'>
-                <p className='PlanningDialog__hint'>
+            <div class='PlanningDialog__body'>
+                <p class='PlanningDialog__hint'>
                     {intl.formatMessage({
                         id: 'Planning.hint-terminal',
                         defaultMessage: 'Opens the agent\'s CLI in the repository. Nothing is committed for you and no card is created — this is a place to think out loud.',
                     })}
                 </p>
 
-                <div className='PlanningDialog__pickers'>
+                <div class='PlanningDialog__pickers'>
                     <label>
                         {intl.formatMessage({id: 'Planning.repository', defaultMessage: 'Repository'})}
                         <select
@@ -151,7 +151,6 @@ const PlanningDialog = (props: Props) => {
                             <option value=''>{intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})}</option>
                             {repos.map((r) => (
                                 <option
-                                    key={r.name}
                                     value={r.name}
                                 >{r.name}</option>
                             ))}
@@ -166,7 +165,6 @@ const PlanningDialog = (props: Props) => {
                             <option value=''>{intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})}</option>
                             {agents.map((a) => (
                                 <option
-                                    key={a.name}
                                     value={a.name}
                                 >{a.name}</option>
                             ))}
@@ -181,14 +179,13 @@ const PlanningDialog = (props: Props) => {
                     </Button>
                 </div>
 
-                {error && <div className='PlanningDialog__error'>{error}</div>}
+                {error && <div class='PlanningDialog__error'>{error}</div>}
 
                 {terminals.length > 0 &&
-                    <div className='Planning__terminals'>
+                    <div class='Planning__terminals'>
                         <span>{intl.formatMessage({id: 'Planning.terminals-running', defaultMessage: 'Terminals still running:'})}</span>
                         {terminals.map((t) => (
                             <Button
-                                key={t.id}
                                 onClick={() => show(t.id)}
                                 title={t.cwd}
                             >

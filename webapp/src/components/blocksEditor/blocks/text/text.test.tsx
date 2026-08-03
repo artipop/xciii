@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
-import {render, act} from '@testing-library/react'
+import {render, act} from '@solidjs/testing-library'
 
 import {mockDOM, wrapDNDIntl, mockStateStore} from '../../../../testUtils'
 import {TestBlockFactory} from '../../../../test/testBlockFactory'
@@ -40,7 +39,7 @@ describe('components/blocksEditor/blocks/text', () => {
 
     test('should match Display snapshot', async () => {
         const Component = TextBlock.Display
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Component
                     onChange={jest.fn()}
@@ -57,7 +56,7 @@ describe('components/blocksEditor/blocks/text', () => {
         let container
         await act(async () => {
             const Component = TextBlock.Input
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <Component
                         onChange={jest.fn()}

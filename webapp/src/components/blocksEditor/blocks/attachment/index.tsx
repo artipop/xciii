@@ -36,7 +36,7 @@ const Attachment: ContentType<FileInfo> = {
 
         return (
             <div
-                className='AttachmentView'
+                class='AttachmentView'
                 data-testid='attachment'
             >
                 <a
@@ -58,7 +58,7 @@ const Attachment: ContentType<FileInfo> = {
         return (
             <input
                 ref={ref}
-                className='Attachment'
+                class='Attachment'
                 data-testid='attachment-input'
                 type='file'
                 onChange={(e) => {

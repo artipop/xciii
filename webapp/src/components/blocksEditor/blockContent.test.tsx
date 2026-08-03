@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
-import {render, screen, fireEvent, act} from '@testing-library/react'
+import {render, screen, fireEvent, act} from '@solidjs/testing-library'
 
 import {mockDOM, wrapDNDIntl, mockStateStore} from '../../testUtils'
 import {TestBlockFactory} from '../../test/testBlockFactory'
@@ -43,7 +42,7 @@ describe('components/blocksEditor/blockContent', () => {
     test('should match snapshot', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BlockContent
                         boardId='fake-board-id'
@@ -65,7 +64,7 @@ describe('components/blocksEditor/blockContent', () => {
     test('should match snapshot editing', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BlockContent
                         boardId='fake-board-id'
@@ -87,7 +86,7 @@ describe('components/blocksEditor/blockContent', () => {
     test('should call setEditing on click the content', async () => {
         const setEditing = jest.fn()
         await act(async () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BlockContent
                         boardId='fake-board-id'
@@ -111,7 +110,7 @@ describe('components/blocksEditor/blockContent', () => {
     test('should call setEditing on click the content', async () => {
         const setAfterBlock = jest.fn()
         await act(async () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BlockContent
                         boardId='fake-board-id'
@@ -135,7 +134,7 @@ describe('components/blocksEditor/blockContent', () => {
     test('should call onSave on hit enter in the input', async () => {
         const onSave = jest.fn()
         await act(async () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <BlockContent
                         boardId='fake-board-id'

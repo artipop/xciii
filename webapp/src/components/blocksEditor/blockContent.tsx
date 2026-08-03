@@ -91,8 +91,7 @@ function BlockContent(props: Props) {
             <div
                 ref={ref}
                 data-testid='block-content'
-                className={`BlockContent ${isOver && draggingUp ? 'over-up' : ''}  ${isOver && !draggingUp ? 'over-down' : ''}`}
-                key={block.id}
+                class={`BlockContent ${isOver && draggingUp ? 'over-up' : ''}  ${isOver && !draggingUp ? 'over-down' : ''}`}
                 style={{
                     opacity: isDragging ? 0.5 : 1,
                 }}
@@ -101,7 +100,7 @@ function BlockContent(props: Props) {
                 }}
             >
                 <span
-                    className='action'
+                    class='action'
                     data-testid='add-action'
                     onClick={(e) => {
                         e.preventDefault()
@@ -112,12 +111,12 @@ function BlockContent(props: Props) {
                     <AddIcon/>
                 </span>
                 <span
-                    className='action'
+                    class='action'
                     ref={gripRef}
                 >
                     <GripIcon/>
                 </span>
-                <div className='content'>
+                <div class='content'>
                     <DisplayContent
                         value={block.value}
                         onChange={() => null}

@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {render, screen, fireEvent} from '@solidjs/testing-library'
 
 import {Provider as ReduxProvider} from 'react-redux'
 
@@ -72,7 +71,7 @@ describe('src/components/gallery/Gallery', () => {
         jest.clearAllMocks()
     })
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Gallery
                     board={board}
@@ -93,7 +92,7 @@ describe('src/components/gallery/Gallery', () => {
     })
     test('should match snapshot without permissions', () => {
         const localStore = mockStateStore([], {...state, teams: {current: undefined}})
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={localStore}>
                 <Gallery
                     board={board}
@@ -114,7 +113,7 @@ describe('src/components/gallery/Gallery', () => {
     })
     test('return Gallery and click new', () => {
         const mockAddCard = jest.fn()
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Gallery
                     board={board}
@@ -138,7 +137,7 @@ describe('src/components/gallery/Gallery', () => {
     })
 
     test('return Gallery readonly', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Gallery
                     board={board}
@@ -159,7 +158,7 @@ describe('src/components/gallery/Gallery', () => {
     // TODO(react-19): see docs/npm-dependency-warnings.md -- drives react-dnd HTML5 drag events, which dnd-kit does not listen to
     // eslint-disable-next-line no-only-tests/no-only-tests
     test.skip('return Gallery and drag and drop card', async () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <Gallery
                     board={board}
@@ -229,7 +228,7 @@ describe('src/components/gallery/Gallery', () => {
             },
         }
         const storeTest = mockStateStore([], stateTest)
-        const {container, getByTitle} = render(wrapDNDIntl(
+        const {container, getByTitle} = render(wrapDNDIntl(() =>
             <ReduxProvider store={storeTest}>
                 <Gallery
                     board={boardTest}

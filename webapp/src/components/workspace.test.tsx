@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {act, render, waitFor} from '@testing-library/react'
-import React from 'react'
+import {act, render, waitFor} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 import {MemoryRouter} from 'react-router-dom'
 import {mocked} from 'jest-mock'
@@ -183,7 +182,7 @@ describe('src/components/workspace', () => {
     test('should match snapshot', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <Workspace readonly={false}/>
                 </ReduxProvider>,
@@ -196,7 +195,7 @@ describe('src/components/workspace', () => {
     test('should match snapshot with readonly', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <Workspace readonly={true}/>
                 </ReduxProvider>,
@@ -210,7 +209,7 @@ describe('src/components/workspace', () => {
     test('return workspace and showcard', async () => {
         let container: Element | undefined
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <Workspace readonly={false}/>
                 </ReduxProvider>,
@@ -232,7 +231,7 @@ describe('src/components/workspace', () => {
     test('return workspace readonly and showcard', async () => {
         let container: Element | undefined
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <Workspace readonly={true}/>
                 </ReduxProvider>,
@@ -298,7 +297,7 @@ describe('src/components/workspace', () => {
         })
         let container: Element | undefined
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={emptyStore}>
                     <Workspace readonly={true}/>
                 </ReduxProvider>,
@@ -403,7 +402,7 @@ describe('src/components/workspace', () => {
         const localStore = mockStateStore([thunk], localState)
 
         await act(async () => {
-            render(wrapDNDIntl(
+            render(wrapDNDIntl(() =>
                 <ReduxProvider store={localStore}>
                     <Workspace readonly={false}/>
                 </ReduxProvider>,

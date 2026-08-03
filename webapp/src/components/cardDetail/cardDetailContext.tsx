@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import React, {createContext, ReactElement, ReactNode, useContext, useState} from 'react'
 
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {Block} from '../../blocks/block'
 import {Card} from '../../blocks/card'

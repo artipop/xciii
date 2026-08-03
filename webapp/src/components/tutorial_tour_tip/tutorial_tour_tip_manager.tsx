@@ -17,14 +17,14 @@ export interface TutorialTourTipManager {
     show: boolean
     tourSteps: Record<string, number>
     getLastStep: () => number
-    handleOpen: (e: React.MouseEvent) => void
-    handleHide: (e: React.MouseEvent) => void
-    handleSkipTutorial: (e: React.MouseEvent) => void
-    handleDismiss: (e: React.MouseEvent) => void
+    handleOpen: (e: MouseEvent) => void
+    handleHide: (e: MouseEvent) => void
+    handleSkipTutorial: (e: MouseEvent) => void
+    handleDismiss: (e: MouseEvent) => void
     handleSavePreferences: (step: number) => void
-    handlePrevious: (e: React.MouseEvent) => void
-    handleNext: (e?: React.MouseEvent) => void
-    handleEventPropagationAndDefault: (e: React.MouseEvent | KeyboardEvent) => void
+    handlePrevious: (e: MouseEvent) => void
+    handleNext: (e?: MouseEvent) => void
+    handleEventPropagationAndDefault: (e: MouseEvent | KeyboardEvent) => void
     handleSendToNextTour: (currentTourCategory: string) => Promise<void>
 }
 
@@ -84,7 +84,7 @@ const useTutorialTourTipManager = ({
         TelemetryClient.trackEvent(category, event, props)
     }, [])
 
-    const handleEventPropagationAndDefault = (e: React.MouseEvent | KeyboardEvent) => {
+    const handleEventPropagationAndDefault = (e: MouseEvent | KeyboardEvent) => {
         if (stopPropagation) {
             e.stopPropagation()
         }
@@ -115,12 +115,12 @@ const useTutorialTourTipManager = ({
         setShow(false)
     }
 
-    const handleOpen = (e: React.MouseEvent): void => {
+    const handleOpen = (e: MouseEvent): void => {
         handleEventPropagationAndDefault(e)
         setShow(true)
     }
 
-    const handleDismiss = (e: React.MouseEvent): void => {
+    const handleDismiss = (e: MouseEvent): void => {
         handleEventPropagationAndDefault(e)
         handleHide()
         const tag = telemetryTag + '_skip'
@@ -149,7 +149,7 @@ const useTutorialTourTipManager = ({
         }
     }
 
-    const handlePrevious = (e: React.MouseEvent): void => {
+    const handlePrevious = (e: MouseEvent): void => {
         handleEventPropagationAndDefault(e)
 
         if (telemetryTag) {
@@ -160,7 +160,7 @@ const useTutorialTourTipManager = ({
         handleSavePreferences(false)
     }
 
-    const handleNext = (e?: React.MouseEvent): void => {
+    const handleNext = (e?: MouseEvent): void => {
         if (e) {
             handleEventPropagationAndDefault(e)
         }
@@ -175,7 +175,7 @@ const useTutorialTourTipManager = ({
         }
     }
 
-    const handleSkipTutorial = (e: React.MouseEvent): void => {
+    const handleSkipTutorial = (e: MouseEvent): void => {
         handleEventPropagationAndDefault(e)
 
         if (telemetryTag) {

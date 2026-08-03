@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {act, render, screen} from '@testing-library/react'
+import {act, render, screen} from '@solidjs/testing-library'
 
 import {Provider as ReduxProvider} from 'react-redux'
 
@@ -95,7 +94,7 @@ describe('src/components/gallery/GalleryCard', () => {
             store = mockStateStore([], state)
         })
         test('should match snapshot', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}
@@ -117,7 +116,7 @@ describe('src/components/gallery/GalleryCard', () => {
         })
         test('return GalleryCard and click on it', () => {
             const mockedOnClick = jest.fn()
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}
@@ -138,7 +137,7 @@ describe('src/components/gallery/GalleryCard', () => {
             expect(mockedOnClick).toHaveBeenCalledTimes(1)
         })
         test('return GalleryCard and delete card', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}
@@ -162,7 +161,7 @@ describe('src/components/gallery/GalleryCard', () => {
         })
 
         test('return GalleryCard and duplicate card', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}
@@ -187,7 +186,7 @@ describe('src/components/gallery/GalleryCard', () => {
             expect(mockedMutator.duplicateCard).toHaveBeenCalledWith(card.id, board.id)
         })
         test('return GalleryCard and copy link', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}
@@ -211,7 +210,7 @@ describe('src/components/gallery/GalleryCard', () => {
             expect(mockedUtils.copyTextToClipboard).toHaveBeenCalledTimes(1)
         })
         test('return GalleryCard and cancel', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}
@@ -278,7 +277,7 @@ describe('src/components/gallery/GalleryCard', () => {
             store = mockStateStore([], state)
         })
         test('should match snapshot', async () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}
@@ -350,7 +349,7 @@ describe('src/components/gallery/GalleryCard', () => {
             store = mockStateStore([], state)
         })
         test('should match snapshot with only first image', async () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}
@@ -417,7 +416,7 @@ describe('src/components/gallery/GalleryCard', () => {
             store = mockStateStore([], state)
         })
         test('should match snapshot', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}
@@ -438,7 +437,7 @@ describe('src/components/gallery/GalleryCard', () => {
             expect(container).toMatchSnapshot()
         })
         test('return GalleryCard with content readonly', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}
@@ -503,7 +502,7 @@ describe('src/components/gallery/GalleryCard', () => {
             store = mockStateStore([], state)
         })
         test('should match snapshot', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}
@@ -524,7 +523,7 @@ describe('src/components/gallery/GalleryCard', () => {
             expect(container).toMatchSnapshot()
         })
         test('return GalleryCard with contents readonly', () => {
-            const {container} = render(wrapDNDIntl(
+            const {container} = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <GalleryCard
                         board={board}

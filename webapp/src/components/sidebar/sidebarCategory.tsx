@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useEffect, useRef, useState} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
 
 import debounce from 'lodash/debounce'
@@ -244,7 +244,7 @@ const SidebarCategory = (props: Props) => {
     }
 
     const newCategoryBadge = (
-        <div className='badge newCategoryBadge'>
+        <div class='badge newCategoryBadge'>
             <span>
                 {
                     intl.formatMessage({
@@ -257,7 +257,7 @@ const SidebarCategory = (props: Props) => {
     )
 
     const newCategoryDragArea = (
-        <div className='newCategoryDragArea'>
+        <div class='newCategoryDragArea'>
             <HandRightIcon/>
             <span>
                 {
@@ -282,28 +282,28 @@ const SidebarCategory = (props: Props) => {
             ref={ref}
         >
             <div
-                className={`SidebarCategory${props.categoryBoards.isNew ? ' new' : ''}${boardDraggingOver ? ' draggingOver' : ''}`}
+                class={`SidebarCategory${props.categoryBoards.isNew ? ' new' : ''}${boardDraggingOver ? ' draggingOver' : ''}`}
                 ref={menuWrapperRef}
             >
                 <div
-                    className={`categoryBoardsDroppableArea${isBoardOver ? ' draggingOver' : ''}`}
+                    class={`categoryBoardsDroppableArea${isBoardOver ? ' draggingOver' : ''}`}
                     ref={boardsRef}
                 >
                     <div
-                        className={`octo-sidebar-item category ${collapsed || props.forceCollapse ? 'collapsed' : 'expanded'} ${props.categoryBoards.id === props.activeCategoryId ? 'active' : ''}`}
+                        class={`octo-sidebar-item category ${collapsed || props.forceCollapse ? 'collapsed' : 'expanded'} ${props.categoryBoards.id === props.activeCategoryId ? 'active' : ''}`}
                     >
                         <div
-                            className='octo-sidebar-title category-title'
+                            class='octo-sidebar-title category-title'
                             title={props.categoryBoards.name}
                             onClick={toggleCollapse}
                         >
                             {collapsed || isDragging || props.forceCollapse ? <ChevronRight/> : <ChevronDown/>}
                             {props.categoryBoards.name}
-                            <div className='sidebarCategoriesTour'>
+                            <div class='sidebarCategoriesTour'>
                                 {props.index === 0 && shouldViewSidebarTour && <SidebarCategoriesTourStep/>}
                             </div>
                         </div>
-                        <div className={(props.index === 0 && shouldViewManageCatergoriesTour) ? `${ClassForManageCategoriesTourStep}` : ''}>
+                        <div class={(props.index === 0 && shouldViewManageCatergoriesTour) ? `${ClassForManageCategoriesTourStep}` : ''}>
                             {props.index === 0 && shouldViewManageCatergoriesTour && <ManageCategoriesTourStep/>}
 
                             {props.categoryBoards.isNew && !categoryMenuOpen && newCategoryBadge}
@@ -352,7 +352,7 @@ const SidebarCategory = (props: Props) => {
                     (
                         <div>
                             {!props.categoryBoards.isNew && (
-                                <div className='octo-sidebar-item subitem no-views'>
+                                <div class='octo-sidebar-item subitem no-views'>
                                     <FormattedMessage
                                         id='Sidebar.no-boards-in-category'
                                         defaultMessage='No boards inside'
@@ -371,7 +371,6 @@ const SidebarCategory = (props: Props) => {
                         return (
                             <SidebarBoardItem
                                 index={zzz}
-                                key={board.id}
                                 board={board}
                                 categoryBoards={props.categoryBoards}
                                 allCategories={props.allCategories}
@@ -386,7 +385,6 @@ const SidebarCategory = (props: Props) => {
                         return (
                             <SidebarBoardItem
                                 index={zzz}
-                                key={board.id}
                                 board={board}
                                 categoryBoards={props.categoryBoards}
                                 allCategories={props.allCategories}
@@ -447,4 +445,4 @@ const SidebarCategory = (props: Props) => {
     )
 }
 
-export default React.memo(SidebarCategory)
+export default SidebarCategory

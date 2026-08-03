@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {type JSX, useMemo, useCallback} from 'react'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../intl'
 
 import {Constants, Permission} from '../../constants'
 import HiddenCardCount from '../../components/hiddenCardCount/hiddenCardCount'
@@ -24,7 +24,7 @@ type Props = {
     readonly: boolean
     addCard: (show: boolean) => Promise<void>
     selectedCardIds: string[]
-    onCardClicked: (e: React.MouseEvent, card: Card) => void
+    onCardClicked: (e: MouseEvent, card: Card) => void
     hiddenCardsCount: number
     showHiddenCardCountNotification: (show: boolean) => void
 }
@@ -66,11 +66,10 @@ const Gallery = (props: Props): JSX.Element => {
 
     return (
 
-        <div className='Gallery'>
+        <div class='Gallery'>
             {cards.filter((c) => c.boardId === board.id).map((card) => {
                 return (
                     <GalleryCard
-                        key={card.id + card.updateAt}
                         card={card}
                         board={board}
                         onClick={props.onCardClicked}
@@ -90,7 +89,7 @@ const Gallery = (props: Props): JSX.Element => {
             {!props.readonly &&
                 <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
                     <div
-                        className='octo-gallery-new'
+                        class='octo-gallery-new'
                         onClick={() => {
                             props.addCard(true)
                         }}
@@ -103,7 +102,7 @@ const Gallery = (props: Props): JSX.Element => {
                 </BoardPermissionGate>
             }
             {hiddenCardsCount > 0 &&
-            <div className='gallery-hidden-cards'>
+            <div class='gallery-hidden-cards'>
                 <HiddenCardCount
                     hiddenCardsCount={hiddenCardsCount}
                     showHiddenCardNotification={props.showHiddenCardCountNotification}

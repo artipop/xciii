@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX, ReactNode} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import DeleteIcon from '../../widgets/icons/delete'
 import Menu from '../../widgets/menu'

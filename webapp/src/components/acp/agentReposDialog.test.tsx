@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -38,7 +37,7 @@ describe('components/acp/agentReposDialog', () => {
         anyWindow.go = {main: {App: bindings}}
         expect(isAgentReposAvailable()).toBe(true)
 
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <AgentReposDialog
                 board={board}
                 onClose={jest.fn()}
@@ -67,7 +66,7 @@ describe('components/acp/agentReposDialog', () => {
         anyWindow.go = {main: {App: bindings}}
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
 
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <AgentReposDialog
                 board={board}
                 onClose={jest.fn()}
@@ -106,7 +105,7 @@ describe('components/acp/agentReposDialog', () => {
         anyWindow.go = {main: {App: bindings}}
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
 
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <AgentReposDialog
                 board={boardWithRepos}
                 onClose={jest.fn()}
@@ -137,7 +136,7 @@ describe('components/acp/agentReposDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <AgentReposDialog
                 board={boardWithRepos}
                 onClose={jest.fn()}

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen, within} from '@testing-library/react'
+import {render, screen, within} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import {MemoryRouter} from 'react-router-dom'
 
@@ -90,7 +89,7 @@ describe('src/components/kanban/kanbanCard', () => {
     // native drag or the five-pixel threshold got there first came down to how
     // fast the hand moved, which is what made it look random.
     test('does not offer the card to the browser own drag and drop', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanCard
                     card={card}
@@ -112,7 +111,7 @@ describe('src/components/kanban/kanbanCard', () => {
     })
 
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanCard
                     card={card}
@@ -132,7 +131,7 @@ describe('src/components/kanban/kanbanCard', () => {
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot with readonly', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanCard
                     card={card}
@@ -152,7 +151,7 @@ describe('src/components/kanban/kanbanCard', () => {
         expect(container).toMatchSnapshot()
     })
     test('return kanbanCard and click on delete menu ', () => {
-        const result = render(wrapDNDIntl(
+        const result = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanCard
                     card={card}
@@ -190,7 +189,7 @@ describe('src/components/kanban/kanbanCard', () => {
     })
 
     test('return kanbanCard and click on duplicate menu ', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanCard
                     card={card}
@@ -218,7 +217,7 @@ describe('src/components/kanban/kanbanCard', () => {
     })
 
     test('return kanbanCard and click on copy link menu ', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <KanbanCard
                     card={card}

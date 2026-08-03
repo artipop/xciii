@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {act, fireEvent, render, screen} from '@testing-library/react'
+import {act, fireEvent, render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import {mockDOM, wrapDNDIntl, mockStateStore} from '../testUtils'
@@ -45,7 +44,7 @@ describe('components/markdownEditor', () => {
     test('should match snapshot', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <MarkdownEditor
                         id={'test-id'}
@@ -67,7 +66,7 @@ describe('components/markdownEditor', () => {
     test('should match snapshot with initial text', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
 
                     <MarkdownEditor
@@ -91,7 +90,7 @@ describe('components/markdownEditor', () => {
     test('should match snapshot with on click on preview element', async () => {
         let container
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <MarkdownEditor
                         id={'test-id'}
@@ -117,7 +116,7 @@ describe('components/markdownEditor', () => {
     test('should match snapshot with on click on preview element and then click out of it', async () => {
         let container: Element | undefined
         await act(async () => {
-            const result = render(wrapDNDIntl(
+            const result = render(wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <MarkdownEditor
                         id={'test-id'}

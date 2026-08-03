@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
-import {fireEvent, render} from '@testing-library/react'
+import {fireEvent, render} from '@solidjs/testing-library'
 import configureStore from 'redux-mock-store'
 import '@testing-library/jest-dom'
 
@@ -57,7 +56,7 @@ describe('components/table/TableRows', () => {
         const addCard = jest.fn()
 
         const store = mockStore(state)
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <ColumnResizeProvider
                     columnWidths={{}}
@@ -79,7 +78,7 @@ describe('components/table/TableRows', () => {
             </ReduxProvider>,
         )
 
-        const {container, getByText} = render(component)
+        const {container, getByText} = render(() => component)
 
         const open = getByText(/Open/i)
         fireEvent.click(open)

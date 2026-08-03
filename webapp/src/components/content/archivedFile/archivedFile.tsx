@@ -24,10 +24,10 @@ const ArchivedFile = (props: Props): JSX.Element => {
     const fileSize = useCallback(() => Utils.humanFileSize(props.fileInfo.size || 0), [props.fileInfo.size])
 
     return (
-        <div className='ArchivedFile'>
+        <div class='ArchivedFile'>
             <BrokenFile/>
-            <div className='fileMetadata'>
-                <p className='filename'>{fileName()}</p>
+            <div class='fileMetadata'>
+                <p class='filename'>{fileName()}</p>
                 <p>{fileExtension()} {fileSize()}</p>
             </div>
         </div>

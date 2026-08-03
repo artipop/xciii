@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
 import {wrapIntl} from '../../testUtils'
@@ -81,7 +80,7 @@ describe('components/acp/flowDiagram layout', () => {
 
 describe('components/acp/flowDiagram', () => {
     test('draws every stage and labels the events it waits for', () => {
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <FlowDiagram
                 nodes={nodes}
                 edges={edges}
@@ -100,7 +99,7 @@ describe('components/acp/flowDiagram', () => {
     })
 
     test('an empty route draws nothing at all', () => {
-        const {container} = render(wrapIntl(
+        const {container} = render(wrapIntl(() =>
             <FlowDiagram
                 nodes={[]}
                 edges={[]}
@@ -151,7 +150,7 @@ describe('components/acp/flowDiagram builder', () => {
     })
 
     test('an editable canvas shows the outputs a route is drawn from', () => {
-        const {container, rerender} = render(wrapIntl(
+        const {container, rerender} = render(wrapIntl(() =>
             <FlowDiagram
                 nodes={nodes}
                 edges={edges}
@@ -160,7 +159,7 @@ describe('components/acp/flowDiagram builder', () => {
         ))
         expect(container.querySelector('.FlowDiagram--editable')).toBeNull()
 
-        rerender(wrapIntl(
+        rerender(wrapIntl(() =>
             <FlowDiagram
                 nodes={nodes}
                 edges={edges}
@@ -173,7 +172,7 @@ describe('components/acp/flowDiagram builder', () => {
     })
 
     test('the map says how many cards stand on a stage', async () => {
-        render(wrapIntl(
+        render(wrapIntl(() =>
             <FlowDiagram
                 nodes={nodes}
                 edges={edges}

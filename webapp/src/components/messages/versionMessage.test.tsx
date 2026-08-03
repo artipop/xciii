@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {mocked} from 'jest-mock'
 import userEvent from '@testing-library/user-event'
 
@@ -54,12 +53,12 @@ describe('components/messages/VersionMessage', () => {
 
             const store = mockStore(state)
 
-            const component = wrapIntl(
+            const component = wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <VersionMessage/>
                 </ReduxProvider>,
             )
-            const {container} = render(component)
+            const {container} = render(() => component)
             expect(container.firstChild).toBeNull()
         })
 
@@ -88,13 +87,13 @@ describe('components/messages/VersionMessage', () => {
             }
             const store = mockStore(state)
 
-            const component = wrapIntl(
+            const component = wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <VersionMessage/>
                 </ReduxProvider>,
             )
 
-            const {container} = render(component)
+            const {container} = render(() => component)
             expect(container.firstChild).toBeNull()
         })
 
@@ -120,13 +119,13 @@ describe('components/messages/VersionMessage', () => {
             }
             const store = mockStore(state)
 
-            const component = wrapIntl(
+            const component = wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <VersionMessage/>
                 </ReduxProvider>,
             )
 
-            render(component)
+            render(() => component)
             const buttonElement = screen.getByRole('button', {name: 'Close dialog'})
             userEvent.click(buttonElement)
             expect(mockedOctoClient.patchUserConfig).toHaveBeenCalledWith('user-id-1', {
@@ -141,13 +140,13 @@ describe('components/messages/VersionMessage', () => {
                 users: {},
             }
             const store = mockStore(state)
-            const component = wrapIntl(
+            const component = wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <VersionMessage/>
                 </ReduxProvider>,
             )
 
-            const {container} = render(component)
+            const {container} = render(() => component)
             expect(container.firstChild).toBeNull()
         })
     } else {
@@ -174,12 +173,12 @@ describe('components/messages/VersionMessage', () => {
             }
             const store = mockStore(state)
 
-            const component = wrapIntl(
+            const component = wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <VersionMessage/>
                 </ReduxProvider>,
             )
-            const {container} = render(component)
+            const {container} = render(() => component)
             expect(container.firstChild).toBeNull()
         })
     }

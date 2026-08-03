@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../../intl'
 
 import {useMeasurePunchouts} from '../../tutorial_tour_tip/hooks'
 
@@ -31,7 +31,6 @@ const AddViewTourStep = (): JSX.Element => {
 
     return (
         <TourTipRenderer
-            key='AddViewTourStep'
             requireCard={false}
             category={TOUR_BOARD}
             step={BoardTourSteps.ADD_VIEW}

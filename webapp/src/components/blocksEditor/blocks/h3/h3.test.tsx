@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {render, screen, fireEvent} from '@solidjs/testing-library'
 
 import H3Block from '.'
 
 describe('components/blocksEditor/blocks/h3', () => {
     test('should match Display snapshot', async () => {
         const Component = H3Block.Display
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value='test-value'
@@ -22,7 +21,7 @@ describe('components/blocksEditor/blocks/h3', () => {
 
     test('should match Input snapshot', async () => {
         const Component = H3Block.Input
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value='test-value'
@@ -36,7 +35,7 @@ describe('components/blocksEditor/blocks/h3', () => {
     test('should emit onChange event', async () => {
         const onChange = jest.fn()
         const Component = H3Block.Input
-        render(
+        render(() =>
             <Component
                 onChange={onChange}
                 value='test-value'
@@ -55,7 +54,7 @@ describe('components/blocksEditor/blocks/h3', () => {
     test('should not emit onCancel event when value is not empty and hit backspace', async () => {
         const onCancel = jest.fn()
         const Component = H3Block.Input
-        render(
+        render(() =>
             <Component
                 onChange={jest.fn()}
                 value='test-value'
@@ -73,7 +72,7 @@ describe('components/blocksEditor/blocks/h3', () => {
     test('should emit onCancel event when value is empty and hit backspace', async () => {
         const onCancel = jest.fn()
         const Component = H3Block.Input
-        render(
+        render(() =>
             <Component
                 onChange={jest.fn()}
                 value=''
@@ -92,7 +91,7 @@ describe('components/blocksEditor/blocks/h3', () => {
     test('should emit onSave event hit enter', async () => {
         const onSave = jest.fn()
         const Component = H3Block.Input
-        render(
+        render(() =>
             <Component
                 onChange={jest.fn()}
                 value='test-value'

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 import {History} from 'history'
 
 import {Archiver} from '../../archiver'
@@ -39,9 +39,9 @@ const GlobalHeaderSettingsMenu = (props: Props) => {
     }
 
     return (
-        <div className='GlobalHeaderSettingsMenu'>
+        <div class='GlobalHeaderSettingsMenu'>
             <MenuWrapper>
-                <div className='GlobalHeaderComponent__button menu-entry'>
+                <div class='GlobalHeaderComponent__button menu-entry'>
                     <SettingsIcon/>
                 </div>
                 <Menu position='left'>
@@ -60,8 +60,7 @@ const GlobalHeaderSettingsMenu = (props: Props) => {
                         />
                         {
                             Constants.imports.map((i) => (
-                                <Menu.Text
-                                    key={`${i.id}-import`}
+                                <Menu.Text-import`}
                                     id={`${i.id}-import`}
                                     name={i.displayName}
                                     onClick={() => {
@@ -80,7 +79,6 @@ const GlobalHeaderSettingsMenu = (props: Props) => {
                         {
                             Constants.languages.map((language) => (
                                 <Menu.Text
-                                    key={language.code}
                                     id={`${language.name}-lang`}
                                     name={language.displayName}
                                     onClick={async () => dispatch(storeLanguage(language.code))}
@@ -137,4 +135,4 @@ const GlobalHeaderSettingsMenu = (props: Props) => {
     )
 }
 
-export default React.memo(GlobalHeaderSettingsMenu)
+export default GlobalHeaderSettingsMenu

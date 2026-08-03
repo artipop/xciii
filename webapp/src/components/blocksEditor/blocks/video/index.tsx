@@ -42,7 +42,7 @@ const Video: ContentType<FileInfo> = {
                     width='320'
                     height='240'
                     controls={true}
-                    className='VideoView'
+                    class='VideoView'
                     data-testid='video'
                 >
                     <source src={videoDataUrl}/>
@@ -60,7 +60,7 @@ const Video: ContentType<FileInfo> = {
         return (
             <input
                 ref={ref}
-                className='Video'
+                class='Video'
                 data-testid='video-input'
                 type='file'
                 accept='video/*'

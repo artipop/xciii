@@ -1,6 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
 import {useDropZone} from '../../hooks/sortable'
 
@@ -9,7 +8,7 @@ import './kanbanColumn.scss'
 
 type Props = {
     onDrop: (card: Card) => void
-    children: React.ReactNode
+    children: JSX.Element
 }
 
 const KanbanColumn = (props: Props) => {
@@ -22,11 +21,11 @@ const KanbanColumn = (props: Props) => {
     return (
         <div
             ref={drop}
-            className={className}
+            class={className}
         >
             {props.children}
         </div>
     )
 }
 
-export default React.memo(KanbanColumn)
+export default KanbanColumn

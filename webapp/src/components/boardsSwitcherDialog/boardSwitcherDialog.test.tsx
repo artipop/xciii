@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 
 import {MockStoreEnhanced} from 'redux-mock-store'
 
 import {Provider as ReduxProvider} from 'react-redux'
 
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import {createMemoryHistory, History} from 'history'
 
@@ -59,7 +58,7 @@ describe('component/BoardSwitcherDialog', () => {
 
     test('base case', () => {
         const onCloseHandler = jest.fn()
-        const component = wrapDNDIntl(
+        const component = wrapDNDIntl(() =>
             <Router history={history}>
                 <ReduxProvider store={store}>
                     <BoardSwitcherDialog onClose={onCloseHandler}/>
@@ -67,7 +66,7 @@ describe('component/BoardSwitcherDialog', () => {
             </Router>,
         )
 
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 })

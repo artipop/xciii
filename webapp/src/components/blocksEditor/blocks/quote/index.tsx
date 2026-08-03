@@ -17,7 +17,7 @@ const Quote: ContentType = {
         const html = marked('> ' + props.value, {renderer, breaks: true})
         return (
             <div
-                className='Quote'
+                class='Quote'
                 data-testid='quote'
                 dangerouslySetInnerHTML={{__html: html.trim()}}
             />
@@ -32,7 +32,7 @@ const Quote: ContentType = {
         }, [])
         return (
             <blockquote
-                className='Quote'
+                class='Quote'
             >
                 <input
                     ref={ref}

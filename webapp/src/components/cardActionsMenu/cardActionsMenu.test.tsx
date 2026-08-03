@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import '@testing-library/jest-dom'
-import {act, render} from '@testing-library/react'
-import React from 'react'
+import {act, render} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
@@ -44,7 +43,7 @@ describe('components/cardActionsMenu', () => {
     test('should match snapshot', async () => {
         let container
         await act(async () => {
-            const result = render(wrapIntl(
+            const result = render(wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <CardActionsMenu
                         cardId='123'
@@ -61,7 +60,7 @@ describe('components/cardActionsMenu', () => {
     test('should match snapshot w/ onClickDuplicate prop', async () => {
         let container
         await act(async () => {
-            const result = render(wrapIntl(
+            const result = render(wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <CardActionsMenu
                         cardId='123'
@@ -79,7 +78,7 @@ describe('components/cardActionsMenu', () => {
     test('should match snapshot w/ children prop', async () => {
         let container
         await act(async () => {
-            const result = render(wrapIntl(
+            const result = render(wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <CardActionsMenu
                         cardId='123'

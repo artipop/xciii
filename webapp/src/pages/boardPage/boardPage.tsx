@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 import React, {type JSX, useEffect, useState, useMemo, useCallback} from 'react'
 import {batch} from 'react-redux'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 import {useRouteMatch, useHistory} from 'react-router-dom'
 
 import Workspace from '../../components/workspace'
@@ -279,7 +279,7 @@ const BoardPage = (props: Props): JSX.Element => {
                 />}
 
             {!showJoinBoardDialog &&
-                <div className='BoardPage'>
+                <div class='BoardPage'>
                     {!props.new && <TeamToBoardAndViewRedirect/>}
                     <BackwardCompatibilityQueryParamsRedirect/>
                     <SetWindowTitleAndIcon/>
@@ -288,7 +288,7 @@ const BoardPage = (props: Props): JSX.Element => {
                     <VersionMessage/>
 
                     {!mobileWarningClosed &&
-                        <div className='mobileWarning'>
+                        <div class='mobileWarning'>
                             <div>
                                 <FormattedMessage
                                     id='Error.mobileweb'
@@ -307,7 +307,7 @@ const BoardPage = (props: Props): JSX.Element => {
                         </div>}
 
                     {props.readonly && activeBoardId === undefined &&
-                        <div className='error'>
+                        <div class='error'>
                             {intl.formatMessage({id: 'BoardPage.syncFailed', defaultMessage: 'Board may be deleted or access revoked.'})}
                         </div>}
                     {

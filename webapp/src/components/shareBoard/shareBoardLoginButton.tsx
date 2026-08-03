@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../intl'
 import {generatePath, useRouteMatch, useHistory} from 'react-router-dom'
 
 import Button from '../../widgets/buttons/button'
@@ -31,7 +30,7 @@ const ShareBoardLoginButton = () => {
     }
 
     return (
-        <div className='ShareBoardLoginButton'>
+        <div class='ShareBoardLoginButton'>
             <Button
                 title='Login'
                 size='medium'
@@ -47,4 +46,4 @@ const ShareBoardLoginButton = () => {
     )
 }
 
-export default React.memo(ShareBoardLoginButton)
+export default ShareBoardLoginButton

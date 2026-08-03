@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import '@testing-library/jest-dom'
-import {act, render, screen} from '@testing-library/react'
+import {act, render, screen} from '@solidjs/testing-library'
 
 import React, {ReactNode, ReactElement} from 'react'
 import {mocked} from 'jest-mock'
@@ -90,7 +90,7 @@ describe('components/contentBlock', () => {
     const store = mockStateStore([], state)
 
     const wrap = (child: ReactNode): ReactElement => (
-        wrapDNDIntl(
+        wrapDNDIntl(() =>
             <ReduxProvider store={store}>
                 <CardDetailContext.Provider value={cardDetailContextValue(true)}>
                     {child}

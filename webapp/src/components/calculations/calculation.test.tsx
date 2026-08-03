@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
@@ -29,7 +28,7 @@ describe('components/calculations/Calculation', () => {
     card2.fields.properties.property_4 = 'Baz'
 
     const Wrapper: React.FC<React.PropsWithChildren> = ({children}) => {
-        return wrapIntl(
+        return wrapIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
                 onResizeColumn={jest.fn()}
@@ -40,7 +39,7 @@ describe('components/calculations/Calculation', () => {
     }
 
     test('should match snapshot - none', () => {
-        const {container} = render(
+        const {container} = render(() =>
             <Wrapper>
                 <Calculation
                     class={'fooClass'}
@@ -66,7 +65,7 @@ describe('components/calculations/Calculation', () => {
     })
 
     test('should match snapshot - count', () => {
-        const {container} = render(
+        const {container} = render(() =>
             <Wrapper>
                 <Calculation
                     class={'fooClass'}
@@ -92,7 +91,7 @@ describe('components/calculations/Calculation', () => {
     })
 
     test('should match snapshot - countValue', () => {
-        const {container} = render(
+        const {container} = render(() =>
             <Wrapper>
                 <Calculation
                     class={'fooClass'}
@@ -118,7 +117,7 @@ describe('components/calculations/Calculation', () => {
     })
 
     test('should match snapshot - countUniqueValue', () => {
-        const {container} = render(
+        const {container} = render(() =>
             <Wrapper>
                 <Calculation
                     class={'fooClass'}
@@ -148,7 +147,7 @@ describe('components/calculations/Calculation', () => {
         const onMenuClose = jest.fn()
         const onChange = jest.fn()
 
-        const {container} = render(
+        const {container} = render(() =>
             <Wrapper>
                 <Calculation
                     class={'fooClass'}

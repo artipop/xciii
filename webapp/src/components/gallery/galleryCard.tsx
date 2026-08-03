@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useState} from 'react'
-import {useIntl, FormattedMessage} from 'react-intl'
+import {useIntl, FormattedMessage} from '../../intl'
 
 import {Board, IPropertyTemplate} from '../../blocks/board'
 import {Card} from '../../blocks/card'
@@ -26,7 +26,7 @@ import CardActionsMenuIcon from '../cardActionsMenu/cardActionsMenuIcon'
 type Props = {
     board: Board
     card: Card
-    onClick: (e: React.MouseEvent, card: Card) => void
+    onClick: (e: MouseEvent, card: Card) => void
     visiblePropertyTemplates: IPropertyTemplate[]
     visibleTitle: boolean
     isSelected: boolean
@@ -79,8 +79,8 @@ const GalleryCard = (props: Props) => {
     return (
         <>
             <div
-                className={className}
-                onClick={(e: React.MouseEvent) => props.onClick(e, card)}
+                class={className}
+                onClick={(e: MouseEvent) => props.onClick(e, card)}
                 style={{opacity: isDragging ? 0.5 : 1}}
                 ref={cardRef}
             >
@@ -103,17 +103,16 @@ const GalleryCard = (props: Props) => {
                 }
 
                 {image &&
-                    <div className='gallery-image'>
+                    <div class='gallery-image'>
                         <ImageElement block={image}/>
                     </div>}
                 {!image &&
                     <CardDetailProvider card={card}>
-                        <div className='gallery-item'>
+                        <div class='gallery-item'>
                             {contents.map((block) => {
                                 if (Array.isArray(block)) {
                                     return block.map((b) => (
                                         <ContentElement
-                                            key={b.id}
                                             block={b}
                                             readonly={true}
                                             cords={{x: 0}}
@@ -123,7 +122,6 @@ const GalleryCard = (props: Props) => {
 
                                 return (
                                     <ContentElement
-                                        key={block.id}
                                         block={block}
                                         readonly={true}
                                         cords={{x: 0}}
@@ -133,11 +131,10 @@ const GalleryCard = (props: Props) => {
                         </div>
                     </CardDetailProvider>}
                 {props.visibleTitle &&
-                    <div className='gallery-title'>
-                        { card.fields.icon ? <div className='octo-icon'>{card.fields.icon}</div> : undefined }
+                    <div class='gallery-title'>
+                        { card.fields.icon ? <div class='octo-icon'>{card.fields.icon}</div> : undefined }
                         <div
-                            key='__title'
-                            className='octo-titletext'
+                            class='octo-titletext'
                         >
                             {card.title ||
                                 <FormattedMessage
@@ -147,10 +144,9 @@ const GalleryCard = (props: Props) => {
                         </div>
                     </div>}
                 {visiblePropertyTemplates.length > 0 &&
-                    <div className='gallery-props'>
+                    <div class='gallery-props'>
                         {visiblePropertyTemplates.map((template) => (
                             <Tooltip
-                                key={template.id}
                                 title={template.name}
                                 placement='top'
                             >
@@ -175,4 +171,4 @@ const GalleryCard = (props: Props) => {
     )
 }
 
-export default React.memo(GalleryCard)
+export default GalleryCard

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useState} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {Archiver} from '../../archiver'
 import {
@@ -76,9 +76,9 @@ const SidebarSettingsMenu = (props: Props) => {
     ]
 
     return (
-        <div className='SidebarSettingsMenu'>
+        <div class='SidebarSettingsMenu'>
             <MenuWrapper>
-                <div className='menu-entry'>
+                <div class='menu-entry'>
                     <FormattedMessage
                         id='Sidebar.settings'
                         defaultMessage='Settings'
@@ -100,8 +100,7 @@ const SidebarSettingsMenu = (props: Props) => {
                         />
                         {
                             Constants.imports.map((i) => (
-                                <Menu.Text
-                                    key={`${i.id}-import`}
+                                <Menu.Text-import`}
                                     id={`${i.id}-import`}
                                     name={i.displayName}
                                     onClick={() => {
@@ -130,7 +129,6 @@ const SidebarSettingsMenu = (props: Props) => {
                         {
                             Constants.languages.map((language) => (
                                 <Menu.Text
-                                    key={language.code}
                                     id={`${language.name}-lang`}
                                     name={language.displayName}
                                     onClick={async () => dispatch(storeLanguage(language.code))}
@@ -148,7 +146,6 @@ const SidebarSettingsMenu = (props: Props) => {
                             themes.map((theme) =>
                                 (
                                     <Menu.Text
-                                        key={theme.id}
                                         id={theme.id}
                                         name={intl.formatMessage({id: `Sidebar.${theme.id}`, defaultMessage: theme.displayName})}
                                         onClick={async () => updateTheme(theme.theme, theme.id)}
@@ -171,4 +168,4 @@ const SidebarSettingsMenu = (props: Props) => {
     )
 }
 
-export default React.memo(SidebarSettingsMenu)
+export default SidebarSettingsMenu

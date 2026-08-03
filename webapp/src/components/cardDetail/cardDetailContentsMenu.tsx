@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {type JSX, useCallback} from 'react'
-import {FormattedMessage, IntlShape, useIntl} from 'react-intl'
+import {FormattedMessage, IntlShape, useIntl} from '../../intl'
 
 import {BlockTypes} from '../../blocks/block'
 import {Utils} from '../../utils'
@@ -44,7 +44,7 @@ function AddContentMenuItem(props: {intl: IntlShape, type: BlockTypes}): JSX.Ele
 const CardDetailContentsMenu = () => {
     const intl = useIntl()
     return (
-        <div className='CardDetailContentsMenu content add-content'>
+        <div class='CardDetailContentsMenu content add-content'>
             <MenuWrapper>
                 <Button>
                     <FormattedMessage
@@ -55,7 +55,6 @@ const CardDetailContentsMenu = () => {
                 <Menu position='top'>
                     {contentRegistry.contentTypes.map((type) => (
                         <AddContentMenuItem
-                            key={type}
                             intl={intl}
                             type={type}
                         />
@@ -66,4 +65,4 @@ const CardDetailContentsMenu = () => {
     )
 }
 
-export default React.memo(CardDetailContentsMenu)
+export default CardDetailContentsMenu

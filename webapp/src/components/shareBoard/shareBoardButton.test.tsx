@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render} from '@testing-library/react'
-import React from 'react'
+import {render} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import {BoardTypeOpen} from '../../blocks/board'
@@ -32,7 +31,7 @@ describe('src/components/shareBoard/shareBoard', () => {
 
     test('should match snapshot, Private Board', async () => {
         const result = render(
-            wrapDNDIntl(
+            wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <ShareBoardButton
                         enableSharedBoards={true}
@@ -47,7 +46,7 @@ describe('src/components/shareBoard/shareBoard', () => {
     test('should match snapshot, Open Board', async () => {
         board.type = BoardTypeOpen
         const result = render(
-            wrapDNDIntl(
+            wrapDNDIntl(() =>
                 <ReduxProvider store={store}>
                     <ShareBoardButton
                         enableSharedBoards={true}

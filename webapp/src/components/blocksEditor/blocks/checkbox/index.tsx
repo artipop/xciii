@@ -24,7 +24,7 @@ const Checkbox: ContentType<ValueType> = {
         const renderer = new marked.Renderer()
         const html = marked(props.value.value || '', {renderer, breaks: true})
         return (
-            <div className='CheckboxView'>
+            <div class='CheckboxView'>
                 <input
                     data-testid='checkbox-check'
                     type='checkbox'
@@ -47,11 +47,11 @@ const Checkbox: ContentType<ValueType> = {
             ref.current?.focus()
         }, [])
         return (
-            <div className='Checkbox'>
+            <div class='Checkbox'>
                 <input
                     type='checkbox'
                     data-testid='checkbox-check'
-                    className='inputCheck'
+                    class='inputCheck'
                     onChange={(e) => {
                         let newValue = {checked: false, value: props.value.value || ''}
                         if (e.target.checked) {
@@ -65,7 +65,7 @@ const Checkbox: ContentType<ValueType> = {
                 <input
                     ref={ref}
                     data-testid='checkbox-input'
-                    className='inputText'
+                    class='inputText'
                     onChange={(e) => {
                         props.onChange({checked: Boolean(props.value.checked), value: e.currentTarget.value})
                     }}

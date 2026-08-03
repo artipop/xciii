@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
@@ -75,7 +74,7 @@ describe('components/viewHeader/viewHeader', () => {
     const store = mockStateStore([], state)
     test('return viewHeader', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeader
                         board={board}
@@ -97,7 +96,7 @@ describe('components/viewHeader/viewHeader', () => {
     test('return viewHeader without permissions', () => {
         const localStore = mockStateStore([], {...state, teams: {current: undefined}})
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={localStore}>
                     <ViewHeader
                         board={board}
@@ -118,7 +117,7 @@ describe('components/viewHeader/viewHeader', () => {
     })
     test('return viewHeader readonly', () => {
         const {container} = render(
-            wrapIntl(
+            wrapIntl(() =>
                 <ReduxProvider store={store}>
                     <ViewHeader
                         board={board}

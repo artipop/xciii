@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 
 import {useAppSelector} from '../../store/hooks'
 import {getCurrentBoardId} from '../../store/boards'
@@ -14,10 +13,10 @@ type Props = {
     teamId?: string
     permissions: Permission[]
     invert?: boolean
-    children: React.ReactNode
+    children: JSX.Element
 }
 
-const BoardPermissionGate = React.memo((props: Props): React.ReactElement|null => {
+const BoardPermissionGate = React.memo((props: Props): JSX.Element|null => {
     const currentTeam = useAppSelector(getCurrentTeam)
     const currentBoardId = useAppSelector(getCurrentBoardId)
 

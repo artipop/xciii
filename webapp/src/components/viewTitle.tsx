@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useState, useCallback} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../intl'
 
 import {BlockIcons} from '../blockIcons'
 import {Board} from '../blocks/board'
@@ -41,8 +41,8 @@ const ViewTitle = (props: Props) => {
     const intl = useIntl()
 
     return (
-        <div className='ViewTitle'>
-            <div className='add-buttons add-visible'>
+        <div class='ViewTitle'>
+            <div class='add-buttons add-visible'>
                 {!readonly && !board.icon &&
                     <Button
                         emphasis='default'
@@ -93,7 +93,7 @@ const ViewTitle = (props: Props) => {
                 }
             </div>
 
-            <div className='title'>
+            <div class='title'>
                 <BoardIconSelector
                     board={board}
                     readonly={readonly}
@@ -112,7 +112,7 @@ const ViewTitle = (props: Props) => {
             </div>
 
             {board.showDescription &&
-                <div className='description'>
+                <div class='description'>
                     <MarkdownEditor
                         text={board.description}
                         placeholderText='Add a description...'
@@ -125,4 +125,4 @@ const ViewTitle = (props: Props) => {
     )
 }
 
-export default React.memo(ViewTitle)
+export default ViewTitle

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import React, {useMemo, useState} from 'react'
-import {act, render} from '@testing-library/react'
+import {act, render} from '@solidjs/testing-library'
 import {useDragDropManager, useDragDropMonitor} from '@dnd-kit/react'
 
 import {setupDragEnvironment, setRect, drag, flick} from '../test/dragEnvironment'
@@ -39,7 +39,7 @@ describe('hooks/sortable dragging', () => {
     function setup() {
         const onCard = jest.fn()
         const onZone = jest.fn()
-        const {getByTestId} = render(
+        const {getByTestId} = render(() =>
             <SortableProvider>
                 <Card
                     item={a}
@@ -100,7 +100,7 @@ describe('hooks/sortable dragging', () => {
         const onCard = jest.fn()
         const onZone = jest.fn()
 
-        function Board(props: {probe: React.ReactNode}) {
+        function Board(props: {probe: JSX.Element}) {
             const [gone, setGone] = useState(false)
             return (
                 <SortableProvider>
@@ -130,7 +130,7 @@ describe('hooks/sortable dragging', () => {
             return null
         }
 
-        const {getByTestId} = render(<Board probe={<Probe/>}/>)
+        const {getByTestId} = render(() =><Board probe={<Probe/>}/>)
         setRect(getByTestId('a'), {x: 0, y: 0, width: 100, height: 40})
         setRect(getByTestId('b'), {x: 0, y: 100, width: 100, height: 40})
         setRect(getByTestId('zone'), {x: 0, y: 200, width: 100, height: 100})
@@ -189,7 +189,7 @@ describe('hooks/sortable dragging', () => {
         }
 
         const onCard = jest.fn()
-        const {getByTestId} = render(
+        const {getByTestId} = render(() =>
             <SortableProvider>
                 <Probe/>
                 <Card

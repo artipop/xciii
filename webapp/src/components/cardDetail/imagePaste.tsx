@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {useEffect} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {ImageBlock, createImageBlock} from '../../blocks/imageBlock'
 import {sendFlashMessage} from '../flashMessages'

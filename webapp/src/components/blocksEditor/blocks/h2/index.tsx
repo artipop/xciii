@@ -31,7 +31,7 @@ const H2: ContentType = {
         return (
             <input
                 ref={ref}
-                className='H2'
+                class='H2'
                 data-testid='h2'
                 onChange={(e) => props.onChange(e.currentTarget.value)}
                 onKeyDown={(e) => {
