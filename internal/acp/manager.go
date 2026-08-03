@@ -1,0 +1,763 @@
+package acp
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/artipop/trixi/internal/dokku"
+	"github.com/artipop/trixi/internal/vcs"
+)
+
+// Manager owns all agent sessions: it consumes board events, enforces limits
+// and policies, and reports results back to the board and the UI.
+type Manager struct {
+	cfg     Config
+	cfgMu   sync.RWMutex // guards the UI-mutable parts of cfg (Repos, Agents, SystemPrompt)
+	cfgPath string       // where registry edits are persisted; empty in tests
+	store   *Store
+	writer  BoardWriter
+	reader  BoardReader // optional; enables opening a console on a card
+	users   BoardUsers  // optional; enables assigning cards to an agent
+	meta    BoardMeta   // optional; lets a board bring its own columns and routes
+	ui      UIEmitter
+	log     *slog.Logger
+	tr      *Tracer
+
+	mu     sync.Mutex
+	active map[string]*Session // session ID → session
+	byCard map[string]*Session // card ID → live (non-terminal) session
+	// terminals are the agent CLIs a human has open in a window. They share the
+	// lock but nothing else with sessions: a terminal is a person working, not
+	// an agent being driven (terminal.go).
+	terminals map[string]*TerminalSession // terminal ID → terminal session
+
+	seededMu sync.Mutex
+	seeded   map[string]bool // boards whose own settings have been imported
+
+	permMu sync.Mutex
+	perms  map[string]pendingPermission // request ID → prompt awaiting a human
+
+	// What an agent says it can be configured with, keyed by how it is
+	// launched. Asking costs an agent startup, and the dialog asks whenever a
+	// form is opened. See capabilities.go.
+	optionsMu    sync.Mutex
+	optionsCache map[string][]AgentOption
+
+	watchers []vcs.Watcher // repository watchers feeding the flow engine
+
+	sem     chan struct{}
+	rootCtx context.Context
+	stop    context.CancelFunc
+	wg      sync.WaitGroup
+}
+
+// pendingPermission is one permission prompt waiting for a human decision.
+type pendingPermission struct {
+	sessionID string
+	answer    chan string // receives the chosen option id
+}
+
+// SetBoardReader supplies on-demand card reads, which the "open a console on
+// this card" path needs. Optional: without it, sessions start only on a move.
+func (m *Manager) SetBoardReader(r BoardReader) { m.reader = r }
+
+// SetBoardUsers supplies account provisioning, which "assign a card to an
+// agent" needs. Optional: without it only the "Agent" field routes cards.
+func (m *Manager) SetBoardUsers(u BoardUsers) { m.users = u }
+
+// NewManager wires the manager. cfgPath is where repo-registry edits are
+// persisted (may be empty in tests). Call Start to begin consuming events.
+func NewManager(cfg Config, cfgPath string, st *Store, w BoardWriter, ui UIEmitter, log *slog.Logger) *Manager {
+	if log == nil {
+		log = slog.Default()
+	}
+	maxConc := cfg.MaxConcurrent
+	if maxConc <= 0 {
+		maxConc = 1
+	}
+	tr := newTracer(cfg, log)
+	if tr.Enabled() {
+		ui = &tracingEmitter{inner: ui, tr: tr}
+	}
+	return &Manager{
+		cfg:      cfg,
+		cfgPath:  cfgPath,
+		store:    st,
+		writer:   w,
+		ui:       ui,
+		log:      log,
+		tr:       tr,
+		watchers: defaultWatchers(cfg),
+		active:   make(map[string]*Session),
+		byCard:   make(map[string]*Session),
+		perms:    make(map[string]pendingPermission),
+		sem:      make(chan struct{}, maxConc),
+	}
+}
+
+// Start recovers interrupted sessions and launches the trigger loop.
+func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
+	m.rootCtx, m.stop = context.WithCancel(ctx)
+
+	// Probe the fallback kind's adapter only when the empty registry would use
+	// it; registered agents resolve their own at run time.
+	if len(m.cfg.Agents) == 0 && m.cfg.AgentMode != agentModeCommand {
+		kind := firstNonEmpty(m.cfg.AgentMode, AgentKindClaude)
+		if _, err := m.adapterArgv(kind, ""); err != nil {
+			m.log.Warn("acp: the fallback agent cannot be started yet", "kind", kind, "err", err)
+		}
+	}
+
+	// A hand-edited config is never validated, so what the editor would have
+	// refused only surfaces when a server fails to start. Say it now instead.
+	for _, a := range m.cfg.Agents {
+		if _, err := validateAgent(a); err != nil {
+			m.log.Warn("acp: agent is configured in a way that will not work", "agent", a.Name, "err", err)
+		}
+	}
+
+	m.recover()
+	PruneStale(m.rootCtx, m.cfg.RepoWhitelist)
+
+	ch, err := events.Subscribe(m.rootCtx)
+	if err != nil {
+		return fmt.Errorf("subscribe to board events: %w", err)
+	}
+	m.wg.Add(1)
+	go m.triggerLoop(ch)
+
+	// Repository polling only matters once some card waits on a branch, but the
+	// loop itself is cheap: it does nothing at all until FlowTargets is non-empty.
+	if m.cfg.VCSPoll() > 0 && len(m.watchers) > 0 {
+		m.wg.Add(1)
+		go m.vcsLoop()
+	}
+	return nil
+}
+
+// recover marks sessions left non-terminal by a previous run as failed.
+func (m *Manager) recover() {
+	stale, err := m.store.StaleSessions()
+	if err != nil {
+		m.log.Error("acp: recovery query failed", "err", err)
+		return
+	}
+	for _, r := range stale {
+		if err := m.store.SetSessionStatus(r.ID, StatusFailed, "прервано перезапуском приложения"); err != nil {
+			m.log.Warn("acp: recovery update failed", "session", r.ID, "err", err)
+			continue
+		}
+		m.commentCard(r.CardID, "Сессия агента была прервана перезапуском приложения.")
+	}
+}
+
+// startOptions are the ways a session can differ from a plain card task.
+type startOptions struct {
+	// deploy makes this a deploy session: it resolves a Dokku target, is given
+	// the dokku MCP tools and gets the deploy prompt instead of the card task.
+	deploy bool
+	// test makes this a test session: it resolves the card's preview address, is
+	// given the browser MCP tools and gets the tester prompt.
+	test bool
+	// repoName picks a repository explicitly, for a console opened on a card
+	// that does not say which one it is about.
+	repoName string
+	// flowName/flowNodeID tie the session to the stage of a route that started
+	// it, so its outcome can move the card on.
+	flowName, flowNodeID string
+	// agentCrew/deployOverride let a flow node name the agents or the deploy
+	// target for its stage only, overriding the column's own.
+	agentCrew      []string
+	deployOverride string
+	// column is the column the card landed in: who works it, how many at once,
+	// and where it deploys to. What a flow node names wins over it.
+	column ColumnSpec
+}
+
+// crew is who may work this session: the stage's own list if it has one, else
+// the column's.
+func (o startOptions) crew() []string {
+	if len(o.agentCrew) > 0 {
+		return o.agentCrew
+	}
+	return o.column.Agents
+}
+
+// StartSessionForEvent creates and launches a session for a validated trigger
+// event. Callers must have passed idempotency/liveness checks.
+func (m *Manager) StartSessionForEvent(ev CardMoved) (*Session, error) {
+	return m.startSession(ev, startOptions{})
+}
+
+// startSession is the shared launch path: every session — a card's task, a
+// deploy, a browser test — is started here, runs its one turn and ends.
+func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error) {
+	// Asked before anything is resolved: a card somebody took for themselves is
+	// theirs, and there is no point working out which repository an agent would
+	// not be using. Deploy and test are unaffected — that is machine work, not
+	// the assignee's — and an explicit `agent` property still wins, since it is
+	// a direct instruction. Somebody who wants to work the card *with* an agent
+	// opens a terminal on it, which is not a session and not vetoed here.
+	if !opts.deploy && !opts.test && strings.TrimSpace(ev.Props["agent"]) == "" {
+		m.cfgMu.RLock()
+		known := append([]AgentEntry(nil), m.cfg.Agents...)
+		m.cfgMu.RUnlock()
+		if who := humanAssignee(ev, known); who != "" {
+			return nil, AssignedToHumanError{Who: who}
+		}
+	}
+
+	repoPath, err := m.resolveRepo(ev)
+	if opts.repoName != "" {
+		// An explicit choice wins: the console offers one exactly when the card
+		// itself does not say which repository it is about.
+		repoPath, err = m.resolveNamedRepo(opts.repoName)
+	}
+	if err != nil {
+		return nil, err
+	}
+	deployName := opts.deployOverride
+	if deployName == "" {
+		deployName = opts.column.DeployName
+	}
+	deploy, deployBranch, err := m.resolveDeploy(ev, repoPath, opts.deploy, deployName)
+	if err != nil {
+		return nil, err
+	}
+	sessionID := uuid.NewString()
+	artifacts, err := m.artifactsDir(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	test, err := m.resolveTestRun(ev, repoPath, artifacts, opts.test)
+	if err != nil {
+		return nil, err
+	}
+	// A deploy no longer pins its own agent: the card decides among the crew of
+	// the column it landed in — the flow node's crew, if the stage names one.
+	agent, busy, err := m.resolveSessionAgent(ev, opts.crew())
+	if err != nil {
+		return nil, err
+	}
+	if busy {
+		return nil, errStageBusy
+	}
+	// The column's own limit: how many of its crew may work it at once. It is
+	// checked here rather than at the trigger, so every way into a stage — a
+	// drag, a flow transition, the queue itself — obeys the same number.
+	if opts.column.MaxRunning > 0 && m.runningInColumn(opts.column.Key()) >= opts.column.MaxRunning {
+		return nil, errStageBusy
+	}
+	net, err := m.resolveNetwork(agent)
+	if err != nil {
+		return nil, err
+	}
+	// A test session is an agent clicking through a browser it brings itself:
+	// without a browser MCP server on the agent there is nothing to test with,
+	// and finding that out mid-turn costs a whole session.
+	if test != nil && len(agent.MCPServers) == 0 {
+		return nil, fmt.Errorf("агенту %q не задан MCP-сервер браузера — тестировать нечем (меню доски → Агенты → «MCP-серверы»)", agent.Name)
+	}
+	// Without worktrees, two agents must never share one working tree
+	// (spec §7): reject while another live session uses the same repo. A deploy
+	// session is exempt for the same reason a planning one is — it only pushes
+	// an existing branch and never touches the checkout.
+	if !m.cfg.UseWorktrees() && !opts.deploy {
+		m.mu.Lock()
+		var busyCard string
+		for _, other := range m.active {
+			// A planning session only reads, so it neither claims the working
+			// copy nor keeps a card's session out of it.
+			if other.RepoPath == repoPath && !other.Planning {
+				busyCard = other.CardID
+				break
+			}
+		}
+		m.mu.Unlock()
+		if busyCard != "" {
+			return nil, fmt.Errorf("в репозитории %s уже работает сессия другой карточки (%s) — дождитесь её завершения или закройте её консоль", repoPath, busyCard)
+		}
+	}
+
+	m.cfgMu.RLock()
+	systemPrompt, deployPrompt, testPrompt := m.cfg.SystemPrompt, m.cfg.DeployPrompt, m.cfg.TestPrompt
+	m.cfgMu.RUnlock()
+	prompt := composePrompt(ev, agent, systemPrompt, m.cfg.UseWorktrees())
+	switch {
+	case deploy != nil:
+		prompt = composeDeployPrompt(ev, agent, systemPrompt, deployPrompt, *deploy, deployBranch)
+	case test != nil:
+		prompt = composeTestPrompt(ev, agent, systemPrompt, testPrompt, *test)
+	}
+	// The tools of the deploy server are allowed up front: nobody is watching a
+	// card-triggered run, and an unanswered prompt is a rejected one. Seeding
+	// the session rather than DefaultConfig.AutoAllowTools also reaches installs
+	// whose config.json predates the feature. A test session drives a browser
+	// through a server the agent carries, whose tools are allowed by prefix
+	// (agentMCPServers) since their names only exist at run time.
+	allowTools := make(map[string]bool)
+	if deploy != nil {
+		allowTools = deployTools()
+	}
+	s := &Session{
+		ID:           sessionID,
+		CardID:       ev.CardID,
+		Title:        ev.Title,
+		BoardID:      ev.BoardID,
+		RepoPath:     repoPath,
+		BaseBranch:   ev.Props["branch"],
+		Agent:        agent,
+		Net:          net,
+		Deploy:       deploy,
+		DeployBranch: deployBranch,
+		ColumnKey:    opts.column.Key(),
+		ColumnName:   opts.column.Column,
+		Test:         test,
+		Artifacts:    artifacts,
+		FlowName:     opts.flowName,
+		FlowNodeID:   opts.flowNodeID,
+		PromptText:   prompt,
+		Policy:       agentPolicy(agent),
+		status:       StatusQueued,
+		allowTools:   allowTools,
+	}
+	rec := SessionRecord{
+		ID:        s.ID,
+		CardID:    s.CardID,
+		BoardID:   s.BoardID,
+		AgentKind: agent.Kind,
+		Status:    StatusQueued,
+		StartedAt: time.Now(),
+	}
+	if err := m.store.InsertSession(rec); err != nil {
+		return nil, fmt.Errorf("persist session: %w", err)
+	}
+
+	m.mu.Lock()
+	m.active[s.ID] = s
+	// byCard is the card's *own* session — the one its console talks to and the
+	// one leaving the column cancels. A deploy started from the card while that
+	// session is alive must not take its place.
+	if live := m.byCard[s.CardID]; live == nil || !opts.deploy {
+		m.byCard[s.CardID] = s
+	}
+	m.mu.Unlock()
+	m.emitSession(s, "")
+
+	m.wg.Add(1)
+	go m.runSession(s)
+	return s, nil
+}
+
+// CancelSessionForCard cancels the live session of a card, if any.
+func (m *Manager) CancelSessionForCard(cardID, reason string) bool {
+	m.mu.Lock()
+	s := m.byCard[cardID]
+	m.mu.Unlock()
+	if s == nil {
+		return false
+	}
+	m.log.Info("acp: cancelling session", "session", s.ID, "card", cardID, "reason", reason)
+	s.mu.Lock()
+	s.cancelSent = true
+	cancel := s.turnCancel
+	running := s.status == StatusRunning || s.status == StatusWaitingPermission
+	// The session may still be starting up — connecting to the agent takes a
+	// process spawn and a handshake — so there is nothing to cancel yet and the
+	// turn about to start has to be told.
+	s.cancelPending = !running
+	s.mu.Unlock()
+	if cancel != nil && running {
+		cancel()
+	} else {
+		// Still queued, or between the connection and the turn: there is no
+		// turn to interrupt, so end the session outright.
+		m.finishSession(s, StatusCancelled, reason)
+	}
+	return true
+}
+
+// StartDeployForCard publishes a card's branch without moving the card into the
+// deploy column — the "Deploy" button next to the branch the card is working on.
+// branch overrides the card's own "branch" property, which is how the session's
+// worktree branch (the one the agent is actually committing to) gets deployed;
+// empty falls back to the card property and then to the checked-out branch.
+//
+// The branch lives in the repository's shared object store even when it was
+// created in a worktree, so pushing it from the repository itself — which is
+// where a deploy session always runs — reaches it.
+func (m *Manager) StartDeployForCard(cardID, branch string) (*Session, error) {
+	if m.reader == nil {
+		return nil, fmt.Errorf("чтение карточек недоступно")
+	}
+	ctx, cancel := context.WithTimeout(m.rootCtx, 10*time.Second)
+	defer cancel()
+	ev, err := m.reader.CardByID(ctx, cardID)
+	if err != nil {
+		return nil, fmt.Errorf("не удалось прочитать карточку: %w", err)
+	}
+	if b := strings.TrimSpace(branch); b != "" {
+		if ev.Props == nil {
+			ev.Props = map[string]string{}
+		}
+		ev.Props["branch"] = b
+	}
+	return m.startSession(ev, startOptions{deploy: true})
+}
+
+// planningRepo picks the registry entry to plan against. An empty name means
+// planning without a repository, which is a valid choice rather than a default:
+// the dialog preselects a lone entry, so nothing here has to guess.
+func (m *Manager) planningRepo(name string) (RepoEntry, error) {
+	if name == "" {
+		return RepoEntry{}, nil
+	}
+	for _, r := range m.Repos() {
+		if strings.EqualFold(r.Name, name) {
+			return r, nil
+		}
+	}
+	return RepoEntry{}, fmt.Errorf("репозиторий %q не найден в реестре", name)
+}
+
+// planningAgent picks the registry entry that will do the planning.
+func (m *Manager) planningAgent(name string) (AgentEntry, error) {
+	agents := m.Agents()
+	if len(agents) == 0 {
+		return AgentEntry{}, fmt.Errorf("не зарегистрировано ни одного агента (меню доски → Agents)")
+	}
+	if name == "" {
+		if len(agents) > 1 {
+			return AgentEntry{}, fmt.Errorf("укажи агента: зарегистрировано несколько")
+		}
+		return agents[0], nil
+	}
+	for _, a := range agents {
+		if strings.EqualFold(a.Name, name) {
+			return a, nil
+		}
+	}
+	return AgentEntry{}, fmt.Errorf("агент %q не найден в реестре", name)
+}
+
+// composeTaskPrompt asks for the conversation to be boiled down to a card. The
+// shape is fixed because the UI splits the answer on the first line.
+const composeTaskPrompt = `Оформи то, о чём мы договорились, как задачу для трекера.
+Ответь ровно в таком виде, без markdown-заголовков и без вступления:
+первая строка — краткий заголовок задачи (до 80 символов),
+далее с новой строки — описание: что нужно сделать, где в коде и как проверить.`
+
+// session looks up a live session by id.
+func (m *Manager) session(sessionID string) *Session {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.active[sessionID]
+}
+
+// ---- permission prompts ----
+
+// registerPermission opens a slot for a human decision and returns the channel
+// the answer arrives on.
+func (m *Manager) registerPermission(requestID, sessionID string) chan string {
+	ch := make(chan string, 1)
+	m.permMu.Lock()
+	m.perms[requestID] = pendingPermission{sessionID: sessionID, answer: ch}
+	m.permMu.Unlock()
+	return ch
+}
+
+func (m *Manager) forgetPermission(requestID string) {
+	m.permMu.Lock()
+	delete(m.perms, requestID)
+	m.permMu.Unlock()
+}
+
+// CardSessions returns persisted sessions and events for a card (UI hydration).
+// CardAgentState is what a card shows about the agent working it: whether a
+// session of the automation is running, and which branch the card's work is on.
+// It is deliberately small — the transcript of a session is its comments, and
+// the conversation with an agent happens in a terminal.
+type CardAgentState struct {
+	SessionID string `json:"sessionId,omitempty"`
+	Status    string `json:"status,omitempty"`
+	Branch    string `json:"branch,omitempty"`
+	Worktree  string `json:"worktree,omitempty"`
+	Error     string `json:"error,omitempty"`
+}
+
+// CardAgentState reports the card's live session, or the last one it had.
+func (m *Manager) CardAgentState(cardID string) (CardAgentState, error) {
+	m.mu.Lock()
+	live := m.byCard[cardID]
+	m.mu.Unlock()
+	if live != nil {
+		return CardAgentState{
+			SessionID: live.ID,
+			Status:    string(live.Status()),
+			Branch:    live.recordedBranch(),
+			Worktree:  live.Worktree.Path,
+		}, nil
+	}
+
+	records, _, err := m.store.SessionsForCard(cardID)
+	if err != nil {
+		return CardAgentState{}, err
+	}
+	// Newest first is not guaranteed by the store, so take the latest start.
+	var last *SessionRecord
+	for i := range records {
+		if last == nil || records[i].StartedAt.After(last.StartedAt) {
+			last = &records[i]
+		}
+	}
+	if last == nil {
+		return CardAgentState{}, nil
+	}
+	return CardAgentState{
+		SessionID: last.ID,
+		Status:    string(last.Status),
+		Branch:    last.Branch,
+		Worktree:  last.WorktreePath,
+		Error:     last.ErrorText,
+	}, nil
+}
+
+// Shutdown cancels everything and kills agent processes within grace.
+func (m *Manager) Shutdown(grace time.Duration) {
+	if m.stop != nil {
+		m.stop()
+	}
+	// A terminal is a child process holding a pty; nothing waits for it, and
+	// leaving it behind would outlive the window it was opened in.
+	m.shutdownTerminals()
+	done := make(chan struct{})
+	go func() {
+		m.wg.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(grace):
+		m.log.Warn("acp: shutdown grace expired with sessions still winding down")
+	}
+	if m.store != nil {
+		_ = m.store.Close()
+	}
+	m.tr.Close()
+}
+
+// ---- internals ----
+
+// finishSession transitions to a terminal status exactly once.
+func (m *Manager) finishSession(s *Session, status SessionStatus, errText string) {
+	// A CLI failing to reach its proxy may echo the proxy URL back at us.
+	errText = s.Net.redactProxySecret(errText)
+	s.mu.Lock()
+	if s.status.Terminal() {
+		s.mu.Unlock()
+		return
+	}
+	s.status = status
+	s.mu.Unlock()
+	m.persistStatus(s, status, errText)
+}
+
+func (m *Manager) releaseSession(s *Session) {
+	m.mu.Lock()
+	delete(m.active, s.ID)
+	if m.byCard[s.CardID] == s {
+		delete(m.byCard, s.CardID)
+	}
+	m.mu.Unlock()
+}
+
+// setStatus moves a live (non-terminal) session between running states, e.g.
+// in and out of a permission prompt. Terminal sessions are left alone.
+func (m *Manager) setStatus(s *Session, status SessionStatus) {
+	s.mu.Lock()
+	if s.status.Terminal() {
+		s.mu.Unlock()
+		return
+	}
+	s.status = status
+	s.mu.Unlock()
+	m.persistStatus(s, status, "")
+}
+
+func (m *Manager) persistStatus(s *Session, status SessionStatus, errText string) {
+	if err := m.store.SetSessionStatus(s.ID, status, errText); err != nil {
+		m.log.Warn("acp: failed to persist status", "session", s.ID, "status", status, "err", err)
+	}
+	m.emitSession(s, errText)
+}
+
+func (m *Manager) emitSession(s *Session, errText string) {
+	s.mu.Lock()
+	status, turn := s.status, s.turnNo
+	s.mu.Unlock()
+	m.ui.Emit(EventSession, map[string]any{
+		"sessionId": s.ID,
+		"cardId":    s.CardID,
+		"status":    string(status),
+		"error":     errText,
+		// The branch is what the card displays and what its deploy button
+		// publishes; deploy tells a card's own session apart from the deploy
+		// it started, which shares its card id.
+		"branch":       s.recordedBranch(),
+		"worktreePath": s.Worktree.Path,
+		"deploy":       s.Deploy != nil,
+		"turn":         turn,
+	})
+}
+
+func (m *Manager) comment(s *Session, text string) {
+	m.commentCard(s.CardID, text)
+}
+
+func (m *Manager) commentCard(cardID, text string) {
+	if cardID == "" {
+		return // nothing to report to
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := m.writer.AddComment(ctx, cardID, text); err != nil {
+		m.log.Error("acp: failed to add card comment", "card", cardID, "err", err)
+	}
+}
+
+// firstNonEmpty returns the first non-empty string.
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+// lookupBin finds name on PATH or in common install locations. When name is an
+// absolute/explicit path (contains a separator) it is stat-checked directly.
+// notFoundMsg may be empty, in which case the name itself is the message.
+func lookupBin(name, notFoundMsg string) (string, error) {
+	if notFoundMsg == "" {
+		notFoundMsg = fmt.Sprintf("не найден %s", name)
+	}
+	if strings.ContainsRune(name, filepath.Separator) {
+		if _, err := os.Stat(name); err != nil {
+			return "", fmt.Errorf("%s: %w", name, err)
+		}
+		return name, nil
+	}
+	if p, err := exec.LookPath(name); err == nil {
+		return p, nil
+	}
+	home, _ := os.UserHomeDir()
+	for _, p := range []string{
+		filepath.Join(home, ".local", "bin", name),
+		"/opt/homebrew/bin/" + name,
+		"/usr/local/bin/" + name,
+	} {
+		if _, err := os.Stat(p); err == nil {
+			return p, nil
+		}
+	}
+	return "", fmt.Errorf("%s", notFoundMsg)
+}
+
+// resolveArgv0 makes an argv runnable from a GUI process: a bare command name is
+// looked up on PATH and in the common install locations, because launchd hands
+// GUI apps a minimal PATH. Left as written when nothing matches, so the spawn
+// error names the command the user actually typed.
+func resolveArgv0(argv []string) []string {
+	if len(argv) == 0 {
+		return argv
+	}
+	out := append([]string(nil), argv...)
+	if p, err := lookupBin(argv[0], "not found"); err == nil {
+		out[0] = p
+	}
+	return out
+}
+
+// planningPrompt opens a planning conversation: the board/agent system prompts,
+// then what this session is for. It is deliberately explicit that nothing is to
+// be changed — the tool policy enforces it, but the agent should not try.
+func planningPrompt(systemPrompt string, agent AgentEntry, repo RepoEntry) string {
+	var b []byte
+	if p := strings.TrimSpace(systemPrompt); p != "" {
+		b = fmt.Appendf(b, "%s\n\n", p)
+	}
+	if p := strings.TrimSpace(agent.Prompt); p != "" {
+		b = fmt.Appendf(b, "%s\n\n", p)
+	}
+	if repo.Path == "" {
+		b = fmt.Appendf(b, "Мы планируем новую задачу. Репозиторий не выбран, кода под рукой нет — ")
+		b = fmt.Appendf(b, "опирайся на то, что расскажет пользователь, и не пытайся ничего искать в файлах.\n\n")
+		b = fmt.Appendf(b, "Начни с короткого вопроса о том, что нужно сделать.")
+		return string(b)
+	}
+	b = fmt.Appendf(b, "Мы планируем новую задачу по репозиторию `%s` (%s).\n", repo.Name, repo.Path)
+	b = fmt.Appendf(b, "Код у тебя есть — читай файлы, ищи по ним, смотри историю git: ")
+	b = fmt.Appendf(b, "чтение и безопасные команды осмотра разрешены, опирайся на код, а не на догадки.\n")
+	b = fmt.Appendf(b, "Не меняй ничего: ни файлов, ни состояния. Это обсуждение, а не выполнение. ")
+	b = fmt.Appendf(b, "Если для ответа всё же нужна команда, меняющая состояние, — попроси, у пользователя спросят подтверждение.\n\n")
+	b = fmt.Appendf(b, "Начни с короткого вопроса о том, что нужно сделать.")
+	return string(b)
+}
+
+// composePrompt builds the agent task text from the card. The final prompt is
+// the board/column system prompt, then the agent's own system prompt, then the
+// card task.
+func composePrompt(ev CardMoved, agent AgentEntry, systemPrompt string, useWorktree bool) string {
+	var b []byte
+	if p := strings.TrimSpace(systemPrompt); p != "" {
+		b = fmt.Appendf(b, "%s\n\n", p)
+	}
+	if p := strings.TrimSpace(agent.Prompt); p != "" {
+		b = fmt.Appendf(b, "%s\n\n", p)
+	}
+	b = fmt.Appendf(b, "Задача: %s\n", ev.Title)
+	if ev.Body != "" {
+		b = fmt.Appendf(b, "\n%s\n", ev.Body)
+	}
+	if useWorktree {
+		b = fmt.Appendf(b, "\nРаботай в текущем каталоге — это отдельный git worktree, созданный специально для этой задачи. Можешь делать локальные коммиты. Не выполняй git push.")
+	} else {
+		b = fmt.Appendf(b, "\nРаботай в текущем каталоге — это рабочая копия репозитория пользователя. Не переключай ветки, не делай коммитов и git push: оставь изменения незакоммиченными для ревью.")
+	}
+	return string(b)
+}
+
+// composeDeployPrompt builds the task text of a deploy session: the same system
+// prompts an ordinary task gets, then the deploy instructions, then the concrete
+// facts — which branch goes where, and what the resulting address should be.
+func composeDeployPrompt(ev CardMoved, agent AgentEntry, systemPrompt, deployPrompt string, target DeployEntry, branch string) string {
+	var b []byte
+	if p := strings.TrimSpace(systemPrompt); p != "" {
+		b = fmt.Appendf(b, "%s\n\n", p)
+	}
+	if p := strings.TrimSpace(agent.Prompt); p != "" {
+		b = fmt.Appendf(b, "%s\n\n", p)
+	}
+	if p := strings.TrimSpace(deployPrompt); p != "" {
+		b = fmt.Appendf(b, "%s\n\n", p)
+	} else {
+		b = fmt.Appendf(b, "%s\n\n", DefaultDeployPrompt)
+	}
+	slug := dokku.AppSlug(branch)
+	b = fmt.Appendf(b, "Карточка: %s\nВетка: %s\nЦель: %s\nПриложение Dokku: %s\nОжидаемый адрес: %s\n",
+		ev.Title, branch, target.Name, target.AppName(slug), target.URL(slug))
+	if ev.Body != "" {
+		b = fmt.Appendf(b, "\nОписание карточки:\n%s\n", ev.Body)
+	}
+	return string(b)
+}

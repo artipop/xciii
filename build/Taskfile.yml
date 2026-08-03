@@ -1,0 +1,109 @@
+version: '3'
+
+# Tasks shared by every platform. The frontend half differs from a stock Wails
+# project: there is no `frontend/` directory here. The frontend is the
+# Focalboard webapp (`../focalboard/webapp`, its own npm project, built with Vite), and it
+# is not served by the Wails asset server but by the in-process Focalboard
+# server behind proxy.go — so all the build has to do is produce `webapp/pack`
+# and stage a copy where go:embed can reach it.
+#
+# There is no `generate:bindings` either: the webapp calls bound methods by
+# name (main.App.*) through the shim in proxy.go, exactly as the v2 build's
+# -skipbindings meant it called window.go.main.App.*.
+
+tasks:
+  go:mod:tidy:
+    summary: Runs `go mod tidy`
+    internal: true
+    # Universal/multi-arch builds invoke this concurrently from parallel deps;
+    # two `go mod tidy` processes racing on go.mod can corrupt it (#4637).
+    run: once
+    cmds:
+      - go mod tidy
+
+  build:frontend:
+    summary: Builds the Focalboard webapp and stages it for go:embed
+    # Every platform build depends on this; `run: once` keeps a universal
+    # (multi-arch) build from running two npm builds over the same output.
+    run: once
+    sources:
+      - ../focalboard/webapp/src/**/*
+      - ../focalboard/webapp/static/**/*
+      - ../focalboard/webapp/index.html
+      - ../focalboard/webapp/package.json
+      - ../focalboard/webapp/package-lock.json
+      - ../focalboard/webapp/vite.config.mjs
+    generates:
+      - pack/**/*
+    preconditions:
+      - sh: test -d ../focalboard/webapp/node_modules
+        msg: "webapp dependencies are missing. Run `make prebuild` in the repo root first."
+    cmds:
+      - cd ../focalboard/webapp && npm run pack
+      # go:embed cannot reach outside the module, hence the copy rather than a
+      # path. Removing first keeps a renamed asset from surviving a rebuild.
+      - rm -rf pack
+      - cp -R ../focalboard/webapp/pack pack
+
+  generate:icons:
+    summary: Generates Windows `.ico` and Mac `.icns` from an image; on macOS, `-iconcomposerinput appicon.icon -macassetdir darwin` also produces `Assets.car` from a `.icon` file (skipped on other platforms).
+    run: once
+    dir: build
+    sources:
+      - "appicon.png"
+      - "appicon.icon"
+    generates:
+      - "darwin/icons.icns"
+      - "windows/icon.ico"
+    cmds:
+      - wails3 generate icons -input appicon.png -macfilename darwin/icons.icns -windowsfilename windows/icon.ico -iconcomposerinput appicon.icon -macassetdir darwin
+
+  setup:docker:
+    summary: Builds the image Linux/Windows cross-compilation needs (~800MB)
+    desc: |
+      Our builds are native per platform — cgo SQLite does not cross-compile
+      with the host toolchain — so this image (Zig + GTK/WebKit headers) is the
+      only way to produce a Linux or Windows binary from a Mac. Build it once,
+      then `wails3 task linux:build` picks it up by itself.
+    cmds:
+      - docker build -t wails-cross -f build/docker/Dockerfile.cross build/docker/
+    preconditions:
+      - sh: docker info > /dev/null 2>&1
+        msg: "Docker is required. Please install Docker first."
+
+  update:build-assets:
+    summary: Updates the build assets
+    dir: build
+    cmds:
+      - wails3 update build-assets -name "{{.APP_NAME}}" -binaryname "{{.APP_NAME}}" -config config.yml -dir .
+
+  build:server:
+    summary: Builds the application in server mode (no GUI, HTTP server only)
+    desc: |
+      Builds a production server binary by default: -tags server,production,
+      -trimpath and a stripped binary, mirroring the desktop `build` task.
+      Server mode runs as a pure HTTP server without native GUI dependencies —
+      the same Focalboard, reached with a browser instead of a webview.
+
+      Usage: task build:server [DEV=true] [EXTRA_TAGS=tag1,tag2]
+        DEV=true        development server (no strip, inlining kept)
+        EXTRA_TAGS      additional comma-separated build tags
+    deps:
+      - task: go:mod:tidy
+      - task: build:frontend
+    cmds:
+      - go build {{.BUILD_FLAGS}} -o "{{.BIN_DIR}}/{{.APP_NAME}}-server{{exeExt}}"
+    vars:
+      BUILD_FLAGS: '-tags server,{{.EXTRA_TAGS}}{{if ne .DEV "true"}},production -trimpath -ldflags="-w -s"{{else}} -gcflags=all="-l"{{end}} -buildvcs=false'
+    env:
+      # cgo SQLite; the same requirement the desktop build has.
+      CGO_ENABLED: 1
+
+  run:server:
+    summary: Builds and runs a development server (DEV=true)
+    deps:
+      - task: build:server
+        vars:
+          DEV: "true"
+    cmds:
+      - '"./{{.BIN_DIR}}/{{.APP_NAME}}-server{{exeExt}}"'

@@ -1,0 +1,336 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+//go:build !windows
+
+package acp
+
+import (
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+)
+
+// A terminal is the agent's own CLI, and which binary that is differs from the
+// ACP adapter of the same kind — the whole point of the cliBin column.
+func TestTerminalCommandRunsTheCLIRatherThanTheAdapter(t *testing.T) {
+	cases := []struct {
+		name   string
+		entry  AgentEntry
+		resume bool
+		want   []string
+	}{
+		{
+			name:  "claude runs the CLI, not claude-agent-acp",
+			entry: AgentEntry{Name: "c", Kind: AgentKindClaude},
+			want:  []string{"claude"},
+		},
+		{
+			name:   "resuming continues the conversation in this directory",
+			entry:  AgentEntry{Name: "c", Kind: AgentKindClaude},
+			resume: true,
+			want:   []string{"claude", "--continue"},
+		},
+		{
+			name:   "codex spells the same thing differently",
+			entry:  AgentEntry{Name: "x", Kind: AgentKindCodex},
+			resume: true,
+			want:   []string{"codex", "resume", "--last"},
+		},
+		{
+			name:  "an ACP-native kind is its own CLI, and binPath names it",
+			entry: AgentEntry{Name: "j", Kind: AgentKindJunie, BinPath: "/opt/junie"},
+			want:  []string{"/opt/junie"},
+		},
+		{
+			name:   "an explicit argv is the whole command, resume included",
+			entry:  AgentEntry{Name: "w", Kind: AgentKindClaude, TerminalCommand: []string{"proxychains4", "claude"}},
+			resume: true,
+			want:   []string{"proxychains4", "claude"},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got, err := terminalCommand(c.entry, c.resume)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if strings.Join(got, " ") != strings.Join(c.want, " ") {
+				t.Errorf("argv %v, want %v", got, c.want)
+			}
+		})
+	}
+}
+
+// binPath on a claude entry points at the vendor adapter, which has no terminal
+// UI at all: running it in a window would show nothing and answer nothing.
+func TestTerminalCommandIgnoresTheAdapterBinPath(t *testing.T) {
+	got, err := terminalCommand(AgentEntry{Name: "c", Kind: AgentKindClaude, BinPath: "/opt/claude-agent-acp"}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got[0] != "claude" {
+		t.Errorf("argv %v, want the claude CLI", got)
+	}
+}
+
+// The generic kind is an argv written for ACP-over-stdio. Guessing an
+// interactive CLI out of it would open a window on a process with no terminal,
+// so it asks instead.
+func TestTerminalCommandRefusesAKindItCannotKnow(t *testing.T) {
+	_, err := terminalCommand(AgentEntry{Name: "g", Kind: AgentKindACP, Command: []string{"gemini", "--acp"}}, false)
+	if err == nil {
+		t.Fatal("expected a refusal for the generic kind")
+	}
+	if !strings.Contains(err.Error(), "terminalCommand") {
+		t.Errorf("the error should say what to set: %v", err)
+	}
+}
+
+// The end of a terminal is the only thing a card hears about it, so it has to
+// carry the work: the branch, the commits and anything left uncommitted.
+func TestTerminalReportsWhatTheSessionLeftBehind(t *testing.T) {
+	repo := initTestRepo(t)
+	start := headSHA(t.Context(), repo)
+
+	write(t, filepath.Join(repo, "done.txt"), "work")
+	git(t, repo, "add", ".")
+	git(t, repo, "commit", "-m", "did the thing")
+	write(t, filepath.Join(repo, "wip.txt"), "half")
+
+	report := terminalReport(t.Context(), &TerminalSession{
+		AgentName: "clauuus",
+		Cwd:       repo,
+		Branch:    "acp/thing-1",
+		startSHA:  start,
+	})
+
+	for _, want := range []string{"clauuus", "acp/thing-1", "did the thing", "wip.txt"} {
+		if !strings.Contains(report, want) {
+			t.Errorf("report does not mention %q:\n%s", want, report)
+		}
+	}
+}
+
+func TestTerminalReportSaysWhenNothingWasCommitted(t *testing.T) {
+	repo := initTestRepo(t)
+	report := terminalReport(t.Context(), &TerminalSession{
+		AgentName: "clauuus",
+		Cwd:       repo,
+		startSHA:  headSHA(t.Context(), repo),
+	})
+	if !strings.Contains(report, "Новых коммитов нет") {
+		t.Errorf("report should say the branch is untouched:\n%s", report)
+	}
+}
+
+// The whole path, on a real pty: a CLI runs in the card's worktree, what it
+// prints reaches a window, what the window types reaches it, and when it exits
+// the card is told what happened.
+func TestTerminalStreamsBothWaysAndReportsToTheCard(t *testing.T) {
+	if _, err := exec.LookPath("sh"); err != nil {
+		t.Skip("no shell to stand in for an agent CLI")
+	}
+	m, writer, _, repo := testManager(t, "idle", nil)
+
+	// A shell is the most honest stand-in for an agent CLI: it is interactive,
+	// it echoes, and it exits when told to.
+	agent := AgentEntry{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}}
+
+	term, err := m.startTerminal(terminalSpec{
+		cardID:   "card-term",
+		boardID:  "board1",
+		title:    "Терминальная задача",
+		repoPath: repo,
+		agent:    agent,
+		worktree: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	history, updates, unsubscribe := term.Subscribe()
+	defer unsubscribe()
+	if len(history) != 0 {
+		t.Logf("history already had %d bytes, which is fine", len(history))
+	}
+
+	// The terminal must be the card's worktree, not the repository: two of them
+	// sharing one checkout is exactly what worktrees are for.
+	if term.Cwd == repo {
+		t.Errorf("terminal ran in the repository itself: %s", term.Cwd)
+	}
+	if term.Branch == "" {
+		t.Error("terminal has no branch")
+	}
+	if got := m.TerminalForCard("card-term"); got == nil || got.ID != term.ID {
+		t.Error("the card does not report its own terminal")
+	}
+
+	if err := term.Write([]byte("echo hello-from-the-window\n")); err != nil {
+		t.Fatal(err)
+	}
+	if !waitForOutput(t, updates, "hello-from-the-window") {
+		t.Fatal("the window never saw what the CLI printed")
+	}
+
+	// Something to report: a commit made in the terminal, as a person would.
+	if err := term.Write([]byte("echo work > done.txt && git add . && git commit -q -m 'from the terminal'\n")); err != nil {
+		t.Fatal(err)
+	}
+	if err := term.Write([]byte("exit\n")); err != nil {
+		t.Fatal(err)
+	}
+
+	select {
+	case <-term.Done():
+	case <-time.After(15 * time.Second):
+		t.Fatal("the CLI never exited")
+	}
+
+	// terminalEnded runs on the pump goroutine, just after Done is closed.
+	deadline := time.Now().Add(5 * time.Second)
+	var comments []string
+	for time.Now().Before(deadline) {
+		comments = writer.cardComments("card-term")
+		if len(comments) >= 2 {
+			break
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	if len(comments) < 2 {
+		t.Fatalf("card was told %d things about its terminal, want an opening and a closing one: %v", len(comments), comments)
+	}
+	joined := strings.Join(comments, "\n")
+	for _, want := range []string{"Открыт терминал", "from the terminal"} {
+		if !strings.Contains(joined, want) {
+			t.Errorf("the card was not told %q:\n%s", want, joined)
+		}
+	}
+	if m.Terminal(term.ID) != nil {
+		t.Error("a finished terminal is still listed as live")
+	}
+}
+
+// Resuming is the point of recording terminals at all: the next one on the card
+// goes back to the same worktree and asks the CLI to continue what is there.
+func TestTerminalResumesWhereTheCardLeftOff(t *testing.T) {
+	m, _, _, repo := testManager(t, "idle", nil)
+	cwd := t.TempDir()
+
+	if err := m.store.InsertTerminal(TerminalRecord{
+		ID: "earlier", CardID: "card-r", RepoPath: repo, Cwd: cwd,
+		Branch: "acp/earlier", Agent: "clauuus", Kind: AgentKindClaude,
+		StartedAt: time.Now().Add(-time.Hour),
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	agent := AgentEntry{Name: "clauuus", Kind: AgentKindClaude}
+	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-r", repoPath: repo, agent: agent})
+	if !resume {
+		t.Fatal("a card with a worktree still on disk should resume")
+	}
+	if rec.Cwd != cwd {
+		t.Errorf("resuming in %s, want %s", rec.Cwd, cwd)
+	}
+	argv, err := terminalCommand(agent, resume)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(argv, " ") != "claude --continue" {
+		t.Errorf("argv %v, want the CLI asked to continue", argv)
+	}
+
+	// A worktree the user has since deleted is not somewhere to resume into.
+	if err := os.RemoveAll(cwd); err != nil {
+		t.Fatal(err)
+	}
+	if _, resume := m.terminalResumePoint(terminalSpec{cardID: "card-r", repoPath: repo, agent: agent}); resume {
+		t.Error("resumed into a directory that is gone")
+	}
+}
+
+// write and git are the two things a report test needs a repository to do.
+func write(t *testing.T, path, content string) {
+	t.Helper()
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func git(t *testing.T, repo string, args ...string) {
+	t.Helper()
+	cmd := exec.Command("git", append([]string{"-C", repo}, args...)...)
+	cmd.Env = append(os.Environ(),
+		"GIT_AUTHOR_NAME=t", "GIT_AUTHOR_EMAIL=t@t", "GIT_COMMITTER_NAME=t", "GIT_COMMITTER_EMAIL=t@t")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("git %v: %v: %s", args, err, out)
+	}
+}
+
+// waitForOutput reads the subscription until the wanted text shows up.
+func waitForOutput(t *testing.T, updates <-chan []byte, want string) bool {
+	t.Helper()
+	var seen strings.Builder
+	deadline := time.After(15 * time.Second)
+	for {
+		select {
+		case chunk, ok := <-updates:
+			if !ok {
+				return false
+			}
+			seen.Write(chunk)
+			if strings.Contains(seen.String(), want) {
+				return true
+			}
+		case <-deadline:
+			t.Logf("saw instead:\n%s", seen.String())
+			return false
+		}
+	}
+}
+
+// Closing the window does not end the CLI, and a planning terminal has no card
+// to be found through — so asking for one again has to hand back the one that
+// is running rather than start a second CLI nobody asked for.
+func TestPlanningTerminalIsHandedBackRatherThanStartedTwice(t *testing.T) {
+	if _, err := exec.LookPath("sh"); err != nil {
+		t.Skip("no shell to stand in for an agent CLI")
+	}
+	repo := initTestRepo(t)
+	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
+		cfg.Repos = []RepoEntry{{Name: "testrepo", Path: repo}}
+		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}}}
+	})
+
+	first, err := m.StartPlanningTerminal("testrepo", "shellish")
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := m.StartPlanningTerminal("testrepo", "shellish")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if second.ID != first.ID {
+		t.Errorf("asking twice started a second CLI (%s then %s)", first.ID, second.ID)
+	}
+
+	// And it is listed, which is what lets the UI point at it at all.
+	live := m.LiveTerminals()
+	if len(live) != 1 || live[0].ID != first.ID {
+		t.Errorf("live terminals %+v, want just the planning one", live)
+	}
+
+	if err := m.CloseTerminal(first.ID); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-first.Done():
+	case <-time.After(10 * time.Second):
+		t.Fatal("the CLI never exited")
+	}
+}

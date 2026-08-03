@@ -1,0 +1,8 @@
+.task
+bin
+# The webapp bundle staged for go:embed (build:frontend copies webapp/pack here).
+pack
+# `go build .` with no -o leaves a binary named after this directory.
+trixi
+build/linux/appimage/build
+build/windows/nsis/MicrosoftEdgeWebview2Setup.exe

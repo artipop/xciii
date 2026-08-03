@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Focalboard
+Comment=Focalboard personal desktop
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/Focalboard %u
+Terminal=false
+Type=Application
+Icon=Focalboard
+Categories=Utility;
+StartupWMClass=Focalboard
+
+ 

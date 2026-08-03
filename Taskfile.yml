@@ -1,0 +1,62 @@
+version: '3'
+
+vars:
+  APP_NAME: "Focalboard"
+  BIN_DIR: "bin"
+  # Target OS for build/package/run. Defaults to the host OS, and is overridden
+  # by `wails3 build GOOS=...` (or the GOOS env var) for cross-compilation. The
+  # tasks below dispatch to the matching platform Taskfile via this variable.
+  GOOS: '{{.GOOS | default OS}}'
+  # Tags every build of this module needs: json1/sqlite3 for the cgo SQLite
+  # driver the in-process Focalboard server runs on, frontend for the go:embed
+  # of the staged webapp pack. Wails' own tasks append `production` (and
+  # `server` for the server build) to whatever stands here.
+  # BASE_TAGS exists so the Linux Taskfile can add its GTK tag without a var
+  # redefining itself, which Task resolves to nothing.
+  BASE_TAGS: '{{.EXTRA_TAGS | default "json1,sqlite3,frontend"}}'
+  EXTRA_TAGS: '{{.BASE_TAGS}}'
+
+includes:
+  common: ./build/Taskfile.yml
+  windows: ./build/windows/Taskfile.yml
+  darwin: ./build/darwin/Taskfile.yml
+  linux: ./build/linux/Taskfile.yml
+
+tasks:
+  build:
+    summary: Builds the application
+    cmds:
+      - task: "{{.GOOS}}:build"
+
+  package:
+    summary: Packages a production build of the application
+    cmds:
+      - task: "{{.GOOS}}:package"
+
+  run:
+    summary: Runs the application
+    cmds:
+      - task: "{{.GOOS}}:run"
+
+  setup:docker:
+    summary: Builds the image Linux/Windows cross-compilation needs (~800MB)
+    cmds:
+      - task: common:setup:docker
+
+  dev:
+    summary: Runs the application in development mode
+    # Go edits rebuild and restart the app; the webapp watcher declared in
+    # build/config.yml rebuilds ../focalboard/webapp/pack, which a dev build (no `frontend`
+    # tag) serves straight off disk.
+    cmds:
+      - wails3 dev -config ./build/config.yml
+
+  build:server:
+    summary: Builds the application in server mode (no GUI, HTTP server only)
+    cmds:
+      - task: common:build:server
+
+  run:server:
+    summary: Runs the application in server mode
+    cmds:
+      - task: common:run:server
