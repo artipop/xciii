@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Show} from 'solid-js'
 import type {JSX} from 'solid-js'
+
 import {IntlShape} from '../../intl'
 
 import mutator from '../../mutator'
@@ -25,41 +27,48 @@ type Props = {
 }
 
 export default function KanbanHiddenColumnItem(props: Props): JSX.Element {
-    const {activeView, intl, group} = props
     const hiddenCardGroupId = 'hidden-card-group-id'
 
-    const [isOver, drop] = useDropZone<Card>('card', true, props.onDrop)
+    const [isOver, drop] = useDropZone<Card>('card', () => true, (card) => props.onDrop(card))
 
-    let className = 'octo-board-hidden-item'
-    if (isOver) {
-        className += ' dragover'
+    const className = () => {
+        let name = 'octo-board-hidden-item'
+        if (isOver()) {
+            name += ' dragover'
+        }
+        return name
     }
 
     return (
         <div
             ref={drop}
-            class={className}
+            class={className()}
         >
             <MenuWrapper
                 disabled={props.readonly}
+                menu={
+                    <Menu>
+                        <Menu.Text
+                            id='show'
+                            icon={<ShowIcon/>}
+                            name={props.intl.formatMessage({id: 'BoardComponent.show', defaultMessage: 'Show'})}
+                            onClick={() => mutator.unhideViewColumn(props.activeView.boardId, props.activeView, props.group.option.id)}
+                        />
+                    </Menu>
+                }
             >
                 <Label
-                    color={group.option.color}
+                    color={props.group.option.color}
                 >
-                    {group.option.value}
+                    {props.group.option.value}
                 </Label>
-                <Menu>
-                    <Menu.Text
-                        id='show'
-                        icon={<ShowIcon/>}
-                        name={intl.formatMessage({id: 'BoardComponent.show', defaultMessage: 'Show'})}
-                        onClick={() => mutator.unhideViewColumn(activeView.boardId, activeView, group.option.id)}
-                    />
-                </Menu>
             </MenuWrapper>
-            {props.group.option.id !== hiddenCardGroupId && <Button>{`${group.cards.length}`}</Button>}
-            {props.group.option.id === hiddenCardGroupId && <Button title='hidden-card-count'>{`${group.cards.length}`}</Button>}
+            <Show
+                when={props.group.option.id === hiddenCardGroupId}
+                fallback={<Button>{`${props.group.cards.length}`}</Button>}
+            >
+                <Button title='hidden-card-count'>{`${props.group.cards.length}`}</Button>
+            </Show>
         </div>
     )
 }
-

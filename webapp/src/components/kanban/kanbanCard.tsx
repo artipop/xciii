@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState} from 'react'
+import {For, Show, createSignal} from 'solid-js'
+
 import {useIntl} from '../../intl'
 
 import {Board, IPropertyTemplate} from '../../blocks/board'
@@ -40,41 +41,48 @@ type Props = {
 }
 
 const KanbanCard = (props: Props) => {
-    const {card, board} = props
     const intl = useIntl()
-    const [isDragging, isOver, cardRef] = useListSortable('card', card, !props.readonly, props.onDrop, {id: card.id, index: props.index, group: props.groupId})
-    const visiblePropertyTemplates = props.visiblePropertyTemplates || []
-    let className = props.isSelected ? 'KanbanCard selected' : 'KanbanCard'
-    if (props.isManualSort && isOver) {
-        className += ' dragover'
+    const [isDragging, isOver, cardRef] = useListSortable(
+        'card',
+        () => props.card,
+        () => !props.readonly,
+        (src, dst) => props.onDrop(src, dst),
+        () => ({id: props.card.id, index: props.index, group: props.groupId}),
+    )
+    const visiblePropertyTemplates = () => props.visiblePropertyTemplates || []
+    const className = () => {
+        let name = props.isSelected ? 'KanbanCard selected' : 'KanbanCard'
+        if (props.isManualSort && isOver()) {
+            name += ' dragover'
+        }
+        return name
     }
 
-    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = useState<boolean>(false)
+    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = createSignal<boolean>(false)
     const handleDeleteCard = () => {
+        const card = props.card
         if (!card) {
             Utils.assertFailure()
             return
         }
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: board.id, card: card.id})
+        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: props.board.id, card: card.id})
         mutator.deleteBlock(card, 'delete card')
     }
 
-    const confirmDialogProps: ConfirmationDialogBoxProps = (() => {
-        return {
-            heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
-            confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
-            onConfirm: handleDeleteCard,
-            onClose: () => {
-                setShowConfirmationDialogBox(false)
-            },
-        }
-    })()
+    const confirmDialogProps: ConfirmationDialogBoxProps = {
+        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
+        confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
+        onConfirm: handleDeleteCard,
+        onClose: () => {
+            setShowConfirmationDialogBox(false)
+        },
+    }
 
     const handleDeleteButtonOnClick = () => {
         // user trying to delete a card with blank name
         // but content present cannot be deleted without
         // confirmation dialog
-        if (card?.title === '' && card?.fields?.contentOrder?.length === 0) {
+        if (props.card?.title === '' && props.card?.fields?.contentOrder?.length === 0) {
             handleDeleteCard()
             return
         }
@@ -83,7 +91,7 @@ const KanbanCard = (props: Props) => {
 
     const handleOnClick = (e: MouseEvent) => {
         if (props.onClick) {
-            props.onClick(e, card)
+            props.onClick(e, props.card)
         }
     }
 
@@ -91,67 +99,76 @@ const KanbanCard = (props: Props) => {
         <>
             <div
                 ref={props.readonly ? undefined : cardRef}
-                class={`${className}`}
-                style={{opacity: isDragging ? 0.5 : 1}}
+                class={className()}
+                style={{opacity: isDragging() ? 0.5 : 1}}
                 onClick={handleOnClick}
             >
-                {!props.readonly &&
-                <MenuWrapper
-                    className={'optionsMenu'}
-                    stopPropagationOnToggle={true}
-                >
-                    <CardActionsMenuIcon/>
-                    <CardActionsMenu
-                        cardId={card!.id}
-                        boardId={card!.boardId}
-                        onClickDelete={handleDeleteButtonOnClick}
-                        onClickDuplicate={() => {
-                            TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DuplicateCard, {board: board.id, card: card.id})
-                            mutator.duplicateCard(
-                                card.id,
-                                board.id,
-                                false,
-                                'duplicate card',
-                                false,
-                                {},
-                                async (newCardId) => {
-                                    props.showCard(newCardId)
-                                },
-                                async () => {
-                                    props.showCard(undefined)
-                                },
-                            )
-                        }}
-                    />
-                </MenuWrapper>
-                }
+                <Show when={!props.readonly}>
+                    <MenuWrapper
+                        className={'optionsMenu'}
+                        stopPropagationOnToggle={true}
+                        menu={
+                            <CardActionsMenu
+                                cardId={props.card!.id}
+                                boardId={props.card!.boardId}
+                                onClickDelete={handleDeleteButtonOnClick}
+                                onClickDuplicate={() => {
+                                    TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DuplicateCard, {board: props.board.id, card: props.card.id})
+                                    mutator.duplicateCard(
+                                        props.card.id,
+                                        props.board.id,
+                                        false,
+                                        'duplicate card',
+                                        false,
+                                        {},
+                                        async (newCardId) => {
+                                            props.showCard(newCardId)
+                                        },
+                                        async () => {
+                                            props.showCard(undefined)
+                                        },
+                                    )
+                                }}
+                            />
+                        }
+                    >
+                        <CardActionsMenuIcon/>
+                    </MenuWrapper>
+                </Show>
 
                 <div class='octo-icontitle'>
-                    { card.fields.icon ? <div class='octo-icon'>{card.fields.icon}</div> : undefined }
+                    <Show when={props.card.fields.icon}>
+                        <div class='octo-icon'>{props.card.fields.icon}</div>
+                    </Show>
                     <div
                         class='octo-titletext'
                     >
-                        {card.title || intl.formatMessage({id: 'KanbanCard.untitled', defaultMessage: 'Untitled'})}
+                        {props.card.title || intl.formatMessage({id: 'KanbanCard.untitled', defaultMessage: 'Untitled'})}
                     </div>
                 </div>
-                {visiblePropertyTemplates.map((template) => (
-                    <Tooltip
-                        title={template.name}
-                    >
-                        <PropertyValueElement
-                            board={board}
-                            readOnly={true}
-                            card={card}
-                            propertyTemplate={template}
-                            showEmptyPlaceholder={false}
-                        />
-                    </Tooltip>
-                ))}
-                {props.visibleBadges && <CardBadges card={card}/>}
+                <For each={visiblePropertyTemplates()}>
+                    {(template) => (
+                        <Tooltip
+                            title={template.name}
+                        >
+                            <PropertyValueElement
+                                board={props.board}
+                                readOnly={true}
+                                card={props.card}
+                                propertyTemplate={template}
+                                showEmptyPlaceholder={false}
+                            />
+                        </Tooltip>
+                    )}
+                </For>
+                <Show when={props.visibleBadges}>
+                    <CardBadges card={props.card}/>
+                </Show>
             </div>
 
-            {showConfirmationDialogBox && <ConfirmationDialogBox dialogBox={confirmDialogProps}/>}
-
+            <Show when={showConfirmationDialogBox()}>
+                <ConfirmationDialogBox dialogBox={confirmDialogProps}/>
+            </Show>
         </>
     )
 }

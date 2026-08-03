@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, useState, useEffect} from 'react'
+import {For, Show, createEffect, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
+
 import {FormattedMessage, IntlShape} from '../../intl'
 
 import {Constants, Permission} from '../../constants'
@@ -49,87 +51,92 @@ const defaultProperty: IPropertyTemplate = {
 } as IPropertyTemplate
 
 export default function KanbanColumnHeader(props: Props): JSX.Element {
-    const {board, activeView, intl, group, groupByProperty} = props
-    const [groupTitle, setGroupTitle] = useState(group.option.value)
+    const [groupTitle, setGroupTitle] = createSignal(props.group.option.value)
     const canEditBoardProperties = useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
-    const canEditOption = groupByProperty?.type !== 'person' && group.option.id
+    const canEditOption = () => props.groupByProperty?.type !== 'person' && props.group.option.id
 
-    const [showColumnSettings, setShowColumnSettings] = useState(false)
+    const [showColumnSettings, setShowColumnSettings] = createSignal(false)
 
     const [isDragging, isOver, headerRef] = useSortable(
         'column',
-        group.option,
-        Boolean(canEditBoardProperties),
-        (src: IPropertyOption) => props.onDropToColumn(src, undefined, group.option),
+        () => props.group.option,
+        () => Boolean(canEditBoardProperties()),
+        (src: IPropertyOption) => props.onDropToColumn(src, undefined, props.group.option),
     )
 
-    useEffect(() => {
-        setGroupTitle(group.option.value)
-    }, [group.option.value])
+    createEffect(() => {
+        setGroupTitle(props.group.option.value)
+    })
 
-    let className = 'octo-board-header-cell KanbanColumnHeader'
-    if (isOver) {
-        className += ' dragover'
+    const className = () => {
+        let name = 'octo-board-header-cell KanbanColumnHeader'
+        if (isOver()) {
+            name += ' dragover'
+        }
+        return name
     }
 
-    const groupCalculation = props.activeView.fields.kanbanCalculations[props.group.option.id]
-    const calculationValue = groupCalculation ? groupCalculation.calculation : defaultCalculation
-    const calculationProperty = groupCalculation ? props.board.cardProperties.find((property) => property.id === groupCalculation.propertyId) || defaultProperty : defaultProperty
+    const groupCalculation = () => props.activeView.fields.kanbanCalculations[props.group.option.id]
+    const calculationValue = () => (groupCalculation() ? groupCalculation().calculation : defaultCalculation)
+    const calculationProperty = () => (groupCalculation() ? props.board.cardProperties.find((property) => property.id === groupCalculation().propertyId) || defaultProperty : defaultProperty)
     return (
         <div
             ref={headerRef}
-            style={{opacity: isDragging ? 0.5 : 1}}
-            class={className}
+            style={{opacity: isDragging() ? 0.5 : 1}}
+            class={className()}
         >
-            {!group.option.id &&
+            <Show when={!props.group.option.id}>
                 <Label
-                    title={intl.formatMessage({
+                    title={props.intl.formatMessage({
                         id: 'BoardComponent.no-property-title',
                         defaultMessage: 'Items with an empty {property} property will go here. This column cannot be removed.',
-                    }, {property: groupByProperty!.name})}
+                    }, {property: props.groupByProperty!.name})}
                 >
                     <FormattedMessage
                         id='BoardComponent.no-property'
                         defaultMessage='No {property}'
                         values={{
-                            property: groupByProperty!.name,
+                            property: props.groupByProperty!.name,
                         }}
                     />
-                </Label>}
-            {groupByProperty?.type === 'person' &&
+                </Label>
+            </Show>
+            <Show when={props.groupByProperty?.type === 'person'}>
                 <Label>
-                    {groupTitle}
-                </Label>}
-            {canEditOption &&
-                <Label color={group.option.color}>
+                    {groupTitle()}
+                </Label>
+            </Show>
+            <Show when={canEditOption()}>
+                <Label color={props.group.option.color}>
                     <Editable
-                        value={groupTitle}
+                        value={groupTitle()}
                         placeholderText='New Select'
                         onChange={setGroupTitle}
                         onSave={() => {
-                            if (groupTitle.trim() === '') {
-                                setGroupTitle(group.option.value)
+                            if (groupTitle().trim() === '') {
+                                setGroupTitle(props.group.option.value)
                             }
-                            props.propertyNameChanged(group.option, groupTitle)
+                            props.propertyNameChanged(props.group.option, groupTitle())
                         }}
                         onCancel={() => {
-                            setGroupTitle(group.option.value)
+                            setGroupTitle(props.group.option.value)
                         }}
-                        readonly={props.readonly || !canEditBoardProperties}
+                        readonly={props.readonly || !canEditBoardProperties()}
                         spellCheck={true}
                     />
-                </Label>}
+                </Label>
+            </Show>
             <KanbanCalculation
-                cards={group.cards}
+                cards={props.group.cards}
                 menuOpen={props.calculationMenuOpen}
-                value={calculationValue}
-                property={calculationProperty}
+                value={calculationValue()}
+                property={calculationProperty()}
                 onMenuClose={props.onCalculationMenuClose}
                 onMenuOpen={props.onCalculationMenuOpen}
-                cardProperties={board.cardProperties}
-                readonly={props.readonly || !canEditBoardProperties}
+                cardProperties={props.board.cardProperties}
+                readonly={props.readonly || !canEditBoardProperties()}
                 onChange={(data: {calculation: string, propertyId: string}) => {
-                    if (data.calculation === calculationValue && data.propertyId === calculationProperty.id) {
+                    if (data.calculation === calculationValue() && data.propertyId === calculationProperty().id) {
                         return
                     }
 
@@ -141,75 +148,77 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                         propertyId: data.propertyId,
                     }
 
-                    mutator.changeViewKanbanCalculations(board.id, props.activeView.id, props.activeView.fields.kanbanCalculations, newCalculations)
+                    mutator.changeViewKanbanCalculations(props.board.id, props.activeView.id, props.activeView.fields.kanbanCalculations, newCalculations)
                 }}
             />
-            {Boolean(group.option.id) && groupByProperty &&
+            <Show when={Boolean(props.group.option.id) && props.groupByProperty}>
                 <ColumnBadge
-                    boardId={board.id}
-                    optionId={group.option.id}
-                    columnName={group.option.value}
-                />}
+                    boardId={props.board.id}
+                    optionId={props.group.option.id}
+                    columnName={props.group.option.value}
+                />
+            </Show>
             <div class='octo-spacer'/>
-            {!props.readonly &&
-                <>
-                    <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
-                        <MenuWrapper>
-                            <IconButton icon={<OptionsIcon/>}/>
+            <Show when={!props.readonly}>
+                <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
+                    <MenuWrapper
+                        menu={
                             <Menu>
                                 <Menu.Text
                                     id='hide'
                                     icon={<HideIcon/>}
-                                    name={intl.formatMessage({id: 'BoardComponent.hide', defaultMessage: 'Hide'})}
-                                    onClick={() => mutator.hideViewColumn(board.id, activeView, group.option.id || '')}
+                                    name={props.intl.formatMessage({id: 'BoardComponent.hide', defaultMessage: 'Hide'})}
+                                    onClick={() => mutator.hideViewColumn(props.board.id, props.activeView, props.group.option.id || '')}
                                 />
-                                {/* An empty array (unlike false/null) leaves no wrapper
-                                    div behind: Menu wraps every child slot in a div. */}
-                                {canEditOption && isColumnSettingsAvailable() ? [
+                                <Show when={canEditOption() && isColumnSettingsAvailable()}>
                                     <Menu.Text
                                         id='columnAgents'
-                                        name={intl.formatMessage({id: 'BoardComponent.column-agents', defaultMessage: 'Agents in this column…'})}
+                                        name={props.intl.formatMessage({id: 'BoardComponent.column-agents', defaultMessage: 'Agents in this column…'})}
                                         onClick={() => setShowColumnSettings(true)}
-                                    />,
-                                ] : []}
-                                {canEditOption &&
-                                    <>
-                                        <Menu.Text
-                                            id='delete'
-                                            icon={<DeleteIcon/>}
-                                            name={intl.formatMessage({id: 'BoardComponent.delete', defaultMessage: 'Delete'})}
-                                            onClick={() => mutator.deletePropertyOption(board.id, board.cardProperties, groupByProperty!, group.option)}
-                                        />
-                                        <Menu.Separator/>
-                                        {Object.entries(Constants.menuColors).map(([key, color]) => (
+                                    />
+                                </Show>
+                                <Show when={canEditOption()}>
+                                    <Menu.Text
+                                        id='delete'
+                                        icon={<DeleteIcon/>}
+                                        name={props.intl.formatMessage({id: 'BoardComponent.delete', defaultMessage: 'Delete'})}
+                                        onClick={() => mutator.deletePropertyOption(props.board.id, props.board.cardProperties, props.groupByProperty!, props.group.option)}
+                                    />
+                                    <Menu.Separator/>
+                                    <For each={Object.entries(Constants.menuColors)}>
+                                        {([key, color]) => (
                                             <Menu.Color
                                                 id={key}
                                                 name={color}
-                                                onClick={() => mutator.changePropertyOptionColor(board.id, board.cardProperties, groupByProperty!, group.option, key)}
+                                                onClick={() => mutator.changePropertyOptionColor(props.board.id, props.board.cardProperties, props.groupByProperty!, props.group.option, key)}
                                             />
-                                        ))}
-                                    </>}
+                                        )}
+                                    </For>
+                                </Show>
                             </Menu>
-                        </MenuWrapper>
-                    </BoardPermissionGate>
-                    <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
-                        <IconButton
-                            icon={<AddIcon/>}
-                            onClick={() => {
-                                props.addCard(group.option.id, true)
-                            }}
-                        />
-                    </BoardPermissionGate>
-                </>
-            }
-            {showColumnSettings && groupByProperty &&
+                        }
+                    >
+                        <IconButton icon={<OptionsIcon/>}/>
+                    </MenuWrapper>
+                </BoardPermissionGate>
+                <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
+                    <IconButton
+                        icon={<AddIcon/>}
+                        onClick={() => {
+                            props.addCard(props.group.option.id, true)
+                        }}
+                    />
+                </BoardPermissionGate>
+            </Show>
+            <Show when={showColumnSettings() && props.groupByProperty}>
                 <ColumnSettingsDialog
-                    boardId={board.id}
-                    property={groupByProperty}
-                    option={group.option}
+                    boardId={props.board.id}
+                    property={props.groupByProperty!}
+                    option={props.group.option}
                     onClose={() => setShowColumnSettings(false)}
                     onSaved={invalidateBoardColumns}
-                />}
+                />
+            </Show>
         </div>
     )
 }
