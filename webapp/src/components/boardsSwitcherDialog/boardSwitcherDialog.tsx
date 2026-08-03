@@ -1,17 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, ReactNode, useRef, createRef, useState, useEffect, MutableRefObject} from 'react'
+import {Show, createEffect, createSignal, onCleanup} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import './boardSwitcherDialog.scss'
-import {useIntl} from '../../intl'
 
-import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
+import {useNavigate} from '@solidjs/router'
+
+import {useIntl} from '../../intl'
 
 import octoClient from '../../octoClient'
 import SearchDialog from '../searchDialog/searchDialog'
 import Globe from '../../widgets/icons/globe'
 import LockOutline from '../../widgets/icons/lockOutline'
 import {useAppSelector} from '../../store/hooks'
+import {useRouteMatch} from '../../hooks/routerMatch'
 import {getAllTeams, getCurrentTeam, Team} from '../../store/teams'
 import {getMe} from '../../store/users'
 import {Utils} from '../../utils'
@@ -23,14 +26,13 @@ type Props = {
 }
 
 const BoardSwitcherDialog = (props: Props): JSX.Element => {
-    const [selected, setSelected] = useState<number>(-1)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [refs, setRefs] = useState<MutableRefObject<any>>(useRef([]))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [IDs, setIDs] = useState<any>({})
+    const [selected, setSelected] = createSignal<number>(-1)
+    const elements: Array<HTMLDivElement | undefined> = []
+    const [IDs, setIDs] = createSignal<Record<number, [string, string]>>({})
     const intl = useIntl()
     const team = useAppSelector(getCurrentTeam)
     const me = useAppSelector(getMe)
+    const allTeams = useAppSelector(getAllTeams)
     const title = intl.formatMessage({id: 'FindBoardsDialog.Title', defaultMessage: 'Find Boards'})
     const subTitle = intl.formatMessage(
         {
@@ -38,41 +40,44 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
             defaultMessage: 'Type to find a board. Use <b>UP/DOWN</b> to browse. <b>ENTER</b> to select, <b>ESC</b> to dismiss',
         },
         {
-            b: (...chunks) => <b>{chunks}</b>,
+            b: (...chunks: unknown[]) => <b>{chunks as never}</b>,
         },
-    )
+    ) as JSX.Element
 
-    const match = useRouteMatch<{boardId: string, viewId: string, cardId?: string}>()
-    const history = useHistory()
+    const match = useRouteMatch()
+    const navigate = useNavigate()
 
     const selectBoard = async (teamId: string, boardId: string): Promise<void> => {
-        if (!me) {
+        if (!me()) {
             return
         }
-        const newPath = generatePath(Utils.getBoardPagePath(match.path), {...match.params, teamId, boardId, viewId: undefined})
-        history.push(newPath)
+        const currentMatch = match()
+        const newPath = Utils.generatePath(Utils.getBoardPagePath(currentMatch.path), {...currentMatch.params, teamId, boardId, viewId: undefined})
+        navigate(newPath)
         props.onClose()
     }
 
-    const teamsById: Record<string, Team> = {}
-    useAppSelector(getAllTeams).forEach((t) => {
-        teamsById[t.id] = t
-    })
+    const teamsById = (): Record<string, Team> => {
+        const result: Record<string, Team> = {}
+        allTeams().forEach((t) => {
+            result[t.id] = t
+        })
+        return result
+    }
 
-    const searchHandler = async (query: string): Promise<ReactNode[]> => {
-        if (query.trim().length === 0 || !team) {
+    const searchHandler = async (query: string): Promise<JSX.Element[]> => {
+        if (query.trim().length === 0 || !team()) {
             return []
         }
 
         const items = await octoClient.searchAll(query)
         const untitledBoardTitle = intl.formatMessage({id: 'ViewTitle.untitled-board', defaultMessage: 'Untitled board'})
-        refs.current = items.map((_, i) => refs.current[i] ?? createRef())
-        setRefs(refs)
+        elements.length = items.length
+        const byId = teamsById()
         return items.map((item, i) => {
             const resultTitle = item.title || untitledBoardTitle
-            const teamTitle = teamsById[item.teamId].title
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setIDs((prevIDs: any) => ({
+            const teamTitle = byId[item.teamId].title
+            setIDs((prevIDs) => ({
                 ...prevIDs,
                 [i]: [item.teamId, item.id],
             }))
@@ -80,10 +85,10 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
                 <div
                     class='blockSearchResult'
                     onClick={() => selectBoard(item.teamId, item.id)}
-                    ref={refs.current[i]}
+                    ref={(el) => (elements[i] = el)}
                 >
-                    {item.type === BoardTypeOpen && <Globe/>}
-                    {item.type === BoardTypePrivate && <LockOutline/>}
+                    <Show when={item.type === BoardTypeOpen}><Globe/></Show>
+                    <Show when={item.type === BoardTypePrivate}><LockOutline/></Show>
                     <span class='resultTitle'>{resultTitle}</span>
                     <span class='teamTitle'>{teamTitle}</span>
                 </div>
@@ -92,25 +97,25 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
     }
 
     const handleEnterKeyPress = (e: KeyboardEvent) => {
-        if (Utils.isKeyPressed(e, Constants.keyCodes.ENTER) && selected > -1) {
+        if (Utils.isKeyPressed(e, Constants.keyCodes.ENTER) && selected() > -1) {
             e.preventDefault()
-            const [teamId, id] = IDs[selected]
+            const [teamId, id] = IDs()[selected()]
             selectBoard(teamId, id)
         }
     }
 
-    useEffect(() => {
-        if (selected >= 0) {
-            refs.current[selected].current.parentElement.focus()
+    createEffect(() => {
+        if (selected() >= 0) {
+            elements[selected()]?.parentElement?.focus()
         }
 
         document.addEventListener('keydown', handleEnterKeyPress)
 
         // cleanup function
-        return () => {
+        onCleanup(() => {
             document.removeEventListener('keydown', handleEnterKeyPress)
-        }
-    }, [selected, refs, IDs])
+        })
+    })
 
     return (
         <SearchDialog
@@ -118,7 +123,7 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
             title={title}
             subTitle={subTitle}
             searchHandler={searchHandler}
-            selected={selected}
+            selected={selected()}
             setSelected={(n: number) => setSelected(n)}
         />
     )
