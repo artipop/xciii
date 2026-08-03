@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect, useState, useMemo} from 'react'
+import {Match, Show, Switch, createEffect, createMemo, createSignal, onCleanup} from 'solid-js'
 
 import {Board} from '../../blocks/board'
 import {Card} from '../../blocks/card'
@@ -22,16 +22,15 @@ type Props = {
 }
 
 const BoardTemplateSelectorPreview = (props: Props) => {
-    const {activeTemplate} = props
-    const [activeView, setActiveView] = useState<BoardView|null>(null)
-    const [activeTemplateCards, setActiveTemplateCards] = useState<Card[]>([])
+    const [activeView, setActiveView] = createSignal<BoardView|null>(null)
+    const [activeTemplateCards, setActiveTemplateCards] = createSignal<Card[]>([])
 
-    useEffect(() => {
+    createEffect(() => {
+        const activeTemplate = props.activeTemplate
         let isSubscribed = true
         if (activeTemplate) {
             setActiveTemplateCards([])
             setActiveView(null)
-            setActiveTemplateCards([])
             octoClient.getAllBlocks(activeTemplate.id).then((blocks) => {
                 if (isSubscribed) {
                     const cards = blocks.filter((b) => b.type === 'card')
@@ -45,111 +44,116 @@ const BoardTemplateSelectorPreview = (props: Props) => {
                 }
             })
         }
-        return () => {
+        onCleanup(() => {
             isSubscribed = false
-        }
-    }, [activeTemplate])
+        })
+    })
 
-    const dateDisplayProperty = useMemo(() => {
-        return activeTemplate?.cardProperties.find((o) => o.id === activeView?.fields.dateDisplayPropertyId)
-    }, [activeView, activeTemplate])
+    const dateDisplayProperty = createMemo(() => {
+        return props.activeTemplate?.cardProperties.find((o) => o.id === activeView()?.fields.dateDisplayPropertyId)
+    })
 
-    const groupByProperty = useMemo(() => {
-        return activeTemplate?.cardProperties.find((o) => o.id === activeView?.fields.groupById) || activeTemplate?.cardProperties[0]
-    }, [activeView, activeTemplate])
+    const groupByProperty = createMemo(() => {
+        return props.activeTemplate?.cardProperties.find((o) => o.id === activeView()?.fields.groupById) || props.activeTemplate?.cardProperties[0]
+    })
 
-    const {visible: visibleGroups, hidden: hiddenGroups} = useMemo(() => {
-        if (!activeView) {
+    const groups = createMemo(() => {
+        const view = activeView()
+        if (!view) {
             return {visible: [], hidden: []}
         }
-        return getVisibleAndHiddenGroups(activeTemplateCards, activeView.fields.visibleOptionIds, activeView?.fields.hiddenOptionIds, groupByProperty)
-    }, [activeTemplateCards, activeView, groupByProperty])
-
-    if (!activeTemplate) {
-        return null
-    }
+        return getVisibleAndHiddenGroups(activeTemplateCards(), view.fields.visibleOptionIds, view.fields.hiddenOptionIds, groupByProperty())
+    })
 
     return (
-        <div class='BoardTemplateSelectorPreview'>
-            {activeView &&
-            <div class='top-head'>
-                <ViewTitle
-                    board={activeTemplate}
-                    readonly={true}
-                />
-                <ViewHeader
-                    board={activeTemplate}
-                    activeView={activeView}
-                    cards={activeTemplateCards}
-                    views={[activeView]}
-                    groupByProperty={groupByProperty}
-                    addCard={() => null}
-                    addCardFromTemplate={() => null}
-                    addCardTemplate={() => null}
-                    editCardTemplate={() => null}
-                    readonly={false}
-                />
-            </div>}
+        <Show when={props.activeTemplate}>
+            <div class='BoardTemplateSelectorPreview'>
+                <Show when={activeView()}>
+                    <div class='top-head'>
+                        <ViewTitle
+                            board={props.activeTemplate!}
+                            readonly={true}
+                        />
+                        <ViewHeader
+                            board={props.activeTemplate!}
+                            activeView={activeView()!}
+                            cards={activeTemplateCards()}
+                            views={[activeView()!]}
+                            groupByProperty={groupByProperty()}
+                            addCard={() => null}
+                            addCardFromTemplate={() => null}
+                            addCardTemplate={() => null}
+                            editCardTemplate={() => null}
+                            readonly={false}
+                        />
+                    </div>
+                </Show>
 
-            {activeView?.fields.viewType === 'board' &&
-            <Kanban
-                board={activeTemplate}
-                activeView={activeView}
-                cards={activeTemplateCards}
-                groupByProperty={groupByProperty}
-                visibleGroups={visibleGroups}
-                hiddenGroups={hiddenGroups}
-                selectedCardIds={[]}
-                readonly={false}
-                onCardClicked={() => null}
-                addCard={() => Promise.resolve()}
-                addCardFromTemplate={() => Promise.resolve()}
-                showCard={() => null}
-                hiddenCardsCount={0}
-                showHiddenCardCountNotification={() => null}
-            />}
-            {activeView?.fields.viewType === 'table' &&
-            <Table
-                board={activeTemplate}
-                activeView={activeView}
-                cards={activeTemplateCards}
-                groupByProperty={groupByProperty}
-                views={[activeView]}
-                visibleGroups={visibleGroups}
-                selectedCardIds={[]}
-                readonly={false}
-                cardIdToFocusOnRender={''}
-                onCardClicked={() => null}
-                addCard={() => Promise.resolve()}
-                showCard={() => null}
-                hiddenCardsCount={0}
-                showHiddenCardCountNotification={() => null}
-            />}
-            {activeView?.fields.viewType === 'gallery' &&
-            <Gallery
-                board={activeTemplate}
-                cards={activeTemplateCards}
-                activeView={activeView}
-                readonly={false}
-                selectedCardIds={[]}
-                onCardClicked={() => null}
-                addCard={() => Promise.resolve()}
-                hiddenCardsCount={0}
-                showHiddenCardCountNotification={() => null}
-            />}
-            {activeView?.fields.viewType === 'calendar' &&
-            <CalendarFullView
-                board={activeTemplate}
-                cards={activeTemplateCards}
-                activeView={activeView}
-                readonly={false}
-                dateDisplayProperty={dateDisplayProperty}
-                showCard={() => null}
-                addCard={() => Promise.resolve()}
-            />}
-        </div>
+                <Switch>
+                    <Match when={activeView()?.fields.viewType === 'board'}>
+                        <Kanban
+                            board={props.activeTemplate!}
+                            activeView={activeView()!}
+                            cards={activeTemplateCards()}
+                            groupByProperty={groupByProperty()}
+                            visibleGroups={groups().visible}
+                            hiddenGroups={groups().hidden}
+                            selectedCardIds={[]}
+                            readonly={false}
+                            onCardClicked={() => null}
+                            addCard={() => Promise.resolve()}
+                            addCardFromTemplate={() => Promise.resolve()}
+                            showCard={() => null}
+                            hiddenCardsCount={0}
+                            showHiddenCardCountNotification={() => null}
+                        />
+                    </Match>
+                    <Match when={activeView()?.fields.viewType === 'table'}>
+                        <Table
+                            board={props.activeTemplate!}
+                            activeView={activeView()!}
+                            cards={activeTemplateCards()}
+                            groupByProperty={groupByProperty()}
+                            views={[activeView()!]}
+                            visibleGroups={groups().visible}
+                            selectedCardIds={[]}
+                            readonly={false}
+                            cardIdToFocusOnRender={''}
+                            onCardClicked={() => null}
+                            addCard={() => Promise.resolve()}
+                            showCard={() => null}
+                            hiddenCardsCount={0}
+                            showHiddenCardCountNotification={() => null}
+                        />
+                    </Match>
+                    <Match when={activeView()?.fields.viewType === 'gallery'}>
+                        <Gallery
+                            board={props.activeTemplate!}
+                            cards={activeTemplateCards()}
+                            activeView={activeView()!}
+                            readonly={false}
+                            selectedCardIds={[]}
+                            onCardClicked={() => null}
+                            addCard={() => Promise.resolve()}
+                            hiddenCardsCount={0}
+                            showHiddenCardCountNotification={() => null}
+                        />
+                    </Match>
+                    <Match when={activeView()?.fields.viewType === 'calendar'}>
+                        <CalendarFullView
+                            board={props.activeTemplate!}
+                            cards={activeTemplateCards()}
+                            activeView={activeView()!}
+                            readonly={false}
+                            dateDisplayProperty={dateDisplayProperty()}
+                            showCard={() => null}
+                            addCard={() => Promise.resolve()}
+                        />
+                    </Match>
+                </Switch>
+            </div>
+        </Show>
     )
 }
 
 export default BoardTemplateSelectorPreview
-
