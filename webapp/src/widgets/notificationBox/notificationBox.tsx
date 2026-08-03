@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import {Utils} from '../../utils'
 
@@ -12,8 +12,8 @@ import './notificationBox.scss'
 
 type Props = {
     title: string
-    icon?: React.ReactNode
-    children?: React.ReactNode
+    icon?: JSX.Element
+    children?: JSX.Element
     onClose?: () => void
     closeTooltip?: string
     className?: string
@@ -50,13 +50,13 @@ function NotificationBox(props: Props): JSX.Element {
     })
 
     return (
-        <div className={className}>
+        <div class={className}>
             {props.icon &&
-                <div className='NotificationBox__icon'>
+                <div class='NotificationBox__icon'>
                     {props.icon}
                 </div>}
-            <div className='content'>
-                <p className='title'>{props.title}</p>
+            <div class='content'>
+                <p class='title'>{props.title}</p>
                 {props.children}
             </div>
             {renderClose(props.onClose, props.closeTooltip)}
@@ -64,4 +64,4 @@ function NotificationBox(props: Props): JSX.Element {
     )
 }
 
-export default React.memo(NotificationBox)
+export default NotificationBox

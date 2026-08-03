@@ -17,7 +17,6 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
             spellcheck="true"
             title="test-property"
             type="text"
-            value="test-property"
           />
         </div>
         <div>
@@ -85,6 +84,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Text
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -110,6 +110,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Number
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -135,6 +136,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Email
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -160,6 +162,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Phone
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -185,6 +188,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         URL
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -210,6 +214,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Select
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -235,6 +240,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Multi select
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -260,6 +266,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Date
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -285,6 +292,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Person
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -310,6 +318,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Multi person
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -335,6 +344,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Checkbox
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -360,6 +370,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Created time
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -385,6 +396,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Created by
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -410,6 +422,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Last updated time
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -435,6 +448,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Last updated by
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -467,6 +481,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
                       >
                         Cancel
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -498,6 +513,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
               >
                 Delete
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -531,6 +547,7 @@ exports[`widgets/PropertyMenu should match snapshot 1`] = `
             >
               Cancel
             </div>
+            
           </div>
           <div
             class="noicon"

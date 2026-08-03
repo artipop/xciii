@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import {MenuOptionProps} from './menuItem'
 
 type TextOptionProps = MenuOptionProps & {
     check?: boolean
-    icon?: React.ReactNode
-    rightIcon?: React.ReactNode
+    icon?: JSX.Element
+    rightIcon?: JSX.Element
     className?: string
     subText?: string
     disabled?: boolean
@@ -30,21 +30,21 @@ function TextOption(props: TextOptionProps): JSX.Element {
         <div
             role='button'
             aria-label={name}
-            className={className}
-            onClick={(e: React.MouseEvent) => {
-                e.target.dispatchEvent(new Event('menuItemClicked'))
+            class={className}
+            onClick={(e: MouseEvent) => {
+                (e.target as HTMLElement).dispatchEvent(new Event('menuItemClicked'))
                 props.onClick(props.id)
                 e.stopPropagation()
             }}
         >
-            <div className={`${check ? 'd-flex menu-option__check' : 'd-flex'}`}>{icon ? <div className='menu-option__icon'>{icon}</div> : <div className='noicon'/>}</div>
-            <div className='menu-option__content'>
-                <div className='menu-name'>{name}</div>
-                {subText && <div className='menu-subtext text-75 mt-1'>{subText}</div>}
+            <div class={`${check ? 'd-flex menu-option__check' : 'd-flex'}`}>{icon ? <div class='menu-option__icon'>{icon}</div> : <div class='noicon'/>}</div>
+            <div class='menu-option__content'>
+                <div class='menu-name'>{name}</div>
+                {subText && <div class='menu-subtext text-75 mt-1'>{subText}</div>}
             </div>
-            {rightIcon ?? <div className='noicon'/>}
+            {rightIcon ?? <div class='noicon'/>}
         </div>
     )
 }
 
-export default React.memo(TextOption)
+export default TextOption

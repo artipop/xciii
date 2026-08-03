@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import {Block} from '../../blocks/block'
 import {useAppSelector} from '../../store/hooks'
@@ -12,21 +12,22 @@ import Person from '../person/person'
 import {PropertyProps} from '../types'
 
 const LastModifiedBy = (props: PropertyProps): JSX.Element => {
-    const lastContent = useAppSelector(getLastCardContent(props.card.id || '')) as Block
-    const lastComment = useAppSelector(getLastCardComment(props.card.id)) as Block
+    const lastContent = useAppSelector(getLastCardContent(props.card.id || ''))
+    const lastComment = useAppSelector(getLastCardComment(props.card.id))
 
-    let latestBlock: Block = props.card
-    if (props.board) {
-        const allBlocks: Block[] = [props.card, lastContent, lastComment]
+    const latestBlock = (): Block => {
+        if (!props.board) {
+            return props.card
+        }
+        const allBlocks = [props.card, lastContent(), lastComment()].filter(Boolean) as Block[]
         const sortedBlocks = allBlocks.sort((a, b) => b.updateAt - a.updateAt)
-
-        latestBlock = sortedBlocks.length > 0 ? sortedBlocks[0] : latestBlock
+        return sortedBlocks.length > 0 ? sortedBlocks[0] : props.card
     }
 
     return (
         <Person
             {...props}
-            propertyValue={latestBlock.modifiedBy}
+            propertyValue={latestBlock().modifiedBy}
             readOnly={true} // created by is an immutable property, so will always be readonly
         />
     )

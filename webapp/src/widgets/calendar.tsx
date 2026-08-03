@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {For, Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {useIntl} from '../intl'
 
 import {addMonths, isSameDay, isWithin, monthLabel, monthWeeks, startOfDay, startOfMonth, weekdayNames, type CalendarDay} from '../calendar'
 
@@ -23,7 +25,7 @@ type Props = {
     firstDayOfWeek: number
 
     onDayClick: (day: Date) => void
-    footer?: React.ReactNode
+    footer?: JSX.Element
 }
 
 function dayClassName(day: CalendarDay, selection: {from?: Date, to?: Date} | undefined, today: Date): string {
@@ -48,71 +50,75 @@ function dayClassName(day: CalendarDay, selection: {from?: Date, to?: Date} | un
 
 const Calendar = (props: Props): JSX.Element => {
     const intl = useIntl()
-    const [month, setMonth] = useState(() => startOfMonth(props.defaultMonth || new Date()))
+    const [month, setMonth] = createSignal(startOfMonth(props.defaultMonth || new Date()))
 
     const today = new Date()
-    const weeks = monthWeeks(month, props.firstDayOfWeek)
-    const weekdays = weekdayNames(intl.locale, props.firstDayOfWeek)
+    const weeks = () => monthWeeks(month(), props.firstDayOfWeek)
+    const weekdays = () => weekdayNames(intl.locale, props.firstDayOfWeek)
 
     return (
-        <div className='Calendar'>
-            <div className='Calendar__nav'>
+        <div class='Calendar'>
+            <div class='Calendar__nav'>
                 <IconButton
                     size='small'
-                    onClick={() => setMonth(addMonths(month, -1))}
+                    onClick={() => setMonth(addMonths(month(), -1))}
                     icon={<CompassIcon icon='chevron-left'/>}
                     title={intl.formatMessage({id: 'Calendar.previousMonth', defaultMessage: 'Previous month'})}
                 />
-                <div className='Calendar__caption'>{monthLabel(intl.locale, month)}</div>
+                <div class='Calendar__caption'>{monthLabel(intl.locale, month())}</div>
                 <IconButton
                     size='small'
-                    onClick={() => setMonth(addMonths(month, 1))}
+                    onClick={() => setMonth(addMonths(month(), 1))}
                     icon={<CompassIcon icon='chevron-right'/>}
                     title={intl.formatMessage({id: 'Calendar.nextMonth', defaultMessage: 'Next month'})}
                 />
             </div>
-            <table className='Calendar__grid'>
+            <table class='Calendar__grid'>
                 <thead>
                     <tr>
-                        {weekdays.map((name) => (
-                            <th
-                                key={name}
-                                scope='col'
-                                className='Calendar__weekday'
-                            >
-                                {name}
-                            </th>
-                        ))}
+                        <For each={weekdays()}>
+                            {(name) => (
+                                <th
+                                    scope='col'
+                                    class='Calendar__weekday'
+                                >
+                                    {name}
+                                </th>
+                            )}
+                        </For>
                     </tr>
                 </thead>
                 <tbody>
-                    {weeks.map((week) => (
-                        <tr key={week[0].date.toDateString()}>
-                            {week.map((day) => (
-                                <td
-                                    key={day.date.toDateString()}
-                                    className='Calendar__cell'
-                                >
-                                    {day.inMonth && (
-                                        <button
-                                            type='button'
-                                            className={dayClassName(day, props.selection, today)}
+                    <For each={weeks()}>
+                        {(week) => (
+                            <tr>
+                                <For each={week}>
+                                    {(day) => (
+                                        <td class='Calendar__cell'>
+                                            <Show when={day.inMonth}>
+                                                <button
+                                                    type='button'
+                                                    class={dayClassName(day, props.selection, today)}
 
-                                            // A fresh date every time: the call
-                                            // sites move the clicked day to noon
-                                            // in place, and the grid is reused.
-                                            onClick={() => props.onDayClick(startOfDay(day.date))}
-                                        >
-                                            {day.date.getDate()}
-                                        </button>
+                                                    // A fresh date every time: the call
+                                                    // sites move the clicked day to noon
+                                                    // in place, and the grid is reused.
+                                                    onClick={() => props.onDayClick(startOfDay(day.date))}
+                                                >
+                                                    {day.date.getDate()}
+                                                </button>
+                                            </Show>
+                                        </td>
                                     )}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
+                                </For>
+                            </tr>
+                        )}
+                    </For>
                 </tbody>
             </table>
-            {props.footer && <div className='Calendar__footer'>{props.footer}</div>}
+            <Show when={props.footer}>
+                <div class='Calendar__footer'>{props.footer}</div>
+            </Show>
         </div>
     )
 }

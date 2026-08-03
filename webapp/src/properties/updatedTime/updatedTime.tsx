@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {Block} from '../../blocks/block'
 import {Utils} from '../../utils'
@@ -16,20 +16,21 @@ import {PropertyProps} from '../types'
 
 const UpdatedTime = (props: PropertyProps): JSX.Element => {
     const intl = useIntl()
-    const lastContent = useAppSelector(getLastCardContent(props.card.id || '')) as Block
-    const lastComment = useAppSelector(getLastCardComment(props.card.id)) as Block
+    const lastContent = useAppSelector(getLastCardContent(props.card.id || ''))
+    const lastComment = useAppSelector(getLastCardComment(props.card.id))
 
-    let latestBlock: Block = props.card
-    if (props.card) {
-        const allBlocks = [props.card, lastContent, lastComment]
+    const latestBlock = (): Block => {
+        if (!props.card) {
+            return props.card
+        }
+        const allBlocks = [props.card, lastContent(), lastComment()].filter(Boolean) as Block[]
         const sortedBlocks = allBlocks.sort((a, b) => b.updateAt - a.updateAt)
-
-        latestBlock = sortedBlocks.length > 0 ? sortedBlocks[0] : latestBlock
+        return sortedBlocks.length > 0 ? sortedBlocks[0] : props.card
     }
 
     return (
-        <div className={`UpdatedTime ${props.property.valueClassName(true)}`}>
-            {Utils.displayDateTime(new Date(latestBlock.updateAt), intl)}
+        <div class={`UpdatedTime ${props.property.valueClassName(true)}`}>
+            {Utils.displayDateTime(new Date(latestBlock().updateAt), intl)}
         </div>
     )
 }

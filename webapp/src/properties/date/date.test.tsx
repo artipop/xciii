@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import {IntlProvider} from 'react-intl'
+import {IntlProvider} from '../../intl'
 import {mocked} from 'jest-mock'
 
 import '@testing-library/jest-dom'

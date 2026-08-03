@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, useState, useEffect} from 'react'
+import {Show, createEffect, createSignal, onCleanup} from 'solid-js'
+import type {JSX, ParentComponent} from 'solid-js'
 
 import './menuWrapper.scss'
 
 type Props = {
-    children?: React.ReactNode
+    // Under React the wrapper took exactly two children and rendered the
+    // second only while open. In Solid resolving children builds them, so the
+    // menu is its own prop: JSX in prop position compiles to a getter, and a
+    // getter read behind Show is a menu built on open and torn down on close.
+    menu: JSX.Element
     stopPropagationOnToggle?: boolean
     className?: string
     disabled?: boolean
@@ -15,23 +20,19 @@ type Props = {
     label?: string
 }
 
-const MenuWrapper = (props: Props) => {
-    const node = useRef<HTMLDivElement>(null)
-    const [open, setOpen] = useState(Boolean(props.isOpen))
-
-    if (!Array.isArray(props.children) || props.children.length !== 2) {
-        throw new Error('MenuWrapper needs exactly 2 children')
-    }
+const MenuWrapper: ParentComponent<Props> = (props) => {
+    let node: HTMLDivElement | undefined
+    const [open, setOpen] = createSignal(Boolean(props.isOpen))
 
     const close = (): void => {
-        if (open) {
+        if (open()) {
             setOpen(false)
             props.onToggle && props.onToggle(false)
         }
     }
 
     const closeOnBlur = (e: Event) => {
-        if (e.target && node.current?.contains(e.target as Node)) {
+        if (e.target && node?.contains(e.target as Node)) {
             return
         }
 
@@ -48,7 +49,7 @@ const MenuWrapper = (props: Props) => {
         }
     }
 
-    const toggle = (e: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
+    const toggle = (e: MouseEvent): void => {
         if (props.disabled) {
             return
         }
@@ -63,49 +64,52 @@ const MenuWrapper = (props: Props) => {
             e.preventDefault()
             e.stopPropagation()
         }
-        setOpen(!open)
-        props.onToggle && props.onToggle(!open)
+        const next = !open()
+        setOpen(next)
+        props.onToggle && props.onToggle(next)
     }
 
-    useEffect(() => {
-        if (open) {
+    createEffect(() => {
+        if (open()) {
             document.addEventListener('menuItemClicked', close, true)
             document.addEventListener('click', closeOnBlur, true)
             document.addEventListener('keyup', keyboardClose, true)
-        }
-        return () => {
-            if (open) {
+            onCleanup(() => {
                 document.removeEventListener('menuItemClicked', close, true)
                 document.removeEventListener('click', closeOnBlur, true)
                 document.removeEventListener('keyup', keyboardClose, true)
-            }
+            })
         }
-    }, [open, close, closeOnBlur, keyboardClose])
+    })
 
-    const {children} = props
-    let className = 'MenuWrapper'
-    if (props.disabled) {
-        className += ' disabled'
-    }
-    if (open) {
-        className += ' override menuOpened'
-    }
-    if (props.className) {
-        className += ' ' + props.className
+    const className = () => {
+        let name = 'MenuWrapper'
+        if (props.disabled) {
+            name += ' disabled'
+        }
+        if (open()) {
+            name += ' override menuOpened'
+        }
+        if (props.className) {
+            name += ' ' + props.className
+        }
+        return name
     }
 
     return (
         <div
             role='button'
             aria-label={props.label || 'menuwrapper'}
-            className={className}
+            class={className()}
             onClick={toggle}
             ref={node}
         >
-            {children ? Object.values(children)[0] : null}
-            {children && !props.disabled && open ? Object.values(children)[1] : null}
+            {props.children}
+            <Show when={!props.disabled && open()}>
+                {props.menu}
+            </Show>
         </div>
     )
 }
 
-export default React.memo(MenuWrapper)
+export default MenuWrapper

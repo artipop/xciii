@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
-import {IntlProvider} from 'react-intl'
+import {IntlProvider} from '../../intl'
 import {mocked} from 'jest-mock'
 
 import {IPropertyOption, IPropertyTemplate, createBoard} from '../../blocks/board'
@@ -44,7 +43,7 @@ function buildMultiSelectPropertyTemplate(options: IPropertyOption[] = []): IPro
 }
 
 type WrapperProps = {
-    children?: React.ReactNode
+    children?: JSX.Element
 }
 
 const Wrapper = ({children}: WrapperProps) => {
@@ -71,7 +70,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        const {container} = render(
+        const {container} = render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={true}
@@ -94,7 +93,7 @@ describe('properties/multiSelect', () => {
     it('opens editable multi value selector menu when the button/label is clicked', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -116,7 +115,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -141,7 +140,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -166,7 +165,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -191,7 +190,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -217,7 +216,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -243,7 +242,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -273,7 +272,7 @@ describe('properties/multiSelect', () => {
         const newColorKey = 'propColorYellow'
         const newColorValue = 'yellow'
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}

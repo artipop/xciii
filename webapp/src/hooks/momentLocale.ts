@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {useEffect, useState} from 'react'
+import {createEffect, createSignal, onCleanup} from 'solid-js'
 
 // moment registers a locale's definitions as a side effect of importing it. The
 // webpack build could resolve require(`moment/locale/${locale}`) at run time,
@@ -20,23 +20,27 @@ function loadLocales(): Promise<unknown> {
     return pending
 }
 
-// useMomentLocale makes moment speak the given locale, re-rendering once the
-// definitions arrive so dates stop showing in the English fallback.
-export default function useMomentLocale(locale: string): void {
-    const [, setRevision] = useState(0)
+// useMomentLocale makes moment speak the given locale. The returned revision
+// signal ticks once the definitions arrive; read it wherever a formatted date
+// is produced so the output leaves the English fallback.
+export default function useMomentLocale(locale: () => string): () => number {
+    const [revision, setRevision] = createSignal(0)
 
-    useEffect(() => {
-        if (!locale || locale === 'en' || loaded) {
-            return undefined
+    createEffect(() => {
+        const current = locale()
+        if (!current || current === 'en' || loaded) {
+            return
         }
         let cancelled = false
         loadLocales().then(() => {
             if (!cancelled) {
-                setRevision((revision) => revision + 1)
+                setRevision((r) => r + 1)
             }
         })
-        return () => {
+        onCleanup(() => {
             cancelled = true
-        }
-    }, [locale])
+        })
+    })
+
+    return revision
 }

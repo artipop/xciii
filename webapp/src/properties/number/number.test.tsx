@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {ComponentProps} from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {mocked} from 'jest-mock'
 
 import userEvent from '@testing-library/user-event'

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useCallback, useEffect, useId, useMemo, useRef, useState} from 'react'
-import ReactDOM from 'react-dom'
+import {For, Show, createEffect, createMemo, createSignal, createUniqueId, onCleanup} from 'solid-js'
+import {Portal} from 'solid-js/web'
+import type {JSX} from 'solid-js'
 import {autoUpdate, computePosition, flip, offset, shift, size} from '@floating-ui/dom'
 
 import {
@@ -44,8 +45,7 @@ type Props<T> = {
     ariaLabel?: string
 
     // What a screen reader is told once the list is open. Passed in rather than
-    // translated here, so the widget needs no i18n provider above it — which is
-    // also one less thing tied to React.
+    // translated here, so the widget needs no i18n provider above it.
     resultsMessage?: (count: number) => string
     clearLabel?: string
 
@@ -65,7 +65,7 @@ type Props<T> = {
     portalTarget?: HTMLElement | null
 
     matches?: (option: ComboboxOption<T>, query: string) => boolean
-    renderOption?: (option: ComboboxOption<T>, context: ComboboxContext) => React.ReactNode
+    renderOption?: (option: ComboboxOption<T>, context: ComboboxContext) => JSX.Element
 
     // Set when what `renderOption` draws is not a row to pick but a menu of its
     // own -- the calculation options open a submenu and commit their own value.
@@ -80,8 +80,8 @@ type Props<T> = {
     onChange: (value: ComboboxOption<T> | Array<ComboboxOption<T>> | null, action: ComboboxAction) => void
     onCreate?: (label: string) => void
     onBlur?: () => void
-    onFocus?: (event: React.FocusEvent) => void
-    onKeyDown?: (event: React.KeyboardEvent) => void
+    onFocus?: (event: FocusEvent) => void
+    onKeyDown?: (event: KeyboardEvent) => void
 
     inputValue?: string
     onInputChange?: (value: string) => void
@@ -98,40 +98,41 @@ function asArray<T>(value: Props<T>['value']): Array<ComboboxOption<T>> {
 }
 
 function Combobox<T>(props: Props<T>): JSX.Element {
-    const {classNamePrefix, isMulti, isSearchable = true, closeMenuOnSelect = !isMulti} = props
+    const isSearchable = () => props.isSearchable ?? true
+    const closeMenuOnSelect = () => props.closeMenuOnSelect ?? !props.isMulti
 
-    const controlRef = useRef<HTMLDivElement>(null)
-    const inputRef = useRef<HTMLInputElement>(null)
-    const listId = useId()
+    let controlRef: HTMLDivElement | undefined
+    let inputRef: HTMLInputElement | undefined
+    const listId = createUniqueId()
 
-    const [focused, setFocused] = useState(false)
-    const [ownQuery, setOwnQuery] = useState('')
-    const [highlight, setHighlight] = useState(-1)
-    const [loaded, setLoaded] = useState<Array<ComboboxItem<T>>>([])
+    const [focused, setFocused] = createSignal(false)
+    const [ownQuery, setOwnQuery] = createSignal('')
+    const [highlight, setHighlight] = createSignal(-1)
+    const [loaded, setLoaded] = createSignal<Array<ComboboxItem<T>>>([])
 
-    const query = props.inputValue === undefined ? ownQuery : props.inputValue
-    const isOpen = props.menuIsOpen === undefined ? focused : props.menuIsOpen
-    const selected = asArray(props.value)
+    const query = () => (props.inputValue === undefined ? ownQuery() : props.inputValue)
+    const isOpen = () => (props.menuIsOpen === undefined ? focused() : props.menuIsOpen)
+    const selected = () => asArray(props.value)
 
     // An async list is already the answer to the query, so it is never filtered
     // a second time on this side.
-    const rows: Array<ComboboxRow<T>> = useMemo(() => {
+    const rows = createMemo((): Array<ComboboxRow<T>> => {
         if (props.loadOptions) {
-            return toRows(loaded)
+            return toRows(loaded())
         }
-        return filterRows(toRows(props.options || []), query, props.matches)
-    }, [props.loadOptions, props.options, props.matches, loaded, query])
+        return filterRows(toRows(props.options || []), query(), props.matches)
+    })
 
     // Loaded on mount as well as on every query, which is what react-select's
     // `defaultOptions` did: the list is expected to be there before the menu is
     // opened, not fetched in the moment it opens.
-    useEffect(() => {
+    createEffect(() => {
         if (!props.loadOptions) {
-            return undefined
+            return
         }
 
         let cancelled = false
-        props.loadOptions(query).then((items) => {
+        props.loadOptions(query()).then((items) => {
             if (!cancelled) {
                 setLoaded(items)
             }
@@ -140,20 +141,20 @@ function Combobox<T>(props: Props<T>): JSX.Element {
                 setLoaded([])
             }
         })
-        return () => {
+        onCleanup(() => {
             cancelled = true
-        }
-    }, [props.loadOptions, query])
+        })
+    })
 
     // Nothing is highlighted until the list has something to highlight, and a
     // list that changed under the cursor starts again at the top.
-    useEffect(() => {
-        setHighlight(isOpen ? firstOption(rows) : -1)
-    }, [isOpen, rows])
+    createEffect(() => {
+        setHighlight(isOpen() ? firstOption(rows()) : -1)
+    })
 
-    const choose = useCallback((option: ComboboxOption<T>) => {
-        if (isMulti) {
-            props.onChange([...selected, option], 'select')
+    const choose = (option: ComboboxOption<T>) => {
+        if (props.isMulti) {
+            props.onChange([...selected(), option], 'select')
         } else {
             props.onChange(option, 'select')
         }
@@ -161,23 +162,23 @@ function Combobox<T>(props: Props<T>): JSX.Element {
         if (props.inputValue === undefined) {
             setOwnQuery('')
         }
-        if (closeMenuOnSelect) {
+        if (closeMenuOnSelect()) {
             setFocused(false)
-            inputRef.current?.blur()
+            inputRef?.blur()
         }
-    }, [isMulti, selected, props.onChange, props.inputValue, closeMenuOnSelect])
+    }
 
-    const remove = useCallback((option: ComboboxOption<T>) => {
-        props.onChange(selected.filter((each) => each.id !== option.id), 'remove')
-    }, [selected, props.onChange])
+    const remove = (option: ComboboxOption<T>) => {
+        props.onChange(selected().filter((each) => each.id !== option.id), 'remove')
+    }
 
-    const onKeyDown = (event: React.KeyboardEvent) => {
+    const onKeyDown = (event: KeyboardEvent) => {
         props.onKeyDown?.(event)
         if (event.defaultPrevented) {
             return
         }
 
-        switch (keyIntent(event.key, isOpen, query.length > 0)) {
+        switch (keyIntent(event.key, isOpen(), query().length > 0)) {
         case 'open':
             event.preventDefault()
             setFocused(true)
@@ -190,17 +191,17 @@ function Combobox<T>(props: Props<T>): JSX.Element {
         case 'previous': {
             event.preventDefault()
             const delta = event.key === 'ArrowDown' ? 1 : -1
-            setHighlight((current) => nextOption(rows, current, delta))
+            setHighlight((current) => nextOption(rows(), current, delta))
             break
         }
         case 'choose': {
-            const option = optionAt(rows, highlight)
+            const option = optionAt(rows(), highlight())
             if (option) {
                 event.preventDefault()
                 choose(option)
-            } else if (props.onCreate && query.trim()) {
+            } else if (props.onCreate && query().trim()) {
                 event.preventDefault()
-                props.onCreate(query.trim())
+                props.onCreate(query().trim())
                 if (props.inputValue === undefined) {
                     setOwnQuery('')
                 }
@@ -208,8 +209,8 @@ function Combobox<T>(props: Props<T>): JSX.Element {
             break
         }
         case 'removeLast':
-            if (isMulti && selected.length > 0) {
-                remove(selected[selected.length - 1])
+            if (props.isMulti && selected().length > 0) {
+                remove(selected()[selected().length - 1])
             }
             break
         default:
@@ -226,147 +227,90 @@ function Combobox<T>(props: Props<T>): JSX.Element {
     const label = (option: ComboboxOption<T>, context: ComboboxContext) =>
         (props.renderOption ? props.renderOption(option, context) : option.label)
 
-    const menu = (
-        <ComboboxMenu
-            anchor={controlRef}
-            portalTarget={props.portalTarget}
-            className={`${classNamePrefix}__menu`}
-        >
-            <div
-                className={`${classNamePrefix}__menu-list`}
-                id={listId}
-                role='listbox'
-            >
-                {rows.length === 0 && (
-                    <div className={`${classNamePrefix}__no-options`}>
-                        {props.noOptionsMessage}
-                    </div>
-                )}
-                {rows.map((row, index) => {
-                    if (row.kind === 'group') {
-                        return (
-                            <div
-                                key={row.key}
-                                className={`${classNamePrefix}__group-heading`}
-                            >
-                                {row.label}
-                            </div>
-                        )
-                    }
-
-                    const isSelected = selected.some((each) => each.id === row.option.id)
-                    const names = [`${classNamePrefix}__option`]
-                    if (index === highlight) {
-                        names.push(`${classNamePrefix}__option--is-focused`)
-                    }
-                    if (isSelected) {
-                        names.push(`${classNamePrefix}__option--is-selected`)
-                    }
-
-                    return (
-                        <div
-                            key={row.key}
-                            id={`${listId}-option-${index}`}
-                            className={names.join(' ')}
-                            role='option'
-                            aria-selected={isSelected}
-
-                            // mousedown only holds the focus on the input, so
-                            // the menu is still there when the click lands on
-                            // it; the click is what chooses.
-                            onMouseDown={(event) => event.preventDefault()}
-                            onClick={props.optionsOwnTheirClicks ? undefined : () => choose(row.option)}
-                            onMouseEnter={() => setHighlight(index)}
-                        >
-                            {label(row.option, 'menu')}
-                        </div>
-                    )
-                })}
-            </div>
-        </ComboboxMenu>
-    )
-
-    const optionCount = rows.filter((row) => row.kind === 'option').length
+    const optionCount = () => rows().filter((row) => row.kind === 'option').length
 
     return (
-        <div className={`Combobox ${props.className || ''}`}>
+        <div class={`Combobox ${props.className || ''}`}>
 
             {/* What react-select announced for a screen reader, and what a
                 combobox without one silently stops saying: how many results
                 the typing left, and that the arrows move through them. */}
             <span
-                className='Combobox__live-region'
+                class='Combobox__live-region'
                 role='log'
                 aria-live='polite'
                 aria-atomic='false'
                 aria-relevant='additions text'
             >
-                {isOpen && props.resultsMessage?.(optionCount)}
+                {isOpen() && props.resultsMessage?.(optionCount())}
             </span>
             <div
                 ref={controlRef}
-                className={`${classNamePrefix}__control`}
+                class={`${props.classNamePrefix}__control`}
 
                 // Anywhere on the control is the input, so clicking the
                 // placeholder or the gap beside a chip opens the list.
-                onClick={() => inputRef.current?.focus()}
+                onClick={() => inputRef?.focus()}
             >
-                <div className={isMulti ? `${classNamePrefix}__value-container ${classNamePrefix}__value-container--is-multi` : `${classNamePrefix}__value-container`}>
-                    {isMulti && selected.map((option) => (
-                        <div
-                            key={option.id}
-                            className={`${classNamePrefix}__multi-value`}
-
-                            // Keeps the focus on the input: a caller that draws
-                            // its own control inside a value would otherwise see
-                            // the blur close the editor, and its own click land
-                            // on a node no longer in the document.
-                            onMouseDown={(event) => event.preventDefault()}
-                        >
-                            <div className={`${classNamePrefix}__multi-value__label`}>
-                                {label(option, 'value')}
-                            </div>
-                            {!props.valuesOwnTheirRemove && (
+                <div class={props.isMulti ? `${props.classNamePrefix}__value-container ${props.classNamePrefix}__value-container--is-multi` : `${props.classNamePrefix}__value-container`}>
+                    <Show when={props.isMulti}>
+                        <For each={selected()}>
+                            {(option) => (
                                 <div
-                                    className={`${classNamePrefix}__multi-value__remove`}
-                                    role='button'
-                                    tabIndex={-1}
+                                    class={`${props.classNamePrefix}__multi-value`}
+
+                                    // Keeps the focus on the input: a caller that draws
+                                    // its own control inside a value would otherwise see
+                                    // the blur close the editor, and its own click land
+                                    // on a node no longer in the document.
                                     onMouseDown={(event) => event.preventDefault()}
-                                    onClick={() => remove(option)}
                                 >
-                                    {'×'}
+                                    <div class={`${props.classNamePrefix}__multi-value__label`}>
+                                        {label(option, 'value')}
+                                    </div>
+                                    <Show when={!props.valuesOwnTheirRemove}>
+                                        <div
+                                            class={`${props.classNamePrefix}__multi-value__remove`}
+                                            role='button'
+                                            tabIndex={-1}
+                                            onMouseDown={(event) => event.preventDefault()}
+                                            onClick={() => remove(option)}
+                                        >
+                                            {'×'}
+                                        </div>
+                                    </Show>
                                 </div>
                             )}
-                        </div>
-                    ))}
-                    {!isMulti && selected.length > 0 && !query && (
+                        </For>
+                    </Show>
+                    <Show when={!props.isMulti && selected().length > 0 && !query()}>
                         <div
-                            className={`${classNamePrefix}__single-value`}
+                            class={`${props.classNamePrefix}__single-value`}
                             onMouseDown={(event) => event.preventDefault()}
                         >
-                            {label(selected[0], 'value')}
+                            {label(selected()[0], 'value')}
                         </div>
-                    )}
-                    {selected.length === 0 && !query && (
-                        <div className={`${classNamePrefix}__placeholder`}>
+                    </Show>
+                    <Show when={selected().length === 0 && !query()}>
+                        <div class={`${props.classNamePrefix}__placeholder`}>
                             {props.placeholder}
                         </div>
-                    )}
+                    </Show>
                     <input
                         ref={inputRef}
-                        className={`${classNamePrefix}__input`}
+                        class={`${props.classNamePrefix}__input`}
                         type='text'
                         role='combobox'
-                        aria-expanded={isOpen}
+                        aria-expanded={isOpen()}
                         aria-controls={listId}
-                        aria-activedescendant={highlight >= 0 ? `${listId}-option-${highlight}` : undefined}
+                        aria-activedescendant={highlight() >= 0 ? `${listId}-option-${highlight()}` : undefined}
                         aria-label={props.ariaLabel}
-                        autoComplete='off'
-                        autoFocus={props.autoFocus}
+                        autocomplete='off'
+                        autofocus={props.autoFocus}
                         disabled={props.isDisabled}
-                        readOnly={!isSearchable}
-                        value={query}
-                        onChange={(event) => setQuery(event.target.value)}
+                        readOnly={!isSearchable()}
+                        value={query()}
+                        onInput={(event) => setQuery((event.target as HTMLInputElement).value)}
                         onFocus={(event) => {
                             setFocused(true)
                             props.onFocus?.(event)
@@ -378,46 +322,106 @@ function Combobox<T>(props: Props<T>): JSX.Element {
                         onKeyDown={onKeyDown}
                     />
                 </div>
-                {props.isClearable && selected.length > 0 && !props.isDisabled && (
+                <Show when={props.isClearable && selected().length > 0 && !props.isDisabled}>
                     <div
-                        className={`${classNamePrefix}__clear-indicator`}
+                        class={`${props.classNamePrefix}__clear-indicator`}
                         role='button'
                         tabIndex={-1}
                         aria-label={props.clearLabel}
                         title={props.clearLabel}
                         onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => props.onChange(isMulti ? [] : null, 'clear')}
+                        onClick={() => props.onChange(props.isMulti ? [] : null, 'clear')}
                     >
                         {'×'}
                     </div>
-                )}
+                </Show>
             </div>
-            {isOpen && menu}
+            <Show when={isOpen()}>
+                <ComboboxMenu
+                    anchor={() => controlRef}
+                    portalTarget={props.portalTarget}
+                    className={`${props.classNamePrefix}__menu`}
+                >
+                    <div
+                        class={`${props.classNamePrefix}__menu-list`}
+                        id={listId}
+                        role='listbox'
+                    >
+                        <Show when={rows().length === 0}>
+                            <div class={`${props.classNamePrefix}__no-options`}>
+                                {props.noOptionsMessage}
+                            </div>
+                        </Show>
+                        <For each={rows()}>
+                            {(row, index) => {
+                                if (row.kind === 'group') {
+                                    return (
+                                        <div class={`${props.classNamePrefix}__group-heading`}>
+                                            {row.label}
+                                        </div>
+                                    )
+                                }
+
+                                const isSelected = () => selected().some((each) => each.id === row.option.id)
+                                const names = () => {
+                                    const list = [`${props.classNamePrefix}__option`]
+                                    if (index() === highlight()) {
+                                        list.push(`${props.classNamePrefix}__option--is-focused`)
+                                    }
+                                    if (isSelected()) {
+                                        list.push(`${props.classNamePrefix}__option--is-selected`)
+                                    }
+                                    return list.join(' ')
+                                }
+
+                                return (
+                                    <div
+                                        id={`${listId}-option-${index()}`}
+                                        class={names()}
+                                        role='option'
+                                        aria-selected={isSelected()}
+
+                                        // mousedown only holds the focus on the input, so
+                                        // the menu is still there when the click lands on
+                                        // it; the click is what chooses.
+                                        onMouseDown={(event) => event.preventDefault()}
+                                        onClick={props.optionsOwnTheirClicks ? undefined : () => choose(row.option)}
+                                        onMouseEnter={() => setHighlight(index())}
+                                    >
+                                        {label(row.option, 'menu')}
+                                    </div>
+                                )
+                            }}
+                        </For>
+                    </div>
+                </ComboboxMenu>
+            </Show>
         </div>
     )
 }
 
 type MenuProps = {
-    anchor: React.RefObject<HTMLElement | null>
+    anchor: () => HTMLElement | undefined
     portalTarget?: HTMLElement | null
     className: string
-    children: React.ReactNode
+    children: JSX.Element
 }
 
 // The menu is placed by Floating UI and matched to the width of the control,
 // which is what react-select's own popper was doing for it.
 const ComboboxMenu = (props: MenuProps): JSX.Element => {
-    const [menu, setMenu] = useState<HTMLDivElement | null>(null)
-    const [position, setPosition] = useState<{x: number, y: number} | null>(null)
+    const [menu, setMenu] = createSignal<HTMLDivElement | null>(null)
+    const [position, setPosition] = createSignal<{x: number, y: number} | null>(null)
 
-    useEffect(() => {
-        const reference = props.anchor.current
-        if (!reference || !menu) {
-            return undefined
+    createEffect(() => {
+        const reference = props.anchor()
+        const floating = menu()
+        if (!reference || !floating) {
+            return
         }
 
-        return autoUpdate(reference, menu, () => {
-            computePosition(reference, menu, {
+        const stop = autoUpdate(reference, floating, () => {
+            computePosition(reference, floating, {
                 placement: 'bottom-start',
                 middleware: [
                     offset(MENU_OFFSET),
@@ -433,19 +437,27 @@ const ComboboxMenu = (props: MenuProps): JSX.Element => {
                 ],
             }).then(({x, y}) => setPosition({x, y}))
         })
-    }, [props.anchor, menu])
+        onCleanup(stop)
+    })
 
     const node = (
         <div
             ref={setMenu}
-            className={`Combobox__menu ${props.className} ${position ? 'is-positioned' : ''}`}
-            style={position ? {transform: `translate(${Math.round(position.x)}px, ${Math.round(position.y)}px)`} : undefined}
+            class={`Combobox__menu ${props.className} ${position() ? 'is-positioned' : ''}`}
+            style={position() ? {transform: `translate(${Math.round(position()!.x)}px, ${Math.round(position()!.y)}px)`} : undefined}
         >
             {props.children}
         </div>
     )
 
-    return props.portalTarget ? ReactDOM.createPortal(node, props.portalTarget) : node
+    return (
+        <Show
+            when={props.portalTarget}
+            fallback={node}
+        >
+            <Portal mount={props.portalTarget!}>{node}</Portal>
+        </Show>
+    )
 }
 
 export default Combobox

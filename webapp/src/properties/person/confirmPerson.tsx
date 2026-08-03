@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, useCallback, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import {IUser} from '../../user'
 import mutator from '../../mutator'
@@ -17,24 +19,25 @@ import ConfirmAddUserForNotifications from '../../components/confirmAddUserForNo
 import PersonSelector from '../../components/personSelector'
 
 const ConfirmPerson = (props: PropertyProps): JSX.Element => {
-    const {card, board, propertyTemplate, propertyValue, property, readOnly} = props
-    const [confirmAddUser, setConfirmAddUser] = useState<IUser|null>(null)
+    const [confirmAddUser, setConfirmAddUser] = createSignal<IUser|null>(null)
     const intl = useIntl()
 
     const boardUsersById = useAppSelector<{[key: string]: IUser}>(getBoardUsers)
 
     const me = useAppSelector<IUser|null>(getMe)
 
-    const allowManageBoardRoles = useHasPermissions(board.teamId, board.id, [Permission.ManageBoardRoles])
-    const allowAddUsers = !me?.is_guest && (allowManageBoardRoles || board.type === BoardTypeOpen)
-    const changePropertyValue = useCallback((newValue: string | string[]) => mutator.changePropertyValue(board.id, card, propertyTemplate.id, newValue), [board.id, card, propertyTemplate.id])
-    const emptyDisplayValue = props.showEmptyPlaceholder ? intl.formatMessage({id: 'ConfirmPerson.empty', defaultMessage: 'Empty'}) : ''
+    const allowManageBoardRoles = useHasPermissions(() => props.board.teamId, () => props.board.id, [Permission.ManageBoardRoles])
+    const allowAddUsers = () => !me()?.is_guest && (allowManageBoardRoles() || props.board.type === BoardTypeOpen)
+    const changePropertyValue = (newValue: string | string[]) => mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate.id, newValue)
+    const emptyDisplayValue = () => (props.showEmptyPlaceholder ? intl.formatMessage({id: 'ConfirmPerson.empty', defaultMessage: 'Empty'}) : '')
 
-    let userIDs: string[] = []
-    if (typeof propertyValue === 'string' && propertyValue !== '') {
-        userIDs.push(propertyValue as string)
-    } else if (Array.isArray(propertyValue) && propertyValue.length > 0) {
-        userIDs = propertyValue
+    const userIDs = (): string[] => {
+        if (typeof props.propertyValue === 'string' && props.propertyValue !== '') {
+            return [props.propertyValue as string]
+        } else if (Array.isArray(props.propertyValue) && props.propertyValue.length > 0) {
+            return props.propertyValue
+        }
+        return []
     }
 
     // Every action arrives as the list that is left, so only the newly chosen
@@ -43,7 +46,7 @@ const ConfirmPerson = (props: PropertyProps): JSX.Element => {
         if (Array.isArray(items)) {
             const confirmedIds: string[] = []
             items.forEach((item) => {
-                if (boardUsersById[item.id]) {
+                if (boardUsersById()[item.id]) {
                     confirmedIds.push(item.id)
                 } else {
                     setConfirmAddUser(item)
@@ -52,17 +55,17 @@ const ConfirmPerson = (props: PropertyProps): JSX.Element => {
             changePropertyValue(confirmedIds)
         } else if (!items) {
             changePropertyValue('')
-        } else if (boardUsersById[items.id]) {
+        } else if (boardUsersById()[items.id]) {
             changePropertyValue(items.id)
         } else {
             setConfirmAddUser(items)
         }
     }
 
-    const addUser = useCallback(async (userId: string, role: string) => {
+    const addUser = async (userId: string, role: string) => {
         const newRole = role || MemberRole.Viewer
         const newMember = {
-            boardId: board.id,
+            boardId: props.board.id,
             userId,
             roles: role,
             schemeAdmin: newRole === MemberRole.Admin,
@@ -74,30 +77,31 @@ const ConfirmPerson = (props: PropertyProps): JSX.Element => {
         setConfirmAddUser(null)
         await mutator.createBoardMember(newMember)
 
-        if (propertyTemplate.type === 'multiPerson') {
-            await mutator.changePropertyValue(board.id, card, propertyTemplate.id, [...userIDs, newMember.userId])
+        if (props.propertyTemplate.type === 'multiPerson') {
+            await mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate.id, [...userIDs(), newMember.userId])
         } else {
-            await mutator.changePropertyValue(board.id, card, propertyTemplate.id, newMember.userId)
+            await mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate.id, newMember.userId)
         }
-    }, [board, card, propertyTemplate, userIDs])
+    }
 
     return (
         <>
-            {confirmAddUser &&
+            <Show when={confirmAddUser()}>
                 <ConfirmAddUserForNotifications
-                    allowManageBoardRoles={allowManageBoardRoles}
-                    minimumRole={board.minimumRole}
-                    user={confirmAddUser}
+                    allowManageBoardRoles={allowManageBoardRoles()}
+                    minimumRole={props.board.minimumRole}
+                    user={confirmAddUser()!}
                     onConfirm={addUser}
                     onClose={() => setConfirmAddUser(null)}
-                />}
+                />
+            </Show>
             <PersonSelector
-                userIDs={userIDs}
-                allowAddUsers={allowAddUsers}
-                isMulti={propertyTemplate.type === 'multiPerson'}
-                readOnly={readOnly}
-                emptyDisplayValue={emptyDisplayValue}
-                property={property}
+                userIDs={userIDs()}
+                allowAddUsers={allowAddUsers()}
+                isMulti={props.propertyTemplate.type === 'multiPerson'}
+                readOnly={props.readOnly}
+                emptyDisplayValue={emptyDisplayValue()}
+                property={props.property}
                 onChange={onChange}
             />
         </>

@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
-import {useIntl} from 'react-intl'
+import {For, Show} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {useIntl} from '../intl'
 
 import {IPropertyOption} from '../blocks/board'
 import {Constants} from '../constants'
@@ -41,62 +43,73 @@ type LabelProps = {
 }
 
 const ValueSelectorLabel = (props: LabelProps): JSX.Element => {
-    const {option, onDeleteValue, context, isMulti} = props
     const intl = useIntl()
-    if (context === 'value') {
-        let className = onDeleteValue ? 'Label-no-padding' : 'Label-single-select'
-        if (!isMulti) {
+
+    const valueClassName = () => {
+        let className = props.onDeleteValue ? 'Label-no-padding' : 'Label-single-select'
+        if (!props.isMulti) {
             className += ' Label-no-margin'
         }
-        return (
+        return className
+    }
+
+    return (
+        <Show
+            when={props.context === 'value'}
+            fallback={
+                <div
+                    class='value-menu-option'
+                    role='menuitem'
+                >
+                    <div class='label-container'>
+                        <Label color={props.option.color}>{props.option.value}</Label>
+                    </div>
+                    <MenuWrapper
+                        stopPropagationOnToggle={true}
+                        menu={
+                            <Menu position='left'>
+                                <Menu.Text
+                                    id='delete'
+                                    icon={<DeleteIcon/>}
+                                    name={intl.formatMessage({id: 'BoardComponent.delete', defaultMessage: 'Delete'})}
+                                    onClick={() => props.onDeleteOption(props.option)}
+                                />
+                                <Menu.Separator/>
+                                <For each={Object.entries(Constants.menuColors)}>
+                                    {([key, color]: [string, string]) => (
+                                        <Menu.Color
+                                            id={key}
+                                            name={color}
+                                            onClick={() => props.onChangeColor(props.option, key)}
+                                        />
+                                    )}
+                                </For>
+                            </Menu>
+                        }
+                    >
+                        <IconButton
+                            title={intl.formatMessage({id: 'ValueSelectorLabel.openMenu', defaultMessage: 'Open menu'})}
+                            icon={<OptionsIcon/>}
+                        />
+                    </MenuWrapper>
+                </div>
+            }
+        >
             <Label
-                color={option.color}
-                className={className}
+                color={props.option.color}
+                className={valueClassName()}
             >
-                <span className='Label-text'>{option.value}</span>
-                {onDeleteValue &&
+                <span class='Label-text'>{props.option.value}</span>
+                <Show when={props.onDeleteValue}>
                     <IconButton
-                        onClick={() => onDeleteValue(option)}
+                        onClick={() => props.onDeleteValue!(props.option)}
                         icon={<CloseIcon/>}
                         title='Clear'
                         className='margin-left delete-value'
                     />
-                }
+                </Show>
             </Label>
-        )
-    }
-    return (
-        <div
-            className='value-menu-option'
-            role='menuitem'
-        >
-            <div className='label-container'>
-                <Label color={option.color}>{option.value}</Label>
-            </div>
-            <MenuWrapper stopPropagationOnToggle={true}>
-                <IconButton
-                    title={intl.formatMessage({id: 'ValueSelectorLabel.openMenu', defaultMessage: 'Open menu'})}
-                    icon={<OptionsIcon/>}
-                />
-                <Menu position='left'>
-                    <Menu.Text
-                        id='delete'
-                        icon={<DeleteIcon/>}
-                        name={intl.formatMessage({id: 'BoardComponent.delete', defaultMessage: 'Delete'})}
-                        onClick={() => props.onDeleteOption(option)}
-                    />
-                    <Menu.Separator/>
-                    {Object.entries(Constants.menuColors).map(([key, color]: [string, string]) => (
-                        <Menu.Color
-                            key={key}
-                            id={key}
-                            name={color}
-                            onClick={() => props.onChangeColor(option, key)}
-                        />
-                    ))}
-                </Menu>
-            </MenuWrapper>
-        </div>
+        </Show>
     )
 }
 
@@ -109,9 +122,11 @@ function ValueSelector(props: Props): JSX.Element {
         data: option,
     })
 
-    let chosen: IPropertyOption[] = []
-    if (props.value) {
-        chosen = Array.isArray(props.value) ? props.value : [props.value]
+    const chosen = (): IPropertyOption[] => {
+        if (props.value) {
+            return Array.isArray(props.value) ? props.value : [props.value]
+        }
+        return []
     }
 
     return (
@@ -128,7 +143,7 @@ function ValueSelector(props: Props): JSX.Element {
             // opens on the focus it takes and closes on the choice.
             menuIsOpen={props.isMulti ? true : undefined}
             options={props.options.map(asOption)}
-            value={chosen.map(asOption)}
+            value={chosen().map(asOption)}
             valuesOwnTheirRemove={true}
             renderOption={(option, context) => (
                 <ValueSelectorLabel
@@ -163,4 +178,4 @@ function ValueSelector(props: Props): JSX.Element {
     )
 }
 
-export default React.memo(ValueSelector)
+export default ValueSelector

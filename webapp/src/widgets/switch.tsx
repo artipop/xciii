@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import './switch.scss'
 
@@ -19,16 +19,16 @@ function Switch(props: Props): JSX.Element {
     const className = `Switch override-main ${switchSize}${switchIsOn}${switchIsReadonly}`
     return (
         <div
-            className={className}
+            class={className}
             onClick={() => {
                 if (!props.readOnly) {
                     props.onChanged(!props.isOn)
                 }
             }}
         >
-            <div className='octo-switch-inner'/>
+            <div class='octo-switch-inner'/>
         </div>
     )
 }
 
-export default React.memo(Switch)
+export default Switch

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import './show.scss'
 
@@ -9,7 +9,7 @@ export default function ShowIcon(): JSX.Element {
     return (
         <svg
             xmlns='http://www.w3.org/2000/svg'
-            className='ShowIcon Icon'
+            class='ShowIcon Icon'
             viewBox='0 0 576 512'
         >
             <path

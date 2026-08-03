@@ -107,8 +107,17 @@ const createActions = (ctx: StoreContext) => {
     }
 }
 
-export function createAppStore(deps: StoreDeps = {client: octoClient}): AppStore {
-    const [state, setState] = createStore<RootState>(initialRootState())
+// initialState is for tests: a partial RootState merged over the defaults, the
+// role redux-mock-store's preloaded state used to play — except this store is
+// real, so actions keep working on top of the seeded data.
+export function createAppStore(deps: StoreDeps = {client: octoClient}, initialState?: {[K in keyof RootState]?: Partial<RootState[K]>}): AppStore {
+    const base = initialRootState()
+    if (initialState) {
+        for (const key of Object.keys(initialState) as Array<keyof RootState>) {
+            Object.assign(base[key], initialState[key])
+        }
+    }
+    const [state, setState] = createStore<RootState>(base)
     const ctx: StoreContext = {state, setState, deps}
     return {state, actions: createActions(ctx)}
 }

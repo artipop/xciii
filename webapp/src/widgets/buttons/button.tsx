@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import './button.scss'
 import {Utils} from '../../utils'
 
 type Props = {
-    onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
-    onMouseOver?: (e: React.MouseEvent<HTMLButtonElement>) => void
-    onMouseLeave?: (e: React.MouseEvent<HTMLButtonElement>) => void
-    onBlur?: (e: React.FocusEvent<HTMLButtonElement>) => void
-    children?: React.ReactNode
+    onClick?: (e: MouseEvent) => void
+    onMouseOver?: (e: MouseEvent) => void
+    onMouseLeave?: (e: MouseEvent) => void
+    onBlur?: (e: FocusEvent) => void
+    children?: JSX.Element
     title?: string
-    icon?: React.ReactNode
+    icon?: JSX.Element
     filled?: boolean
     active?: boolean
     submit?: boolean
@@ -41,7 +41,7 @@ function Button(props: Props): JSX.Element {
             onClick={props.onClick}
             onMouseOver={props.onMouseOver}
             onMouseLeave={props.onMouseLeave}
-            className={Utils.generateClassName(classNames)}
+            class={Utils.generateClassName(classNames)}
             title={props.title}
             onBlur={props.onBlur}
             disabled={props?.disabled}
@@ -53,4 +53,4 @@ function Button(props: Props): JSX.Element {
     )
 }
 
-export default React.memo(Button)
+export default Button

@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
 import {Provider as ReduxProvider} from 'react-redux'
 import {mocked} from 'jest-mock'
 
-import {render, screen, waitFor, within} from '@testing-library/react'
+import {render, screen, waitFor, within} from '@solidjs/testing-library'
 
 import configureStore from 'redux-mock-store'
 

@@ -1,15 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {IntlProvider} from 'react-intl'
-import React, {type JSX} from 'react'
-import configureStore, {MockStoreEnhanced} from 'redux-mock-store'
-import {thunk} from 'redux-thunk'
+import type {JSX} from 'solid-js'
 
+import {IntlProvider} from './intl'
 import {SortableProvider} from './hooks/sortable'
 import {Block} from './blocks/block'
+import {AppStore, AppStoreProvider, RootState, createAppStore} from './store'
+import type {StoreDeps} from './store/context'
 
-export const wrapIntl = (children?: React.ReactNode): JSX.Element => <IntlProvider locale='en'>{children}</IntlProvider>
-export const wrapDNDIntl = (children?: React.ReactNode): JSX.Element => {
+// Children arrive as thunks: JSX passed as a plain argument is created before
+// the provider exists, and a component created outside the provider tree never
+// sees its context. The thunk is invoked inside the provider instead.
+export const wrapIntl = (children?: () => JSX.Element): JSX.Element => (
+    <IntlProvider
+        locale='en'
+        messages={{}}
+    >
+        {children?.()}
+    </IntlProvider>
+)
+export const wrapDNDIntl = (children?: () => JSX.Element): JSX.Element => {
     return (
         <SortableProvider>
             {wrapIntl(children)}
@@ -20,15 +30,27 @@ export const wrapDNDIntl = (children?: React.ReactNode): JSX.Element => {
 // One provider serves both halves now: the sidebar's sortables and the cards'
 // drop targets live in the same dnd-kit context, so these two wrappers, which
 // existed only because react-beautiful-dnd needed its own, are the same thing.
-export const wrapRBDNDContext = (children?: React.ReactNode): JSX.Element => {
+export const wrapRBDNDContext = (children?: () => JSX.Element): JSX.Element => {
     return (
         <SortableProvider>
-            {children}
+            {children?.()}
         </SortableProvider>
     )
 }
 
-export const wrapRBDNDDroppable = (children?: React.ReactNode): JSX.Element => wrapRBDNDContext(children)
+export const wrapRBDNDDroppable = (children?: () => JSX.Element): JSX.Element => wrapRBDNDContext(children)
+
+// The successor of redux-mock-store's mockStateStore: a real app store seeded
+// with the test's state, so selectors read it and actions write over it.
+export function mockAppStore(state?: {[K in keyof RootState]?: Partial<RootState[K]>}, deps?: StoreDeps): AppStore {
+    return createAppStore(deps ?? {client: {} as StoreDeps['client']}, state)
+}
+
+export const wrapStore = (store: AppStore, children?: () => JSX.Element): JSX.Element => (
+    <AppStoreProvider store={store}>
+        {children?.()}
+    </AppStoreProvider>
+)
 
 export function mockDOM(): void {
     window.focus = jest.fn()
@@ -53,28 +75,9 @@ export function mockMatchMedia(result: {matches: boolean}): void {
         writable: true,
         value: jest.fn().mockImplementation(() => {
             return result
-
-            // return ({
-            //     matches: true,
-            // })
         }),
     })
 }
-
-export function mockStateStore(middleware: MockMiddlewares, state: unknown): MockStoreEnhanced<unknown, unknown> {
-    const mockStore = configureStore(middleware)
-    return mockStore(state)
-}
-
-// redux-mock-store ships its own redux types, and redux 5 renamed AnyAction to
-// UnknownAction, so the two disagree about Dispatch. Taking the parameter type
-// from configureStore itself sidesteps the argument.
-type MockMiddlewares = NonNullable<Parameters<typeof configureStore>[0]>
-
-// redux-thunk 3 types its middleware against redux 5, redux-mock-store against
-// redux 4, and the two disagree about Dispatch even though the value is the
-// same function. One cast, named once, instead of one per test file.
-export const mockThunk = thunk as unknown as MockMiddlewares[number]
 
 export type BlocksById<BlockType> = {[key: string]: BlockType}
 

@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import './tooltip.scss'
 
 type Props = {
     title: string
-    children: React.ReactNode
+    children: JSX.Element
     placement?: 'top'|'left'|'right'|'bottom'
 }
 
@@ -18,7 +18,7 @@ function Tooltip(props: Props): JSX.Element {
     const className = `octo-tooltip tooltip-${placement}`
     return (
         <div
-            className={className}
+            class={className}
             data-tooltip={props.title}
         >
             {props.children}
@@ -26,4 +26,4 @@ function Tooltip(props: Props): JSX.Element {
     )
 }
 
-export default React.memo(Tooltip)
+export default Tooltip

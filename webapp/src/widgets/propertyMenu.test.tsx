@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {fireEvent, render} from '@testing-library/react'
+import {fireEvent, render} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
 import {wrapIntl} from '../testUtils'
@@ -19,7 +18,7 @@ describe('widgets/PropertyMenu', () => {
 
     test('should display the type of property', () => {
         const callback = jest.fn()
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}
                 propertyName={'email of a person'}
@@ -28,13 +27,13 @@ describe('widgets/PropertyMenu', () => {
                 onDelete={callback}
             />,
         )
-        const {getByText} = render(component)
+        const {getByText} = render(() => component)
         expect(getByText('Type: Email')).toBeVisible()
     })
 
     test('handles delete event', () => {
         const callback = jest.fn()
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}
                 propertyName={'email of a person'}
@@ -43,14 +42,14 @@ describe('widgets/PropertyMenu', () => {
                 onDelete={callback}
             />,
         )
-        const {getByText} = render(component)
+        const {getByText} = render(() => component)
         fireEvent.click(getByText(/delete/i))
         expect(callback).toHaveBeenCalledWith('id')
     })
 
     test('handles name change event', () => {
         const callback = jest.fn()
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}
                 propertyName={'test-property'}
@@ -59,16 +58,16 @@ describe('widgets/PropertyMenu', () => {
                 onDelete={callback}
             />,
         )
-        const {getByDisplayValue} = render(component)
+        const {getByDisplayValue} = render(() => component)
         const input = getByDisplayValue(/test-property/i)
-        fireEvent.change(input, {target: {value: 'changed name'}})
+        fireEvent.input(input, {target: {value: 'changed name'}})
         fireEvent.blur(input)
         expect(callback).toHaveBeenCalledWith(propsRegistry.get('text'), 'changed name')
     })
 
     test('handles type change event', async () => {
         const callback = jest.fn()
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}
                 propertyName={'test-property'}
@@ -77,7 +76,7 @@ describe('widgets/PropertyMenu', () => {
                 onDelete={callback}
             />,
         )
-        const {getByText} = render(component)
+        const {getByText} = render(() => component)
         const menuOpen = getByText(/Type: Text/i)
         fireEvent.click(menuOpen)
         fireEvent.click(getByText('Select'))
@@ -86,7 +85,7 @@ describe('widgets/PropertyMenu', () => {
 
     test('handles name and type change event', () => {
         const callback = jest.fn()
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}
                 propertyName={'test-property'}
@@ -95,9 +94,9 @@ describe('widgets/PropertyMenu', () => {
                 onDelete={callback}
             />,
         )
-        const {getByDisplayValue, getByText} = render(component)
+        const {getByDisplayValue, getByText} = render(() => component)
         const input = getByDisplayValue(/test-property/i)
-        fireEvent.change(input, {target: {value: 'changed name'}})
+        fireEvent.input(input, {target: {value: 'changed name'}})
 
         const menuOpen = getByText(/Type: Text/i)
         fireEvent.click(menuOpen)
@@ -107,7 +106,7 @@ describe('widgets/PropertyMenu', () => {
 
     test('should match snapshot', () => {
         const callback = jest.fn()
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}
                 propertyName={'test-property'}
@@ -116,7 +115,7 @@ describe('widgets/PropertyMenu', () => {
                 onDelete={callback}
             />,
         )
-        const {container, getByText} = render(component)
+        const {container, getByText} = render(() => component)
         const menuOpen = getByText(/Type: Text/i)
         fireEvent.click(menuOpen)
         expect(container).toMatchSnapshot()

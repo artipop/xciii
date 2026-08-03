@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import Switch from '../switch'
 
@@ -8,7 +8,7 @@ import {MenuOptionProps} from './menuItem'
 
 type SwitchOptionProps = MenuOptionProps & {
     isOn: boolean
-    icon?: React.ReactNode
+    icon?: JSX.Element
     suppressItemClicked?: boolean
 }
 
@@ -17,19 +17,19 @@ function SwitchOption(props: SwitchOptionProps): JSX.Element {
 
     return (
         <div
-            className='MenuOption SwitchOption menu-option'
+            class='MenuOption SwitchOption menu-option'
             role='button'
             aria-label={name}
-            onClick={(e: React.MouseEvent) => {
+            onClick={(e: MouseEvent) => {
                 if (!suppressItemClicked) {
-                    e.target.dispatchEvent(new Event('menuItemClicked'))
+                    (e.target as HTMLElement).dispatchEvent(new Event('menuItemClicked'))
                 }
                 props.onClick(props.id)
                 e.stopPropagation()
             }}
         >
-            {icon ? <div className='menu-option__icon'>{icon}</div> : <div className='noicon'/>}
-            <div className='menu-name'>{name}</div>
+            {icon ? <div class='menu-option__icon'>{icon}</div> : <div class='noicon'/>}
+            <div class='menu-name'>{name}</div>
             <Switch
                 isOn={isOn}
                 onChanged={() => {}}
@@ -38,4 +38,4 @@ function SwitchOption(props: SwitchOptionProps): JSX.Element {
     )
 }
 
-export default React.memo(SwitchOption)
+export default SwitchOption

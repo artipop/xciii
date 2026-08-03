@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
 import {wrapIntl} from '../../testUtils'
@@ -17,19 +16,19 @@ describe('widgets/NotificationBox', () => {
     })
 
     test('should match snapshot without icon and close', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <NotificationBox
                 title='title'
             >
                 {'CONTENT'}
             </NotificationBox>,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot with icon', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <NotificationBox
                 title='title'
                 icon='ICON'
@@ -37,12 +36,12 @@ describe('widgets/NotificationBox', () => {
                 {'CONTENT'}
             </NotificationBox>,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot with close without tooltip', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <NotificationBox
                 title='title'
                 onClose={() => null}
@@ -50,12 +49,12 @@ describe('widgets/NotificationBox', () => {
                 {'CONTENT'}
             </NotificationBox>,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot with close with tooltip', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <NotificationBox
                 title='title'
                 onClose={() => null}
@@ -64,12 +63,12 @@ describe('widgets/NotificationBox', () => {
                 {'CONTENT'}
             </NotificationBox>,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot with icon and close with tooltip', () => {
-        const component = wrapIntl(
+        const component = wrapIntl(() =>
             <NotificationBox
                 title='title'
                 icon='ICON'
@@ -79,7 +78,7 @@ describe('widgets/NotificationBox', () => {
                 {'CONTENT'}
             </NotificationBox>,
         )
-        const {container} = render(component)
+        const {container} = render(() => component)
         expect(container).toMatchSnapshot()
     })
 })

@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import './adminBadge.scss'
 
@@ -25,12 +24,12 @@ const AdminBadge = (props: Props) => {
         return null
     }
     return (
-        <div className='AdminBadge'>
-            <div className='AdminBadge__box'>
+        <div class='AdminBadge'>
+            <div class='AdminBadge__box'>
                 {text}
             </div>
         </div>
     )
 }
 
-export default memo(AdminBadge)
+export default AdminBadge

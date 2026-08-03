@@ -5,6 +5,7 @@ exports[`widgets/NotificationBox should match snapshot with close with tooltip 1
   <div
     class="NotificationBox"
   >
+    
     <div
       class="content"
     >
@@ -37,6 +38,7 @@ exports[`widgets/NotificationBox should match snapshot with close without toolti
   <div
     class="NotificationBox"
   >
+    
     <div
       class="content"
     >
@@ -79,6 +81,7 @@ exports[`widgets/NotificationBox should match snapshot with icon 1`] = `
       </p>
       CONTENT
     </div>
+    
   </div>
 </div>
 `;
@@ -125,6 +128,7 @@ exports[`widgets/NotificationBox should match snapshot without icon and close 1`
   <div
     class="NotificationBox"
   >
+    
     <div
       class="content"
     >
@@ -135,6 +139,7 @@ exports[`widgets/NotificationBox should match snapshot without icon and close 1`
       </p>
       CONTENT
     </div>
+    
   </div>
 </div>
 `;

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {IPropertyOption} from '../../blocks/board'
 
@@ -46,13 +46,13 @@ const SelectProperty = (props: PropertyProps) => {
     if (!isEditable || !open) {
         return (
             <div
-                className={props.property.valueClassName(!isEditable)}
+                class={props.property.valueClassName(!isEditable)}
                 data-testid='select-non-editable'
                 tabIndex={0}
                 onClick={() => setOpen(true)}
             >
                 <Label color={displayValue ? propertyColorCssClassName : 'empty'}>
-                    <span className='Label-text'>{finalDisplayValue}</span>
+                    <span class='Label-text'>{finalDisplayValue}</span>
                 </Label>
             </div>
         )
@@ -72,4 +72,4 @@ const SelectProperty = (props: PropertyProps) => {
     )
 }
 
-export default React.memo(SelectProperty)
+export default SelectProperty
