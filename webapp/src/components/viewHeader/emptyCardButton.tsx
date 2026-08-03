@@ -30,26 +30,30 @@ const EmptyCardButton = (props: Props) => {
             icon={<CardIcon/>}
             id='empty-template'
             name={intl.formatMessage({id: 'ViewHeader.empty-card', defaultMessage: 'Empty card'})}
-            className={currentView.fields.defaultTemplateId ? '' : 'bold-menu-text'}
+            className={currentView().fields.defaultTemplateId ? '' : 'bold-menu-text'}
             onClick={() => {
                 props.addCard()
             }}
             rightIcon={
-                <MenuWrapper stopPropagationOnToggle={true}>
+                <MenuWrapper
+                    stopPropagationOnToggle={true}
+                    menu={
+                        <Menu position='left'>
+                            <Menu.Text
+                                icon={<CheckIcon/>}
+                                id='default'
+                                name={intl.formatMessage({
+                                    id: 'ViewHeader.set-default-template',
+                                    defaultMessage: 'Set as default',
+                                })}
+                                onClick={async () => {
+                                    await mutator.clearDefaultTemplate(boardId(), currentView().id, currentView().fields.defaultTemplateId)
+                                }}
+                            />
+                        </Menu>
+                    }
+                >
                     <IconButton icon={<OptionsIcon/>}/>
-                    <Menu position='left'>
-                        <Menu.Text
-                            icon={<CheckIcon/>}
-                            id='default'
-                            name={intl.formatMessage({
-                                id: 'ViewHeader.set-default-template',
-                                defaultMessage: 'Set as default',
-                            })}
-                            onClick={async () => {
-                                await mutator.clearDefaultTemplate(boardId, currentView.id, currentView.fields.defaultTemplateId)
-                            }}
-                        />
-                    </Menu>
                 </MenuWrapper>
             }
         />)
