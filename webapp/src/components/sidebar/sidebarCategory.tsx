@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect, useRef, useState} from 'react'
+import {For, Show, createEffect, createSignal, onCleanup} from 'solid-js'
+
 import {FormattedMessage, useIntl} from '../../intl'
-import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
+
+import {useNavigate} from '@solidjs/router'
 
 import debounce from 'lodash/debounce'
 
-import {useSortable} from '@dnd-kit/react/sortable'
+import {useSortable} from '@dnd-kit/solid/sortable'
 import {SortableKeyboardPlugin} from '@dnd-kit/dom/sortable'
-import {useDroppable} from '@dnd-kit/react'
+import {useDroppable} from '@dnd-kit/solid'
 
 import HandRightIcon from '@mattermost/compass-icons/components/hand-right'
 
@@ -28,6 +30,7 @@ import ChevronRight from '../../widgets/icons/chevronRight'
 import CreateNewFolder from '../../widgets/icons/newFolder'
 import CreateCategory from '../createCategory/createCategory'
 import {useAppSelector} from '../../store/hooks'
+import {useRouteMatch} from '../../hooks/routerMatch'
 import {
     getOnboardingTourCategory,
     getOnboardingTourStep,
@@ -66,33 +69,37 @@ type Props = {
 export const ClassForManageCategoriesTourStep = 'manageCategoriesTourStep'
 
 const SidebarCategory = (props: Props) => {
-    const [collapsed, setCollapsed] = useState(props.categoryBoards.collapsed)
+    const [collapsed, setCollapsed] = createSignal(props.categoryBoards.collapsed)
     const intl = useIntl()
-    const history = useHistory()
+    const navigate = useNavigate()
 
-    const [deleteBoard, setDeleteBoard] = useState<Board|null>()
-    const [showDeleteCategoryDialog, setShowDeleteCategoryDialog] = useState<boolean>(false)
-    const [categoryMenuOpen, setCategoryMenuOpen] = useState<boolean>(false)
+    const [deleteBoard, setDeleteBoard] = createSignal<Board|null>()
+    const [showDeleteCategoryDialog, setShowDeleteCategoryDialog] = createSignal<boolean>(false)
+    const [categoryMenuOpen, setCategoryMenuOpen] = createSignal<boolean>(false)
 
-    const match = useRouteMatch<{boardId: string, viewId?: string, cardId?: string, teamId?: string}>()
-    const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false)
-    const [showUpdateCategoryModal, setShowUpdateCategoryModal] = useState(false)
+    const match = useRouteMatch()
+    const [showCreateCategoryModal, setShowCreateCategoryModal] = createSignal(false)
+    const [showUpdateCategoryModal, setShowUpdateCategoryModal] = createSignal(false)
 
     const onboardingTourCategory = useAppSelector(getOnboardingTourCategory)
     const onboardingTourStep = useAppSelector(getOnboardingTourStep)
     const currentCard = useAppSelector(getCurrentCard)
-    const noCardOpen = !currentCard
+    const noCardOpen = () => !currentCard()
     const team = useAppSelector(getCurrentTeam)
-    const teamID = team?.id || ''
+    const teamID = () => team()?.id || ''
 
-    const menuWrapperRef = useRef<HTMLDivElement>(null)
+    let menuWrapperRef: HTMLDivElement | undefined
 
     // A category is sortable among categories and, at the same time, the place
     // boards get dropped into -- including an empty one, which is why the boards
     // area is its own droppable keyed by the category id.
-    const {ref, isDragging} = useSortable({
-        id: props.categoryBoards.id,
-        index: props.index,
+    const {ref, isDragSource: isDragging} = useSortable({
+        get id() {
+            return props.categoryBoards.id
+        },
+        get index() {
+            return props.index
+        },
         type: 'category',
         accept: 'category',
 
@@ -101,34 +108,36 @@ const SidebarCategory = (props: Props) => {
     })
 
     const {ref: boardsRef, isDropTarget: isBoardOver} = useDroppable({
-        id: props.categoryBoards.id,
+        get id() {
+            return props.categoryBoards.id
+        },
         type: 'board',
         accept: 'board',
     })
 
-    const [boardDraggingOver, setBoardDraggingOver] = useState<boolean>(false)
+    const [boardDraggingOver, setBoardDraggingOver] = createSignal<boolean>(false)
 
-    const shouldViewSidebarTour = props.boards.length !== 0 &&
-                                  noCardOpen &&
-                                  (onboardingTourCategory === TOUR_SIDEBAR || onboardingTourCategory === TOUR_BOARD) &&
-                                  ((onboardingTourCategory === TOUR_SIDEBAR && onboardingTourStep === SidebarTourSteps.SIDE_BAR.toString()) || (onboardingTourCategory === TOUR_BOARD && onboardingTourStep === FINISHED.toString()))
+    const shouldViewSidebarTour = () => props.boards.length !== 0 &&
+                                  noCardOpen() &&
+                                  (onboardingTourCategory() === TOUR_SIDEBAR || onboardingTourCategory() === TOUR_BOARD) &&
+                                  ((onboardingTourCategory() === TOUR_SIDEBAR && onboardingTourStep() === SidebarTourSteps.SIDE_BAR.toString()) || (onboardingTourCategory() === TOUR_BOARD && onboardingTourStep() === FINISHED.toString()))
 
-    const shouldViewManageCatergoriesTour = props.boards.length !== 0 &&
-                                            noCardOpen &&
-                                            onboardingTourCategory === TOUR_SIDEBAR &&
-                                            onboardingTourStep === SidebarTourSteps.MANAGE_CATEGORIES.toString()
+    const shouldViewManageCatergoriesTour = () => props.boards.length !== 0 &&
+                                            noCardOpen() &&
+                                            onboardingTourCategory() === TOUR_SIDEBAR &&
+                                            onboardingTourStep() === SidebarTourSteps.MANAGE_CATEGORIES.toString()
 
-    useEffect(() => {
-        if (shouldViewManageCatergoriesTour && props.index === 0) {
+    createEffect(() => {
+        if (shouldViewManageCatergoriesTour() && props.index === 0) {
             setCategoryMenuOpen(true)
         }
-    }, [shouldViewManageCatergoriesTour])
+    })
 
     const showBoard = (boardId: string) => {
         if (boardId === props.activeBoardID && props.onBoardTemplateSelectorClose) {
             props.onBoardTemplateSelectorClose()
         }
-        Utils.showBoard(boardId, match, history)
+        Utils.showBoard(boardId, match(), navigate)
         props.hideSidebar()
     }
 
@@ -139,17 +148,20 @@ const SidebarCategory = (props: Props) => {
 
         // if the same board, reuse the match params
         // otherwise remove viewId and cardId, results in first view being selected
-        const params = {...match.params, boardId: boardId || '', viewId: viewId || ''}
-        if (boardId !== match.params.boardId && viewId !== match.params.viewId) {
+        const currentMatch = match()
+        const params = {...currentMatch.params, boardId: boardId || '', viewId: viewId || ''}
+        if (boardId !== currentMatch.params.boardId && viewId !== currentMatch.params.viewId) {
             params.cardId = undefined
         }
-        const newPath = generatePath(Utils.getBoardPagePath(match.path), params)
-        history.push(newPath)
+        const newPath = Utils.generatePath(Utils.getBoardPagePath(currentMatch.path), params)
+        navigate(newPath)
         props.hideSidebar()
     }
 
+    const sidebarBoardMetadata = () => props.categoryBoards.boardMetadata || []
+
     const isBoardVisible = (boardID: string, existingBoardMetadata?: CategoryBoardMetadata): boolean => {
-        const categoryBoardMetadata = existingBoardMetadata || sidebarBoardMetadata.find((metadata) => metadata.boardID === boardID)
+        const categoryBoardMetadata = existingBoardMetadata || sidebarBoardMetadata().find((metadata) => metadata.boardID === boardID)
 
         // hide if board doesn't belong to current category
         if (!categoryBoardMetadata) {
@@ -160,22 +172,21 @@ const SidebarCategory = (props: Props) => {
         return !categoryBoardMetadata.hidden
     }
 
-    const sidebarBoardMetadata = props.categoryBoards.boardMetadata || []
-    const visibleBlocks = props.categoryBoards.boardMetadata.filter((boardMetadata) => isBoardVisible(boardMetadata.boardID, boardMetadata))
+    const visibleBlocks = () => props.categoryBoards.boardMetadata.filter((boardMetadata) => isBoardVisible(boardMetadata.boardID, boardMetadata))
 
     const handleCreateNewCategory = () => {
         setShowCreateCategoryModal(true)
     }
 
     const handleDeleteCategory = async () => {
-        await mutator.deleteCategory(teamID, props.categoryBoards.id)
+        await mutator.deleteCategory(teamID(), props.categoryBoards.id)
     }
 
     const handleUpdateCategory = async () => {
         setShowUpdateCategoryModal(true)
     }
 
-    const deleteCategoryProps: ConfirmationDialogBoxProps = {
+    const deleteCategoryProps = (): ConfirmationDialogBoxProps => ({
         heading: intl.formatMessage({
             id: 'SidebarCategories.CategoryMenu.DeleteModal.Title',
             defaultMessage: 'Delete this category?',
@@ -187,25 +198,26 @@ const SidebarCategory = (props: Props) => {
             },
             {
                 categoryName: props.categoryBoards.name,
-                b: (...chunks) => <b>{chunks}</b>,
+                b: (...chunks: unknown[]) => <b>{chunks as never}</b>,
             },
-        ),
+        ) as never,
         onConfirm: () => handleDeleteCategory(),
         onClose: () => setShowDeleteCategoryDialog(false),
-    }
+    })
 
     const onDeleteBoard = async () => {
-        if (!deleteBoard) {
+        const board = deleteBoard()
+        if (!board) {
             return
         }
-        telemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteBoard, {board: deleteBoard.id})
+        telemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteBoard, {board: board.id})
         mutator.deleteBoard(
-            deleteBoard,
+            board,
             intl.formatMessage({id: 'Sidebar.delete-board', defaultMessage: 'Delete board'}),
             async () => {
                 let nextBoardId: number | undefined
                 if (props.boards.length > 1) {
-                    const deleteBoardIndex = props.boards.findIndex((board) => board.id === deleteBoard.id)
+                    const deleteBoardIndex = props.boards.findIndex((b) => b.id === board.id)
                     nextBoardId = deleteBoardIndex + 1 === props.boards.length ? deleteBoardIndex - 1 : deleteBoardIndex + 1
                 }
 
@@ -217,7 +229,7 @@ const SidebarCategory = (props: Props) => {
                 }
             },
             async () => {
-                showBoard(deleteBoard.id)
+                showBoard(board.id)
             },
         )
     }
@@ -233,8 +245,8 @@ const SidebarCategory = (props: Props) => {
     const debouncedUpdateCategory = debounce(updateCategory, 400)
 
     const toggleCollapse = async () => {
-        const newVal = !collapsed
-        await setCollapsed(newVal)
+        const newVal = !collapsed()
+        setCollapsed(newVal)
 
         // The default 'Boards' category isn't stored in database,
         // so avoid making the API call for it
@@ -243,7 +255,7 @@ const SidebarCategory = (props: Props) => {
         }
     }
 
-    const newCategoryBadge = (
+    const newCategoryBadge = () => (
         <div class='badge newCategoryBadge'>
             <span>
                 {
@@ -256,7 +268,7 @@ const SidebarCategory = (props: Props) => {
         </div>
     )
 
-    const newCategoryDragArea = (
+    const newCategoryDragArea = () => (
         <div class='newCategoryDragArea'>
             <HandRightIcon/>
             <span>
@@ -272,56 +284,62 @@ const SidebarCategory = (props: Props) => {
 
     // The render prop used to notice isDraggingOver flipping and defer the state
     // change out of render; an effect is where that belonged all along.
-    useEffect(() => {
-        const timeout = setTimeout(() => setBoardDraggingOver(isBoardOver), 200)
-        return () => clearTimeout(timeout)
-    }, [isBoardOver])
+    createEffect(() => {
+        const over = isBoardOver()
+        const timeout = setTimeout(() => setBoardDraggingOver(over), 200)
+        onCleanup(() => clearTimeout(timeout))
+    })
+
+    const expandedBoardsHidden = () => collapsed() || props.forceCollapse || isDragging() || props.draggedItemID === props.categoryBoards.id
 
     return (
         <div
             ref={ref}
         >
             <div
-                class={`SidebarCategory${props.categoryBoards.isNew ? ' new' : ''}${boardDraggingOver ? ' draggingOver' : ''}`}
+                class={`SidebarCategory${props.categoryBoards.isNew ? ' new' : ''}${boardDraggingOver() ? ' draggingOver' : ''}`}
                 ref={menuWrapperRef}
             >
                 <div
-                    class={`categoryBoardsDroppableArea${isBoardOver ? ' draggingOver' : ''}`}
+                    class={`categoryBoardsDroppableArea${isBoardOver() ? ' draggingOver' : ''}`}
                     ref={boardsRef}
                 >
                     <div
-                        class={`octo-sidebar-item category ${collapsed || props.forceCollapse ? 'collapsed' : 'expanded'} ${props.categoryBoards.id === props.activeCategoryId ? 'active' : ''}`}
+                        class={`octo-sidebar-item category ${collapsed() || props.forceCollapse ? 'collapsed' : 'expanded'} ${props.categoryBoards.id === props.activeCategoryId ? 'active' : ''}`}
                     >
                         <div
                             class='octo-sidebar-title category-title'
                             title={props.categoryBoards.name}
                             onClick={toggleCollapse}
                         >
-                            {collapsed || isDragging || props.forceCollapse ? <ChevronRight/> : <ChevronDown/>}
+                            {collapsed() || isDragging() || props.forceCollapse ? <ChevronRight/> : <ChevronDown/>}
                             {props.categoryBoards.name}
                             <div class='sidebarCategoriesTour'>
-                                {props.index === 0 && shouldViewSidebarTour && <SidebarCategoriesTourStep/>}
+                                <Show when={props.index === 0 && shouldViewSidebarTour()}>
+                                    <SidebarCategoriesTourStep/>
+                                </Show>
                             </div>
                         </div>
-                        <div class={(props.index === 0 && shouldViewManageCatergoriesTour) ? `${ClassForManageCategoriesTourStep}` : ''}>
-                            {props.index === 0 && shouldViewManageCatergoriesTour && <ManageCategoriesTourStep/>}
+                        <div class={(props.index === 0 && shouldViewManageCatergoriesTour()) ? `${ClassForManageCategoriesTourStep}` : ''}>
+                            <Show when={props.index === 0 && shouldViewManageCatergoriesTour()}>
+                                <ManageCategoriesTourStep/>
+                            </Show>
 
-                            {props.categoryBoards.isNew && !categoryMenuOpen && newCategoryBadge}
+                            <Show when={props.categoryBoards.isNew && !categoryMenuOpen()}>
+                                {newCategoryBadge()}
+                            </Show>
 
                             <MenuWrapper
-                                className={categoryMenuOpen ? 'menuOpen' : ''}
+                                className={categoryMenuOpen() ? 'menuOpen' : ''}
                                 stopPropagationOnToggle={true}
                                 onToggle={(open) => setCategoryMenuOpen(open)}
-                            >
-                                <IconButton icon={<OptionsIcon/>}/>
-                                <Menu
-                                    position='auto'
-                                    fixed={true}
-                                    parentRef={menuWrapperRef}
-                                >
-                                    {
-                                        props.categoryBoards.type === 'custom' &&
-                                        <React.Fragment>
+                                menu={
+                                    <Menu
+                                        position='auto'
+                                        fixed={true}
+                                        parentRef={{current: menuWrapperRef ?? null}}
+                                    >
+                                        <Show when={props.categoryBoards.type === 'custom'}>
                                             <Menu.Text
                                                 id='updateCategory'
                                                 name={intl.formatMessage({id: 'SidebarCategories.CategoryMenu.Update', defaultMessage: 'Rename Category'})}
@@ -336,109 +354,108 @@ const SidebarCategory = (props: Props) => {
                                                 onClick={() => setShowDeleteCategoryDialog(true)}
                                             />
                                             <Menu.Separator/>
-                                        </React.Fragment>
-                                    }
-                                    <Menu.Text
-                                        id='createNewCategory'
-                                        name={intl.formatMessage({id: 'SidebarCategories.CategoryMenu.CreateNew', defaultMessage: 'Create New Category'})}
-                                        icon={<CreateNewFolder/>}
-                                        onClick={handleCreateNewCategory}
-                                    />
-                                </Menu>
+                                        </Show>
+                                        <Menu.Text
+                                            id='createNewCategory'
+                                            name={intl.formatMessage({id: 'SidebarCategories.CategoryMenu.CreateNew', defaultMessage: 'Create New Category'})}
+                                            icon={<CreateNewFolder/>}
+                                            onClick={handleCreateNewCategory}
+                                        />
+                                    </Menu>
+                                }
+                            >
+                                <IconButton icon={<OptionsIcon/>}/>
                             </MenuWrapper>
                         </div>
                     </div>
-                    {!(collapsed || props.forceCollapse || isDragging || props.draggedItemID === props.categoryBoards.id) && visibleBlocks.length === 0 &&
-                    (
+                    <Show when={!expandedBoardsHidden() && visibleBlocks().length === 0}>
                         <div>
-                            {!props.categoryBoards.isNew && (
+                            <Show when={!props.categoryBoards.isNew}>
                                 <div class='octo-sidebar-item subitem no-views'>
                                     <FormattedMessage
                                         id='Sidebar.no-boards-in-category'
                                         defaultMessage='No boards inside'
                                     />
                                 </div>
-                            )}
+                            </Show>
 
-                            {props.categoryBoards.isNew && newCategoryDragArea}
+                            <Show when={props.categoryBoards.isNew}>
+                                {newCategoryDragArea()}
+                            </Show>
                         </div>
-                    )
-                    }
-                    {!props.forceCollapse && collapsed && !isDragging && props.draggedItemID !== props.categoryBoards.id && props.boards.filter((board: Board) => board.id === props.activeBoardID).map((board: Board, zzz) => {
-                        if (!isBoardVisible(board.id)) {
-                            return null
-                        }
-                        return (
-                            <SidebarBoardItem
-                                index={zzz}
-                                board={board}
-                                categoryBoards={props.categoryBoards}
-                                allCategories={props.allCategories}
-                                isActive={board.id === props.activeBoardID}
-                                showBoard={showBoard}
-                                showView={showView}
-                                onDeleteRequest={setDeleteBoard}
-                            />
-                        )
-                    })}
-                    {!(collapsed || props.forceCollapse || isDragging || props.draggedItemID === props.categoryBoards.id) && props.boards.filter((board) => isBoardVisible(board.id) && !board.isTemplate).map((board: Board, zzz) => {
-                        return (
-                            <SidebarBoardItem
-                                index={zzz}
-                                board={board}
-                                categoryBoards={props.categoryBoards}
-                                allCategories={props.allCategories}
-                                isActive={board.id === props.activeBoardID}
-                                showBoard={showBoard}
-                                showView={showView}
-                                onDeleteRequest={setDeleteBoard}
-                                hideViews={props.draggedItemID === board.id || props.draggedItemID === props.categoryBoards.id}
-                            />
-                        )
-                    })}
+                    </Show>
+                    <Show when={!props.forceCollapse && collapsed() && !isDragging() && props.draggedItemID !== props.categoryBoards.id}>
+                        <For each={props.boards.filter((board: Board) => board.id === props.activeBoardID && isBoardVisible(board.id))}>
+                            {(board: Board, zzz) => (
+                                <SidebarBoardItem
+                                    index={zzz()}
+                                    board={board}
+                                    categoryBoards={props.categoryBoards}
+                                    allCategories={props.allCategories}
+                                    isActive={board.id === props.activeBoardID}
+                                    showBoard={showBoard}
+                                    showView={showView}
+                                    onDeleteRequest={setDeleteBoard}
+                                />
+                            )}
+                        </For>
+                    </Show>
+                    <Show when={!expandedBoardsHidden()}>
+                        <For each={props.boards.filter((board) => isBoardVisible(board.id) && !board.isTemplate)}>
+                            {(board: Board, zzz) => (
+                                <SidebarBoardItem
+                                    index={zzz()}
+                                    board={board}
+                                    categoryBoards={props.categoryBoards}
+                                    allCategories={props.allCategories}
+                                    isActive={board.id === props.activeBoardID}
+                                    showBoard={showBoard}
+                                    showView={showView}
+                                    onDeleteRequest={setDeleteBoard}
+                                    hideViews={props.draggedItemID === board.id || props.draggedItemID === props.categoryBoards.id}
+                                />
+                            )}
+                        </For>
+                    </Show>
 
-                    {
-                        showCreateCategoryModal && (
-                            <CreateCategory
-                                onClose={() => setShowCreateCategoryModal(false)}
-                                title={(
-                                    <FormattedMessage
-                                        id='SidebarCategories.CategoryMenu.CreateNew'
-                                        defaultMessage='Create New Category'
-                                    />
-                                )}
-                            />
-                        )
-                    }
+                    <Show when={showCreateCategoryModal()}>
+                        <CreateCategory
+                            onClose={() => setShowCreateCategoryModal(false)}
+                            title={(
+                                <FormattedMessage
+                                    id='SidebarCategories.CategoryMenu.CreateNew'
+                                    defaultMessage='Create New Category'
+                                />
+                            )}
+                        />
+                    </Show>
 
-                    {
-                        showUpdateCategoryModal && (
-                            <CreateCategory
-                                initialValue={props.categoryBoards.name}
-                                title={(
-                                    <FormattedMessage
-                                        id='SidebarCategories.CategoryMenu.Update'
-                                        defaultMessage='Rename Category'
-                                    />
-                                )}
-                                onClose={() => setShowUpdateCategoryModal(false)}
-                                boardCategoryId={props.categoryBoards.id}
-                                renameModal={true}
-                            />
-                        )
-                    }
+                    <Show when={showUpdateCategoryModal()}>
+                        <CreateCategory
+                            initialValue={props.categoryBoards.name}
+                            title={(
+                                <FormattedMessage
+                                    id='SidebarCategories.CategoryMenu.Update'
+                                    defaultMessage='Rename Category'
+                                />
+                            )}
+                            onClose={() => setShowUpdateCategoryModal(false)}
+                            boardCategoryId={props.categoryBoards.id}
+                            renameModal={true}
+                        />
+                    </Show>
 
-                    { deleteBoard &&
-                    <DeleteBoardDialog
-                        boardTitle={deleteBoard.title}
-                        onClose={() => setDeleteBoard(null)}
-                        onDelete={onDeleteBoard}
-                    />
-                    }
+                    <Show when={deleteBoard()}>
+                        <DeleteBoardDialog
+                            boardTitle={deleteBoard()!.title}
+                            onClose={() => setDeleteBoard(null)}
+                            onDelete={onDeleteBoard}
+                        />
+                    </Show>
 
-                    {
-                        showDeleteCategoryDialog && <ConfirmationDialogBox dialogBox={deleteCategoryProps}/>
-                    }
+                    <Show when={showDeleteCategoryDialog()}>
+                        <ConfirmationDialogBox dialogBox={deleteCategoryProps()}/>
+                    </Show>
                 </div>
             </div>
         </div>
