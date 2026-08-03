@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import {For} from 'solid-js'
 import type {JSX} from 'solid-js'
+
 import {FormattedMessage} from '../../intl'
 
 import {FilterClause, FilterCondition, createFilterClause} from '../../blocks/filterClause'
 import {createFilterGroup, isAFilterGroupInstance} from '../../blocks/filterGroup'
-import {Board, IPropertyTemplate} from '../../blocks/board'
+import {IPropertyTemplate, Board} from '../../blocks/board'
 import {BoardView} from '../../blocks/boardView'
 import mutator from '../../mutator'
 import {Utils} from '../../utils'
@@ -26,7 +28,7 @@ type Props = {
 
 const FilterComponent = (props: Props): JSX.Element => {
     const conditionClicked = (optionId: string, filter: FilterClause): void => {
-        const {activeView} = props
+        const {activeView, board} = props
 
         const filterIndex = activeView.fields.filter.filters.indexOf(filter)
         Utils.assert(filterIndex >= 0, "Can't find filter")
@@ -60,9 +62,8 @@ const FilterComponent = (props: Props): JSX.Element => {
         mutator.changeViewFilter(board.id, activeView.id, activeView.fields.filter, filterGroup)
     }
 
-    const {board, activeView} = props
-
-    const filters: FilterClause[] = activeView.fields.filter?.filters.filter((o) => !isAFilterGroupInstance(o)) as FilterClause[] || []
+    const filters = (): FilterClause[] =>
+        props.activeView.fields.filter?.filters.filter((o) => !isAFilterGroupInstance(o)) as FilterClause[] || []
 
     return (
         <Modal
@@ -71,14 +72,16 @@ const FilterComponent = (props: Props): JSX.Element => {
             <div
                 class='FilterComponent'
             >
-                {filters.map((filter) => (
-                    <FilterEntry-${filter.condition}`}
-                        board={board}
-                        view={activeView}
-                        conditionClicked={conditionClicked}
-                        filter={filter}
-                    />
-                ))}
+                <For each={filters()}>
+                    {(filter) => (
+                        <FilterEntry
+                            board={props.board}
+                            view={props.activeView}
+                            conditionClicked={conditionClicked}
+                            filter={filter}
+                        />
+                    )}
+                </For>
 
                 <br/>
 
