@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 /* eslint-disable max-lines */
-import React, {useState, useEffect} from 'react'
+import {Match, Show, Switch, createEffect, createMemo, createSignal, onCleanup, onMount} from 'solid-js'
+
 import {useIntl} from '../intl'
 
 import {useHotkeys} from '../hooks/hotkeys'
@@ -16,17 +17,16 @@ import {CardFilter} from '../cardFilter'
 import mutator from '../mutator'
 import {Utils} from '../utils'
 import {UserSettings} from '../userSettings'
-import {getCurrentCard, addCard as addCardAction, addTemplate as addTemplateAction, showCardHiddenWarning} from '../store/cards'
+import {getCurrentCard} from '../store/cards'
 import {getCardLimitTimestamp} from '../store/limits'
-import {updateView} from '../store/views'
 import {getVisibleAndHiddenGroups} from '../boardUtils'
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../../../webapp/src/telemetry/telemetryClient'
+import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../telemetry/telemetryClient'
 
 import {getClientConfig} from '../store/clientConfig'
 
 import './centerPanel.scss'
 
-import {useAppSelector, useAppDispatch} from '../store/hooks'
+import {useAppSelector, useAppStore} from '../store/hooks'
 
 import {
     getMe,
@@ -34,7 +34,6 @@ import {
     getOnboardingTourCategory,
     getOnboardingTourStarted,
     getOnboardingTourStep,
-    patchProps,
 } from '../store/users'
 
 import {UserConfigPatch} from '../user'
@@ -78,24 +77,25 @@ type Props = {
 
 const CenterPanel = (props: Props) => {
     const intl = useIntl()
-    const [selectedCardIds, setSelectedCardIds] = useState<string[]>([])
+    const [selectedCardIds, setSelectedCardIds] = createSignal<string[]>([])
 
     // A board that runs something on a machine that cannot run it yet: ask for
     // the missing half once, rather than let a dragged card explain it later.
-    const [showSetup, setShowSetup] = useState(false)
-    useEffect(() => {
+    const [showSetup, setShowSetup] = createSignal(false)
+    createEffect(() => {
+        const board = props.board
         let cancelled = false
         readRegistry().then((registry) => {
             if (!cancelled) {
-                setShowSetup(setupNeeded(props.board, registry))
+                setShowSetup(setupNeeded(board, registry))
             }
         }).catch(() => setShowSetup(false))
-        return () => {
+        onCleanup(() => {
             cancelled = true
-        }
-    }, [props.board])
-    const [cardIdToFocusOnRender, setCardIdToFocusOnRender] = useState('')
-    const [showHiddenCardCountNotification, setShowHiddenCardCountNotification] = useState(false)
+        })
+    })
+    const [cardIdToFocusOnRender, setCardIdToFocusOnRender] = createSignal('')
+    const [showHiddenCardCountNotification, setShowHiddenCardCountNotification] = createSignal(false)
 
     const onboardingTourStarted = useAppSelector(getOnboardingTourStarted)
     const onboardingTourCategory = useAppSelector(getOnboardingTourCategory)
@@ -104,21 +104,19 @@ const CenterPanel = (props: Props) => {
     const me = useAppSelector(getMe)
     const currentCard = useAppSelector(getCurrentCard)
     const boardUsers = useAppSelector(getBoardUsers)
-    const dispatch = useAppDispatch()
+    const {actions} = useAppStore()
 
     const clientConfig = useAppSelector<ClientConfig>(getClientConfig)
 
-    // empty dependency array yields behavior like `componentDidMount`, it only runs _once_
-    // https://stackoverflow.com/a/58579462
-    useEffect(() => {
+    onMount(() => {
         TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ViewBoard, {board: props.board.id, view: props.activeView.id, viewType: props.activeView.fields.viewType})
-    }, [])
+    })
 
     useHotkeys('esc', (e: KeyboardEvent) => {
         if (e.target !== document.body || props.readonly) {
             return
         }
-        if (selectedCardIds.length > 0) {
+        if (selectedCardIds().length > 0) {
             setSelectedCardIds([])
             e.stopPropagation()
         }
@@ -129,15 +127,15 @@ const CenterPanel = (props: Props) => {
             return
         }
 
-        if (selectedCardIds.length > 0) {
+        if (selectedCardIds().length > 0) {
             // CTRL+D: Duplicate selected cards
             const {board} = props
-            if (selectedCardIds.length < 1) {
+            if (selectedCardIds().length < 1) {
                 return
             }
 
             mutator.performAsUndoGroup(async () => {
-                for (const cardId of selectedCardIds) {
+                for (const cardId of selectedCardIds()) {
                     const card = props.cards.find((o) => o.id === cardId)
                     if (card) {
                         mutator.duplicateCard(cardId, board.id)
@@ -158,17 +156,17 @@ const CenterPanel = (props: Props) => {
             return
         }
 
-        if (selectedCardIds.length > 0) {
+        if (selectedCardIds().length > 0) {
             // Backspace or Del: Delete selected cards
-            if (selectedCardIds.length < 1) {
+            if (selectedCardIds().length < 1) {
                 return
             }
 
             mutator.performAsUndoGroup(async () => {
-                for (const cardId of selectedCardIds) {
+                for (const cardId of selectedCardIds()) {
                     const card = props.cards.find((o) => o.id === cardId)
                     if (card) {
-                        mutator.deleteBlock(card, selectedCardIds.length > 1 ? `delete ${selectedCardIds.length} cards` : 'delete card')
+                        mutator.deleteBlock(card, selectedCardIds().length > 1 ? `delete ${selectedCardIds().length} cards` : 'delete card')
                     } else {
                         Utils.assertFailure(`Selected card not found: ${cardId}`)
                     }
@@ -181,7 +179,7 @@ const CenterPanel = (props: Props) => {
     })
 
     const showCard = (cardId?: string) => {
-        if (selectedCardIds.length > 0) {
+        if (selectedCardIds().length > 0) {
             setSelectedCardIds([])
         }
         props.showCard(cardId)
@@ -215,8 +213,8 @@ const CenterPanel = (props: Props) => {
                 'add card',
                 async (block: Block) => {
                     if (show) {
-                        dispatch(addCardAction(createCard(block)))
-                        dispatch(updateView({...activeView, fields: {...activeView.fields, cardOrder: [...activeView.fields.cardOrder, block.id]}}))
+                        actions.cards.addCard(createCard(block))
+                        actions.views.updateView({...activeView, fields: {...activeView.fields, cardOrder: [...activeView.fields.cardOrder, block.id]}})
                         showCard(block.id)
                     } else {
                         // Focus on this card's title inline on next render
@@ -228,7 +226,7 @@ const CenterPanel = (props: Props) => {
                     showCard(undefined)
                 },
             )
-            dispatch(showCardHiddenWarning(cardLimitTimestamp > 0))
+            actions.cards.showCardHiddenWarning(cardLimitTimestamp() > 0)
             await mutator.changeViewCardOrder(board.id, activeView.id, activeView.fields.cardOrder, [...activeView.fields.cardOrder, newCard.id], 'add-card')
         })
     }
@@ -237,15 +235,15 @@ const CenterPanel = (props: Props) => {
 
     const shouldStartBoardsTour = (): boolean => {
         const isOnboardingBoard = props.board.title === 'Welcome to Boards!'
-        const isTourStarted = onboardingTourStarted
-        const completedCardsTour = onboardingTourCategory === TOUR_CARD && onboardingTourStep === FINISHED.toString()
-        const noCardOpen = !currentCard
+        const isTourStarted = onboardingTourStarted()
+        const completedCardsTour = onboardingTourCategory() === TOUR_CARD && onboardingTourStep() === FINISHED.toString()
+        const noCardOpen = !currentCard()
 
         return isOnboardingBoard && isTourStarted && completedCardsTour && noCardOpen
     }
 
     const prepareBoardsTour = async () => {
-        if (!me?.id) {
+        if (!me()?.id) {
             return
         }
 
@@ -256,9 +254,9 @@ const CenterPanel = (props: Props) => {
             },
         }
 
-        const patchedProps = await octoClient.patchUserConfig(me.id, patch)
+        const patchedProps = await octoClient.patchUserConfig(me()!.id, patch)
         if (patchedProps) {
-            await dispatch(patchProps(patchedProps))
+            actions.users.patchProps(patchedProps)
         }
     }
 
@@ -270,12 +268,12 @@ const CenterPanel = (props: Props) => {
         await prepareBoardsTour()
     }
 
-    useEffect(() => {
+    createEffect(() => {
         startBoardsTour()
     })
 
     const backgroundClicked = (e: MouseEvent) => {
-        if (selectedCardIds.length > 0) {
+        if (selectedCardIds().length > 0) {
             setSelectedCardIds([])
             e.stopPropagation()
         }
@@ -302,7 +300,7 @@ const CenterPanel = (props: Props) => {
                 false,
                 propertiesThatMeetFilters,
                 async (cardId) => {
-                    dispatch(updateView({...activeView, fields: {...activeView.fields, cardOrder: [...activeView.fields.cardOrder, cardId]}}))
+                    actions.views.updateView({...activeView, fields: {...activeView.fields, cardOrder: [...activeView.fields.cardOrder, cardId]}})
                     TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateCardViaTemplate, {board: props.board.id, view: props.activeView.id, card: cardId, cardTemplateId})
                     showCard(cardId)
                 },
@@ -329,7 +327,7 @@ const CenterPanel = (props: Props) => {
             async (newBlock: Block) => {
                 const newTemplate = createCard(newBlock)
                 TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateCardTemplate, {board: board.id, view: activeView.id, card: newTemplate.id})
-                dispatch(addTemplateAction(newTemplate))
+                actions.cards.addTemplate(newTemplate)
                 showCard(newTemplate.id)
             }, async () => {
                 showCard(undefined)
@@ -345,7 +343,7 @@ const CenterPanel = (props: Props) => {
         const {activeView, cards} = props
 
         if (e.shiftKey) {
-            let newSelectedCardIds = [...selectedCardIds]
+            let newSelectedCardIds = [...selectedCardIds()]
             if (newSelectedCardIds.length > 0 && (e.metaKey || e.ctrlKey)) {
                 // Cmd+Shift+Click: Extend the selection
                 const orderedCardIds = cards.map((o) => o.id)
@@ -362,7 +360,7 @@ const CenterPanel = (props: Props) => {
             } else {
                 // Shift+Click: add to selection
                 if (newSelectedCardIds.includes(card.id)) {
-                    newSelectedCardIds = selectedCardIds.filter((o) => o !== card.id)
+                    newSelectedCardIds = selectedCardIds().filter((o) => o !== card.id)
                 } else {
                     newSelectedCardIds.push(card.id)
                 }
@@ -379,28 +377,27 @@ const CenterPanel = (props: Props) => {
         setShowHiddenCardCountNotification(show)
     }
 
-    const showShareButton = !props.readonly && me?.id !== 'single-user'
-    const showShareLoginButton = props.readonly && me?.id !== 'single-user'
-
-    const {groupByProperty, activeView, board, views, cards} = props
+    const showShareButton = () => !props.readonly && me()?.id !== 'single-user'
+    const showShareLoginButton = () => props.readonly && me()?.id !== 'single-user'
 
     const getUserDisplayName = (boardGroup: BoardGroup) => {
-        const user = boardUsers[boardGroup.option.id]
+        const user = boardUsers()[boardGroup.option.id]
         if (user) {
-            return Utils.getUserDisplayName(user, clientConfig.teammateNameDisplay)
+            return Utils.getUserDisplayName(user, clientConfig().teammateNameDisplay)
         } else if (boardGroup.option.id === 'undefined') {
             return intl.formatMessage({
                 id: 'centerPanel.undefined',
                 defaultMessage: 'No {propertyName}',
-            }, {propertyName: groupByProperty?.name})
+            }, {propertyName: props.groupByProperty?.name})
         }
         return intl.formatMessage({id: 'centerPanel.unknown-user', defaultMessage: 'Unknown user'})
     }
 
-    const {visible: visibleGroups, hidden: hiddenGroups} = (() => {
+    const groups = createMemo(() => {
+        const {cards, activeView, groupByProperty} = props
         const {visible: vg, hidden: hg} = getVisibleAndHiddenGroups(cards, activeView.fields.visibleOptionIds, activeView.fields.hiddenOptionIds, groupByProperty)
         if (groupByProperty?.type === 'createdBy' || groupByProperty?.type === 'updatedBy' || groupByProperty?.type === 'person') {
-            if (boardUsers) {
+            if (boardUsers()) {
                 vg.forEach((value) => {
                     value.option.value = getUserDisplayName(value)
                 })
@@ -410,14 +407,14 @@ const CenterPanel = (props: Props) => {
             }
         }
         return {visible: vg, hidden: hg}
-    })()
+    })
 
     return (
         <div
             class='BoardComponent'
             onClick={backgroundClicked}
         >
-            {showSetup &&
+            <Show when={showSetup()}>
                 <RootPortal>
                     <BoardSetupWizard
                         board={props.board}
@@ -426,37 +423,39 @@ const CenterPanel = (props: Props) => {
                             setShowSetup(false)
                         }}
                     />
-                </RootPortal>}
-            {props.shownCardId &&
+                </RootPortal>
+            </Show>
+            <Show when={props.shownCardId}>
                 <RootPortal>
                     <CardDialog
-                        board={board}
-                        activeView={activeView}
-                        views={views}
-                        cards={cards}
-                        cardId={props.shownCardId}
+                        board={props.board}
+                        activeView={props.activeView}
+                        views={props.views}
+                        cards={props.cards}
+                        cardId={props.shownCardId!}
                         onClose={() => showCard(undefined)}
                         showCard={(cardId) => showCard(cardId)}
                         readonly={props.readonly}
                     />
-                </RootPortal>}
+                </RootPortal>
+            </Show>
 
             <div class='top-head'>
                 <TopBar/>
                 <div class='mid-head'>
                     <ViewTitle
-                        board={board}
+                        board={props.board}
                         readonly={props.readonly}
                     />
                     <div class='shareButtonWrapper'>
-                        {showShareButton &&
-                        <ShareBoardButton
-                            enableSharedBoards={props.clientConfig?.enablePublicSharedBoards || false}
-                        />
-                        }
-                        {showShareLoginButton &&
+                        <Show when={showShareButton()}>
+                            <ShareBoardButton
+                                enableSharedBoards={props.clientConfig?.enablePublicSharedBoards || false}
+                            />
+                        </Show>
+                        <Show when={showShareLoginButton()}>
                             <ShareBoardLoginButton/>
-                        }
+                        </Show>
                         <ShareBoardTourStep/>
                     </div>
                 </div>
@@ -475,67 +474,72 @@ const CenterPanel = (props: Props) => {
                 />
             </div>
 
-            {activeView.fields.viewType === 'board' &&
-            <Kanban
-                board={props.board}
-                activeView={props.activeView}
-                cards={props.cards}
-                groupByProperty={props.groupByProperty}
-                visibleGroups={visibleGroups}
-                hiddenGroups={hiddenGroups}
-                selectedCardIds={selectedCardIds}
-                readonly={props.readonly}
-                onCardClicked={cardClicked}
-                addCard={addCard}
-                addCardFromTemplate={addCardFromTemplate}
-                showCard={showCard}
-                hiddenCardsCount={props.hiddenCardsCount}
-                showHiddenCardCountNotification={hiddenCardCountNotifyHandler}
-            />}
-            {activeView.fields.viewType === 'table' &&
-                <Table
-                    board={props.board}
-                    activeView={props.activeView}
-                    cards={props.cards}
-                    groupByProperty={props.groupByProperty}
-                    views={props.views}
-                    visibleGroups={visibleGroups}
-                    selectedCardIds={selectedCardIds}
-                    readonly={props.readonly}
-                    cardIdToFocusOnRender={cardIdToFocusOnRender}
-                    showCard={showCard}
-                    addCard={addCard}
-                    onCardClicked={cardClicked}
-                    hiddenCardsCount={props.hiddenCardsCount}
-                    showHiddenCardCountNotification={hiddenCardCountNotifyHandler}
-                />}
-            {activeView.fields.viewType === 'calendar' &&
-                <CalendarFullView
-                    board={props.board}
-                    cards={props.cards}
-                    activeView={props.activeView}
-                    readonly={props.readonly}
-                    dateDisplayProperty={props.dateDisplayProperty}
-                    showCard={showCard}
-                    addCard={(properties: Record<string, string>) => {
-                        addCard('', true, properties)
-                    }}
-                />}
-
-            {activeView.fields.viewType === 'gallery' &&
-                <Gallery
-                    board={props.board}
-                    cards={props.cards}
-                    activeView={props.activeView}
-                    readonly={props.readonly}
-                    onCardClicked={cardClicked}
-                    selectedCardIds={selectedCardIds}
-                    addCard={(show) => addCard('', show)}
-                    hiddenCardsCount={props.hiddenCardsCount}
-                    showHiddenCardCountNotification={hiddenCardCountNotifyHandler}
-                />}
+            <Switch>
+                <Match when={props.activeView.fields.viewType === 'board'}>
+                    <Kanban
+                        board={props.board}
+                        activeView={props.activeView}
+                        cards={props.cards}
+                        groupByProperty={props.groupByProperty}
+                        visibleGroups={groups().visible}
+                        hiddenGroups={groups().hidden}
+                        selectedCardIds={selectedCardIds()}
+                        readonly={props.readonly}
+                        onCardClicked={cardClicked}
+                        addCard={addCard}
+                        addCardFromTemplate={addCardFromTemplate}
+                        showCard={showCard}
+                        hiddenCardsCount={props.hiddenCardsCount}
+                        showHiddenCardCountNotification={hiddenCardCountNotifyHandler}
+                    />
+                </Match>
+                <Match when={props.activeView.fields.viewType === 'table'}>
+                    <Table
+                        board={props.board}
+                        activeView={props.activeView}
+                        cards={props.cards}
+                        groupByProperty={props.groupByProperty}
+                        views={props.views}
+                        visibleGroups={groups().visible}
+                        selectedCardIds={selectedCardIds()}
+                        readonly={props.readonly}
+                        cardIdToFocusOnRender={cardIdToFocusOnRender()}
+                        showCard={showCard}
+                        addCard={addCard}
+                        onCardClicked={cardClicked}
+                        hiddenCardsCount={props.hiddenCardsCount}
+                        showHiddenCardCountNotification={hiddenCardCountNotifyHandler}
+                    />
+                </Match>
+                <Match when={props.activeView.fields.viewType === 'calendar'}>
+                    <CalendarFullView
+                        board={props.board}
+                        cards={props.cards}
+                        activeView={props.activeView}
+                        readonly={props.readonly}
+                        dateDisplayProperty={props.dateDisplayProperty}
+                        showCard={showCard}
+                        addCard={(properties: Record<string, string>) => {
+                            addCard('', true, properties)
+                        }}
+                    />
+                </Match>
+                <Match when={props.activeView.fields.viewType === 'gallery'}>
+                    <Gallery
+                        board={props.board}
+                        cards={props.cards}
+                        activeView={props.activeView}
+                        readonly={props.readonly}
+                        onCardClicked={cardClicked}
+                        selectedCardIds={selectedCardIds()}
+                        addCard={(show) => addCard('', show)}
+                        hiddenCardsCount={props.hiddenCardsCount}
+                        showHiddenCardCountNotification={hiddenCardCountNotifyHandler}
+                    />
+                </Match>
+            </Switch>
             <CardLimitNotification
-                showHiddenCardNotification={showHiddenCardCountNotification}
+                showHiddenCardNotification={showHiddenCardCountNotification()}
                 hiddenCardCountNotificationHandler={hiddenCardCountNotifyHandler}
             />
         </div>
