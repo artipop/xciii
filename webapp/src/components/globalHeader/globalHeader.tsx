@@ -2,12 +2,10 @@
 // See LICENSE.txt for license information.
 //
 import type {JSX} from 'solid-js'
-import {Provider as ReduxProvider} from 'react-redux'
-import {IntlProvider} from '../../intl'
-import {History} from 'history'
 
 import HelpIcon from '../../widgets/icons/help'
-import store from '../../store'
+import {IntlProvider} from '../../intl'
+import {AppStoreProvider} from '../../store'
 import {useAppSelector} from '../../store/hooks'
 import {getLanguage} from '../../store/language'
 import {getMessages} from '../../i18n'
@@ -18,18 +16,14 @@ import GlobalHeaderSettingsMenu from './globalHeaderSettingsMenu'
 
 import './globalHeader.scss'
 
-type HeaderItemProps = {
-    history: History<unknown>
-}
-
-const HeaderItems = (props: HeaderItemProps) => {
+const HeaderItems = () => {
     const language = useAppSelector<string>(getLanguage)
     const helpUrl = 'https://www.focalboard.com/fwlink/doc-boards.html?v=' + Constants.versionString
 
     return (
         <IntlProvider
-            locale={language.split(/[_]/)[0]}
-            messages={getMessages(language)}
+            locale={language().split(/[_]/)[0]}
+            messages={getMessages(language())}
         >
             <div class='GlobalHeaderComponent'>
                 <span class='spacer'/>
@@ -41,21 +35,20 @@ const HeaderItems = (props: HeaderItemProps) => {
                 >
                     <HelpIcon/>
                 </a>
-                <GlobalHeaderSettingsMenu history={props.history}/>
+                <GlobalHeaderSettingsMenu/>
             </div>
         </IntlProvider>
     )
 }
 
-type Props = {
-    history: History<unknown>
-}
-
-const GlobalHeader = (props: Props): JSX.Element => {
+// The header a product embedding mounts on its own: it brings its own store
+// instance the way it used to bring the Redux singleton. The history the host
+// used to pass is gone — navigation runs through the app's router.
+const GlobalHeader = (): JSX.Element => {
     return (
-        <ReduxProvider store={store}>
-            <HeaderItems history={props.history}/>
-        </ReduxProvider>
+        <AppStoreProvider>
+            <HeaderItems/>
+        </AppStoreProvider>
     )
 }
 

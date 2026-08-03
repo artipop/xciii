@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState} from 'react'
+import {For, Show, createSignal} from 'solid-js'
+
+import {useNavigate} from '@solidjs/router'
+
 import {useIntl} from '../../intl'
-import {History} from 'history'
 
 import {Archiver} from '../../archiver'
 import Menu from '../../widgets/menu'
 import MenuWrapper from '../../widgets/menuWrapper'
-import {useAppDispatch, useAppSelector} from '../../store/hooks'
-import {storeLanguage} from '../../store/language'
-import {patchProps, getMe} from '../../store/users'
+import {useAppSelector, useAppStore} from '../../store/hooks'
+import {getMe} from '../../store/users'
 import {getCurrentTeam, Team} from '../../store/teams'
 import {IUser, UserConfigPatch} from '../../user'
 import octoClient from '../../octoClient'
@@ -22,114 +23,117 @@ import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../../teleme
 
 import './globalHeaderSettingsMenu.scss'
 
-type Props = {
-    history: History<unknown>
-}
-
-const GlobalHeaderSettingsMenu = (props: Props) => {
+const GlobalHeaderSettingsMenu = () => {
     const intl = useIntl()
     const me = useAppSelector<IUser|null>(getMe)
     const currentTeam = useAppSelector<Team|null>(getCurrentTeam)
-    const dispatch = useAppDispatch()
+    const {actions} = useAppStore()
+    const navigate = useNavigate()
 
-    const [randomIcons, setRandomIcons] = useState(UserSettings.prefillRandomIcons)
+    const [randomIcons, setRandomIcons] = createSignal(UserSettings.prefillRandomIcons)
     const toggleRandomIcons = () => {
         UserSettings.prefillRandomIcons = !UserSettings.prefillRandomIcons
-        setRandomIcons(!randomIcons)
+        setRandomIcons(!randomIcons())
     }
 
     return (
         <div class='GlobalHeaderSettingsMenu'>
-            <MenuWrapper>
+            <MenuWrapper
+                menu={
+                    <Menu position='left'>
+                        <Menu.SubMenu
+                            id='import'
+                            name={intl.formatMessage({id: 'Sidebar.import', defaultMessage: 'Import'})}
+                            position='left-bottom'
+                        >
+                            <Menu.Text
+                                id='import_archive'
+                                name={intl.formatMessage({id: 'Sidebar.import-archive', defaultMessage: 'Import archive'})}
+                                onClick={async () => {
+                                    TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ImportArchive)
+                                    Archiver.importFullArchive()
+                                }}
+                            />
+                            <For each={Constants.imports}>
+                                {(i) => (
+                                    <Menu.Text
+                                        id={`${i.id}-import`}
+                                        name={i.displayName}
+                                        onClick={() => {
+                                            TelemetryClient.trackEvent(TelemetryCategory, i.telemetryName)
+                                            window.open(i.href)
+                                        }}
+                                    />
+                                )}
+                            </For>
+                        </Menu.SubMenu>
+                        <Menu.SubMenu
+                            id='lang'
+                            name={intl.formatMessage({id: 'Sidebar.set-language', defaultMessage: 'Set language'})}
+                            position='left-bottom'
+                        >
+                            <For each={Constants.languages}>
+                                {(language) => (
+                                    <Menu.Text
+                                        id={`${language.name}-lang`}
+                                        name={language.displayName}
+                                        onClick={async () => actions.language.storeLanguage(language.code)}
+                                        rightIcon={intl.locale.toLowerCase() === language.code ? <CheckIcon/> : null}
+                                    />
+                                )}
+                            </For>
+                        </Menu.SubMenu>
+                        <Menu.Switch
+                            id='random-icons'
+                            name={intl.formatMessage({id: 'Sidebar.random-icons', defaultMessage: 'Random icons'})}
+                            isOn={randomIcons()}
+                            onClick={async () => toggleRandomIcons()}
+                            suppressItemClicked={true}
+                        />
+                        <Show when={me()?.is_guest !== true}>
+                            <Menu.Text
+                                id='product-tour'
+                                className='product-tour'
+                                name={intl.formatMessage({id: 'Sidebar.product-tour', defaultMessage: 'Product tour'})}
+                                onClick={async () => {
+                                    TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.StartTour)
+
+                                    const user = me()
+                                    if (!user) {
+                                        return
+                                    }
+                                    const team = currentTeam()
+                                    if (!team) {
+                                        return
+                                    }
+
+                                    const patch: UserConfigPatch = {
+                                        updatedFields: {
+                                            onboardingTourStarted: '1',
+                                            onboardingTourStep: '0',
+                                            tourCategory: 'onboarding',
+                                        },
+                                    }
+
+                                    const patchedProps = await octoClient.patchUserConfig(user.id, patch)
+                                    if (patchedProps) {
+                                        actions.users.patchProps(patchedProps)
+                                    }
+
+                                    const onboardingData = await octoClient.prepareOnboarding(team.id)
+
+                                    const newPath = `/team/${onboardingData?.teamID}/${onboardingData?.boardID}`
+
+                                    navigate(newPath)
+                                }}
+                            />
+                        </Show>
+                    </Menu>
+                }
+            >
                 <div class='GlobalHeaderComponent__button menu-entry'>
                     <SettingsIcon/>
                 </div>
-                <Menu position='left'>
-                    <Menu.SubMenu
-                        id='import'
-                        name={intl.formatMessage({id: 'Sidebar.import', defaultMessage: 'Import'})}
-                        position='left-bottom'
-                    >
-                        <Menu.Text
-                            id='import_archive'
-                            name={intl.formatMessage({id: 'Sidebar.import-archive', defaultMessage: 'Import archive'})}
-                            onClick={async () => {
-                                TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ImportArchive)
-                                Archiver.importFullArchive()
-                            }}
-                        />
-                        {
-                            Constants.imports.map((i) => (
-                                <Menu.Text-import`}
-                                    id={`${i.id}-import`}
-                                    name={i.displayName}
-                                    onClick={() => {
-                                        TelemetryClient.trackEvent(TelemetryCategory, i.telemetryName)
-                                        window.open(i.href)
-                                    }}
-                                />
-                            ))
-                        }
-                    </Menu.SubMenu>
-                    <Menu.SubMenu
-                        id='lang'
-                        name={intl.formatMessage({id: 'Sidebar.set-language', defaultMessage: 'Set language'})}
-                        position='left-bottom'
-                    >
-                        {
-                            Constants.languages.map((language) => (
-                                <Menu.Text
-                                    id={`${language.name}-lang`}
-                                    name={language.displayName}
-                                    onClick={async () => dispatch(storeLanguage(language.code))}
-                                    rightIcon={intl.locale.toLowerCase() === language.code ? <CheckIcon/> : null}
-                                />
-                            ))
-                        }
-                    </Menu.SubMenu>
-                    <Menu.Switch
-                        id='random-icons'
-                        name={intl.formatMessage({id: 'Sidebar.random-icons', defaultMessage: 'Random icons'})}
-                        isOn={randomIcons}
-                        onClick={async () => toggleRandomIcons()}
-                        suppressItemClicked={true}
-                    />
-                    {me?.is_guest !== true &&
-                        <Menu.Text
-                            id='product-tour'
-                            className='product-tour'
-                            name={intl.formatMessage({id: 'Sidebar.product-tour', defaultMessage: 'Product tour'})}
-                            onClick={async () => {
-                                TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.StartTour)
-
-                                if (!me) {
-                                    return
-                                }
-                                if (!currentTeam) {
-                                    return
-                                }
-
-                                const patch: UserConfigPatch = {
-                                    updatedFields: {
-                                        onboardingTourStarted: '1',
-                                        onboardingTourStep: '0',
-                                        tourCategory: 'onboarding',
-                                    },
-                                }
-
-                                const patchedProps = await octoClient.patchUserConfig(me.id, patch)
-                                if (patchedProps) {
-                                    await dispatch(patchProps(patchedProps))
-                                }
-
-                                const onboardingData = await octoClient.prepareOnboarding(currentTeam.id)
-
-                                const newPath = `/team/${onboardingData?.teamID}/${onboardingData?.boardID}`
-
-                                props.history.push(newPath)
-                            }}
-                        />}
-                </Menu>
             </MenuWrapper>
         </div>
     )
