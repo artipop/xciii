@@ -1,5 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import {For} from 'solid-js'
 import type {JSX} from 'solid-js'
 
 import {useIntl} from '../../intl'
@@ -20,17 +21,16 @@ type Props = {
 }
 
 const AttachmentList = (props: Props): JSX.Element => {
-    const {attachments, onDelete, addAttachment} = props
     const intl = useIntl()
 
     return (
         <div class='Attachment'>
             <div class='attachment-header'>
-                <div class='attachment-title mb-2'>{intl.formatMessage({id: 'Attachment.Attachment-title', defaultMessage: 'Attachment'})} {`(${attachments.length})`}</div>
+                <div class='attachment-title mb-2'>{intl.formatMessage({id: 'Attachment.Attachment-title', defaultMessage: 'Attachment'})} {`(${props.attachments.length})`}</div>
                 <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
                     <div
                         class='attachment-plus-btn'
-                        onClick={addAttachment}
+                        onClick={props.addAttachment}
                     >
                         <CompassIcon
                             icon='plus'
@@ -40,16 +40,16 @@ const AttachmentList = (props: Props): JSX.Element => {
                 </BoardPermissionGate>
             </div>
             <div class='attachment-content'>
-                {attachments.map((block: AttachmentBlock) => {
-                    return (
+                <For each={props.attachments}>
+                    {(block: AttachmentBlock) => (
                         <div>
                             <AttachmentElement
                                 block={block}
-                                onDelete={onDelete}
+                                onDelete={props.onDelete}
                             />
-                        </div>)
-                })
-                }
+                        </div>
+                    )}
+                </For>
             </div>
         </div>
     )

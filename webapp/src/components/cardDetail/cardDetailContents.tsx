@@ -1,5 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import {For, Show} from 'solid-js'
+
 import {useIntl, IntlShape} from '../../intl'
 
 import {IContentBlockWithCords, ContentBlock as ContentBlockType} from '../../blocks/contentBlock'
@@ -91,112 +93,116 @@ type ContentBlockWithDragAndDropProps = {
 }
 
 const ContentBlockWithDragAndDrop = (props: ContentBlockWithDragAndDropProps) => {
-    const [, isOver,, itemRef] = useSortableWithGrip('content', {block: props.block, cords: {x: props.x}}, true, (src, dst) => moveBlock(props.card, src, dst, props.intl, 'aboveRow'))
-    const [, isOver2,, itemRef2] = useSortableWithGrip('content', {block: props.block, cords: {x: props.x}}, true, (src, dst) => moveBlock(props.card, src, dst, props.intl, 'belowRow'))
+    const [, isOver,, itemRef] = useSortableWithGrip('content', () => ({block: props.block, cords: {x: props.x}}), () => true, (src, dst) => moveBlock(props.card, src, dst, props.intl, 'aboveRow'))
+    const [, isOver2,, itemRef2] = useSortableWithGrip('content', () => ({block: props.block, cords: {x: props.x}}), () => true, (src, dst) => moveBlock(props.card, src, dst, props.intl, 'belowRow'))
 
-    if (Array.isArray(props.block)) {
-        return (
-            <div >
+    return (
+        <Show
+            when={Array.isArray(props.block)}
+            fallback={
+                <div>
+                    <div
+                        ref={itemRef}
+                        class={`addToRow ${isOver() ? 'dragover' : ''}`}
+                        style={{width: '94%', height: '10px', 'margin-left': '48px'}}
+                    />
+                    <ContentBlock
+                        block={props.block as ContentBlockType}
+                        card={props.card}
+                        readonly={props.readonly}
+                        onDrop={(src, dst, moveTo) => moveBlock(props.card, src, dst, props.intl, moveTo)}
+                        cords={{x: props.x}}
+                    />
+                    <Show when={props.x === props.contents.length - 1}>
+                        <div
+                            ref={itemRef2}
+                            class={`addToRow ${isOver2() ? 'dragover' : ''}`}
+                            style={{width: '94%', height: '10px', 'margin-left': '48px'}}
+                        />
+                    </Show>
+                </div>
+            }
+        >
+            <div>
                 <div
                     ref={itemRef}
-                    class={`addToRow ${isOver ? 'dragover' : ''}`}
-                    style={{width: '94%', height: '10px', marginLeft: '48px'}}
+                    class={`addToRow ${isOver() ? 'dragover' : ''}`}
+                    style={{width: '94%', height: '10px', 'margin-left': '48px'}}
                 />
                 <div
                     style={{display: 'flex'}}
                 >
 
-                    {props.block.map((b, y) => (
-                        <ContentBlock
-                            block={b}
-                            card={props.card}
-                            readonly={props.readonly}
-                            width={(1 / (props.block as ContentBlockType[]).length) * 100}
-                            onDrop={(src, dst, moveTo) => moveBlock(props.card, src, dst, props.intl, moveTo)}
-                            cords={{x: props.x, y}}
-                        />
-                    ))}
+                    <For each={props.block as ContentBlockType[]}>
+                        {(b, y) => (
+                            <ContentBlock
+                                block={b}
+                                card={props.card}
+                                readonly={props.readonly}
+                                width={(1 / (props.block as ContentBlockType[]).length) * 100}
+                                onDrop={(src, dst, moveTo) => moveBlock(props.card, src, dst, props.intl, moveTo)}
+                                cords={{x: props.x, y: y()}}
+                            />
+                        )}
+                    </For>
                 </div>
-                {props.x === props.contents.length - 1 && (
+                <Show when={props.x === props.contents.length - 1}>
                     <div
                         ref={itemRef2}
-                        class={`addToRow ${isOver2 ? 'dragover' : ''}`}
-                        style={{width: '94%', height: '10px', marginLeft: '48px'}}
+                        class={`addToRow ${isOver2() ? 'dragover' : ''}`}
+                        style={{width: '94%', height: '10px', 'margin-left': '48px'}}
                     />
-                )}
+                </Show>
             </div>
-
-        )
-    }
-
-    return (
-        <div>
-            <div
-                ref={itemRef}
-                class={`addToRow ${isOver ? 'dragover' : ''}`}
-                style={{width: '94%', height: '10px', marginLeft: '48px'}}
-            />
-            <ContentBlock
-                block={props.block}
-                card={props.card}
-                readonly={props.readonly}
-                onDrop={(src, dst, moveTo) => moveBlock(props.card, src, dst, props.intl, moveTo)}
-                cords={{x: props.x}}
-            />
-            {props.x === props.contents.length - 1 && (
-                <div
-                    ref={itemRef2}
-                    class={`addToRow ${isOver2 ? 'dragover' : ''}`}
-                    style={{width: '94%', height: '10px', marginLeft: '48px'}}
-                />
-            )}
-        </div>
-
+        </Show>
     )
 }
 
 const CardDetailContents = (props: Props) => {
     const intl = useIntl()
-    const {contents, card, id} = props
-    if (contents.length) {
-        return (
+    return (
+        <Show
+            when={props.contents.length}
+            fallback={
+                <div class='octo-content CardDetailContents'>
+                    <div class='octo-block'>
+                        <div class='octo-block-margin'/>
+                        <Show when={!props.readonly}>
+                            <MarkdownEditor
+                                id={props.id}
+                                text=''
+                                placeholderText='Add a description...'
+                                onBlur={(text) => {
+                                    if (text) {
+                                        addTextBlock(props.card, intl, text)
+                                    }
+                                }}
+                            />
+                        </Show>
+                    </div>
+                </div>
+            }
+        >
             <div class='octo-content'>
-                {contents.map((block, x) =>
-                    (
-                        <React.Fragment>
+                <For each={props.contents}>
+                    {(block, x) => (
+                        <>
                             <ContentBlockWithDragAndDrop
                                 block={block}
-                                x={x}
-                                card={card}
-                                contents={contents}
+                                x={x()}
+                                card={props.card}
+                                contents={props.contents}
                                 intl={intl}
                                 readonly={props.readonly}
                             />
-                            {x === 0 && <AddDescriptionTourStep/>}
-                        </React.Fragment>
-                    ),
-                )}
+                            <Show when={x() === 0}>
+                                <AddDescriptionTourStep/>
+                            </Show>
+                        </>
+                    )}
+                </For>
             </div>
-        )
-    }
-    return (
-        <div class='octo-content CardDetailContents'>
-            <div class='octo-block'>
-                <div class='octo-block-margin'/>
-                {!props.readonly &&
-                    <MarkdownEditor
-                        id={id}
-                        text=''
-                        placeholderText='Add a description...'
-                        onBlur={(text) => {
-                            if (text) {
-                                addTextBlock(card, intl, text)
-                            }
-                        }}
-                    />
-                }
-            </div>
-        </div>
+        </Show>
     )
 }
 
