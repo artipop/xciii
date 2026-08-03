@@ -26,7 +26,7 @@ func maybeRunMCP(args []string) {
 		return
 	}
 	if len(args) < 2 {
-		fmt.Fprintf(os.Stderr, "usage: focalboard mcp %s\n", dokku.ServerName)
+		fmt.Fprintf(os.Stderr, "usage: trixi mcp %s\n", dokku.ServerName)
 		os.Exit(2)
 	}
 	var err error

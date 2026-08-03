@@ -301,7 +301,7 @@ func TestMCPLaunchPromptIsOurs(t *testing.T) {
 func TestMCPServersForSessionNew(t *testing.T) {
 	specs := []mcpServerSpec{{
 		Name:    "dokku",
-		Command: "/Applications/Focalboard.app/Contents/MacOS/Focalboard",
+		Command: "/Applications/Trixi.app/Contents/MacOS/Trixi",
 		Args:    []string{"mcp", "dokku"},
 		Env:     map[string]string{"B_VAR": `{"json":"value"}`, "A_VAR": "1"},
 	}}

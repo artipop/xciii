@@ -44,7 +44,7 @@ func ignoreViteDevServer() {
 }
 
 func main() {
-	// `focalboard mcp dokku` runs this same binary as an MCP server for an agent
+	// `trixi mcp dokku` runs this same binary as an MCP server for an agent
 	// session; it must come first, before the board server or a window exists.
 	maybeRunMCP(os.Args[1:])
 
