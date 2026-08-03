@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect, useRef, useState} from 'react'
+import {For, Show, createSignal, onMount} from 'solid-js'
+
 import {FormattedMessage, useIntl} from '../../intl'
 
 import {Card} from '../../blocks/card'
@@ -8,7 +9,7 @@ import {Board, IPropertyTemplate} from '../../blocks/board'
 import {Constants} from '../../constants'
 import mutator from '../../mutator'
 import Button from '../../widgets/buttons/button'
-import Editable from '../../widgets/editable'
+import Editable, {Focusable} from '../../widgets/editable'
 import {useSortable} from '../../hooks/sortable'
 
 import {Utils} from '../../utils'
@@ -47,34 +48,33 @@ type Props = {
 
 const TableRow = (props: Props) => {
     const intl = useIntl()
-    const {board, card, isManualSort, groupById, visiblePropertyIds, collapsedOptionIds} = props
 
-    const titleRef = useRef<{ focus(selectAll?: boolean): void }>(null)
-    const [title, setTitle] = useState(props.card.title || '')
-    const isGrouped = Boolean(groupById)
-    const [isDragging, isOver, cardRef] = useSortable('card', card, !props.readonly && (isManualSort || isGrouped), props.onDrop)
-    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = useState<boolean>(false)
+    let titleRef: Focusable | undefined
+    const [title, setTitle] = createSignal(props.card.title || '')
+    const isGrouped = () => Boolean(props.groupById)
+    const [isDragging, isOver, cardRef] = useSortable('card', () => props.card, () => !props.readonly && (props.isManualSort || isGrouped()), (src, dst) => props.onDrop(src, dst))
+    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = createSignal<boolean>(false)
     const columnResize = useColumnResize()
 
-    useEffect(() => {
+    onMount(() => {
         if (props.focusOnMount) {
-            setTimeout(() => titleRef.current?.focus(), 10)
+            setTimeout(() => titleRef?.focus(), 10)
         }
-    }, [])
+    })
 
     const onClick = (e: MouseEvent) => {
-        props.onClick && props.onClick(e, card)
+        props.onClick && props.onClick(e, props.card)
     }
 
     const onSaveWithEnter = () => {
         if (props.isLastCard) {
-            props.addCard(groupById ? card.fields.properties[groupById!] as string : '')
+            props.addCard(props.groupById ? props.card.fields.properties[props.groupById!] as string : '')
         }
     }
 
     const onSave = (saveType: 'onEnter' | 'onEsc' | 'onBlur') => {
-        if (card.title !== title) {
-            mutator.changeBlockTitle(props.board.id, card.id, card.title, title)
+        if (props.card.title !== title()) {
+            mutator.changeBlockTitle(props.board.id, props.card.id, props.card.title, title())
             if (saveType === 'onEnter') {
                 onSaveWithEnter()
             }
@@ -85,58 +85,62 @@ const TableRow = (props: Props) => {
         setTitle(newTitle)
     }
 
-    const visiblePropertyTemplates = visiblePropertyIds.map((id) => board.cardProperties.find((t) => t.id === id)).filter((i) => i) as IPropertyTemplate[]
+    const visiblePropertyTemplates = () =>
+        props.visiblePropertyIds.map((id) => props.board.cardProperties.find((t) => t.id === id)).filter((i) => i) as IPropertyTemplate[]
 
-    let className = props.isSelected ? 'TableRow octo-table-row selected' : 'TableRow octo-table-row'
-    if (isOver) {
-        className += ' dragover'
-    }
-    if (isGrouped) {
-        const groupID = groupById || ''
-        let groupValue = card.fields.properties[groupID] as string || 'undefined'
-        if (groupValue === 'undefined') {
-            const template = board.cardProperties.find((p) => p.id === groupById) //templates.find((o) => o.id === groupById)
-            if (template && template.type === 'createdBy') {
-                groupValue = card.createdBy
-            } else if (template && template.type === 'updatedBy') {
-                groupValue = card.modifiedBy
+    const className = () => {
+        const {card, board} = props
+        let name = props.isSelected ? 'TableRow octo-table-row selected' : 'TableRow octo-table-row'
+        if (isOver()) {
+            name += ' dragover'
+        }
+        if (isGrouped()) {
+            const groupID = props.groupById || ''
+            let groupValue = card.fields.properties[groupID] as string || 'undefined'
+            if (groupValue === 'undefined') {
+                const template = board.cardProperties.find((p) => p.id === props.groupById)
+                if (template && template.type === 'createdBy') {
+                    groupValue = card.createdBy
+                } else if (template && template.type === 'updatedBy') {
+                    groupValue = card.modifiedBy
+                }
+            } else if (Array.isArray(groupValue)) {
+                groupValue = groupValue[0]
             }
-        } else if (Array.isArray(groupValue)) {
-            groupValue = groupValue[0]
+            if (props.collapsedOptionIds.indexOf(groupValue) > -1) {
+                name += ' hidden'
+            }
         }
-        if (collapsedOptionIds.indexOf(groupValue) > -1) {
-            className += ' hidden'
+        if (props.readonly) {
+            name += ' readonly'
         }
-    }
-    if (props.readonly) {
-        className += ' readonly'
+        return name
     }
 
     const handleDeleteCard = async () => {
+        const card = props.card
         if (!card) {
             Utils.assertFailure()
             return
         }
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: board.id, card: card.id})
+        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: props.board.id, card: card.id})
         await mutator.deleteBlock(card, 'delete card')
     }
 
-    const confirmDialogProps: ConfirmationDialogBoxProps = (() => {
-        return {
-            heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
-            confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
-            onConfirm: handleDeleteCard,
-            onClose: () => {
-                setShowConfirmationDialogBox(false)
-            },
-        }
-    })()
+    const confirmDialogProps: ConfirmationDialogBoxProps = {
+        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
+        confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
+        onConfirm: handleDeleteCard,
+        onClose: () => {
+            setShowConfirmationDialogBox(false)
+        },
+    }
 
     const handleDeleteButtonOnClick = () => {
         // user trying to delete a card with blank name
         // but content present cannot be deleted without
         // confirmation dialog
-        if (card?.title === '' && card?.fields.contentOrder.length === 0) {
+        if (props.card?.title === '' && props.card?.fields.contentOrder.length === 0) {
             handleDeleteCard()
             return
         }
@@ -145,43 +149,66 @@ const TableRow = (props: Props) => {
 
     return (
         <div
-            class={className}
+            class={className()}
             onClick={onClick}
             ref={cardRef}
-            style={{opacity: isDragging ? 0.5 : 1}}
+            style={{opacity: isDragging() ? 0.5 : 1}}
         >
 
             <div class='action-cell octo-table-cell-btn'>
-                {!props.readonly && (
+                <Show when={!props.readonly}>
                     <IconButton icon={<CompassIcon icon='drag-vertical'/>}/>
-                )}
+                </Show>
             </div>
 
             {/* Name / title */}
             <div
                 class='octo-table-cell title-cell'
                 id='mainBoardHeader'
-                style={{width: columnResize.width(Constants.titleColumnId)}}
-                ref={(ref) => columnResize.updateRef(card.id, Constants.titleColumnId, ref)}
+                style={{width: `${columnResize.width(Constants.titleColumnId)}px`}}
+                ref={(ref) => columnResize.updateRef(props.card.id, Constants.titleColumnId, ref)}
             >
                 <div class='octo-icontitle'>
-                    <div class='octo-icon'>{card.fields.icon}</div>
+                    <div class='octo-icon'>{props.card.fields.icon}</div>
                     <Editable
-                        ref={titleRef}
-                        value={title}
+                        ref={(f) => (titleRef = f)}
+                        value={title()}
                         placeholderText='Untitled'
                         onChange={onTitleChange}
                         onSave={onSave}
-                        onCancel={() => setTitle(card.title || '')}
+                        onCancel={() => setTitle(props.card.title || '')}
                         readonly={props.readonly}
                         spellCheck={true}
                     />
                 </div>
 
-                {!props.readonly && (
+                <Show when={!props.readonly}>
                     <MenuWrapper
                         className='optionsMenu ml-2 mr-2'
                         stopPropagationOnToggle={true}
+                        menu={
+                            <CardActionsMenu
+                                cardId={props.card.id}
+                                boardId={props.card.boardId}
+                                onClickDelete={handleDeleteButtonOnClick}
+                                onClickDuplicate={() => {
+                                    mutator.duplicateCard(
+                                        props.card.id,
+                                        props.board.id,
+                                        false,
+                                        intl.formatMessage({id: 'TableRow.DuplicateCard', defaultMessage: 'duplicate card'}),
+                                        false,
+                                        {},
+                                        async (newCardId) => {
+                                            props.showCard(newCardId)
+                                        },
+                                        async () => {
+                                            props.showCard(undefined)
+                                        },
+                                    )
+                                }}
+                            />
+                        }
                     >
                         <Tooltip
                             title={intl.formatMessage({id: 'TableRow.MoreOption', defaultMessage: 'More actions'})}
@@ -191,29 +218,8 @@ const TableRow = (props: Props) => {
                                 icon={<OptionsIcon/>}
                             />
                         </Tooltip>
-                        <CardActionsMenu
-                            cardId={card.id}
-                            boardId={card.boardId}
-                            onClickDelete={handleDeleteButtonOnClick}
-                            onClickDuplicate={() => {
-                                mutator.duplicateCard(
-                                    card.id,
-                                    board.id,
-                                    false,
-                                    intl.formatMessage({id: 'TableRow.DuplicateCard', defaultMessage: 'duplicate card'}),
-                                    false,
-                                    {},
-                                    async (newCardId) => {
-                                        props.showCard(newCardId)
-                                    },
-                                    async () => {
-                                        props.showCard(undefined)
-                                    },
-                                )
-                            }}
-                        />
                     </MenuWrapper>
-                )}
+                </Show>
 
                 <div class='open-button'>
                     <Button onClick={() => props.showCard(props.card.id || '')}>
@@ -226,25 +232,27 @@ const TableRow = (props: Props) => {
             </div>
 
             {/* Columns, one per property */}
-            {visiblePropertyTemplates.map((template) => {
-                return (
+            <For each={visiblePropertyTemplates()}>
+                {(template) => (
                     <div
                         class='octo-table-cell'
-                        style={{width: columnResize.width(template.id)}}
-                        ref={(ref) => columnResize.updateRef(card.id, template.id, ref)}
+                        style={{width: `${columnResize.width(template.id)}px`}}
+                        ref={(ref) => columnResize.updateRef(props.card.id, template.id, ref)}
                     >
                         <PropertyValueElement
                             readOnly={props.readonly}
-                            card={card}
-                            board={board}
+                            card={props.card}
+                            board={props.board}
                             propertyTemplate={template}
                             showEmptyPlaceholder={false}
                         />
                     </div>
-                )
-            })}
+                )}
+            </For>
 
-            {showConfirmationDialogBox && <ConfirmationDialogBox dialogBox={confirmDialogProps}/>}
+            <Show when={showConfirmationDialogBox()}>
+                <ConfirmationDialogBox dialogBox={confirmDialogProps}/>
+            </Show>
         </div>
     )
 }

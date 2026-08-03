@@ -1,5 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import {Show} from 'solid-js'
 import type {JSX} from 'solid-js'
 
 import {Board, IPropertyTemplate} from '../../blocks/board'
@@ -33,7 +34,7 @@ type Props = {
 }
 
 const TableHeader = (props: Props): JSX.Element => {
-    const [isDragging, isOver, columnRef] = useSortable('column', props.template, !props.readonly, props.onDrop)
+    const [isDragging, isOver, columnRef] = useSortable('column', () => props.template, () => !props.readonly, (src, dst) => props.onDrop(src, dst))
 
     const columnResize = useColumnResize()
 
@@ -47,52 +48,60 @@ const TableHeader = (props: Props): JSX.Element => {
         props.onAutoSizeColumn(templateId, width)
     }
 
-    let className = 'octo-table-cell header-cell'
-    if (isOver) {
-        className += ' dragover'
+    const className = () => {
+        let name = 'octo-table-cell header-cell'
+        if (isOver()) {
+            name += ' dragover'
+        }
+        return name
     }
 
-    const templateId = props.template.id
+    const templateId = () => props.template.id
 
     return (
         <div
-            class={className}
+            class={className()}
             style={{
                 overflow: 'unset',
-                opacity: isDragging ? 0.5 : 1,
-                width: columnResize.width(templateId),
+                opacity: isDragging() ? 0.5 : 1,
+                width: `${columnResize.width(templateId())}px`,
             }}
             ref={(ref) => {
-                if (ref && templateId !== Constants.titleColumnId) {
-                    (columnRef as React.MutableRefObject<HTMLDivElement>).current = ref
+                // The title column is not draggable, but every column measures.
+                if (ref && templateId() !== Constants.titleColumnId) {
+                    columnRef(ref)
                 }
-                columnResize.updateRef(Constants.tableHeaderId, templateId, ref)
+                columnResize.updateRef(Constants.tableHeaderId, templateId(), ref)
             }}
         >
-            <MenuWrapper disabled={props.readonly}>
+            <MenuWrapper
+                disabled={props.readonly}
+                menu={
+                    <TableHeaderMenu
+                        board={props.board}
+                        activeView={props.activeView}
+                        views={props.views}
+                        cards={props.cards}
+                        templateId={templateId()}
+                    />
+                }
+            >
                 <Label>
                     {props.name}
-                    {props.sorted === 'up' && <SortUpIcon/>}
-                    {props.sorted === 'down' && <SortDownIcon/>}
+                    <Show when={props.sorted === 'up'}><SortUpIcon/></Show>
+                    <Show when={props.sorted === 'down'}><SortDownIcon/></Show>
                 </Label>
-                <TableHeaderMenu
-                    board={props.board}
-                    activeView={props.activeView}
-                    views={props.views}
-                    cards={props.cards}
-                    templateId={templateId}
-                />
             </MenuWrapper>
 
             <div class='octo-spacer'/>
 
-            {!props.readonly &&
+            <Show when={!props.readonly}>
                 <HorizontalGrip
-                    templateId={templateId}
-                    columnWidth={props.activeView.fields.columnWidths[templateId] || 0}
+                    templateId={templateId()}
+                    columnWidth={props.activeView.fields.columnWidths[templateId()] || 0}
                     onAutoSizeColumn={onAutoSizeColumn}
                 />
-            }
+            </Show>
         </div>
     )
 }

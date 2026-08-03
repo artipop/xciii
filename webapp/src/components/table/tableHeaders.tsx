@@ -1,5 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import {For} from 'solid-js'
 import type {JSX} from 'solid-js'
 
 import {FormattedMessage, useIntl} from '../../intl'
@@ -26,11 +27,11 @@ type Props = {
 }
 
 const TableHeaders = (props: Props): JSX.Element => {
-    const {board, cards, activeView, views} = props
     const intl = useIntl()
     const columnResize = useColumnResize()
 
     const onAutoSizeColumn = (columnID: string, headerWidth: number) => {
+        const {board, cards, activeView} = props
         let longestSize = headerWidth
         const visibleProperties = board.cardProperties.filter(() => activeView.fields.visiblePropertyIds.includes(columnID)) || []
         const columnRef = columnResize.cellRef(columnID)
@@ -88,20 +89,23 @@ const TableHeaders = (props: Props): JSX.Element => {
         mutator.updateBlock(board.id, newView, activeView, 'autosize column')
     }
 
-    const visiblePropertyTemplates = activeView.fields.visiblePropertyIds.map((id) => board.cardProperties.find((t) => t.id === id)).filter((i) => i) as IPropertyTemplate[]
+    const visiblePropertyTemplates = () =>
+        props.activeView.fields.visiblePropertyIds.map((id) => props.board.cardProperties.find((t) => t.id === id)).filter((i) => i) as IPropertyTemplate[]
 
     const onDropToColumn = async (template: IPropertyTemplate, container: IPropertyTemplate) => {
         Utils.log(`ondrop. Source column: ${template.name}, dest column: ${container.name}`)
 
         // Move template to new index
-        const destIndex = container ? activeView.fields.visiblePropertyIds.indexOf(container.id) : 0
-        await mutator.changeViewVisiblePropertiesOrder(board.id, activeView, template, destIndex >= 0 ? destIndex : 0)
+        const destIndex = container ? props.activeView.fields.visiblePropertyIds.indexOf(container.id) : 0
+        await mutator.changeViewVisiblePropertiesOrder(props.board.id, props.activeView, template, destIndex >= 0 ? destIndex : 0)
     }
 
-    const titleSortOption = activeView.fields.sortOptions?.find((o) => o.propertyId === Constants.titleColumnId)
-    let titleSorted: 'up' | 'down' | 'none' = 'none'
-    if (titleSortOption) {
-        titleSorted = titleSortOption.reversed ? 'down' : 'up'
+    const titleSorted = (): 'up' | 'down' | 'none' => {
+        const titleSortOption = props.activeView.fields.sortOptions?.find((o) => o.propertyId === Constants.titleColumnId)
+        if (titleSortOption) {
+            return titleSortOption.reversed ? 'down' : 'up'
+        }
+        return 'none'
     }
 
     return (
@@ -116,39 +120,43 @@ const TableHeaders = (props: Props): JSX.Element => {
                         defaultMessage='Name'
                     />
                 }
-                sorted={titleSorted}
+                sorted={titleSorted()}
                 readonly={props.readonly}
-                board={board}
-                activeView={activeView}
-                cards={cards}
-                views={views}
+                board={props.board}
+                activeView={props.activeView}
+                cards={props.cards}
+                views={props.views}
                 template={{id: Constants.titleColumnId, name: 'title', type: 'text', options: []}}
                 onDrop={onDropToColumn}
                 onAutoSizeColumn={onAutoSizeColumn}
             />
 
             {/* Table header row */}
-            {visiblePropertyTemplates.map((template) => {
-                let sorted: 'up' | 'down' | 'none' = 'none'
-                const sortOption = activeView.fields.sortOptions.find((o: ISortOption) => o.propertyId === template.id)
-                if (sortOption) {
-                    sorted = sortOption.reversed ? 'down' : 'up'
-                }
-                return (
-                    <TableHeader
-                        name={template.name}
-                        sorted={sorted}
-                        readonly={props.readonly}
-                        board={board}
-                        activeView={activeView}
-                        cards={cards}
-                        views={views}
-                        template={template}
-                        onDrop={onDropToColumn}
-                        onAutoSizeColumn={onAutoSizeColumn}
-                    />
-                )
-            })}
+            <For each={visiblePropertyTemplates()}>
+                {(template) => {
+                    const sorted = (): 'up' | 'down' | 'none' => {
+                        const sortOption = props.activeView.fields.sortOptions.find((o: ISortOption) => o.propertyId === template.id)
+                        if (sortOption) {
+                            return sortOption.reversed ? 'down' : 'up'
+                        }
+                        return 'none'
+                    }
+                    return (
+                        <TableHeader
+                            name={template.name}
+                            sorted={sorted()}
+                            readonly={props.readonly}
+                            board={props.board}
+                            activeView={props.activeView}
+                            cards={props.cards}
+                            views={props.views}
+                            template={template}
+                            onDrop={onDropToColumn}
+                            onAutoSizeColumn={onAutoSizeColumn}
+                        />
+                    )
+                }}
+            </For>
         </div>
     )
 }

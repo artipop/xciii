@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, useState, useEffect} from 'react'
+import {For, Show, createEffect, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
+
 import {FormattedMessage, useIntl} from '../../intl'
 
 import {Constants} from '../../constants'
@@ -36,122 +38,130 @@ type Props = {
 }
 
 const TableGroupHeaderRow = (props: Props): JSX.Element => {
-    const {board, activeView, group, groupByProperty} = props
-    const [groupTitle, setGroupTitle] = useState(group.option.value)
+    const [groupTitle, setGroupTitle] = createSignal(props.group.option.value)
 
-    const [isDragging, isOver, groupHeaderRef] = useSortable('groupHeader', group.option, !props.readonly, props.onDrop)
+    const [isDragging, isOver, groupHeaderRef] = useSortable('groupHeader', () => props.group.option, () => !props.readonly, (src: IPropertyOption, dst?: IPropertyOption) => props.onDrop(src, dst))
     const intl = useIntl()
     const columnResize = useColumnResize()
 
-    useEffect(() => {
-        setGroupTitle(group.option.value)
-    }, [group.option.value])
-    let className = 'octo-group-header-cell'
-    if (isOver) {
-        className += ' dragover'
-    }
-    if (activeView.fields.collapsedOptionIds.indexOf(group.option.id || 'undefined') < 0) {
-        className += ' expanded'
+    createEffect(() => {
+        setGroupTitle(props.group.option.value)
+    })
+
+    const className = () => {
+        let name = 'octo-group-header-cell'
+        if (isOver()) {
+            name += ' dragover'
+        }
+        if (props.activeView.fields.collapsedOptionIds.indexOf(props.group.option.id || 'undefined') < 0) {
+            name += ' expanded'
+        }
+        return name
     }
 
-    const canEditOption = groupByProperty?.type !== 'person' && group.option.id
+    const canEditOption = () => props.groupByProperty?.type !== 'person' && props.group.option.id
 
     return (
         <div
             ref={groupHeaderRef}
-            style={{opacity: isDragging ? 0.5 : 1}}
-            class={className}
+            style={{opacity: isDragging() ? 0.5 : 1}}
+            class={className()}
         >
             <div
                 class='octo-table-cell'
-                style={{width: columnResize.width(Constants.titleColumnId)}}
-                ref={(ref) => columnResize.updateRef(group.option.id, Constants.titleColumnId, ref)}
+                style={{width: `${columnResize.width(Constants.titleColumnId)}px`}}
+                ref={(ref) => columnResize.updateRef(props.group.option.id, Constants.titleColumnId, ref)}
             >
                 <IconButton
                     icon={
                         <CompassIcon
                             icon='menu-right'
                         />}
-                    onClick={() => (props.readonly ? {} : props.hideGroup(group.option.id || 'undefined'))}
+                    onClick={() => (props.readonly ? {} : props.hideGroup(props.group.option.id || 'undefined'))}
                     className={`octo-table-cell__expand ${props.readonly ? 'readonly' : ''}`}
                 />
 
-                {!group.option.id &&
+                <Show when={!props.group.option.id}>
                     <Label
                         title={intl.formatMessage({
                             id: 'BoardComponent.no-property-title',
                             defaultMessage: 'Items with an empty {property} property will go here. This column cannot be removed.',
-                        }, {property: groupByProperty?.name})}
+                        }, {property: props.groupByProperty?.name})}
                     >
                         <FormattedMessage
                             id='BoardComponent.no-property'
                             defaultMessage='No {property}'
                             values={{
-                                property: groupByProperty?.name,
+                                property: props.groupByProperty?.name,
                             }}
                         />
-                    </Label>}
-                {groupByProperty?.type === 'person' &&
+                    </Label>
+                </Show>
+                <Show when={props.groupByProperty?.type === 'person'}>
                     <Label>
-                        {groupTitle}
-                    </Label>}
-                {canEditOption &&
-                    <Label color={group.option.color}>
+                        {groupTitle()}
+                    </Label>
+                </Show>
+                <Show when={canEditOption()}>
+                    <Label color={props.group.option.color}>
                         <Editable
-                            value={groupTitle}
+                            value={groupTitle()}
                             placeholderText='New Select'
                             onChange={setGroupTitle}
                             onSave={() => {
-                                if (groupTitle.trim() === '') {
-                                    setGroupTitle(group.option.value)
+                                if (groupTitle().trim() === '') {
+                                    setGroupTitle(props.group.option.value)
                                 }
-                                props.propertyNameChanged(group.option, groupTitle)
+                                props.propertyNameChanged(props.group.option, groupTitle())
                             }}
                             onCancel={() => {
-                                setGroupTitle(group.option.value)
+                                setGroupTitle(props.group.option.value)
                             }}
-                            readonly={props.readonly || !group.option.id}
+                            readonly={props.readonly || !props.group.option.id}
                             spellCheck={true}
                         />
-                    </Label>}
+                    </Label>
+                </Show>
             </div>
-            <Button>{`${group.cards.length}`}</Button>
-            {!props.readonly &&
-                <>
-                    <MenuWrapper>
-                        <IconButton icon={<OptionsIcon/>}/>
+            <Button>{`${props.group.cards.length}`}</Button>
+            <Show when={!props.readonly}>
+                <MenuWrapper
+                    menu={
                         <Menu>
                             <Menu.Text
                                 id='hide'
                                 icon={<HideIcon/>}
                                 name={intl.formatMessage({id: 'BoardComponent.hide', defaultMessage: 'Hide'})}
-                                onClick={() => mutator.hideViewColumn(board.id, activeView, group.option.id || '')}
+                                onClick={() => mutator.hideViewColumn(props.board.id, props.activeView, props.group.option.id || '')}
                             />
-                            {canEditOption &&
-                                <>
-                                    <Menu.Text
-                                        id='delete'
-                                        icon={<DeleteIcon/>}
-                                        name={intl.formatMessage({id: 'BoardComponent.delete', defaultMessage: 'Delete'})}
-                                        onClick={() => mutator.deletePropertyOption(board.id, board.cardProperties, groupByProperty!, group.option)}
-                                    />
-                                    <Menu.Separator/>
-                                    {Object.entries(Constants.menuColors).map(([key, color]) => (
+                            <Show when={canEditOption()}>
+                                <Menu.Text
+                                    id='delete'
+                                    icon={<DeleteIcon/>}
+                                    name={intl.formatMessage({id: 'BoardComponent.delete', defaultMessage: 'Delete'})}
+                                    onClick={() => mutator.deletePropertyOption(props.board.id, props.board.cardProperties, props.groupByProperty!, props.group.option)}
+                                />
+                                <Menu.Separator/>
+                                <For each={Object.entries(Constants.menuColors)}>
+                                    {([key, color]) => (
                                         <Menu.Color
                                             id={key}
                                             name={color}
-                                            onClick={() => mutator.changePropertyOptionColor(board.id, board.cardProperties, groupByProperty!, group.option, key)}
+                                            onClick={() => mutator.changePropertyOptionColor(props.board.id, props.board.cardProperties, props.groupByProperty!, props.group.option, key)}
                                         />
-                                    ))}
-                                </>}
+                                    )}
+                                </For>
+                            </Show>
                         </Menu>
-                    </MenuWrapper>
-                    <IconButton
-                        icon={<AddIcon/>}
-                        onClick={() => props.addCard(group.option.id)}
-                    />
-                </>
-            }
+                    }
+                >
+                    <IconButton icon={<OptionsIcon/>}/>
+                </MenuWrapper>
+                <IconButton
+                    icon={<AddIcon/>}
+                    onClick={() => props.addCard(props.group.option.id)}
+                />
+            </Show>
         </div>
     )
 }
