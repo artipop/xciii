@@ -1,0 +1,86 @@
+.AcpTerminalPage {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #18181b;
+    color: #e4e4e7;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 12px;
+        flex: 0 0 auto;
+    }
+
+    &__title {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    &__agent {
+        font-weight: 600;
+    }
+
+    &__card {
+        opacity: 0.7;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+        min-width: 0;
+
+        code {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+            padding: 1px 6px;
+            max-width: 320px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    &__cwd {
+        opacity: 0.6;
+    }
+
+    &__status {
+        &--connecting {
+            opacity: 0.6;
+        }
+
+        &--live {
+            color: #4ade80;
+        }
+
+        &--closed {
+            color: #fbbf24;
+        }
+    }
+
+    &__error {
+        padding: 8px 12px;
+        background: rgba(248, 113, 113, 0.15);
+        color: #fca5a5;
+        flex: 0 0 auto;
+    }
+
+    // xterm measures the element it is opened in, so it needs a real size
+    // rather than one that depends on its own content.
+    &__screen {
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 4px 8px;
+    }
+}

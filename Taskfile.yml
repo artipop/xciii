@@ -46,7 +46,7 @@ tasks:
   dev:
     summary: Runs the application in development mode
     # Go edits rebuild and restart the app; the webapp watcher declared in
-    # build/config.yml rebuilds ../focalboard/webapp/pack, which a dev build (no `frontend`
+    # build/config.yml rebuilds webapp/pack, which a dev build (no `frontend`
     # tag) serves straight off disk.
     cmds:
       - wails3 dev -config ./build/config.yml

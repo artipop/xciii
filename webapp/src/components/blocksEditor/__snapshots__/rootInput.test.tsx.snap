@@ -1,0 +1,204 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/blocksEditor/rootInput should match Display snapshot 1`] = `
+<div>
+  <div
+    class="Combobox RootInput"
+  >
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="Combobox__live-region"
+      role="log"
+    />
+    <div
+      class="RootInput__control"
+    >
+      <div
+        class="RootInput__value-container"
+      >
+        <input
+          aria-controls="_r_0_"
+          aria-expanded="false"
+          autocomplete="off"
+          class="RootInput__input"
+          role="combobox"
+          type="text"
+          value="test-value"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/rootInput should match Input snapshot 1`] = `
+<div>
+  <div
+    class="Combobox RootInput"
+  >
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="Combobox__live-region"
+      role="log"
+    />
+    <div
+      class="RootInput__control"
+    >
+      <div
+        class="RootInput__value-container"
+      >
+        <input
+          aria-controls="_r_1_"
+          aria-expanded="false"
+          autocomplete="off"
+          class="RootInput__input"
+          role="combobox"
+          type="text"
+          value="test-value"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/blocksEditor/rootInput should match Input snapshot with menu open 1`] = `
+<div>
+  <div
+    class="Combobox RootInput"
+  >
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="Combobox__live-region"
+      role="log"
+    />
+    <div
+      class="RootInput__control"
+    >
+      <div
+        class="RootInput__value-container"
+      >
+        <div
+          class="RootInput__placeholder"
+        >
+          Introduce your text or your slash command
+        </div>
+        <input
+          aria-activedescendant="_r_2_-option-0"
+          aria-controls="_r_2_"
+          aria-expanded="true"
+          autocomplete="off"
+          class="RootInput__input"
+          role="combobox"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="Combobox__menu RootInput__menu "
+    >
+      <div
+        class="RootInput__menu-list"
+        id="_r_2_"
+        role="listbox"
+      >
+        <div
+          aria-selected="false"
+          class="RootInput__option RootInput__option--is-focused"
+          id="_r_2_-option-0"
+          role="option"
+        >
+          /title Creates a new Title block.
+        </div>
+        <div
+          aria-selected="false"
+          class="RootInput__option"
+          id="_r_2_-option-1"
+          role="option"
+        >
+          /subtitle Creates a new Sub title block.
+        </div>
+        <div
+          aria-selected="false"
+          class="RootInput__option"
+          id="_r_2_-option-2"
+          role="option"
+        >
+          /subsubtitle Creates a new Sub Sub title block.
+        </div>
+        <div
+          aria-selected="false"
+          class="RootInput__option"
+          id="_r_2_-option-3"
+          role="option"
+        >
+          /image Creates a new Image block.
+        </div>
+        <div
+          aria-selected="false"
+          class="RootInput__option"
+          id="_r_2_-option-4"
+          role="option"
+        >
+          /text Creates a new Text block.
+        </div>
+        <div
+          aria-selected="false"
+          class="RootInput__option"
+          id="_r_2_-option-5"
+          role="option"
+        >
+          /divider Creates a new Divider block.
+        </div>
+        <div
+          aria-selected="false"
+          class="RootInput__option"
+          id="_r_2_-option-6"
+          role="option"
+        >
+          /list-item Creates a new List item block.
+        </div>
+        <div
+          aria-selected="false"
+          class="RootInput__option"
+          id="_r_2_-option-7"
+          role="option"
+        >
+          /attachment Creates a new Attachment block.
+        </div>
+        <div
+          aria-selected="false"
+          class="RootInput__option"
+          id="_r_2_-option-8"
+          role="option"
+        >
+          /quote Creates a new Quote block.
+        </div>
+        <div
+          aria-selected="false"
+          class="RootInput__option"
+          id="_r_2_-option-9"
+          role="option"
+        >
+          /video Creates a new Video block.
+        </div>
+        <div
+          aria-selected="false"
+          class="RootInput__option"
+          id="_r_2_-option-10"
+          role="option"
+        >
+          /checkbox Creates a new Checkbox block.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

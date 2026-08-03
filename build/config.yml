@@ -41,6 +41,9 @@ dev_mode:
       - node_modules
       - pack
       - bin
+      # The webapp has its own watcher (below) and a dev build serves its pack
+      # off disk, so a TS edit must not trigger a Go rebuild and a restart.
+      - webapp
     file:
       - .DS_Store
       - .gitignore
@@ -55,8 +58,8 @@ dev_mode:
     - cmd: wails3 build DEV=true EXTRA_TAGS=json1,sqlite3
       type: blocking
     # The webapp is its own npm project: `vite build --watch` keeps
-    # ../focalboard/webapp/pack current, which is what a dev build serves off disk.
-    - cmd: cd ../focalboard/webapp && npm run watchdev
+    # webapp/pack current, which is what a dev build serves off disk.
+    - cmd: cd webapp && npm run watchdev
       type: background
     - cmd: wails3 task run EXTRA_TAGS=json1,sqlite3
       type: primary

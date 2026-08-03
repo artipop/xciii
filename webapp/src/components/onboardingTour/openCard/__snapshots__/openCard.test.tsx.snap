@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/onboardingTour/addComments/OpenCardTourStep after hover 1`] = `
+<div
+  aria-labelledby="_r_1_"
+  class="tutorial-tour-tip__box OpenCardTourStep"
+  role="dialog"
+  style="max-width: 320px;"
+>
+  <div
+    class="tutorial-tour-tip__arrow"
+    style="top: -6px;"
+  />
+  <div>
+    <div
+      class="tutorial-tour-tip__header"
+    >
+      <h4
+        class="tutorial-tour-tip__header__title"
+        id="_r_1_"
+      >
+        Open a card
+      </h4>
+      <button
+        class="IconButton tutorial-tour-tip__header__close size--small"
+        type="button"
+      >
+        <i
+          class="CompassIcon icon-close CloseIcon"
+        />
+      </button>
+    </div>
+    <div
+      class="tutorial-tour-tip__body"
+    >
+      Open a card to explore the powerful ways that Boards can help you organize your work.
+    </div>
+    <div
+      class="tutorial-tour-tip__footer"
+    >
+      <div
+        class="tutorial-tour-tip__footer-buttons"
+      >
+        <div
+          class="tutorial-tour-tip__circles-ctr"
+        />
+        <div
+          class="tutorial-tour-tip__btn-ctr"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/onboardingTour/addComments/OpenCardTourStep before hover 1`] = `
+<div>
+  <div
+    aria-expanded="true"
+    class="tutorial-tour-tip__pulsating-dot-ctr OpenCardTourStep"
+  >
+    <span
+      class="pulsating_dot"
+    />
+  </div>
+</div>
+`;

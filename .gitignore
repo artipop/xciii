@@ -1,8 +1,14 @@
 .task
 bin
-# The webapp bundle staged for go:embed (build:frontend copies webapp/pack here).
+# The webapp bundle go:embed compiles in — Vite's output, not a source tree.
 pack
 # `go build .` with no -o leaves a binary named after this directory.
 trixi
+# The webapp is its own npm project.
+node_modules
+coverage
+.eslintcache
+webapp/cypress/videos
+webapp/cypress/screenshots
 build/linux/appimage/build
 build/windows/nsis/MicrosoftEdgeWebview2Setup.exe

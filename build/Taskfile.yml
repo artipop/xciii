@@ -1,11 +1,11 @@
 version: '3'
 
 # Tasks shared by every platform. The frontend half differs from a stock Wails
-# project: there is no `frontend/` directory here. The frontend is the
-# Focalboard webapp (`../focalboard/webapp`, its own npm project, built with Vite), and it
-# is not served by the Wails asset server but by the in-process Focalboard
-# server behind proxy.go — so all the build has to do is produce `webapp/pack`
-# and stage a copy where go:embed can reach it.
+# project: the directory is `webapp/`, not `frontend/`. It is the Focalboard
+# webapp, its own npm project built with Vite, and it is not served by the Wails
+# asset server but by the in-process Focalboard server behind proxy.go — so all
+# the build has to do is produce `webapp/pack` and stage a copy at the module
+# root, where go:embed can reach it.
 #
 # There is no `generate:bindings` either: the webapp calls bound methods by
 # name (main.App.*) through the shim in proxy.go, exactly as the v2 build's
@@ -22,28 +22,27 @@ tasks:
       - go mod tidy
 
   build:frontend:
-    summary: Builds the Focalboard webapp and stages it for go:embed
+    summary: Builds the Focalboard webapp for go:embed
     # Every platform build depends on this; `run: once` keeps a universal
     # (multi-arch) build from running two npm builds over the same output.
     run: once
     sources:
-      - ../focalboard/webapp/src/**/*
-      - ../focalboard/webapp/static/**/*
-      - ../focalboard/webapp/index.html
-      - ../focalboard/webapp/package.json
-      - ../focalboard/webapp/package-lock.json
-      - ../focalboard/webapp/vite.config.mjs
+      - webapp/src/**/*
+      - webapp/static/**/*
+      - webapp/index.html
+      - webapp/package.json
+      - webapp/package-lock.json
+      - webapp/vite.config.mjs
     generates:
-      - pack/**/*
+      - webapp/pack/**/*
     preconditions:
-      - sh: test -d ../focalboard/webapp/node_modules
-        msg: "webapp dependencies are missing. Run `make prebuild` in the repo root first."
+      - sh: test -d webapp/node_modules
+        msg: "webapp dependencies are missing. Run `npm ci` in webapp/ first."
     cmds:
-      - cd ../focalboard/webapp && npm run pack
-      # go:embed cannot reach outside the module, hence the copy rather than a
-      # path. Removing first keeps a renamed asset from surviving a rebuild.
-      - rm -rf pack
-      - cp -R ../focalboard/webapp/pack pack
+      # Removing first keeps a renamed asset from surviving a rebuild; the
+      # bundle is embedded from where Vite writes it, no staging copy.
+      - rm -rf webapp/pack
+      - cd webapp && npm run pack
 
   generate:icons:
     summary: Generates Windows `.ico` and Mac `.icns` from an image; on macOS, `-iconcomposerinput appicon.icon -macassetdir darwin` also produces `Assets.car` from a `.icon` file (skipped on other platforms).

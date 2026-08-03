@@ -1,0 +1,106 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/calculations/Options should match snapshot 1`] = `
+<div>
+  <div
+    class="Combobox CalculationOptions"
+  >
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="Combobox__live-region"
+      role="log"
+    />
+    <div
+      class="CalculationOptions__control"
+    >
+      <div
+        class="CalculationOptions__value-container"
+      >
+        <div
+          class="CalculationOptions__single-value"
+        >
+          Calculate
+        </div>
+        <input
+          aria-controls="_r_0_"
+          aria-expanded="false"
+          autocomplete="off"
+          class="CalculationOptions__input"
+          readonly=""
+          role="combobox"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/calculations/Options should match snapshot menu open 1`] = `
+<div>
+  <div
+    class="Combobox CalculationOptions"
+  >
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="Combobox__live-region"
+      role="log"
+    />
+    <div
+      class="CalculationOptions__control"
+    >
+      <div
+        class="CalculationOptions__value-container"
+      >
+        <div
+          class="CalculationOptions__single-value"
+        >
+          Calculate
+        </div>
+        <input
+          aria-activedescendant="_r_1_-option-0"
+          aria-controls="_r_1_"
+          aria-expanded="true"
+          autocomplete="off"
+          class="CalculationOptions__input"
+          readonly=""
+          role="combobox"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="Combobox__menu CalculationOptions__menu "
+    >
+      <div
+        class="CalculationOptions__menu-list"
+        id="_r_1_"
+        role="listbox"
+      >
+        <div
+          aria-selected="false"
+          class="CalculationOptions__option CalculationOptions__option--is-focused"
+          id="_r_1_-option-0"
+          role="option"
+        >
+          Count
+        </div>
+        <div
+          aria-selected="false"
+          class="CalculationOptions__option"
+          id="_r_1_-option-1"
+          role="option"
+        >
+          Max
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,158 @@
+{
+	"name": "focalboard",
+	"version": "8.0.0",
+	"private": true,
+	"description": "",
+	"engines": {
+		"node": ">=24 <25",
+		"npm": ">=11 <12"
+	},
+	"scripts": {
+		"pack": "vite build",
+		"packdev": "vite build --mode development",
+		"watchdev": "vite build --mode development --watch",
+		"dev": "vite",
+		"deveditor": "vite --open /editor.html",
+		"test": "jest",
+		"updatesnapshot": "jest --updateSnapshot",
+		"check": "eslint . --quiet --cache && stylelint **/*.scss",
+		"fix": "eslint . --quiet --fix --cache && stylelint --fix **/*.scss",
+		"fix:scss": "prettier --write './src/**/*.scss'",
+		"i18n-extract": "formatjs extract \"src/**/*.{ts,tsx}\" --ignore \"**/*.d.ts\" \"../**/*.d.ts\" --out-file i18n/tmp.json && formatjs compile i18n/tmp.json --out-file i18n/en.json && node -e \"require('fs').rmSync('i18n/tmp.json', {force: true})\"",
+		"runserver-test": "cd cypress && \"../../bin/focalboard-server\"",
+		"cypress:ci": "start-server-and-test runserver-test http://localhost:8088 cypress:run",
+		"cypress:debug": "start-server-and-test runserver-test http://localhost:8088 cypress:open",
+		"cypress:run": "cypress run",
+		"cypress:run:chrome": "cypress run --browser chrome",
+		"cypress:run:firefox": "cypress run --browser firefox",
+		"cypress:run:edge": "cypress run --browser edge",
+		"cypress:run:electron": "cypress run --browser electron",
+		"cypress:open": "cypress open"
+	},
+	"dependencies": {
+		"@dnd-kit/collision": "^0.5.0",
+		"@dnd-kit/dom": "^0.5.0",
+		"@dnd-kit/helpers": "^0.5.0",
+		"@dnd-kit/react": "^0.5.0",
+		"@emoji-mart/data": "^1.2.1",
+		"@floating-ui/dom": "^1.8.0",
+		"@fullcalendar/core": "^6.1.21",
+		"@fullcalendar/daygrid": "^6.1.21",
+		"@fullcalendar/interaction": "^6.1.21",
+		"@fullcalendar/react": "^6.1.21",
+		"@lexical/history": "0.49.0",
+		"@lexical/plain-text": "0.49.0",
+		"@lexical/react": "0.49.0",
+		"@lexical/selection": "0.49.0",
+		"@lexical/text": "0.49.0",
+		"@lexical/utils": "0.49.0",
+		"@mattermost/compass-icons": "^0.1.39",
+		"@reduxjs/toolkit": "^2.12.0",
+		"@xterm/addon-fit": "^0.10.0",
+		"@xterm/xterm": "^5.5.0",
+		"@xyflow/react": "^12.11.2",
+		"classnames": "^2.5.1",
+		"color": "^4.2.1",
+		"emoji-mart": "^5.6.0",
+		"fullcalendar": "^6.1.21",
+		"lexical": "0.49.0",
+		"lodash": "^4.17.21",
+		"marked": "^4.0.12",
+		"moment": "^2.29.1",
+		"nanoevents": "^5.1.13",
+		"react": "19.2.8",
+		"react-dom": "19.2.8",
+		"react-intl": "^10.1.19",
+		"react-redux": "^9.3.0",
+		"react-router-dom": "^5.2.0",
+		"redux": "^5.0.1"
+	},
+	"overrides": {
+		"react-error-boundary": "^4.1.2",
+		"babel-plugin-istanbul": "^8.0.0"
+	},
+	"jest": {
+		"setupFiles": [
+			"<rootDir>/src/test/jsdomPolyfills.ts"
+		],
+		"moduleNameMapper": {
+			"\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
+			"\\.(scss|css)$": "<rootDir>/__mocks__/styleMock.js"
+		},
+		"transform": {
+			"^.+\\.[jt]sx?$": "@swc/jest"
+		},
+		"transformIgnorePatterns": [
+			"/node_modules/(?!(react-intl|@formatjs|intl-messageformat|intl-messageformat-parser|@dnd-kit|preact|@preact|emoji-mart)/)",
+			"/nanoevents/"
+		],
+		"maxWorkers": "50%",
+		"testEnvironment": "jsdom",
+		"collectCoverage": true,
+		"collectCoverageFrom": [
+			"src/**/*.{ts,tsx,js,jsx}",
+			"!src/test/**"
+		],
+		"setupFilesAfterEnv": [
+			"<rootDir>/src/test/dndKitSnapshotSerializer.ts"
+		]
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.39.5",
+		"@formatjs/cli": "^6.16.15",
+		"@formatjs/unplugin": "^1.2.3",
+		"@stylistic/eslint-plugin": "^5.10.0",
+		"@swc/core": "^1.2.210",
+		"@swc/jest": "^0.2.20",
+		"@testing-library/cypress": "^10.0.3",
+		"@testing-library/dom": "^10.4.1",
+		"@testing-library/jest-dom": "^7.0.0",
+		"@testing-library/react": "^16.3.2",
+		"@testing-library/user-event": "^13.5.0",
+		"@types/color": "^3.0.3",
+		"@types/jest": "^30.0.0",
+		"@types/lodash": "4.14.182",
+		"@types/marked": "^4.0.3",
+		"@types/react": "^19.2.18",
+		"@types/react-dom": "^19.2.4",
+		"@types/react-router-dom": "^5.3.3",
+		"@types/redux-mock-store": "^1.0.3",
+		"@typescript-eslint/eslint-plugin": "^8.65.0",
+		"@typescript-eslint/parser": "^8.65.0",
+		"@vitejs/plugin-react": "^5.2.0",
+		"babel-plugin-react-compiler": "^1.0.0",
+		"cypress-failed-log": "^2.9.5",
+		"cypress-real-events": "^1.7.0",
+		"eslint": "^9.39.5",
+		"eslint-plugin-cypress": "^6.4.3",
+		"eslint-plugin-header": "3.1.1",
+		"eslint-plugin-import": "^2.32.0",
+		"eslint-plugin-no-only-tests": "^3.4.0",
+		"eslint-plugin-react": "^7.37.5",
+		"eslint-plugin-react-hooks": "^7.1.1",
+		"globals": "^17.8.0",
+		"isomorphic-fetch": "^3.0.0",
+		"jest": "^30.4.2",
+		"jest-environment-jsdom": "^30.4.1",
+		"jest-mock": "^30.4.1",
+		"prettier": "^2.6.1",
+		"redux-mock-store": "^1.5.4",
+		"sass": "^1.102.0",
+		"start-server-and-test": "^3.0.11",
+		"stylelint": "^17.14.1",
+		"stylelint-config-sass-guidelines": "^13.0.0",
+		"typescript": "^5.9.3",
+		"vite": "^7.3.6"
+	},
+	"optionalDependencies": {
+		"cypress": "^15.4.0"
+	},
+	"allowScripts": {
+		"@parcel/watcher": false,
+		"@swc/core": false,
+		"cypress": true,
+		"esbuild": false,
+		"fsevents": false,
+		"unrs-resolver": false
+	}
+}

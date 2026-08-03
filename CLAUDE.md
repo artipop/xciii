@@ -12,30 +12,33 @@ Go module built with **Wails v3**, with the Focalboard server running **in-proce
 and the same code builds a headless server (`-tags server`) that serves the board to
 a browser instead of a webview.
 
-The board itself is not here. **Focalboard is a checkout beside this one**
-(`../focalboard`): `go.mod` `replace`s the server module to `../focalboard/server`,
-and the build takes the frontend from `../focalboard/webapp`. Nothing in this
-repository edits either — see `docs/plan.md` for how that should end up.
+The frontend is here: `webapp/` is the Focalboard webapp, its own npm project
+built with Vite, copied in from the `experiments` branch of the Focalboard
+checkout. The **server** is still not — `go.mod` `replace`s that module to
+`../focalboard/server`, so a checkout beside this one is what a build still
+needs. See `docs/plan.md` for how that should end up.
 
-Everything of ours in the webapp was removed from Focalboard when this repository
-was split off. What the page still needs from us is described in README.md, "What
-this app requires of the frontend": the output layout `go:embed` expects, and three
+What the page needs from the Go side is described in README.md, "What this app
+requires of the frontend": the output layout `go:embed` expects, and three
 globals the page consumes, each feature-detected because the same bundle also runs
 in a browser and as a Mattermost plugin.
 
 ## Build & run
 
 - `wails3 dev` — the dev loop: Go edits rebuild and restart, and the webapp watcher
-  declared in `build/config.yml` keeps `../focalboard/webapp/pack` current, which a
+  declared in `build/config.yml` keeps `webapp/pack` current, which a
   dev build (no `frontend` tag) serves off disk. Needs the webapp's dependencies —
-  `npm ci` in `../focalboard/webapp` once.
+  `npm ci` in `webapp/` once.
 - `wails3 task build` — the binary for this platform. `wails3 task package` — the
   `.app`/installer. `darwin:package:dmg`, `windows:package`, `linux:package` for the
   rest. `wails3 task build:server` — the headless build.
 - Build tags travel as `EXTRA_TAGS`, defaulting to `json1,sqlite3,frontend`
-  (cgo SQLite plus the `go:embed` of the staged webapp bundle). Linux adds `gtk3`.
+  (cgo SQLite plus the `go:embed` of `webapp/pack`). Linux adds `gtk3`.
 - `go test ./...` — the whole suite. `go vet -tags "server json1 sqlite3" .` checks
-  the headless build, which has its own files.
+  the headless build, which has its own files. `./...` also walks
+  `webapp/node_modules`, where an npm package happens to ship Go sources; that is
+  cosmetic, and a nested `go.mod` would not fix it — `go:embed` cannot cross a
+  module boundary, and `webapp/pack` is what it embeds.
 
 Builds are native per platform; cgo SQLite does not cross-compile with the host
 toolchain. `wails3 task setup:docker` builds the image that can, for binaries — the
@@ -118,7 +121,7 @@ same worktree with `claude --continue`.
 - **Tests describe behaviour, not implementation.** The test name is a sentence
   about the product; the comment above it says why that behaviour matters.
 - Russian in user-facing strings and product docs, English in code, comments and
-  commit messages. `webapp/i18n/ru.json` in the Focalboard checkout carries the
+  commit messages. `webapp/i18n/ru.json` carries the
   translations; defaults in components stay English.
 - Commit messages: a plain subject line saying what changed, and a body saying why —
   the reasoning, the alternative that was rejected, what was verified. No emoji.

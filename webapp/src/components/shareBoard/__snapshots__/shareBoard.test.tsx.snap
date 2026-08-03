@@ -1,0 +1,3195 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy link 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-controls="_r_2_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-container"
+        >
+          <button
+            class="tab-item tab-item--active"
+          >
+            Share
+          </button>
+          <button
+            class="tab-item false"
+          >
+            Publish
+          </button>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy link 2`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-controls="_r_2_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-container"
+        >
+          <button
+            class="tab-item tab-item--active"
+          >
+            Share
+          </button>
+          <button
+            class="tab-item false"
+          >
+            Publish
+          </button>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copied!
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoard and click Regenerate token 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-controls="_r_3_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-container"
+        >
+          <button
+            class="tab-item false"
+          >
+            Share
+          </button>
+          <button
+            class="tab-item tab-item--active"
+          >
+            Publish
+          </button>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Publish to the web
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Publish and share a read-only link with everyone on the web.
+                </div>
+              </div>
+              <div>
+                <div
+                  class="Switch override-main size--medium on"
+                >
+                  <div
+                    class="octo-switch-inner"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/shared/1/1?r=anotherToken"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/shared/1/1?r=anotherToken
+              </a>
+              <div
+                class="octo-tooltip tooltip-top"
+                data-tooltip="Regenerate token"
+              >
+                <button
+                  aria-label="Regenerate token"
+                  title="Regenerate token"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-refresh"
+                  />
+                </button>
+              </div>
+            </div>
+            <button
+              title="Copy public link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoard and click Select 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-controls="_r_7_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoard and click Select 2`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-activedescendant="_r_7_-option-0"
+                    aria-controls="_r_7_"
+                    aria-expanded="true"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                class="Combobox__menu userSearchInput__menu is-positioned"
+                style="min-width: 0px; max-height: -16px; transform: translate(8px, 4px);"
+              >
+                <div
+                  class="userSearchInput__menu-list"
+                  id="_r_7_"
+                  role="listbox"
+                >
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option userSearchInput__option--is-focused"
+                    id="_r_7_-option-0"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_1
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_1
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option"
+                    id="_r_7_-option-1"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_2
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_2
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option"
+                    id="_r_7_-option-2"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_3
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_3
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option"
+                    id="_r_7_-option-3"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_4
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_4
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoard and click Select, non-plugin mode 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-controls="_r_8_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoard and click Select, non-plugin mode 2`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-activedescendant="_r_8_-option-0"
+                    aria-controls="_r_8_"
+                    aria-expanded="true"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                class="Combobox__menu userSearchInput__menu is-positioned"
+                style="min-width: 0px; max-height: -16px; transform: translate(8px, 4px);"
+              >
+                <div
+                  class="userSearchInput__menu-list"
+                  id="_r_8_"
+                  role="listbox"
+                >
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option userSearchInput__option--is-focused"
+                    id="_r_8_-option-0"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_1
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_1
+                        </strong>
+                        <div
+                          class="AdminBadge"
+                        >
+                          <div
+                            class="AdminBadge__box"
+                          >
+                            Team Admin
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option"
+                    id="_r_8_-option-1"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_2
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_2
+                        </strong>
+                        <div
+                          class="AdminBadge"
+                        >
+                          <div
+                            class="AdminBadge__box"
+                          >
+                            Admin
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option"
+                    id="_r_8_-option-2"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_3
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_3
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option"
+                    id="_r_8_-option-3"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_4
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_4
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoard template and click Select 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Template
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people
+                  </div>
+                  <input
+                    aria-controls="_r_a_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoard template and click Select 2`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Template
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people
+                  </div>
+                  <input
+                    aria-activedescendant="_r_a_-option-0"
+                    aria-controls="_r_a_"
+                    aria-expanded="true"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
+                class="Combobox__menu userSearchInput__menu is-positioned"
+                style="min-width: 0px; max-height: -16px; transform: translate(8px, 4px);"
+              >
+                <div
+                  class="userSearchInput__menu-list"
+                  id="_r_a_"
+                  role="listbox"
+                >
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option userSearchInput__option--is-focused"
+                    id="_r_a_-option-0"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_1
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_1
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option"
+                    id="_r_a_-option-1"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_2
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_2
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option"
+                    id="_r_a_-option-2"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_3
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_3
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    aria-selected="false"
+                    class="userSearchInput__option"
+                    id="_r_a_-option-3"
+                    role="option"
+                  >
+                    <div
+                      class="user-item"
+                    >
+                      <div
+                        class="ml-3"
+                      >
+                        <strong>
+                          username_4
+                        </strong>
+                        <strong
+                          class="ml-2 text-light"
+                        >
+                          @username_4
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoard, and click switch 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-controls="_r_4_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-container"
+        >
+          <button
+            class="tab-item false"
+          >
+            Share
+          </button>
+          <button
+            class="tab-item tab-item--active"
+          >
+            Publish
+          </button>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Publish to the web
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Publish and share a read-only link with everyone on the web.
+                </div>
+              </div>
+              <div>
+                <div
+                  class="Switch override-main size--medium on"
+                >
+                  <div
+                    class="octo-switch-inner"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/shared/1/1?r=oneToken"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/shared/1/1?r=oneToken
+              </a>
+              <div
+                class="octo-tooltip tooltip-top"
+                data-tooltip="Regenerate token"
+              >
+                <button
+                  aria-label="Regenerate token"
+                  title="Regenerate token"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-refresh"
+                  />
+                </button>
+              </div>
+            </div>
+            <button
+              title="Copy public link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard return shareBoardComponent and click Switch without sharing 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="userSearchInput css-b62m3t-container"
+            >
+              <span
+                class="css-1f43avz-a11yText-A11yText"
+                id="react-select-7-live-region"
+              />
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="css-1f43avz-a11yText-A11yText"
+                role="log"
+              />
+              <div
+                class="css-1lxuy2a"
+              >
+                <div
+                  class="css-1neafsd"
+                >
+                  <div
+                    class="css-1jqq78o-placeholder"
+                    id="react-select-7-placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <div
+                    class="css-ehy5hl"
+                    data-value=""
+                  >
+                    <input
+                      aria-activedescendant=""
+                      aria-autocomplete="list"
+                      aria-describedby="react-select-7-placeholder"
+                      aria-expanded="false"
+                      aria-haspopup="true"
+                      autocapitalize="none"
+                      autocomplete="off"
+                      autocorrect="off"
+                      class=""
+                      id="react-select-7-input"
+                      role="combobox"
+                      spellcheck="false"
+                      style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                      tabindex="0"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+                <div
+                  class="css-1wy0on6"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-container"
+        >
+          <button
+            class="tab-item false"
+          >
+            Share
+          </button>
+          <button
+            class="tab-item tab-item--active"
+          >
+            Publish
+          </button>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Publish to the web
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Publish and share a read-only link with everyone on the web.
+                </div>
+              </div>
+              <div>
+                <div
+                  class="Switch override-main size--medium on"
+                >
+                  <div
+                    class="octo-switch-inner"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/shared/1/1?r=aToken"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/shared/1/1?r=aToken
+              </a>
+              <div
+                class="octo-tooltip tooltip-top"
+                data-tooltip="Regenerate token"
+              >
+                <button
+                  aria-label="Regenerate token"
+                  title="Regenerate token"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-refresh"
+                  />
+                </button>
+              </div>
+            </div>
+            <button
+              title="Copy public link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard should match snapshot 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-controls="_r_0_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-container"
+        >
+          <button
+            class="tab-item tab-item--active"
+          >
+            Share
+          </button>
+          <button
+            class="tab-item false"
+          >
+            Publish
+          </button>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard should match snapshot with sharing 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-controls="_r_1_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-container"
+        >
+          <button
+            class="tab-item tab-item--active"
+          >
+            Share
+          </button>
+          <button
+            class="tab-item false"
+          >
+            Publish
+          </button>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard should match snapshot with sharing and subpath 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-controls="_r_6_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-container"
+        >
+          <button
+            class="tab-item tab-item--active"
+          >
+            Share
+          </button>
+          <button
+            class="tab-item false"
+          >
+            Publish
+          </button>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/test-subpath/plugins/boards1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/test-subpath/plugins/boards1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard should match snapshot with sharing and without workspaceId and subpath 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Board
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people and channels
+                  </div>
+                  <input
+                    aria-controls="_r_5_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="tabs-container"
+        >
+          <button
+            class="tab-item tab-item--active"
+          >
+            Share
+          </button>
+          <button
+            class="tab-item false"
+          >
+            Publish
+          </button>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/test-subpath/plugins/boards1/1"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/test-subpath/plugins/boards1/1
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`src/components/shareBoard/shareBoard should match snapshot, with template 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back ShareBoardDialog size--medium"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            >
+              Share Template
+            </h1>
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="share-input__container"
+        >
+          <div
+            class="share-input"
+          >
+            <i
+              class="CompassIcon icon-magnify MagnifyIcon"
+            />
+            <div
+              class="Combobox userSearchInput"
+            >
+              <span
+                aria-atomic="false"
+                aria-live="polite"
+                aria-relevant="additions text"
+                class="Combobox__live-region"
+                role="log"
+              />
+              <div
+                class="userSearchInput__control"
+              >
+                <div
+                  class="userSearchInput__value-container"
+                >
+                  <div
+                    class="userSearchInput__placeholder"
+                  >
+                    Search for people
+                  </div>
+                  <input
+                    aria-controls="_r_9_"
+                    aria-expanded="false"
+                    autocomplete="off"
+                    class="userSearchInput__input"
+                    role="combobox"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="user-items"
+        >
+          <div
+            class="user-item"
+          >
+            <div
+              class="user-item__content"
+            >
+              <div
+                class="ml-3"
+              >
+                <strong>
+                  Everyone at Test Team Team
+                </strong>
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="user-item__button"
+                >
+                  None
+                  <i
+                    class="CompassIcon icon-chevron-down CompassIcon"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

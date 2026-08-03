@@ -1,0 +1,232 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`properties/person not readOnly not existing user 1`] = `
+<div>
+  <div
+    class="Combobox Person octo-propertyvalue"
+  >
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="Combobox__live-region"
+      role="log"
+    />
+    <div
+      class="react-select__control"
+    >
+      <div
+        class="react-select__value-container"
+      >
+        <div
+          class="react-select__placeholder"
+        >
+          Empty
+        </div>
+        <input
+          aria-controls="_r_0_"
+          aria-expanded="false"
+          autocomplete="off"
+          class="react-select__input"
+          role="combobox"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`properties/person not readonly 1`] = `
+<div>
+  <div
+    class="Combobox Person octo-propertyvalue"
+  >
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="Combobox__live-region"
+      role="log"
+    />
+    <div
+      class="react-select__control"
+    >
+      <div
+        class="react-select__value-container"
+      >
+        <div
+          class="react-select__single-value"
+        >
+          <div
+            class="Person-item"
+          >
+            username-1
+          </div>
+        </div>
+        <input
+          aria-controls="_r_1_"
+          aria-expanded="false"
+          autocomplete="off"
+          class="react-select__input"
+          role="combobox"
+          type="text"
+          value=""
+        />
+      </div>
+      <div
+        class="react-select__clear-indicator"
+        role="button"
+        tabindex="-1"
+      >
+        ×
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`properties/person not readonly guest user 1`] = `
+<div>
+  <div
+    class="Combobox Person octo-propertyvalue"
+  >
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="Combobox__live-region"
+      role="log"
+    />
+    <div
+      class="react-select__control"
+    >
+      <div
+        class="react-select__value-container"
+      >
+        <div
+          class="react-select__single-value"
+        >
+          <div
+            class="Person-item"
+          >
+            username-1
+            <div
+              class="GuestBadge"
+            >
+              <div
+                class="GuestBadge__box"
+              >
+                Guest
+              </div>
+            </div>
+          </div>
+        </div>
+        <input
+          aria-controls="_r_2_"
+          aria-expanded="false"
+          autocomplete="off"
+          class="react-select__input"
+          role="combobox"
+          type="text"
+          value=""
+        />
+      </div>
+      <div
+        class="react-select__clear-indicator"
+        role="button"
+        tabindex="-1"
+      >
+        ×
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`properties/person readonly view 1`] = `
+<div>
+  <div
+    class="Person octo-propertyvalue octo-propertyvalue--readonly"
+  >
+    <div
+      class="Person-item"
+    >
+      username-1
+    </div>
+  </div>
+</div>
+`;
+
+exports[`properties/person user dropdown open 1`] = `
+<div>
+  <div
+    class="Combobox Person octo-propertyvalue"
+  >
+    <span
+      aria-atomic="false"
+      aria-live="polite"
+      aria-relevant="additions text"
+      class="Combobox__live-region"
+      role="log"
+    />
+    <div
+      class="react-select__control"
+    >
+      <div
+        class="react-select__value-container"
+      >
+        <div
+          class="react-select__single-value"
+        >
+          <div
+            class="Person-item"
+          >
+            username-1
+          </div>
+        </div>
+        <input
+          aria-activedescendant="_r_3_-option-0"
+          aria-controls="_r_3_"
+          aria-expanded="true"
+          autocomplete="off"
+          class="react-select__input"
+          role="combobox"
+          type="text"
+          value=""
+        />
+      </div>
+      <div
+        class="react-select__clear-indicator"
+        role="button"
+        tabindex="-1"
+      >
+        ×
+      </div>
+    </div>
+    <div
+      class="Combobox__menu react-select__menu "
+    >
+      <div
+        class="react-select__menu-list"
+        id="_r_3_"
+        role="listbox"
+      >
+        <div
+          aria-selected="true"
+          class="react-select__option react-select__option--is-focused react-select__option--is-selected"
+          id="_r_3_-option-0"
+          role="option"
+        >
+          <div
+            class="Person-item"
+          >
+            username-1
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

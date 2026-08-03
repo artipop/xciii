@@ -1,0 +1,68 @@
+.CardAgent {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 0;
+
+    &__row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__title {
+        font-weight: 600;
+    }
+
+    &__status {
+        font-size: 12px;
+        padding: 1px 8px;
+        border-radius: 10px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+
+        &--running,
+        &--queued {
+            background: rgba(var(--button-bg-rgb), 0.16);
+        }
+
+        &--failed {
+            background: rgba(var(--error-text-color-rgb), 0.16);
+        }
+    }
+
+    &__actions {
+        display: flex;
+        gap: 8px;
+        margin-left: auto;
+    }
+
+    &__branch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+    }
+
+    &__branchName {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 3px;
+        padding: 1px 6px;
+    }
+
+    &__deployStatus {
+        opacity: 0.7;
+    }
+
+    &__error {
+        color: rgba(var(--error-text-color-rgb), 1);
+        font-size: 12px;
+        white-space: pre-wrap;
+    }
+
+    &__repoPicker {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+}

@@ -112,9 +112,8 @@ func extractFrontend(src fs.FS) (string, error) {
 }
 
 // diskWebPath resolves the webapp `pack` for dev/unpackaged runs: the bundle
-// next to the executable, else `pack` (staged here) or the sibling
-// `../focalboard/webapp/pack`
-// relative to the working dir (`wails dev` runs from the desktop/ module dir).
+// next to the executable, else `webapp/pack` relative to the working dir
+// (`wails dev` runs from the module root).
 func diskWebPath() string {
 	if executable, err := os.Executable(); err == nil {
 		executableDir, err := filepath.EvalSymlinks(filepath.Dir(executable))
@@ -125,14 +124,10 @@ func diskWebPath() string {
 			return next
 		}
 	}
-	// ../focalboard/webapp/pack exists only in a source checkout, and there it is the
-	// bundle the dev watcher keeps rebuilding — so it wins over ./pack, which
-	// in that layout is desktop/pack: a copy staged by an earlier release build
-	// that would otherwise shadow it and serve a stale frontend for good.
-	for _, cand := range []string{filepath.Join("..", "focalboard", "webapp", "pack"), "pack"} {
-		if dirExists(cand) {
-			return cand
-		}
+	// webapp/pack exists only in a source checkout, and there it is the bundle
+	// the dev watcher keeps rebuilding — the same one a release build embeds.
+	if cand := filepath.Join("webapp", "pack"); dirExists(cand) {
+		return cand
 	}
 	return "./pack"
 }

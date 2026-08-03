@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "jsx": "react",
+        "target": "es2019",
+        "module": "esnext",
+        "isolatedModules": true,
+        "noEmit": true,
+        "esModuleInterop": true,
+        "noImplicitAny": true,
+        "strict": true,
+        "strictNullChecks": true,
+        "forceConsistentCasingInFileNames": true,
+        "sourceMap": true,
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "incremental": false,
+        "skipLibCheck": true,
+        "baseUrl": "src",
+        "outDir": "./dist",
+        "moduleResolution": "bundler",
+    },
+    "include": [
+        "."
+    ],
+    "exclude": [
+        ".git",
+        "**/node_modules/*",
+        "dist",
+        "pack"
+    ]
+}

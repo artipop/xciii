@@ -1,0 +1,213 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/calculations/Calculation should match snapshot - count 1`] = `
+<div>
+  <div
+    class="Calculation count fooClass  hovered"
+    style="width: 100px;"
+    tabindex="0"
+  >
+    <span
+      class="calculationLabel"
+    >
+      Count
+    </span>
+    <span
+      class="calculationValue"
+    >
+      2
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/calculations/Calculation should match snapshot - countUniqueValue 1`] = `
+<div>
+  <div
+    class="Calculation countUniqueValue fooClass  hovered"
+    style="width: 100px;"
+    tabindex="0"
+  >
+    <span
+      class="calculationLabel"
+    >
+      Unique
+    </span>
+    <span
+      class="calculationValue"
+    >
+      1
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/calculations/Calculation should match snapshot - countValue 1`] = `
+<div>
+  <div
+    class="Calculation countValue fooClass  hovered"
+    style="width: 100px;"
+    tabindex="0"
+  >
+    <span
+      class="calculationLabel"
+    >
+      Values
+    </span>
+    <span
+      class="calculationValue"
+    >
+      1
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/calculations/Calculation should match snapshot - none 1`] = `
+<div>
+  <div
+    class="Calculation none fooClass  hovered"
+    style="width: 100px;"
+    tabindex="0"
+  >
+    <span
+      class="calculationLabel"
+    >
+      Calculate
+    </span>
+    <i
+      class="CompassIcon icon-chevron-up ChevronUpIcon"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/calculations/Calculation should match snapshot - option change 1`] = `
+<div>
+  <div
+    class="Calculation none fooClass menuOpen hovered"
+    style="width: 100px;"
+    tabindex="0"
+  >
+    <div>
+      <div
+        class="Combobox CalculationOptions"
+      >
+        <span
+          aria-atomic="false"
+          aria-live="polite"
+          aria-relevant="additions text"
+          class="Combobox__live-region"
+          role="log"
+        />
+        <div
+          class="CalculationOptions__control"
+        >
+          <div
+            class="CalculationOptions__value-container"
+          >
+            <div
+              class="CalculationOptions__single-value"
+            >
+              Calculate
+            </div>
+            <input
+              aria-activedescendant="_r_0_-option-1"
+              aria-controls="_r_0_"
+              aria-expanded="true"
+              autocomplete="off"
+              class="CalculationOptions__input"
+              readonly=""
+              role="combobox"
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+        <div
+          class="Combobox__menu CalculationOptions__menu "
+        >
+          <div
+            class="CalculationOptions__menu-list"
+            id="_r_0_"
+            role="listbox"
+          >
+            <div
+              aria-selected="true"
+              class="CalculationOptions__option CalculationOptions__option--is-selected"
+              id="_r_0_-option-0"
+              role="option"
+            >
+              None
+            </div>
+            <div
+              aria-selected="false"
+              class="CalculationOptions__option CalculationOptions__option--is-focused"
+              id="_r_0_-option-1"
+              role="option"
+            >
+              Count
+            </div>
+            <div
+              aria-selected="false"
+              class="CalculationOptions__option"
+              id="_r_0_-option-2"
+              role="option"
+            >
+              Count Empty
+            </div>
+            <div
+              aria-selected="false"
+              class="CalculationOptions__option"
+              id="_r_0_-option-3"
+              role="option"
+            >
+              Count Not Empty
+            </div>
+            <div
+              aria-selected="false"
+              class="CalculationOptions__option"
+              id="_r_0_-option-4"
+              role="option"
+            >
+              Percent Empty
+            </div>
+            <div
+              aria-selected="false"
+              class="CalculationOptions__option"
+              id="_r_0_-option-5"
+              role="option"
+            >
+              Percent Not Empty
+            </div>
+            <div
+              aria-selected="false"
+              class="CalculationOptions__option"
+              id="_r_0_-option-6"
+              role="option"
+            >
+              Count value
+            </div>
+            <div
+              aria-selected="false"
+              class="CalculationOptions__option"
+              id="_r_0_-option-7"
+              role="option"
+            >
+              Count unique values
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <span
+      class="calculationLabel"
+    >
+      Calculate
+    </span>
+    <i
+      class="CompassIcon icon-chevron-up ChevronUpIcon"
+    />
+  </div>
+</div>
+`;

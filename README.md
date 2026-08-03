@@ -8,20 +8,21 @@ server running **in-process** — no spawned `focalboard-server`, no Node.js of 
 own — and the same code builds a **headless server** (`-tags server`) that serves
 the whole thing to a browser.
 
-This repository is only the app. **Focalboard itself is a checkout beside it**:
+The frontend lives here, in `webapp/` — the Focalboard webapp, its own npm
+project built with Vite. The **server module does not**: `go.mod` points at
+`../focalboard/server` with a `replace`, so a Focalboard checkout beside this one
+is still what a build needs:
 
 ```
 sources/
-  focalboard/   # github.com/artipop/focalboard — the server module and the webapp
-  trixi/        # this repository
+  focalboard/   # github.com/artipop/focalboard — the server module
+  trixi/        # this repository, webapp included
 ```
 
-`go.mod` points at `../focalboard/server` with a `replace`, and the build takes the
-frontend from `../focalboard/webapp`. **That checkout has to be on a branch carrying
-the fork's server patches** — `experiments` — because this app needs
-`GetUserByUsername` and two single-user endpoint fixes that upstream does not have.
-Settling that properly is the first open question: see
-[docs/plan.md](docs/plan.md), "Открытые решения".
+**That checkout has to be on a branch carrying the fork's server patches** —
+`experiments` — because this app needs `GetUserByUsername` and two single-user
+endpoint fixes that upstream does not have. Settling that properly is the first
+open question: see [docs/plan.md](docs/plan.md), "Открытые решения".
 
 ## How it works
 
@@ -33,10 +34,9 @@ The Go code is platform-agnostic — the same files build for every OS:
   `%AppData%\Trixi` on Windows, `~/.config/Trixi` on Linux), **not** next
   to the binary, because a signed/packaged app dir is read-only.
 - `frontend_embed.go` / `frontend_disk.go` — the webapp `pack` is compiled into the
-  binary with `go:embed` (release builds, `-tags frontend`). Because `go:embed`
-  cannot reach outside the module, the build first copies
-  `../focalboard/webapp/pack` → `pack/` here
-  (the `build:frontend` task) and embeds that. At startup `resolveWebPath` extracts
+  binary with `go:embed` (release builds, `-tags frontend`) straight from
+  `webapp/pack`, where the `build:frontend` task leaves it.
+  At startup `resolveWebPath` extracts
   the embedded pack to `<dataDir>/web` and points the server there (the server
   templates `index.html` on read, so it needs files on disk). Without the tag
   (`go build ./...`, tests) it falls back to on-disk `pack`.
@@ -230,12 +230,14 @@ wails3 dev
 ```
 
 `build/config.yml` declares the dev loop: Go edits rebuild and restart the app,
-and `cd ../webapp && npm run watchdev` runs alongside it, keeping
+and `cd webapp && npm run watchdev` runs alongside it, keeping
 `webapp/pack` current with `vite build --watch`. Needs webapp deps — run
-`npm ci in ../focalboard/webapp` once if `webapp/node_modules` is missing.
+`npm ci` in `webapp/` once if `webapp/node_modules` is missing. The watcher's
+own directory is excluded from the Go watch list, so a TS edit rebuilds the
+bundle without restarting the app.
 
 A dev build leaves the `frontend` tag out, so nothing is embedded and the Go
-side serves the on-disk `pack` (`diskWebPath` falls back to `../webapp/pack`).
+side serves the on-disk bundle (`diskWebPath` finds `webapp/pack`).
 The page still goes through the front door and `proxy.go` exactly as in a
 release build, which is why nothing here needs to know the board server's port
 or the session token — both stay random per launch.
@@ -259,14 +261,13 @@ wails3 task build:server && TRIXI_SERVER_PORT=8099 bin/Trixi-server
 ```
 
 For pure webapp/CSS iteration the browser loop is still faster than the webview:
-`make watch` in the Focalboard checkout (server + Vite build watch), then open
-http://localhost:8000 — or `cd ../focalboard/webapp && npm run dev` for HMR at
+run the server build above, then `cd webapp && npm run dev` for HMR at
 http://localhost:5173.
 
 ## Build release installers
 
-From the repo root, per platform. The build stages `webapp/pack` →
-`pack/` itself and embeds it, so the artifacts are single-binary:
+From the repo root, per platform. The build produces `webapp/pack` itself and
+embeds it, so the artifacts are single-binary:
 
 ```
 wails3 task package            # macOS   → bin/Trixi.app

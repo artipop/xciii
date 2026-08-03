@@ -1,0 +1,132 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`/components/confirmAddUserForNotifications should match snapshot 1`] = `
+<div>
+  <div
+    class="Dialog dialog-back confirmation-dialog-box size--small"
+  >
+    <div
+      class="backdrop"
+    />
+    <div
+      class="wrapper"
+    >
+      <div
+        class="dialog"
+        role="dialog"
+      >
+        <div
+          class="toolbar"
+        >
+          <div>
+            <h1
+              class="dialog-title"
+            />
+          </div>
+          <div
+            class="toolbar--right"
+          >
+            <button
+              aria-label="Close dialog"
+              class="IconButton dialog__close size--medium"
+              title="Close dialog"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close CloseIcon"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="box-area"
+          title="Confirmation Dialog Box"
+        >
+          <h3
+            class="text-heading5"
+          >
+            Add fake-username to board
+          </h3>
+          <div
+            class="sub-text"
+          >
+            <div
+              class="ConfirmAddUserForNotifications"
+            >
+              <p>
+                fake-username is not a member of the board, and will not receive any notifications about it.
+              </p>
+              <p>
+                Do you want to add fake-username to the board?
+              </p>
+              <div
+                class="permissions-title"
+              >
+                <label>
+                  Permissions
+                </label>
+              </div>
+              <div
+                class="Combobox select"
+              >
+                <span
+                  aria-atomic="false"
+                  aria-live="polite"
+                  aria-relevant="additions text"
+                  class="Combobox__live-region"
+                  role="log"
+                />
+                <div
+                  class="select__control"
+                >
+                  <div
+                    class="select__value-container"
+                  >
+                    <div
+                      class="select__single-value"
+                    >
+                      Editor
+                    </div>
+                    <input
+                      aria-controls="_r_0_"
+                      aria-expanded="false"
+                      autocomplete="off"
+                      class="select__input"
+                      readonly=""
+                      role="combobox"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="action-buttons"
+          >
+            <button
+              class="Button emphasis--tertiary size--medium"
+              title="Cancel"
+              type="button"
+            >
+              <span>
+                Cancel
+              </span>
+            </button>
+            <button
+              class="Button filled size--medium"
+              title="Add to board"
+              type="submit"
+            >
+              <span>
+                Add to board
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

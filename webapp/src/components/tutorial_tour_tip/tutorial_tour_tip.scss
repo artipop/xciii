@@ -1,0 +1,378 @@
+
+@import '../../styles/z-index';
+
+.tutorial-tour-tip {
+    display: flex;
+
+    // Floating UI writes the placement here and the offset into the transform;
+    // everything the box itself does with `transform` would fight that, hence
+    // the two elements.
+    &__positioner {
+        @include z-index(tour-tip);
+        position: absolute;
+        top: 0;
+        left: 0;
+        visibility: hidden;
+
+        &.is-positioned {
+            visibility: visible;
+
+            .tutorial-tour-tip__box {
+                animation: tutorial-tour-tip-appear 250ms ease-out;
+            }
+        }
+    }
+
+    &__box {
+        position: relative;
+        padding: 18px 24px 24px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        background: rgb(var(--center-channel-bg-rgb));
+        border-radius: 4px;
+        color: var(--center-channel-color-rgb);
+        filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.12));
+    }
+
+    &__arrow {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border: 0 solid rgba(var(--center-channel-color-rgb), 0.16);
+        background: rgb(var(--center-channel-bg-rgb));
+        transform-origin: center;
+    }
+
+    &__pulsating-dot-ctr {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=top] {
+        top: 0;
+        left: calc(50% - 6px);
+        transform: translate(0, 6px);
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=top-start] {
+        top: 0;
+        left: 0;
+        transform: translate(6px, 6px);
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=top-end] {
+        top: 0;
+        right: 0;
+        transform: translate(-6px, 6px);
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=bottom] {
+        bottom: 0;
+        left: calc(50% - 6px);
+        transform: translate(0, -6px);
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=bottom-start] {
+        bottom: 0;
+        left: 0;
+        transform: translate(6px, -6px);
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=bottom-end] {
+        right: 0;
+        bottom: 0;
+        transform: translate(-6px, -6px);
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=left] {
+        top: calc(50% - 6px);
+        left: 0;
+        transform: translate(6px, 0);
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=left-start] {
+        top: 0;
+        left: 0;
+        transform: translate(6px, 6px);
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=left-end] {
+        bottom: 0;
+        left: 0;
+        transform: translate(6px, -6px);
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=right] {
+        top: calc(50% - 6px);
+        right: 0;
+        transform: translate(-6px, 0);
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=right-start] {
+        top: 0;
+        right: 0;
+        transform: translate(-6px, 6px);
+    }
+
+    &__pulsating-dot-ctr[data-pulsating-dot-placement=right-end] {
+        right: 0;
+        bottom: 0;
+        transform: translate(-6px, -6px);
+    }
+
+    &__overlay {
+        @include z-index(tour-tip-overlay);
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+
+        &__title {
+            flex: none;
+            flex-grow: 1;
+            order: 0;
+            margin: 0;
+            font-family: inherit;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 2rem;
+            font-size: 14px;
+
+            @media (min-width: 2560px) {
+                font-size: 16px;
+            }
+        }
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        margin-top: 0.6rem;
+
+        @media (min-width: 2560px) {
+            font-size: 16px;
+        }
+
+        p {
+            margin: 0 0 0.8rem;
+            font-size: 1.4rem;
+            line-height: 2rem;
+
+            &:last-of-type {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    &__image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 24px 0;
+
+        img {
+            width: 100%;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+    }
+
+    &__btn-ctr {
+        display: flex;
+        flex-grow: 1;
+        justify-content: flex-end;
+
+        button {
+            &:last-child {
+                margin-left: 4px;
+            }
+        }
+    }
+
+    &__btn {
+        display: flex;
+        height: 32px;
+        align-items: center;
+        padding: 10px 16px;
+        border: unset;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 12px;
+    }
+
+    &__confirm-btn {
+        background: rgb(var(--sidebar-bg-rgb));
+        color: rgb(var(--center-channel-bg-rgb));
+
+        &:hover:not(.disabled) {
+            background:
+                linear-gradient(0deg,
+                rgba(var(--center-channel-color-rgb), 0.16),
+                rgba(var(--center-channel-color-rgb), 0.16)),
+                rgb(var(--sidebar-bg-rgb));
+        }
+
+        &:active {
+            background:
+                linear-gradient(0deg,
+                rgba(var(--center-channel-color-rgb), 0.32),
+                rgba(var(--center-channel-color-rgb), 0.32)),
+                var(--button-bg);
+        }
+
+        &:focus {
+            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+        }
+
+        .icon-chevron-right::before {
+            margin-right: -7px;
+        }
+    }
+
+    &__cancel-btn {
+        margin-right: 4px;
+        background: rgba(var(--button-bg-rgb), 0.08);
+        border-radius: 4px;
+        color: var(--button-bg);
+        text-decoration: none;
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.04);
+        }
+
+        &:active {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &:focus {
+            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+        }
+
+        .icon-chevron-left::before {
+            margin-left: -7px;
+        }
+    }
+
+    &__circles-ctr {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    &__circular-ring {
+        position: relative;
+        display: flex;
+        width: 12px;
+        height: 12px;
+        align-items: center;
+        justify-content: center;
+        margin-right: 4px;
+        background: transparent;
+        border-radius: 50%;
+
+        &:last-child {
+            margin-right: 0;
+        }
+    }
+
+    &__circular-ring-active {
+        background: rgba(var(--button-bg-rgb), 0.16);
+    }
+
+    &__circle {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 6px;
+        height: 6px;
+        background: rgba(var(--button-bg-rgb), 0.32);
+        border-radius: 6px;
+
+        &.active {
+            background: rgba(var(--button-bg-rgb), 1);
+        }
+    }
+
+    &__footer {
+        display: flex;
+        flex-direction: column;
+
+        &:empty {
+            display: none;
+        }
+
+        &-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: start;
+        }
+    }
+
+    &__opt {
+        align-self: flex-end;
+        margin-top: 1.2rem;
+        font-size: 12px;
+
+        span {
+            opacity: 0.9;
+        }
+    }
+}
+
+// Only the two edges facing away from the box are drawn, so the arrow reads as
+// a tail of its border rather than as a diamond stuck to it.
+.tutorial-tour-tip__positioner[data-placement^=right] .tutorial-tour-tip__arrow {
+    border-width: 1px 0 0 1px;
+    transform: rotate(-45deg);
+}
+
+.tutorial-tour-tip__positioner[data-placement^=left] .tutorial-tour-tip__arrow {
+    border-width: 1px 1px 0 0;
+    transform: rotate(45deg);
+}
+
+.tutorial-tour-tip__positioner[data-placement^=bottom] .tutorial-tour-tip__arrow {
+    border-width: 1px 0 0 1px;
+    transform: rotate(45deg);
+}
+
+.tutorial-tour-tip__positioner[data-placement^=top] .tutorial-tour-tip__arrow {
+    border-width: 0 0 1px 1px;
+    transform: rotate(-45deg);
+}
+
+@keyframes tutorial-tour-tip-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.tip-backdrop {
+    @include z-index(tour-tip-backdrop);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border-radius: 4px;
+    box-shadow: rgb(33 33 33 / 50%) 0 0 0 5000px;
+}
+
+.tutorial-tour-tip__btn {
+    cursor: pointer;
+}
