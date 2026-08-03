@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Plain .mjs rather than .ts on purpose: Vite 7's own types need TypeScript >= 5
-// and this project is pinned to TypeScript 4.6.
+// Plain .mjs rather than .ts: the config predates TypeScript 5 in this project,
+// and nothing here has needed types since.
 
 import {createReadStream, existsSync} from 'fs';
 import {cp} from 'fs/promises';
@@ -10,18 +10,12 @@ import path from 'path';
 import {fileURLToPath} from 'url';
 
 import formatjs from '@formatjs/unplugin/vite';
-import react from '@vitejs/plugin-react';
 import {defineConfig} from 'vite';
+import solid from 'vite-plugin-solid';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const staticDir = path.join(root, 'static');
 const outDir = path.join(root, 'pack');
-
-// React Compiler roughly doubles a build (7s -> 15s here), which is felt most in
-// `wails dev`, where it sits between saving a file and the window reloading.
-// NO_REACT_COMPILER=1 turns it off for a faster loop, or to tell a compiler bug
-// apart from one of ours. Release builds always have it on.
-const compilerEnabled = !process.env.NO_REACT_COMPILER;
 
 // Where `npm run dev` proxies the API: the standalone server's default port
 // from config.json, i.e. whatever `make watch` is running in another terminal.
@@ -98,33 +92,7 @@ export default defineConfig(({mode}) => {
                 ast: true,
                 idInterpolationPattern: '[sha512:contenthash:base64:6]',
             }),
-            react({
-                // tsconfig still asks for the classic `jsx: "react"` transform, and
-                // every source file imports React itself.
-                jsxRuntime: 'classic',
-
-                babel: {
-                    plugins: compilerEnabled ? [
-                        // React Compiler, inferring which components and hooks it
-                        // can memoise on its own. `panicThreshold: 'none'` makes it
-                        // skip anything it cannot prove instead of failing the
-                        // build, so a component that breaks the Rules of React
-                        // simply stays as written -- see the react-hooks warnings
-                        // in eslint.config.mjs for what those are.
-                        ['babel-plugin-react-compiler', {
-                            target: '19',
-                            compilationMode: 'infer',
-                            panicThreshold: 'none',
-                            logger: process.env.REACT_COMPILER_LOG ? {
-                                logEvent(filename, event) {
-                                    // eslint-disable-next-line no-console
-                                    console.log(JSON.stringify({filename, kind: event.kind, fnName: event.fnLoc && event.fnName, detail: event.detail && (event.detail.reason || event.detail.description)}))
-                                },
-                            } : null,
-                        }],
-                    ] : [],
-                },
-            }),
+            solid(),
             focalboardHtml(),
             focalboardStatic(),
         ],

@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
-        "jsx": "react",
+        "jsx": "preserve",
+        "jsxImportSource": "solid-js",
         "target": "es2019",
         "module": "esnext",
         "isolatedModules": true,
