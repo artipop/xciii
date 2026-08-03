@@ -1,14 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, useState} from 'react'
-import {useIntl} from '../../intl'
+import {For, Show, createEffect, createSignal, onCleanup, onMount} from 'solid-js'
+import {render} from 'solid-js/web'
+import type {JSX} from 'solid-js'
 
-import FullCalendar from '@fullcalendar/react'
-import {EventChangeArg, EventInput, EventContentArg, DayCellContentArg} from '@fullcalendar/core'
+import {Calendar} from '@fullcalendar/core'
+import type {EventChangeArg, EventInput, EventContentArg, DayCellContentArg} from '@fullcalendar/core'
 
 import interactionPlugin from '@fullcalendar/interaction'
 import dayGridPlugin from '@fullcalendar/daygrid'
+
+import {useIntl} from '../../intl'
 
 import {DatePropertyType} from '../../properties/types'
 
@@ -72,40 +75,41 @@ const timeZoneOffset = (date: number): number => {
     return new Date(date).getTimezoneOffset() * 60 * 1000
 }
 
-const CalendarFullView = (props: Props): JSX.Element|null => {
+// FullCalendar's own core, driven directly: the React adapter existed to marry
+// its imperative Calendar to React's render cycle, and Solid's fine-grained
+// effects do that marriage with setOption. Custom content renders through
+// solid-js/web render into the domNodes the content hooks accept, disposed in
+// the matching willUnmount hooks.
+const CalendarFullView = (props: Props): JSX.Element => {
     const intl = useIntl()
-    const {board, cards, activeView, dateDisplayProperty, readonly} = props
-    const isSelectable = !readonly
+    const isSelectable = () => !props.readonly
     const canAddCards = useHasCurrentBoardPermissions([Permission.ManageBoardCards])
-    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = useState<boolean>(false)
-    const [cardItem, setCardItem] = useState<Card>()
+    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = createSignal<boolean>(false)
+    const [cardItem, setCardItem] = createSignal<Card>()
 
-    const visiblePropertyTemplates = board.cardProperties.filter((template: IPropertyTemplate) => activeView.fields.visiblePropertyIds.includes(template.id))
+    const visiblePropertyTemplates = () => props.board.cardProperties.filter((template: IPropertyTemplate) => props.activeView.fields.visiblePropertyIds.includes(template.id))
 
-    let {initialDate} = props
-    if (!initialDate) {
-        initialDate = new Date()
-    }
+    const initialDate = () => props.initialDate || new Date()
 
     const isEditable = (): boolean => {
-        if (readonly || !dateDisplayProperty || propsRegistry.get(dateDisplayProperty.type).isReadOnly) {
+        if (props.readonly || !props.dateDisplayProperty || propsRegistry.get(props.dateDisplayProperty.type).isReadOnly) {
             return false
         }
         return true
     }
 
-    const myEventsList = cards.flatMap((card): EventInput[] => {
-        const property = propsRegistry.get(dateDisplayProperty?.type || 'unknown')
+    const myEventsList = () => props.cards.flatMap((card): EventInput[] => {
+        const property = propsRegistry.get(props.dateDisplayProperty?.type || 'unknown')
 
         let dateFrom = new Date(card.createAt || 0)
         let dateTo = new Date(card.createAt || 0)
         if (property instanceof DatePropertyType) {
-            const dateFromValue = property.getDateFrom(card.fields.properties[dateDisplayProperty?.id || ''], card)
+            const dateFromValue = property.getDateFrom(card.fields.properties[props.dateDisplayProperty?.id || ''], card)
             if (!dateFromValue) {
                 return []
             }
             dateFrom = dateFromValue
-            const dateToValue = property.getDateTo(card.fields.properties[dateDisplayProperty?.id || ''], card)
+            const dateToValue = property.getDateTo(card.fields.properties[props.dateDisplayProperty?.id || ''], card)
             dateTo = dateToValue || new Date(dateFrom)
 
             //full calendar end date is exclusive, so increment by 1 day.
@@ -122,7 +126,7 @@ const CalendarFullView = (props: Props): JSX.Element|null => {
         }]
     })
 
-    const visibleBadges = activeView.fields.visiblePropertyIds.includes(Constants.badgesColumnId)
+    const visibleBadges = () => props.activeView.fields.visiblePropertyIds.includes(Constants.badgesColumnId)
 
     const openConfirmationDialogBox = (card: Card) => {
         setShowConfirmationDialogBox(true)
@@ -130,73 +134,77 @@ const CalendarFullView = (props: Props): JSX.Element|null => {
     }
 
     const handleDeleteCard = () => {
-        if (!cardItem) {
+        const card = cardItem()
+        if (!card) {
             return
         }
-        mutator.deleteBlock(cardItem, 'delete card')
+        mutator.deleteBlock(card, 'delete card')
         setShowConfirmationDialogBox(false)
     }
 
-    const confirmDialogProps: ConfirmationDialogBoxProps = (() => {
-        return {
-            heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
-            confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
-            onConfirm: handleDeleteCard,
-            onClose: () => {
-                setShowConfirmationDialogBox(false)
-            },
-        }
-    })()
+    const confirmDialogProps: ConfirmationDialogBoxProps = {
+        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
+        confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
+        onConfirm: handleDeleteCard,
+        onClose: () => {
+            setShowConfirmationDialogBox(false)
+        },
+    }
 
-    const renderEventContent = (eventProps: EventContentArg): JSX.Element|null => {
-        const {event} = eventProps
-        const card = cards.find((o) => o.id === event.id) || cards[0]
+    const EventContent = (contentProps: {event: EventContentArg['event']}): JSX.Element => {
+        const card = () => props.cards.find((o) => o.id === contentProps.event.id) || props.cards[0]
 
         return (
-            <>
-                <div
-                    class='EventContent'
-                    onClick={() => props.showCard(event.id)}
-                >
-                    {!props.readonly &&
+            <div
+                class='EventContent'
+                onClick={() => props.showCard(contentProps.event.id)}
+            >
+                <Show when={!props.readonly}>
                     <MenuWrapper
                         className='optionsMenu'
                         stopPropagationOnToggle={true}
+                        menu={
+                            <CardActionsMenu
+                                cardId={card().id}
+                                boardId={card().boardId}
+                                onClickDelete={() => openConfirmationDialogBox(card())}
+                                onClickDuplicate={() => {
+                                    TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DuplicateCard, {board: props.board.id, card: card().id})
+                                    mutator.duplicateCard(card().id, props.board.id)
+                                }}
+                            />
+                        }
                     >
                         <CardActionsMenuIcon/>
-                        <CardActionsMenu
-                            cardId={card.id}
-                            boardId={card.boardId}
-                            onClickDelete={() => openConfirmationDialogBox(card)}
-                            onClickDuplicate={() => {
-                                TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DuplicateCard, {board: board.id, card: card.id})
-                                mutator.duplicateCard(card.id, board.id)
-                            }}
-                        />
-                    </MenuWrapper>}
-                    <div class='octo-icontitle'>
-                        { event.extendedProps.icon ? <div class='octo-icon'>{event.extendedProps.icon}</div> : undefined }
-                        <div
-                            class='fc-event-title'
-                        >{event.title || intl.formatMessage({id: 'CalendarCard.untitled', defaultMessage: 'Untitled'})}</div>
-                    </div>
-                    {visiblePropertyTemplates.map((template) => (
+                    </MenuWrapper>
+                </Show>
+                <div class='octo-icontitle'>
+                    <Show when={contentProps.event.extendedProps.icon}>
+                        <div class='octo-icon'>{contentProps.event.extendedProps.icon}</div>
+                    </Show>
+                    <div
+                        class='fc-event-title'
+                    >{contentProps.event.title || intl.formatMessage({id: 'CalendarCard.untitled', defaultMessage: 'Untitled'})}</div>
+                </div>
+                <For each={visiblePropertyTemplates()}>
+                    {(template) => (
                         <Tooltip
                             title={template.name}
                         >
                             <PropertyValueElement
-                                board={board}
+                                board={props.board}
                                 readOnly={true}
-                                card={card}
+                                card={card()}
                                 propertyTemplate={template}
                                 showEmptyPlaceholder={false}
                             />
                         </Tooltip>
-                    ))}
-                    {visibleBadges &&
-                    <CardBadges card={card}/> }
-                </div>
-            </>
+                    )}
+                </For>
+                <Show when={visibleBadges()}>
+                    <CardBadges card={card()}/>
+                </Show>
+            </div>
         )
     }
 
@@ -212,9 +220,9 @@ const CalendarFullView = (props: Props): JSX.Element|null => {
         const startDate = new Date(event.start.getTime())
         const endDate = new Date(event.end.getTime())
         const dateProperty = createDatePropertyFromCalendarDates(startDate, endDate)
-        const card = cards.find((o) => o.id === event.id)
-        if (card && dateDisplayProperty) {
-            mutator.changePropertyValue(board.id, card, dateDisplayProperty.id, JSON.stringify(dateProperty))
+        const card = props.cards.find((o) => o.id === event.id)
+        if (card && props.dateDisplayProperty) {
+            mutator.changePropertyValue(props.board.id, card, props.dateDisplayProperty.id, JSON.stringify(dateProperty))
         }
     }
 
@@ -230,12 +238,26 @@ const CalendarFullView = (props: Props): JSX.Element|null => {
         }
 
         const properties: Record<string, string> = {}
-        if (dateDisplayProperty) {
-            properties[dateDisplayProperty.id] = JSON.stringify(dateProperty)
+        if (props.dateDisplayProperty) {
+            properties[props.dateDisplayProperty.id] = JSON.stringify(dateProperty)
         }
 
         props.addCard(properties)
     }
+
+    const DayCellContent = (cellProps: {date: Date, dayNumberText: string}): JSX.Element => (
+        <div class={'dateContainer ' + (canAddCards() ? 'with-plus' : '')}>
+            <div
+                class='addEvent'
+                onClick={() => onNewEvent({start: cellProps.date, end: cellProps.date})}
+            >
+                {'+'}
+            </div>
+            <div class='dateDisplay'>
+                {cellProps.dayNumberText}
+            </div>
+        </div>
+    )
 
     const toolbar = {
         left: 'title',
@@ -243,50 +265,98 @@ const CalendarFullView = (props: Props): JSX.Element|null => {
         right: 'dayGridWeek dayGridMonth prev,today,next',
     }
 
-    const buttonText = {
+    const buttonText = () => ({
         today: intl.formatMessage({id: 'calendar.today', defaultMessage: 'TODAY'}),
         month: intl.formatMessage({id: 'calendar.month', defaultMessage: 'Month'}),
         week: intl.formatMessage({id: 'calendar.week', defaultMessage: 'Week'}),
+    })
+
+    let host: HTMLDivElement | undefined
+    let calendar: Calendar | undefined
+
+    // Every content hook renders a Solid tree into detached nodes FullCalendar
+    // adopts; the matching willUnmount hook is where those trees die.
+    const eventDisposers = new Map<Element, () => void>()
+    const cellDisposers = new Map<Element, () => void>()
+
+    const mountInto = (component: () => JSX.Element, registry: Map<Element, () => void>) => {
+        const container = document.createElement('div')
+        const dispose = render(component, container)
+        registry.set(container, dispose)
+        return {domNodes: [container]}
     }
 
-    const dayCellContent = (args: DayCellContentArg): JSX.Element|null => {
-        return (
-            <div class={'dateContainer ' + (canAddCards ? 'with-plus' : '')}>
-                <div
-                    class='addEvent'
-                    onClick={() => onNewEvent({start: args.date, end: args.date})}
-                >
-                    {'+'}
-                </div>
-                <div class='dateDisplay'>
-                    {args.dayNumberText}
-                </div>
-            </div>
-        )
-    }
+    onMount(() => {
+        calendar = new Calendar(host!, {
+            plugins: [dayGridPlugin, interactionPlugin],
+            initialView: 'dayGridMonth',
+            initialDate: initialDate(),
+            dayMaxEventRows: 5,
+            headerToolbar: toolbar,
+            events: myEventsList(),
+            editable: isEditable(),
+            eventResizableFromStart: isEditable(),
+            buttonText: buttonText(),
+            selectable: isSelectable(),
+            selectMirror: true,
+            select: onNewEvent,
+            eventChange,
+            eventContent: (arg: EventContentArg) => mountInto(() => <EventContent event={arg.event}/>, eventDisposers),
+            eventWillUnmount: (arg) => {
+                for (const [node, dispose] of eventDisposers) {
+                    if (arg.el.contains(node)) {
+                        dispose()
+                        eventDisposers.delete(node)
+                    }
+                }
+            },
+            dayCellContent: (arg: DayCellContentArg) => mountInto(() => (
+                <DayCellContent
+                    date={arg.date}
+                    dayNumberText={arg.dayNumberText}
+                />
+            ), cellDisposers),
+            dayCellWillUnmount: (arg) => {
+                for (const [node, dispose] of cellDisposers) {
+                    if (arg.el.contains(node)) {
+                        dispose()
+                        cellDisposers.delete(node)
+                    }
+                }
+            },
+        })
+        calendar.render()
+
+        onCleanup(() => {
+            calendar?.destroy()
+            eventDisposers.forEach((dispose) => dispose())
+            eventDisposers.clear()
+            cellDisposers.forEach((dispose) => dispose())
+            cellDisposers.clear()
+        })
+    })
+
+    // The options that follow the store: the event list, and what dragging is
+    // allowed to do with it.
+    createEffect(() => {
+        if (!calendar) {
+            return
+        }
+        calendar.setOption('events', myEventsList())
+        calendar.setOption('editable', isEditable())
+        calendar.setOption('eventResizableFromStart', isEditable())
+        calendar.setOption('selectable', isSelectable())
+        calendar.setOption('buttonText', buttonText())
+    })
 
     return (
         <div
             class='CalendarContainer'
         >
-            <FullCalendar
-                dayCellContent={dayCellContent}
-                dayMaxEventRows={5}
-                initialDate={initialDate}
-                plugins={[dayGridPlugin, interactionPlugin]}
-                initialView='dayGridMonth'
-                events={myEventsList}
-                editable={isEditable()}
-                eventResizableFromStart={isEditable()}
-                headerToolbar={toolbar}
-                buttonText={buttonText}
-                eventContent={renderEventContent}
-                eventChange={eventChange}
-                selectable={isSelectable}
-                selectMirror={true}
-                select={onNewEvent}
-            />
-            {showConfirmationDialogBox && <ConfirmationDialogBox dialogBox={confirmDialogProps}/>}
+            <div ref={host}/>
+            <Show when={showConfirmationDialogBox()}>
+                <ConfirmationDialogBox dialogBox={confirmDialogProps}/>
+            </Show>
         </div>
     )
 }
