@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {For, Show, createMemo} from 'solid-js'
+
 import {FormattedMessage, useIntl} from '../../intl'
 
 import {BoardGroup, IPropertyTemplate} from '../../blocks/board'
@@ -24,30 +26,80 @@ type Props = {
 }
 
 const ViewHeaderGroupByMenu = (props: Props) => {
-    const {properties, activeView, groupByProperty} = props
     const intl = useIntl()
 
     const cards = useAppSelector(getCurrentViewCardsSortedFilteredAndGrouped)
-    const {visible: visibleGroups, hidden: hiddenGroups} = getVisibleAndHiddenGroups(cards, activeView.fields.visibleOptionIds, activeView.fields.hiddenOptionIds, groupByProperty)
+    const groups = createMemo(() => getVisibleAndHiddenGroups(cards(), props.activeView.fields.visibleOptionIds, props.activeView.fields.hiddenOptionIds, props.groupByProperty))
 
-    const emptyVisibleGroups = visibleGroups.filter((g) => !g.cards.length)
-    const emptyVisibleGroupsCount = emptyVisibleGroups.length
-    const hiddenGroupsCount = hiddenGroups.length
+    const emptyVisibleGroups = () => groups().visible.filter((g) => !g.cards.length)
+    const emptyVisibleGroupsCount = () => emptyVisibleGroups().length
+    const hiddenGroupsCount = () => groups().hidden.length
 
     const handleToggleGroups = (show: boolean) => {
-        const getColumnIds = (groups: BoardGroup[]) => groups.map((g) => g.option.id)
+        const getColumnIds = (boardGroups: BoardGroup[]) => boardGroups.map((g) => g.option.id)
 
         if (show) {
-            const columnsToShow = getColumnIds(hiddenGroups)
-            mutator.unhideViewColumns(activeView.boardId, activeView, columnsToShow)
+            const columnsToShow = getColumnIds(groups().hidden)
+            mutator.unhideViewColumns(props.activeView.boardId, props.activeView, columnsToShow)
         } else {
-            const columnsToHide = getColumnIds(emptyVisibleGroups)
-            mutator.hideViewColumns(activeView.boardId, activeView, columnsToHide)
+            const columnsToHide = getColumnIds(emptyVisibleGroups())
+            mutator.hideViewColumns(props.activeView.boardId, props.activeView, columnsToHide)
         }
     }
 
     return (
-        <MenuWrapper>
+        <MenuWrapper
+            menu={
+                <Menu>
+                    <Show when={props.activeView.fields.viewType === 'table' && props.activeView.fields.groupById}>
+                        <Show when={emptyVisibleGroupsCount() > 0}>
+                            <Menu.Text
+                                id={'hideEmptyGroups'}
+                                name={intl.formatMessage({id: 'GroupBy.hideEmptyGroups', defaultMessage: 'Hide {count} empty groups'}, {count: emptyVisibleGroupsCount()})}
+                                rightIcon={<HideIcon/>}
+                                onClick={() => handleToggleGroups(false)}
+                            />
+                        </Show>
+                        <Show when={hiddenGroupsCount() > 0}>
+                            <Menu.Text
+                                id={'showHiddenGroups'}
+                                name={intl.formatMessage({id: 'GroupBy.showHiddenGroups', defaultMessage: 'Show {count} hidden groups'}, {count: hiddenGroupsCount()})}
+                                rightIcon={<ShowIcon/>}
+                                onClick={() => handleToggleGroups(true)}
+                            />
+                        </Show>
+                        <Menu.Text
+                            id={''}
+                            name={intl.formatMessage({id: 'GroupBy.ungroup', defaultMessage: 'Ungroup'})}
+                            rightIcon={props.activeView.fields.groupById === '' ? <CheckIcon/> : undefined}
+                            onClick={(id) => {
+                                if (props.activeView.fields.groupById === id) {
+                                    return
+                                }
+                                mutator.changeViewGroupById(props.activeView.boardId, props.activeView.id, props.activeView.fields.groupById, id)
+                            }}
+                        />
+                        <Menu.Separator/>
+                    </Show>
+                    <For each={props.properties?.filter((o: IPropertyTemplate) => propsRegistry.get(o.type).canGroup)}>
+                        {(option: IPropertyTemplate) => (
+                            <Menu.Text
+                                id={option.id}
+                                name={option.name}
+                                rightIcon={props.groupByProperty?.id === option.id ? <CheckIcon/> : undefined}
+                                onClick={(id) => {
+                                    if (props.activeView.fields.groupById === id) {
+                                        return
+                                    }
+
+                                    mutator.changeViewGroupById(props.activeView.boardId, props.activeView.id, props.activeView.fields.groupById, id)
+                                }}
+                            />
+                        )}
+                    </For>
+                </Menu>
+            }
+        >
             <Button>
                 <FormattedMessage
                     id='ViewHeader.group-by'
@@ -58,57 +110,12 @@ const ViewHeaderGroupByMenu = (props: Props) => {
                                 style={{color: 'rgb(var(--center-channel-color-rgb))'}}
                                 id='groupByLabel'
                             >
-                                {groupByProperty?.name}
+                                {props.groupByProperty?.name}
                             </span>
                         ),
                     }}
                 />
             </Button>
-            <Menu>
-                {activeView.fields.viewType === 'table' && activeView.fields.groupById &&
-                    <>
-                        {emptyVisibleGroupsCount > 0 &&
-                            <Menu.Text
-                                id={'hideEmptyGroups'}
-                                name={intl.formatMessage({id: 'GroupBy.hideEmptyGroups', defaultMessage: 'Hide {count} empty groups'}, {count: emptyVisibleGroupsCount})}
-                                rightIcon={<HideIcon/>}
-                                onClick={() => handleToggleGroups(false)}
-                            />}
-                        {hiddenGroupsCount > 0 &&
-                            <Menu.Text
-                                id={'showHiddenGroups'}
-                                name={intl.formatMessage({id: 'GroupBy.showHiddenGroups', defaultMessage: 'Show {count} hidden groups'}, {count: hiddenGroupsCount})}
-                                rightIcon={<ShowIcon/>}
-                                onClick={() => handleToggleGroups(true)}
-                            />}
-                        <Menu.Text
-                            id={''}
-                            name={intl.formatMessage({id: 'GroupBy.ungroup', defaultMessage: 'Ungroup'})}
-                            rightIcon={activeView.fields.groupById === '' ? <CheckIcon/> : undefined}
-                            onClick={(id) => {
-                                if (activeView.fields.groupById === id) {
-                                    return
-                                }
-                                mutator.changeViewGroupById(activeView.boardId, activeView.id, activeView.fields.groupById, id)
-                            }}
-                        />
-                        <Menu.Separator/>
-                    </>}
-                {properties?.filter((o: IPropertyTemplate) => propsRegistry.get(o.type).canGroup).map((option: IPropertyTemplate) => (
-                    <Menu.Text
-                        id={option.id}
-                        name={option.name}
-                        rightIcon={groupByProperty?.id === option.id ? <CheckIcon/> : undefined}
-                        onClick={(id) => {
-                            if (activeView.fields.groupById === id) {
-                                return
-                            }
-
-                            mutator.changeViewGroupById(activeView.boardId, activeView.id, activeView.fields.groupById, id)
-                        }}
-                    />
-                ))}
-            </Menu>
         </MenuWrapper>
     )
 }
