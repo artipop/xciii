@@ -1,55 +1,50 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useEffect} from 'react'
-import {IntlProvider} from 'react-intl'
-import {History} from 'history'
+import {Component, createEffect, onMount} from 'solid-js'
 
 import TelemetryClient from './telemetry/telemetryClient'
 
 import {getMessages} from './i18n'
+import {IntlProvider} from './intl'
 import {SortableProvider} from './hooks/sortable'
 import {FlashMessages} from './components/flashMessages'
 import NewVersionBanner from './components/newVersionBanner'
-import {fetchMe, getMe} from './store/users'
-import {getLanguage, fetchLanguage} from './store/language'
-import {useAppSelector, useAppDispatch} from './store/hooks'
-import {fetchClientConfig} from './store/clientConfig'
+import {getMe} from './store/users'
+import {getLanguage} from './store/language'
+import {useAppSelector, useAppStore} from './store/hooks'
 import FocalboardRouter from './router'
 
 import {IUser} from './user'
 
-type Props = {
-    history?: History<unknown>
-}
-
-const App = (props: Props): JSX.Element => {
+const App: Component = () => {
+    const {actions} = useAppStore()
     const language = useAppSelector<string>(getLanguage)
     const me = useAppSelector<IUser|null>(getMe)
-    const dispatch = useAppDispatch()
 
-    useEffect(() => {
-        dispatch(fetchLanguage())
-        dispatch(fetchMe())
-        dispatch(fetchClientConfig())
-    }, [])
+    onMount(() => {
+        actions.language.fetchLanguage()
+        actions.users.fetchMe()
+        actions.clientConfig.fetchClientConfig()
+    })
 
-    useEffect(() => {
-        if (me) {
-            TelemetryClient.setUser(me)
+    createEffect(() => {
+        const user = me()
+        if (user) {
+            TelemetryClient.setUser(user)
         }
-    }, [me])
+    })
 
     return (
         <IntlProvider
-            locale={language.split(/[_]/)[0]}
-            messages={getMessages(language)}
+            locale={language().split(/[_]/)[0]}
+            messages={getMessages(language())}
         >
             <SortableProvider>
                 <FlashMessages milliseconds={2000}/>
                 <div id='frame'>
                     <div id='main'>
                         <NewVersionBanner/>
-                        <FocalboardRouter history={props.history}/>
+                        <FocalboardRouter/>
                     </div>
                 </div>
             </SortableProvider>
@@ -57,4 +52,4 @@ const App = (props: Props): JSX.Element => {
     )
 }
 
-export default React.memo(App)
+export default App

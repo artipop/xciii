@@ -1,15 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useEffect, useMemo} from 'react'
-import {
-    Router,
-    Switch,
-    useRouteMatch,
-    useHistory,
-    generatePath,
-    useLocation,
-} from 'react-router-dom'
-import {createBrowserHistory, History} from 'history'
+import {Component, Suspense, createEffect, lazy, onMount} from 'solid-js'
+import {Router, useLocation, useNavigate, useParams} from '@solidjs/router'
+import type {JSX} from 'solid-js'
 
 import BoardPage from './pages/boardPage/boardPage'
 import ChangePasswordPage from './pages/changePasswordPage'
@@ -18,138 +11,149 @@ import LoginPage from './pages/loginPage'
 import RegisterPage from './pages/registerPage'
 import {Utils} from './utils'
 import octoClient from './octoClient'
-import {setGlobalError, getGlobalError} from './store/globalError'
-import {useAppSelector, useAppDispatch} from './store/hooks'
+import {getGlobalError} from './store/globalError'
+import {useAppSelector, useAppStore} from './store/hooks'
 import FBRoute from './route'
 
-const TerminalPage = React.lazy(() => import('./components/acp/terminalPage'))
+// The desktop app's terminal window: the agent's own CLI on a card, drawn by
+// xterm.js. Its own route so the window is just a URL — and lazily loaded so a
+// browser build, which cannot open one, never pays for the emulator.
+const TerminalPage = lazy(() => import('./components/acp/terminalPage'))
 
 const UUID_REGEX = new RegExp(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
 
-function WorkspaceToTeamRedirect() {
-    const match = useRouteMatch<{boardId: string, viewId: string, cardId?: string, workspaceId?: string}>()
-    const queryParams = new URLSearchParams(useLocation().search)
-    const history = useHistory()
-    useEffect(() => {
-        octoClient.getBoard(match.params.boardId).then((board) => {
+// The pre-teams URL scheme survives in bookmarks: resolve the board, then
+// swap /workspace/:workspaceId for /team/:teamId in place.
+const workspaceToTeamRedirect = (shared: boolean): Component => () => {
+    const params = useParams()
+    const location = useLocation()
+    const navigate = useNavigate()
+    onMount(() => {
+        if (!params.boardId) {
+            return
+        }
+        octoClient.getBoard(params.boardId).then((board) => {
             if (board) {
-                let newPath = generatePath(match.path.replace('/workspace/:workspaceId', '/team/:teamId'), {
-                    teamId: board?.teamId,
-                    boardId: board?.id,
-                    viewId: match.params.viewId,
-                    cardId: match.params.cardId,
-                })
-                if (queryParams) {
-                    newPath += '?' + queryParams
+                const parts = [`/team/${board.teamId}`]
+                if (shared) {
+                    parts.push('/shared')
                 }
-                history.replace(newPath)
+                for (const segment of [board.id, params.viewId, params.cardId]) {
+                    if (segment) {
+                        parts.push(`/${segment}`)
+                    }
+                }
+                navigate(parts.join('') + location.search, {replace: true})
             }
         })
-    }, [])
+    })
     return null
 }
 
-function GlobalErrorRedirect() {
+const GlobalErrorRedirect: Component = () => {
+    const {actions} = useAppStore()
     const globalError = useAppSelector<string>(getGlobalError)
-    const dispatch = useAppDispatch()
-    const history = useHistory()
+    const navigate = useNavigate()
 
-    useEffect(() => {
-        if (globalError) {
-            dispatch(setGlobalError(''))
-            history.replace(`/error?id=${globalError}`)
+    createEffect(() => {
+        const error = globalError()
+        if (error) {
+            actions.globalError.setGlobalError('')
+            navigate(`/error?id=${error}`, {replace: true})
         }
-    }, [globalError, history])
+    })
 
     return null
 }
 
-type Props = {
-    history?: History<unknown>
-}
+const rootLayout = (props: {children?: JSX.Element}) => (
+    <>
+        <GlobalErrorRedirect/>
+        {props.children}
+    </>
+)
 
-const FocalboardRouter = (props: Props): JSX.Element => {
-    // Created every render rather than only when no history was injected: a hook
-    // behind an `if` is a hook that changes call order between renders.
-    const ownHistory = useMemo(() => {
-        return createBrowserHistory({basename: Utils.getFrontendBaseURL()})
-    }, [])
-    const browserHistory: History<unknown> = props.history || ownHistory
-
+const FocalboardRouter: Component = () => {
     return (
-        <Router history={browserHistory}>
-            <GlobalErrorRedirect/>
-            <Switch>
-                <FBRoute path='/error'>
-                    <ErrorPage/>
-                </FBRoute>
+        <Router
+            base={Utils.getFrontendBaseURL()}
+            root={rootLayout}
+        >
+            <FBRoute
+                path='/error'
+                component={ErrorPage}
+            />
+            <FBRoute
+                path='/login'
+                component={LoginPage}
+            />
+            <FBRoute
+                path='/register'
+                component={RegisterPage}
+            />
+            <FBRoute
+                path='/change_password'
+                component={ChangePasswordPage}
+            />
 
-                <FBRoute path='/login'>
-                    <LoginPage/>
-                </FBRoute>
-                <FBRoute path='/register'>
-                    <RegisterPage/>
-                </FBRoute>
-                <FBRoute path='/change_password'>
-                    <ChangePasswordPage/>
-                </FBRoute>
-
-                {/* The desktop app's terminal window: the agent's own CLI on a
-                    card, drawn by xterm.js. Its own route so the window is just
-                    a URL — and lazily loaded so a browser build, which cannot
-                    open one, never pays for the emulator. */}
-                <FBRoute path='/acp/terminal/:terminalId'>
-                    <React.Suspense fallback={null}>
+            <FBRoute
+                path='/acp/terminal/:terminalId'
+                component={() => (
+                    <Suspense fallback={null}>
                         <TerminalPage/>
-                    </React.Suspense>
-                </FBRoute>
+                    </Suspense>
+                )}
+            />
 
-                <FBRoute path={['/team/:teamId/new/:channelId']}>
-                    <BoardPage new={true}/>
-                </FBRoute>
+            <FBRoute
+                path='/team/:teamId/new/:channelId'
+                component={() => <BoardPage new={true}/>}
+            />
 
-                <FBRoute path={['/team/:teamId/shared/:boardId?/:viewId?/:cardId?', '/shared/:boardId?/:viewId?/:cardId?']}>
-                    <BoardPage readonly={true}/>
-                </FBRoute>
+            <FBRoute
+                path={['/team/:teamId/shared/:boardId?/:viewId?/:cardId?', '/shared/:boardId?/:viewId?/:cardId?']}
+                component={() => <BoardPage readonly={true}/>}
+            />
 
-                <FBRoute
-                    loginRequired={true}
-                    path='/board/:boardId?/:viewId?/:cardId?'
-                    getOriginalPath={({params: {boardId, viewId, cardId}}) => {
-                        return `/board/${Utils.buildOriginalPath('', boardId, viewId, cardId)}`
-                    }}
-                >
-                    <BoardPage/>
-                </FBRoute>
-                <FBRoute path={['/workspace/:workspaceId/shared/:boardId?/:viewId?/:cardId?', '/workspace/:workspaceId/:boardId?/:viewId?/:cardId?']}>
-                    <WorkspaceToTeamRedirect/>
-                </FBRoute>
-                <FBRoute
-                    loginRequired={true}
-                    path='/team/:teamId/:boardId?/:viewId?/:cardId?'
-                    getOriginalPath={({params: {teamId, boardId, viewId, cardId}}) => {
-                        return `/team/${Utils.buildOriginalPath(teamId, boardId, viewId, cardId)}`
-                    }}
-                >
-                    <BoardPage/>
-                </FBRoute>
+            <FBRoute
+                loginRequired={true}
+                path='/board/:boardId?/:viewId?/:cardId?'
+                getOriginalPath={({boardId, viewId, cardId}) => {
+                    return `/board/${Utils.buildOriginalPath('', boardId, viewId, cardId)}`
+                }}
+                component={BoardPage}
+            />
+            <FBRoute
+                path='/workspace/:workspaceId/shared/:boardId?/:viewId?/:cardId?'
+                component={workspaceToTeamRedirect(true)}
+            />
+            <FBRoute
+                path='/workspace/:workspaceId/:boardId?/:viewId?/:cardId?'
+                component={workspaceToTeamRedirect(false)}
+            />
+            <FBRoute
+                loginRequired={true}
+                path='/team/:teamId/:boardId?/:viewId?/:cardId?'
+                getOriginalPath={({teamId, boardId, viewId, cardId}) => {
+                    return `/team/${Utils.buildOriginalPath(teamId, boardId, viewId, cardId)}`
+                }}
+                component={BoardPage}
+            />
 
-                <FBRoute
-                    path='/:boardId?/:viewId?/:cardId?'
-                    loginRequired={true}
-                    getOriginalPath={({params: {boardId, viewId, cardId}}) => {
-                        const boardIdIsValidUUIDV4 = UUID_REGEX.test(boardId || '')
-                        if (boardIdIsValidUUIDV4) {
-                            return `/${Utils.buildOriginalPath('', boardId, viewId, cardId)}`
-                        }
-                        return ''
-                    }}
-                >
-                    <BoardPage/>
-                </FBRoute>
-            </Switch>
+            <FBRoute
+                path='/:boardId?/:viewId?/:cardId?'
+                loginRequired={true}
+                getOriginalPath={({boardId, viewId, cardId}) => {
+                    const boardIdIsValidUUIDV4 = UUID_REGEX.test(boardId || '')
+                    if (boardIdIsValidUUIDV4) {
+                        return `/${Utils.buildOriginalPath('', boardId, viewId, cardId)}`
+                    }
+                    return ''
+                }}
+                component={BoardPage}
+            />
         </Router>
     )
 }
 
-export default React.memo(FocalboardRouter)
+export default FocalboardRouter

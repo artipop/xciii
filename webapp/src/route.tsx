@@ -1,10 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {
-    Redirect,
-    Route,
-} from 'react-router-dom'
+import {Component, Show} from 'solid-js'
+import {Navigate, Route, useParams} from '@solidjs/router'
+import type {Params} from '@solidjs/router'
 
 import {Utils} from './utils'
 import {getLoggedIn} from './store/users'
@@ -12,42 +10,46 @@ import {useAppSelector} from './store/hooks'
 
 type RouteProps = {
     path: string|string[]
-    exact?: boolean
-    render?: (props: any) => React.ReactElement
-    component?: React.ComponentType
-    children?: React.ReactElement
-    getOriginalPath?: (match: any) => string
+    component: Component
+    getOriginalPath?: (params: Params) => string
     loginRequired?: boolean
 }
 
+// The login guard react-router carried as a Route wrapper: render the page
+// unless the session is known to be absent, then bounce to /error with the
+// original path in `r` so login can come back.
 function FBRoute(props: RouteProps) {
-    const loggedIn = useAppSelector<boolean|null>(getLoggedIn)
-    let redirect: React.ReactNode | ((props: {match: unknown}) => React.ReactNode) = null
+    const guarded: Component = () => {
+        const loggedIn = useAppSelector(getLoggedIn)
+        const params = useParams()
 
-    if (redirect === null && loggedIn === false && props.loginRequired) {
-        redirect = ({match}: any) => {
+        const loginUrl = () => {
             if (props.getOriginalPath) {
-                let redirectUrl = '/' + Utils.buildURL(props.getOriginalPath!(match))
+                let redirectUrl = '/' + Utils.buildURL(props.getOriginalPath(params))
                 if (redirectUrl.indexOf('//') === 0) {
                     redirectUrl = redirectUrl.slice(1)
                 }
-                const loginUrl = `/error?id=not-logged-in&r=${encodeURIComponent(redirectUrl)}`
-                return <Redirect to={loginUrl}/>
+                return `/error?id=not-logged-in&r=${encodeURIComponent(redirectUrl)}`
             }
-            return <Redirect to='/error?id=not-logged-in'/>
+            return '/error?id=not-logged-in'
         }
+
+        return (
+            <Show
+                when={!(props.loginRequired && loggedIn() === false)}
+                fallback={<Navigate href={loginUrl()}/>}
+            >
+                {props.component({})}
+            </Show>
+        )
     }
 
     return (
         <Route
             path={props.path}
-            render={props.render}
-            component={props.component}
-            exact={props.exact}
-        >
-            {redirect || props.children}
-        </Route>
+            component={props.loginRequired ? guarded : props.component}
+        />
     )
 }
 
-export default React.memo(FBRoute)
+export default FBRoute

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {IntlShape} from 'react-intl'
-import {batch} from 'react-redux'
+import {batch} from 'solid-js'
+
+import {IntlShape} from './intl'
 import cloneDeep from 'lodash/cloneDeep'
 
 import {BlockIcons} from './blockIcons'
@@ -23,23 +24,25 @@ import {Category} from './store/sidebar'
 
 /* eslint-disable max-lines */
 import {UserConfigPatch, UserPreference} from './user'
-import store from './store'
-import {updateBoards} from './store/boards'
-import {updateViews} from './store/views'
-import {updateCards} from './store/cards'
-import {updateAttachments} from './store/attachments'
-import {updateComments} from './store/comments'
-import {updateContents} from './store/contents'
-import {addBoardUsers, removeBoardUsersById} from './store/users'
+import type {AppStore} from './store'
+
+// The store actions arrive by injection (main.tsx calls setActions once the
+// store exists): the mutator is a module singleton and must not create or
+// import a store of its own.
+let appActions: AppStore['actions']|undefined
 
 function updateAllBoardsAndBlocks(boards: Board[], blocks: Block[]) {
-    return batch(() => {
-        store.dispatch(updateBoards(boards.filter((b: Board) => b.deleteAt !== 0) as Board[]))
-        store.dispatch(updateViews(blocks.filter((b: Block) => b.type === 'view' || b.deleteAt !== 0) as BoardView[]))
-        store.dispatch(updateCards(blocks.filter((b: Block) => b.type === 'card' || b.deleteAt !== 0) as Card[]))
-        store.dispatch(updateAttachments(blocks.filter((b: Block) => b.type === 'attachment' || b.deleteAt !== 0) as AttachmentBlock[]))
-        store.dispatch(updateComments(blocks.filter((b: Block) => b.type === 'comment' || b.deleteAt !== 0) as CommentBlock[]))
-        store.dispatch(updateContents(blocks.filter((b: Block) => b.type !== 'card' && b.type !== 'view' && b.type !== 'board' && b.type !== 'comment') as ContentBlock[]))
+    const actions = appActions
+    if (!actions) {
+        return
+    }
+    batch(() => {
+        actions.boards.updateBoards(boards.filter((b: Board) => b.deleteAt !== 0) as Board[])
+        actions.views.updateViews(blocks.filter((b: Block) => b.type === 'view' || b.deleteAt !== 0) as BoardView[])
+        actions.cards.updateCards(blocks.filter((b: Block) => b.type === 'card' || b.deleteAt !== 0) as Card[])
+        actions.attachments.updateAttachments(blocks.filter((b: Block) => b.type === 'attachment' || b.deleteAt !== 0) as AttachmentBlock[])
+        actions.comments.updateComments(blocks.filter((b: Block) => b.type === 'comment' || b.deleteAt !== 0) as CommentBlock[])
+        actions.contents.updateContents(blocks.filter((b: Block) => b.type !== 'card' && b.type !== 'view' && b.type !== 'board' && b.type !== 'comment') as ContentBlock[])
     })
 }
 
@@ -48,6 +51,10 @@ function updateAllBoardsAndBlocks(boards: Board[], blocks: Block[]) {
 // It also ensures that the Undo-manager is called for each action
 //
 class Mutator {
+    setActions(actions: AppStore['actions']) {
+        appActions = actions
+    }
+
     private undoGroupId?: string
     private undoDisplayId?: string
 
@@ -386,13 +393,13 @@ class Mutator {
         await undoManager.perform(
             async () => {
                 await octoClient.deleteBoardMember(member)
-                store.dispatch(removeBoardUsersById([member.userId]))
+                appActions?.users.removeBoardUsersById([member.userId])
             },
             async () => {
                 await octoClient.createBoardMember(member)
                 const user = await octoClient.getUser(member.userId)
                 if (user) {
-                    store.dispatch(addBoardUsers([user]))
+                    appActions?.users.addBoardUsers([user])
                 }
             },
             description,
