@@ -1,22 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
+import type {StoreContext} from './context'
+import type {RootState} from './index'
 
-import {RootState} from './index'
+export type SearchTextState = {value: string}
 
-const searchTextSlice = createSlice({
-    name: 'searchText',
-    initialState: {value: ''} as {value: string},
-    reducers: {
-        setSearchText: (state, action: PayloadAction<string>) => {
-            state.value = action.payload
-        },
+export const initialSearchTextState = (): SearchTextState => ({value: ''})
+
+export const createSearchTextActions = ({setState}: StoreContext) => ({
+    setSearchText(text: string) {
+        setState('searchText', 'value', text)
     },
 })
-
-export const {setSearchText} = searchTextSlice.actions
-export const {reducer} = searchTextSlice
 
 export function getSearchText(state: RootState): string {
     return state.searchText.value

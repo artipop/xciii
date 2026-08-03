@@ -1,35 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
-
-import {default as client} from '../octoClient'
 import {Board} from '../blocks/board'
-
 import {Constants} from '../constants'
 
-import {RootState} from './index'
+import type {StoreContext} from './context'
+import type {RootState} from './index'
 
-export const fetchGlobalTemplates = createAsyncThunk(
-    'globalTemplates/fetch',
-    async () => {
-        const templates = await client.getTeamTemplates(Constants.globalTeamId)
-        return templates.sort((a, b) => a.title.localeCompare(b.title))
-    },
-)
+export type GlobalTemplatesState = {value: Board[]}
 
-const globalTemplatesSlice = createSlice({
-    name: 'globalTemplates',
-    initialState: {value: []} as {value: Board[]},
-    reducers: {},
-    extraReducers: (builder) => {
-        builder.addCase(fetchGlobalTemplates.fulfilled, (state, action) => {
-            state.value = action.payload || []
-        })
+export const initialGlobalTemplatesState = (): GlobalTemplatesState => ({value: []})
+
+export const createGlobalTemplatesActions = ({setState, deps}: StoreContext) => ({
+    async fetchGlobalTemplates(): Promise<void> {
+        const templates = await deps.client.getTeamTemplates(Constants.globalTeamId)
+        setState('globalTemplates', 'value', templates.sort((a, b) => a.title.localeCompare(b.title)) || [])
     },
 })
-
-export const {reducer} = globalTemplatesSlice
 
 export function getGlobalTemplates(state: RootState): Board[] {
     return state.globalTemplates.value

@@ -1,21 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction, createSelector} from '@reduxjs/toolkit'
 import isEqual from 'lodash/isEqual'
 
+import {produce} from 'solid-js/store'
+
 import {BoardView, createBoardView} from '../blocks/boardView'
+import {Block} from '../blocks/block'
 import {Utils} from '../utils'
 
-import {initialReadOnlyLoad, loadBoardData} from './initialLoad'
 import {getCurrentBoard} from './boards'
 
-import {RootState} from './index'
+import type {StoreContext} from './context'
+import type {RootState} from './index'
 
-type ViewsState = {
+export type ViewsState = {
     current: string
     views: {[key: string]: BoardView}
 }
+
+export const initialViewsState = (): ViewsState => ({views: {}, current: ''})
 
 // This update ensure that we are not regenerating that fields all the time
 const smartViewUpdate = (oldView: BoardView, newView: BoardView) => {
@@ -56,71 +60,57 @@ const smartViewUpdate = (oldView: BoardView, newView: BoardView) => {
     return newView
 }
 
-const viewsSlice = createSlice({
-    name: 'views',
-    initialState: {views: {}, current: ''} as ViewsState,
-    reducers: {
-        setCurrent: (state, action: PayloadAction<string>) => {
-            state.current = action.payload
-        },
-        updateViews: (state, action: PayloadAction<BoardView[]>) => {
-            for (const view of action.payload) {
-                if (view.deleteAt === 0) {
-                    state.views[view.id] = smartViewUpdate(state.views[view.id], view)
-                } else {
-                    delete state.views[view.id]
-                }
-            }
-        },
-        updateView: (state, action: PayloadAction<BoardView>) => {
-            state.views[action.payload.id] = action.payload
-        },
+// The views a fresh board load carries: every full (re)load rebuilds the map
+// from the block list.
+export const viewsFromBlocks = (blocks: Block[]): {[key: string]: BoardView} => {
+    const views: {[key: string]: BoardView} = {}
+    for (const block of blocks) {
+        if (block.type === 'view') {
+            views[block.id] = block as BoardView
+        }
+    }
+    return views
+}
+
+export const createViewsActions = ({setState}: StoreContext) => ({
+    setCurrent(viewId: string) {
+        setState('views', 'current', viewId)
     },
-    extraReducers: (builder) => {
-        builder.addCase(initialReadOnlyLoad.fulfilled, (state, action) => {
-            state.views = {}
-            for (const block of action.payload.blocks) {
-                if (block.type === 'view') {
-                    state.views[block.id] = block as BoardView
+    updateViews(views: BoardView[]) {
+        setState('views', 'views', produce((stateViews) => {
+            for (const view of views) {
+                if (view.deleteAt === 0) {
+                    stateViews[view.id] = smartViewUpdate(stateViews[view.id], view)
+                } else {
+                    delete stateViews[view.id]
                 }
             }
-        })
-        builder.addCase(loadBoardData.fulfilled, (state, action) => {
-            state.views = {}
-            for (const block of action.payload.blocks) {
-                if (block.type === 'view') {
-                    state.views[block.id] = block as BoardView
-                }
-            }
-        })
+        }))
+    },
+    updateView(view: BoardView) {
+        setState('views', 'views', view.id, view)
+    },
+    setViews(views: {[key: string]: BoardView}) {
+        setState('views', 'views', views)
     },
 })
 
-export const {updateViews, setCurrent, updateView} = viewsSlice.actions
-export const {reducer} = viewsSlice
-
 export const getViews = (state: RootState): {[key: string]: BoardView} => state.views.views
-export const getSortedViews = createSelector(
-    getViews,
-    (views) => {
-        return Object.values(views).sort((a, b) => a.title.localeCompare(b.title)).map((v) => createBoardView(v))
-    },
-)
 
-export const getViewsByBoard = createSelector(
-    getViews,
-    (views) => {
-        const result: {[key: string]: BoardView[]} = {}
-        Object.values(views).forEach((view) => {
-            if (result[view.parentId]) {
-                result[view.parentId].push(view)
-            } else {
-                result[view.parentId] = [view]
-            }
-        })
-        return result
-    },
-)
+export const getSortedViews = (state: RootState): BoardView[] =>
+    Object.values(getViews(state)).sort((a, b) => a.title.localeCompare(b.title)).map((v) => createBoardView(v))
+
+export const getViewsByBoard = (state: RootState): {[key: string]: BoardView[]} => {
+    const result: {[key: string]: BoardView[]} = {}
+    Object.values(getViews(state)).forEach((view) => {
+        if (result[view.parentId]) {
+            result[view.parentId].push(view)
+        } else {
+            result[view.parentId] = [view]
+        }
+    })
+    return result
+}
 
 export function getView(viewId: string): (state: RootState) => BoardView|null {
     return (state: RootState): BoardView|null => {
@@ -128,47 +118,37 @@ export function getView(viewId: string): (state: RootState) => BoardView|null {
     }
 }
 
-export const getCurrentBoardViews = createSelector(
-    (state: RootState) => state.boards.current,
-    getViews,
-    (boardId, views) => {
-        Utils.log(`getCurrentBoardViews boardId: ${boardId} views: ${views.length}`)
-        return Object.values(views).filter((v) => v.boardId === boardId).sort((a, b) => a.title.localeCompare(b.title)).map((v) => createBoardView(v))
-    },
-)
+export const getCurrentBoardViews = (state: RootState): BoardView[] => {
+    const boardId = state.boards.current
+    const views = getViews(state)
+    Utils.log(`getCurrentBoardViews boardId: ${boardId} views: ${views.length}`)
+    return Object.values(views).filter((v) => v.boardId === boardId).sort((a, b) => a.title.localeCompare(b.title)).map((v) => createBoardView(v))
+}
 
 export const getCurrentViewId = (state: RootState): string => state.views.current
 
-export const getCurrentView = createSelector(
-    getViews,
-    getCurrentViewId,
-    (views, viewId) => views[viewId],
-)
+export const getCurrentView = (state: RootState): BoardView => getViews(state)[getCurrentViewId(state)]
 
-export const getCurrentViewGroupBy = createSelector(
-    getCurrentBoard,
-    getCurrentView,
-    (currentBoard, currentView) => {
-        if (!currentBoard) {
-            return undefined
-        }
-        if (!currentView) {
-            return undefined
-        }
-        return currentBoard.cardProperties.find((o) => o.id === currentView.fields.groupById)
-    },
-)
+export const getCurrentViewGroupBy = (state: RootState) => {
+    const currentBoard = getCurrentBoard(state)
+    const currentView = getCurrentView(state)
+    if (!currentBoard) {
+        return undefined
+    }
+    if (!currentView) {
+        return undefined
+    }
+    return currentBoard.cardProperties.find((o) => o.id === currentView.fields.groupById)
+}
 
-export const getCurrentViewDisplayBy = createSelector(
-    getCurrentBoard,
-    getCurrentView,
-    (currentBoard, currentView) => {
-        if (!currentBoard) {
-            return undefined
-        }
-        if (!currentView) {
-            return undefined
-        }
-        return currentBoard.cardProperties.find((o) => o.id === currentView.fields.dateDisplayPropertyId)
-    },
-)
+export const getCurrentViewDisplayBy = (state: RootState) => {
+    const currentBoard = getCurrentBoard(state)
+    const currentView = getCurrentView(state)
+    if (!currentBoard) {
+        return undefined
+    }
+    if (!currentView) {
+        return undefined
+    }
+    return currentBoard.cardProperties.find((o) => o.id === currentView.fields.dateDisplayPropertyId)
+}

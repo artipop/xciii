@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createAsyncThunk, createSelector, createSlice, PayloadAction} from '@reduxjs/toolkit'
-
-import {default as client} from '../octoClient'
+import {batch} from 'solid-js'
+import {produce} from 'solid-js/store'
 
 import {Utils} from '../utils'
 
-import {RootState} from './index'
+import type {StoreContext} from './context'
+import type {RootState} from './index'
 
 export type CategoryType = 'system' | 'custom'
 
@@ -50,55 +50,50 @@ export const DefaultCategory: CategoryBoards = {
     name: 'Boards',
 } as CategoryBoards
 
-export const fetchSidebarCategories = createAsyncThunk(
-    'sidebarCategories/fetch',
-    async (teamID: string) => {
-        return client.getSidebarCategories(teamID)
-    },
-)
-
-type Sidebar = {
+export type SidebarState = {
     categoryAttributes: CategoryBoards[]
     hiddenBoardIDs: string[]
 }
 
-const sidebarSlice = createSlice({
-    name: 'sidebar',
-    initialState: {categoryAttributes: [], hiddenBoardIDs: []} as Sidebar,
-    reducers: {
-        updateCategories: (state, action: PayloadAction<Category[]>) => {
-            action.payload.forEach((updatedCategory) => {
-                const index = state.categoryAttributes.findIndex((c) => c.id === updatedCategory.id)
+export const initialSidebarState = (): SidebarState => ({categoryAttributes: [], hiddenBoardIDs: []})
+
+export const createSidebarActions = ({setState, deps}: StoreContext) => ({
+    updateCategories(categories: Category[]) {
+        setState('sidebar', 'categoryAttributes', produce((categoryAttributes) => {
+            categories.forEach((updatedCategory) => {
+                const index = categoryAttributes.findIndex((c) => c.id === updatedCategory.id)
 
                 // when new category got created,
                 if (index === -1) {
                     // new categories should always show up on the top
-                    state.categoryAttributes.unshift({
+                    categoryAttributes.unshift({
                         ...updatedCategory,
                         boardMetadata: [],
                         isNew: true,
                     })
                 } else if (updatedCategory.deleteAt) {
                     // when category is deleted
-                    state.categoryAttributes.splice(index, 1)
+                    categoryAttributes.splice(index, 1)
                 } else {
                     // else all, update the category
-                    state.categoryAttributes[index] = {
-                        ...state.categoryAttributes[index],
+                    categoryAttributes[index] = {
+                        ...categoryAttributes[index],
                         name: updatedCategory.name,
                         updateAt: updatedCategory.updateAt,
                         isNew: false,
                     }
                 }
             })
-        },
-        updateBoardCategories: (state, action: PayloadAction<BoardCategoryWebsocketData[]>) => {
+        }))
+    },
+    updateBoardCategories(boardCategories: BoardCategoryWebsocketData[]) {
+        setState('sidebar', produce((sidebar) => {
             const updatedCategoryAttributes: CategoryBoards[] = []
-            let updatedHiddenBoardIDs = state.hiddenBoardIDs
+            let updatedHiddenBoardIDs = sidebar.hiddenBoardIDs
 
-            action.payload.forEach((boardCategory) => {
-                for (let i = 0; i < state.categoryAttributes.length; i++) {
-                    const categoryAttribute = state.categoryAttributes[i]
+            boardCategories.forEach((boardCategory) => {
+                for (let i = 0; i < sidebar.categoryAttributes.length; i++) {
+                    const categoryAttribute = sidebar.categoryAttributes[i]
 
                     if (categoryAttribute.id === boardCategory.categoryID) {
                         const categoryBoardMetadataIndex = categoryAttribute.boardMetadata.findIndex((boardMetadata) => boardMetadata.boardID === boardCategory.boardID)
@@ -129,20 +124,22 @@ const sidebarSlice = createSlice({
             })
 
             if (updatedCategoryAttributes.length > 0) {
-                state.categoryAttributes = updatedCategoryAttributes
+                sidebar.categoryAttributes = updatedCategoryAttributes
             }
-            state.hiddenBoardIDs = updatedHiddenBoardIDs
-        },
-        updateCategoryOrder: (state, action: PayloadAction<string[]>) => {
-            if (action.payload.length === 0) {
-                return
-            }
+            sidebar.hiddenBoardIDs = updatedHiddenBoardIDs
+        }))
+    },
+    updateCategoryOrder(categoryOrder: string[]) {
+        if (categoryOrder.length === 0) {
+            return
+        }
 
+        setState('sidebar', 'categoryAttributes', (categoryAttributes) => {
             const categoryById = new Map<string, CategoryBoards>()
-            state.categoryAttributes.forEach((categoryBoards: CategoryBoards) => categoryById.set(categoryBoards.id, categoryBoards))
+            categoryAttributes.forEach((categoryBoards: CategoryBoards) => categoryById.set(categoryBoards.id, categoryBoards))
 
             const newOrderedCategories: CategoryBoards[] = []
-            action.payload.forEach((categoryId) => {
+            categoryOrder.forEach((categoryId) => {
                 const category = categoryById.get(categoryId)
                 if (!category) {
                     Utils.logError('Category ID from updated category order not found in store. CategoryID: ' + categoryId)
@@ -151,34 +148,34 @@ const sidebarSlice = createSlice({
                 newOrderedCategories.push(category)
             })
 
-            state.categoryAttributes = newOrderedCategories
-        },
-        updateCategoryBoardsOrder: (state, action: PayloadAction<CategoryBoardsReorderData>) => {
-            if (action.payload.boardsMetadata.length === 0) {
-                return
-            }
+            return newOrderedCategories
+        })
+    },
+    updateCategoryBoardsOrder(reorderData: CategoryBoardsReorderData) {
+        if (reorderData.boardsMetadata.length === 0) {
+            return
+        }
 
-            const categoryIndex = state.categoryAttributes.findIndex((categoryBoards) => categoryBoards.id === action.payload.categoryID)
+        setState('sidebar', 'categoryAttributes', produce((categoryAttributes) => {
+            const categoryIndex = categoryAttributes.findIndex((categoryBoards) => categoryBoards.id === reorderData.categoryID)
             if (categoryIndex < 0) {
-                Utils.logError('Category ID from updated category boards order not found in store. CategoryID: ' + action.payload.categoryID)
+                Utils.logError('Category ID from updated category boards order not found in store. CategoryID: ' + reorderData.categoryID)
                 return
             }
 
-            const category = state.categoryAttributes[categoryIndex]
-            const updatedCategory: CategoryBoards = {
+            const category = categoryAttributes[categoryIndex]
+            categoryAttributes[categoryIndex] = {
                 ...category,
-                boardMetadata: action.payload.boardsMetadata,
+                boardMetadata: reorderData.boardsMetadata,
                 isNew: false,
             }
-
-            // creating a new reference of array so redux knows it changed
-            state.categoryAttributes = state.categoryAttributes.map((original, i) => (i === categoryIndex ? updatedCategory : original))
-        },
+        }))
     },
-    extraReducers: (builder) => {
-        builder.addCase(fetchSidebarCategories.fulfilled, (state, action) => {
-            state.categoryAttributes = action.payload || []
-            state.hiddenBoardIDs = state.categoryAttributes.flatMap(
+    async fetchSidebarCategories(teamID: string): Promise<void> {
+        const categoryAttributes = await deps.client.getSidebarCategories(teamID) || []
+        batch(() => {
+            setState('sidebar', 'categoryAttributes', categoryAttributes)
+            setState('sidebar', 'hiddenBoardIDs', categoryAttributes.flatMap(
                 (ca) => {
                     return ca.boardMetadata.reduce((collector, m) => {
                         if (m.hidden) {
@@ -188,28 +185,18 @@ const sidebarSlice = createSlice({
                         return collector
                     }, [] as string[])
                 },
-            )
+            ))
         })
     },
 })
 
-export const getSidebarCategories = createSelector(
-    (state: RootState): CategoryBoards[] => state.sidebar.categoryAttributes,
-    (sidebarCategories) => sidebarCategories,
-)
+export const getSidebarCategories = (state: RootState): CategoryBoards[] => state.sidebar.categoryAttributes
 
 export const getHiddenBoardIDs = (state: RootState): string[] => state.sidebar.hiddenBoardIDs
 
 export function getCategoryOfBoard(boardID: string): (state: RootState) => CategoryBoards | undefined {
-    return createSelector(
-        (state: RootState): CategoryBoards[] => state.sidebar.categoryAttributes,
-        (sidebarCategories) => sidebarCategories.find((category) => category.boardMetadata.findIndex((m) => m.boardID === boardID) >= 0),
-    )
+    return (state: RootState) =>
+        state.sidebar.categoryAttributes.find((category) => category.boardMetadata.findIndex((m) => m.boardID === boardID) >= 0)
 }
 
-export const {reducer} = sidebarSlice
-
-export const {updateCategories, updateBoardCategories, updateCategoryOrder, updateCategoryBoardsOrder} = sidebarSlice.actions
-
 export {type Category, type CategoryBoards, type BoardCategoryWebsocketData, type CategoryBoardsReorderData, type CategoryBoardMetadata}
-
