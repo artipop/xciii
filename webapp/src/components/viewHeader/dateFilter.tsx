@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState, useCallback} from 'react'
-import {useIntl} from '../../intl'
+import {Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import moment from 'moment'
+
+import {useIntl} from '../../intl'
 
 import mutator from '../../mutator'
 
@@ -36,24 +38,29 @@ type Props = {
 }
 
 function DateFilter(props: Props): JSX.Element {
-    const {filter, view} = props
-    const [showDialog, setShowDialog] = useState(false)
+    const [showDialog, setShowDialog] = createSignal(false)
 
-    const filterValue = filter.values
-
-    let dateValue: Date | undefined
-    if (filterValue && filterValue.length > 0) {
-        dateValue = new Date(parseInt(filterValue[0], 10))
+    const initialDateValue = (): Date | undefined => {
+        const filterValue = props.filter.values
+        if (filterValue && filterValue.length > 0) {
+            return new Date(parseInt(filterValue[0], 10))
+        }
+        return undefined
     }
 
-    const [value, setValue] = useState(dateValue)
+    const [value, setValue] = createSignal(initialDateValue())
     const intl = useIntl()
 
-    const onChange = useCallback((newValue: Date | undefined) => {
-        if (value !== newValue) {
+    const timeZoneOffset = (date: number): number => {
+        return new Date(date).getTimezoneOffset() * 60 * 1000
+    }
+
+    const onChange = (newValue: Date | undefined) => {
+        if (value() !== newValue) {
             const adjustedValue = newValue ? new Date(newValue.getTime() - timeZoneOffset(newValue.getTime())) : undefined
             setValue(adjustedValue)
 
+            const {view, filter} = props
             const filterIndex = view.fields.filter.filters.indexOf(filter)
             Utils.assert(filterIndex >= 0, "Can't find filter")
 
@@ -67,7 +74,7 @@ function DateFilter(props: Props): JSX.Element {
             }
             mutator.changeViewFilter(view.boardId, view.id, view.fields.filter, filterGroup)
         }
-    }, [value, view.boardId, view.id, view.fields.filter])
+    }
 
     const getDisplayDate = (date: Date | null | undefined) => {
         let displayDate = ''
@@ -77,19 +84,26 @@ function DateFilter(props: Props): JSX.Element {
         return displayDate
     }
 
-    const timeZoneOffset = (date: number): number => {
-        return new Date(date).getTimezoneOffset() * 60 * 1000
-    }
-
     // Keep date value as UTC, property dates are stored as 12:00 pm UTC
     // date will need converted to local time, to ensure date stays consistent
     // dateFrom / dateTo will be used for input and calendar dates
-    const offsetDate = value ? new Date(value.getTime() + timeZoneOffset(value.getTime())) : undefined
-    const [input, setInput] = useState<string>(getDisplayDate(offsetDate))
+    const offsetDate = () => {
+        const current = value()
+        return current ? new Date(current.getTime() + timeZoneOffset(current.getTime())) : undefined
+    }
+    const [input, setInput] = createSignal<string>(getDisplayDate(offsetDate()))
 
-    const locale = intl.locale.toLowerCase()
-    useMomentLocale(locale)
-    const firstDayOfWeek = moment.localeData(locale).firstDayOfWeek()
+    const locale = () => intl.locale.toLowerCase()
+    const momentRevision = useMomentLocale(locale)
+    const firstDayOfWeek = () => {
+        void momentRevision()
+        return moment.localeData(locale()).firstDayOfWeek()
+    }
+
+    const saveValue = (newValue: Date | undefined) => {
+        onChange(newValue)
+        setInput(newValue ? Utils.inputDate(newValue, intl) : '')
+    }
 
     const handleTodayClick = (day: Date) => {
         day.setHours(12)
@@ -107,100 +121,90 @@ function DateFilter(props: Props): JSX.Element {
         saveValue(undefined)
     }
 
-    const saveValue = (newValue: Date | undefined) => {
-        onChange(newValue)
-        setInput(newValue ? Utils.inputDate(newValue, intl) : '')
-    }
-
     const onClose = () => {
         setShowDialog(false)
     }
 
-    let displayValue = ''
-    if (offsetDate) {
-        displayValue = getDisplayDate(offsetDate)
-    }
+    const displayValue = () => (offsetDate() ? getDisplayDate(offsetDate()) : '')
 
-    let buttonText = displayValue
-    if (!buttonText) {
-        buttonText = intl.formatMessage({id: 'DateFilter.empty', defaultMessage: 'Empty'})
-    }
+    const buttonText = () => displayValue() || intl.formatMessage({id: 'DateFilter.empty', defaultMessage: 'Empty'})
 
     const className = 'DateFilter'
     return (
-        <div class={`DateFilter ${displayValue ? '' : 'empty'} `}>
+        <div class={`DateFilter ${displayValue() ? '' : 'empty'} `}>
             <Button
                 onClick={() => setShowDialog(true)}
             >
-                {buttonText}
+                {buttonText()}
             </Button>
 
-            {showDialog &&
-            <ModalWrapper>
-                <Modal
-                    onClose={() => onClose()}
-                >
-                    <div
-                        class={className + '-overlayWrapper'}
+            <Show when={showDialog()}>
+                <ModalWrapper>
+                    <Modal
+                        onClose={() => onClose()}
                     >
-                        <div class={className + '-overlay'}>
-                            <div class={'inputContainer'}>
-                                <Editable
-                                    value={input}
-                                    placeholderText={moment.localeData(locale).longDateFormat('L')}
-                                    onFocus={() => {
-                                        if (offsetDate) {
-                                            return setInput(Utils.inputDate(offsetDate, intl))
-                                        }
-                                        return undefined
-                                    }}
-                                    onChange={setInput}
-                                    onSave={() => {
-                                        const newDate = parseLocalizedDate(input, intl.locale)
-                                        if (newDate && isDate(newDate)) {
-                                            newDate.setHours(12)
-                                            saveValue(newDate)
-                                        } else {
-                                            setInput(getDisplayDate(offsetDate))
-                                        }
-                                    }}
-                                    onCancel={() => {
-                                        setInput(getDisplayDate(offsetDate))
-                                    }}
-                                />
-                            </div>
-                            <Calendar
-                                onDayClick={handleDayClick}
-                                defaultMonth={offsetDate || new Date()}
-                                firstDayOfWeek={firstDayOfWeek}
-                                selection={{from: offsetDate}}
-                                footer={
-                                    <Button
-                                        onClick={() => {
-                                            const today = new Date()
-                                            today.setHours(0, 0, 0, 0)
-                                            handleTodayClick(today)
+                        <div
+                            class={className + '-overlayWrapper'}
+                        >
+                            <div class={className + '-overlay'}>
+                                <div class={'inputContainer'}>
+                                    <Editable
+                                        value={input()}
+                                        placeholderText={moment.localeData(locale()).longDateFormat('L')}
+                                        onFocus={() => {
+                                            const date = offsetDate()
+                                            if (date) {
+                                                return setInput(Utils.inputDate(date, intl))
+                                            }
+                                            return undefined
                                         }}
-                                    >
-                                        {intl.formatMessage({id: 'DateRange.today', defaultMessage: 'Today'})}
-                                    </Button>
-                                }
-                            />
-                            <hr/>
-                            <div
-                                class='MenuOption menu-option'
-                            >
-                                <Button
-                                    onClick={onClear}
+                                        onChange={setInput}
+                                        onSave={() => {
+                                            const newDate = parseLocalizedDate(input(), intl.locale)
+                                            if (newDate && isDate(newDate)) {
+                                                newDate.setHours(12)
+                                                saveValue(newDate)
+                                            } else {
+                                                setInput(getDisplayDate(offsetDate()))
+                                            }
+                                        }}
+                                        onCancel={() => {
+                                            setInput(getDisplayDate(offsetDate()))
+                                        }}
+                                    />
+                                </div>
+                                <Calendar
+                                    onDayClick={handleDayClick}
+                                    defaultMonth={offsetDate() || new Date()}
+                                    firstDayOfWeek={firstDayOfWeek()}
+                                    selection={{from: offsetDate()}}
+                                    footer={
+                                        <Button
+                                            onClick={() => {
+                                                const today = new Date()
+                                                today.setHours(0, 0, 0, 0)
+                                                handleTodayClick(today)
+                                            }}
+                                        >
+                                            {intl.formatMessage({id: 'DateRange.today', defaultMessage: 'Today'})}
+                                        </Button>
+                                    }
+                                />
+                                <hr/>
+                                <div
+                                    class='MenuOption menu-option'
                                 >
-                                    {intl.formatMessage({id: 'DateRange.clear', defaultMessage: 'Clear'})}
-                                </Button>
+                                    <Button
+                                        onClick={onClear}
+                                    >
+                                        {intl.formatMessage({id: 'DateRange.clear', defaultMessage: 'Clear'})}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </Modal>
-            </ModalWrapper>
-            }
+                    </Modal>
+                </ModalWrapper>
+            </Show>
         </div>
     )
 }
