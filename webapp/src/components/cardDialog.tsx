@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState} from 'react'
+import {Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
+
 import {FormattedMessage, useIntl} from '../intl'
 
 import {Board} from '../blocks/board'
@@ -9,11 +11,11 @@ import {Card} from '../blocks/card'
 import {sendFlashMessage} from '../components/flashMessages'
 import mutator from '../mutator'
 import octoClient from '../octoClient'
-import {getCardAttachments, updateAttachments, updateUploadPrecent} from '../store/attachments'
+import {getCardAttachments} from '../store/attachments'
 import {getCard} from '../store/cards'
 import {getCardComments} from '../store/comments'
 import {getCardContents} from '../store/contents'
-import {useAppDispatch, useAppSelector} from '../store/hooks'
+import {useAppSelector, useAppStore} from '../store/hooks'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../telemetry/telemetryClient'
 import {Utils} from '../utils'
 import CompassIcon from '../widgets/icons/compassIcon'
@@ -47,27 +49,27 @@ type Props = {
 }
 
 const CardDialog = (props: Props): JSX.Element => {
-    const {board, activeView, cards, views} = props
-    const card = useAppSelector(getCard(props.cardId))
-    const contents = useAppSelector(getCardContents(props.cardId))
-    const comments = useAppSelector(getCardComments(props.cardId))
-    const attachments = useAppSelector(getCardAttachments(props.cardId))
+    const card = useAppSelector((state) => getCard(props.cardId)(state))
+    const contents = useAppSelector((state) => getCardContents(props.cardId)(state))
+    const comments = useAppSelector((state) => getCardComments(props.cardId)(state))
+    const attachments = useAppSelector((state) => getCardAttachments(props.cardId)(state))
     const intl = useIntl()
-    const dispatch = useAppDispatch()
-    const isTemplate = card && card.fields.isTemplate
+    const {actions} = useAppStore()
+    const isTemplate = () => card() && card()!.fields.isTemplate
 
-    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = useState<boolean>(false)
+    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = createSignal<boolean>(false)
     const makeTemplateClicked = async () => {
-        if (!card) {
+        const currentCard = card()
+        if (!currentCard) {
             Utils.assertFailure('card')
             return
         }
 
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.AddTemplateFromCard, {board: props.board.id, view: activeView.id, card: props.cardId})
+        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.AddTemplateFromCard, {board: props.board.id, view: props.activeView.id, card: props.cardId})
         await mutator.duplicateCard(
             props.cardId,
-            board.id,
-            card.fields.isTemplate,
+            props.board.id,
+            currentCard.fields.isTemplate,
             intl.formatMessage({id: 'Mutator.new-template-from-card', defaultMessage: 'new template from card'}),
             true,
             {},
@@ -80,12 +82,13 @@ const CardDialog = (props: Props): JSX.Element => {
         )
     }
     const handleDeleteCard = async () => {
-        if (!card) {
+        const currentCard = card()
+        if (!currentCard) {
             Utils.assertFailure()
             return
         }
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: props.board.id, view: props.activeView.id, card: card.id})
-        await mutator.deleteBlock(card, 'delete card')
+        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: props.board.id, view: props.activeView.id, card: currentCard.id})
+        await mutator.deleteBlock(currentCard, 'delete card')
         props.onClose()
     }
 
@@ -102,7 +105,7 @@ const CardDialog = (props: Props): JSX.Element => {
         // use may be renaming a card title
         // and accidently delete the card
         // so adding des
-        if (card?.title === '' && card?.fields.contentOrder.length === 0) {
+        if (card()?.title === '' && card()?.fields.contentOrder.length === 0) {
             handleDeleteCard()
             return
         }
@@ -110,32 +113,32 @@ const CardDialog = (props: Props): JSX.Element => {
         setShowConfirmationDialogBox(true)
     }
 
-    const menu = (
+    const menu = () => (
         <CardActionsMenu
             cardId={props.cardId}
-            boardId={board.id}
+            boardId={props.board.id}
             onClickDelete={handleDeleteButtonOnClick}
         >
-            {!isTemplate &&
-            <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
-                <Menu.Text
-                    id='makeTemplate'
-                    icon={
-                        <CompassIcon
-                            icon='plus'
-                        />}
-                    name='New template from card'
-                    onClick={makeTemplateClicked}
-                />
-            </BoardPermissionGate>
-            }
+            <Show when={!isTemplate()}>
+                <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
+                    <Menu.Text
+                        id='makeTemplate'
+                        icon={
+                            <CompassIcon
+                                icon='plus'
+                            />}
+                        name='New template from card'
+                        onClick={makeTemplateClicked}
+                    />
+                </BoardPermissionGate>
+            </Show>
         </CardActionsMenu>
     )
 
     const removeUploadingAttachment = (uploadingBlock: Block) => {
         uploadingBlock.deleteAt = 1
         const removeUploadingAttachmentBlock = createAttachmentBlock(uploadingBlock)
-        dispatch(updateAttachments([removeUploadingAttachmentBlock]))
+        actions.attachments.updateAttachments([removeUploadingAttachmentBlock])
     }
 
     const selectAttachment = (boardId: string) => {
@@ -146,21 +149,22 @@ const CardDialog = (props: Props): JSX.Element => {
                     uploadingBlock.title = attachment.name
                     uploadingBlock.fields.fileId = attachment.name
                     uploadingBlock.boardId = boardId
-                    if (card) {
-                        uploadingBlock.parentId = card.id
+                    const currentCard = card()
+                    if (currentCard) {
+                        uploadingBlock.parentId = currentCard.id
                     }
                     const attachmentBlock = createAttachmentBlock(uploadingBlock)
                     attachmentBlock.isUploading = true
-                    dispatch(updateAttachments([attachmentBlock]))
+                    actions.attachments.updateAttachments([attachmentBlock])
                     sendFlashMessage({content: intl.formatMessage({id: 'AttachmentBlock.upload', defaultMessage: 'Attachment uploading.'}), severity: 'normal'})
                     const xhr = await octoClient.uploadAttachment(boardId, attachment)
                     if (xhr) {
                         xhr.upload.onprogress = (event) => {
                             const percent = Math.floor((event.loaded / event.total) * 100)
-                            dispatch(updateUploadPrecent({
+                            actions.attachments.updateUploadPrecent({
                                 blockId: attachmentBlock.id,
                                 uploadPercent: percent,
-                            }))
+                            })
                         }
 
                         xhr.onload = () => {
@@ -188,19 +192,20 @@ const CardDialog = (props: Props): JSX.Element => {
     }
 
     const addElement = async () => {
-        if (!card) {
+        const currentCard = card()
+        if (!currentCard) {
             return
         }
-        const block = await selectAttachment(board.id)
-        block.parentId = card.id
-        block.boardId = card.boardId
+        const block = await selectAttachment(props.board.id)
+        block.parentId = currentCard.id
+        block.boardId = currentCard.boardId
         const typeName = block.type
         const description = intl.formatMessage({id: 'AttachmentBlock.addElement', defaultMessage: 'add {type}'}, {type: typeName})
         await mutator.insertBlock(block.boardId, block, description)
     }
 
     const deleteBlock = async (block: Block) => {
-        if (!card) {
+        if (!card()) {
             return
         }
         const description = intl.formatMessage({id: 'AttachmentBlock.DeleteAction', defaultMessage: 'delete'})
@@ -230,43 +235,49 @@ const CardDialog = (props: Props): JSX.Element => {
                 title={<div/>}
                 className='cardDialog'
                 onClose={props.onClose}
-                toolsMenu={!props.readonly && !card?.limited && menu}
+                toolsMenu={!props.readonly && !card()?.limited && menu()}
                 toolbar={attachBtn()}
             >
-                {isTemplate &&
+                <Show when={isTemplate()}>
                     <div class='banner'>
                         <FormattedMessage
                             id='CardDialog.editing-template'
                             defaultMessage="You're editing a template."
                         />
-                    </div>}
+                    </div>
+                </Show>
 
-                {card &&
+                <Show
+                    when={card()}
+                    fallback={
+                        <div class='banner error'>
+                            <FormattedMessage
+                                id='CardDialog.nocard'
+                                defaultMessage="This card doesn't exist or is inaccessible."
+                            />
+                        </div>
+                    }
+                >
                     <CardDetail
-                        board={board}
-                        activeView={activeView}
-                        views={views}
-                        cards={cards}
-                        card={card}
-                        contents={contents}
-                        comments={comments}
-                        attachments={attachments}
+                        board={props.board}
+                        activeView={props.activeView}
+                        views={props.views}
+                        cards={props.cards}
+                        card={card()!}
+                        contents={contents()}
+                        comments={comments()}
+                        attachments={attachments()}
                         readonly={props.readonly}
                         onClose={props.onClose}
                         onDelete={deleteBlock}
                         addAttachment={addElement}
-                    />}
-
-                {!card &&
-                    <div class='banner error'>
-                        <FormattedMessage
-                            id='CardDialog.nocard'
-                            defaultMessage="This card doesn't exist or is inaccessible."
-                        />
-                    </div>}
+                    />
+                </Show>
             </Dialog>
 
-            {showConfirmationDialogBox && <ConfirmationDialogBox dialogBox={confirmDialogProps}/>}
+            <Show when={showConfirmationDialogBox()}>
+                <ConfirmationDialogBox dialogBox={confirmDialogProps}/>
+            </Show>
         </>
     )
 }
