@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState} from 'react'
-import {Link} from 'react-router-dom'
+import {Show, createSignal} from 'solid-js'
+import {A} from '@solidjs/router'
 
 import Button from '../widgets/buttons/button'
 import client from '../octoClient'
@@ -11,23 +11,14 @@ import {useAppSelector} from '../store/hooks'
 import {getMe} from '../store/users'
 
 const ChangePasswordPage = () => {
-    const [oldPassword, setOldPassword] = useState('')
-    const [newPassword, setNewPassword] = useState('')
-    const [errorMessage, setErrorMessage] = useState('')
-    const [succeeded, setSucceeded] = useState(false)
+    const [oldPassword, setOldPassword] = createSignal('')
+    const [newPassword, setNewPassword] = createSignal('')
+    const [errorMessage, setErrorMessage] = createSignal('')
+    const [succeeded, setSucceeded] = createSignal(false)
     const user = useAppSelector<IUser|null>(getMe)
 
-    if (!user) {
-        return (
-            <div class='ChangePasswordPage'>
-                <div class='title'>{'Change Password'}</div>
-                <Link to='/login'>{'Log in first'}</Link>
-            </div>
-        )
-    }
-
     const handleSubmit = async (userId: string): Promise<void> => {
-        const response = await client.changePassword(userId, oldPassword, newPassword)
+        const response = await client.changePassword(userId, oldPassword(), newPassword())
         if (response.code === 200) {
             setOldPassword('')
             setNewPassword('')
@@ -39,60 +30,70 @@ const ChangePasswordPage = () => {
     }
 
     return (
-        <div class='ChangePasswordPage'>
-            <div class='title'>{'Change Password'}</div>
-            <form
-                onSubmit={(e: React.FormEvent) => {
-                    e.preventDefault()
-                    handleSubmit(user.id)
-                }}
-            >
-                <div class='oldPassword'>
-                    <input
-                        id='login-oldpassword'
-                        type='password'
-                        placeholder={'Enter current password'}
-                        value={oldPassword}
-                        onChange={(e) => {
-                            setOldPassword(e.target.value)
-                            setErrorMessage('')
-                        }}
-                    />
+        <Show
+            when={user()}
+            fallback={
+                <div class='ChangePasswordPage'>
+                    <div class='title'>{'Change Password'}</div>
+                    <A href='/login'>{'Log in first'}</A>
                 </div>
-                <div class='newPassword'>
-                    <input
-                        id='login-newpassword'
-                        type='password'
-                        placeholder={'Enter new password'}
-                        value={newPassword}
-                        onChange={(e) => {
-                            setNewPassword(e.target.value)
-                            setErrorMessage('')
-                        }}
-                    />
-                </div>
-                <Button
-                    filled={true}
-                    submit={true}
+            }
+        >
+            <div class='ChangePasswordPage'>
+                <div class='title'>{'Change Password'}</div>
+                <form
+                    onSubmit={(e: Event) => {
+                        e.preventDefault()
+                        handleSubmit(user()!.id)
+                    }}
                 >
-                    {'Change password'}
-                </Button>
-            </form>
-            {errorMessage &&
-                <div class='error'>
-                    {errorMessage}
-                </div>
-            }
-            {succeeded &&
-                <Link
-                    className='succeeded'
-                    to='/'
-                >{'Password changed, click to continue.'}</Link>
-            }
-            {!succeeded &&
-                <Link to='/'>{'Cancel'}</Link>
-            }
-        </div>
+                    <div class='oldPassword'>
+                        <input
+                            id='login-oldpassword'
+                            type='password'
+                            placeholder={'Enter current password'}
+                            value={oldPassword()}
+                            onInput={(e) => {
+                                setOldPassword(e.target.value)
+                                setErrorMessage('')
+                            }}
+                        />
+                    </div>
+                    <div class='newPassword'>
+                        <input
+                            id='login-newpassword'
+                            type='password'
+                            placeholder={'Enter new password'}
+                            value={newPassword()}
+                            onInput={(e) => {
+                                setNewPassword(e.target.value)
+                                setErrorMessage('')
+                            }}
+                        />
+                    </div>
+                    <Button
+                        filled={true}
+                        submit={true}
+                    >
+                        {'Change password'}
+                    </Button>
+                </form>
+                <Show when={errorMessage()}>
+                    <div class='error'>
+                        {errorMessage()}
+                    </div>
+                </Show>
+                <Show
+                    when={succeeded()}
+                    fallback={<A href='/'>{'Cancel'}</A>}
+                >
+                    <A
+                        class='succeeded'
+                        href='/'
+                    >{'Password changed, click to continue.'}</A>
+                </Show>
+            </div>
+        </Show>
     )
 }
 

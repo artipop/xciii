@@ -1,35 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState} from 'react'
-import {useHistory, Link, Redirect} from 'react-router-dom'
+import {Show, createSignal} from 'solid-js'
+import {A, Navigate, useNavigate} from '@solidjs/router'
+
 import {FormattedMessage} from '../intl'
 
-import {useAppDispatch, useAppSelector} from '../store/hooks'
-import {fetchMe, getLoggedIn} from '../store/users'
+import {useAppSelector, useAppStore} from '../store/hooks'
+import {getLoggedIn} from '../store/users'
 
 import Button from '../widgets/buttons/button'
 import client from '../octoClient'
 import './registerPage.scss'
 
 const RegisterPage = () => {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const [email, setEmail] = useState('')
-    const [errorMessage, setErrorMessage] = useState('')
-    const history = useHistory()
-    const dispatch = useAppDispatch()
+    const [username, setUsername] = createSignal('')
+    const [password, setPassword] = createSignal('')
+    const [email, setEmail] = createSignal('')
+    const [errorMessage, setErrorMessage] = createSignal('')
+    const navigate = useNavigate()
+    const {actions} = useAppStore()
     const loggedIn = useAppSelector<boolean|null>(getLoggedIn)
 
     const handleRegister = async (): Promise<void> => {
         const queryString = new URLSearchParams(window.location.search)
         const signupToken = queryString.get('t') || ''
 
-        const response = await client.register(email, username, password, signupToken)
+        const response = await client.register(email(), username(), password(), signupToken)
         if (response.code === 200) {
-            const logged = await client.login(username, password)
+            const logged = await client.login(username(), password())
             if (logged) {
-                await dispatch(fetchMe())
-                history.push('/')
+                await actions.users.fetchMe()
+                navigate('/')
             }
         } else if (response.code === 401) {
             setErrorMessage('Invalid registration link, please contact your administrator')
@@ -38,68 +39,69 @@ const RegisterPage = () => {
         }
     }
 
-    if (loggedIn) {
-        return <Redirect to={'/'}/>
-    }
-
     return (
-        <div class='RegisterPage'>
-            <form
-                onSubmit={(e: React.FormEvent) => {
-                    e.preventDefault()
-                    handleRegister()
-                }}
-            >
-                <div class='title'>
-                    <FormattedMessage
-                        id='register.signup-title'
-                        defaultMessage='Sign up for your account'
-                    />
-                </div>
-                <div class='email'>
-                    <input
-                        id='login-email'
-                        placeholder={'Enter email'}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value.trim())}
-                    />
-                </div>
-                <div class='username'>
-                    <input
-                        id='login-username'
-                        placeholder={'Enter username'}
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value.trim())}
-                    />
-                </div>
-                <div class='password'>
-                    <input
-                        id='login-password'
-                        type='password'
-                        placeholder={'Enter password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-                <Button
-                    filled={true}
-                    submit={true}
+        <Show
+            when={!loggedIn()}
+            fallback={<Navigate href={'/'}/>}
+        >
+            <div class='RegisterPage'>
+                <form
+                    onSubmit={(e: Event) => {
+                        e.preventDefault()
+                        handleRegister()
+                    }}
                 >
-                    {'Register'}
-                </Button>
-            </form>
-            <Link to='/login'>
-                <FormattedMessage
-                    id='register.login-button'
-                    defaultMessage={'or log in if you already have an account'}
-                />
-            </Link>
-            {errorMessage &&
-                <div class='error'>
-                    {errorMessage}
-                </div>
-            }
-        </div>
+                    <div class='title'>
+                        <FormattedMessage
+                            id='register.signup-title'
+                            defaultMessage='Sign up for your account'
+                        />
+                    </div>
+                    <div class='email'>
+                        <input
+                            id='login-email'
+                            placeholder={'Enter email'}
+                            value={email()}
+                            onInput={(e) => setEmail(e.target.value.trim())}
+                        />
+                    </div>
+                    <div class='username'>
+                        <input
+                            id='login-username'
+                            placeholder={'Enter username'}
+                            value={username()}
+                            onInput={(e) => setUsername(e.target.value.trim())}
+                        />
+                    </div>
+                    <div class='password'>
+                        <input
+                            id='login-password'
+                            type='password'
+                            placeholder={'Enter password'}
+                            value={password()}
+                            onInput={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
+                    <Button
+                        filled={true}
+                        submit={true}
+                    >
+                        {'Register'}
+                    </Button>
+                </form>
+                <A href='/login'>
+                    <FormattedMessage
+                        id='register.login-button'
+                        defaultMessage={'or log in if you already have an account'}
+                    />
+                </A>
+                <Show when={errorMessage()}>
+                    <div class='error'>
+                        {errorMessage()}
+                    </div>
+                </Show>
+            </div>
+        </Show>
     )
 }
 
