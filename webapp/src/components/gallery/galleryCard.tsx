@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState} from 'react'
+import {For, Show, createSignal} from 'solid-js'
+
 import {useIntl, FormattedMessage} from '../../intl'
 
 import {Board, IPropertyTemplate} from '../../blocks/board'
@@ -38,135 +39,157 @@ type Props = {
 
 const GalleryCard = (props: Props) => {
     const intl = useIntl()
-    const {card, board} = props
-    const [isDragging, isOver, cardRef] = useSortable('card', card, props.isManualSort && !props.readonly, props.onDrop)
-    const contents = useAppSelector(getCardContents(card.id))
-    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = useState<boolean>(false)
+    const [isDragging, isOver, cardRef] = useSortable('card', () => props.card, () => props.isManualSort && !props.readonly, (src, dst) => props.onDrop(src, dst))
+    const contents = useAppSelector((state) => getCardContents(props.card.id)(state))
+    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = createSignal<boolean>(false)
 
-    const visiblePropertyTemplates = props.visiblePropertyTemplates || []
+    const visiblePropertyTemplates = () => props.visiblePropertyTemplates || []
 
     const handleDeleteCard = () => {
-        mutator.deleteBlock(card, 'delete card')
+        mutator.deleteBlock(props.card, 'delete card')
     }
 
-    const confirmDialogProps: ConfirmationDialogBoxProps = (() => {
-        return {
-            heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
-            confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
-            onConfirm: handleDeleteCard,
-            onClose: () => {
-                setShowConfirmationDialogBox(false)
-            },
-        }
-    })()
+    const confirmDialogProps: ConfirmationDialogBoxProps = {
+        heading: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-heading', defaultMessage: 'Confirm card delete!'}),
+        confirmButtonText: intl.formatMessage({id: 'CardDialog.delete-confirmation-dialog-button-text', defaultMessage: 'Delete'}),
+        onConfirm: handleDeleteCard,
+        onClose: () => {
+            setShowConfirmationDialogBox(false)
+        },
+    }
 
-    const image: ContentBlock|undefined = (() => {
-        for (let i = 0; i < contents.length; ++i) {
-            if (Array.isArray(contents[i])) {
-                return (contents[i] as ContentBlock[]).find((c) => c.type === 'image')
-            } else if ((contents[i] as ContentBlock).type === 'image') {
-                return contents[i] as ContentBlock
+    const image = (): ContentBlock|undefined => {
+        const current = contents()
+        for (let i = 0; i < current.length; ++i) {
+            if (Array.isArray(current[i])) {
+                return (current[i] as ContentBlock[]).find((c) => c.type === 'image')
+            } else if ((current[i] as ContentBlock).type === 'image') {
+                return current[i] as ContentBlock
             }
         }
         return undefined
-    })()
+    }
 
-    let className = props.isSelected ? 'GalleryCard selected' : 'GalleryCard'
-    if (isOver) {
-        className += ' dragover'
+    const className = () => {
+        let name = props.isSelected ? 'GalleryCard selected' : 'GalleryCard'
+        if (isOver()) {
+            name += ' dragover'
+        }
+        return name
     }
 
     return (
         <>
             <div
-                class={className}
-                onClick={(e: MouseEvent) => props.onClick(e, card)}
-                style={{opacity: isDragging ? 0.5 : 1}}
+                class={className()}
+                onClick={(e: MouseEvent) => props.onClick(e, props.card)}
+                style={{opacity: isDragging() ? 0.5 : 1}}
                 ref={cardRef}
             >
-                {!props.readonly &&
+                <Show when={!props.readonly}>
                     <MenuWrapper
                         className='optionsMenu'
                         stopPropagationOnToggle={true}
+                        menu={
+                            <CardActionsMenu
+                                cardId={props.card!.id}
+                                boardId={props.card!.boardId}
+                                onClickDelete={() => setShowConfirmationDialogBox(true)}
+                                onClickDuplicate={() => {
+                                    TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DuplicateCard, {board: props.board.id, card: props.card.id})
+                                    mutator.duplicateCard(props.card.id, props.board.id)
+                                }}
+                            />
+                        }
                     >
                         <CardActionsMenuIcon/>
-                        <CardActionsMenu
-                            cardId={card!.id}
-                            boardId={card!.boardId}
-                            onClickDelete={() => setShowConfirmationDialogBox(true)}
-                            onClickDuplicate={() => {
-                                TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DuplicateCard, {board: board.id, card: card.id})
-                                mutator.duplicateCard(card.id, board.id)
-                            }}
-                        />
                     </MenuWrapper>
-                }
+                </Show>
 
-                {image &&
+                <Show
+                    when={image()}
+                    fallback={
+                        <CardDetailProvider card={props.card}>
+                            <div class='gallery-item'>
+                                <For each={contents()}>
+                                    {(block) => {
+                                        if (Array.isArray(block)) {
+                                            return (
+                                                <For each={block}>
+                                                    {(b) => (
+                                                        <ContentElement
+                                                            block={b}
+                                                            readonly={true}
+                                                            cords={{x: 0}}
+                                                        />
+                                                    )}
+                                                </For>
+                                            )
+                                        }
+
+                                        return (
+                                            <ContentElement
+                                                block={block as ContentBlock}
+                                                readonly={true}
+                                                cords={{x: 0}}
+                                            />
+                                        )
+                                    }}
+                                </For>
+                            </div>
+                        </CardDetailProvider>
+                    }
+                >
                     <div class='gallery-image'>
-                        <ImageElement block={image}/>
-                    </div>}
-                {!image &&
-                    <CardDetailProvider card={card}>
-                        <div class='gallery-item'>
-                            {contents.map((block) => {
-                                if (Array.isArray(block)) {
-                                    return block.map((b) => (
-                                        <ContentElement
-                                            block={b}
-                                            readonly={true}
-                                            cords={{x: 0}}
-                                        />
-                                    ))
-                                }
-
-                                return (
-                                    <ContentElement
-                                        block={block}
-                                        readonly={true}
-                                        cords={{x: 0}}
-                                    />
-                                )
-                            })}
-                        </div>
-                    </CardDetailProvider>}
-                {props.visibleTitle &&
+                        <ImageElement block={image()!}/>
+                    </div>
+                </Show>
+                <Show when={props.visibleTitle}>
                     <div class='gallery-title'>
-                        { card.fields.icon ? <div class='octo-icon'>{card.fields.icon}</div> : undefined }
+                        <Show when={props.card.fields.icon}>
+                            <div class='octo-icon'>{props.card.fields.icon}</div>
+                        </Show>
                         <div
                             class='octo-titletext'
                         >
-                            {card.title ||
+                            {props.card.title ||
                                 <FormattedMessage
                                     id='KanbanCard.untitled'
                                     defaultMessage='Untitled'
                                 />}
                         </div>
-                    </div>}
-                {visiblePropertyTemplates.length > 0 &&
+                    </div>
+                </Show>
+                <Show when={visiblePropertyTemplates().length > 0}>
                     <div class='gallery-props'>
-                        {visiblePropertyTemplates.map((template) => (
-                            <Tooltip
-                                title={template.name}
-                                placement='top'
-                            >
-                                <PropertyValueElement
-                                    board={board}
-                                    readOnly={true}
-                                    card={card}
-                                    propertyTemplate={template}
-                                    showEmptyPlaceholder={false}
-                                />
-                            </Tooltip>
-                        ))}
-                    </div>}
-                {props.visibleBadges &&
+                        <For each={visiblePropertyTemplates()}>
+                            {(template) => (
+                                <Tooltip
+                                    title={template.name}
+                                    placement='top'
+                                >
+                                    <PropertyValueElement
+                                        board={props.board}
+                                        readOnly={true}
+                                        card={props.card}
+                                        propertyTemplate={template}
+                                        showEmptyPlaceholder={false}
+                                    />
+                                </Tooltip>
+                            )}
+                        </For>
+                    </div>
+                </Show>
+                <Show when={props.visibleBadges}>
                     <CardBadges
-                        card={card}
+                        card={props.card}
                         className='gallery-badges'
-                    />}
+                    />
+                </Show>
             </div>
-            {showConfirmationDialogBox && <ConfirmationDialogBox dialogBox={confirmDialogProps}/>}
+            <Show when={showConfirmationDialogBox()}>
+                <ConfirmationDialogBox dialogBox={confirmDialogProps}/>
+            </Show>
         </>
     )
 }
