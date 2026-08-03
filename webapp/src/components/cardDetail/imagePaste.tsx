@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect} from 'react'
+import {onCleanup, onMount} from 'solid-js'
+
 import {useIntl} from '../../intl'
 
 import {ImageBlock, createImageBlock} from '../../blocks/imageBlock'
@@ -10,7 +11,9 @@ import {Block} from '../../blocks/block'
 import octoClient from '../../octoClient'
 import mutator from '../../mutator'
 
-export default function useImagePaste(boardId: string, cardId: string, contentOrder: Array<string | string[]>): void {
+// The ids and the content order arrive as accessors so a paste always lands on
+// the card as it is now, not as it was when the hook mounted.
+export default function useImagePaste(boardId: () => string, cardId: () => string, contentOrder: () => Array<string | string[]>): void {
     const intl = useIntl()
     const uploadItems = async (items: FileList) => {
         let newImage: File|null = null
@@ -23,7 +26,7 @@ export default function useImagePaste(boardId: string, cardId: string, contentOr
         for (const item of items) {
             newImage = item
             if (newImage?.type.indexOf('image/') === 0) {
-                uploads.push(octoClient.uploadFile(boardId, newImage))
+                uploads.push(octoClient.uploadFile(boardId(), newImage))
             }
         }
 
@@ -36,8 +39,8 @@ export default function useImagePaste(boardId: string, cardId: string, contentOr
                 continue
             }
             const block = createImageBlock()
-            block.parentId = cardId
-            block.boardId = boardId
+            block.parentId = cardId()
+            block.boardId = boardId()
             block.fields.fileId = fileId || ''
             blocksToInsert.push(block)
         }
@@ -47,17 +50,17 @@ export default function useImagePaste(boardId: string, cardId: string, contentOr
         }
 
         const afterRedo = async (newBlocks: Block[]) => {
-            const newContentOrder = JSON.parse(JSON.stringify(contentOrder))
+            const newContentOrder = JSON.parse(JSON.stringify(contentOrder()))
             newContentOrder.push(...newBlocks.map((b: Block) => b.id))
-            await octoClient.patchBlock(boardId, cardId, {updatedFields: {contentOrder: newContentOrder}})
+            await octoClient.patchBlock(boardId(), cardId(), {updatedFields: {contentOrder: newContentOrder}})
         }
 
         const beforeUndo = async () => {
-            const newContentOrder = JSON.parse(JSON.stringify(contentOrder))
-            await octoClient.patchBlock(boardId, cardId, {updatedFields: {contentOrder: newContentOrder}})
+            const newContentOrder = JSON.parse(JSON.stringify(contentOrder()))
+            await octoClient.patchBlock(boardId(), cardId(), {updatedFields: {contentOrder: newContentOrder}})
         }
 
-        await mutator.insertBlocks(boardId, blocksToInsert, 'pasted images', afterRedo, beforeUndo)
+        await mutator.insertBlocks(boardId(), blocksToInsert, 'pasted images', afterRedo, beforeUndo)
     }
 
     const onDrop = (event: DragEvent): void => {
@@ -74,12 +77,12 @@ export default function useImagePaste(boardId: string, cardId: string, contentOr
         }
     }
 
-    useEffect(() => {
+    onMount(() => {
         document.addEventListener('paste', onPaste)
         document.addEventListener('drop', onDrop)
-        return () => {
+        onCleanup(() => {
             document.removeEventListener('paste', onPaste)
             document.removeEventListener('drop', onDrop)
-        }
-    }, [uploadItems, onPaste, onDrop])
+        })
+    })
 }

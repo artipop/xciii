@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useCallback} from 'react'
+import type {JSX} from 'solid-js'
 
 import {FileInfo} from '../../../blocks/block'
 import BrokenFile from '../../../widgets/icons/brokenFile'
@@ -13,15 +13,15 @@ type Props = {
 }
 
 const ArchivedFile = (props: Props): JSX.Element => {
-    const fileName = useCallback(() => props.fileInfo.name || 'untitled file', [props.fileInfo.name])
+    const fileName = () => props.fileInfo.name || 'untitled file'
 
-    const fileExtension = useCallback(() => {
+    const fileExtension = () => {
         let extension = props.fileInfo.extension
         extension = extension?.startsWith('.') ? extension?.substring(1) : extension
         return extension?.toUpperCase()
-    }, [props.fileInfo.extension])
+    }
 
-    const fileSize = useCallback(() => Utils.humanFileSize(props.fileInfo.size || 0), [props.fileInfo.size])
+    const fileSize = () => Utils.humanFileSize(props.fileInfo.size || 0)
 
     return (
         <div class='ArchivedFile'>

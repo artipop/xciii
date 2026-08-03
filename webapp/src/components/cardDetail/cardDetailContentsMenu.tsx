@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useCallback} from 'react'
+import {For} from 'solid-js'
+import type {JSX} from 'solid-js'
+
 import {FormattedMessage, IntlShape, useIntl} from '../../intl'
 
 import {BlockTypes} from '../../blocks/block'
@@ -14,27 +16,26 @@ import {contentRegistry} from '../content/contentRegistry'
 import {useCardDetailContext} from './cardDetailContext'
 
 function AddContentMenuItem(props: {intl: IntlShape, type: BlockTypes}): JSX.Element {
-    const {intl, type} = props
-    const handler = contentRegistry.getHandler(type)
+    const handler = contentRegistry.getHandler(props.type)
     const cardDetail = useCardDetailContext()
-    const addElement = useCallback(async () => {
+    const addElement = async () => {
         if (!handler) {
             return
         }
         const {card} = cardDetail
         const index = card.fields.contentOrder.length
         cardDetail.addBlock(handler, index, false)
-    }, [cardDetail, handler])
+    }
 
     if (!handler) {
-        Utils.logError(`AddContentMenuItem, unknown content type: ${type}`)
+        Utils.logError(`AddContentMenuItem, unknown content type: ${props.type}`)
         return <></>
     }
 
     return (
         <Menu.Text
-            id={type}
-            name={handler.getDisplayText(intl)}
+            id={props.type}
+            name={handler.getDisplayText(props.intl)}
             icon={handler.getIcon()}
             onClick={addElement}
         />
@@ -45,21 +46,26 @@ const CardDetailContentsMenu = () => {
     const intl = useIntl()
     return (
         <div class='CardDetailContentsMenu content add-content'>
-            <MenuWrapper>
+            <MenuWrapper
+                menu={
+                    <Menu position='top'>
+                        <For each={contentRegistry.contentTypes}>
+                            {(type) => (
+                                <AddContentMenuItem
+                                    intl={intl}
+                                    type={type}
+                                />
+                            )}
+                        </For>
+                    </Menu>
+                }
+            >
                 <Button>
                     <FormattedMessage
                         id='CardDetail.add-content'
                         defaultMessage='Add content'
                     />
                 </Button>
-                <Menu position='top'>
-                    {contentRegistry.contentTypes.map((type) => (
-                        <AddContentMenuItem
-                            intl={intl}
-                            type={type}
-                        />
-                    ))}
-                </Menu>
             </MenuWrapper>
         </div>
     )

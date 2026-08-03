@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {createContext, ReactElement, ReactNode, useContext, useState} from 'react'
+import {createContext, createSignal, useContext} from 'solid-js'
+import type {JSX, ParentComponent} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
@@ -34,17 +35,16 @@ export function useCardDetailContext(): CardDetailContextType {
 
 type CardDetailProps = {
     card: Card
-    children: ReactNode
 }
 
-export const CardDetailProvider = (props: CardDetailProps): ReactElement => {
+export const CardDetailProvider: ParentComponent<CardDetailProps> = (props): JSX.Element => {
     const intl = useIntl()
-    const [lastAddedBlock, setLastAddedBlock] = useState<AddedBlock>({
+    const [lastAddedBlock, setLastAddedBlock] = createSignal<AddedBlock>({
         id: '',
         autoAdded: false,
     })
-    const {card} = props
     const addBlock = async (handler: ContentHandler, index: number, auto: boolean) => {
+        const card = props.card
         const block = await handler.createBlock(card.boardId, intl)
         block.parentId = card.id
         block.boardId = card.boardId
@@ -68,6 +68,7 @@ export const CardDetailProvider = (props: CardDetailProps): ReactElement => {
     }
 
     const deleteBlock = async (block: Block, index: number) => {
+        const card = props.card
         const contentOrder = card.fields.contentOrder.slice()
         contentOrder.splice(index, 1)
         const description = intl.formatMessage({id: 'ContentBlock.DeleteAction', defaultMessage: 'delete'})
@@ -77,9 +78,15 @@ export const CardDetailProvider = (props: CardDetailProps): ReactElement => {
         })
     }
 
-    const contextValue = {
-        card,
-        lastAddedBlock,
+    // Live getters: consumers read card and lastAddedBlock through the context
+    // object, and both must follow the store and the signal.
+    const contextValue: CardDetailContextType = {
+        get card() {
+            return props.card
+        },
+        get lastAddedBlock() {
+            return lastAddedBlock()
+        },
         addBlock,
         deleteBlock,
     }

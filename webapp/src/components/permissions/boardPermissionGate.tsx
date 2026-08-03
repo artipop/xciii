@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Show} from 'solid-js'
+import type {JSX, ParentComponent} from 'solid-js'
 
 import {useAppSelector} from '../../store/hooks'
 import {getCurrentBoardId} from '../../store/boards'
@@ -13,26 +15,22 @@ type Props = {
     teamId?: string
     permissions: Permission[]
     invert?: boolean
-    children: JSX.Element
 }
 
-const BoardPermissionGate = React.memo((props: Props): JSX.Element|null => {
+const BoardPermissionGate: ParentComponent<Props> = (props): JSX.Element => {
     const currentTeam = useAppSelector(getCurrentTeam)
     const currentBoardId = useAppSelector(getCurrentBoardId)
 
-    const boardId = props.boardId || currentBoardId || ''
-    const teamId = props.teamId || currentTeam?.id || ''
+    const boardId = () => props.boardId || currentBoardId() || ''
+    const teamId = () => props.teamId || currentTeam()?.id || ''
 
-    let allowed = useHasPermissions(teamId, boardId, props.permissions)
+    const allowed = useHasPermissions(teamId, boardId, props.permissions)
 
-    if (props.invert) {
-        allowed = !allowed
-    }
-
-    if (allowed) {
-        return (<>{props.children}</>)
-    }
-    return null
-})
+    return (
+        <Show when={props.invert ? !allowed() : allowed()}>
+            {props.children}
+        </Show>
+    )
+}
 
 export default BoardPermissionGate

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect, useRef, useState} from 'react'
+import {createEffect, createSignal} from 'solid-js'
+
 import {useIntl} from '../../intl'
 
 import {createCheckboxBlock} from '../../blocks/checkboxBlock'
@@ -22,69 +23,68 @@ type Props = {
 }
 
 const CheckboxElement = (props: Props) => {
-    const {block, readonly} = props
     const intl = useIntl()
-    const titleRef = useRef<Focusable>(null)
+    let titleRef: Focusable | undefined
     const cardDetail = useCardDetailContext()
-    const [addedBlockId, setAddedBlockId] = useState(cardDetail.lastAddedBlock.id)
-    const [active, setActive] = useState(Boolean(block.fields.value))
-    const [title, setTitle] = useState(block.title)
+    const [addedBlockId, setAddedBlockId] = createSignal(cardDetail.lastAddedBlock.id)
+    const [active, setActive] = createSignal(Boolean(props.block.fields.value))
+    const [title, setTitle] = createSignal(props.block.title)
 
-    useEffect(() => {
-        if (block.id === addedBlockId) {
-            titleRef.current?.focus()
+    createEffect(() => {
+        if (props.block.id === addedBlockId()) {
+            titleRef?.focus()
             setAddedBlockId('')
         }
-    }, [block, addedBlockId, titleRef])
+    })
 
-    useEffect(() => {
-        setActive(Boolean(block.fields.value))
-    }, [Boolean(block.fields.value)])
+    createEffect(() => {
+        setActive(Boolean(props.block.fields.value))
+    })
 
     return (
         <div class='CheckboxElement'>
             <input
                 type='checkbox'
-                id={`checkbox-${block.id}`}
-                disabled={readonly}
-                checked={active}
-                value={active ? 'on' : 'off'}
+                id={`checkbox-${props.block.id}`}
+                disabled={props.readonly}
+                checked={active()}
+                value={active() ? 'on' : 'off'}
                 onChange={(e) => {
                     e.preventDefault()
-                    const newBlock = createCheckboxBlock(block)
-                    newBlock.fields.value = !active
-                    newBlock.title = title
+                    const newBlock = createCheckboxBlock(props.block)
+                    newBlock.fields.value = !active()
+                    newBlock.title = title()
                     setActive(newBlock.fields.value)
-                    mutator.updateBlock(block.boardId, newBlock, block, intl.formatMessage({id: 'ContentBlock.editCardCheckbox', defaultMessage: 'toggled-checkbox'}))
+                    mutator.updateBlock(props.block.boardId, newBlock, props.block, intl.formatMessage({id: 'ContentBlock.editCardCheckbox', defaultMessage: 'toggled-checkbox'}))
                 }}
             />
             <Editable
-                ref={titleRef}
-                value={title}
+                ref={(f) => (titleRef = f)}
+                value={title()}
                 placeholderText={intl.formatMessage({id: 'ContentBlock.editText', defaultMessage: 'Edit text...'})}
                 onChange={setTitle}
                 saveOnEsc={true}
                 onSave={async (saveType) => {
                     const {lastAddedBlock} = cardDetail
-                    if (title === '' && block.id === lastAddedBlock.id && lastAddedBlock.autoAdded && props.onDeleteElement) {
+                    if (title() === '' && props.block.id === lastAddedBlock.id && lastAddedBlock.autoAdded && props.onDeleteElement) {
                         props.onDeleteElement()
                         return
                     }
 
-                    if (block.title !== title) {
-                        await mutator.changeBlockTitle(block.boardId, block.id, block.title, title, intl.formatMessage({id: 'ContentBlock.editCardCheckboxText', defaultMessage: 'edit card text'}))
-                        if (saveType === 'onEnter' && title !== '' && props.onAddElement) {
+                    if (props.block.title !== title()) {
+                        await mutator.changeBlockTitle(props.block.boardId, props.block.id, props.block.title, title(), intl.formatMessage({id: 'ContentBlock.editCardCheckboxText', defaultMessage: 'edit card text'}))
+                        if (saveType === 'onEnter' && title() !== '' && props.onAddElement) {
                             // Wait for the change to happen
                             setTimeout(props.onAddElement, 100)
                         }
                         return
                     }
 
-                    if (saveType === 'onEnter' && title !== '' && props.onAddElement) {
+                    if (saveType === 'onEnter' && title() !== '' && props.onAddElement) {
                         props.onAddElement()
                     }
                 }}
-                readonly={readonly}
+                readonly={props.readonly}
                 spellCheck={true}
             />
         </div>
