@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect, useState} from 'react'
+import {Show, createEffect, createSignal, onCleanup} from 'solid-js'
+
 import {useIntl, FormattedMessage} from '../intl'
 
 import AlertIcon from '../widgets/icons/alert'
 
-import {useAppSelector, useAppDispatch} from '../store/hooks'
+import {useAppSelector, useAppStore} from '../store/hooks'
 import {IUser, UserConfigPatch} from '../user'
-import {getMe, patchProps, getCardLimitSnoozeUntil, getCardHiddenWarningSnoozeUntil} from '../store/users'
+import {getMe, getCardLimitSnoozeUntil, getCardHiddenWarningSnoozeUntil} from '../store/users'
 import {getCurrentBoardHiddenCardsCount, getCardHiddenWarning} from '../store/cards'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../telemetry/telemetryClient'
 import CheckIcon from '../widgets/icons/check'
@@ -26,90 +27,96 @@ const checkSnoozeInterval = 1000 * 60 * 5
 
 const CardLimitNotification = (props: Props) => {
     const intl = useIntl()
-    const [time, setTime] = useState(Date.now())
-    const [showNotifyAdminSuccess, setShowNotifyAdminSuccess] = useState<boolean>(false)
+    const [time, setTime] = createSignal(Date.now())
+    const [showNotifyAdminSuccess, setShowNotifyAdminSuccess] = createSignal<boolean>(false)
 
     const hiddenCards = useAppSelector<number>(getCurrentBoardHiddenCardsCount)
     const cardHiddenWarning = useAppSelector<boolean>(getCardHiddenWarning)
     const me = useAppSelector<IUser|null>(getMe)
     const snoozedUntil = useAppSelector<number>(getCardLimitSnoozeUntil)
     const snoozedCardHiddenWarningUntil = useAppSelector<number>(getCardHiddenWarningSnoozeUntil)
-    const dispatch = useAppDispatch()
+    const {actions} = useAppStore()
 
     const onCloseHidden = async () => {
-        if (me) {
+        const user = me()
+        if (user) {
             const patch: UserConfigPatch = {
                 updatedFields: {
                     cardLimitSnoozeUntil: `${Date.now() + snoozeTime}`,
                 },
             }
 
-            const patchedProps = await octoClient.patchUserConfig(me.id, patch)
+            const patchedProps = await octoClient.patchUserConfig(user.id, patch)
             if (patchedProps) {
-                dispatch(patchProps(patchedProps))
+                actions.users.patchProps(patchedProps)
             }
         }
     }
 
     const onCloseWarning = async () => {
-        if (me) {
+        const user = me()
+        if (user) {
             const patch: UserConfigPatch = {
                 updatedFields: {
                     cardHiddenWarningSnoozeUntil: `${Date.now() + snoozeTime}`,
                 },
             }
 
-            const patchedProps = await octoClient.patchUserConfig(me.id, patch)
+            const patchedProps = await octoClient.patchUserConfig(user.id, patch)
             if (patchedProps) {
-                dispatch(patchProps(patchedProps))
+                actions.users.patchProps(patchedProps)
             }
         }
     }
 
-    let show = false
-    let onClose = onCloseHidden
-    let title = intl.formatMessage(
-        {
-            id: 'notification-box-card-limit-reached.title',
-            defaultMessage: '{cards} cards hidden from board',
-        },
-        {cards: hiddenCards},
-    )
-
-    if (!show && props.showHiddenCardNotification) {
-        show = true
-    }
-
-    if (hiddenCards > 0 && time > snoozedUntil) {
-        show = true
-    }
-
-    if (!show && cardHiddenWarning) {
-        show = time > snoozedCardHiddenWarningUntil
-        onClose = onCloseWarning
-        title = intl.formatMessage(
+    // The three-way state the render used to compute inline: whether the box
+    // shows, which snooze closing means, and which title it carries.
+    const state = () => {
+        let show = false
+        let onClose = onCloseHidden
+        let title = intl.formatMessage(
             {
-                id: 'notification-box-cards-hidden.title',
-                defaultMessage: 'This action has hidden another card',
+                id: 'notification-box-card-limit-reached.title',
+                defaultMessage: '{cards} cards hidden from board',
             },
+            {cards: hiddenCards()},
         )
+
+        if (!show && props.showHiddenCardNotification) {
+            show = true
+        }
+
+        if (hiddenCards() > 0 && time() > snoozedUntil()) {
+            show = true
+        }
+
+        if (!show && cardHiddenWarning()) {
+            show = time() > snoozedCardHiddenWarningUntil()
+            onClose = onCloseWarning
+            title = intl.formatMessage(
+                {
+                    id: 'notification-box-cards-hidden.title',
+                    defaultMessage: 'This action has hidden another card',
+                },
+            )
+        }
+        return {show, onClose, title}
     }
 
-    useEffect(() => {
-        if (!show) {
+    createEffect(() => {
+        if (!state().show) {
             const interval = setInterval(() => setTime(Date.now()), checkSnoozeInterval)
-            return () => {
+            onCleanup(() => {
                 clearInterval(interval)
-            }
+            })
         }
-        return () => null
-    }, [show])
+    })
 
-    useEffect(() => {
-        if (show) {
+    createEffect(() => {
+        if (state().show) {
             TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.LimitCardLimitReached, {})
         }
-    }, [show])
+    })
 
     const handleContactAdminClicked = async () => {
         TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.LimitCardCTAPerformed)
@@ -123,68 +130,68 @@ const CardLimitNotification = (props: Props) => {
         TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.LimitCardLimitLinkOpen, {})
     }
 
-    const hasPermissionToUpgrade = me?.roles?.split(' ').indexOf('system_admin') !== -1
-
-    if (!show) {
-        return null
-    }
+    const hasPermissionToUpgrade = () => me()?.roles?.split(' ').indexOf('system_admin') !== -1
 
     const hidHiddenCardNotification = () => {
-        show = false
         props.hiddenCardCountNotificationHandler(false)
     }
 
     return (
-        <NotificationBox
-            icon={<AlertIcon/>}
-            title={title}
-            onClose={props.showHiddenCardNotification ? hidHiddenCardNotification : onClose}
-            closeTooltip={props.showHiddenCardNotification ? '' : intl.formatMessage({
-                id: 'notification-box-card-limit-reached.close-tooltip',
-                defaultMessage: 'Snooze for 10 days',
-            })}
-        >
-            {hasPermissionToUpgrade &&
-                <FormattedMessage
-                    id='notification-box.card-limit-reached.text'
-                    defaultMessage='Card limit reached, to view older cards, {link}'
-                    values={{
-                        link: (
-                            <a
-                                onClick={onClick}
-                            >
-                                <FormattedMessage
-                                    id='notification-box-card-limit-reached.link'
-                                    defaultMessage='Upgrade to a paid plan'
-                                />
-                            </a>),
-                    }}
-                />}
-            {!hasPermissionToUpgrade &&
-                <FormattedMessage
-                    id='notification-box.card-limit-reached.not-admin.text'
-                    defaultMessage='To access archived cards, you can {contactLink} to upgrade to a paid plan.'
-                    values={{
-                        contactLink: (
-                            <a
-                                onClick={handleContactAdminClicked}
-                            >
-                                <FormattedMessage
-                                    id='notification-box-card-limit-reached.contact-link'
-                                    defaultMessage='notify your admin'
-                                />
-                            </a>),
-                    }}
-                />}
+        <Show when={state().show}>
+            <NotificationBox
+                icon={<AlertIcon/>}
+                title={state().title}
+                onClose={props.showHiddenCardNotification ? hidHiddenCardNotification : state().onClose}
+                closeTooltip={props.showHiddenCardNotification ? '' : intl.formatMessage({
+                    id: 'notification-box-card-limit-reached.close-tooltip',
+                    defaultMessage: 'Snooze for 10 days',
+                })}
+            >
+                <Show when={hasPermissionToUpgrade()}>
+                    <FormattedMessage
+                        id='notification-box.card-limit-reached.text'
+                        defaultMessage='Card limit reached, to view older cards, {link}'
+                        values={{
+                            link: (
+                                <a
+                                    onClick={onClick}
+                                >
+                                    <FormattedMessage
+                                        id='notification-box-card-limit-reached.link'
+                                        defaultMessage='Upgrade to a paid plan'
+                                    />
+                                </a>),
+                        }}
+                    />
+                </Show>
+                <Show when={!hasPermissionToUpgrade()}>
+                    <FormattedMessage
+                        id='notification-box.card-limit-reached.not-admin.text'
+                        defaultMessage='To access archived cards, you can {contactLink} to upgrade to a paid plan.'
+                        values={{
+                            contactLink: (
+                                <a
+                                    onClick={handleContactAdminClicked}
+                                >
+                                    <FormattedMessage
+                                        id='notification-box-card-limit-reached.contact-link'
+                                        defaultMessage='notify your admin'
+                                    />
+                                </a>),
+                        }}
+                    />
+                </Show>
 
-            {showNotifyAdminSuccess &&
-                <NotificationBox
-                    className='NotifyAdminSuccessNotify'
-                    icon={<CheckIcon/>}
-                    title={intl.formatMessage({id: 'ViewLimitDialog.notifyAdmin.Success', defaultMessage: 'Your admin has been notified'})}
-                    onClose={() => setShowNotifyAdminSuccess(false)}
-                />}
-        </NotificationBox>
+                <Show when={showNotifyAdminSuccess()}>
+                    <NotificationBox
+                        className='NotifyAdminSuccessNotify'
+                        icon={<CheckIcon/>}
+                        title={intl.formatMessage({id: 'ViewLimitDialog.notifyAdmin.Success', defaultMessage: 'Your admin has been notified'})}
+                        onClose={() => setShowNotifyAdminSuccess(false)}
+                    />
+                </Show>
+            </NotificationBox>
+        </Show>
     )
 }
 

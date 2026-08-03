@@ -1,7 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import {For, Show} from 'solid-js'
+
+import {useNavigate} from '@solidjs/router'
+
 import {useIntl} from '../intl'
-import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
+import {useRouteMatch} from '../hooks/routerMatch'
 
 import {Board, IPropertyTemplate} from '../blocks/board'
 import {BoardView, createBoardView, IViewType} from '../blocks/boardView'
@@ -31,15 +35,16 @@ type Props = {
 
 const ViewMenu = (props: Props) => {
     const intl = useIntl()
-    const history = useHistory()
+    const navigate = useNavigate()
     const match = useRouteMatch()
 
     const showView = (viewId: string) => {
-        let newPath = generatePath(Utils.getBoardPagePath(match.path), {...match.params, viewId: viewId || ''})
+        const currentMatch = match()
+        let newPath = Utils.generatePath(Utils.getBoardPagePath(currentMatch.path), {...currentMatch.params, viewId: viewId || ''})
         if (props.readonly) {
             newPath += `?r=${Utils.getReadToken()}`
         }
-        history.push(newPath)
+        navigate(newPath)
     }
 
     const handleDuplicateView = () => {
@@ -209,8 +214,6 @@ const ViewMenu = (props: Props) => {
             })
     }
 
-    const {views} = props
-
     const duplicateViewText = intl.formatMessage({
         id: 'View.DuplicateView',
         defaultMessage: 'Duplicate view',
@@ -250,18 +253,21 @@ const ViewMenu = (props: Props) => {
         <div class='ViewMenu'>
             <Menu>
                 <div class='view-list'>
-                    {views.map((view: BoardView) => (
-                        <Menu.Text
-                            id={view.id}
-                            name={view.title}
-                            icon={iconForViewType(view.fields.viewType)}
-                            onClick={handleViewClick}
-                        />))}
+                    <For each={props.views}>
+                        {(view: BoardView) => (
+                            <Menu.Text
+                                id={view.id}
+                                name={view.title}
+                                icon={iconForViewType(view.fields.viewType)}
+                                onClick={handleViewClick}
+                            />
+                        )}
+                    </For>
                 </div>
                 <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
                     <Menu.Separator/>
                 </BoardPermissionGate>
-                {!props.readonly &&
+                <Show when={!props.readonly}>
                 <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
                     <Menu.Text
                         id='__duplicateView'
@@ -270,8 +276,8 @@ const ViewMenu = (props: Props) => {
                         onClick={handleDuplicateView}
                     />
                 </BoardPermissionGate>
-                }
-                {!props.readonly && views.length > 1 &&
+                </Show>
+                <Show when={!props.readonly && props.views.length > 1}>
                 <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
                     <Menu.Text
                         id='__deleteView'
@@ -280,8 +286,8 @@ const ViewMenu = (props: Props) => {
                         onClick={handleDeleteView}
                     />
                 </BoardPermissionGate>
-                }
-                {!props.readonly &&
+                </Show>
+                <Show when={!props.readonly}>
                 <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
                     <Menu.SubMenu
                         id='__addView'
@@ -316,7 +322,7 @@ const ViewMenu = (props: Props) => {
                         </div>
                     </Menu.SubMenu>
                 </BoardPermissionGate>
-                }
+                </Show>
             </Menu>
         </div>
     )
