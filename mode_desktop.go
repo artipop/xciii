@@ -89,7 +89,7 @@ func (o *origin) start() {}
 // address rather than the wails:// origin.
 func newMainWindow(wapp *application.App, url string) {
 	wapp.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:  "Focalboard",
+		Title:  "Trixi",
 		Width:  1024,
 		Height: 768,
 		URL:    url,

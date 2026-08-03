@@ -5,11 +5,11 @@
 	"info": {
 		"0000": {
 			"ProductVersion": "0.0.0",
-			"CompanyName": "Mattermost, Inc.",
-			"FileDescription": "Focalboard personal desktop",
-			"LegalCopyright": "Copyright (c) 2015-present Mattermost, Inc.",
-			"ProductName": "Focalboard",
-			"Comments": "Focalboard personal desktop"
+			"CompanyName": "artipop",
+			"FileDescription": "Focalboard boards with coding agents",
+			"LegalCopyright": "Copyright (c) 2026 Artem",
+			"ProductName": "Trixi",
+			"Comments": "Focalboard boards with coding agents"
 		}
 	}
 }

@@ -45,11 +45,11 @@ func newFrontDoor(wails, acp, board http.Handler, allowedHost string) http.Handl
 }
 
 // requestLog prints every request the front door serves when
-// FOCALBOARD_FRONTDOOR_DEBUG is set. A window that shows nothing is otherwise
+// TRIXI_FRONTDOOR_DEBUG is set. A window that shows nothing is otherwise
 // silent — the webview has a console nobody can read — and the first question
 // is always which of these three the page actually asked for.
 func requestLog(next http.Handler) http.Handler {
-	if os.Getenv("FOCALBOARD_FRONTDOOR_DEBUG") == "" {
+	if os.Getenv("TRIXI_FRONTDOOR_DEBUG") == "" {
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

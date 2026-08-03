@@ -30,7 +30,7 @@ import (
 // upgrade, so a board served through it could never carry /ws; served beside
 // it, it can, and no window.webSocketBaseURL has to name a second port.
 //
-// The address is FOCALBOARD_SERVER_HOST/PORT, or the WAILS_SERVER_* names for
+// The address is TRIXI_SERVER_HOST/PORT, or the WAILS_SERVER_* names for
 // familiarity. Whichever is used is then removed from the environment, since
 // Wails' own server reads those too and would otherwise publish the private
 // half of this on the same interface.
@@ -45,12 +45,12 @@ type origin struct {
 const defaultServerPort = 8080
 
 func newOrigin(board, acp http.Handler) (*origin, error) {
-	host := envOnce("FOCALBOARD_SERVER_HOST", "WAILS_SERVER_HOST")
+	host := envOnce("TRIXI_SERVER_HOST", "WAILS_SERVER_HOST")
 	if host == "" {
 		host = "localhost"
 	}
 	port := defaultServerPort
-	if raw := envOnce("FOCALBOARD_SERVER_PORT", "WAILS_SERVER_PORT"); raw != "" {
+	if raw := envOnce("TRIXI_SERVER_PORT", "WAILS_SERVER_PORT"); raw != "" {
 		parsed, err := strconv.Atoi(raw)
 		if err != nil || parsed < 1 || parsed > 65535 {
 			return nil, fmt.Errorf("front door: bad port %q", raw)

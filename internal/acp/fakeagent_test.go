@@ -25,8 +25,8 @@ import (
 // that hangs".
 
 const (
-	fakeAgentEnv    = "FOCALBOARD_FAKE_ACP"     // scenario name; set by writeFakeAgent
-	fakeAgentDirEnv = "FOCALBOARD_FAKE_ACP_DIR" // where the agent records what it saw
+	fakeAgentEnv    = "TRIXI_FAKE_ACP"     // scenario name; set by writeFakeAgent
+	fakeAgentDirEnv = "TRIXI_FAKE_ACP_DIR" // where the agent records what it saw
 )
 
 // The scenarios. Their old names are kept: the tests read the same either way,

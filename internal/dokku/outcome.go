@@ -16,7 +16,7 @@ import (
 
 // EnvArtifacts points the server at the session's artifacts directory. Empty
 // means nothing is recorded; the tools still work.
-const EnvArtifacts = "FOCALBOARD_DOKKU_ARTIFACTS"
+const EnvArtifacts = "TRIXI_DOKKU_ARTIFACTS"
 
 // OutcomeFile is written into that directory after every deploy attempt.
 const OutcomeFile = "deploy.json"

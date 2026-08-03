@@ -17,8 +17,11 @@ sources/
 ```
 
 `go.mod` points at `../focalboard/server` with a `replace`, and the build takes the
-frontend from `../focalboard/webapp`. That is the first thing to settle properly —
-see [docs/plan.md](docs/plan.md), "Открытые решения".
+frontend from `../focalboard/webapp`. **That checkout has to be on a branch carrying
+the fork's server patches** — `experiments` — because this app needs
+`GetUserByUsername` and two single-user endpoint fixes that upstream does not have.
+Settling that properly is the first open question: see
+[docs/plan.md](docs/plan.md), "Открытые решения".
 
 ## How it works
 
@@ -26,8 +29,8 @@ The Go code is platform-agnostic — the same files build for every OS:
 
 - `server.go` — starts the Focalboard server in-process in single-user mode on a
   free port. The SQLite database and uploaded files live under the OS user config
-  dir (`os.UserConfigDir()` → `~/Library/Application Support/Focalboard` on macOS,
-  `%AppData%\Focalboard` on Windows, `~/.config/Focalboard` on Linux), **not** next
+  dir (`os.UserConfigDir()` → `~/Library/Application Support/Trixi` on macOS,
+  `%AppData%\Trixi` on Windows, `~/.config/Trixi` on Linux), **not** next
   to the binary, because a signed/packaged app dir is read-only.
 - `frontend_embed.go` / `frontend_disk.go` — the webapp `pack` is compiled into the
   binary with `go:embed` (release builds, `-tags frontend`). Because `go:embed`
@@ -252,7 +255,7 @@ The server build is the fastest way to look at the UI in a real browser with
 devtools:
 
 ```
-wails3 task build:server && FOCALBOARD_SERVER_PORT=8099 bin/Focalboard-server
+wails3 task build:server && TRIXI_SERVER_PORT=8099 bin/Trixi-server
 ```
 
 For pure webapp/CSS iteration the browser loop is still faster than the webview:
@@ -266,11 +269,11 @@ From the repo root, per platform. The build stages `webapp/pack` →
 `pack/` itself and embeds it, so the artifacts are single-binary:
 
 ```
-wails3 task package            # macOS   → bin/Focalboard.app
-wails3 task darwin:package:dmg # macOS   → bin/Focalboard.dmg
-wails3 task windows:package    # Windows → bin/Focalboard.exe + NSIS installer
+wails3 task package            # macOS   → bin/Trixi.app
+wails3 task darwin:package:dmg # macOS   → bin/Trixi.dmg
+wails3 task windows:package    # Windows → bin/Trixi.exe + NSIS installer
 wails3 task linux:package      # Linux   → AppImage + .deb (+ .rpm)
-wails3 task build:server       # any     → bin/Focalboard-server (headless)
+wails3 task build:server       # any     → bin/Trixi-server (headless)
 ```
 
 `wails3 task build` / `linux-app-wails3` build just the `.app` / bare binary.
@@ -279,7 +282,7 @@ Installer configs live in `build/` (`darwin/`, `windows/nsis/`,
 build-assets` from `build/config.yml` — edit the config, not the assets.
 
 The server binary has no window: it publishes the board at
-`FOCALBOARD_SERVER_HOST`/`FOCALBOARD_SERVER_PORT` (default `localhost:8080`) and
+`TRIXI_SERVER_HOST`/`TRIXI_SERVER_PORT` (default `localhost:8080`) and
 is opened in a browser. Keep it on localhost unless something in front of it
 authenticates: the bound methods start agents and read the filesystem, and the
 runtime endpoint has no credential of its own — the front door's cross-origin
@@ -302,12 +305,12 @@ by hand still works and is one pass, since the app is one binary:
 ```
 codesign --deep --force --options runtime \
   --sign "Developer ID Application: <TEAM>" \
-  bin/Focalboard.app
+  bin/Trixi.app
 
-xcrun notarytool submit bin/Focalboard.app \
+xcrun notarytool submit bin/Trixi.app \
   --apple-id <id> --team-id <team> --password <app-specific-pw> --wait
 
-xcrun stapler staple bin/Focalboard.app
+xcrun stapler staple bin/Trixi.app
 ```
 
 ## Out of scope (MVP)

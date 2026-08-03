@@ -100,7 +100,7 @@ func TestFrontDoorRefusesAnUnexpectedHost(t *testing.T) {
 
 // A server build published on every interface is reached by whatever name the
 // user's DNS gives it, so there is no authority left to check — only the port.
-// Without this, `FOCALBOARD_SERVER_HOST=0.0.0.0` would answer 403 to everyone
+// Without this, `TRIXI_SERVER_HOST=0.0.0.0` would answer 403 to everyone
 // but localhost, which is the opposite of what asking for it means.
 func TestFrontDoorPublishedOnEveryInterfaceAcceptsAnyName(t *testing.T) {
 	door := newFrontDoor(named("wails"), named("acp"), named("board"), "0.0.0.0:8080")

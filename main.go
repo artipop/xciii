@@ -20,13 +20,13 @@ import (
 )
 
 // acpDataDir returns the ACP integration's own state directory
-// (~/Library/Application Support/Focalboard/acp).
+// (~/Library/Application Support/Trixi/acp).
 func acpDataDir() (string, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	dir := filepath.Join(base, "Focalboard", "acp")
+	dir := filepath.Join(base, "Trixi", "acp")
 	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return "", err
 	}
@@ -145,8 +145,8 @@ func main() {
 	// qualified names (main.App.<Method>) rather than through generated
 	// bindings — exactly what the v2 build's -skipbindings meant.
 	wapp := application.New(application.Options{
-		Name:        "Focalboard",
-		Description: "Focalboard personal desktop",
+		Name:        "Trixi",
+		Description: "Focalboard boards with coding agents",
 		Services: []application.Service{
 			application.NewService(app),
 		},

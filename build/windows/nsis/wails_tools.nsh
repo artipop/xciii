@@ -5,19 +5,19 @@
 !include "FileFunc.nsh"
 
 !ifndef INFO_PROJECTNAME
-    !define INFO_PROJECTNAME "Focalboard"
+    !define INFO_PROJECTNAME "Trixi"
 !endif
 !ifndef INFO_COMPANYNAME
-    !define INFO_COMPANYNAME "Mattermost, Inc."
+    !define INFO_COMPANYNAME "artipop"
 !endif
 !ifndef INFO_PRODUCTNAME
-    !define INFO_PRODUCTNAME "Focalboard"
+    !define INFO_PRODUCTNAME "Trixi"
 !endif
 !ifndef INFO_PRODUCTVERSION
     !define INFO_PRODUCTVERSION "0.0.0"
 !endif
 !ifndef INFO_COPYRIGHT
-    !define INFO_COPYRIGHT "Copyright (c) 2015-present Mattermost, Inc."
+    !define INFO_COPYRIGHT "Copyright (c) 2026 Artem"
 !endif
 !ifndef PRODUCT_EXECUTABLE
     !define PRODUCT_EXECUTABLE "${INFO_PROJECTNAME}.exe"

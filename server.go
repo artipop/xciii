@@ -45,7 +45,7 @@ func dataDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	dir := filepath.Join(base, "Focalboard", "server")
+	dir := filepath.Join(base, "Trixi", "server")
 	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return "", err
 	}

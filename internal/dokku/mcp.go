@@ -16,9 +16,9 @@ const ServerName = "dokku"
 // which host, which repository, which branch — arrives here rather than as tool
 // arguments, so the model cannot point a deploy somewhere else.
 const (
-	EnvTarget = "FOCALBOARD_DOKKU_TARGET" // JSON Target
-	EnvRepo   = "FOCALBOARD_DOKKU_REPO"   // local repository the branch is pushed from
-	EnvBranch = "FOCALBOARD_DOKKU_BRANCH" // default branch for tools that omit one
+	EnvTarget = "TRIXI_DOKKU_TARGET" // JSON Target
+	EnvRepo   = "TRIXI_DOKKU_REPO"   // local repository the branch is pushed from
+	EnvBranch = "TRIXI_DOKKU_BRANCH" // default branch for tools that omit one
 )
 
 // version is reported to the client on initialize; it tracks the tool surface,

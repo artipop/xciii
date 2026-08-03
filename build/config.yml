@@ -5,12 +5,12 @@ version: '3'
 
 # This information is used to generate the build assets.
 info:
-  companyName: "Mattermost, Inc."
-  productName: "Focalboard"
-  productIdentifier: "com.mattermost.focalboard"
-  description: "Focalboard personal desktop"
-  copyright: "Copyright (c) 2015-present Mattermost, Inc."
-  comments: "Focalboard personal desktop"
+  companyName: "artipop"
+  productName: "Trixi"
+  productIdentifier: "io.deffun.trixi"
+  description: "Focalboard boards with coding agents"
+  copyright: "Copyright (c) 2026 Artem"
+  comments: "Focalboard boards with coding agents"
   version: "0.0.0"
   # cfBundleIconName: "appicon" # The macOS icon name in Assets.car icon bundles (optional)
   #                               # Should match the name of your .icon file without the extension
