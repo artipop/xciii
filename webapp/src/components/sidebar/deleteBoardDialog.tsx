@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState} from 'react'
+import {Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
+
 import {FormattedMessage} from '../../intl'
 
 import {Utils} from '../../utils'
@@ -19,7 +21,7 @@ type Props = {
 }
 
 export default function DeleteBoardDialog(props: Props): JSX.Element {
-    const [isSubmitting, setSubmitting] = useState(false)
+    const [isSubmitting, setSubmitting] = createSignal(false)
 
     return (
         <RootPortal>
@@ -30,34 +32,42 @@ export default function DeleteBoardDialog(props: Props): JSX.Element {
             >
                 <div class='container'>
                     <h2 class='header text-heading5'>
-                        {props.isTemplate &&
+                        <Show
+                            when={props.isTemplate}
+                            fallback={
+                                <FormattedMessage
+                                    id='DeleteBoardDialog.confirm-tite'
+                                    defaultMessage='Confirm delete board'
+                                />
+                            }
+                        >
                             <FormattedMessage
                                 id='DeleteBoardDialog.confirm-tite-template'
                                 defaultMessage='Confirm delete board template'
-                            />}
-                        {!props.isTemplate &&
-                            <FormattedMessage
-                                id='DeleteBoardDialog.confirm-tite'
-                                defaultMessage='Confirm delete board'
-                            />}
+                            />
+                        </Show>
                     </h2>
                     <p class='body'>
-                        {props.isTemplate &&
+                        <Show
+                            when={props.isTemplate}
+                            fallback={
+                                <FormattedMessage
+                                    id='DeleteBoardDialog.confirm-info'
+                                    defaultMessage='Are you sure you want to delete the board “{boardTitle}”? Deleting it will delete all cards in the board.'
+                                    values={{
+                                        boardTitle: props.boardTitle,
+                                    }}
+                                />
+                            }
+                        >
                             <FormattedMessage
                                 id='DeleteBoardDialog.confirm-info-template'
                                 defaultMessage='Are you sure you want to delete the board template “{boardTitle}”?'
                                 values={{
                                     boardTitle: props.boardTitle,
                                 }}
-                            />}
-                        {!props.isTemplate &&
-                            <FormattedMessage
-                                id='DeleteBoardDialog.confirm-info'
-                                defaultMessage='Are you sure you want to delete the board “{boardTitle}”? Deleting it will delete all cards in the board.'
-                                values={{
-                                    boardTitle: props.boardTitle,
-                                }}
-                            />}
+                            />
+                        </Show>
                     </p>
                     <div class='footer'>
                         <Button
@@ -65,7 +75,7 @@ export default function DeleteBoardDialog(props: Props): JSX.Element {
                             emphasis={'tertiary'}
                             onClick={(e: MouseEvent) => {
                                 e.stopPropagation()
-                                !isSubmitting && props.onClose()
+                                !isSubmitting() && props.onClose()
                             }}
                         >
                             <FormattedMessage

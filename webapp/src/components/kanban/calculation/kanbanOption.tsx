@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState} from 'react'
+import {For, Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import {Option as SelectOption, typesByOptions} from '../../calculations/options'
 import {IPropertyTemplate} from '../../../blocks/board'
@@ -15,34 +16,34 @@ type OptionProps = SelectOption & {
 }
 
 const Option = (props: {data: OptionProps}): JSX.Element => {
-    const [submenu, setSubmenu] = useState(false)
-    const [height, setHeight] = useState(0)
-    const [menuOptionRight, setMenuOptionRight] = useState(0)
-    const [calculationToProperties, setCalculationToProperties] = useState<Map<string, IPropertyTemplate[]>>(new Map())
+    const [submenu, setSubmenu] = createSignal(false)
+    const [height, setHeight] = createSignal(0)
+    const [menuOptionRight, setMenuOptionRight] = createSignal(0)
+    const calculationToProperties = new Map<string, IPropertyTemplate[]>()
 
-    const toggleOption = (e: any) => {
-        if (submenu) {
+    const toggleOption = (e: MouseEvent) => {
+        if (submenu()) {
             setSubmenu(false)
         } else {
-            const rect = e.target.getBoundingClientRect()
+            const rect = (e.target as HTMLElement).getBoundingClientRect()
             setHeight(rect.y)
             setMenuOptionRight(rect.x + rect.width)
             setSubmenu(true)
         }
     }
 
-    if (!calculationToProperties.get(props.data.value)) {
-        const supportedPropertyTypes = new Map<string, boolean>([])
-        if (typesByOptions.get(props.data.value)) {
-            (typesByOptions.get(props.data.value) || []).
-                forEach((propertyType) => supportedPropertyTypes.set(propertyType, true))
+    const supportedProperties = (): IPropertyTemplate[] => {
+        if (!calculationToProperties.get(props.data.value)) {
+            const supportedPropertyTypes = new Map<string, boolean>([])
+            if (typesByOptions.get(props.data.value)) {
+                (typesByOptions.get(props.data.value) || []).
+                    forEach((propertyType) => supportedPropertyTypes.set(propertyType, true))
+            }
+
+            calculationToProperties.set(props.data.value, props.data.cardProperties.
+                filter((property) => supportedPropertyTypes.get(property.type) || supportedPropertyTypes.get('common')))
         }
-
-        const supportedProperties = props.data.cardProperties.
-            filter((property) => supportedPropertyTypes.get(property.type) || supportedPropertyTypes.get('common'))
-
-        calculationToProperties.set(props.data.value, supportedProperties)
-        setCalculationToProperties(calculationToProperties)
+        return calculationToProperties.get(props.data.value) || []
     }
 
     return (
@@ -62,35 +63,31 @@ const Option = (props: {data: OptionProps}): JSX.Element => {
             }}
         >
             <span>
-                {props.data.label} {props.data.value !== 'count' && <ChevronRight/>}
+                {props.data.label} <Show when={props.data.value !== 'count'}><ChevronRight/></Show>
             </span>
 
-            {
-                submenu && props.data.value !== 'count' && (
-                    <div
-                        class='dropdown-submenu'
-                        style={{top: `${height - 10}px`, left: `${menuOptionRight}px`}}
-                    >
-
-                        {
-                            calculationToProperties.get(props.data.value) &&
-                            calculationToProperties.get(props.data.value)!.map((property) => (
-                                <div
-                                    class={`drops ${props.data.activeProperty.id === property.id ? 'active' : ''}`}
-                                    onClick={() => {
-                                        props.data.onChange({
-                                            calculation: props.data.value,
-                                            propertyId: property.id,
-                                        })
-                                    }}
-                                >
-                                    <span>{property.name}</span>
-                                </div>
-                            ))
-                        }
-                    </div>
-                )
-            }
+            <Show when={submenu() && props.data.value !== 'count'}>
+                <div
+                    class='dropdown-submenu'
+                    style={{top: `${height() - 10}px`, left: `${menuOptionRight()}px`}}
+                >
+                    <For each={supportedProperties()}>
+                        {(property) => (
+                            <div
+                                class={`drops ${props.data.activeProperty.id === property.id ? 'active' : ''}`}
+                                onClick={() => {
+                                    props.data.onChange({
+                                        calculation: props.data.value,
+                                        propertyId: property.id,
+                                    })
+                                }}
+                            >
+                                <span>{property.name}</span>
+                            </div>
+                        )}
+                    </For>
+                </div>
+            </Show>
         </div>
     )
 }

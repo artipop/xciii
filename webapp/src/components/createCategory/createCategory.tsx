@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, useState, KeyboardEvent} from 'react'
+import {Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
@@ -34,22 +35,23 @@ const CreateCategory = (props: Props): JSX.Element => {
     const intl = useIntl()
     const me = useAppSelector<IUser|null>(getMe)
     const team = useAppSelector(getCurrentTeam)
-    const teamID = team?.id || ''
+    const teamID = () => team()?.id || ''
     const placeholder = intl.formatMessage({id: 'Categories.CreateCategoryDialog.Placeholder', defaultMessage: 'Name your category'})
     const cancelText = intl.formatMessage({id: 'Categories.CreateCategoryDialog.CancelText', defaultMessage: 'Cancel'})
     const createText = intl.formatMessage({id: 'Categories.CreateCategoryDialog.CreateText', defaultMessage: 'Create'})
     const updateText = intl.formatMessage({id: 'Categories.CreateCategoryDialog.UpdateText', defaultMessage: 'Update'})
 
-    const [name, setName] = useState(props.initialValue || '')
+    const [name, setName] = createSignal(props.initialValue || '')
 
     const handleKeypress = (e: KeyboardEvent) => {
         if (e.key === 'Enter') {
-            onCreate(name)
+            onCreate(name())
         }
     }
 
     const onCreate = async (categoryName: string) => {
-        if (!me) {
+        const user = me()
+        if (!user) {
             Utils.logError('me not initialized')
             return
         }
@@ -58,16 +60,16 @@ const CreateCategory = (props: Props): JSX.Element => {
             const category: Category = {
                 name: categoryName,
                 id: props.boardCategoryId,
-                userID: me.id,
-                teamID,
+                userID: user.id,
+                teamID: teamID(),
             } as Category
 
             await mutator.updateCategory(category)
         } else {
             const category: Category = {
                 name: categoryName,
-                userID: me.id,
-                teamID,
+                userID: user.id,
+                teamID: teamID(),
             } as Category
 
             await mutator.createCategory(category)
@@ -88,21 +90,20 @@ const CreateCategory = (props: Props): JSX.Element => {
                         class='categoryNameInput'
                         type='text'
                         placeholder={placeholder}
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        autoFocus={true}
+                        value={name()}
+                        onInput={(e) => setName(e.target.value)}
+                        autofocus={true}
                         maxLength={100}
                         onKeyUp={handleKeypress}
                     />
-                    {
-                        Boolean(name) &&
+                    <Show when={Boolean(name())}>
                         <div
                             class='clearBtn inputWrapper__close-wrapper'
                             onClick={() => setName('')}
                         >
                             <CloseCircle/>
                         </div>
-                    }
+                    </Show>
                 </div>
                 <div class='createCategoryActions'>
                     <Button
@@ -114,9 +115,9 @@ const CreateCategory = (props: Props): JSX.Element => {
                     </Button>
                     <Button
                         size={'medium'}
-                        filled={Boolean(name.trim())}
-                        onClick={() => onCreate(name.trim())}
-                        disabled={!(name.trim())}
+                        filled={Boolean(name().trim())}
+                        onClick={() => onCreate(name().trim())}
+                        disabled={!(name().trim())}
                     >
                         {props.initialValue ? updateText : createText}
                     </Button>

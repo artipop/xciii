@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useCallback, useState} from 'react'
+import {Show, createSignal} from 'solid-js'
+
 import {useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
@@ -24,31 +25,30 @@ type Props = {
 }
 
 const BoardTemplateSelectorItem = (props: Props) => {
-    const {isActive, template, onEdit, onDelete, onSelect} = props
     const intl = useIntl()
-    const [deleteOpen, setDeleteOpen] = useState<boolean>(false)
-    const onClickHandler = useCallback(() => {
-        onSelect(template)
-    }, [onSelect, template])
-    const onEditHandler = useCallback((e: MouseEvent) => {
+    const [deleteOpen, setDeleteOpen] = createSignal<boolean>(false)
+    const onClickHandler = () => {
+        props.onSelect(props.template)
+    }
+    const onEditHandler = (e: MouseEvent) => {
         e.stopPropagation()
-        onEdit(template.id)
-    }, [onEdit, template])
+        props.onEdit(props.template.id)
+    }
 
     return (
         <div
-            class={isActive ? 'BoardTemplateSelectorItem active' : 'BoardTemplateSelectorItem'}
+            class={props.isActive ? 'BoardTemplateSelectorItem active' : 'BoardTemplateSelectorItem'}
             onClick={onClickHandler}
         >
-            <span class='template-icon'>{template.icon || <CompassIcon icon='product-boards'/>}</span>
-            <span class='template-name'>{template.title || intl.formatMessage({id: 'View.NewTemplateTitle', defaultMessage: 'Untitled'})}</span>
+            <span class='template-icon'>{props.template.icon || <CompassIcon icon='product-boards'/>}</span>
+            <span class='template-name'>{props.template.title || intl.formatMessage({id: 'View.NewTemplateTitle', defaultMessage: 'Untitled'})}</span>
 
             {/* don't show template menu options for default templates */}
-            {template.createdBy !== Constants.SystemUserID &&
+            <Show when={props.template.createdBy !== Constants.SystemUserID}>
                 <div class='actions'>
                     <BoardPermissionGate
-                        boardId={template.id}
-                        teamId={template.teamId}
+                        boardId={props.template.id}
+                        teamId={props.template.teamId}
                         permissions={[Permission.DeleteBoard]}
                     >
                         <IconButton
@@ -61,8 +61,8 @@ const BoardTemplateSelectorItem = (props: Props) => {
                         />
                     </BoardPermissionGate>
                     <BoardPermissionGate
-                        boardId={template.id}
-                        teamId={template.teamId}
+                        boardId={props.template.id}
+                        teamId={props.template.teamId}
                         permissions={[Permission.ManageBoardCards, Permission.ManageBoardProperties]}
                     >
                         <IconButton
@@ -71,16 +71,18 @@ const BoardTemplateSelectorItem = (props: Props) => {
                             onClick={onEditHandler}
                         />
                     </BoardPermissionGate>
-                </div>}
-            {deleteOpen &&
-            <DeleteBoardDialog
-                boardTitle={template.title}
-                onClose={() => setDeleteOpen(false)}
-                isTemplate={true}
-                onDelete={async () => {
-                    onDelete(template)
-                }}
-            />}
+                </div>
+            </Show>
+            <Show when={deleteOpen()}>
+                <DeleteBoardDialog
+                    boardTitle={props.template.title}
+                    onClose={() => setDeleteOpen(false)}
+                    isTemplate={true}
+                    onDelete={async () => {
+                        props.onDelete(props.template)
+                    }}
+                />
+            </Show>
         </div>
     )
 }

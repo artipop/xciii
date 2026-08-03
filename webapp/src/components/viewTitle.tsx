@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useCallback} from 'react'
+import {Show, createSignal} from 'solid-js'
+
 import {FormattedMessage, useIntl} from '../intl'
 
 import {BlockIcons} from '../blockIcons'
@@ -22,28 +23,26 @@ type Props = {
 }
 
 const ViewTitle = (props: Props) => {
-    const {board} = props
-
-    const [title, setTitle] = useState(board.title)
-    const onEditTitleSave = useCallback(() => mutator.changeBoardTitle(board.id, board.title, title), [board.id, board.title, title])
-    const onEditTitleCancel = useCallback(() => setTitle(board.title), [board.title])
-    const onDescriptionBlur = useCallback((text: string) => mutator.changeBoardDescription(board.id, board.id, board.description, text), [board.id, board.description])
-    const onAddRandomIcon = useCallback(() => {
+    const [title, setTitle] = createSignal(props.board.title)
+    const onEditTitleSave = () => mutator.changeBoardTitle(props.board.id, props.board.title, title())
+    const onEditTitleCancel = () => setTitle(props.board.title)
+    const onDescriptionBlur = (text: string) => mutator.changeBoardDescription(props.board.id, props.board.id, props.board.description, text)
+    const onAddRandomIcon = () => {
         const newIcon = BlockIcons.shared.randomIcon()
-        mutator.changeBoardIcon(board.id, board.icon, newIcon)
-    }, [board.id, board.icon])
-    const onShowDescription = useCallback(() => mutator.showBoardDescription(board.id, Boolean(board.showDescription), true), [board.id, board.showDescription])
-    const onHideDescription = useCallback(() => mutator.showBoardDescription(board.id, Boolean(board.showDescription), false), [board.id, board.showDescription])
+        mutator.changeBoardIcon(props.board.id, props.board.icon, newIcon)
+    }
+    const onShowDescription = () => mutator.showBoardDescription(props.board.id, Boolean(props.board.showDescription), true)
+    const onHideDescription = () => mutator.showBoardDescription(props.board.id, Boolean(props.board.showDescription), false)
     const canEditBoardProperties = useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
 
-    const readonly = props.readonly || !canEditBoardProperties
+    const readonly = () => props.readonly || !canEditBoardProperties()
 
     const intl = useIntl()
 
     return (
         <div class='ViewTitle'>
             <div class='add-buttons add-visible'>
-                {!readonly && !board.icon &&
+                <Show when={!readonly() && !props.board.icon}>
                     <Button
                         emphasis='default'
                         size='xsmall'
@@ -58,8 +57,8 @@ const ViewTitle = (props: Props) => {
                             defaultMessage='Add icon'
                         />
                     </Button>
-                }
-                {!readonly && board.showDescription &&
+                </Show>
+                <Show when={!readonly() && props.board.showDescription}>
                     <Button
                         emphasis='default'
                         size='xsmall'
@@ -74,8 +73,8 @@ const ViewTitle = (props: Props) => {
                             defaultMessage='hide description'
                         />
                     </Button>
-                }
-                {!readonly && !board.showDescription &&
+                </Show>
+                <Show when={!readonly() && !props.board.showDescription}>
                     <Button
                         emphasis='default'
                         size='xsmall'
@@ -90,37 +89,37 @@ const ViewTitle = (props: Props) => {
                             defaultMessage='show description'
                         />
                     </Button>
-                }
+                </Show>
             </div>
 
             <div class='title'>
                 <BoardIconSelector
-                    board={board}
-                    readonly={readonly}
+                    board={props.board}
+                    readonly={readonly()}
                 />
                 <Editable
                     className='title'
-                    value={title}
+                    value={title()}
                     placeholderText={intl.formatMessage({id: 'ViewTitle.untitled-board', defaultMessage: 'Untitled board'})}
                     onChange={(newTitle) => setTitle(newTitle)}
                     saveOnEsc={true}
                     onSave={onEditTitleSave}
                     onCancel={onEditTitleCancel}
-                    readonly={readonly}
+                    readonly={readonly()}
                     spellCheck={true}
                 />
             </div>
 
-            {board.showDescription &&
+            <Show when={props.board.showDescription}>
                 <div class='description'>
                     <MarkdownEditor
-                        text={board.description}
+                        text={props.board.description}
                         placeholderText='Add a description...'
                         onBlur={onDescriptionBlur}
-                        readonly={readonly}
+                        readonly={readonly()}
                     />
                 </div>
-            }
+            </Show>
         </div>
     )
 }
