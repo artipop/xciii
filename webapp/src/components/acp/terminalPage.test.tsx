@@ -3,7 +3,7 @@
 import {TextDecoder as NodeTextDecoder, TextEncoder as NodeTextEncoder} from 'util'
 
 import {render, screen, waitFor} from '@solidjs/testing-library'
-import {MemoryRouter, Route} from 'react-router-dom'
+import {MemoryRouter, Route, createMemoryHistory} from '@solidjs/router'
 import {IntlProvider} from '../../intl'
 import '@testing-library/jest-dom'
 
@@ -63,12 +63,18 @@ class FakeSocket {
 }
 
 const renderPage = () => {
+    const history = createMemoryHistory()
+    history.set({value: '/acp/terminal/term-1'})
     return render(() =>
-        <IntlProvider locale='en'>
-            <MemoryRouter initialEntries={['/acp/terminal/term-1']}>
-                <Route path='/acp/terminal/:terminalId'>
-                    <TerminalPage/>
-                </Route>
+        <IntlProvider
+            locale='en'
+            messages={{}}
+        >
+            <MemoryRouter history={history}>
+                <Route
+                    path='/acp/terminal/:terminalId'
+                    component={TerminalPage}
+                />
             </MemoryRouter>
         </IntlProvider>,
     )
@@ -138,6 +144,7 @@ describe('components/acp/terminalPage', () => {
         await waitFor(() => expect(screen.getByText('clauuus')).toBeInTheDocument())
         expect(screen.getByText('acp/fix-login-3f2a')).toBeInTheDocument()
 
+        await waitFor(() => expect(FakeSocket.last).not.toBeNull())
         const socket = FakeSocket.last!
         socket.onopen!()
         socket.onmessage!({data: new TextEncoder().encode('hello from the CLI').buffer})
@@ -167,6 +174,7 @@ describe('components/acp/terminalPage', () => {
     it('pastes the card task into the prompt on request', async () => {
         renderPage()
         await waitFor(() => expect(screen.getByText('Paste the task')).toBeInTheDocument())
+        await waitFor(() => expect(FakeSocket.last).not.toBeNull())
         const socket = FakeSocket.last!
         socket.onopen!()
         screen.getByText('Paste the task').click()

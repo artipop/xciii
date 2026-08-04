@@ -3,7 +3,8 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import React, {useCallback, useEffect, useState} from 'react'
+import {For, Show, createSignal, onMount} from 'solid-js'
+
 import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
@@ -38,44 +39,15 @@ const PlanningDialog = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [repos, setRepos] = useState<NamedEntry[]>([])
-    const [agents, setAgents] = useState<NamedEntry[]>([])
-    const [repoName, setRepoName] = useState('')
-    const [agentName, setAgentName] = useState('')
-    const [terminals, setTerminals] = useState<LiveTerminal[]>([])
-    const [busy, setBusy] = useState(false)
-    const [error, setError] = useState('')
+    const [repos, setRepos] = createSignal<NamedEntry[]>([])
+    const [agents, setAgents] = createSignal<NamedEntry[]>([])
+    const [repoName, setRepoName] = createSignal('')
+    const [agentName, setAgentName] = createSignal('')
+    const [terminals, setTerminals] = createSignal<LiveTerminal[]>([])
+    const [busy, setBusy] = createSignal(false)
+    const [error, setError] = createSignal('')
 
-    useEffect(() => {
-        const load = async () => {
-            if (!bindings) {
-                return
-            }
-            try {
-                const [repoList, agentList] = await Promise.all([
-                    bindings.ListAgentRepos(),
-                    bindings.ListAgents(),
-                ])
-                const parsedRepos: NamedEntry[] = JSON.parse(repoList) || []
-                const parsedAgents: NamedEntry[] = JSON.parse(agentList) || []
-                setRepos(parsedRepos)
-                setAgents(parsedAgents)
-
-                // One of a kind needs no choosing.
-                if (parsedRepos.length === 1) {
-                    setRepoName(parsedRepos[0].name)
-                }
-                if (parsedAgents.length === 1) {
-                    setAgentName(parsedAgents[0].name)
-                }
-            } catch (e: any) {
-                setError(String(e?.message || e))
-            }
-        }
-        load()
-    }, [bindings])
-
-    const refreshTerminals = useCallback(async () => {
+    const refreshTerminals = async () => {
         if (!bindings?.ListTerminals) {
             return
         }
@@ -85,37 +57,60 @@ const PlanningDialog = (props: Props) => {
         } catch (e) {
             // Nothing running is the ordinary case, not a failure.
         }
-    }, [bindings])
+    }
 
-    useEffect(() => {
+    onMount(async () => {
         refreshTerminals()
-    }, [refreshTerminals])
+        if (!bindings) {
+            return
+        }
+        try {
+            const [repoList, agentList] = await Promise.all([
+                bindings.ListAgentRepos(),
+                bindings.ListAgents(),
+            ])
+            const parsedRepos: NamedEntry[] = JSON.parse(repoList) || []
+            const parsedAgents: NamedEntry[] = JSON.parse(agentList) || []
+            setRepos(parsedRepos)
+            setAgents(parsedAgents)
+
+            // One of a kind needs no choosing.
+            if (parsedRepos.length === 1) {
+                setRepoName(parsedRepos[0].name)
+            }
+            if (parsedAgents.length === 1) {
+                setAgentName(parsedAgents[0].name)
+            }
+        } catch (e: any) {
+            setError(String(e?.message || e))
+        }
+    })
 
     // The desktop app has already opened the window by the time the binding
     // returns; a server build has no windows, so the browser opens a tab.
-    const openWindow = useCallback((handle: {windowed?: boolean, url?: string}) => {
+    const openWindow = (handle: {windowed?: boolean, url?: string}) => {
         if (!handle.windowed && handle.url) {
             window.open(handle.url, '_blank', 'noopener')
         }
-    }, [])
+    }
 
-    const start = useCallback(async () => {
+    const start = async () => {
         if (!bindings?.OpenPlanningTerminal) {
             return
         }
         setError('')
         setBusy(true)
         try {
-            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(repoName, agentName)))
+            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(repoName(), agentName())))
             await refreshTerminals()
         } catch (e: any) {
             setError(String(e?.message || e))
         } finally {
             setBusy(false)
         }
-    }, [agentName, bindings, openWindow, refreshTerminals, repoName])
+    }
 
-    const show = useCallback(async (id: string) => {
+    const show = async (id: string) => {
         if (!bindings?.ShowTerminal) {
             return
         }
@@ -125,7 +120,7 @@ const PlanningDialog = (props: Props) => {
             setError(String(e?.message || e))
             refreshTerminals()
         }
-    }, [bindings, openWindow, refreshTerminals])
+    }
 
     return (
         <Dialog
@@ -145,54 +140,65 @@ const PlanningDialog = (props: Props) => {
                     <label>
                         {intl.formatMessage({id: 'Planning.repository', defaultMessage: 'Repository'})}
                         <select
-                            value={repoName}
-                            onChange={(e) => setRepoName(e.target.value)}
+                            value={repoName()}
+                            onChange={(e) => setRepoName(e.currentTarget.value)}
                         >
                             <option value=''>{intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})}</option>
-                            {repos.map((r) => (
-                                <option
-                                    value={r.name}
-                                >{r.name}</option>
-                            ))}
+                            <For each={repos()}>
+                                {(r) => (
+                                    <option
+                                        value={r.name}
+                                        selected={repoName() === r.name}
+                                    >{r.name}</option>
+                                )}
+                            </For>
                         </select>
                     </label>
                     <label>
                         {intl.formatMessage({id: 'Planning.agent', defaultMessage: 'Agent'})}
                         <select
-                            value={agentName}
-                            onChange={(e) => setAgentName(e.target.value)}
+                            value={agentName()}
+                            onChange={(e) => setAgentName(e.currentTarget.value)}
                         >
                             <option value=''>{intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})}</option>
-                            {agents.map((a) => (
-                                <option
-                                    value={a.name}
-                                >{a.name}</option>
-                            ))}
+                            <For each={agents()}>
+                                {(a) => (
+                                    <option
+                                        value={a.name}
+                                        selected={agentName() === a.name}
+                                    >{a.name}</option>
+                                )}
+                            </For>
                         </select>
                     </label>
                     <Button
                         filled={true}
                         onClick={start}
-                        disabled={busy || !agentName || !repoName}
+                        disabled={busy() || !agentName() || !repoName()}
                     >
                         {intl.formatMessage({id: 'Planning.start-terminal', defaultMessage: 'Open a terminal'})}
                     </Button>
                 </div>
 
-                {error && <div class='PlanningDialog__error'>{error}</div>}
+                <Show when={error()}>
+                    <div class='PlanningDialog__error'>{error()}</div>
+                </Show>
 
-                {terminals.length > 0 &&
+                <Show when={terminals().length > 0}>
                     <div class='Planning__terminals'>
                         <span>{intl.formatMessage({id: 'Planning.terminals-running', defaultMessage: 'Terminals still running:'})}</span>
-                        {terminals.map((t) => (
-                            <Button
-                                onClick={() => show(t.id)}
-                                title={t.cwd}
-                            >
-                                {`${t.agent} · ${t.cwd.split('/').pop()}`}
-                            </Button>
-                        ))}
-                    </div>}
+                        <For each={terminals()}>
+                            {(t) => (
+                                <Button
+                                    onClick={() => show(t.id)}
+                                    title={t.cwd}
+                                >
+                                    {`${t.agent} · ${t.cwd.split('/').pop()}`}
+                                </Button>
+                            )}
+                        </For>
+                    </div>
+                </Show>
             </div>
         </Dialog>
     )

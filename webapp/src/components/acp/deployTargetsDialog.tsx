@@ -3,7 +3,8 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import React, {useCallback, useEffect, useState} from 'react'
+import {For, Show, createSignal, onMount} from 'solid-js'
+
 import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
@@ -48,16 +49,15 @@ type Props = {
 }
 
 const DeployTargetsDialog = (props: Props) => {
-    const {onClose} = props
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [targets, setTargets] = useState<DeployTarget[]>([])
-    const [form, setForm] = useState<DeployTarget | null>(null)
-    const [editingName, setEditingName] = useState<string | null>(null)
-    const [error, setError] = useState('')
+    const [targets, setTargets] = createSignal<DeployTarget[]>([])
+    const [form, setForm] = createSignal<DeployTarget | null>(null)
+    const [editingName, setEditingName] = createSignal<string | null>(null)
+    const [error, setError] = createSignal('')
 
-    const refresh = useCallback(async () => {
+    const refresh = async () => {
         if (!bindings?.ListDeployTargets) {
             return
         }
@@ -66,32 +66,32 @@ const DeployTargetsDialog = (props: Props) => {
         } catch (e) {
             setError(String(e))
         }
-    }, [bindings])
+    }
 
-    useEffect(() => {
+    onMount(() => {
         refresh()
-    }, [refresh])
+    })
 
-    const startAdd = useCallback(() => {
+    const startAdd = () => {
         setForm({...emptyForm})
         setEditingName(null)
         setError('')
-    }, [])
+    }
 
-    const startEdit = useCallback((entry: DeployTarget) => {
+    const startEdit = (entry: DeployTarget) => {
         setForm({...entry})
         setEditingName(entry.name)
         setError('')
-    }, [])
+    }
 
-    const saveForm = useCallback(async () => {
-        if (!bindings || !form) {
+    const saveForm = async () => {
+        if (!bindings || !form()) {
             return
         }
         setError('')
-        const entry: DeployTarget = {...form, name: form.name.trim()}
+        const entry: DeployTarget = {...form()!, name: form()!.name.trim()}
         try {
-            if (editingName) {
+            if (editingName()) {
                 await bindings.UpdateDeployTarget!(JSON.stringify(entry))
             } else {
                 await bindings.AddDeployTarget!(JSON.stringify(entry))
@@ -101,11 +101,11 @@ const DeployTargetsDialog = (props: Props) => {
         } catch (e) {
             setError(String(e))
         }
-    }, [bindings, form, editingName, refresh])
+    }
 
     // Removing a target only forgets where to deploy: apps already running on
     // the Dokku host stay up until someone destroys them.
-    const removeTarget = useCallback(async (name: string) => {
+    const removeTarget = async (name: string) => {
         if (!bindings?.RemoveDeployTarget) {
             return
         }
@@ -116,7 +116,7 @@ const DeployTargetsDialog = (props: Props) => {
         } catch (e) {
             setError(String(e))
         }
-    }, [bindings, refresh])
+    }
 
     const updateForm = (patch: Partial<DeployTarget>) => setForm((f) => (f ? {...f, ...patch} : f))
 
@@ -125,92 +125,95 @@ const DeployTargetsDialog = (props: Props) => {
             className='DeployTargetsDialog'
             title={<span>{intl.formatMessage({id: 'DeployTargets.title', defaultMessage: 'Deploy targets'})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'DeployTargets.subtitle', defaultMessage: 'Dokku hosts a card\'s branch is published to when it moves into the Deploy column. One branch becomes one app of its own, at “repository-branch.base-domain”.'})}</span>}
-            onClose={onClose}
+            onClose={props.onClose}
         >
             <div class='DeployTargetsDialog__content'>
-                {targets.length === 0 && !form &&
+                <Show when={targets().length === 0 && !form()}>
                     <div class='DeployTargetsDialog__empty'>
                         {intl.formatMessage({id: 'DeployTargets.empty', defaultMessage: 'No deploy targets yet.'})}
-                    </div>}
-
-                {targets.map((entry) => (
-                    <div
-                        class='DeployTargetsDialog__row'
-                    >
-                        <span class='DeployTargetsDialog__name'>{entry.name}</span>
-                        <span class='DeployTargetsDialog__where'>{`${entry.sshUser || 'dokku'}@${entry.sshHost} → *.${entry.baseDomain || entry.sshHost}`}</span>
-                        <Button onClick={() => startEdit(entry)}>
-                            {intl.formatMessage({id: 'DeployTargets.edit', defaultMessage: 'Edit'})}
-                        </Button>
-                        <Button onClick={() => removeTarget(entry.name)}>
-                            {intl.formatMessage({id: 'DeployTargets.remove', defaultMessage: 'Remove'})}
-                        </Button>
                     </div>
-                ))}
+                </Show>
 
-                {form &&
+                <For each={targets()}>
+                    {(entry) => (
+                        <div
+                            class='DeployTargetsDialog__row'
+                        >
+                            <span class='DeployTargetsDialog__name'>{entry.name}</span>
+                            <span class='DeployTargetsDialog__where'>{`${entry.sshUser || 'dokku'}@${entry.sshHost} → *.${entry.baseDomain || entry.sshHost}`}</span>
+                            <Button onClick={() => startEdit(entry)}>
+                                {intl.formatMessage({id: 'DeployTargets.edit', defaultMessage: 'Edit'})}
+                            </Button>
+                            <Button onClick={() => removeTarget(entry.name)}>
+                                {intl.formatMessage({id: 'DeployTargets.remove', defaultMessage: 'Remove'})}
+                            </Button>
+                        </div>
+                    )}
+                </For>
+
+                <Show when={form()}>
                     <div class='DeployTargetsDialog__form'>
                         <label>
                             {intl.formatMessage({id: 'DeployTargets.name', defaultMessage: 'Name'})}
                             <input
-                                value={form.name}
-                                disabled={Boolean(editingName)}
+                                value={form()!.name}
+                                disabled={Boolean(editingName())}
                                 placeholder={intl.formatMessage({id: 'DeployTargets.name-placeholder', defaultMessage: 'Name (also matched against the card\'s options)'})}
-                                onChange={(e) => updateForm({name: e.target.value})}
+                                onInput={(e) => updateForm({name: e.currentTarget.value})}
                             />
                         </label>
                         <label>
                             {intl.formatMessage({id: 'DeployTargets.sshHost', defaultMessage: 'Dokku host'})}
                             <input
-                                value={form.sshHost}
+                                value={form()!.sshHost}
                                 placeholder={'dokku.example.com'}
-                                onChange={(e) => updateForm({sshHost: e.target.value})}
+                                onInput={(e) => updateForm({sshHost: e.currentTarget.value})}
                             />
                         </label>
                         <label>
                             {intl.formatMessage({id: 'DeployTargets.sshUser', defaultMessage: 'SSH user (default dokku)'})}
                             <input
-                                value={form.sshUser || ''}
+                                value={form()!.sshUser || ''}
                                 placeholder={'dokku'}
-                                onChange={(e) => updateForm({sshUser: e.target.value})}
+                                onInput={(e) => updateForm({sshUser: e.currentTarget.value})}
                             />
                         </label>
                         <label>
                             {intl.formatMessage({id: 'DeployTargets.sshPort', defaultMessage: 'SSH port (default 22)'})}
                             <input
                                 type='number'
-                                value={form.sshPort || ''}
-                                onChange={(e) => updateForm({sshPort: e.target.value ? Number(e.target.value) : undefined})}
+                                value={form()!.sshPort || ''}
+                                onInput={(e) => updateForm({sshPort: e.currentTarget.value ? Number(e.currentTarget.value) : undefined})}
                             />
                         </label>
                         <label>
                             {intl.formatMessage({id: 'DeployTargets.sshKey', defaultMessage: 'SSH key (absolute path, optional)'})}
                             <input
-                                value={form.sshKey || ''}
+                                value={form()!.sshKey || ''}
                                 placeholder={'/Users/me/.ssh/id_ed25519'}
-                                onChange={(e) => updateForm({sshKey: e.target.value})}
+                                onInput={(e) => updateForm({sshKey: e.currentTarget.value})}
                             />
                         </label>
                         <label>
                             {intl.formatMessage({id: 'DeployTargets.baseDomain', defaultMessage: 'Preview domain (optional) — the Dokku host itself by default'})}
                             <input
-                                value={form.baseDomain || ''}
-                                placeholder={form.sshHost || intl.formatMessage({id: 'DeployTargets.baseDomain-placeholder', defaultMessage: 'same as the Dokku host'})}
-                                onChange={(e) => updateForm({baseDomain: e.target.value})}
+                                value={form()!.baseDomain || ''}
+                                placeholder={form()!.sshHost || intl.formatMessage({id: 'DeployTargets.baseDomain-placeholder', defaultMessage: 'same as the Dokku host'})}
+                                onInput={(e) => updateForm({baseDomain: e.currentTarget.value})}
                             />
                         </label>
                         <label>
                             {intl.formatMessage({id: 'DeployTargets.baseApp', defaultMessage: 'App name (optional) — the repository name by default'})}
                             <input
-                                value={form.baseApp || ''}
+                                value={form()!.baseApp || ''}
                                 placeholder={intl.formatMessage({id: 'DeployTargets.baseApp-placeholder', defaultMessage: 'repository name'})}
-                                onChange={(e) => updateForm({baseApp: e.target.value})}
+                                onInput={(e) => updateForm({baseApp: e.currentTarget.value})}
                             />
                         </label>
                         <div class='DeployTargetsDialog__hint'>
                             {intl.formatMessage(
                                 {id: 'DeployTargets.hostname', defaultMessage: 'A branch is served at {host}'},
-                                {host: previewHost(form)},
+                                {host: previewHost(form()!)},
                             )}
                         </div>
                         <div class='DeployTargetsDialog__formActions'>
@@ -224,9 +227,10 @@ const DeployTargetsDialog = (props: Props) => {
                                 {intl.formatMessage({id: 'DeployTargets.cancel', defaultMessage: 'Cancel'})}
                             </Button>
                         </div>
-                    </div>}
+                    </div>
+                </Show>
 
-                {!form &&
+                <Show when={!form()}>
                     <div class='DeployTargetsDialog__actions'>
                         <Button
                             emphasis='primary'
@@ -234,10 +238,12 @@ const DeployTargetsDialog = (props: Props) => {
                         >
                             {intl.formatMessage({id: 'DeployTargets.add', defaultMessage: 'Add target…'})}
                         </Button>
-                    </div>}
+                    </div>
+                </Show>
 
-                {error &&
-                    <div class='DeployTargetsDialog__error'>{error}</div>}
+                <Show when={error()}>
+                    <div class='DeployTargetsDialog__error'>{error()}</div>
+                </Show>
             </div>
         </Dialog>
     )

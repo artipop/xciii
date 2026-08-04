@@ -49,7 +49,7 @@ describe('components/acp/flowStrip', () => {
 
     test('shows the route, the stage the card is on and what it waits for', async () => {
         stubBindings(cardFlow)
-        render(wrapIntl(() =><FlowStrip cardId='card1'/>))
+        render(() => wrapIntl(() =><FlowStrip cardId='card1'/>))
 
         await waitFor(() => expect(screen.getByText('Feature')).toBeInTheDocument())
         expect(screen.getByText('feat/x')).toBeInTheDocument()
@@ -68,13 +68,13 @@ describe('components/acp/flowStrip', () => {
 
     test('a card waiting for a place in the column says so', async () => {
         stubBindings({...cardFlow, waitingFor: [], queued: true})
-        render(wrapIntl(() =><FlowStrip cardId='card1'/>))
+        render(() => wrapIntl(() =><FlowStrip cardId='card1'/>))
         await waitFor(() => expect(screen.getByText(/free place in the column/)).toBeInTheDocument())
     })
 
     test('a card with no route draws nothing', async () => {
         stubBindings(null)
-        const {container} = render(wrapIntl(() =><FlowStrip cardId='card1'/>))
+        const {container} = render(() => wrapIntl(() =><FlowStrip cardId='card1'/>))
         await waitFor(() => expect(container).toBeEmptyDOMElement())
     })
 })

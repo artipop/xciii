@@ -65,7 +65,7 @@ describe('components/acp/columnSettingsDialog', () => {
 
     test('shows what the column does and saves a changed crew', async () => {
         const bindings = stubBindings()
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <ColumnSettingsDialog
                 boardId='board1'
                 property={property}
@@ -91,7 +91,7 @@ describe('components/acp/columnSettingsDialog', () => {
 
     test('a validation error from Go is shown, not swallowed', async () => {
         stubBindings({SaveBoardColumn: jest.fn().mockRejectedValue('агент "ghost" не найден в реестре')})
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <ColumnSettingsDialog
                 boardId='board1'
                 property={property}
@@ -115,7 +115,7 @@ describe('components/acp/columnBadge', () => {
 
     test('says on the column what happens in it', async () => {
         stubBindings()
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <ColumnBadge
                 boardId='board1'
                 optionId='opt-work'
@@ -130,7 +130,7 @@ describe('components/acp/columnBadge', () => {
 
     test('a column that does nothing says nothing', async () => {
         stubBindings({ListBoardColumns: jest.fn().mockResolvedValue(JSON.stringify([{...savedSpec, action: 'none'}]))})
-        const {container} = render(wrapIntl(() =>
+        const {container} = render(() => wrapIntl(() =>
             <ColumnBadge
                 boardId='board1'
                 optionId='opt-work'

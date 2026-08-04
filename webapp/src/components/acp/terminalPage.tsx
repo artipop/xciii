@@ -3,9 +3,11 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import React, {type JSX, useCallback, useEffect, useRef, useState} from 'react'
+import {Show, createSignal, onCleanup, onMount} from 'solid-js'
+import type {JSX} from 'solid-js'
+import {useParams} from '@solidjs/router'
+
 import {useIntl} from '../../intl'
-import {useRouteMatch} from 'react-router-dom'
 
 import Button from '../../widgets/buttons/button'
 
@@ -39,26 +41,26 @@ type TerminalInfo = {
 
 const TerminalPage = (): JSX.Element => {
     const intl = useIntl()
-    const match = useRouteMatch<{terminalId: string}>()
-    const terminalId = match.params.terminalId
+    const params = useParams<{terminalId: string}>()
+    const terminalId = params.terminalId
 
-    const host = useRef<HTMLDivElement>(null)
-    const socket = useRef<WebSocket | null>(null)
-    const [info, setInfo] = useState<TerminalInfo | null>(null)
-    const [status, setStatus] = useState<'connecting' | 'live' | 'closed'>('connecting')
-    const [error, setError] = useState('')
-    const writeToPty = useRef<(data: string) => void>(() => undefined)
+    let host: HTMLDivElement | undefined
+    const [info, setInfo] = createSignal<TerminalInfo | null>(null)
+    const [status, setStatus] = createSignal<'connecting' | 'live' | 'closed'>('connecting')
+    const [error, setError] = createSignal('')
+    let writeToPty: (data: string) => void = () => undefined
 
     // The task text is a button rather than something typed for you: a CLI is
     // not ready for input the moment it starts, and typing into a TUI that is
     // still painting loses the first characters.
-    const pasteTask = useCallback(() => {
-        if (info?.task) {
-            writeToPty.current(info.task)
+    const pasteTask = () => {
+        const task = info()?.task
+        if (task) {
+            writeToPty(task)
         }
-    }, [info])
+    }
 
-    useEffect(() => {
+    onMount(() => {
         const bindings = agentBindings()
         if (!bindings?.GetTerminalInfo) {
             setError(intl.formatMessage({id: 'acp.terminal.noBindings', defaultMessage: 'The terminal is only available in the desktop app.'}))
@@ -67,20 +69,21 @@ const TerminalPage = (): JSX.Element => {
         bindings.GetTerminalInfo(terminalId).
             then((json: string) => setInfo(JSON.parse(json) as TerminalInfo)).
             catch((e: Error) => setError(String(e?.message || e)))
-    }, [terminalId])
+    })
 
-    useEffect(() => {
+    onMount(() => {
         let disposed = false
         let terminal: any = null
         let fit: any = null
         let observer: ResizeObserver | null = null
+        let socket: WebSocket | null = null
 
         const start = async () => {
             const [{Terminal}, {FitAddon}] = await Promise.all([
                 import('@xterm/xterm'),
                 import('@xterm/addon-fit'),
             ])
-            if (disposed || !host.current) {
+            if (disposed || !host) {
                 return
             }
 
@@ -93,7 +96,7 @@ const TerminalPage = (): JSX.Element => {
             })
             fit = new FitAddon()
             terminal.loadAddon(fit)
-            terminal.open(host.current)
+            terminal.open(host)
             fit.fit()
 
             // Absolute, not relative: this page's own path is
@@ -103,7 +106,7 @@ const TerminalPage = (): JSX.Element => {
             url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
             const ws = new WebSocket(url.toString())
             ws.binaryType = 'arraybuffer'
-            socket.current = ws
+            socket = ws
 
             const sendSize = () => {
                 if (ws.readyState === WebSocket.OPEN && terminal) {
@@ -134,7 +137,7 @@ const TerminalPage = (): JSX.Element => {
                     ws.send(encoder.encode(data))
                 }
             })
-            writeToPty.current = (data: string) => {
+            writeToPty = (data: string) => {
                 if (ws.readyState === WebSocket.OPEN) {
                     ws.send(encoder.encode(data))
                 }
@@ -148,49 +151,57 @@ const TerminalPage = (): JSX.Element => {
                 }
                 sendSize()
             })
-            observer.observe(host.current)
+            observer.observe(host)
             terminal.focus()
         }
 
         start().catch((e) => setError(String(e?.message || e)))
 
-        return () => {
+        onCleanup(() => {
             disposed = true
             observer?.disconnect()
-            socket.current?.close()
-            socket.current = null
+            socket?.close()
+            socket = null
             terminal?.dispose()
-        }
-    }, [terminalId])
+        })
+    })
 
-    const statusText = {
+    const statusText = () => ({
         connecting: intl.formatMessage({id: 'acp.terminal.connecting', defaultMessage: 'connecting…'}),
         live: intl.formatMessage({id: 'acp.terminal.live', defaultMessage: 'session running'}),
         closed: intl.formatMessage({id: 'acp.terminal.closed', defaultMessage: 'the CLI has exited — this window can be closed'}),
-    }[status]
+    }[status()])
 
     return (
         <div class='AcpTerminalPage'>
             <div class='AcpTerminalPage__header'>
                 <div class='AcpTerminalPage__title'>
-                    <span class='AcpTerminalPage__agent'>{info?.agent || ''}</span>
-                    {info?.title && <span class='AcpTerminalPage__card'>{info.title}</span>}
+                    <span class='AcpTerminalPage__agent'>{info()?.agent || ''}</span>
+                    <Show when={info()?.title}>
+                        <span class='AcpTerminalPage__card'>{info()?.title}</span>
+                    </Show>
                 </div>
                 <div class='AcpTerminalPage__meta'>
-                    {info?.branch && <code>{info.branch}</code>}
-                    {info?.cwd && <code class='AcpTerminalPage__cwd'>{info.cwd}</code>}
-                    <span class={`AcpTerminalPage__status AcpTerminalPage__status--${status}`}>{statusText}</span>
+                    <Show when={info()?.branch}>
+                        <code>{info()?.branch}</code>
+                    </Show>
+                    <Show when={info()?.cwd}>
+                        <code class='AcpTerminalPage__cwd'>{info()?.cwd}</code>
+                    </Show>
+                    <span class={`AcpTerminalPage__status AcpTerminalPage__status--${status()}`}>{statusText()}</span>
                 </div>
-                {info?.task && (
+                <Show when={info()?.task}>
                     <Button
                         onClick={pasteTask}
-                        title={info.task}
+                        title={info()?.task}
                     >
                         {intl.formatMessage({id: 'acp.terminal.pasteTask', defaultMessage: 'Paste the task'})}
                     </Button>
-                )}
+                </Show>
             </div>
-            {error && <div class='AcpTerminalPage__error'>{error}</div>}
+            <Show when={error()}>
+                <div class='AcpTerminalPage__error'>{error()}</div>
+            </Show>
             <div
                 class='AcpTerminalPage__screen'
                 ref={host}
