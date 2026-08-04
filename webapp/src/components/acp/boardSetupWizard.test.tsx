@@ -83,7 +83,7 @@ describe('components/acp/boardSetupWizard steps', () => {
         jest.clearAllMocks()
     })
 
-    const renderWizard = (onClose = jest.fn()) => render(wrapIntl(() =>
+    const renderWizard = (onClose = jest.fn()) => render(() => wrapIntl(() =>
         <BoardSetupWizard
             board={templateBoard()}
             onClose={onClose}

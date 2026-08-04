@@ -3,7 +3,8 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import React, {useCallback, useEffect, useState} from 'react'
+import {For, Show, createSignal, onMount} from 'solid-js'
+
 import {useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
@@ -92,31 +93,30 @@ const STEP_BROWSER = 3
 const STEP_DONE = 4
 
 const BoardSetupWizard = (props: Props) => {
-    const {board, onClose} = props
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [step, setStep] = useState(STEP_REPO)
-    const [registry, setRegistry] = useState<Registry>({agents: [], repos: []})
-    const [error, setError] = useState('')
-    const [busy, setBusy] = useState(false)
+    const [step, setStep] = createSignal(STEP_REPO)
+    const [registry, setRegistry] = createSignal<Registry>({agents: [], repos: []})
+    const [error, setError] = createSignal('')
+    const [busy, setBusy] = createSignal(false)
 
     // Step 1: a repository.
-    const [repoPath, setRepoPath] = useState('')
-    const [repoName, setRepoName] = useState('')
+    const [repoPath, setRepoPath] = createSignal('')
+    const [repoName, setRepoName] = createSignal('')
 
     // Step 2: an agent.
-    const [agentName, setAgentName] = useState('claude')
-    const [agentKind, setAgentKind] = useState('claude')
+    const [agentName, setAgentName] = createSignal('claude')
+    const [agentKind, setAgentKind] = createSignal('claude')
 
     // Step 3: a Dokku host.
-    const [deploy, setDeploy] = useState({name: '', sshHost: '', sshUser: '', sshKey: '', baseDomain: ''})
+    const [deploy, setDeploy] = createSignal({name: '', sshHost: '', sshUser: '', sshKey: '', baseDomain: ''})
 
     // Step 4: what tests with.
-    const [serversText, setServersText] = useState(BROWSER_SERVER)
-    const [adapters, setAdapters] = useState<AdapterStatus[]>([])
+    const [serversText, setServersText] = createSignal(BROWSER_SERVER)
+    const [adapters, setAdapters] = createSignal<AdapterStatus[]>([])
 
-    const refresh = useCallback(async () => {
+    const refresh = async () => {
         try {
             const loaded = await readRegistry()
             if (loaded) {
@@ -131,17 +131,17 @@ const BoardSetupWizard = (props: Props) => {
         } catch (e) {
             setError(String(e))
         }
-    }, [bindings])
+    }
 
-    useEffect(() => {
+    onMount(() => {
         refresh()
-    }, [refresh])
+    })
 
-    const adapterStatus = adapters.find((a) => a.kind === agentKind)
+    const adapterStatus = () => adapters().find((a) => a.kind === agentKind())
 
     // Every step does its work through the same registry calls the dialogs use,
     // and shows what Go says when it refuses.
-    const run = useCallback(async (work: () => Promise<void>, next: number) => {
+    const run = async (work: () => Promise<void>, next: number) => {
         setError('')
         setBusy(true)
         try {
@@ -153,9 +153,9 @@ const BoardSetupWizard = (props: Props) => {
         } finally {
             setBusy(false)
         }
-    }, [refresh])
+    }
 
-    const pickRepo = useCallback(async () => {
+    const pickRepo = async () => {
         if (!bindings?.PickDirectory) {
             return
         }
@@ -169,115 +169,120 @@ const BoardSetupWizard = (props: Props) => {
         } catch (e) {
             setError(String(e))
         }
-    }, [bindings, intl])
+    }
 
     const addRepo = () => run(async () => {
-        await bindings!.AddAgentRepo!(repoName.trim(), repoPath)
+        await bindings!.AddAgentRepo!(repoName().trim(), repoPath())
     }, STEP_AGENT)
 
     const addAgent = () => run(async () => {
-        await bindings!.AddAgent!(JSON.stringify({name: agentName.trim(), kind: agentKind}))
+        await bindings!.AddAgent!(JSON.stringify({name: agentName().trim(), kind: agentKind()}))
         if (bindings!.SyncAgentUsers) {
             // So the agent can be put in a card's "Assignee" like a teammate.
-            await bindings!.SyncAgentUsers(board.id)
+            await bindings!.SyncAgentUsers(props.board.id)
         }
     }, STEP_DEPLOY)
 
     const addDeploy = () => run(async () => {
         await bindings!.AddDeployTarget!(JSON.stringify({
-            name: deploy.name.trim(),
-            sshHost: deploy.sshHost.trim(),
-            sshUser: deploy.sshUser.trim(),
-            sshKey: deploy.sshKey.trim(),
-            baseDomain: deploy.baseDomain.trim(),
+            name: deploy().name.trim(),
+            sshHost: deploy().sshHost.trim(),
+            sshUser: deploy().sshUser.trim(),
+            sshKey: deploy().sshKey.trim(),
+            baseDomain: deploy().baseDomain.trim(),
         }))
     }, STEP_BROWSER)
 
     const addBrowser = () => run(async () => {
-        const agent = registry.agents[0]
+        const agent = registry().agents[0]
         if (!agent) {
             return
         }
         await bindings!.UpdateAgent!(JSON.stringify({
             name: agent.name,
-            kind: agentKind,
-            mcpServers: textToServers(serversText),
+            kind: agentKind(),
+            mcpServers: textToServers(serversText()),
         }))
     }, STEP_DONE)
 
-    const finish = useCallback(async () => {
+    const finish = async () => {
         // Take the board's own columns and routes now, so what it can do is
         // visible without waiting for the first card to be moved.
         if (bindings?.SeedBoardAutomation) {
             try {
-                await bindings.SeedBoardAutomation(board.id)
+                await bindings.SeedBoardAutomation(props.board.id)
             } catch (e) {
                 setError(String(e))
                 return
             }
         }
-        onClose()
-    }, [bindings, board.id, onClose])
+        props.onClose()
+    }
 
-    const hasRepo = registry.repos.length > 0
-    const hasAgent = registry.agents.length > 0
+    const hasRepo = () => registry().repos.length > 0
+    const hasAgent = () => registry().agents.length > 0
 
     const body = () => {
-        switch (step) {
+        switch (step()) {
         case STEP_REPO:
             return (
                 <div class='BoardSetupWizard__step'>
                     <p>{intl.formatMessage({id: 'BoardSetup.repo-why', defaultMessage: 'An agent works in a repository on your machine. A card is matched to one by its "Repositories" field, which this fills in for you.'})}</p>
-                    {hasRepo &&
+                    <Show when={hasRepo()}>
                         <div class='BoardSetupWizard__known'>
-                            {intl.formatMessage({id: 'BoardSetup.repo-known', defaultMessage: 'Already registered: {names}'}, {names: registry.repos.map((r) => r.name).join(', ')})}
-                        </div>}
+                            {intl.formatMessage({id: 'BoardSetup.repo-known', defaultMessage: 'Already registered: {names}'}, {names: registry().repos.map((r) => r.name).join(', ')})}
+                        </div>
+                    </Show>
                     <Button onClick={pickRepo}>
                         {intl.formatMessage({id: 'BoardSetup.choose-folder', defaultMessage: 'Choose a folder…'})}
                     </Button>
-                    {repoPath &&
-                        <>
-                            <span class='BoardSetupWizard__path'>{repoPath}</span>
-                            <label>
-                                {intl.formatMessage({id: 'BoardSetup.repo-name', defaultMessage: 'Name'})}
-                                <input
-                                    value={repoName}
-                                    onChange={(e) => setRepoName(e.target.value)}
-                                />
-                            </label>
-                        </>}
+                    <Show when={repoPath()}>
+                        <span class='BoardSetupWizard__path'>{repoPath()}</span>
+                        <label>
+                            {intl.formatMessage({id: 'BoardSetup.repo-name', defaultMessage: 'Name'})}
+                            <input
+                                value={repoName()}
+                                onInput={(e) => setRepoName(e.currentTarget.value)}
+                            />
+                        </label>
+                    </Show>
                 </div>
             )
         case STEP_AGENT:
             return (
                 <div class='BoardSetupWizard__step'>
                     <p>{intl.formatMessage({id: 'BoardSetup.agent-why', defaultMessage: 'The agent that picks a card up. It has to be logged in already; here it is only given a name.'})}</p>
-                    {hasAgent &&
+                    <Show when={hasAgent()}>
                         <div class='BoardSetupWizard__known'>
-                            {intl.formatMessage({id: 'BoardSetup.agent-known', defaultMessage: 'Already registered: {names}'}, {names: registry.agents.map((a) => a.name).join(', ')})}
-                        </div>}
+                            {intl.formatMessage({id: 'BoardSetup.agent-known', defaultMessage: 'Already registered: {names}'}, {names: registry().agents.map((a) => a.name).join(', ')})}
+                        </div>
+                    </Show>
                     <label>
                         {intl.formatMessage({id: 'BoardSetup.agent-name', defaultMessage: 'Name'})}
                         <input
-                            value={agentName}
-                            onChange={(e) => setAgentName(e.target.value)}
+                            value={agentName()}
+                            onInput={(e) => setAgentName(e.currentTarget.value)}
                         />
                     </label>
                     <label>
                         {intl.formatMessage({id: 'BoardSetup.agent-kind', defaultMessage: 'Kind'})}
                         <select
-                            value={agentKind}
-                            onChange={(e) => setAgentKind(e.target.value)}
+                            value={agentKind()}
+                            onChange={(e) => setAgentKind(e.currentTarget.value)}
                         >
-                            {AGENT_KINDS.map((kind) => (
-                                <option
-                                    value={kind.value}
-                                >{kind.label}</option>
-                            ))}
+                            <For each={AGENT_KINDS}>
+                                {(kind) => (
+                                    <option
+                                        value={kind.value}
+                                        selected={agentKind() === kind.value}
+                                    >{kind.label}</option>
+                                )}
+                            </For>
                         </select>
                     </label>
-                    {adapterStatus && !adapterStatus.ready &&
-                        <div class='BoardSetupWizard__warning'>{adapterStatus.detail}</div>}
+                    <Show when={adapterStatus() && !adapterStatus()!.ready}>
+                        <div class='BoardSetupWizard__warning'>{adapterStatus()!.detail}</div>
+                    </Show>
                 </div>
             )
         case STEP_DEPLOY:
@@ -287,36 +292,36 @@ const BoardSetupWizard = (props: Props) => {
                     <label>
                         {intl.formatMessage({id: 'BoardSetup.deploy-name', defaultMessage: 'Name'})}
                         <input
-                            value={deploy.name}
-                            onChange={(e) => setDeploy({...deploy, name: e.target.value})}
+                            value={deploy().name}
+                            onInput={(e) => setDeploy({...deploy(), name: e.currentTarget.value})}
                         />
                     </label>
                     <label>
                         {intl.formatMessage({id: 'BoardSetup.deploy-host', defaultMessage: 'Dokku host'})}
                         <input
-                            value={deploy.sshHost}
-                            onChange={(e) => setDeploy({...deploy, sshHost: e.target.value})}
+                            value={deploy().sshHost}
+                            onInput={(e) => setDeploy({...deploy(), sshHost: e.currentTarget.value})}
                         />
                     </label>
                     <label>
                         {intl.formatMessage({id: 'BoardSetup.deploy-user', defaultMessage: 'SSH user (default dokku)'})}
                         <input
-                            value={deploy.sshUser}
-                            onChange={(e) => setDeploy({...deploy, sshUser: e.target.value})}
+                            value={deploy().sshUser}
+                            onInput={(e) => setDeploy({...deploy(), sshUser: e.currentTarget.value})}
                         />
                     </label>
                     <label>
                         {intl.formatMessage({id: 'BoardSetup.deploy-key', defaultMessage: 'SSH key (absolute path, optional)'})}
                         <input
-                            value={deploy.sshKey}
-                            onChange={(e) => setDeploy({...deploy, sshKey: e.target.value})}
+                            value={deploy().sshKey}
+                            onInput={(e) => setDeploy({...deploy(), sshKey: e.currentTarget.value})}
                         />
                     </label>
                     <label>
                         {intl.formatMessage({id: 'BoardSetup.deploy-domain', defaultMessage: 'Preview domain (optional)'})}
                         <input
-                            value={deploy.baseDomain}
-                            onChange={(e) => setDeploy({...deploy, baseDomain: e.target.value})}
+                            value={deploy().baseDomain}
+                            onInput={(e) => setDeploy({...deploy(), baseDomain: e.currentTarget.value})}
                         />
                     </label>
                 </div>
@@ -327,8 +332,8 @@ const BoardSetupWizard = (props: Props) => {
                     <p>{intl.formatMessage({id: 'BoardSetup.browser-why', defaultMessage: 'The "To Test" column drives a browser the agent brings itself. Without a browser MCP server a test session refuses to start; the one below is the usual answer.'})}</p>
                     <textarea
                         rows={7}
-                        value={serversText}
-                        onChange={(e) => setServersText(e.target.value)}
+                        value={serversText()}
+                        onInput={(e) => setServersText(e.currentTarget.value)}
                     />
                 </div>
             )
@@ -345,25 +350,23 @@ const BoardSetupWizard = (props: Props) => {
     }
 
     const actions = () => {
-        switch (step) {
+        switch (step()) {
         case STEP_REPO:
             return (
-                <>
-                    <Button
-                        emphasis='primary'
-                        disabled={busy || (!hasRepo && !(repoPath && repoName.trim()))}
-                        onClick={() => (repoPath && repoName.trim() ? addRepo() : setStep(STEP_AGENT))}
-                    >
-                        {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
-                    </Button>
-                </>
+                <Button
+                    emphasis='primary'
+                    disabled={busy() || (!hasRepo() && !(repoPath() && repoName().trim()))}
+                    onClick={() => (repoPath() && repoName().trim() ? addRepo() : setStep(STEP_AGENT))}
+                >
+                    {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
+                </Button>
             )
         case STEP_AGENT:
             return (
                 <Button
                     emphasis='primary'
-                    disabled={busy || (!hasAgent && !agentName.trim())}
-                    onClick={() => (agentName.trim() && !hasAgent ? addAgent() : setStep(STEP_DEPLOY))}
+                    disabled={busy() || (!hasAgent() && !agentName().trim())}
+                    onClick={() => (agentName().trim() && !hasAgent() ? addAgent() : setStep(STEP_DEPLOY))}
                 >
                     {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
                 </Button>
@@ -373,7 +376,7 @@ const BoardSetupWizard = (props: Props) => {
                 <>
                     <Button
                         emphasis='primary'
-                        disabled={busy || !deploy.name.trim() || !deploy.sshHost.trim()}
+                        disabled={busy() || !deploy().name.trim() || !deploy().sshHost.trim()}
                         onClick={addDeploy}
                     >
                         {intl.formatMessage({id: 'BoardSetup.save', defaultMessage: 'Save'})}
@@ -388,7 +391,7 @@ const BoardSetupWizard = (props: Props) => {
                 <>
                     <Button
                         emphasis='primary'
-                        disabled={busy || !hasAgent}
+                        disabled={busy() || !hasAgent()}
                         onClick={addBrowser}
                     >
                         {intl.formatMessage({id: 'BoardSetup.save', defaultMessage: 'Save'})}
@@ -421,25 +424,28 @@ const BoardSetupWizard = (props: Props) => {
     return (
         <Dialog
             className='BoardSetupWizard'
-            title={<span>{intl.formatMessage({id: 'BoardSetup.title', defaultMessage: 'Set up this board: {step}'}, {step: titles[step]})}</span>}
+            title={<span>{intl.formatMessage({id: 'BoardSetup.title', defaultMessage: 'Set up this board: {step}'}, {step: titles[step()]})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'BoardSetup.subtitle', defaultMessage: 'The board already knows how the work is organised. What it does not know is your machine.'})}</span>}
-            onClose={onClose}
+            onClose={props.onClose}
         >
             <div class='BoardSetupWizard__content'>
                 <ol class='BoardSetupWizard__steps'>
-                    {titles.map((title, i) => (
-                        <li
-                            class={i === step ? 'BoardSetupWizard__stepName--current' : ''}
-                        >{title}</li>
-                    ))}
+                    <For each={titles}>
+                        {(title, i) => (
+                            <li
+                                class={i() === step() ? 'BoardSetupWizard__stepName--current' : ''}
+                            >{title}</li>
+                        )}
+                    </For>
                 </ol>
 
                 {body()}
 
                 <div class='BoardSetupWizard__actions'>{actions()}</div>
 
-                {error &&
-                    <div class='BoardSetupWizard__error'>{error}</div>}
+                <Show when={error()}>
+                    <div class='BoardSetupWizard__error'>{error()}</div>
+                </Show>
             </div>
         </Dialog>
     )

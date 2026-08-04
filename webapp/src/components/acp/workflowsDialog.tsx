@@ -3,7 +3,8 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import React, {useEffect, useState} from 'react'
+import {For, Show, createSignal, onMount} from 'solid-js'
+
 import {useIntl} from '../../intl'
 
 import {Board, IPropertyTemplate} from '../../blocks/board'
@@ -101,33 +102,32 @@ export function waitEdges(edges: FlowEdge[], from: string): FlowEdge[] {
 }
 
 const WorkflowsDialog = (props: Props) => {
-    const {board, onClose} = props
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [flows, setFlows] = useState<Flow[]>([])
-    const [overview, setOverview] = useState<FlowOverview[]>([])
-    const [templates, setTemplates] = useState<Flow[]>([])
-    const [triggers, setTriggers] = useState<FlowTrigger[]>([])
-    const [form, setForm] = useState<Flow | null>(null)
-    const [editingName, setEditingName] = useState<string | null>(null)
-    const [error, setError] = useState('')
+    const [flows, setFlows] = createSignal<Flow[]>([])
+    const [overview, setOverview] = createSignal<FlowOverview[]>([])
+    const [templates, setTemplates] = createSignal<Flow[]>([])
+    const [triggers, setTriggers] = createSignal<FlowTrigger[]>([])
+    const [form, setForm] = createSignal<Flow | null>(null)
+    const [editingName, setEditingName] = createSignal<string | null>(null)
+    const [error, setError] = createSignal('')
 
-    const selectProperties = board.cardProperties.filter((p: IPropertyTemplate) => p.type === 'select')
+    const selectProperties = () => props.board.cardProperties.filter((p: IPropertyTemplate) => p.type === 'select')
 
     // Columns are offered from the board itself: a stage pointing at a column
     // nobody has would only fail later, when a card cannot be moved into it.
-    const columnOptions = (() => {
-        const property = selectProperties.find((p) => p.name === form?.property) || selectProperties[0]
+    const columnOptions = () => {
+        const property = selectProperties().find((p) => p.name === form()?.property) || selectProperties()[0]
         return property?.options?.map((o) => o.value) || []
-    })()
+    }
 
     const refresh = async () => {
         if (!bindings?.ListFlows) {
             return
         }
         try {
-            setFlows(JSON.parse(await bindings.ListFlows(board.id)) || [])
+            setFlows(JSON.parse(await bindings.ListFlows(props.board.id)) || [])
             if (bindings.ListFlowTriggers) {
                 setTriggers(JSON.parse(await bindings.ListFlowTriggers()) || [])
             }
@@ -135,21 +135,21 @@ const WorkflowsDialog = (props: Props) => {
                 setTemplates(JSON.parse(await bindings.ListFlowTemplates()) || [])
             }
             if (bindings.GetBoardFlowOverview) {
-                setOverview(JSON.parse(await bindings.GetBoardFlowOverview(board.id)) || [])
+                setOverview(JSON.parse(await bindings.GetBoardFlowOverview(props.board.id)) || [])
             }
         } catch (e) {
             setError(String(e))
         }
     }
 
-    useEffect(() => {
+    onMount(() => {
         refresh()
-    }, [refresh])
+    })
 
     const startAdd = () => {
         setForm({
             name: '',
-            property: selectProperties[0]?.name || '',
+            property: selectProperties()[0]?.name || '',
             nodes: [],
             edges: [],
         })
@@ -172,13 +172,13 @@ const WorkflowsDialog = (props: Props) => {
     }
 
     const saveForm = async () => {
-        if (!bindings || !form) {
+        if (!bindings || !form()) {
             return
         }
         setError('')
         try {
-            const entry = {...form, name: form.name.trim(), boardId: form.boardId || board.id}
-            if (editingName) {
+            const entry = {...form()!, name: form()!.name.trim(), boardId: form()!.boardId || props.board.id}
+            if (editingName()) {
                 await bindings.UpdateFlow!(JSON.stringify(entry))
             } else {
                 await bindings.AddFlow!(JSON.stringify(entry))
@@ -215,7 +215,7 @@ const WorkflowsDialog = (props: Props) => {
             return f
         }
         const used = new Set(f.nodes.map((n) => n.column))
-        const free = columnOptions.find((c) => !used.has(c)) || ''
+        const free = columnOptions().find((c) => !used.has(c)) || ''
         return {...f, nodes: [...f.nodes, {id: Utils.createGuid(IDType.None), column: free, action: 'none'}]}
     })
 
@@ -238,214 +238,244 @@ const WorkflowsDialog = (props: Props) => {
         return {...f, edges: setEdge(setEdge(f.edges, from, oldOn, ''), from, newOn, to)}
     })
 
-    const waitTriggers = triggers.filter((t) => t.source !== 'outcome')
+    const waitTriggers = () => triggers().filter((t) => t.source !== 'outcome')
 
     // Only the shipped routes this registry does not already have: the point is
     // to fill a gap, not to offer a duplicate the engine would refuse.
-    const missingTemplates = templates.filter(
-        (t) => !flows.some((f) => f.name.toLowerCase() === t.name.toLowerCase()),
+    const missingTemplates = () => templates().filter(
+        (t) => !flows().some((f) => f.name.toLowerCase() === t.name.toLowerCase()),
     )
 
-    const nodeName = (id: string) => form?.nodes.find((n) => n.id === id)?.column || id
+    const nodeName = (id: string) => form()?.nodes.find((n) => n.id === id)?.column || id
 
-    const stageTargets = (exclude: string) => (form?.nodes || []).filter((n) => n.id !== exclude)
+    const stageTargets = (exclude: string) => (form()?.nodes || []).filter((n) => n.id !== exclude)
 
     return (
         <Dialog
             className='WorkflowsDialog'
             title={<span>{intl.formatMessage({id: 'Workflows.title', defaultMessage: 'Workflows'})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'Workflows.subtitle', defaultMessage: 'The route a card takes across the board: what runs in each column, and which event moves the card on. A card without a matching flow keeps the standalone trigger columns.'})}</span>}
-            onClose={onClose}
+            onClose={props.onClose}
         >
             <div class='WorkflowsDialog__content'>
-                {flows.length === 0 && !form &&
+                <Show when={flows().length === 0 && !form()}>
                     <div class='WorkflowsDialog__empty'>
                         {intl.formatMessage({id: 'Workflows.empty', defaultMessage: 'No flows yet.'})}
-                    </div>}
+                    </div>
+                </Show>
 
-                {!form && flows.map((flow) => {
-                    const stages = overview.find((o) => o.flow === flow.name)
-                    return (
-                        <div
-                            class='WorkflowsDialog__flow'
-                        >
-                            <div class='WorkflowsDialog__row'>
-                                <span class='WorkflowsDialog__name'>{flow.name}</span>
-                                <span class='WorkflowsDialog__route'>
-                                    {stages && stages.cards > 0 ?
-                                        intl.formatMessage({id: 'Workflows.cards-on-route', defaultMessage: '{count} cards on this route'}, {count: stages.cards}) :
-                                        intl.formatMessage({id: 'Workflows.no-cards', defaultMessage: 'no cards on this route'})}
-                                </span>
-                                <Button onClick={() => startEdit(flow)}>
-                                    {intl.formatMessage({id: 'Workflows.edit', defaultMessage: 'Edit'})}
-                                </Button>
-                                <Button onClick={() => removeFlow(flow.name)}>
-                                    {intl.formatMessage({id: 'Workflows.remove', defaultMessage: 'Remove'})}
-                                </Button>
-                            </div>
-                            <FlowDiagram
-                                nodes={flow.nodes || []}
-                                edges={flow.edges || []}
-                                triggers={triggers}
-                                counts={stages?.stages}
-                                height={220}
-                            />
-                        </div>
-                    )
-                })}
+                <Show when={!form()}>
+                    <For each={flows()}>
+                        {(flow) => {
+                            const stages = () => overview().find((o) => o.flow === flow.name)
+                            return (
+                                <div
+                                    class='WorkflowsDialog__flow'
+                                >
+                                    <div class='WorkflowsDialog__row'>
+                                        <span class='WorkflowsDialog__name'>{flow.name}</span>
+                                        <span class='WorkflowsDialog__route'>
+                                            {stages() && stages()!.cards > 0 ?
+                                                intl.formatMessage({id: 'Workflows.cards-on-route', defaultMessage: '{count} cards on this route'}, {count: stages()!.cards}) :
+                                                intl.formatMessage({id: 'Workflows.no-cards', defaultMessage: 'no cards on this route'})}
+                                        </span>
+                                        <Button onClick={() => startEdit(flow)}>
+                                            {intl.formatMessage({id: 'Workflows.edit', defaultMessage: 'Edit'})}
+                                        </Button>
+                                        <Button onClick={() => removeFlow(flow.name)}>
+                                            {intl.formatMessage({id: 'Workflows.remove', defaultMessage: 'Remove'})}
+                                        </Button>
+                                    </div>
+                                    <FlowDiagram
+                                        nodes={flow.nodes || []}
+                                        edges={flow.edges || []}
+                                        triggers={triggers()}
+                                        counts={stages()?.stages}
+                                        height={220}
+                                    />
+                                </div>
+                            )
+                        }}
+                    </For>
+                </Show>
 
-                {form &&
+                <Show when={form()}>
                     <div class='WorkflowsDialog__form'>
                         <div class='WorkflowsDialog__formHeader'>
                             <label>
                                 {intl.formatMessage({id: 'Workflows.name', defaultMessage: 'Name'})}
                                 <input
-                                    value={form.name}
-                                    disabled={Boolean(editingName)}
+                                    value={form()!.name}
+                                    disabled={Boolean(editingName())}
                                     placeholder={intl.formatMessage({id: 'Workflows.name-placeholder', defaultMessage: 'Name (also matched against the card\'s options)'})}
-                                    onChange={(e) => updateForm({name: e.target.value})}
+                                    onInput={(e) => updateForm({name: e.currentTarget.value})}
                                 />
                             </label>
                             <label>
                                 {intl.formatMessage({id: 'Workflows.property', defaultMessage: 'Column property'})}
                                 <select
-                                    value={form.property || ''}
-                                    onChange={(e) => updateForm({property: e.target.value})}
+                                    value={form()!.property || ''}
+                                    onChange={(e) => updateForm({property: e.currentTarget.value})}
                                 >
-                                    {selectProperties.map((p) => (
-                                        <option
-                                            value={p.name}
-                                        >{p.name}</option>
-                                    ))}
+                                    <For each={selectProperties()}>
+                                        {(p) => (
+                                            <option
+                                                value={p.name}
+                                                selected={(form()!.property || '') === p.name}
+                                            >{p.name}</option>
+                                        )}
+                                    </For>
                                 </select>
                             </label>
                             <label>
                                 {intl.formatMessage({id: 'Workflows.repoName', defaultMessage: 'Repository (optional)'})}
                                 <input
-                                    value={form.repoName || ''}
+                                    value={form()!.repoName || ''}
                                     placeholder={intl.formatMessage({id: 'Workflows.repoName-placeholder', defaultMessage: 'Registry name — cards of this repository use this flow'})}
-                                    onChange={(e) => updateForm({repoName: e.target.value})}
+                                    onInput={(e) => updateForm({repoName: e.currentTarget.value})}
                                 />
                             </label>
                         </div>
 
                         <FlowDiagram
-                            nodes={form.nodes}
-                            edges={form.edges}
-                            triggers={triggers}
+                            nodes={form()!.nodes}
+                            edges={form()!.edges}
+                            triggers={triggers()}
                             onChange={(nodes, edges) => updateForm({nodes, edges})}
                         />
                         <div class='WorkflowsDialog__hint'>
                             {intl.formatMessage({id: 'Workflows.canvas-hint', defaultMessage: 'Drag a stage to move it; pull from its right side to join stages (upper point — on success, lower — on failure), from the bottom point to wait for an event. Delete removes what is selected.'})}
                         </div>
 
-                        {form.nodes.map((node) => (
-                            <div
-                                class='WorkflowsDialog__node'
-                            >
-                                <div class='WorkflowsDialog__nodeHead'>
-                                    <select
-                                        value={node.column}
-                                        onChange={(e) => updateNode(node.id, {column: e.target.value})}
-                                    >
-                                        <option value=''>{intl.formatMessage({id: 'Workflows.pick-column', defaultMessage: '— pick a column —'})}</option>
-                                        {columnOptions.map((c) => (
-                                            <option
-                                                value={c}
-                                            >{c}</option>
-                                        ))}
-                                    </select>
-                                    <select
-                                        value={node.action}
-                                        onChange={(e) => updateNode(node.id, {action: e.target.value})}
-                                    >
-                                        {ACTIONS.map((a) => (
-                                            <option
-                                                value={a}
-                                            >{actionLabel(intl, a)}</option>
-                                        ))}
-                                    </select>
-                                    <Button onClick={() => removeNode(node.id)}>
-                                        {intl.formatMessage({id: 'Workflows.remove-stage', defaultMessage: 'Remove stage'})}
-                                    </Button>
-                                </div>
-
-                                <div class='WorkflowsDialog__outcomes'>
-                                    <label>
-                                        {intl.formatMessage({id: 'Workflows.on-success', defaultMessage: '✅ on success →'})}
+                        <For each={form()!.nodes}>
+                            {(node) => (
+                                <div
+                                    class='WorkflowsDialog__node'
+                                >
+                                    <div class='WorkflowsDialog__nodeHead'>
                                         <select
-                                            value={edgeTarget(form.edges, node.id, SUCCESS)}
-                                            onChange={(e) => changeEdge(node.id, SUCCESS, e.target.value)}
+                                            value={node.column}
+                                            onChange={(e) => updateNode(node.id, {column: e.currentTarget.value})}
                                         >
-                                            <option value=''>{intl.formatMessage({id: 'Workflows.stay', defaultMessage: '— stay here —'})}</option>
-                                            {stageTargets(node.id).map((n) => (
-                                                <option
-                                                    value={n.id}
-                                                >{n.column}</option>
-                                            ))}
+                                            <option value=''>{intl.formatMessage({id: 'Workflows.pick-column', defaultMessage: '— pick a column —'})}</option>
+                                            <For each={columnOptions()}>
+                                                {(c) => (
+                                                    <option
+                                                        value={c}
+                                                        selected={node.column === c}
+                                                    >{c}</option>
+                                                )}
+                                            </For>
                                         </select>
-                                    </label>
-                                    <label>
-                                        {intl.formatMessage({id: 'Workflows.on-failure', defaultMessage: '❌ on failure →'})}
                                         <select
-                                            value={edgeTarget(form.edges, node.id, FAILURE)}
-                                            onChange={(e) => changeEdge(node.id, FAILURE, e.target.value)}
+                                            value={node.action}
+                                            onChange={(e) => updateNode(node.id, {action: e.currentTarget.value})}
                                         >
-                                            <option value=''>{intl.formatMessage({id: 'Workflows.stay', defaultMessage: '— stay here —'})}</option>
-                                            {stageTargets(node.id).map((n) => (
-                                                <option
-                                                    value={n.id}
-                                                >{n.column}</option>
-                                            ))}
+                                            <For each={ACTIONS}>
+                                                {(a) => (
+                                                    <option
+                                                        value={a}
+                                                        selected={node.action === a}
+                                                    >{actionLabel(intl, a)}</option>
+                                                )}
+                                            </For>
                                         </select>
-                                    </label>
-                                </div>
-
-                                {waitEdges(form.edges, node.id).map((edge) => (
-                                    <div
-                                        class='WorkflowsDialog__wait'
-                                    >
-                                        <select
-                                            value={edge.on}
-                                            onChange={(e) => replaceEdgeKind(node.id, edge.on, e.target.value)}
-                                        >
-                                            {waitTriggers.map((t) => (
-                                                <option
-                                                    value={t.kind}
-                                                >{t.label}</option>
-                                            ))}
-                                        </select>
-                                        <span class='WorkflowsDialog__arrow'>{'→'}</span>
-                                        <select
-                                            value={edge.to}
-                                            onChange={(e) => changeEdge(node.id, edge.on, e.target.value)}
-                                        >
-                                            {stageTargets(node.id).map((n) => (
-                                                <option
-                                                    value={n.id}
-                                                >{n.column}</option>
-                                            ))}
-                                        </select>
-                                        <Button onClick={() => changeEdge(node.id, edge.on, '')}>
-                                            {intl.formatMessage({id: 'Workflows.remove-wait', defaultMessage: 'Remove'})}
+                                        <Button onClick={() => removeNode(node.id)}>
+                                            {intl.formatMessage({id: 'Workflows.remove-stage', defaultMessage: 'Remove stage'})}
                                         </Button>
                                     </div>
-                                ))}
 
-                                <Button
-                                    onClick={() => {
-                                        const used = waitEdges(form.edges, node.id).map((e) => e.on)
-                                        const free = waitTriggers.find((t) => !used.includes(t.kind))
-                                        const target = stageTargets(node.id)[0]
-                                        if (free && target) {
-                                            changeEdge(node.id, free.kind, target.id)
-                                        }
-                                    }}
-                                >
-                                    {intl.formatMessage({id: 'Workflows.add-wait', defaultMessage: 'Wait for an event…'})}
-                                </Button>
-                            </div>
-                        ))}
+                                    <div class='WorkflowsDialog__outcomes'>
+                                        <label>
+                                            {intl.formatMessage({id: 'Workflows.on-success', defaultMessage: '✅ on success →'})}
+                                            <select
+                                                value={edgeTarget(form()!.edges, node.id, SUCCESS)}
+                                                onChange={(e) => changeEdge(node.id, SUCCESS, e.currentTarget.value)}
+                                            >
+                                                <option value=''>{intl.formatMessage({id: 'Workflows.stay', defaultMessage: '— stay here —'})}</option>
+                                                <For each={stageTargets(node.id)}>
+                                                    {(n) => (
+                                                        <option
+                                                            value={n.id}
+                                                            selected={edgeTarget(form()!.edges, node.id, SUCCESS) === n.id}
+                                                        >{n.column}</option>
+                                                    )}
+                                                </For>
+                                            </select>
+                                        </label>
+                                        <label>
+                                            {intl.formatMessage({id: 'Workflows.on-failure', defaultMessage: '❌ on failure →'})}
+                                            <select
+                                                value={edgeTarget(form()!.edges, node.id, FAILURE)}
+                                                onChange={(e) => changeEdge(node.id, FAILURE, e.currentTarget.value)}
+                                            >
+                                                <option value=''>{intl.formatMessage({id: 'Workflows.stay', defaultMessage: '— stay here —'})}</option>
+                                                <For each={stageTargets(node.id)}>
+                                                    {(n) => (
+                                                        <option
+                                                            value={n.id}
+                                                            selected={edgeTarget(form()!.edges, node.id, FAILURE) === n.id}
+                                                        >{n.column}</option>
+                                                    )}
+                                                </For>
+                                            </select>
+                                        </label>
+                                    </div>
+
+                                    <For each={waitEdges(form()!.edges, node.id)}>
+                                        {(edge) => (
+                                            <div
+                                                class='WorkflowsDialog__wait'
+                                            >
+                                                <select
+                                                    value={edge.on}
+                                                    onChange={(e) => replaceEdgeKind(node.id, edge.on, e.currentTarget.value)}
+                                                >
+                                                    <For each={waitTriggers()}>
+                                                        {(t) => (
+                                                            <option
+                                                                value={t.kind}
+                                                                selected={edge.on === t.kind}
+                                                            >{t.label}</option>
+                                                        )}
+                                                    </For>
+                                                </select>
+                                                <span class='WorkflowsDialog__arrow'>{'→'}</span>
+                                                <select
+                                                    value={edge.to}
+                                                    onChange={(e) => changeEdge(node.id, edge.on, e.currentTarget.value)}
+                                                >
+                                                    <For each={stageTargets(node.id)}>
+                                                        {(n) => (
+                                                            <option
+                                                                value={n.id}
+                                                                selected={edge.to === n.id}
+                                                            >{n.column}</option>
+                                                        )}
+                                                    </For>
+                                                </select>
+                                                <Button onClick={() => changeEdge(node.id, edge.on, '')}>
+                                                    {intl.formatMessage({id: 'Workflows.remove-wait', defaultMessage: 'Remove'})}
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </For>
+
+                                    <Button
+                                        onClick={() => {
+                                            const used = waitEdges(form()!.edges, node.id).map((e) => e.on)
+                                            const free = waitTriggers().find((t) => !used.includes(t.kind))
+                                            const target = stageTargets(node.id)[0]
+                                            if (free && target) {
+                                                changeEdge(node.id, free.kind, target.id)
+                                            }
+                                        }}
+                                    >
+                                        {intl.formatMessage({id: 'Workflows.add-wait', defaultMessage: 'Wait for an event…'})}
+                                    </Button>
+                                </div>
+                            )}
+                        </For>
 
                         <div class='WorkflowsDialog__formActions'>
                             <Button onClick={addNode}>
@@ -464,25 +494,30 @@ const WorkflowsDialog = (props: Props) => {
                         <div class='WorkflowsDialog__hint'>
                             {intl.formatMessage({id: 'Workflows.hint', defaultMessage: 'A stage runs its action when a card lands in its column — dragged by a person or moved by the flow itself. Where a stage has no transition for what happened, the card stays put and says so.'})}
                         </div>
-                        {form.nodes.length > 0 && nodeName(form.nodes[0].id) === '' &&
+                        <Show when={form()!.nodes.length > 0 && nodeName(form()!.nodes[0].id) === ''}>
                             <div class='WorkflowsDialog__hint'>
                                 {intl.formatMessage({id: 'Workflows.pick-columns-hint', defaultMessage: 'Every stage needs a column.'})}
-                            </div>}
-                    </div>}
+                            </div>
+                        </Show>
+                    </div>
+                </Show>
 
-                {!form && missingTemplates.length > 0 &&
+                <Show when={!form() && missingTemplates().length > 0}>
                     <div class='WorkflowsDialog__templates'>
                         <span class='WorkflowsDialog__hint'>
                             {intl.formatMessage({id: 'Workflows.templates', defaultMessage: 'Ready-made routes, the ones the board template names:'})}
                         </span>
-                        {missingTemplates.map((flow) => (
-                            <Button
-                                onClick={() => startFromTemplate(flow)}
-                            >{flow.name}</Button>
-                        ))}
-                    </div>}
+                        <For each={missingTemplates()}>
+                            {(flow) => (
+                                <Button
+                                    onClick={() => startFromTemplate(flow)}
+                                >{flow.name}</Button>
+                            )}
+                        </For>
+                    </div>
+                </Show>
 
-                {!form &&
+                <Show when={!form()}>
                     <div class='WorkflowsDialog__actions'>
                         <Button
                             emphasis='primary'
@@ -490,10 +525,12 @@ const WorkflowsDialog = (props: Props) => {
                         >
                             {intl.formatMessage({id: 'Workflows.add', defaultMessage: 'Add flow…'})}
                         </Button>
-                    </div>}
+                    </div>
+                </Show>
 
-                {error &&
-                    <div class='WorkflowsDialog__error'>{error}</div>}
+                <Show when={error()}>
+                    <div class='WorkflowsDialog__error'>{error()}</div>
+                </Show>
             </div>
         </Dialog>
     )

@@ -39,7 +39,7 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
         expect(isAgentsAvailable()).toBe(true)
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -76,7 +76,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -127,7 +127,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -159,7 +159,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -201,7 +201,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -238,7 +238,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -265,7 +265,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -291,7 +291,7 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -321,7 +321,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -335,7 +335,7 @@ describe('components/acp/agentsDialog', () => {
 
         // Pasted the way a server's own README gives it, wrapper and all.
         const field = screen.getByRole('textbox', {name: /MCP servers/})
-        fireEvent.change(field, {target: {value: '{"mcpServers": {"playwright": {"command": "npx", "args": ["-y", "@playwright/mcp@latest"]}}}'}})
+        fireEvent.input(field, {target: {value: '{"mcpServers": {"playwright": {"command": "npx", "args": ["-y", "@playwright/mcp@latest"]}}}'}})
 
         userEvent.click(screen.getByRole('button', {name: 'Save'}))
         await waitFor(() => expect(bindings.AddAgent).toHaveBeenCalled())
@@ -366,7 +366,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -377,7 +377,7 @@ describe('components/acp/agentsDialog', () => {
         await waitFor(() => expect(screen.getByPlaceholderText('Name (matches the "Agent" option)')).toBeInTheDocument())
 
         userEvent.type(screen.getByPlaceholderText('Name (matches the "Agent" option)'), 'jojo')
-        fireEvent.change(screen.getByRole('textbox', {name: /MCP servers/}), {target: {value: 'playwright = npx'}})
+        fireEvent.input(screen.getByRole('textbox', {name: /MCP servers/}), {target: {value: 'playwright = npx'}})
         userEvent.click(screen.getByRole('button', {name: 'Save'}))
 
         // Saving half a configuration is worse than not saving it.
@@ -399,7 +399,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -439,7 +439,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -474,7 +474,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -504,7 +504,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -544,7 +544,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -582,7 +582,7 @@ describe('components/acp/agentsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
                 onClose={jest.fn()}
