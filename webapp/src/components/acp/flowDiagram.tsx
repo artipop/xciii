@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useCallback, useEffect, useMemo} from 'react'
-import {useIntl, IntlShape} from '../../intl'
+import {Show, createEffect, createMemo} from 'solid-js'
 import {
     Background,
     Connection,
@@ -12,20 +11,22 @@ import {
     Node,
     NodeProps,
     Position,
-    ReactFlow,
-    useEdgesState,
-    useNodesState,
-} from '@xyflow/react'
+    SolidFlow,
+    createEdgeStore,
+    createNodeStore,
+} from '@dschz/solid-flow'
+
+import {useIntl, IntlShape} from '../../intl'
 
 import {FlowEdge, FlowNode, FlowTrigger, SUCCESS, FAILURE} from './workflowsDialog'
 
-import '@xyflow/react/dist/style.css'
+import '@dschz/solid-flow/dist/style.css'
 import './flowDiagram.scss'
 
 // The route drawn as a graph, which is what it is: stages left to right in the
 // order the card travels, transitions as arrows — green for success, red for
 // failure, grey and labelled for anything the stage waits on. Pan, zoom and
-// drag are React Flow's; the layout below is ours, because a route read top to
+// drag are Solid Flow's; the layout below is ours, because a route read top to
 // bottom in the editor should read left to right here.
 
 export const NODE_WIDTH = 190
@@ -196,45 +197,50 @@ export const HANDLE_EVENT = 'event'
 // there, and — on a board being watched rather than edited — how many cards are
 // standing on it.
 const StageNode = (props: NodeProps) => {
-    const data = props.data as StageData
-    const count = data.count
+    const data = () => props.data as StageData
+    const count = () => data().count
     return (
-        <div class={`FlowDiagram__stage FlowDiagram__stage--${data.action || 'none'}`}>
+        <div class={`FlowDiagram__stage FlowDiagram__stage--${data().action || 'none'}`}>
             <Handle
                 type='target'
-                position={Position.Left}
-                isConnectable={Boolean(data.editable)}
+                position='left'
+                isConnectable={Boolean(data().editable)}
             />
-            <div class='FlowDiagram__column'>{data.column || '—'}</div>
-            <div class='FlowDiagram__action'>{data.actionLabel}</div>
-            {count && count.cards > 0 &&
+            <div class='FlowDiagram__column'>{data().column || '—'}</div>
+            <div class='FlowDiagram__action'>{data().actionLabel}</div>
+            <Show when={count() && count()!.cards > 0}>
                 <span class='FlowDiagram__count'>
-                    {count.cards}
-                    {count.running > 0 && <span class='FlowDiagram__running'>{'▶'}</span>}
-                    {count.queued > 0 && <span class='FlowDiagram__queued'>{'⏸'}</span>}
-                </span>}
+                    {count()!.cards}
+                    <Show when={count()!.running > 0}>
+                        <span class='FlowDiagram__running'>{'▶'}</span>
+                    </Show>
+                    <Show when={count()!.queued > 0}>
+                        <span class='FlowDiagram__queued'>{'⏸'}</span>
+                    </Show>
+                </span>
+            </Show>
             <Handle
                 id={HANDLE_SUCCESS}
                 type='source'
-                position={Position.Right}
+                position='right'
                 style={{top: '30%'}}
-                className='FlowDiagram__out FlowDiagram__out--success'
-                isConnectable={Boolean(data.editable)}
+                class='FlowDiagram__out FlowDiagram__out--success'
+                isConnectable={Boolean(data().editable)}
             />
             <Handle
                 id={HANDLE_FAILURE}
                 type='source'
-                position={Position.Right}
+                position='right'
                 style={{top: '70%'}}
-                className='FlowDiagram__out FlowDiagram__out--failure'
-                isConnectable={Boolean(data.editable)}
+                class='FlowDiagram__out FlowDiagram__out--failure'
+                isConnectable={Boolean(data().editable)}
             />
             <Handle
                 id={HANDLE_EVENT}
                 type='source'
-                position={Position.Bottom}
-                className='FlowDiagram__out FlowDiagram__out--event'
-                isConnectable={Boolean(data.editable)}
+                position='bottom'
+                class='FlowDiagram__out FlowDiagram__out--event'
+                isConnectable={Boolean(data().editable)}
             />
         </div>
     )
@@ -283,14 +289,13 @@ function stageLabel(intl: IntlShape, action: string): string {
 }
 
 const FlowDiagram = (props: Props) => {
-    const {nodes, edges, triggers, counts, onChange, height} = props
     const intl = useIntl()
-    const editable = Boolean(onChange)
-    const waitTriggers = useMemo(() => triggers.filter((t) => t.source !== 'outcome'), [triggers])
+    const editable = () => Boolean(props.onChange)
+    const waitTriggers = createMemo(() => props.triggers.filter((t) => t.source !== 'outcome'))
 
-    const graph = useMemo(() => {
-        const positions = layout(nodes, edges)
-        const rfNodes: Node[] = nodes.map((node) => ({
+    const graph = createMemo(() => {
+        const positions = layout(props.nodes, props.edges)
+        const rfNodes: Node[] = props.nodes.map((node) => ({
             id: node.id,
             type: 'stage',
             position: positions.get(node.id) || {x: 0, y: 0},
@@ -310,113 +315,113 @@ const FlowDiagram = (props: Props) => {
                 column: node.column,
                 action: node.action,
                 actionLabel: stageLabel(intl, node.action),
-                count: counts?.find((c) => c.nodeId === node.id),
-                editable,
+                count: props.counts?.find((c) => c.nodeId === node.id),
+                editable: editable(),
             },
             sourcePosition: Position.Right,
             targetPosition: Position.Left,
         }))
 
-        const known = new Set(nodes.map((n) => n.id))
-        const rfEdges: Edge[] = edges.filter((e) => known.has(e.from) && known.has(e.to)).map((edge) => {
+        const known = new Set(props.nodes.map((n) => n.id))
+        const rfEdges: Edge[] = props.edges.filter((e) => known.has(e.from) && known.has(e.to)).map((edge) => {
             const kind = edgeKind(edge.on)
             const color = EDGE_COLOR[kind]
-            const label = kind === 'event' ? (triggers.find((t) => t.kind === edge.on)?.label || edge.on) : ''
+            const label = kind === 'event' ? (props.triggers.find((t) => t.kind === edge.on)?.label || edge.on) : ''
             return {
                 id: `${edge.from}-${edge.on}`,
                 source: edge.from,
                 target: edge.to,
                 sourceHandle: kind === 'event' ? HANDLE_EVENT : kind,
                 type: 'smoothstep',
-                className: `FlowDiagram__edge FlowDiagram__edge--${kind}`,
+                class: `FlowDiagram__edge FlowDiagram__edge--${kind}`,
                 label,
-                style: {stroke: color, strokeWidth: 1.5, strokeDasharray: kind === 'event' ? '4 3' : undefined},
+                style: {stroke: color, 'stroke-width': '1.5', 'stroke-dasharray': kind === 'event' ? '4 3' : undefined},
                 markerEnd: {type: MarkerType.ArrowClosed, width: 16, height: 16, color},
             }
         })
         return {rfNodes, rfEdges}
-    }, [nodes, edges, triggers, intl, counts, editable])
+    })
 
-    // Stages can always be dragged apart when arrows overlap. Where the route
-    // is being edited the position is part of it and is saved; where it is only
-    // being read, the move is the reader's and is forgotten.
-    const [drawnNodes, setDrawnNodes, onNodesChange] = useNodesState(graph.rfNodes)
-    const [drawnEdges, setDrawnEdges, onEdgesChangeState] = useEdgesState(graph.rfEdges)
+    // Stages can always be dragged apart when arrows overlap: the canvas moves
+    // them inside these stores. Where the route is being edited the position is
+    // part of it and is saved; where it is only being read, the move is the
+    // reader's and is forgotten when the route next arrives through props.
+    // The stores are typed by node-type name for authoring by hand; the graph
+    // above already produces the library's Node/Edge shapes, so the input
+    // union is narrowed back to them.
+    const [drawnNodes, setDrawnNodes] = createNodeStore([]) as unknown as [Node[], (nodes: Node[]) => void]
+    const [drawnEdges, setDrawnEdges] = createEdgeStore([]) as unknown as [Edge[], (edges: Edge[]) => void]
 
-    useEffect(() => {
-        setDrawnNodes(graph.rfNodes)
-        setDrawnEdges(graph.rfEdges)
-    }, [graph, setDrawnNodes, setDrawnEdges])
+    createEffect(() => {
+        setDrawnNodes(graph().rfNodes)
+        setDrawnEdges(graph().rfEdges)
+    })
 
-    const onConnect = useCallback((params: Connection) => {
-        if (!onChange) {
+    const onConnect = (connection: Connection) => {
+        if (!props.onChange) {
             return
         }
-        onChange(nodes, connectEdge(edges, params.source, params.target, params.sourceHandle, waitTriggers))
-    }, [onChange, nodes, edges, waitTriggers])
+        props.onChange(props.nodes, connectEdge(props.edges, connection.source, connection.target, connection.sourceHandle, waitTriggers()))
+    }
 
-    const onNodeDragStop = useCallback((_: MouseEvent | TouchEvent, node: Node) => {
-        if (!onChange) {
+    const onNodeDragStop = ({targetNode}: {targetNode: Node | null}) => {
+        if (!props.onChange || !targetNode) {
             return
         }
-        onChange(nodes.map((n) => (n.id === node.id ? {...n, x: node.position.x, y: node.position.y} : n)), edges)
-    }, [onChange, nodes, edges])
+        props.onChange(props.nodes.map((n) => (n.id === targetNode.id ? {...n, x: targetNode.position.x, y: targetNode.position.y} : n)), props.edges)
+    }
 
-    const onNodesDelete = useCallback((deleted: Node[]) => {
-        if (!onChange) {
+    const onNodesDelete = (deleted: Node[]) => {
+        if (!props.onChange) {
             return
         }
         const gone = new Set(deleted.map((n) => n.id))
-        onChange(
-            nodes.filter((n) => !gone.has(n.id)),
+        props.onChange(
+            props.nodes.filter((n) => !gone.has(n.id)),
 
             // A transition to a stage that is no longer there is exactly what
             // the engine refuses to save.
-            edges.filter((e) => !gone.has(e.from) && !gone.has(e.to)),
+            props.edges.filter((e) => !gone.has(e.from) && !gone.has(e.to)),
         )
-    }, [onChange, nodes, edges])
+    }
 
-    const onEdgesDelete = useCallback((deleted: Edge[]) => {
-        if (!onChange) {
+    const onEdgesDelete = (deleted: Edge[]) => {
+        if (!props.onChange) {
             return
         }
         const gone = new Set(deleted.map((e) => e.id))
-        onChange(nodes, edges.filter((e) => !gone.has(`${e.from}-${e.on}`)))
-    }, [onChange, nodes, edges])
-
-    if (nodes.length === 0) {
-        return null
+        props.onChange(props.nodes, props.edges.filter((e) => !gone.has(`${e.from}-${e.on}`)))
     }
 
     return (
-        <div
-            class={`FlowDiagram${editable ? ' FlowDiagram--editable' : ''}`}
-            data-testid='flow-diagram'
-            style={height ? {height} : undefined}
-        >
-            <ReactFlow
-                nodes={drawnNodes}
-                edges={drawnEdges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChangeState}
-                onConnect={onConnect}
-                onNodeDragStop={onNodeDragStop}
-                onNodesDelete={onNodesDelete}
-                onEdgesDelete={onEdgesDelete}
-                nodeTypes={nodeTypes}
-                nodesConnectable={editable}
-                elementsSelectable={editable}
-                edgesFocusable={editable}
-                deleteKeyCode={editable ? ['Backspace', 'Delete'] : null}
-                fitView={true}
-                fitViewOptions={{padding: 0.2, maxZoom: 1}}
-                minZoom={0.3}
-                proOptions={{hideAttribution: false}}
+        <Show when={props.nodes.length > 0}>
+            <div
+                class={`FlowDiagram${editable() ? ' FlowDiagram--editable' : ''}`}
+                data-testid='flow-diagram'
+                style={props.height ? {height: `${props.height}px`} : undefined}
             >
-                <Background/>
-                <Controls showInteractive={false}/>
-            </ReactFlow>
-        </div>
+                <SolidFlow
+                    nodes={drawnNodes}
+                    edges={drawnEdges}
+                    onConnect={onConnect}
+                    onNodeDragStop={onNodeDragStop}
+                    onNodesDelete={onNodesDelete}
+                    onEdgesDelete={onEdgesDelete}
+                    nodeTypes={nodeTypes}
+                    nodesConnectable={editable()}
+                    elementsSelectable={editable()}
+                    edgesFocusable={editable()}
+                    deleteKey={editable() ? ['Backspace', 'Delete'] : null}
+                    fitView={true}
+                    fitViewOptions={{padding: 0.2, maxZoom: 1}}
+                    minZoom={0.3}
+                    proOptions={{hideAttribution: false}}
+                >
+                    <Background/>
+                    <Controls showLock={false}/>
+                </SolidFlow>
+            </div>
+        </Show>
     )
 }
 

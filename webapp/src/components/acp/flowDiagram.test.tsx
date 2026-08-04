@@ -80,7 +80,7 @@ describe('components/acp/flowDiagram layout', () => {
 
 describe('components/acp/flowDiagram', () => {
     test('draws every stage and labels the events it waits for', () => {
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <FlowDiagram
                 nodes={nodes}
                 edges={edges}
@@ -99,7 +99,7 @@ describe('components/acp/flowDiagram', () => {
     })
 
     test('an empty route draws nothing at all', () => {
-        const {container} = render(wrapIntl(() =>
+        const {container} = render(() => wrapIntl(() =>
             <FlowDiagram
                 nodes={[]}
                 edges={[]}
@@ -150,16 +150,17 @@ describe('components/acp/flowDiagram builder', () => {
     })
 
     test('an editable canvas shows the outputs a route is drawn from', () => {
-        const {container, rerender} = render(wrapIntl(() =>
+        const readonly = render(() => wrapIntl(() =>
             <FlowDiagram
                 nodes={nodes}
                 edges={edges}
                 triggers={triggers}
             />,
         ))
-        expect(container.querySelector('.FlowDiagram--editable')).toBeNull()
+        expect(readonly.container.querySelector('.FlowDiagram--editable')).toBeNull()
+        readonly.unmount()
 
-        rerender(wrapIntl(() =>
+        const editable = render(() => wrapIntl(() =>
             <FlowDiagram
                 nodes={nodes}
                 edges={edges}
@@ -167,12 +168,12 @@ describe('components/acp/flowDiagram builder', () => {
                 onChange={jest.fn()}
             />,
         ))
-        expect(container.querySelector('.FlowDiagram--editable')).not.toBeNull()
-        expect(container.querySelectorAll('.FlowDiagram__out--success').length).toBe(nodes.length)
+        expect(editable.container.querySelector('.FlowDiagram--editable')).not.toBeNull()
+        expect(editable.container.querySelectorAll('.FlowDiagram__out--success').length).toBe(nodes.length)
     })
 
     test('the map says how many cards stand on a stage', async () => {
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <FlowDiagram
                 nodes={nodes}
                 edges={edges}
