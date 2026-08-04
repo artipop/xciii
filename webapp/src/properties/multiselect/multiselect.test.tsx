@@ -46,8 +46,15 @@ type WrapperProps = {
     children?: JSX.Element
 }
 
-const Wrapper = ({children}: WrapperProps) => {
-    return <IntlProvider locale='en'>{children}</IntlProvider>
+// props.children stays a lazy getter here: destructuring it would create the
+// component under test before the provider exists.
+const Wrapper = (props: WrapperProps) => {
+    return (
+        <IntlProvider
+            locale='en'
+            messages={{}}
+        >{props.children}</IntlProvider>
+    )
 }
 
 describe('properties/multiSelect', () => {

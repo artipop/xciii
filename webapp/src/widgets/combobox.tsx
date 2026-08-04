@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {For, Show, createEffect, createMemo, createSignal, createUniqueId, onCleanup} from 'solid-js'
+import {For, Show, createEffect, createMemo, createSignal, createUniqueId, onCleanup, onMount} from 'solid-js'
 import {Portal} from 'solid-js/web'
 import type {JSX} from 'solid-js'
 import {autoUpdate, computePosition, flip, offset, shift, size} from '@floating-ui/dom'
@@ -109,6 +109,15 @@ function Combobox<T>(props: Props<T>): JSX.Element {
     const [ownQuery, setOwnQuery] = createSignal('')
     const [highlight, setHighlight] = createSignal(-1)
     const [loaded, setLoaded] = createSignal<Array<ComboboxItem<T>>>([])
+
+    // Programmatic, the way react-select's autoFocus prop was: the attribute
+    // alone is a hint browsers apply inconsistently to elements inserted after
+    // load, and the single-select menu opens on focus.
+    onMount(() => {
+        if (props.autoFocus) {
+            inputRef?.focus()
+        }
+    })
 
     const query = () => (props.inputValue === undefined ? ownQuery() : props.inputValue)
     const isOpen = () => (props.menuIsOpen === undefined ? focused() : props.menuIsOpen)

@@ -13,8 +13,6 @@
 // restore the caret/selection by absolute character offset. Rebuilds are guarded
 // by a tag so they don't recurse, and skipped during IME composition.
 
-import * as React from 'react'
-
 import {
     $createLineBreakNode,
     $createParagraphNode,
@@ -33,12 +31,13 @@ import {
 } from 'lexical'
 
 import {computeStyledLines, StyledLine} from './markdownStyling'
+import {StyleMap} from './pluginStrategy'
 
 const REBUILD_TAG = 'live-markdown'
 
 const camelToKebab = (s: string) => s.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase())
 
-const styleToCss = (style: React.CSSProperties): string =>
+const styleToCss = (style: StyleMap): string =>
     Object.entries(style).
         map(([k, v]) => `${camelToKebab(k)}: ${v}`).
         join('; ')

@@ -54,7 +54,7 @@ describe('properties/select', () => {
         const propertyTemplate = selectPropertyTemplate()
         const option = propertyTemplate.options[0]
 
-        const {container} = render(wrapIntl(
+        const {container} = render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}
@@ -76,7 +76,7 @@ describe('properties/select', () => {
         const propertyTemplate = selectPropertyTemplate()
         const emptyValue = 'Empty'
 
-        const {container} = render(wrapIntl(
+        const {container} = render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}
@@ -98,7 +98,7 @@ describe('properties/select', () => {
         const propertyTemplate = selectPropertyTemplate()
         const selected = propertyTemplate.options[1]
 
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}
@@ -128,7 +128,7 @@ describe('properties/select', () => {
         const propertyTemplate = selectPropertyTemplate()
         const optionToSelect = propertyTemplate.options[2]
 
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}
@@ -151,7 +151,7 @@ describe('properties/select', () => {
         const propertyTemplate = selectPropertyTemplate()
         const selected = propertyTemplate.options[1]
 
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}
@@ -178,7 +178,7 @@ describe('properties/select', () => {
         const initialOption = propertyTemplate.options[0]
         const newOption = 'new-option'
 
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}

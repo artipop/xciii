@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 type Props = {
     className?: string
@@ -9,7 +9,7 @@ type Props = {
 
 export default function CardSkeleton(props: Props): JSX.Element {
     return (
-        <span className={props.className}>
+        <span class={props.className}>
             <svg
                 width='468'
                 height='521'
@@ -22,7 +22,7 @@ export default function CardSkeleton(props: Props): JSX.Element {
                     height='32'
                     rx='4'
                     fill='#3F4350'
-                    fillOpacity='0.08'
+                    fill-opacity='0.08'
                 />
                 <rect
                     x='172'
@@ -30,7 +30,7 @@ export default function CardSkeleton(props: Props): JSX.Element {
                     height='32'
                     rx='4'
                     fill='#3F4350'
-                    fillOpacity='0.08'
+                    fill-opacity='0.08'
                 />
                 <rect
                     y='48'
@@ -38,7 +38,7 @@ export default function CardSkeleton(props: Props): JSX.Element {
                     height='32'
                     rx='4'
                     fill='#3F4350'
-                    fillOpacity='0.08'
+                    fill-opacity='0.08'
                 />
                 <rect
                     x='172'
@@ -47,7 +47,7 @@ export default function CardSkeleton(props: Props): JSX.Element {
                     height='32'
                     rx='4'
                     fill='#3F4350'
-                    fillOpacity='0.08'
+                    fill-opacity='0.08'
                 />
                 <rect
                     y='96'
@@ -55,7 +55,7 @@ export default function CardSkeleton(props: Props): JSX.Element {
                     height='32'
                     rx='4'
                     fill='#3F4350'
-                    fillOpacity='0.08'
+                    fill-opacity='0.08'
                 />
                 <rect
                     x='172'
@@ -64,7 +64,7 @@ export default function CardSkeleton(props: Props): JSX.Element {
                     height='32'
                     rx='4'
                     fill='#3F4350'
-                    fillOpacity='0.08'
+                    fill-opacity='0.08'
                 />
                 <rect
                     y='144'
@@ -72,7 +72,7 @@ export default function CardSkeleton(props: Props): JSX.Element {
                     height='32'
                     rx='4'
                     fill='#3F4350'
-                    fillOpacity='0.08'
+                    fill-opacity='0.08'
                 />
                 <rect
                     x='172'
@@ -81,14 +81,14 @@ export default function CardSkeleton(props: Props): JSX.Element {
                     height='32'
                     rx='4'
                     fill='#3F4350'
-                    fillOpacity='0.08'
+                    fill-opacity='0.08'
                 />
                 <rect
                     y='192'
                     width='468'
                     height='1'
                     fill='#3D3C40'
-                    fillOpacity='0.16'
+                    fill-opacity='0.16'
                 />
                 <rect
                     y='209'
@@ -96,7 +96,7 @@ export default function CardSkeleton(props: Props): JSX.Element {
                     height='32'
                     rx='4'
                     fill='#3F4350'
-                    fillOpacity='0.08'
+                    fill-opacity='0.08'
                 />
                 <rect
                     y='257'
@@ -104,14 +104,14 @@ export default function CardSkeleton(props: Props): JSX.Element {
                     height='32'
                     rx='4'
                     fill='#3F4350'
-                    fillOpacity='0.08'
+                    fill-opacity='0.08'
                 />
                 <rect
                     y='305'
                     width='468'
                     height='1'
                     fill='#3D3C40'
-                    fillOpacity='0.16'
+                    fill-opacity='0.16'
                 />
                 <rect
                     y='322'
@@ -119,7 +119,7 @@ export default function CardSkeleton(props: Props): JSX.Element {
                     height='199'
                     rx='4'
                     fill='#3F4350'
-                    fillOpacity='0.08'
+                    fill-opacity='0.08'
                 />
             </svg>
         </span>
