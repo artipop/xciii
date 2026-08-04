@@ -9,13 +9,6 @@ import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import Editor from './editor'
 
-// The text block's input is the Lexical editor, which is still the React
-// implementation; rendering it from Solid crashes. Stubbed until its port lands.
-jest.mock('../markdownEditorInput/markdownEditorInput', () => ({
-    __esModule: true,
-    default: () => null,
-}))
-
 describe('components/blocksEditor/editor', () => {
     beforeEach(mockDOM)
 
