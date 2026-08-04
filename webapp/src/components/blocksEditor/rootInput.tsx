@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useMemo, useState} from 'react'
+import {createSignal} from 'solid-js'
 
 import Combobox from '../../widgets/combobox'
 import type {ComboboxOption} from '../../combobox'
@@ -18,13 +18,13 @@ type Props = {
 }
 
 export default function RootInput(props: Props) {
-    const [showMenu, setShowMenu] = useState(false)
+    const [showMenu, setShowMenu] = createSignal(false)
 
-    const options: Array<ComboboxOption<ContentType>> = useMemo(() => registry.list().map((ct) => ({
+    const options: Array<ComboboxOption<ContentType>> = registry.list().map((ct) => ({
         id: ct.slashCommand,
         label: `${ct.slashCommand} Creates a new ${ct.displayName} block.`,
         data: ct,
-    })), [])
+    }))
 
     return (
         <Combobox
@@ -32,7 +32,7 @@ export default function RootInput(props: Props) {
             classNamePrefix='RootInput'
             placeholder={'Introduce your text or your slash command'}
             autoFocus={true}
-            menuIsOpen={showMenu}
+            menuIsOpen={showMenu()}
             portalTarget={document.getElementById('focalboard-root-portal')}
             options={options}
 
@@ -60,7 +60,7 @@ export default function RootInput(props: Props) {
                 }
             }}
             onFocus={(e: FocusEvent) => {
-                e.currentTarget.scrollIntoView({block: 'center'})
+                (e.currentTarget as HTMLElement)?.scrollIntoView({block: 'center'})
             }}
             onKeyDown={(e) => {
                 if (e.key === 'Escape') {

@@ -26,7 +26,6 @@ exports[`components/blocksEditor/blocks/quote should match Input snapshot 1`] = 
   >
     <input
       data-testid="quote"
-      value="test-value"
     />
   </blockquote>
 </div>

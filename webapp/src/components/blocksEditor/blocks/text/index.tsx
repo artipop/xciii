@@ -16,10 +16,9 @@ const TextContent: ContentType = {
     runSlashCommand: (): void => {},
     editable: true,
     Display: (props: BlockInputProps) => {
-        const html: string = Utils.htmlFromMarkdown(props.value || '')
         return (
             <div
-                dangerouslySetInnerHTML={{__html: html}}
+                innerHTML={Utils.htmlFromMarkdown(props.value || '')}
                 class={props.value ? 'octo-editor-preview' : 'octo-editor-preview octo-placeholder'}
             />
         )

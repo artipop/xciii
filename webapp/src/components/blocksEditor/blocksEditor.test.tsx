@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Provider as ReduxProvider} from 'react-redux'
-import {render, screen, fireEvent, act} from '@solidjs/testing-library'
+import {render, screen, fireEvent} from '@solidjs/testing-library'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import {BlockData} from './blocks/types'
@@ -45,94 +45,80 @@ describe('components/blocksEditor/blocksEditor', () => {
             value: {},
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
 
     test('should match snapshot on empty', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
-                    <BlocksEditor
-                        boardId='test-board'
-                        onBlockCreated={jest.fn()}
-                        onBlockModified={jest.fn()}
-                        onBlockMoved={jest.fn()}
-                        blocks={[]}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <BlocksEditor
+                    boardId='test-board'
+                    onBlockCreated={jest.fn()}
+                    onBlockModified={jest.fn()}
+                    onBlockMoved={jest.fn()}
+                    blocks={[]}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot with blocks', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
-                    <BlocksEditor
-                        boardId='test-board'
-                        onBlockCreated={jest.fn()}
-                        onBlockModified={jest.fn()}
-                        onBlockMoved={jest.fn()}
-                        blocks={blocks}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <BlocksEditor
+                    boardId='test-board'
+                    onBlockCreated={jest.fn()}
+                    onBlockModified={jest.fn()}
+                    onBlockMoved={jest.fn()}
+                    blocks={blocks}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 
     test('should call onBlockCreate after introduce text and hit enter', async () => {
         const onBlockCreated = jest.fn()
-        await act(async () => {
-            render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
-                    <BlocksEditor
-                        boardId='test-board'
-                        onBlockCreated={onBlockCreated}
-                        onBlockModified={jest.fn()}
-                        onBlockMoved={jest.fn()}
-                        blocks={[]}
-                    />
-                </ReduxProvider>,
-            ))
-        })
+        render(wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <BlocksEditor
+                    boardId='test-board'
+                    onBlockCreated={onBlockCreated}
+                    onBlockModified={jest.fn()}
+                    onBlockMoved={jest.fn()}
+                    blocks={[]}
+                />
+            </AppStoreProvider>,
+        ))
 
         let input = screen.getByDisplayValue('')
         expect(onBlockCreated).not.toHaveBeenCalled()
-        fireEvent.change(input, {target: {value: '/title'}})
+        fireEvent.input(input, {target: {value: '/title'}})
         fireEvent.keyDown(input, {key: 'Enter'})
 
         input = screen.getByDisplayValue('')
-        fireEvent.change(input, {target: {value: 'test'}})
+        fireEvent.input(input, {target: {value: 'test'}})
         fireEvent.keyDown(input, {key: 'Enter'})
 
         expect(onBlockCreated).toHaveBeenCalledWith(expect.objectContaining({value: 'test'}))
     })
 
-    // TODO(react-19): see docs/npm-dependency-warnings.md -- the checkbox appears only after a commit React 19 defers
-    // eslint-disable-next-line no-only-tests/no-only-tests
-    test.skip('should call onBlockModified after introduce text and hit enter', async () => {
+    test('should call onBlockModified after introduce text and hit enter', async () => {
         const onBlockModified = jest.fn()
-        await act(async () => {
-            render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
-                    <BlocksEditor
-                        boardId='test-board'
-                        onBlockCreated={jest.fn()}
-                        onBlockModified={onBlockModified}
-                        onBlockMoved={jest.fn()}
-                        blocks={blocks}
-                    />
-                </ReduxProvider>,
-            ))
-            const input = screen.getByTestId('checkbox-check')
-            expect(onBlockModified).not.toHaveBeenCalled()
-            fireEvent.click(input)
-            expect(onBlockModified).toHaveBeenCalledWith(expect.objectContaining({value: {checked: false, value: 'Checkbox'}}))
-        })
+        render(wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <BlocksEditor
+                    boardId='test-board'
+                    onBlockCreated={jest.fn()}
+                    onBlockModified={onBlockModified}
+                    onBlockMoved={jest.fn()}
+                    blocks={blocks}
+                />
+            </AppStoreProvider>,
+        ))
+        const input = screen.getByTestId('checkbox-check')
+        expect(onBlockModified).not.toHaveBeenCalled()
+        fireEvent.click(input)
+        expect(onBlockModified).toHaveBeenCalledWith(expect.objectContaining({value: {checked: false, value: 'Checkbox'}}))
     })
 })

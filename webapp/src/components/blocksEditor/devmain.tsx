@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState} from 'react'
-import {createRoot} from 'react-dom/client'
+import {createSignal} from 'solid-js'
+import {render} from 'solid-js/web'
 
 import {BlockData} from './blocks/types'
 import BlocksEditor from './blocksEditor'
@@ -31,14 +31,13 @@ const fakeData = [
 ]
 
 function App() {
-    //const [data, setData] = useState<BlockData[]>([])
-    const [data, setData] = useState<Array<BlockData<any>>>(fakeData)
+    const [data, setData] = createSignal<Array<BlockData<any>>>(fakeData)
 
     return (
         <div class='App'>
             <header class='App-header'>
                 <BlocksEditor
-                    blocks={data}
+                    blocks={data()}
                     onBlockCreated={async (block: BlockData<any>, afterBlock?: BlockData<any>): Promise<BlockData|null> => {
                         if (block.contentType === 'text' && block.value === '') {
                             return null
@@ -53,14 +52,14 @@ function App() {
                         }
 
                         if (afterBlock) {
-                            for (const b of data) {
+                            for (const b of data()) {
                                 newData.push(b)
                                 if (b.id === afterBlock.id) {
                                     newData.push(newBlock)
                                 }
                             }
                         } else {
-                            newData = [...data, newBlock]
+                            newData = [...data(), newBlock]
                         }
                         setData(newData)
                         return newBlock
@@ -68,7 +67,7 @@ function App() {
                     onBlockModified={async (block: BlockData): Promise<BlockData|null> => {
                         const newData: BlockData[] = []
                         if (block.contentType === 'text' && block.value === '') {
-                            for (const b of data) {
+                            for (const b of data()) {
                                 if (b.id !== block.id) {
                                     newData.push(b)
                                 }
@@ -76,7 +75,7 @@ function App() {
                             setData(newData)
                             return block
                         }
-                        for (const b of data) {
+                        for (const b of data()) {
                             if (b.id === block.id) {
                                 newData.push(block)
                             } else {
@@ -88,7 +87,7 @@ function App() {
                     }}
                     onBlockMoved={async (block: BlockData<any>, beforeBlock: BlockData|null, afterBlock: BlockData<any>|null): Promise<void> => {
                         const newData: BlockData[] = []
-                        for (const b of data) {
+                        for (const b of data()) {
                             if (b.id !== block.id) {
                                 if (beforeBlock && b.id === beforeBlock.id) {
                                     newData.push(block)
@@ -107,4 +106,4 @@ function App() {
     )
 }
 
-createRoot(document.getElementById('focalboard-app')!).render(<App/>)
+render(() => <App/>, document.getElementById('focalboard-app')!)

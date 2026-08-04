@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useRef, useEffect} from 'react'
+import {onMount} from 'solid-js'
 import {marked} from 'marked'
 
 import {BlockInputProps, ContentType} from '../types'
@@ -16,24 +16,23 @@ const H3: ContentType = {
     editable: true,
     Display: (props: BlockInputProps) => {
         const renderer = new marked.Renderer()
-        const html = marked('### ' + props.value, {renderer, breaks: true})
         return (
             <div
-                dangerouslySetInnerHTML={{__html: html.trim()}}
+                innerHTML={marked('### ' + props.value, {renderer, breaks: true}).trim()}
             />
         )
     },
     Input: (props: BlockInputProps) => {
-        const ref = useRef<HTMLInputElement|null>(null)
-        useEffect(() => {
-            ref.current?.focus()
-        }, [])
+        let ref: HTMLInputElement|undefined
+        onMount(() => {
+            ref?.focus()
+        })
         return (
             <input
                 ref={ref}
                 class='H3'
                 data-testid='h3'
-                onChange={(e) => props.onChange(e.currentTarget.value)}
+                onInput={(e) => props.onChange(e.currentTarget.value)}
                 onKeyDown={(e) => {
                     if (props.value === '' && e.key === 'Backspace') {
                         props.onCancel()

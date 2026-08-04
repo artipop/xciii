@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useMemo} from 'react'
+import {For, Show, createMemo, createSignal} from 'solid-js'
 
 import {SortableProvider} from '../../hooks/sortable'
 
@@ -18,27 +18,27 @@ type Props = {
 }
 
 function BlocksEditor(props: Props) {
-    const [nextType, setNextType] = useState<string>('')
-    const [editing, setEditing] = useState<BlockData|null>(null)
-    const [afterBlock, setAfterBlock] = useState<BlockData|null>(null)
-    const contentOrder = useMemo(() => props.blocks.filter((b) => b.id).map((b) => b.id!), [props.blocks])
+    const [nextType, setNextType] = createSignal<string>('')
+    const [editing, setEditing] = createSignal<BlockData|null>(null)
+    const [afterBlock, setAfterBlock] = createSignal<BlockData|null>(null)
+    const contentOrder = createMemo(() => props.blocks.filter((b) => b.id).map((b) => b.id!))
     return (
         <div
             class='BlocksEditor'
             onKeyDown={(e: KeyboardEvent) => {
                 if (e.key === 'ArrowUp') {
-                    if (editing === null) {
-                        if (afterBlock === null) {
+                    if (editing() === null) {
+                        if (afterBlock() === null) {
                             setEditing(props.blocks[props.blocks.length - 1] || null)
                         } else {
-                            setEditing(afterBlock)
+                            setEditing(afterBlock())
                         }
                         setAfterBlock(null)
                         return
                     }
                     let prevBlock = null
                     for (const b of props.blocks) {
-                        if (editing?.id === b.id) {
+                        if (editing()?.id === b.id) {
                             break
                         }
                         const blockType = registry.get(b.contentType)
@@ -51,9 +51,9 @@ function BlocksEditor(props: Props) {
                         setAfterBlock(null)
                     }
                 } else if (e.key === 'ArrowDown') {
-                    let currentBlock = editing
+                    let currentBlock = editing()
                     if (currentBlock === null) {
-                        currentBlock = afterBlock
+                        currentBlock = afterBlock()
                     }
                     if (currentBlock === null) {
                         return
@@ -79,40 +79,44 @@ function BlocksEditor(props: Props) {
             }}
         >
             <SortableProvider>
-                {Object.values(props.blocks).map((d) => (
-                    <div
-                    >
-                        <BlockContent
-                            block={d}
-                            editing={editing}
-                            setEditing={(block) => {
-                                setEditing(block)
-                                setAfterBlock(null)
-                            }}
-                            contentOrder={contentOrder}
-                            setAfterBlock={setAfterBlock}
-                            onSave={async (b) => {
-                                const newBlock = await props.onBlockModified(b)
-                                setNextType(registry.get(b.contentType).nextType || '')
-                                setAfterBlock(newBlock)
-                                return newBlock
-                            }}
-                            onMove={props.onBlockMoved}
-                        />
-                        {afterBlock && afterBlock.id === d.id && (
-                            <Editor
-                                initialValue=''
-                                initialContentType={nextType}
+                <For each={props.blocks}>
+                    {(d) => (
+                        <div>
+                            <BlockContent
+                                block={d}
+                                editing={editing()}
+                                setEditing={(block) => {
+                                    setEditing(block)
+                                    setAfterBlock(null)
+                                }}
+                                contentOrder={contentOrder()}
+                                setAfterBlock={setAfterBlock}
                                 onSave={async (b) => {
-                                    const newBlock = await props.onBlockCreated(b, afterBlock)
+                                    const newBlock = await props.onBlockModified(b)
                                     setNextType(registry.get(b.contentType).nextType || '')
                                     setAfterBlock(newBlock)
                                     return newBlock
                                 }}
-                            />)}
-                    </div>
-                ))}
-                {!editing && !afterBlock && <Editor onSave={props.onBlockCreated}/>}
+                                onMove={props.onBlockMoved}
+                            />
+                            <Show when={afterBlock() && afterBlock()!.id === d.id}>
+                                <Editor
+                                    initialValue=''
+                                    initialContentType={nextType()}
+                                    onSave={async (b) => {
+                                        const newBlock = await props.onBlockCreated(b, afterBlock()!)
+                                        setNextType(registry.get(b.contentType).nextType || '')
+                                        setAfterBlock(newBlock)
+                                        return newBlock
+                                    }}
+                                />
+                            </Show>
+                        </div>
+                    )}
+                </For>
+                <Show when={!editing() && !afterBlock()}>
+                    <Editor onSave={props.onBlockCreated}/>
+                </Show>
             </SortableProvider>
         </div>
     )

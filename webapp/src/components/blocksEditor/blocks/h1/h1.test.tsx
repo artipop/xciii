@@ -47,7 +47,7 @@ describe('components/blocksEditor/blocks/h1', () => {
         expect(onChange).not.toHaveBeenCalled()
 
         const input = screen.getByTestId('h1')
-        fireEvent.change(input, {target: {value: 'test-value-'}})
+        fireEvent.input(input, {target: {value: 'test-value-'}})
         expect(onChange).toHaveBeenCalled()
     })
 

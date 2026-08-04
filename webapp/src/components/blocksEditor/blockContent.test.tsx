@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Provider as ReduxProvider} from 'react-redux'
-import {render, screen, fireEvent, act} from '@solidjs/testing-library'
+import {render, screen, fireEvent} from '@solidjs/testing-library'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import BlockContent from './blockContent'
@@ -37,70 +37,60 @@ describe('components/blocksEditor/blockContent', () => {
             value: {},
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
 
     test('should match snapshot', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
-                    <BlockContent
-                        boardId='fake-board-id'
-                        block={block}
-                        contentOrder={[block.id]}
-                        editing={null}
-                        setEditing={jest.fn()}
-                        setAfterBlock={jest.fn()}
-                        onSave={jest.fn()}
-                        onMove={jest.fn()}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <BlockContent
+                    boardId='fake-board-id'
+                    block={block}
+                    contentOrder={[block.id]}
+                    editing={null}
+                    setEditing={jest.fn()}
+                    setAfterBlock={jest.fn()}
+                    onSave={jest.fn()}
+                    onMove={jest.fn()}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot editing', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
-                    <BlockContent
-                        boardId='fake-board-id'
-                        block={block}
-                        contentOrder={[block.id]}
-                        editing={block}
-                        setEditing={jest.fn()}
-                        setAfterBlock={jest.fn()}
-                        onSave={jest.fn()}
-                        onMove={jest.fn()}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <BlockContent
+                    boardId='fake-board-id'
+                    block={block}
+                    contentOrder={[block.id]}
+                    editing={block}
+                    setEditing={jest.fn()}
+                    setAfterBlock={jest.fn()}
+                    onSave={jest.fn()}
+                    onMove={jest.fn()}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 
     test('should call setEditing on click the content', async () => {
         const setEditing = jest.fn()
-        await act(async () => {
-            render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
-                    <BlockContent
-                        boardId='fake-board-id'
-                        block={block}
-                        contentOrder={[block.id]}
-                        editing={null}
-                        setEditing={setEditing}
-                        setAfterBlock={jest.fn()}
-                        onSave={jest.fn()}
-                        onMove={jest.fn()}
-                    />
-                </ReduxProvider>,
-            ))
-        })
+        render(wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <BlockContent
+                    boardId='fake-board-id'
+                    block={block}
+                    contentOrder={[block.id]}
+                    editing={null}
+                    setEditing={setEditing}
+                    setAfterBlock={jest.fn()}
+                    onSave={jest.fn()}
+                    onMove={jest.fn()}
+                />
+            </AppStoreProvider>,
+        ))
         const item = screen.getByTestId('block-content')
         expect(setEditing).not.toHaveBeenCalled()
         fireEvent.click(item)
@@ -109,22 +99,20 @@ describe('components/blocksEditor/blockContent', () => {
 
     test('should call setEditing on click the content', async () => {
         const setAfterBlock = jest.fn()
-        await act(async () => {
-            render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
-                    <BlockContent
-                        boardId='fake-board-id'
-                        block={block}
-                        contentOrder={[block.id]}
-                        editing={null}
-                        setEditing={jest.fn()}
-                        setAfterBlock={setAfterBlock}
-                        onSave={jest.fn()}
-                        onMove={jest.fn()}
-                    />
-                </ReduxProvider>,
-            ))
-        })
+        render(wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <BlockContent
+                    boardId='fake-board-id'
+                    block={block}
+                    contentOrder={[block.id]}
+                    editing={null}
+                    setEditing={jest.fn()}
+                    setAfterBlock={setAfterBlock}
+                    onSave={jest.fn()}
+                    onMove={jest.fn()}
+                />
+            </AppStoreProvider>,
+        ))
         const item = screen.getByTestId('add-action')
         expect(setAfterBlock).not.toHaveBeenCalled()
         fireEvent.click(item)
@@ -133,25 +121,23 @@ describe('components/blocksEditor/blockContent', () => {
 
     test('should call onSave on hit enter in the input', async () => {
         const onSave = jest.fn()
-        await act(async () => {
-            render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
-                    <BlockContent
-                        boardId='fake-board-id'
-                        block={block}
-                        contentOrder={[block.id]}
-                        editing={block}
-                        setEditing={jest.fn()}
-                        setAfterBlock={jest.fn()}
-                        onSave={onSave}
-                        onMove={jest.fn()}
-                    />
-                </ReduxProvider>,
-            ))
-        })
+        render(wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <BlockContent
+                    boardId='fake-board-id'
+                    block={block}
+                    contentOrder={[block.id]}
+                    editing={block}
+                    setEditing={jest.fn()}
+                    setAfterBlock={jest.fn()}
+                    onSave={onSave}
+                    onMove={jest.fn()}
+                />
+            </AppStoreProvider>,
+        ))
         const input = screen.getByDisplayValue('Title')
         expect(onSave).not.toHaveBeenCalled()
-        fireEvent.change(input, {target: {value: 'test'}})
+        fireEvent.input(input, {target: {value: 'test'}})
         fireEvent.keyDown(input, {key: 'Enter'})
 
         expect(onSave).toHaveBeenCalledWith(expect.objectContaining({value: 'test'}))

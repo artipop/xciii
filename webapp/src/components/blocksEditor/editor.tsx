@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState, useEffect} from 'react'
+import {Show, createEffect, createSignal} from 'solid-js'
+import {Dynamic} from 'solid-js/web'
 
 import * as contentBlocks from './blocks/'
 import {ContentType, BlockData} from './blocks/types'
@@ -17,30 +18,28 @@ type Props = {
 }
 
 export default function Editor(props: Props) {
-    const [value, setValue] = useState(props.initialValue || '')
-    const [currentBlockType, setCurrentBlockType] = useState<ContentType|null>(contentBlocks.get(props.initialContentType || '') || null)
+    const [value, setValue] = createSignal(props.initialValue || '')
+    const [currentBlockType, setCurrentBlockType] = createSignal<ContentType|null>(contentBlocks.get(props.initialContentType || '') || null)
 
-    useEffect(() => {
-        if (!currentBlockType) {
-            const block = contentBlocks.getByPrefix(value)
+    createEffect(() => {
+        if (!currentBlockType()) {
+            const block = contentBlocks.getByPrefix(value())
             if (block) {
                 setValue('')
                 setCurrentBlockType(block)
-            } else if (value !== '' && !contentBlocks.isSubPrefix(value) && !value.startsWith('/')) {
+            } else if (value() !== '' && !contentBlocks.isSubPrefix(value()) && !value().startsWith('/')) {
                 setCurrentBlockType(contentBlocks.get('text'))
             }
         }
-    }, [value, currentBlockType])
-
-    const CurrentBlockInput = currentBlockType?.Input
+    })
 
     return (
         <div class='Editor'>
-            {currentBlockType === null &&
+            <Show when={currentBlockType() === null}>
                 <RootInput
                     onChange={setValue}
                     onChangeType={setCurrentBlockType}
-                    value={value}
+                    value={value()}
                     onSave={async (val: string, blockType: string) => {
                         if (blockType === null && val === '') {
                             return
@@ -49,23 +48,26 @@ export default function Editor(props: Props) {
                         setValue('')
                         setCurrentBlockType(null)
                     }}
-                />}
-            {CurrentBlockInput &&
-                <CurrentBlockInput
+                />
+            </Show>
+            <Show when={currentBlockType()?.Input}>
+                <Dynamic
+                    component={currentBlockType()!.Input}
                     onChange={setValue}
-                    value={value}
+                    value={value()}
                     onCancel={() => {
                         setValue('')
                         setCurrentBlockType(null)
                     }}
                     onSave={async (val: string) => {
-                        const newBlock = await props.onSave({value: val, contentType: currentBlockType.name, id: props.id})
+                        const newBlock = await props.onSave({value: val, contentType: currentBlockType()!.name, id: props.id})
                         setValue('')
                         const createdContentType = contentBlocks.get(newBlock?.contentType || '')
                         setCurrentBlockType(contentBlocks.get(createdContentType?.nextType || '') || null)
                     }}
                     currentBoardId={props.boardId}
-                />}
+                />
+            </Show>
         </div>
     )
 }

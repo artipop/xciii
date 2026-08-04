@@ -40,7 +40,7 @@ describe('components/blocksEditor/rootInput', () => {
             />,
         )
         const input = screen.getByDisplayValue('')
-        fireEvent.change(input, {target: {value: '/'}})
+        fireEvent.input(input, {target: {value: '/'}})
         expect(container).toMatchSnapshot()
     })
 
@@ -58,7 +58,7 @@ describe('components/blocksEditor/rootInput', () => {
         expect(onChange).not.toHaveBeenCalled()
 
         const input = screen.getByDisplayValue('test-value')
-        fireEvent.change(input, {target: {value: 'test-value-'}})
+        fireEvent.input(input, {target: {value: 'test-value-'}})
         expect(onChange).toHaveBeenCalled()
     })
 
@@ -108,7 +108,7 @@ describe('components/blocksEditor/rootInput', () => {
         )
 
         const input = screen.getByDisplayValue('')
-        fireEvent.change(input, {target: {value: '/'}})
+        fireEvent.input(input, {target: {value: '/'}})
 
         const option = screen.getByText('/title Creates a new Title block.')
         fireEvent.click(option)

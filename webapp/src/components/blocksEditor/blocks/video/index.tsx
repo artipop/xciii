@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useRef, useEffect, useState} from 'react'
+import {Show, createEffect, createSignal, onMount} from 'solid-js'
 
 import {BlockInputProps, ContentType} from '../types'
 import octoClient from '../../../../octoClient'
@@ -22,22 +22,18 @@ const Video: ContentType<FileInfo> = {
     runSlashCommand: (): void => {},
     editable: false,
     Display: (props: BlockInputProps<FileInfo>) => {
-        const [videoDataUrl, setVideoDataUrl] = useState<string|null>(null)
+        const [videoDataUrl, setVideoDataUrl] = createSignal<string|null>(null)
 
-        useEffect(() => {
-            if (!videoDataUrl) {
-                const loadVideo = async () => {
-                    if (props.value && props.value.file && typeof props.value.file === 'string') {
-                        const fileURL = await octoClient.getFileAsDataUrl(props.currentBoardId || '', props.value.file)
-                        setVideoDataUrl(fileURL.url || '')
-                    }
-                }
-                loadVideo()
+        createEffect(() => {
+            if (!videoDataUrl() && props.value && props.value.file && typeof props.value.file === 'string') {
+                octoClient.getFileAsDataUrl(props.currentBoardId || '', props.value.file).then((fileURL) => {
+                    setVideoDataUrl(fileURL.url || '')
+                })
             }
-        }, [props.value, props.value.file, props.currentBoardId])
+        })
 
-        if (videoDataUrl) {
-            return (
+        return (
+            <Show when={videoDataUrl()}>
                 <video
                     width='320'
                     height='240'
@@ -45,17 +41,16 @@ const Video: ContentType<FileInfo> = {
                     class='VideoView'
                     data-testid='video'
                 >
-                    <source src={videoDataUrl}/>
+                    <source src={videoDataUrl()!}/>
                 </video>
-            )
-        }
-        return null
+            </Show>
+        )
     },
     Input: (props: BlockInputProps<FileInfo>) => {
-        const ref = useRef<HTMLInputElement|null>(null)
-        useEffect(() => {
-            ref.current?.click()
-        }, [])
+        let ref: HTMLInputElement|undefined
+        onMount(() => {
+            ref?.click()
+        })
 
         return (
             <input

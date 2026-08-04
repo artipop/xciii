@@ -1,5 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import type {Component} from 'solid-js'
+
 export type BlockInputProps<ValueType = string> = {
     onChange: (value: ValueType) => void
     value: ValueType
@@ -14,8 +16,8 @@ export type ContentType<ValueType = string> = {
     slashCommand: string
     prefix: string
     editable: boolean
-    Input: React.FunctionComponent<BlockInputProps<ValueType>>
-    Display: React.FunctionComponent<BlockInputProps<ValueType>>
+    Input: Component<BlockInputProps<ValueType>>
+    Display: Component<BlockInputProps<ValueType>>
     runSlashCommand: (changeType: (contentType: ContentType<ValueType>) => void, changeValue: (value: ValueType) => void, ...args: string[]) => void
     nextType?: string
 }

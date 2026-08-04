@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useRef, useEffect, useState} from 'react'
+import {createEffect, createSignal, onMount} from 'solid-js'
 
 import {BlockInputProps, ContentType} from '../types'
 import octoClient from '../../../../octoClient'
@@ -20,19 +20,15 @@ const Attachment: ContentType<FileInfo> = {
     runSlashCommand: (): void => {},
     editable: false,
     Display: (props: BlockInputProps<FileInfo>) => {
-        const [fileDataUrl, setFileDataUrl] = useState<string|null>(null)
+        const [fileDataUrl, setFileDataUrl] = createSignal<string|null>(null)
 
-        useEffect(() => {
-            if (!fileDataUrl) {
-                const loadFile = async () => {
-                    if (props.value && props.value.file && typeof props.value.file === 'string') {
-                        const fileURL = await octoClient.getFileAsDataUrl(props.currentBoardId || '', props.value.file)
-                        setFileDataUrl(fileURL.url || '')
-                    }
-                }
-                loadFile()
+        createEffect(() => {
+            if (!fileDataUrl() && props.value && props.value.file && typeof props.value.file === 'string') {
+                octoClient.getFileAsDataUrl(props.currentBoardId || '', props.value.file).then((fileURL) => {
+                    setFileDataUrl(fileURL.url || '')
+                })
             }
-        }, [props.value, props.value.file, props.currentBoardId])
+        })
 
         return (
             <div
@@ -40,7 +36,7 @@ const Attachment: ContentType<FileInfo> = {
                 data-testid='attachment'
             >
                 <a
-                    href={fileDataUrl || '#'}
+                    href={fileDataUrl() || '#'}
                     onClick={(e) => e.stopPropagation()}
                     download={props.value.filename}
                 >
@@ -50,10 +46,10 @@ const Attachment: ContentType<FileInfo> = {
         )
     },
     Input: (props: BlockInputProps<FileInfo>) => {
-        const ref = useRef<HTMLInputElement|null>(null)
-        useEffect(() => {
-            ref.current?.click()
-        }, [])
+        let ref: HTMLInputElement|undefined
+        onMount(() => {
+            ref?.click()
+        })
 
         return (
             <input

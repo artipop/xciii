@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useRef, useEffect} from 'react'
+import {onMount} from 'solid-js'
 import {marked} from 'marked'
 
 import {BlockInputProps, ContentType} from '../types'
@@ -22,30 +22,29 @@ const Checkbox: ContentType<ValueType> = {
     editable: true,
     Display: (props: BlockInputProps<ValueType>) => {
         const renderer = new marked.Renderer()
-        const html = marked(props.value.value || '', {renderer, breaks: true})
         return (
             <div class='CheckboxView'>
                 <input
                     data-testid='checkbox-check'
                     type='checkbox'
                     onChange={(e) => {
-                        const newValue = {checked: Boolean(e.target.checked), value: props.value.value || ''}
+                        const newValue = {checked: Boolean(e.currentTarget.checked), value: props.value.value || ''}
                         props.onSave(newValue)
                     }}
                     checked={props.value.checked || false}
                     onClick={(e) => e.stopPropagation()}
                 />
                 <div
-                    dangerouslySetInnerHTML={{__html: html.trim()}}
+                    innerHTML={marked(props.value.value || '', {renderer, breaks: true}).trim()}
                 />
             </div>
         )
     },
     Input: (props: BlockInputProps<ValueType>) => {
-        const ref = useRef<HTMLInputElement|null>(null)
-        useEffect(() => {
-            ref.current?.focus()
-        }, [])
+        let ref: HTMLInputElement|undefined
+        onMount(() => {
+            ref?.focus()
+        })
         return (
             <div class='Checkbox'>
                 <input
@@ -54,11 +53,11 @@ const Checkbox: ContentType<ValueType> = {
                     class='inputCheck'
                     onChange={(e) => {
                         let newValue = {checked: false, value: props.value.value || ''}
-                        if (e.target.checked) {
+                        if (e.currentTarget.checked) {
                             newValue = {checked: true, value: props.value.value || ''}
                         }
                         props.onChange(newValue)
-                        ref.current?.focus()
+                        ref?.focus()
                     }}
                     checked={props.value.checked || false}
                 />
@@ -66,7 +65,7 @@ const Checkbox: ContentType<ValueType> = {
                     ref={ref}
                     data-testid='checkbox-input'
                     class='inputText'
-                    onChange={(e) => {
+                    onInput={(e) => {
                         props.onChange({checked: Boolean(props.value.checked), value: e.currentTarget.value})
                     }}
                     onKeyDown={(e) => {

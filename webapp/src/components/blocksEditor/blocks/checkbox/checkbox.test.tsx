@@ -91,7 +91,7 @@ describe('components/blocksEditor/blocks/checkbox', () => {
         expect(onChange).not.toHaveBeenCalled()
 
         const input = screen.getByTestId('checkbox-input')
-        fireEvent.change(input, {target: {value: 'test-value-'}})
+        fireEvent.input(input, {target: {value: 'test-value-'}})
         expect(onChange).toHaveBeenCalledWith({value: 'test-value-', checked: true})
     })
 

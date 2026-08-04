@@ -8,10 +8,9 @@ exports[`components/blocksEditor/blocks/attachment should match Display snapshot
   >
     <a
       download="test-filename"
-      href="#"
+      href="test.jpg"
     >
-      📎
-       
+      📎 
       test-filename
     </a>
   </div>
@@ -28,8 +27,8 @@ exports[`components/blocksEditor/blocks/attachment should match Display snapshot
       download=""
       href="#"
     >
-      📎
-       
+      📎 
+      
     </a>
   </div>
 </div>

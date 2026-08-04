@@ -24,23 +24,28 @@ exports[`components/blocksEditor/blocksEditor should match snapshot on empty 1`]
           <div
             class="RootInput__value-container"
           >
+            
+            
             <div
               class="RootInput__placeholder"
             >
               Introduce your text or your slash command
             </div>
             <input
-              aria-controls="_r_0_"
+              aria-controls="cl-0"
               aria-expanded="false"
               autocomplete="off"
+              autofocus=""
               class="RootInput__input"
               role="combobox"
               type="text"
-              value=""
             />
           </div>
+          
         </div>
+        
       </div>
+      
     </div>
   </div>
 </div>
@@ -94,6 +99,7 @@ exports[`components/blocksEditor/blocksEditor should match snapshot with blocks 
           </div>
         </div>
       </div>
+      
     </div>
     <div>
       <div
@@ -138,6 +144,7 @@ exports[`components/blocksEditor/blocksEditor should match snapshot with blocks 
           </div>
         </div>
       </div>
+      
     </div>
     <div>
       <div
@@ -182,6 +189,7 @@ exports[`components/blocksEditor/blocksEditor should match snapshot with blocks 
           </div>
         </div>
       </div>
+      
     </div>
     <div>
       <div
@@ -230,6 +238,7 @@ exports[`components/blocksEditor/blocksEditor should match snapshot with blocks 
           </div>
         </div>
       </div>
+      
     </div>
     <div>
       <div
@@ -307,6 +316,7 @@ exports[`components/blocksEditor/blocksEditor should match snapshot with blocks 
           </div>
         </div>
       </div>
+      
     </div>
     <div>
       <div
@@ -346,7 +356,6 @@ exports[`components/blocksEditor/blocksEditor should match snapshot with blocks 
             class="CheckboxView"
           >
             <input
-              checked=""
               data-testid="checkbox-check"
               type="checkbox"
             />
@@ -358,6 +367,7 @@ exports[`components/blocksEditor/blocksEditor should match snapshot with blocks 
           </div>
         </div>
       </div>
+      
     </div>
     <div
       class="Editor"
@@ -378,23 +388,28 @@ exports[`components/blocksEditor/blocksEditor should match snapshot with blocks 
           <div
             class="RootInput__value-container"
           >
+            
+            
             <div
               class="RootInput__placeholder"
             >
               Introduce your text or your slash command
             </div>
             <input
-              aria-controls="_r_7_"
+              aria-controls="cl-7"
               aria-expanded="false"
               autocomplete="off"
+              autofocus=""
               class="RootInput__input"
               role="combobox"
               type="text"
-              value=""
             />
           </div>
+          
         </div>
+        
       </div>
+      
     </div>
   </div>
 </div>

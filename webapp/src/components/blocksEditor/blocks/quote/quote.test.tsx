@@ -47,7 +47,7 @@ describe('components/blocksEditor/blocks/quote', () => {
         expect(onChange).not.toHaveBeenCalled()
 
         const input = screen.getByTestId('quote')
-        fireEvent.change(input, {target: {value: 'test-value-'}})
+        fireEvent.input(input, {target: {value: 'test-value-'}})
         expect(onChange).toHaveBeenCalled()
     })
 
