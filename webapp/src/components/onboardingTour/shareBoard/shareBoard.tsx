@@ -27,7 +27,7 @@ const ShareBoardTourStep = (): JSX.Element | null => {
         />
     )
 
-    const punchout = useMeasurePunchouts(['.ShareBoardButton > button'], [])
+    const punchout = useMeasurePunchouts(['.ShareBoardButton > button'])
 
     if (!BoardTourSteps.SHARE_BOARD) {
         return null
@@ -40,7 +40,7 @@ const ShareBoardTourStep = (): JSX.Element | null => {
             step={BoardTourSteps.SHARE_BOARD}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='ShareBoardTourStep'
             telemetryTag='tourPoint2b'
             placement={'bottom-end'}

@@ -29,7 +29,7 @@ const ManageCategoriesTourStep = (): JSX.Element | null => {
         />
     )
 
-    const punchout = useMeasurePunchouts([`.${ClassForManageCategoriesTourStep}`], [])
+    const punchout = useMeasurePunchouts([`.${ClassForManageCategoriesTourStep}`])
 
     return (
         <TourTipRenderer
@@ -38,7 +38,7 @@ const ManageCategoriesTourStep = (): JSX.Element | null => {
             step={SidebarTourSteps.MANAGE_CATEGORIES}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='ManageCatergoies'
             telemetryTag='tourPoint4b'
             placement={'right'}

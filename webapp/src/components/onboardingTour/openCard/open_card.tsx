@@ -26,7 +26,7 @@ const OpenCardTourStep = (): JSX.Element | null => {
         />
     )
 
-    const punchout = useMeasurePunchouts([`.${OnboardingCardClassName}`], [])
+    const punchout = useMeasurePunchouts([`.${OnboardingCardClassName}`])
 
     return (
         <TourTipRenderer
@@ -35,7 +35,7 @@ const OpenCardTourStep = (): JSX.Element | null => {
             step={BaseTourSteps.OPEN_A_CARD}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='OpenCardTourStep'
             telemetryTag='tourPoint1'
             placement={'bottom'}

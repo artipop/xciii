@@ -26,7 +26,7 @@ const SearchForBoardsTourStep = (): JSX.Element | null => {
         />
     )
 
-    const punchout = useMeasurePunchouts(['.BoardsSwitcher'], [])
+    const punchout = useMeasurePunchouts(['.BoardsSwitcher'])
 
     return (
         <TourTipRenderer
@@ -35,7 +35,7 @@ const SearchForBoardsTourStep = (): JSX.Element | null => {
             step={SidebarTourSteps.SEARCH_FOR_BOARDS}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='SearchForBoards'
             telemetryTag='tourPoint4d'
             placement={'right'}

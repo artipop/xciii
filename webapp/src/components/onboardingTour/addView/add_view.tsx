@@ -27,7 +27,7 @@ const AddViewTourStep = (): JSX.Element => {
         />
     )
 
-    const punchout = useMeasurePunchouts(['.viewSelector'], [])
+    const punchout = useMeasurePunchouts(['.viewSelector'])
 
     return (
         <TourTipRenderer
@@ -36,7 +36,7 @@ const AddViewTourStep = (): JSX.Element => {
             step={BoardTourSteps.ADD_VIEW}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='AddViewTourStep'
             telemetryTag='tourPoint3a'
             placement={'bottom-start'}

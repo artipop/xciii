@@ -28,7 +28,7 @@ const CopyLinkTourStep = (): JSX.Element | null => {
         />
     )
 
-    const punchout = useMeasurePunchouts([`.${OnboardingCardClassName} .optionsMenu`], [])
+    const punchout = useMeasurePunchouts([`.${OnboardingCardClassName} .optionsMenu`])
 
     return (
         <TourTipRenderer
@@ -37,7 +37,7 @@ const CopyLinkTourStep = (): JSX.Element | null => {
             step={BoardTourSteps.COPY_LINK}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='CopyLinkTourStep'
             telemetryTag='tourPoint3b'
             placement={'right-start'}

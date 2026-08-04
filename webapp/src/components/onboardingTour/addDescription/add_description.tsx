@@ -27,7 +27,7 @@ const AddDescriptionTourStep = (): JSX.Element | null => {
         />
     )
 
-    const punchout = useMeasurePunchouts(['.octo-content div:nth-child(1)'], [])
+    const punchout = useMeasurePunchouts(['.octo-content div:nth-child(1)'])
 
     return (
         <TourTipRenderer
@@ -36,7 +36,7 @@ const AddDescriptionTourStep = (): JSX.Element | null => {
             step={CardTourSteps.ADD_DESCRIPTION}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='AddDescriptionTourStep'
             telemetryTag='tourPoint2c'
             placement={'top-start'}

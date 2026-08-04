@@ -27,7 +27,7 @@ const AddCommentTourStep = (): JSX.Element | null => {
         />
     )
 
-    const punchout = useMeasurePunchouts(['.CommentsList__new'], [])
+    const punchout = useMeasurePunchouts(['.CommentsList__new'])
 
     return (
         <TourTipRenderer
@@ -36,7 +36,7 @@ const AddCommentTourStep = (): JSX.Element | null => {
             step={CardTourSteps.ADD_COMMENTS}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='AddCommentTourStep'
             telemetryTag='tourPoint2b'
             placement={'right-end'}

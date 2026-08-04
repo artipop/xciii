@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type CSSProperties, type JSX, useEffect, useId, useRef, useState} from 'react'
-import ReactDOM from 'react-dom'
+import {For, Show, createEffect, createSignal, createUniqueId, onCleanup} from 'solid-js'
+import {Portal} from 'solid-js/web'
+import type {JSX, ParentComponent} from 'solid-js'
+
 import {FormattedMessage} from '../../intl'
+
 import {arrow, autoUpdate, computePosition, flip, offset, shift, type Placement} from '@floating-ui/dom'
 
 import './tutorial_tour_tip.scss'
@@ -19,20 +22,18 @@ import TutorialTourTipBackdrop, {Coords, TutorialTourTipPunchout} from './tutori
 
 import useTutorialTourTipManager, {TutorialTourTipManagerProps} from './tutorial_tour_tip_manager'
 
-const TourTipOverlay = ({
-    children,
-    show,
-    onClick,
-}: { children: JSX.Element, show: boolean, onClick: (e: MouseEvent) => void }) =>
-    (show ? ReactDOM.createPortal(
-        <div
-            class='tutorial-tour-tip__overlay'
-            onClick={onClick}
-        >
-            {children}
-        </div>,
-        document.body,
-    ) : null)
+const TourTipOverlay: ParentComponent<{show: boolean, onClick: (e: MouseEvent) => void}> = (props) => (
+    <Show when={props.show}>
+        <Portal mount={document.body}>
+            <div
+                class='tutorial-tour-tip__overlay'
+                onClick={props.onClick}
+            >
+                {props.children}
+            </div>
+        </Portal>
+    </Show>
+)
 
 // The arrow is a 12px square turned 45 degrees, so its corner reaches about
 // 8.5px out of the box; 10px of offset keeps it clear of what it points at,
@@ -57,7 +58,7 @@ type TipPosition = {
 }
 
 type TourTipBoxProps = {
-    anchor: React.RefObject<HTMLElement | null>
+    anchor: () => HTMLElement | undefined
     placement?: Placement
     width: string | number
     className?: string
@@ -67,33 +68,33 @@ type TourTipBoxProps = {
 
 // What Tippy was here for. The box is portalled to the body and placed against
 // the pulsating dot by Floating UI, which — unlike tippy.js, whose author moved
-// on to write it — has no framework in it: a port would keep everything below
-// the return statement and rewrite the rest.
+// on to write it — has no framework in it: the port kept everything below the
+// return statement and rewrote the rest, exactly as predicted.
 //
 // The translation goes on the positioner and the entrance animation on the box
 // inside it, so the two never fight over `transform`.
 const TourTipBox = (props: TourTipBoxProps): JSX.Element => {
-    const [positioner, setPositioner] = useState<HTMLDivElement | null>(null)
-    const [arrowElement, setArrowElement] = useState<HTMLDivElement | null>(null)
-    const [position, setPosition] = useState<TipPosition | null>(null)
+    const [positioner, setPositioner] = createSignal<HTMLDivElement | null>(null)
+    const [arrowElement, setArrowElement] = createSignal<HTMLDivElement | null>(null)
+    const [position, setPosition] = createSignal<TipPosition | null>(null)
 
-    const {anchor, placement} = props
-
-    useEffect(() => {
-        const reference = anchor.current
-        if (!reference || !positioner || !arrowElement) {
-            return undefined
+    createEffect(() => {
+        const reference = props.anchor()
+        const positionerEl = positioner()
+        const arrowEl = arrowElement()
+        if (!reference || !positionerEl || !arrowEl) {
+            return
         }
 
         // Keeps the box on the dot while the board behind it scrolls or resizes.
-        return autoUpdate(reference, positioner, () => {
-            computePosition(reference, positioner, {
-                placement: placement || 'top',
+        const stop = autoUpdate(reference, positionerEl, () => {
+            computePosition(reference, positionerEl, {
+                placement: props.placement || 'top',
                 middleware: [
                     offset(TIP_OFFSET),
                     flip(),
                     shift({padding: VIEWPORT_PADDING}),
-                    arrow({element: arrowElement, padding: VIEWPORT_PADDING}),
+                    arrow({element: arrowEl, padding: VIEWPORT_PADDING}),
                 ],
             }).then((computed) => {
                 setPosition({
@@ -105,40 +106,42 @@ const TourTipBox = (props: TourTipBoxProps): JSX.Element => {
                 })
             })
         })
-    }, [anchor, positioner, arrowElement, placement])
+        onCleanup(stop)
+    })
 
-    const resolved = position?.placement || placement || 'top'
-    const arrowStyle: CSSProperties = {
-        left: position?.arrowX === undefined ? undefined : `${position.arrowX}px`,
-        top: position?.arrowY === undefined ? undefined : `${position.arrowY}px`,
-        [oppositeSide[resolved.split('-')[0]]]: `${-ARROW_SIZE / 2}px`,
-    }
+    const resolved = () => position()?.placement || props.placement || 'top'
+    const arrowStyle = (): JSX.CSSProperties => ({
+        left: position()?.arrowX === undefined ? undefined : `${position()!.arrowX}px`,
+        top: position()?.arrowY === undefined ? undefined : `${position()!.arrowY}px`,
+        [oppositeSide[resolved().split('-')[0]]]: `${-ARROW_SIZE / 2}px`,
+    })
 
-    return ReactDOM.createPortal(
-        <div
-            ref={setPositioner}
-
-            // Nothing is drawn until there is somewhere to draw it, so the box
-            // never appears at the top-left corner for a frame first.
-            class={`tutorial-tour-tip__positioner ${position ? 'is-positioned' : ''}`}
-            data-placement={resolved}
-            style={position ? {transform: `translate(${Math.round(position.x)}px, ${Math.round(position.y)}px)`} : undefined}
-        >
+    return (
+        <Portal mount={document.body}>
             <div
-                class={`tutorial-tour-tip__box ${props.className || ''}`}
-                style={{maxWidth: props.width}}
-                role='dialog'
-                aria-labelledby={props.labelledBy}
+                ref={setPositioner}
+
+                // Nothing is drawn until there is somewhere to draw it, so the box
+                // never appears at the top-left corner for a frame first.
+                class={`tutorial-tour-tip__positioner ${position() ? 'is-positioned' : ''}`}
+                data-placement={resolved()}
+                style={position() ? {transform: `translate(${Math.round(position()!.x)}px, ${Math.round(position()!.y)}px)`} : undefined}
             >
                 <div
-                    ref={setArrowElement}
-                    class='tutorial-tour-tip__arrow'
-                    style={arrowStyle}
-                />
-                {props.children}
+                    class={`tutorial-tour-tip__box ${props.className || ''}`}
+                    style={{'max-width': typeof props.width === 'number' ? `${props.width}px` : props.width}}
+                    role='dialog'
+                    aria-labelledby={props.labelledBy}
+                >
+                    <div
+                        ref={setArrowElement}
+                        class='tutorial-tour-tip__arrow'
+                        style={arrowStyle()}
+                    />
+                    {props.children}
+                </div>
             </div>
-        </div>,
-        document.body,
+        </Portal>
     )
 }
 
@@ -168,43 +171,26 @@ type Props = {
     skipCategoryFromBackdrop?: boolean
 }
 
-const TutorialTourTip = ({
-    title,
-    screen,
-    imageURL,
-    punchOut,
-    autoTour,
-    tutorialCategory,
-    singleTip,
-    step,
-    onNextNavigateTo,
-    onPrevNavigateTo,
-    telemetryTag,
-    placement,
-    showOptOut,
-    pulsatingDotPosition,
-    stopPropagation = true,
-    preventDefault = true,
-    width = window.innerWidth > 2559 ? 500 : 320,
-    className,
-    hideNavButtons = false,
-    hideBackdrop = false,
-    onPunchholeClick,
-    skipCategoryFromBackdrop,
-}: Props): JSX.Element => {
+const TutorialTourTip = (props: Props): JSX.Element => {
+    const stopPropagation = () => props.stopPropagation ?? true
+    const preventDefault = () => props.preventDefault ?? true
+    const width = () => props.width ?? (window.innerWidth > 2559 ? 500 : 320)
+    const hideNavButtons = () => props.hideNavButtons ?? false
+    const hideBackdrop = () => props.hideBackdrop ?? false
+
     const managerProps: TutorialTourTipManagerProps = {
-        step,
-        autoTour,
-        telemetryTag,
-        tutorialCategory,
-        onNextNavigateTo,
-        onPrevNavigateTo,
-        stopPropagation,
-        preventDefault,
+        step: props.step,
+        autoTour: props.autoTour,
+        telemetryTag: props.telemetryTag,
+        tutorialCategory: props.tutorialCategory,
+        onNextNavigateTo: props.onNextNavigateTo,
+        onPrevNavigateTo: props.onPrevNavigateTo,
+        stopPropagation: stopPropagation(),
+        preventDefault: preventDefault(),
     }
 
-    const triggerRef = useRef<HTMLDivElement>(null)
-    const titleId = useId()
+    let triggerRef: HTMLDivElement | undefined
+    const titleId = createUniqueId()
     const {
         show,
         tourSteps,
@@ -221,25 +207,18 @@ const TutorialTourTip = ({
     } = useTutorialTourTipManager(managerProps)
 
     const getButtonText = (): JSX.Element => {
-        let buttonText = (
-            <FormattedMessage
-                id={'tutorial_tip.ok'}
-                defaultMessage={'Next'}
-            />
-        )
-        if (singleTip) {
-            buttonText = (
+        if (props.singleTip) {
+            return (
                 <FormattedMessage
                     id={'tutorial_tip.got_it'}
                     defaultMessage={'Got it'}
                 />
             )
-            return buttonText
         }
 
         const lastStep = getLastStep()
-        if (step === lastStep) {
-            buttonText = (
+        if (props.step === lastStep) {
+            return (
                 <FormattedMessage
                     id={'tutorial_tip.finish_tour'}
                     defaultMessage={'Done'}
@@ -247,35 +226,15 @@ const TutorialTourTip = ({
             )
         }
 
-        return buttonText
+        return (
+            <FormattedMessage
+                id={'tutorial_tip.ok'}
+                defaultMessage={'Next'}
+            />
+        )
     }
 
-    const dots = []
-
-    if (!singleTip && tourSteps) {
-        for (let i = 0; i < (Object.values(tourSteps).length); i++) {
-            let classname = 'tutorial-tour-tip__circle'
-            let circularRing = 'tutorial-tour-tip__circular-ring'
-
-            if (i === step) {
-                classname += ' active'
-                circularRing += ' tutorial-tour-tip__circular-ring-active'
-            }
-
-            dots.push(
-                <div
-                    class={circularRing}
-                >
-                    <a
-                        href='#'
-                        class={classname}
-                        data-screen={i}
-                        onClick={() => handleSavePreferences(i)}
-                    />
-                </div>,
-            )
-        }
-    }
+    const dotIndexes = () => (!props.singleTip && tourSteps ? Object.values(tourSteps).map((_, i) => i) : [])
 
     const content = (
         <div
@@ -288,36 +247,51 @@ const TutorialTourTip = ({
                     id={titleId}
                     class='tutorial-tour-tip__header__title'
                 >
-                    {title}
+                    {props.title}
                 </h4>
                 <IconButton
                     className='tutorial-tour-tip__header__close'
                     size='small'
                     icon={<CloseIcon/>}
-                    onClick={(e) => {
-                        if (skipCategoryFromBackdrop) {
+                    onClick={(e: MouseEvent) => {
+                        if (props.skipCategoryFromBackdrop) {
                             handleDismiss(e)
-                            handleSendToNextTour(tutorialCategory)
+                            handleSendToNextTour(props.tutorialCategory)
                         }
                     }}
                 />
             </div>
             <div class='tutorial-tour-tip__body'>
-                {screen}
+                {props.screen}
             </div>
-            {imageURL && (
+            <Show when={props.imageURL}>
                 <div class='tutorial-tour-tip__image'>
                     <img
-                        src={imageURL}
+                        src={props.imageURL}
                         alt={'tutorial tour tip product image'}
                     />
                 </div>
-            )}
+            </Show>
             <div class='tutorial-tour-tip__footer'>
                 <div class='tutorial-tour-tip__footer-buttons'>
-                    <div class='tutorial-tour-tip__circles-ctr'>{dots}</div>
+                    <div class='tutorial-tour-tip__circles-ctr'>
+                        <For each={dotIndexes()}>
+                            {(i) => (
+                                <div
+                                    class={`tutorial-tour-tip__circular-ring ${i === props.step ? 'tutorial-tour-tip__circular-ring-active' : ''}`}
+                                >
+                                    <a
+                                        href='#'
+                                        class={`tutorial-tour-tip__circle ${i === props.step ? 'active' : ''}`}
+                                        data-screen={i}
+                                        onClick={() => handleSavePreferences(i)}
+                                    />
+                                </div>
+                            )}
+                        </For>
+                    </div>
                     <div class={'tutorial-tour-tip__btn-ctr'}>
-                        {!hideNavButtons && step !== 0 && (
+                        <Show when={!hideNavButtons() && props.step !== 0}>
                             <Button
                                 title='Previous'
                                 size='small'
@@ -334,45 +308,45 @@ const TutorialTourTip = ({
                                     defaultMessage='Previous'
                                 />
                             </Button>
-                        )}
+                        </Show>
 
-                        {
-                            !hideNavButtons && (
-                                <Button
-                                    className='tipNextButton'
-                                    size='small'
-                                    filled={true}
-                                    onClick={handleNext}
-                                    rightIcon={true}
-                                    icon={(singleTip || step === getLastStep()) ? '' : (
-                                        <CompassIcon
-                                            className='icon'
-                                            icon='chevron-right'
-                                        />
-                                    )
-                                    }
-                                >
-                                    {getButtonText()}
-                                </Button>
-                            )
-                        }
+                        <Show when={!hideNavButtons()}>
+                            <Button
+                                className='tipNextButton'
+                                size='small'
+                                filled={true}
+                                onClick={handleNext}
+                                rightIcon={true}
+                                icon={(props.singleTip || props.step === getLastStep()) ? '' : (
+                                    <CompassIcon
+                                        className='icon'
+                                        icon='chevron-right'
+                                    />
+                                )
+                                }
+                            >
+                                {getButtonText()}
+                            </Button>
+                        </Show>
                     </div>
                 </div>
-                {showOptOut && <div class='tutorial-tour-tip__opt'>
-                    <FormattedMessage
-                        id='tutorial_tip.seen'
-                        defaultMessage='Seen this before? '
-                    />
-                    <a
-                        href='#'
-                        onClick={handleSkipTutorial}
-                    >
+                <Show when={props.showOptOut}>
+                    <div class='tutorial-tour-tip__opt'>
                         <FormattedMessage
-                            id='tutorial_tip.out'
-                            defaultMessage='Opt out of these tips.'
+                            id='tutorial_tip.seen'
+                            defaultMessage='Seen this before? '
                         />
-                    </a>
-                </div>}
+                        <a
+                            href='#'
+                            onClick={handleSkipTutorial}
+                        >
+                            <FormattedMessage
+                                id='tutorial_tip.out'
+                                defaultMessage='Opt out of these tips.'
+                            />
+                        </a>
+                    </div>
+                </Show>
             </div>
         </div>
     )
@@ -382,46 +356,46 @@ const TutorialTourTip = ({
             <div
                 ref={triggerRef}
                 onClick={handleOpen}
-                aria-expanded={show}
-                class={`tutorial-tour-tip__pulsating-dot-ctr ${className || ''}`}
+                aria-expanded={show()}
+                class={`tutorial-tour-tip__pulsating-dot-ctr ${props.className || ''}`}
             >
-                <PulsatingDot coords={pulsatingDotPosition}/>
+                <PulsatingDot coords={props.pulsatingDotPosition}/>
             </div>
             <TourTipOverlay
-                show={!hideBackdrop && show}
+                show={!hideBackdrop() && show()}
                 onClick={(e) => {
                     handleEventPropagationAndDefault(e)
                     handleHide(e)
-                    if (onPunchholeClick) {
-                        onPunchholeClick(e)
+                    if (props.onPunchholeClick) {
+                        props.onPunchholeClick(e)
                     }
                 }}
             >
                 <TutorialTourTipBackdrop
-                    x={punchOut?.x}
-                    y={punchOut?.y}
-                    width={punchOut?.width}
-                    height={punchOut?.height}
+                    x={props.punchOut?.x}
+                    y={props.punchOut?.y}
+                    width={props.punchOut?.width}
+                    height={props.punchOut?.height}
                     handleClick={(e) => {
-                        if (skipCategoryFromBackdrop) {
+                        if (props.skipCategoryFromBackdrop) {
                             e.preventDefault()
                             e.stopPropagation()
-                            handleSendToNextTour(tutorialCategory)
+                            handleSendToNextTour(props.tutorialCategory)
                         }
                     }}
                 />
             </TourTipOverlay>
-            {show && (
+            <Show when={show()}>
                 <TourTipBox
-                    anchor={triggerRef}
-                    placement={placement}
-                    width={width}
-                    className={className}
+                    anchor={() => triggerRef}
+                    placement={props.placement}
+                    width={width()}
+                    className={props.className}
                     labelledBy={titleId}
                 >
                     {content}
                 </TourTipBox>
-            )}
+            </Show>
         </>
     )
 }

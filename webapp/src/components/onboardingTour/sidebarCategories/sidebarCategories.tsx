@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useEffect} from 'react'
+import {onMount} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import {FormattedMessage} from '../../../intl'
 
 import {useMeasurePunchouts} from '../../tutorial_tour_tip/hooks'
 import TourTipRenderer from '../tourTipRenderer/tourTipRenderer'
 import {TOUR_BOARD, TOUR_SIDEBAR, SidebarTourSteps, FINISHED} from '../index'
-import {useAppDispatch, useAppSelector} from '../../../store/hooks'
+import {useAppSelector, useAppStore} from '../../../store/hooks'
 import {
     getMe,
     getOnboardingTourCategory,
     getOnboardingTourStep,
-    patchProps,
 } from '../../../store/users'
 import {IUser, UserConfigPatch} from '../../../user'
 import mutator from '../../../mutator'
@@ -20,7 +20,7 @@ import {Constants} from '../../../constants'
 
 import './sidebarCategories.scss'
 
-const SidebarCategoriesTourStep = (): JSX.Element | null => {
+const SidebarCategoriesTourStep = (): JSX.Element => {
     const title = (
         <FormattedMessage
             id='SidebarTour.SidebarCategories.Title'
@@ -46,21 +46,22 @@ const SidebarCategoriesTourStep = (): JSX.Element | null => {
         </div>
     )
 
-    const punchout = useMeasurePunchouts(['.SidebarCategory'], [])
+    const punchout = useMeasurePunchouts(['.SidebarCategory'])
 
     const me = useAppSelector<IUser|null>(getMe)
-    const dispatch = useAppDispatch()
+    const {actions} = useAppStore()
     const onboardingTourCategory = useAppSelector(getOnboardingTourCategory)
     const onboardingTourStep = useAppSelector(getOnboardingTourStep)
 
-    useEffect(() => {
+    onMount(() => {
         async function task() {
-            if (!me) {
+            const user = me()
+            if (!user) {
                 return
             }
 
-            const should = onboardingTourCategory === TOUR_BOARD &&
-                           onboardingTourStep === FINISHED.toString()
+            const should = onboardingTourCategory() === TOUR_BOARD &&
+                           onboardingTourStep() === FINISHED.toString()
 
             if (!should) {
                 return
@@ -72,15 +73,14 @@ const SidebarCategoriesTourStep = (): JSX.Element | null => {
             patch.updatedFields.onboardingTourStep = SidebarTourSteps.SIDE_BAR.toString()
             patch.updatedFields.lastWelcomeVersion = Constants.versionString
 
-            const updatedProps = await mutator.patchUserConfig(me.id, patch)
+            const updatedProps = await mutator.patchUserConfig(user.id, patch)
             if (updatedProps) {
-                dispatch(patchProps(updatedProps))
+                actions.users.patchProps(updatedProps)
             }
         }
 
-        // this hack is needed to allow performing async task in useEffect
         task()
-    }, [])
+    })
 
     return (
         <TourTipRenderer
@@ -89,7 +89,7 @@ const SidebarCategoriesTourStep = (): JSX.Element | null => {
             step={SidebarTourSteps.SIDE_BAR}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='SidebarCategories'
             telemetryTag='tourPoint4a'
             placement={'right'}
