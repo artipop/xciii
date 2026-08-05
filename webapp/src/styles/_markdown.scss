@@ -1,12 +1,12 @@
 .markdown__table {
     margin: 5px 0 10px;
-    background: var(--center-channel-bg);
+    background: rgb(var(--surface-bg-rgb));
     border-collapse: collapse;
 
     th,
     td {
         padding: 6px 13px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--border-strong);
     }
 
     a {
@@ -15,6 +15,6 @@
     }
 
     tbody tr {
-        background: var(--center-channel-bg);
+        background: rgb(var(--surface-bg-rgb));
     }
 }

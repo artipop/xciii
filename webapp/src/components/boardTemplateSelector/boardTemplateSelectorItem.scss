@@ -1,6 +1,6 @@
 .BoardTemplateSelectorItem {
     cursor: pointer;
-    transition: all 100ms ease-out 0s;
+    transition: all var(--dur) var(--ease);
     font-weight: 600;
     position: relative;
     display: flex;

@@ -16,6 +16,13 @@ import mutator from './mutator'
 
 import '@mattermost/compass-icons/css/compass-icons.css'
 
+// The product's one typeface, self-hosted: the desktop build has no network,
+// and the page must look the same on every platform. The variable font carries
+// every weight the design uses in a single file per subset, and the browser
+// fetches only the subsets the page actually needs — Cyrillic among them, which
+// is why this family and not another.
+import '@fontsource-variable/jetbrains-mono'
+
 import './styles/variables.scss'
 import './styles/main.scss'
 import './styles/labels.scss'

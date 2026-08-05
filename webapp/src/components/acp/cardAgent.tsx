@@ -10,6 +10,7 @@ import {useIntl} from '../../intl'
 import Button from '../../widgets/buttons/button'
 
 import {agentBindings} from './agentReposDialog'
+import {cardAgentState, refreshCardAgent} from './cardAgentState'
 
 import './cardAgent.scss'
 
@@ -25,18 +26,6 @@ import './cardAgent.scss'
 // branch the work is on with the button that deploys it, and — while the
 // automation is running — a way to stop it.
 
-type CardAgentState = {
-    session?: {
-        sessionId?: string
-        status?: string
-        branch?: string
-        worktree?: string
-        error?: string
-    }
-    running?: {id: string}
-    resume?: {available?: boolean, branch?: string, cwd?: string}
-}
-
 export function isCardAgentAvailable(): boolean {
     return Boolean(agentBindings()?.GetCardAgent)
 }
@@ -49,7 +38,9 @@ const CardAgent = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [state, setState] = createSignal<CardAgentState>({})
+    // Shared with the case stamp above the title, so the two never disagree
+    // and the card asks Go once.
+    const state = cardAgentState(props.cardId)
     const [repos, setRepos] = createSignal<Array<{name: string}>>([])
     const [repoName, setRepoName] = createSignal('')
     const [busy, setBusy] = createSignal(false)
@@ -57,11 +48,8 @@ const CardAgent = (props: Props) => {
     const [deployStatus, setDeployStatus] = createSignal('')
 
     const refresh = async () => {
-        if (!bindings?.GetCardAgent) {
-            return
-        }
         try {
-            setState(JSON.parse(await bindings.GetCardAgent(props.cardId)))
+            await refreshCardAgent(props.cardId)
         } catch (e: any) {
             setError(String(e?.message || e))
         }

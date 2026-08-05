@@ -94,7 +94,7 @@
     }
 
     .DisclosureTriangleIcon {
-        transition: 200ms ease-in-out;
+        transition: all var(--dur) var(--ease);
         transform: rotate(0deg);
     }
 
@@ -131,7 +131,7 @@
     }
 
     .MenuWrapper {
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
 
         &:hover {
             background: rgba(var(--sidebar-text-rgb), 0.08);

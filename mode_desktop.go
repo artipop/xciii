@@ -119,7 +119,10 @@ func openTerminalWindow(wapp *application.App, info acp.TerminalInfo, url string
 		URL:    url,
 		// A terminal is dark by default and a white flash on open is what
 		// everyone remembers about a terminal in a webview.
-		BackgroundColour: application.NewRGB(24, 24, 27),
+		// The canvas of the dark theme: this is what shows between the window
+		// appearing and the page painting, and Wails cannot know which theme
+		// the page will pick. A dark seam is the quieter mistake of the two.
+		BackgroundColour: application.NewRGB(7, 11, 20),
 	})
 	return true
 }

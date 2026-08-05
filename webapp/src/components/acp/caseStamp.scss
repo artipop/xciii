@@ -1,0 +1,39 @@
+.CaseStamp {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 16px;
+    margin: 4px 0 12px;
+
+    // The machine's voice: this whole line is written by the system, and it is
+    // the one place on the card where where-and-when outranks what.
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--track-machine);
+    font-feature-settings: 'tnum' 1, 'zero' 1;
+
+    &__field {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    &__label {
+        color: rgba(var(--center-channel-color-rgb), 0.4);
+    }
+
+    &__value {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // A terminal that is open now is the only thing here worth a colour.
+    &__field--terminal &__value {
+        color: rgb(var(--sidebar-text-active-border-rgb));
+    }
+}

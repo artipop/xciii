@@ -1,215 +1,71 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import isEqual from 'lodash/isEqual'
-import color from 'color'
-
-let activeThemeName: string
-
 import {UserSettings} from './userSettings'
 
-export type Theme = {
-    mainBg: string
-    mainFg: string
-    buttonBg: string
-    buttonFg: string
-    sidebarBg: string
-    sidebarFg: string
-    sidebarTextActiveBorder: string
-    sidebarWhiteLogo: string
-
-    link: string
-    linkVisited: string
-
-    propDefault: string
-    propGray: string
-    propBrown: string
-    propOrange: string
-    propYellow: string
-    propGreen: string
-    propBlue: string
-    propPurple: string
-    propPink: string
-    propRed: string
-}
-
-export const systemThemeName = 'system-theme'
-
-export const defaultThemeName = 'default-theme'
-
-export const defaultTheme = {
-    mainBg: '255, 255, 255',
-    mainFg: '63, 67, 80',
-    buttonBg: '28, 88, 217',
-    buttonFg: '255, 255, 255',
-    sidebarBg: '30, 50, 92',
-    sidebarFg: '255, 255, 255',
-    sidebarTextActiveBorder: '93, 137, 243',
-    sidebarWhiteLogo: 'true',
-
-    link: '93, 137, 234',
-    linkVisited: '#551a8b',
-
-    propDefault: '#fff',
-    propGray: '#EDEDED',
-    propBrown: '#F7DDC3',
-    propOrange: '#ffd3c1',
-    propYellow: '#f7f0b6',
-    propGreen: '#c7eac3',
-    propBlue: '#B1D1F6',
-    propPurple: '#e6d0ff',
-    propPink: '#ffd6e9',
-    propRed: '#ffa9a9',
-}
-
-export const darkThemeName = 'dark-theme'
-
-export const darkTheme = {
-    ...defaultTheme,
-
-    mainBg: '55, 53, 47',
-    mainFg: '220, 220, 220',
-    buttonBg: '80, 170, 221',
-    buttonFg: '255, 255, 255',
-    sidebarBg: '75, 73, 67',
-    sidebarFg: '255, 255, 255',
-    sidebarTextActiveBorder: '102, 185, 167',
-    sidebarWhiteLogo: 'true',
-
-    link: '#0090ff',
-    linkVisited: 'hsla(270, 68%, 70%, 1.0)',
-
-    propDefault: 'hsla(0, 100%, 100%, 0.08)',
-    propGray: 'hsla(0, 0%, 70%, 0.4)',
-    propBrown: 'hsla(25, 60%, 40%, 0.4)',
-    propOrange: 'hsla(35, 100%, 50%, 0.4)',
-    propYellow: 'hsla(48, 100%, 70%, 0.4)',
-    propGreen: 'hsla(120, 100%, 70%, 0.4)',
-    propBlue: 'hsla(240, 100%, 70%, 0.4)',
-    propPurple: 'hsla(270, 100%, 64%, 0.4)',
-    propPink: 'hsla(310, 100%, 80%, 0.4)',
-    propRed: 'hsla(4, 100%, 70%, 0.4)',
-}
+// The palette itself lives in `styles/_tokens.scss`, both themes side by side.
+// This module only decides *which* of them applies, by putting a `data-theme`
+// attribute on the document element.
+//
+// It used to write every colour out with `setProperty`, which is why the
+// palette had two sources that disagreed — the SCSS `:root` block said one
+// thing and this file said another, and this file won. Adding a token meant
+// adding a thirty-first `setProperty` call, so the two drifted. Now there is
+// one source, and switching a theme is one attribute.
 
 export const lightThemeName = 'light-theme'
+export const darkThemeName = 'dark-theme'
+export const systemThemeName = 'system-theme'
 
-export const lightTheme = {
-    ...defaultTheme,
+// The board used to ship a fourth theme, `default-theme`, that differed from
+// `light-theme` only in the colour of the sidebar. It is gone, and the name
+// stays as an alias so a stored setting naming it still resolves.
+export const defaultThemeName = lightThemeName
 
-    mainBg: '255, 255, 255',
-    mainFg: '55, 53, 47',
-    buttonBg: '80, 170, 221',
-    buttonFg: '255, 255, 255',
-    sidebarBg: '247, 246, 243',
-    sidebarFg: '55, 53, 47',
-    sidebarTextActiveBorder: '87, 158, 255',
-    sidebarWhiteLogo: 'false',
+export type ThemeName = typeof lightThemeName | typeof darkThemeName | typeof systemThemeName
+
+const themeNames: string[] = [lightThemeName, darkThemeName, systemThemeName]
+
+let activeThemeName: ThemeName = systemThemeName
+
+function prefersDark(): boolean {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
-export function setTheme(theme: Theme | null): Theme {
-    let consolidatedTheme = defaultTheme
-    if (theme) {
-        consolidatedTheme = {...defaultTheme, ...theme}
-        UserSettings.theme = JSON.stringify(consolidatedTheme)
-    } else {
-        UserSettings.theme = ''
-        const darkThemeMq = window.matchMedia('(prefers-color-scheme: dark)')
-        if (darkThemeMq.matches) {
-            consolidatedTheme = {...defaultTheme, ...darkTheme}
-        }
-    }
-
-    setActiveThemeName(consolidatedTheme, theme)
-
-    // for personal server and desktop, the app is responsible for managing the theme,
-    // so we set all the color variables here.
-    document.documentElement.style.setProperty('--center-channel-bg-rgb', consolidatedTheme.mainBg)
-    document.documentElement.style.setProperty('--center-channel-color-rgb', consolidatedTheme.mainFg)
-    document.documentElement.style.setProperty('--button-bg-rgb', consolidatedTheme.buttonBg)
-    document.documentElement.style.setProperty('--button-color-rgb', consolidatedTheme.buttonFg)
-    document.documentElement.style.setProperty('--sidebar-bg-rgb', consolidatedTheme.sidebarBg)
-    document.documentElement.style.setProperty('--sidebar-text-rgb', consolidatedTheme.sidebarFg)
-    document.documentElement.style.setProperty('--link-color-rgb', consolidatedTheme.link)
-    document.documentElement.style.setProperty('--sidebar-text-active-border-rgb', consolidatedTheme.sidebarTextActiveBorder)
-
-    document.documentElement.style.setProperty('--sidebar-white-logo', consolidatedTheme.sidebarWhiteLogo)
-    document.documentElement.style.setProperty('--link-visited-color-rgb', consolidatedTheme.linkVisited)
-
-    document.documentElement.style.setProperty('--prop-default', consolidatedTheme.propDefault)
-    document.documentElement.style.setProperty('--prop-gray', consolidatedTheme.propGray)
-    document.documentElement.style.setProperty('--prop-brown', consolidatedTheme.propBrown)
-    document.documentElement.style.setProperty('--prop-orange', consolidatedTheme.propOrange)
-    document.documentElement.style.setProperty('--prop-yellow', consolidatedTheme.propYellow)
-    document.documentElement.style.setProperty('--prop-green', consolidatedTheme.propGreen)
-    document.documentElement.style.setProperty('--prop-blue', consolidatedTheme.propBlue)
-    document.documentElement.style.setProperty('--prop-purple', consolidatedTheme.propPurple)
-    document.documentElement.style.setProperty('--prop-pink', consolidatedTheme.propPink)
-    document.documentElement.style.setProperty('--prop-red', consolidatedTheme.propRed)
-
-    return consolidatedTheme
+// `system` is not a third palette: it resolves to one of the two at paint time.
+function apply(name: ThemeName) {
+    const dark = name === darkThemeName || (name === systemThemeName && prefersDark())
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
 }
 
-export function setMattermostTheme(theme: any): Theme {
-    if (!theme) {
-        return setTheme(defaultTheme)
-    }
-
-    document.documentElement.style.setProperty('--center-channel-bg-rgb', color(theme.centerChannelBg).rgb().array().join(', '))
-    document.documentElement.style.setProperty('--center-channel-color-rgb', color(theme.centerChannelColor).rgb().array().join(', '))
-    document.documentElement.style.setProperty('--button-bg-rgb', color(theme.buttonBg).rgb().array().join(', '))
-    document.documentElement.style.setProperty('--button-color-rgb', color(theme.buttonColor).rgb().array().join(', '))
-    document.documentElement.style.setProperty('--sidebar-bg-rgb', color(theme.sidebarBg).rgb().array().join(', '))
-    document.documentElement.style.setProperty('--sidebar-text-rgb', color(theme.sidebarText).rgb().array().join(', '))
-    document.documentElement.style.setProperty('--link-color-rgb', theme.linkColor)
-    document.documentElement.style.setProperty('--sidebar-text-active-border-rgb', color(theme.sidebarTextActiveBorder).rgb().array().join(', '))
-
-    return setTheme({
-        ...defaultTheme,
-        mainBg: color(theme.centerChannelBg).rgb().array().join(', '),
-        mainFg: color(theme.centerChannelColor).rgb().array().join(', '),
-        buttonBg: color(theme.buttonBg).rgb().array().join(', '),
-        buttonFg: color(theme.buttonColor).rgb().array().join(', '),
-        sidebarBg: color(theme.sidebarBg).rgb().array().join(', '),
-        sidebarFg: color(theme.sidebarColor || '#ffffff').rgb().array().join(', '),
-        sidebarTextActiveBorder: color(theme.sidebarTextActiveBorder).rgb().array().join(', '),
-        link: theme.linkColor,
-    })
+export function setTheme(name: ThemeName): ThemeName {
+    activeThemeName = name
+    UserSettings.theme = name
+    apply(name)
+    return name
 }
 
-function setActiveThemeName(consolidatedTheme: Theme, theme: Theme | null) {
-    if (theme === null) {
-        activeThemeName = systemThemeName
-    } else if (isEqual(consolidatedTheme, darkTheme)) {
-        activeThemeName = darkThemeName
-    } else if (isEqual(consolidatedTheme, lightTheme)) {
-        activeThemeName = lightThemeName
-    } else {
-        activeThemeName = defaultThemeName
-    }
+export function getActiveThemeName(): ThemeName {
+    return activeThemeName
 }
 
-export function loadTheme(): Theme {
-    const themeStr = UserSettings.theme
-    if (themeStr) {
-        try {
-            const theme = JSON.parse(themeStr)
-            const consolidatedTheme = setTheme(theme)
-            setActiveThemeName(consolidatedTheme, theme)
-            return consolidatedTheme
-        } catch (e) {
-            return setTheme(null)
-        }
-    } else {
-        return setTheme(null)
-    }
+// What is stored is the *name* of a theme. It used to be a JSON snapshot of
+// every colour, which would now be a blob of dead Mattermost values laid inline
+// over the tokens — so anything that is not one of our three names, including
+// every setting written before this change, is read as `system`.
+export function loadTheme(): ThemeName {
+    const stored = UserSettings.theme
+    const name = stored && themeNames.includes(stored) ? stored as ThemeName : systemThemeName
+    activeThemeName = name
+    apply(name)
+    return name
 }
 
 export function initThemes(): void {
     const darkThemeMq = window.matchMedia('(prefers-color-scheme: dark)')
     const changeHandler = () => {
-        const themeStr = UserSettings.theme
-        if (!themeStr) {
-            setTheme(null)
+        if (activeThemeName === systemThemeName) {
+            apply(systemThemeName)
         }
     }
     if (darkThemeMq.addEventListener) {
@@ -221,6 +77,52 @@ export function initThemes(): void {
     loadTheme()
 }
 
-export function getActiveThemeName(): string {
-    return activeThemeName || defaultThemeName
+// The Mattermost plugin host hands the page its own colours. Nothing in this
+// repository calls this — the desktop and server builds own their theme — but
+// the same bundle is meant to run as a plugin, where the host's palette has to
+// win over ours.
+//
+// It writes the *raw* tokens rather than the derived ones, so everything
+// `_tokens.scss` builds on top of them follows without being enumerated here.
+// Inline properties on the document element outrank the stylesheet, so the two
+// layers compose without either knowing about the other.
+export function setMattermostTheme(theme: any): void {
+    if (!theme) {
+        loadTheme()
+        return
+    }
+
+    const raw: Record<string, string> = {
+        '--canvas-rgb': rgb(theme.centerChannelBg),
+        '--surface-rgb': rgb(theme.centerChannelBg),
+        '--ink-rgb': rgb(theme.centerChannelColor),
+        '--sidebar-rgb': rgb(theme.sidebarBg),
+        '--sidebar-ink-rgb': rgb(theme.sidebarText || '#ffffff'),
+        '--accent-rgb': rgb(theme.buttonBg),
+        '--accent-ink-rgb': rgb(theme.buttonColor),
+        '--stamp-rgb': rgb(theme.sidebarTextActiveBorder),
+    }
+    for (const [name, value] of Object.entries(raw)) {
+        if (value) {
+            document.documentElement.style.setProperty(name, value)
+        }
+    }
+}
+
+// The host's colours arrive as CSS colour strings; ours are bare triples, so
+// that `rgba(var(--x), α)` works everywhere.
+function rgb(value: string | undefined): string {
+    if (!value) {
+        return ''
+    }
+    const hex = value.trim().replace('#', '')
+    if (hex.length !== 3 && hex.length !== 6) {
+        return ''
+    }
+    const full = hex.length === 3 ? hex.split('').map((c) => c + c).join('') : hex
+    const n = parseInt(full, 16)
+    if (isNaN(n)) {
+        return ''
+    }
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(', ')
 }

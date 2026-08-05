@@ -1,5 +1,5 @@
 .FileElement {
-    background: rgb(var(--center-channel-bg-rgb));
+    background: rgb(var(--surface-bg-rgb));
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     min-width: 300px;
     width: max-content;
@@ -34,7 +34,7 @@
 
     .fileElement-icon {
         font-size: 48px;
-        color: rgba(237, 82, 42, 1);
+        color: rgba(var(--center-channel-color-rgb), 0.6);
     }
 
     .fileElement-download-btn {
@@ -45,7 +45,7 @@
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            border-radius: 5px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
         }
     }
@@ -94,9 +94,9 @@
         width: 0%;
         height: 100%;
         line-height: 20px;
-        color: #fff;
+        color: rgb(var(--button-color-rgb));
         text-align: center;
-        background-color: #285ab9;
+        background-color: rgb(var(--button-bg-rgb));
     }
 
     .dialog {

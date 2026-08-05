@@ -17,7 +17,7 @@
     &__status {
         font-size: 12px;
         padding: 1px 8px;
-        border-radius: 10px;
+        border-radius: var(--radius-md);
         background: rgba(var(--center-channel-color-rgb), 0.08);
 
         &--running,
@@ -46,7 +46,7 @@
     &__branchName {
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        border-radius: 3px;
+        border-radius: var(--radius-sm);
         padding: 1px 6px;
     }
 

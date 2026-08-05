@@ -10,8 +10,8 @@
         padding: 3px 10px;
         background-color: rgb(var(--button-bg-rgb));
         color: rgb(var(--button-color-rgb));
-        border-radius: 5px 0 0 5px;
-        transition: background 100ms ease-out 0s;
+        border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+        transition: background var(--dur) var(--ease);
         height: 100%;
 
         &:hover {
@@ -25,8 +25,8 @@
         display: flex;
         padding: 0 3px;
         align-items: center;
-        border-radius: 0 5px 5px 0;
-        transition: background 100ms ease-out 0s;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        transition: background var(--dur) var(--ease);
         height: 100%;
 
         &:hover {

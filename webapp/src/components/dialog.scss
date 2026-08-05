@@ -35,7 +35,10 @@
         position: fixed;
         width: 100%;
         height: 100%;
-        background-color: rgba(var(--center-channel-color-rgb), 0.5);
+        // A wash of the darkest ink in the theme, not of the text colour: on the
+        // paper theme the text colour is near-black and this read as a grey
+        // sheet, on the screen theme it was a milky one.
+        background-color: var(--backdrop);
     }
 
     .wrapper {
@@ -50,9 +53,8 @@
         position: relative;
         display: flex;
         flex-direction: column;
-        background-color: rgb(var(--center-channel-bg-rgb));
-        box-shadow: rgba(var(--center-channel-color-rgb), 0.1) 0 0 0 1px,
-            rgba(var(--center-channel-color-rgb), 0.1) 0 2px 4px;
+        background-color: rgb(var(--surface-bg-rgb));
+        box-shadow: 0 0 0 1px var(--border-subtle), var(--elevation-5);
         border-radius: var(--modal-rad);
         padding: 0;
         -webkit-overflow-scrolling: touch;
@@ -75,14 +77,14 @@
         }
 
         > .banner {
-            background-color: rgba(230, 220, 192, 0.9);
+            background-color: var(--prop-yellow);
             text-align: center;
             padding: 10px;
-            color: #222;
+            color: rgb(var(--center-channel-color-rgb));
         }
 
         > .banner.error {
-            background-color: rgba(230, 192, 192, 0.9);
+            background-color: var(--prop-red);
         }
 
         .IconButton {

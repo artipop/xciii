@@ -13,7 +13,7 @@
         @include z-index(sub-menu-option-sub-menu);
         position: absolute;
         min-width: 180px;
-        background-color: rgb(var(--center-channel-bg-rgb));
+        background-color: rgb(var(--surface-bg-rgb));
         color: rgb(var(--center-channel-color-rgb));
         margin: 0 !important;
 

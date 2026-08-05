@@ -18,7 +18,7 @@
         align-items: center;
         justify-content: center;
         padding: 10px;
-        color: #fff;
+        color: rgb(var(--button-color-rgb));
 
         .CompassIcon {
             font-size: 18px;
@@ -27,12 +27,12 @@
 
         .Button {
             margin-left: 8px;
-            background-color: rgba(255, 255, 255, 0.16);
+            background-color: rgba(var(--button-color-rgb), 0.16);
         }
     }
 
     .IconButton {
         float: right;
-        color: #fff;
+        color: rgb(var(--button-color-rgb));
     }
 }

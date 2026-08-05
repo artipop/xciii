@@ -18,7 +18,7 @@
         margin-bottom: 10px;
 
         &.selected {
-            background-color: rgba(90, 200, 255, 0.2);
+            background-color: rgba(var(--sidebar-text-active-border-rgb), 0.16);
         }
 
         &:hover {

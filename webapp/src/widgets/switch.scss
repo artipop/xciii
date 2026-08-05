@@ -5,10 +5,10 @@
     box-sizing: content-box;
     height: 14px;
     width: 26px;
-    border-radius: 44px;
+    border-radius: var(--radius-pill);
     padding: 2px;
     background-color: rgba(var(--center-channel-color-rgb), 0.24);
-    transition: background 200ms ease 0s, box-shadow 200ms ease 0s;
+    transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 
     &:not(.readonly) {
         cursor: pointer;
@@ -25,9 +25,9 @@
     .octo-switch-inner {
         width: 14px;
         height: 14px;
-        border-radius: 44px;
-        background-color: rgb(var(--center-channel-bg-rgb));
-        transition: transform 200ms ease-out 0s, background 200ms ease-out 0s;
+        border-radius: var(--radius-pill);
+        background-color: rgb(var(--surface-bg-rgb));
+        transition: transform var(--dur) var(--ease), background var(--dur) var(--ease);
         transform: translateX(0) translateY(0);
     }
 

@@ -29,10 +29,10 @@ html {
 
     padding: 0;
     margin: 0;
-    font-family: 'Open Sans', sans-serif;
-    /* -webkit-font-smoothing: auto; */
-    font-size: 14px;
-    line-height: 24px;
+    font-family: var(--font-prose);
+    -webkit-font-smoothing: antialiased;
+    font-size: var(--text-body);
+    line-height: var(--line-body);
 
     * {
         box-sizing: border-box;
@@ -51,12 +51,23 @@ html {
         font-size: 100%; /* Normalize */
     }
 
+    // Most fields in this product are not forms, they are values you type over:
+    // a card's title, a column's name, a property. They read as text until you
+    // reach for them, and the few that really are form fields draw their own
+    // border. Two reasons this is a tint and never the canvas colour: it works
+    // on whatever is behind it — board, card, dialog — and painting it the
+    // canvas colour turned every field on a raised surface into a dark hole.
     input,
     textarea {
-        background: rgb(var(--center-channel-bg-rgb));
+        background: transparent;
         color: rgb(var(--center-channel-color-rgb));
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
         user-select: text;
+
+        &:hover,
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.06);
+        }
     }
 
     a {
@@ -108,7 +119,7 @@ html {
     /* Main app */
 
     .dragover {
-        background-color: rgba(128, 192, 255, 0.4);
+        background-color: rgba(var(--sidebar-text-active-border-rgb), 0.4);
     }
 
     .octo-spacer {
@@ -186,9 +197,8 @@ html {
 
     .octo-propertyvalue.Editable.active,
     .octo-table-cell .Editable.active {
-        border-radius: 3px;
-        box-shadow: rgba(15, 15, 15, 0.05) 0 0 0 1px,
-            rgba(15, 15, 15, 0.1) 0 3px 6px, rgba(15, 15, 15, 0.2) 0 9px 24px;
+        border-radius: var(--radius-sm);
+        box-shadow: 0 0 0 1px var(--border-subtle), var(--elevation-4);
     }
 
     .octo-block img {

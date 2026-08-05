@@ -86,7 +86,7 @@
 
     .NotificationBox {
         .AlertIcon {
-            color: #ffbc1f;
+            color: rgb(var(--away-indicator-rgb));
             font-size: 24px;
         }
     }

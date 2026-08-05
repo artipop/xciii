@@ -45,13 +45,13 @@
         input {
             height: 48px;
             font-size: 16px;
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            background: var(--center-channel-bg);
+            background: rgb(var(--surface-bg-rgb));
             color: var(--center-channel-color);
             padding: 0 16px;
             flex: 1;
-            transition: border 0.15s ease-in;
+            transition: border var(--dur) var(--ease);
 
             &:focus {
                 border-color: var(--button-bg);

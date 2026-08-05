@@ -4,6 +4,6 @@
     flex-shrink: 0;
 
     &:hover {
-        background-color: rgba(90, 192, 255, 0.7);
+        background-color: rgba(var(--sidebar-text-active-border-rgb), 0.7);
     }
 }

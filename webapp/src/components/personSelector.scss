@@ -1,7 +1,7 @@
 .Person {
     display: flex;
     align-items: center;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     flex-wrap: wrap;
     gap: 8px;
 
@@ -16,7 +16,7 @@
         align-items: center;
 
         img {
-            border-radius: 50px;
+            border-radius: var(--radius-pill);
             width: 24px;
             height: 24px;
             margin-right: 6px;
@@ -24,10 +24,10 @@
     }
 
     .react-select__menu {
-        background: rgba(var(--center-channel-bg-rgb), 1);
+        background: rgb(var(--surface-bg-rgb));
         box-shadow: var(--elevation-4);
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
     }
 
     .react-select__single-value {
@@ -47,7 +47,7 @@
 
         .react-select__multi-value {
             background: rgba(var(--center-channel-color-rgb), 0.08);
-            border-radius: 24px;
+            border-radius: var(--radius-pill);
             display: inline-flex;
             color: rgb(var(--center-channel-color-rgb));
             margin: 0;
@@ -64,7 +64,7 @@
         font-size: 18px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         margin: 6px;
-        border-radius: 100%;
+        border-radius: var(--radius-round);
         margin-left: 0;
         padding: 0;
         width: 20px;

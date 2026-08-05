@@ -2,8 +2,10 @@
 
 .GalleryCard {
     position: relative;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.09);
-    border-radius: var(--default-rad);
+    background: rgb(var(--surface-bg-rgb));
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    box-shadow: var(--elevation-1);
     width: 280px;
     display: flex;
     flex-direction: column;
@@ -15,7 +17,7 @@
     transform: translate3d(0, 0, 0);
 
     &.selected {
-        background-color: rgba(90, 200, 255, 0.2);
+        box-shadow: 0 0 0 1px rgb(var(--sidebar-text-active-border-rgb)), var(--elevation-3);
     }
 
     &:hover {
@@ -28,7 +30,7 @@
 
     .optionsMenu {
         @include z-index(gallery-options-menu);
-        background-color: rgb(var(--center-channel-bg-rgb));
+        background-color: rgb(var(--surface-bg-rgb));
         border-radius: var(--default-rad);
         display: none;
         position: absolute;

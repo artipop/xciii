@@ -1,7 +1,7 @@
 .EmojiPicker {
     .emoji-mart {
         color: rgb(var(--center-channel-color-rgb));
-        background: rgb(var(--center-channel-bg-rgb));
+        background: rgb(var(--surface-bg-rgb));
         border-color: rgba(var(--center-channel-color-rgb), 0.16);
 
         .emoji-mart-bar {
@@ -14,7 +14,7 @@
         }
 
         .emoji-mart-category-label span {
-            background: rgb(var(--center-channel-bg-rgb));
+            background: rgb(var(--surface-bg-rgb));
         }
 
         .emoji-mart-search-icon svg {

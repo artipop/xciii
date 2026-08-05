@@ -6,14 +6,11 @@ import {FormattedMessage, useIntl} from '../../intl'
 
 import {Archiver} from '../../archiver'
 import {
-    darkTheme,
     darkThemeName,
-    defaultTheme,
-    defaultThemeName,
-    lightTheme,
     lightThemeName,
-    setTheme, systemThemeName,
-    Theme,
+    setTheme,
+    systemThemeName,
+    ThemeName,
 } from '../../theme'
 import Menu from '../../widgets/menu'
 import MenuWrapper from '../../widgets/menuWrapper'
@@ -41,8 +38,8 @@ const SidebarSettingsMenu = (props: Props) => {
     // active theme can go out of sync
     const [themeName, setThemeName] = createSignal(props.activeTheme)
 
-    const updateTheme = (theme: Theme | null, name: string) => {
-        setTheme(theme)
+    const updateTheme = (name: ThemeName) => {
+        setTheme(name)
         setThemeName(name)
     }
 
@@ -52,27 +49,10 @@ const SidebarSettingsMenu = (props: Props) => {
         setRandomIcons(!randomIcons())
     }
 
-    const themes = [
-        {
-            id: defaultThemeName,
-            displayName: 'Default theme',
-            theme: defaultTheme,
-        },
-        {
-            id: darkThemeName,
-            displayName: 'Dark theme',
-            theme: darkTheme,
-        },
-        {
-            id: lightThemeName,
-            displayName: 'Light theme',
-            theme: lightTheme,
-        },
-        {
-            id: systemThemeName,
-            displayName: 'System theme',
-            theme: null,
-        },
+    const themes: Array<{id: ThemeName, displayName: string}> = [
+        {id: lightThemeName, displayName: 'Light theme'},
+        {id: darkThemeName, displayName: 'Dark theme'},
+        {id: systemThemeName, displayName: 'System theme'},
     ]
 
     return (
@@ -142,7 +122,7 @@ const SidebarSettingsMenu = (props: Props) => {
                                     <Menu.Text
                                         id={theme.id}
                                         name={intl.formatMessage({id: `Sidebar.${theme.id}`, defaultMessage: theme.displayName})}
-                                        onClick={async () => updateTheme(theme.theme, theme.id)}
+                                        onClick={async () => updateTheme(theme.id)}
                                         rightIcon={themeName() === theme.id ? <CheckIcon/> : null}
                                     />
                                 )}

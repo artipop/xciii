@@ -1,6 +1,6 @@
 .Button {
     --danger-button-bg-rgb: 247, 67, 67;
-    font-family: 'Open Sans', sans-serif;
+    font-family: var(--font-mono);
     display: flex;
     flex: 0 0 auto;
     align-items: center;
@@ -12,7 +12,7 @@
     overflow: hidden;
     background: transparent;
     border: 0;
-    transition: all 100ms ease-out 0s;
+    transition: all var(--dur) var(--ease);
     color: inherit;
     height: 32px;
     padding: 0 10px;
@@ -42,7 +42,7 @@
 
     &.filled,
     &.emphasis--primary {
-        color: #fff;
+        color: rgb(var(--button-color-rgb));
         background-color: rgb(var(--button-bg-rgb));
         padding: 6px 12px;
 

@@ -87,12 +87,25 @@ const TerminalPage = (): JSX.Element => {
                 return
             }
 
+            // xterm paints on a canvas, so it cannot read CSS: the family and
+            // the two colours have to be handed to it as strings. They are
+            // taken off the page rather than written here, so the emulator and
+            // the chrome around it can never drift apart.
+            const style = getComputedStyle(host)
+            const colour = (token: string, fallback: string) => {
+                const triple = style.getPropertyValue(token).trim()
+                return triple ? `rgb(${triple})` : fallback
+            }
             terminal = new Terminal({
-                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                fontFamily: style.getPropertyValue('--font-mono').trim() ||
+                    'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
                 fontSize: 13,
                 cursorBlink: true,
                 convertEol: false,
-                theme: {background: '#18181b', foreground: '#e4e4e7'},
+                theme: {
+                    background: colour('--canvas-rgb', '#070b14'),
+                    foreground: colour('--ink-rgb', '#dee8f2'),
+                },
             })
             fit = new FitAddon()
             terminal.loadAddon(fit)

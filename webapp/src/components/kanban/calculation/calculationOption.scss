@@ -46,11 +46,11 @@
         @include z-index(calculation-dropdown);
         position: fixed;
         overflow: auto;
-        background: rgb(var(--center-channel-bg-rgb));
+        background: rgb(var(--surface-bg-rgb));
         border: 0;
         box-shadow: 0 0 0 1px hsla(0, 0%, 0%, 0.1), 0 4px 11px hsla(0, 0%, 0%, 0.1);
         padding: 8px 0;
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
     }
 
     .CompassIcon.icon-chevron-right {

@@ -17,7 +17,7 @@
     font-size: 16px;
     font-weight: 600;
     vertical-align: middle;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
 
     &.flashIn {
         visibility: visible;
@@ -27,6 +27,6 @@
     &.flashOut {
         visibility: hidden;
         opacity: 0;
-        transition: visibility 0s linear 200ms, opacity ease-in 200ms;
+        transition: visibility 0s var(--ease) var(--dur), opacity var(--dur) var(--ease);
     }
 }

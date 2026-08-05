@@ -3,8 +3,8 @@
         display: flex;
         line-height: 1.1;
         margin-left: 0;
-        color: #000;
-        border-radius: 5px;
+        color: rgb(var(--center-channel-color-rgb));
+        border-radius: var(--radius-sm);
         align-items: center;
         justify-content: center;
 

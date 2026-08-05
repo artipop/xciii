@@ -1,17 +1,120 @@
+// The rule the whole product is drawn around:
+//
+//   the machine speaks in tracked-out caps — column names, property names,
+//   statuses, counts, timestamps, branches, buttons, menus;
+//   a person speaks in prose — a card's title, its description, comments.
+//
+// Every piece of text on screen now answers "who wrote this", and the answer is
+// visible. One typeface carries both: the split is case and tracking, not a
+// second family. `--font-prose` in `_tokens.scss` is the switch if that ever
+// needs to become a real second family.
+
+@mixin machine {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--track-machine);
+    font-feature-settings: 'tnum' 1, 'zero' 1;
+}
+
+// Deliberately no font-size: prose inherits the body size, and the few places
+// that are larger — a card's title at 32px — set their own. Putting a size here
+// made the mixin fight every component that had one.
+@mixin prose {
+    font-family: var(--font-prose);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: var(--track-prose);
+}
+
+// Numbers the machine reports are read, not scanned as labels: monospace and
+// tabular, but never shouted.
+@mixin figures {
+    font-family: var(--font-mono);
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-feature-settings: 'tnum' 1, 'zero' 1;
+}
+
+.t-machine {
+    @include machine;
+}
+
+.t-prose {
+    @include prose;
+}
+
+// ---------------------------------------------------------------------------
+// Where the rule applies to what is already on screen. New components should
+// reach for `.t-machine` / `.t-prose` instead of being added to these lists.
+// ---------------------------------------------------------------------------
+
+// The machine: navigation, controls, and everything that names a thing.
+.ViewHeader,
+.ViewHeader .Button,
+.octo-propertyname,
+.Label,
+.Label-text,
+.octo-board-header-cell,
+.MenuOption,
+.menu-name,
+.Button,
+.octo-sidebar-header,
+.add-board,
+.TableHeaders,
+.octo-table-footer,
+.comment-date,
+.Calendar__weekday {
+    @include machine;
+}
+
+// Counts, calculations and table values: the same family, without the shout.
+.KanbanCalculation,
+.octo-table-cell .octo-propertyvalue {
+    @include figures;
+}
+
+// A person: the title they typed, the description they wrote, the comment they
+// left. This block comes after the machine block on purpose — a card title
+// lives inside chrome, and prose has to win.
+.KanbanCard .octo-icontitle,
+.CardDetail .octo-icontitle,
+.Editable.title,
+.octo-block,
+.comment-text,
+.CommentsList {
+    @include prose;
+}
+
+// A board's name is the name of a case: wide, light, spread right out. This is
+// the one place the type is allowed to be large.
+.ViewTitle .Editable.title,
+.ViewTitle .title {
+    font-family: var(--font-mono);
+    font-size: var(--text-h2);
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: var(--track-title);
+}
+
 h1,
 h2,
 h3,
 .title {
-    font-family: Metropolis, sans-serif;
+    font-family: var(--font-mono);
     font-weight: 600;
+    letter-spacing: var(--track-prose);
 }
 
 .font-semibold {
     font-weight: 600;
 }
 
+// The size scale. Every one of these is a token; there used to be fourteen
+// hard-coded sizes, two of them (14.4px, 31.2px) inherited by accident.
 .text-heading8 {
-    font-size: 32px;
+    font-size: var(--text-h1);
     font-weight: 600;
 }
 
@@ -31,7 +134,7 @@ h3,
 }
 
 .text-heading4 {
-    font-size: 20px;
+    font-size: var(--text-h3);
     font-weight: 600;
 }
 
@@ -41,67 +144,24 @@ h3,
 }
 
 .text-heading2 {
-    font-size: 16px;
+    font-size: var(--text-lead);
     font-weight: 600;
 }
 
 .text-heading1 {
-    font-size: 14px;
+    font-size: var(--text-body);
     font-weight: 600;
 }
 
 .text-base {
-    font-size: 16px;
+    font-size: var(--text-lead);
 }
 
 .text-75 {
-    font-size: 12px;
-    line-height: 16px;
+    font-size: var(--text-small);
+    line-height: var(--line-body);
 }
 
 .text-danger {
     color: var(--error-text);
-}
-
-// Metropolis font definitions
-@font-face {
-    font-family: 'Metropolis';
-    font-style: normal;
-    font-weight: 600;
-    src: url('../fonts/metropolis/Metropolis-SemiBold.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Metropolis';
-    font-style: italic;
-    font-weight: 600;
-    src: url('../fonts/metropolis/Metropolis-SemiBoldItalic.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Metropolis';
-    font-style: normal;
-    font-weight: 400;
-    src: url('../fonts/metropolis/Metropolis-Regular.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Metropolis';
-    font-style: italic;
-    font-weight: 400;
-    src: url('../fonts/metropolis/Metropolis-RegularItalic.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Metropolis';
-    font-style: normal;
-    font-weight: 300;
-    src: url('../fonts/metropolis/Metropolis-Light.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Metropolis';
-    font-style: italic;
-    font-weight: 300;
-    src: url('../fonts/metropolis/Metropolis-LightItalic.woff2') format('woff2');
 }

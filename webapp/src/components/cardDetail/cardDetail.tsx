@@ -35,6 +35,7 @@ import type {AppStore} from '../../store'
 
 import CardSkeleton from '../../svg/card-skeleton'
 import CardAgent, {isCardAgentAvailable} from '../acp/cardAgent'
+import CaseStamp from '../acp/caseStamp'
 import FlowStrip, {isFlowStripAvailable} from '../acp/flowStrip'
 
 import CommentsList from './commentsList'
@@ -230,6 +231,11 @@ const CardDetail = (props: Props): JSX.Element => {
                     readonly={props.readonly || !canEditBoardCards() || limited()}
                     spellCheck={true}
                 />
+
+                {/* Where the work on this card lives, stamped under its name. */}
+                <Show when={!limited() && isCardAgentAvailable()}>
+                    <CaseStamp cardId={props.card.id}/>
+                </Show>
 
                 {/* Hidden (limited) card copy + CTA */}
 

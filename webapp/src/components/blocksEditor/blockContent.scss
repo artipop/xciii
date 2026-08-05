@@ -2,11 +2,11 @@
     display: flex;
 
     &.over-up {
-        border-top: 1px solid rgba(128, 192, 255, 0.4);
+        border-top: 1px solid rgba(var(--sidebar-text-active-border-rgb), 0.4);
     }
 
     &.over-down {
-        border-bottom: 1px solid rgba(128, 192, 255, 0.4);
+        border-bottom: 1px solid rgba(var(--sidebar-text-active-border-rgb), 0.4);
     }
 
     &:hover {
@@ -20,7 +20,7 @@
     }
 
     .action {
-        transition: opacity 0.3s;
+        transition: opacity var(--dur) var(--ease);
         opacity: 0;
         margin: 5px;
     }

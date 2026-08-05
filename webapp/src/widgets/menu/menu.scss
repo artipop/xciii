@@ -5,10 +5,10 @@
     display: flex;
     flex-direction: column;
     position: absolute;
-    background-color: rgb(var(--center-channel-bg-rgb));
+    background-color: rgb(var(--surface-bg-rgb));
     color: rgb(var(--center-channel-color-rgb));
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: var(--default-rad);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
     box-shadow: var(--elevation-4);
     max-width: 320px;
     cursor: default;
@@ -196,7 +196,7 @@
 
         .menu-options {
             align-items: center;
-            border-radius: 10px;
+            border-radius: var(--radius-md);
             overflow: hidden;
 
             flex: 0 0 auto;
@@ -205,7 +205,7 @@
                 min-height: 44px;
                 width: 100%;
                 padding: 0 20px;
-                background-color: rgb(var(--center-channel-bg-rgb));
+                background-color: rgb(var(--surface-bg-rgb));
 
                 > * {
                     flex: 0 0 auto;
