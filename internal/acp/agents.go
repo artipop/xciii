@@ -9,7 +9,7 @@ import (
 // Agent registry: named coding agents (claude/codex with their own prompt,
 // model and env), edited from the desktop UI and persisted into the config
 // file. Cards are mapped to an agent when one of their select option names
-// (the "Agent" field) matches an entry name — mirroring the repo registry.
+// (the "Agent" field) matches an entry name — mirroring the project registry.
 
 // Agents returns a snapshot of the registry.
 func (m *Manager) Agents() []AgentEntry {

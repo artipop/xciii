@@ -59,7 +59,7 @@
 
     input {
         font-size: 12px;
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
         padding: 0 12px 0 32px;
         height: 32px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);

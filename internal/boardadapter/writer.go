@@ -33,11 +33,16 @@ func (w *Writer) AddComment(ctx context.Context, cardID, text string) error {
 	}
 	now := utils.GetMillis()
 	block := &model.Block{
-		ID:        utils.NewID(utils.IDTypeBlock),
-		BoardID:   card.BoardID,
-		ParentID:  cardID,
-		Type:      model.TypeComment,
-		Title:     text,
+		ID:       utils.NewID(utils.IDTypeBlock),
+		BoardID:  card.BoardID,
+		ParentID: cardID,
+		Type:     model.TypeComment,
+		Title:    text,
+		// A session's report and a person's comment are both written by the
+		// single user this app runs as, so the author cannot tell them apart.
+		// The card draws them differently — one is a log entry, the other is
+		// somebody talking — and this is what it reads to know which.
+		Fields:    map[string]any{"agent": true},
 		CreatedBy: model.SingleUser,
 		CreateAt:  now,
 		UpdateAt:  now,

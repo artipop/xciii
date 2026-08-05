@@ -27,10 +27,10 @@
         position: relative;
         padding: 18px 24px 24px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        background: rgb(var(--center-channel-bg-rgb));
-        border-radius: 4px;
+        background: rgb(var(--surface-bg-rgb));
+        border-radius: var(--radius-sm);
         color: var(--center-channel-color-rgb);
-        filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.12));
+        filter: drop-shadow(var(--elevation-4));
     }
 
     &__arrow {
@@ -38,7 +38,7 @@
         width: 12px;
         height: 12px;
         border: 0 solid rgba(var(--center-channel-color-rgb), 0.16);
-        background: rgb(var(--center-channel-bg-rgb));
+        background: rgb(var(--surface-bg-rgb));
         transform-origin: center;
     }
 
@@ -179,7 +179,7 @@
 
         img {
             width: 100%;
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
             object-fit: cover;
         }
     }
@@ -202,7 +202,7 @@
         align-items: center;
         padding: 10px 16px;
         border: unset;
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
         font-size: 12px;
         font-weight: 600;
         line-height: 12px;
@@ -240,7 +240,7 @@
     &__cancel-btn {
         margin-right: 4px;
         background: rgba(var(--button-bg-rgb), 0.08);
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
         color: var(--button-bg);
         text-decoration: none;
 
@@ -276,7 +276,7 @@
         justify-content: center;
         margin-right: 4px;
         background: transparent;
-        border-radius: 50%;
+        border-radius: var(--radius-round);
 
         &:last-child {
             margin-right: 0;
@@ -294,7 +294,7 @@
         width: 6px;
         height: 6px;
         background: rgba(var(--button-bg-rgb), 0.32);
-        border-radius: 6px;
+        border-radius: var(--radius-md);
 
         &.active {
             background: rgba(var(--button-bg-rgb), 1);
@@ -369,8 +369,8 @@
     width: 100%;
     height: 100%;
     background: transparent;
-    border-radius: 4px;
-    box-shadow: rgb(33 33 33 / 50%) 0 0 0 5000px;
+    border-radius: var(--radius-sm);
+    box-shadow: rgba(var(--shadow-rgb), 0.5) 0 0 0 5000px;
 }
 
 .tutorial-tour-tip__btn {

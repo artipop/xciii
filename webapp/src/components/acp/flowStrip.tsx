@@ -7,7 +7,7 @@ import {For, Show, createSignal, onCleanup, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 
 import './flowStrip.scss'
 

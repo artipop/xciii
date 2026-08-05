@@ -1,0 +1,238 @@
+// The whole design language of XCIII, both themes, side by side.
+//
+// The product is a dossier: a card opens a case, an agent goes into the field —
+// a worktree, a branch, one turn — and files a report. Two themes say that two
+// ways rather than inverting each other: dark is the screen, light is the paper
+// the screen is about.
+//
+// Read this file top to bottom and you have seen every colour in the product.
+// Two rules keep it that way:
+//
+//   1. A theme block below declares raw values only. Everything derived lives in
+//      the last block, which contains no colour at all — so a colour experiment
+//      is a two-line edit inside one theme, not a sweep through the file.
+//   2. Nothing outside this file may name a colour. `tokens.test.ts` checks the
+//      contrast of what is here; a hex elsewhere is invisible to it.
+
+:root {
+    // ---------------------------------------------------------------------
+    // Light — the paper. Warm off-white, typewriter ink, a red stamp.
+    // ---------------------------------------------------------------------
+    --canvas-rgb: 240, 237, 229;
+    --surface-rgb: 250, 248, 244;
+
+    // Every dark value here is mixed from the paper, never borrowed from the
+    // dark theme. They were all blue-blacks left over from when the system was
+    // navy, and against a warm off-white a hue that opposes it reads as cold —
+    // the ink most of all, since it is most of what you look at.
+    --ink-rgb: 22, 20, 16;
+    --sidebar-rgb: 28, 26, 22;
+    --sidebar-ink-rgb: 240, 237, 229;
+
+    // The accent and the stamp are the two lines a colour experiment touches.
+    // On paper the accent is the print, which is the same black the navigation
+    // is made of: one ink, used in two places.
+    --accent-rgb: 28, 26, 22;
+    --accent-ink-rgb: 240, 237, 229;
+    --stamp-rgb: 179, 38, 30;
+
+    --danger-rgb: 179, 38, 30;
+    --warning-rgb: 168, 112, 20;
+    --success-rgb: 27, 110, 78;
+    --visited-rgb: 109, 74, 199;
+
+    // Label colours are opaque values, not alpha over the canvas: alpha over a
+    // tinted background is what made the old dark labels look like mud.
+    --prop-default: #fff;
+    --prop-gray: #e4e0d6;
+    --prop-brown: #e6d6c2;
+    --prop-orange: #f2d9c0;
+    --prop-yellow: #efe6bd;
+    --prop-green: #d5e6d0;
+    --prop-blue: #d4e0ee;
+    --prop-purple: #ded6ee;
+    --prop-pink: #eed6e0;
+    --prop-red: #eed3cf;
+
+    // On paper the shadow is a real one; on screen (below) depth is carried by
+    // the surface being lighter than the canvas, and shadows nearly vanish.
+    --shadow-rgb: 28, 26, 22;
+    --shadow-1: 0 1px 0 rgba(var(--shadow-rgb), 0.06);
+    --shadow-2: 0 2px 6px -2px rgba(var(--shadow-rgb), 0.16);
+    --shadow-3: 0 16px 48px -12px rgba(var(--shadow-rgb), 0.32);
+    --backdrop: rgba(28, 26, 22, 0.44);
+}
+
+:root[data-theme='dark'] {
+    // ---------------------------------------------------------------------
+    // Dark — the screen. Black and grey with no cast at all, and one amber.
+    //
+    // Two tints were tried and both were wrong for the same reason. Navy put
+    // the sidebar and the canvas in an argument, one reading as black while
+    // everything else went blue. A green cast was truer to a tube but tinted
+    // ten label colours it had no business touching. A neutral ground makes
+    // the accent the only thing on screen carrying a hue, which is what an
+    // accent is for.
+    //
+    // Amber rather than green for it, though green would be the more literal
+    // tube: green already means "done" in the columns and the flows, and an
+    // accent that also reads as a status is a collision nobody wins.
+    //
+    // The surface is the terminal's own black, so a card and the console the
+    // agent runs in are the same material.
+    // ---------------------------------------------------------------------
+    --canvas-rgb: 12, 12, 14;
+    --surface-rgb: 24, 24, 27;
+    --ink-rgb: 233, 233, 236;
+    --sidebar-rgb: 8, 8, 10;
+    --sidebar-ink-rgb: 233, 233, 236;
+
+    // The same red the paper theme stamps with, so both themes make one mark.
+    --accent-rgb: 226, 66, 52;
+    // Dark text again, for the same reason as the amber before it and against
+    // the instinct: white on this red is 3.7:1 and fails, and the red that does
+    // carry white — around #C62828 — is only 3.5:1 against the canvas, so the
+    // button sinks into the board. Bright accent, dark ink, both readable.
+    --accent-ink-rgb: 8, 8, 10;
+    --stamp-rgb: 226, 66, 52;
+
+    // Danger has to stay apart from an accent that is now red, so it moves
+    // toward pink — far enough that a failed field is not just the accent
+    // again, close enough that it still reads as a warning.
+    --danger-rgb: 255, 140, 160;
+    // Amber keeps "attention" for itself now that the accent has left it.
+    --warning-rgb: 255, 180, 76;
+    --success-rgb: 61, 184, 135;
+    --visited-rgb: 176, 156, 255;
+
+    --prop-default: #1c1c20;
+    --prop-gray: #2a2a2e;
+    --prop-brown: #37291d;
+    --prop-orange: #432c19;
+    --prop-yellow: #3e3618;
+    --prop-green: #16321f;
+    --prop-blue: #16293f;
+    --prop-purple: #292148;
+    --prop-pink: #3d1e33;
+    --prop-red: #401f22;
+
+    --shadow-rgb: 0, 0, 0;
+    --shadow-1: none;
+    --shadow-2: 0 2px 8px -2px rgba(var(--shadow-rgb), 0.5);
+    --shadow-3: 0 24px 64px -16px rgba(var(--shadow-rgb), 0.7);
+    --backdrop: rgba(0, 0, 0, 0.66);
+}
+
+:root {
+    // ---------------------------------------------------------------------
+    // Derived. No colour below this line — only names for the ones above.
+    //
+    // The `--center-channel-*`, `--button-*` and `--sidebar-*` names are the
+    // board's own vocabulary, used ~500 times across the webapp and by the
+    // Mattermost plugin host. They stay, pointed at ours.
+    // ---------------------------------------------------------------------
+    --center-channel-bg-rgb: var(--canvas-rgb);
+    --center-channel-color-rgb: var(--ink-rgb);
+    --surface-bg-rgb: var(--surface-rgb);
+    --sidebar-bg-rgb: var(--sidebar-rgb);
+    --sidebar-text-rgb: var(--sidebar-ink-rgb);
+
+    --button-bg-rgb: var(--accent-rgb);
+    --button-color-rgb: var(--accent-ink-rgb);
+    --button-text-rgb: var(--accent-ink-rgb);
+    --link-color-rgb: var(--accent-rgb);
+    --link-visited-color-rgb: var(--visited-rgb);
+    --sidebar-text-active-border-rgb: var(--stamp-rgb);
+
+    --error-text-rgb: var(--danger-rgb);
+    --button-danger-bg-rgb: var(--danger-rgb);
+    --button-danger-color-rgb: var(--accent-ink-rgb);
+    --online-indicator-rgb: var(--success-rgb);
+    --dnd-indicator-rgb: var(--danger-rgb);
+    --away-indicator-rgb: var(--warning-rgb);
+
+    // Borders. Two weights, both alpha over the ink, so they follow the theme.
+    --border-subtle: rgba(var(--ink-rgb), 0.1);
+    --border-strong: rgba(var(--ink-rgb), 0.2);
+
+    // ---- The aliases the webapp already asks for. ----
+    //
+    // These are read in ~30 rules (searchDialog, createCategory, dateFilter,
+    // tutorial_tour_tip, …) and were never defined anywhere: they resolved to
+    // the empty string, and every rule using them silently did nothing. The
+    // Mattermost plugin host defines them, which is why nobody noticed.
+    //
+    // `--body-color` is the odd one out: it is only ever used inside
+    // `rgba(var(--body-color), α)`, so it is a triple, not a colour.
+    --center-channel-bg: rgb(var(--center-channel-bg-rgb));
+    --center-channel-color: rgb(var(--center-channel-color-rgb));
+    --body-color: var(--center-channel-color-rgb);
+    --sidebar-text: rgb(var(--sidebar-text-rgb));
+    --sidebar-text-active-border: rgb(var(--sidebar-text-active-border-rgb));
+    --button-bg: rgb(var(--button-bg-rgb));
+    --button-color: rgb(var(--button-color-rgb));
+    --link-color: rgb(var(--link-color-rgb));
+    --error-text: rgb(var(--error-text-rgb));
+    --online-indicator: rgb(var(--online-indicator-rgb));
+    --dnd-indicator: rgb(var(--dnd-indicator-rgb));
+
+    // ---------------------------------------------------------------------
+    // Type. Three voices, because a dossier has three.
+    //
+    //   label — how the system NAMES a thing: caps, spread right out. This is
+    //           the title-card voice, and it is proportional: the even rhythm
+    //           comes from the tracking, not from a fixed advance width.
+    //           Monospace here would be the same rhythm twice over, and it
+    //           costs a third of the line in Russian.
+    //   data  — what the system MEASURED: branches, paths, times, counts,
+    //           code, and the terminal, which is a real tty and has no choice.
+    //           This is where a fixed advance actually buys something.
+    //   prose — a person: a card's title, its description, comments.
+    // ---------------------------------------------------------------------
+    --font-label: 'Roboto Condensed Variable', sans-serif;
+    --font-prose: var(--font-label);
+    --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --track-label: 0.16em;   // a label is spread out
+    --track-prose: 0;        // a person is not
+    --track-title: 0.3em;    // a board name is a case name
+
+    --text-micro: 11px;
+    --text-small: 12px;
+    --text-body: 14px;
+    --text-lead: 16px;
+    --text-h3: 20px;
+    --text-h2: 24px;
+    --text-h1: 32px;
+
+    --line-body: 20px;
+
+    // ---------------------------------------------------------------------
+    // Form. One ladder, no exceptions — there used to be fourteen values.
+    // Near-square, because this is an instrument panel and not a set of cards.
+    // ---------------------------------------------------------------------
+    --radius-xs: 2px;
+    --radius-sm: 2px;
+    --radius-md: 4px;
+    --radius-lg: 8px;
+    --radius-pill: 999px;   // anything that reads as a token of state
+    --radius-round: 50%;    // avatars and dots
+
+    // The board's own names for the same two steps, so the 16 rules that
+    // already use them keep working.
+    --default-rad: var(--radius-sm);
+    --modal-rad: var(--radius-lg);
+
+    // ---- Motion. Nothing springs: a panel switches, it does not bounce. ----
+    --dur-fast: 60ms;
+    --dur: 90ms;
+    --ease: linear;
+
+    // The board's elevation names, mapped onto the three real steps above.
+    --elevation-1: var(--shadow-1);
+    --elevation-2: var(--shadow-1);
+    --elevation-3: var(--shadow-2);
+    --elevation-4: var(--shadow-2);
+    --elevation-5: var(--shadow-3);
+    --elevation-6: var(--shadow-3);
+}

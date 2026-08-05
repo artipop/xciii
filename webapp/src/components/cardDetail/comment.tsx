@@ -33,9 +33,13 @@ const Comment: Component<Props> = (props: Props) => {
     const user = useAppSelector((state) => getUser(props.userId)(state))
     const date = () => new Date(props.comment.createAt)
 
+    // A session's report is a log entry, not somebody talking; the Go side
+    // marks the comments it writes so the card can say so.
+    const fromAgent = () => Boolean((props.comment.fields as {agent?: boolean} | undefined)?.agent)
+
     return (
         <div
-            class='Comment comment'
+            class={`Comment comment${fromAgent() ? ' Comment--agent' : ''}`}
         >
             <div class='comment-header'>
                 <img

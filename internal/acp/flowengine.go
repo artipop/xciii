@@ -14,15 +14,15 @@ import (
 // by itself.
 
 // cardIdleWait bounds how long a transition waits for the card's previous
-// session to let go of its repository before starting the next one.
+// session to let go of its project before starting the next one.
 const cardIdleWait = 20 * time.Second
 
 // handleFlowMove routes a board event through the card's flow. It reports
 // whether the flow took charge of the event: a card with a route is never also
 // handled by the standalone trigger columns, or the two would fight.
 func (m *Manager) handleFlowMove(ev CardMoved) bool {
-	repoPath, _ := m.resolveRepo(ev)
-	flow := m.resolveFlow(ev, repoPath)
+	projectPath, _ := m.resolveProject(ev)
+	flow := m.resolveFlow(ev, projectPath)
 	if flow == nil {
 		return false
 	}
@@ -74,18 +74,18 @@ func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bo
 			flow.Name, node.Column, detail))
 	}
 
-	repoPath, _ := m.resolveRepo(ev)
+	projectPath, _ := m.resolveProject(ev)
 	from, previousBranch := "", ""
 	if st, ok, _ := m.flowState(ev.CardID); ok {
 		from, previousBranch = st.NodeID, st.Branch
 	}
 	m.saveFlowState(FlowState{
-		CardID:   ev.CardID,
-		BoardID:  ev.BoardID,
-		Flow:     flow.Name,
-		NodeID:   node.ID,
-		Branch:   m.flowBranch(ev, repoPath, previousBranch),
-		RepoPath: repoPath,
+		CardID:      ev.CardID,
+		BoardID:     ev.BoardID,
+		Flow:        flow.Name,
+		NodeID:      node.ID,
+		Branch:      m.flowBranch(ev, projectPath, previousBranch),
+		ProjectPath: projectPath,
 	})
 	m.appendFlowEvent(FlowEventRecord{
 		CardID: ev.CardID, Flow: flow.Name, FromNode: from, ToNode: node.ID, On: on, Detail: detail,
@@ -101,12 +101,12 @@ func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bo
 //  1. what the card says, since that is somebody's decision;
 //  2. the branch its last session worked on — with worktrees (the default) the
 //     agent commits to a branch of its own that the card never learns about, so
-//     without this the route would watch whatever the repository had checked
+//     without this the route would watch whatever the project had checked
 //     out and wait for a merge that never comes;
 //  3. what the route already carried, so a card that stops mentioning its
 //     branch does not silently stop being watched;
-//  4. the repository's checked-out branch, for a card nobody has worked yet.
-func (m *Manager) flowBranch(ev CardMoved, repoPath, previous string) string {
+//  4. the project's checked-out branch, for a card nobody has worked yet.
+func (m *Manager) flowBranch(ev CardMoved, projectPath, previous string) string {
 	if b := strings.TrimSpace(ev.Props["branch"]); b != "" {
 		return b
 	}
@@ -116,10 +116,10 @@ func (m *Manager) flowBranch(ev CardMoved, repoPath, previous string) string {
 	if previous != "" {
 		return previous
 	}
-	if repoPath == "" {
+	if projectPath == "" {
 		return ""
 	}
-	branch, err := resolveDeployBranch(ev, repoPath)
+	branch, err := resolveDeployBranch(ev, projectPath)
 	if err != nil {
 		return ""
 	}
@@ -168,7 +168,7 @@ func (m *Manager) runNodeAction(ev CardMoved, flow FlowEntry, node FlowNode) {
 		return
 	}
 
-	// The previous stage's session may still be releasing its repository.
+	// The previous stage's session may still be releasing its project.
 	m.waitForCardIdle(ev.CardID)
 
 	s, err := m.startSession(ev, opts)
@@ -261,7 +261,7 @@ func (m *Manager) flowAfterSession(s *Session) {
 }
 
 // waitForCardIdle waits until the card has no live session, so the next stage
-// does not collide with the previous one over the repository.
+// does not collide with the previous one over the project.
 func (m *Manager) waitForCardIdle(cardID string) {
 	deadline := time.Now().Add(cardIdleWait)
 	for time.Now().Before(deadline) {
@@ -280,17 +280,17 @@ func (m *Manager) waitForCardIdle(cardID string) {
 	m.log.Warn("acp: previous session still running, starting the next stage anyway", "card", cardID)
 }
 
-// VCSEvent is one repository event the watcher observed. It is the engine's
+// VCSEvent is one project event the watcher observed. It is the engine's
 // second input, next to session outcomes.
 type VCSEvent struct {
-	Kind     string
-	RepoPath string
-	Branch   string
-	Detail   string
+	Kind        string
+	ProjectPath string
+	Branch      string
+	Detail      string
 }
 
 // OnVCSEvent advances every card parked on a node that waits for this event in
-// this repository and branch.
+// this project and branch.
 func (m *Manager) OnVCSEvent(ev VCSEvent) {
 	states, err := m.flowStates()
 	if err != nil {
@@ -298,7 +298,7 @@ func (m *Manager) OnVCSEvent(ev VCSEvent) {
 		return
 	}
 	for _, st := range states {
-		if !strings.EqualFold(st.Branch, ev.Branch) || st.RepoPath != ev.RepoPath {
+		if !strings.EqualFold(st.Branch, ev.Branch) || st.ProjectPath != ev.ProjectPath {
 			continue
 		}
 		detail := ev.Detail
@@ -309,13 +309,13 @@ func (m *Manager) OnVCSEvent(ev VCSEvent) {
 	}
 }
 
-// FlowTargets is what the VCS watcher has to poll: one entry per (repository,
+// FlowTargets is what the VCS watcher has to poll: one entry per (project,
 // branch) a parked card is waiting on, with the triggers it waits for. Nothing
 // waiting means no polling at all.
 type FlowTarget struct {
-	RepoPath string
-	Branch   string
-	Triggers []string
+	ProjectPath string
+	Branch      string
+	Triggers    []string
 }
 
 // FlowTargets collects the poll targets from the cards currently on a route.
@@ -327,7 +327,7 @@ func (m *Manager) FlowTargets() []FlowTarget {
 	}
 	byKey := map[string]*FlowTarget{}
 	for _, st := range states {
-		if st.RepoPath == "" || st.Branch == "" {
+		if st.ProjectPath == "" || st.Branch == "" {
 			continue
 		}
 		flow, ok := m.FlowByName(st.Flow)
@@ -338,10 +338,10 @@ func (m *Manager) FlowTargets() []FlowTarget {
 		if len(waits) == 0 {
 			continue
 		}
-		key := st.RepoPath + "\x00" + st.Branch
+		key := st.ProjectPath + "\x00" + st.Branch
 		t, ok := byKey[key]
 		if !ok {
-			t = &FlowTarget{RepoPath: st.RepoPath, Branch: st.Branch}
+			t = &FlowTarget{ProjectPath: st.ProjectPath, Branch: st.Branch}
 			byKey[key] = t
 		}
 		for _, w := range waits {

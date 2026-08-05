@@ -17,10 +17,10 @@
 // element the Lexical typeahead plugin positions at the caret.
 .MarkdownEditorInput--mentions,
 .MarkdownEditorInput--emojis {
-    background: rgba(var(--center-channel-bg-rgb), 1);
+    background: rgb(var(--surface-bg-rgb));
     box-shadow: var(--elevation-1);
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
 
     [role='option'] {

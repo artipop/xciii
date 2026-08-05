@@ -53,8 +53,8 @@
         textarea {
             padding: 6px 8px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-            border-radius: 4px;
-            background: rgba(var(--center-channel-bg-rgb), 1);
+            border-radius: var(--radius-sm);
+            background: rgb(var(--surface-bg-rgb));
             color: rgba(var(--center-channel-color-rgb), 1);
             font-family: inherit;
         }
@@ -75,7 +75,7 @@
     .BoardSetupWizard__known {
         font-size: 12px;
         padding: 6px 10px;
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
         color: rgba(var(--center-channel-color-rgb), 0.88);
         background: rgba(var(--center-channel-color-rgb), 0.06);
     }
@@ -84,9 +84,9 @@
     .BoardSetupWizard__warning {
         font-size: 12px;
         padding: 6px 10px;
-        border-radius: 4px;
-        color: rgb(var(--error-text-color-rgb, 210, 75, 78));
-        background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
+        border-radius: var(--radius-sm);
+        color: rgb(var(--error-text-rgb, 210, 75, 78));
+        background: rgba(var(--error-text-rgb, 210, 75, 78), 0.08);
     }
 
     .BoardSetupWizard__hint {
@@ -101,7 +101,7 @@
     }
 
     .BoardSetupWizard__error {
-        color: rgba(var(--error-text-color-rgb), 1);
+        color: rgba(var(--error-text-rgb), 1);
         font-size: 12px;
     }
 }

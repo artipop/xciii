@@ -37,7 +37,7 @@ func newFrontDoor(wails, acp, board http.Handler, allowedHost string) http.Handl
 	// Only the socket, not the path around it: /acp/terminal/{id} is the page
 	// that draws the terminal, and that is the webapp, which the board serves
 	// like any other of its routes. A terminal socket is a shell in the user's
-	// repository, so it is guarded exactly as the runtime is — more so, if
+	// project, so it is guarded exactly as the runtime is — more so, if
 	// anything.
 	mux.Handle("/acp/terminal/{id}/ws", sameOrigin(acp, allowedHost))
 	mux.Handle("/", board)

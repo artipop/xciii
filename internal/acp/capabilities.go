@@ -144,7 +144,7 @@ func (m *Manager) probeAgentOptions(a AgentEntry) ([]AgentOption, error) {
 	if err != nil {
 		return nil, err
 	}
-	// A directory of its own rather than a repository: the agent is asked what
+	// A directory of its own rather than a project: the agent is asked what
 	// it can do, not pointed at anything it might touch.
 	cwd, err := os.MkdirTemp("", "acp-probe-")
 	if err != nil {

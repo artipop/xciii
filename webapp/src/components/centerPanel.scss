@@ -1,6 +1,7 @@
 @import '../styles/z-index';
 
 .CenterPanel {
+
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
@@ -86,8 +87,33 @@
 
     .NotificationBox {
         .AlertIcon {
-            color: #ffbc1f;
+            color: rgb(var(--away-indicator-rgb));
             font-size: 24px;
         }
+    }
+}
+
+// The board is not set up: said in the label voice, in the stamp colour, and
+// never in the way — it sits in the header, not over the board, because it is a
+// reminder and reminders do not interrupt.
+.CenterPanel__setupPending {
+    align-self: center;
+    margin-left: 12px;
+    padding: 2px 10px;
+    border: 1px solid rgba(var(--sidebar-text-active-border-rgb), 0.5);
+    border-radius: var(--radius-pill);
+    background: rgba(var(--sidebar-text-active-border-rgb), 0.1);
+    color: rgb(var(--sidebar-text-active-border-rgb));
+    cursor: pointer;
+
+    font-family: var(--font-label);
+    font-size: var(--text-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--track-label);
+    white-space: nowrap;
+
+    &:hover {
+        background: rgba(var(--sidebar-text-active-border-rgb), 0.2);
     }
 }

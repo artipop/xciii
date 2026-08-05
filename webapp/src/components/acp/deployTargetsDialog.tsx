@@ -10,7 +10,7 @@ import {useIntl} from '../../intl'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 
 import './deployTargetsDialog.scss'
 
@@ -18,9 +18,9 @@ import './deployTargetsDialog.scss'
 // it. A card moved into the deploy column is published as <baseApp>-<branch
 // slug>, served at that same name under the preview domain — the host itself,
 // unless the two differ. baseApp is likewise left empty and derived from the
-// repository name, which is what lets one target serve every repository
+// project name, which is what lets one target serve every project
 // pointed at it, and what makes everything a preview needs beyond that
-// (environment, TLS, build time) a property of the repository, not of a host.
+// (environment, TLS, build time) a property of the project, not of a host.
 export type DeployTarget = {
     name: string
     sshHost: string
@@ -38,7 +38,7 @@ export function isDeployTargetsAvailable(): boolean {
 const emptyForm: DeployTarget = {name: '', sshHost: ''}
 
 // previewHost spells out what the fields add up to, since the hostname is
-// composed rather than typed: one label — the repository and the branch —
+// composed rather than typed: one label — the project and the branch —
 // under the preview domain, which is the Dokku host unless one is given.
 function previewHost(t: DeployTarget): string {
     return `${t.baseApp || 'reponame'}-my-branch.${t.baseDomain || t.sshHost || 'dokku.example.com'}`
@@ -124,7 +124,7 @@ const DeployTargetsDialog = (props: Props) => {
         <Dialog
             class='DeployTargetsDialog'
             title={<span>{intl.formatMessage({id: 'DeployTargets.title', defaultMessage: 'Deploy targets'})}</span>}
-            subtitle={<span>{intl.formatMessage({id: 'DeployTargets.subtitle', defaultMessage: 'Dokku hosts a card\'s branch is published to when it moves into the Deploy column. One branch becomes one app of its own, at “repository-branch.base-domain”.'})}</span>}
+            subtitle={<span>{intl.formatMessage({id: 'DeployTargets.subtitle', defaultMessage: 'Dokku hosts a card\'s branch is published to when it moves into the Deploy column. One branch becomes one app of its own, at “project-branch.base-domain”.'})}</span>}
             onClose={props.onClose}
         >
             <div class='DeployTargetsDialog__content'>
@@ -203,10 +203,10 @@ const DeployTargetsDialog = (props: Props) => {
                             />
                         </label>
                         <label>
-                            {intl.formatMessage({id: 'DeployTargets.baseApp', defaultMessage: 'App name (optional) — the repository name by default'})}
+                            {intl.formatMessage({id: 'DeployTargets.baseApp', defaultMessage: 'App name (optional) — the project name by default'})}
                             <input
                                 value={form()!.baseApp || ''}
-                                placeholder={intl.formatMessage({id: 'DeployTargets.baseApp-placeholder', defaultMessage: 'repository name'})}
+                                placeholder={intl.formatMessage({id: 'DeployTargets.baseApp-placeholder', defaultMessage: 'project name'})}
                                 onInput={(e) => updateForm({baseApp: e.currentTarget.value})}
                             />
                         </label>

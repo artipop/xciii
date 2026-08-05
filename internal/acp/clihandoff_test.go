@@ -15,7 +15,7 @@ import (
 // _meta, where extraArgs reach the CLI it spawns.
 func TestCLIArgsReachTheAgentThroughSessionMeta(t *testing.T) {
 	script := writeFakeAgent(t, fakeClaudeHappy)
-	m, _, events, repo := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{
 			Name:    "remote",
 			Kind:    "claude",
@@ -24,7 +24,7 @@ func TestCLIArgsReachTheAgentThroughSessionMeta(t *testing.T) {
 		}}
 	})
 
-	ev := moveEvent("cardRemote", repo, "opt-backlog", "opt-agent")
+	ev := moveEvent("cardRemote", project, "opt-backlog", "opt-agent")
 	ev.OptionNames = []string{"remote"}
 	events.ch <- ev
 

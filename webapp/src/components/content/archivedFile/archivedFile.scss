@@ -1,6 +1,6 @@
 .ArchivedFile {
     border: 2px solid rgba(var(--center-channel-color-rgb), 0.1);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     box-shadow: 0 2px 3px rgba(var(--center-channel-color-rgb), 0.1);
     padding: 12px;
     display: flex;

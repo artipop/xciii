@@ -11,7 +11,7 @@ func personSchema() model.PropSchema {
 	return model.PropSchema{
 		"prop-assignee":  {ID: "prop-assignee", Name: "Assignee", Type: "person"},
 		"prop-reviewers": {ID: "prop-reviewers", Name: "Reviewers", Type: "multiPerson"},
-		"prop-repo":      {ID: "prop-repo", Name: "repo_path", Type: "text"},
+		"prop-project":   {ID: "prop-project", Name: "repo_path", Type: "text"},
 	}
 }
 
@@ -19,7 +19,7 @@ func TestPersonPropertiesResolveToUsernames(t *testing.T) {
 	props := map[string]any{
 		"prop-assignee":  "uid-claude",
 		"prop-reviewers": []any{"uid-codex", "uid-ghost"},
-		"prop-repo":      "/tmp/repo",
+		"prop-project":   "/tmp/project",
 	}
 	lookups := 0
 	resolver := newUserResolver(func(userID string) string {
@@ -47,7 +47,7 @@ func TestPersonPropertiesResolveToUsernames(t *testing.T) {
 	if parsed["assignee"] != "claude" {
 		t.Errorf("assignee prop = %q, want claude", parsed["assignee"])
 	}
-	if parsed["repo_path"] != "/tmp/repo" {
+	if parsed["repo_path"] != "/tmp/project" {
 		t.Errorf("unrelated props broken: %v", parsed)
 	}
 	if lookups != 3 {
@@ -58,12 +58,12 @@ func TestPersonPropertiesResolveToUsernames(t *testing.T) {
 func TestNamedPropertiesSurvivesUnresolvableUsers(t *testing.T) {
 	// No app (nil lookup) is the case in a browser/plugin build and in tests:
 	// person values stay raw ids, and the rest of the map must still arrive.
-	props := map[string]any{"prop-assignee": "uid-claude", "prop-repo": "/tmp/repo"}
+	props := map[string]any{"prop-assignee": "uid-claude", "prop-project": "/tmp/project"}
 	block := &model.Block{ID: "card1", Fields: map[string]any{"properties": props}}
 	resolver := newUserResolver(nil)
 
 	parsed := namedProperties(block, personSchema(), resolver)
-	if parsed["repo_path"] != "/tmp/repo" {
+	if parsed["repo_path"] != "/tmp/project" {
 		t.Fatalf("props lost when a user cannot be resolved: %v", parsed)
 	}
 	if parsed["assignee"] != "uid-claude" {

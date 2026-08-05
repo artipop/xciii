@@ -51,7 +51,7 @@ func orEmpty(v, fallback string) string {
 }
 
 // watcher wires a GitHub watcher to the fixture, with git faked out to a fixed
-// remote URL so no repository is needed.
+// remote URL so no project is needed.
 func (f *githubFixture) watcher(t *testing.T, token string) *GitHub {
 	t.Helper()
 	return &GitHub{
@@ -77,7 +77,7 @@ func prJSON(state, mergedAt string) string {
 }
 
 func target(kinds ...string) Target {
-	return Target{RepoPath: "/repo", Branch: "feat/x", Triggers: kinds}
+	return Target{ProjectPath: "/project", Branch: "feat/x", Triggers: kinds}
 }
 
 func TestGitHubReportsPullRequestState(t *testing.T) {
@@ -222,9 +222,9 @@ func TestParseGitHubRemote(t *testing.T) {
 		"https://github.com/acme":              {"", ""},
 	}
 	for raw, want := range cases {
-		owner, repo := ParseGitHubRemote(raw)
-		if owner != want[0] || repo != want[1] {
-			t.Errorf("ParseGitHubRemote(%q) = %q/%q, want %q/%q", raw, owner, repo, want[0], want[1])
+		owner, project := ParseGitHubRemote(raw)
+		if owner != want[0] || project != want[1] {
+			t.Errorf("ParseGitHubRemote(%q) = %q/%q, want %q/%q", raw, owner, project, want[0], want[1])
 		}
 	}
 }

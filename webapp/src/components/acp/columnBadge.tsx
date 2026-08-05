@@ -7,7 +7,7 @@ import {Accessor, Show, createMemo, createSignal, onCleanup, onMount} from 'soli
 
 import {useIntl} from '../../intl'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 import {ColumnSpec, specFor} from './columnSettingsDialog'
 
 import './columnBadge.scss'

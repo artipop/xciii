@@ -19,12 +19,12 @@ import (
 
 // A terminal session is the agent's own CLI, running in a pseudo-terminal in
 // the card's working directory — the same thing a developer would open a shell
-// and type, with the repository, the worktree, the branch and the agent's
+// and type, with the project, the worktree, the branch and the agent's
 // environment already set up.
 //
 // It is deliberately *not* an ACP session: an ACP agent speaks JSON-RPC on
 // stdio and has no terminal UI, so a session cannot be both. What the two share
-// is everything around them — which repository a card is about, which agent
+// is everything around them — which project a card is about, which agent
 // works it, which proxy and API keys that agent runs with, and where the branch
 // goes — and that is what this reuses. Where an ACP session reports every step
 // as it goes, a terminal session reports once, when it ends: what the CLI left
@@ -41,18 +41,18 @@ const terminalScrollback = 256 * 1024
 
 // TerminalSession is one CLI in one pty.
 type TerminalSession struct {
-	ID        string
-	CardID    string
-	BoardID   string
-	Title     string
-	Task      string
-	RepoPath  string
-	Cwd       string
-	Branch    string
-	AgentName string
-	AgentKind string
-	Argv      []string
-	StartedAt time.Time
+	ID          string
+	CardID      string
+	BoardID     string
+	Title       string
+	Task        string
+	ProjectPath string
+	Cwd         string
+	Branch      string
+	AgentName   string
+	AgentKind   string
+	Argv        []string
+	StartedAt   time.Time
 
 	m            *Manager
 	tty          pty.Pty
@@ -200,11 +200,11 @@ func (t *TerminalSession) finish() {
 	}
 }
 
-// StartCardTerminal opens the agent's CLI on a card: same repository, same
+// StartCardTerminal opens the agent's CLI on a card: same project, same
 // worktree rules and same agent as a session on that card would get.
-// repoName/agentName override what the card says, for the case where it says
+// projectName/agentName override what the card says, for the case where it says
 // nothing.
-func (m *Manager) StartCardTerminal(cardID, repoName, agentName string) (*TerminalSession, error) {
+func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*TerminalSession, error) {
 	if m.reader == nil {
 		return nil, fmt.Errorf("чтение карточек недоступно")
 	}
@@ -218,9 +218,9 @@ func (m *Manager) StartCardTerminal(cardID, repoName, agentName string) (*Termin
 		return nil, fmt.Errorf("не удалось прочитать карточку: %w", err)
 	}
 
-	repoPath, err := m.resolveRepo(ev)
-	if repoName != "" {
-		repoPath, err = m.resolveNamedRepo(repoName)
+	projectPath, err := m.resolveProject(ev)
+	if projectName != "" {
+		projectPath, err = m.resolveNamedProject(projectName)
 	}
 	if err != nil {
 		return nil, err
@@ -238,22 +238,22 @@ func (m *Manager) StartCardTerminal(cardID, repoName, agentName string) (*Termin
 		return nil, err
 	}
 	return m.startTerminal(terminalSpec{
-		cardID:   ev.CardID,
-		boardID:  ev.BoardID,
-		title:    ev.Title,
-		task:     ev.Body,
-		repoPath: repoPath,
-		base:     ev.Props["branch"],
-		agent:    agent,
-		worktree: m.cfg.UseWorktrees(),
+		cardID:      ev.CardID,
+		boardID:     ev.BoardID,
+		title:       ev.Title,
+		task:        ev.Body,
+		projectPath: projectPath,
+		base:        ev.Props["branch"],
+		agent:       agent,
+		worktree:    m.cfg.UseWorktrees(),
 	})
 }
 
 // StartPlanningTerminal opens the CLI with no card behind it — the terminal
-// half of "Plan a task". It runs in the repository itself and never creates a
+// half of "Plan a task". It runs in the project itself and never creates a
 // branch: there is nothing yet to put on one.
-func (m *Manager) StartPlanningTerminal(repoName, agentName string) (*TerminalSession, error) {
-	repo, err := m.planningRepo(repoName)
+func (m *Manager) StartPlanningTerminal(projectName, agentName string) (*TerminalSession, error) {
+	project, err := m.planningRepo(projectName)
 	if err != nil {
 		return nil, err
 	}
@@ -261,34 +261,34 @@ func (m *Manager) StartPlanningTerminal(repoName, agentName string) (*TerminalSe
 	if err != nil {
 		return nil, err
 	}
-	if repo.Path == "" {
-		return nil, fmt.Errorf("для терминала нужен репозиторий: выберите его в списке")
+	if project.Path == "" {
+		return nil, fmt.Errorf("для терминала нужен проект: выберите его в списке")
 	}
 	// The same rule a card's terminal follows: asking twice means "show me the
 	// one I have", not "start another CLI". A planning terminal has no card to
 	// be found through, so without this a closed window left it running with
 	// nothing in the UI pointing at it.
-	if live := m.planningTerminal(repo.Path, agent.Name); live != nil {
+	if live := m.planningTerminal(project.Path, agent.Name); live != nil {
 		return live, nil
 	}
 	return m.startTerminal(terminalSpec{
-		title:    "Планирование",
-		repoPath: repo.Path,
-		agent:    agent,
-		worktree: false,
+		title:       "Планирование",
+		projectPath: project.Path,
+		agent:       agent,
+		worktree:    false,
 	})
 }
 
 // terminalSpec is everything startTerminal needs, resolved by the caller.
 type terminalSpec struct {
-	cardID   string
-	boardID  string
-	title    string
-	task     string
-	repoPath string
-	base     string
-	agent    AgentEntry
-	worktree bool
+	cardID      string
+	boardID     string
+	title       string
+	task        string
+	projectPath string
+	base        string
+	agent       AgentEntry
+	worktree    bool
 }
 
 func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
@@ -313,19 +313,19 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 
 	id := uuid.NewString()
 	t := &TerminalSession{
-		ID:        id,
-		CardID:    spec.cardID,
-		BoardID:   spec.boardID,
-		Title:     spec.title,
-		Task:      spec.task,
-		RepoPath:  spec.repoPath,
-		Cwd:       spec.repoPath,
-		AgentName: spec.agent.Name,
-		AgentKind: spec.agent.Kind,
-		Argv:      argv,
-		StartedAt: time.Now(),
-		m:         m,
-		done:      make(chan struct{}),
+		ID:          id,
+		CardID:      spec.cardID,
+		BoardID:     spec.boardID,
+		Title:       spec.title,
+		Task:        spec.task,
+		ProjectPath: spec.projectPath,
+		Cwd:         spec.projectPath,
+		AgentName:   spec.agent.Name,
+		AgentKind:   spec.agent.Kind,
+		Argv:        argv,
+		StartedAt:   time.Now(),
+		m:           m,
+		done:        make(chan struct{}),
 	}
 
 	switch {
@@ -338,7 +338,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// A terminal gets a worktree for the same reason a session does: two of
 	// them, or a terminal beside a running session, must not share one checkout.
 	case spec.worktree && spec.cardID != "":
-		wt, err := CreateWorktree(m.rootCtx, spec.repoPath, spec.base, spec.title, spec.cardID, id, m.cfg.WorktreeDir)
+		wt, err := CreateWorktree(m.rootCtx, spec.projectPath, spec.base, spec.title, spec.cardID, id, m.cfg.WorktreeDir)
 		if err != nil {
 			return nil, fmt.Errorf("не удалось создать git worktree: %w", err)
 		}
@@ -378,7 +378,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// being closed — which is the only reason a terminal can be resumed at all.
 	if err := m.store.InsertTerminal(TerminalRecord{
 		ID: id, CardID: t.CardID, BoardID: t.BoardID, Title: t.Title,
-		RepoPath: t.RepoPath, Cwd: t.Cwd, Branch: t.Branch,
+		ProjectPath: t.ProjectPath, Cwd: t.Cwd, Branch: t.Branch,
 		Agent: t.AgentName, Kind: t.AgentKind, StartedAt: t.StartedAt,
 	}); err != nil {
 		m.log.Warn("acp: failed to record terminal session", "terminal", id, "err", err)
@@ -445,7 +445,7 @@ func (m *Manager) releaseTerminalWorktree(t *TerminalSession) {
 	if !t.usedWorktree {
 		return
 	}
-	removed, err := RemoveWorktreeIfClean(m.rootCtx, t.RepoPath, t.worktree)
+	removed, err := RemoveWorktreeIfClean(m.rootCtx, t.ProjectPath, t.worktree)
 	if err != nil {
 		m.log.Warn("acp: failed to clean up terminal worktree", "terminal", t.ID, "err", err)
 		return
@@ -474,13 +474,13 @@ func (m *Manager) TerminalForCard(cardID string) *TerminalSession {
 	return nil
 }
 
-// planningTerminal is the live card-less terminal for this repository and
+// planningTerminal is the live card-less terminal for this project and
 // agent, if one is open.
-func (m *Manager) planningTerminal(repoPath, agentName string) *TerminalSession {
+func (m *Manager) planningTerminal(projectPath, agentName string) *TerminalSession {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for _, t := range m.terminals {
-		if t.CardID == "" && t.RepoPath == repoPath && t.AgentName == agentName {
+		if t.CardID == "" && t.ProjectPath == projectPath && t.AgentName == agentName {
 			return t
 		}
 	}
@@ -580,7 +580,7 @@ func (m *Manager) terminalResumePoint(spec terminalSpec) (TerminalRecord, bool) 
 		m.log.Warn("acp: failed to read the card's last terminal", "card", spec.cardID, "err", err)
 		return TerminalRecord{}, false
 	}
-	if !ok || rec.Cwd == "" || rec.RepoPath != spec.repoPath {
+	if !ok || rec.Cwd == "" || rec.ProjectPath != spec.projectPath {
 		return TerminalRecord{}, false
 	}
 	if info, err := os.Stat(rec.Cwd); err != nil || !info.IsDir() {

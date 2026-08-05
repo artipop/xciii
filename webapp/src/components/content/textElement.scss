@@ -2,7 +2,7 @@
     display: inline;
 
     .markdown-editor-error {
-        background-color: rgba(210, 75, 78, 0.08);
+        background-color: rgba(var(--error-text-rgb), 0.08);
         border: 1px solid var(--error-text);
     }
 

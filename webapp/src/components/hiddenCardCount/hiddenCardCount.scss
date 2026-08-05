@@ -7,10 +7,10 @@
     }
 
     .hidden-card-title {
-        background: rgba(243, 192, 199, 0.2);
-        color: #d24b4e;
+        background: rgba(var(--error-text-rgb), 0.15);
+        color: rgb(var(--error-text-rgb));
         padding: 3px 6px;
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
         text-transform: uppercase;
         font-weight: bold;
     }

@@ -26,7 +26,7 @@ func testBoard() *model.Board {
 				},
 			},
 			{
-				"id":   "prop-repo",
+				"id":   "prop-project",
 				"name": "repo_path",
 				"type": "text",
 			},
@@ -42,8 +42,8 @@ func cardBlock(status string) *model.Block {
 		Title:   "My task",
 		Fields: map[string]any{
 			"properties": map[string]any{
-				"prop-status": status,
-				"prop-repo":   "/tmp/repo",
+				"prop-status":  status,
+				"prop-project": "/tmp/project",
 			},
 		},
 	}
@@ -88,7 +88,7 @@ func TestBlockChangedEmitsExactlyOneMove(t *testing.T) {
 	if ev.ToColumn.PropertyName != "Status" {
 		t.Errorf("wrong property name %q", ev.ToColumn.PropertyName)
 	}
-	if ev.Props["repo_path"] != "/tmp/repo" {
+	if ev.Props["repo_path"] != "/tmp/project" {
 		t.Errorf("props not resolved: %v", ev.Props)
 	}
 	if ev.Title != "My task" || ev.CardID != "card1" || ev.BoardID != "board1" {
@@ -124,7 +124,7 @@ func TestBlockChangedIgnoresIrrelevantChanges(t *testing.T) {
 	}
 	// Text-property change on a card → no event.
 	changed := cardBlock("opt-agent")
-	changed.Fields["properties"].(map[string]any)["prop-repo"] = "/tmp/other"
+	changed.Fields["properties"].(map[string]any)["prop-project"] = "/tmp/other"
 	if err := b.BlockChanged(notify.BlockChangeEvent{
 		Action: notify.Update, Board: board,
 		BlockChanged: changed, BlockOld: cardBlock("opt-agent"),

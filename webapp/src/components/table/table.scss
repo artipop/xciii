@@ -60,7 +60,7 @@
             display: inline-flex;
             align-items: center;
             padding: 2px 8px;
-            border-radius: 3px;
+            border-radius: var(--radius-sm);
             line-height: 20px;
             margin: 0 4px 0 0;
             color: rgba(var(--center-channel-color-rgb), 1);
@@ -172,8 +172,8 @@
         }
 
         &:focus-within {
-            background-color: rgba(46, 170, 220, 0.15);
-            border: 1px solid rgba(46, 170, 220, 0.6);
+            background-color: rgba(var(--sidebar-text-active-border-rgb), 0.15);
+            border: 1px solid rgba(var(--sidebar-text-active-border-rgb), 0.6);
         }
 
         .Editable {
@@ -294,7 +294,7 @@
 
         .react-select__multi-value {
             background: rgba(var(--center-channel-color-rgb), 0.08);
-            border-radius: 24px;
+            border-radius: var(--radius-pill);
             display: inline-flex;
             color: rgb(var(--center-channel-color-rgb));
 

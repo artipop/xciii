@@ -12,15 +12,15 @@ import {UserSettings} from '../../userSettings'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 import {AGENT_KINDS, textToServers, AdapterStatus} from './agentsDialog'
 
 import './boardSetupWizard.scss'
 
 // A board made from the template arrives knowing how the work is organised —
-// its columns, its routes, the fields a card picks a repository and an agent
+// its columns, its routes, the fields a card picks a project and an agent
 // with. What it cannot know is the machine: which agent runs, in which
-// repository, where it deploys, what it tests with. That lives in the desktop
+// project, where it deploys, what it tests with. That lives in the desktop
 // registries, and until now the only way to find out it was empty was to drag a
 // card and read the complaint afterwards.
 //
@@ -36,11 +36,11 @@ const BROWSER_SERVER = JSON.stringify({
 
 type Registry = {
     agents: Array<{name: string}>
-    repos: Array<{name: string, path: string}>
+    projects: Array<{name: string, path: string}>
 }
 
 export function isBoardSetupAvailable(): boolean {
-    return Boolean(agentBindings()?.ListAgentRepos)
+    return Boolean(agentBindings()?.ListAgentProjects)
 }
 
 // boardCarriesAutomation reports whether this board was made from a template
@@ -50,35 +50,44 @@ export function boardCarriesAutomation(board?: Board): boolean {
     return Boolean(board?.properties && board.properties.acpFlows !== undefined)
 }
 
-// setupNeeded is the whole rule for showing the wizard by itself: a board that
-// runs something, a machine that cannot run it yet, and nobody having said no.
+// setupNeeded says the board runs something this machine cannot run yet. It is
+// true for as long as that is the case, which is what the reminder in the
+// header is for — it is not, on its own, a reason to open anything.
 export function setupNeeded(board: Board | undefined, registry: Registry | null): boolean {
     if (!board || !isBoardSetupAvailable() || !boardCarriesAutomation(board)) {
         return false
     }
-    if (dismissedFor(board.id)) {
-        return false
-    }
-    return Boolean(registry) && (registry!.agents.length === 0 || registry!.repos.length === 0)
+    return Boolean(registry) && (registry!.agents.length === 0 || registry!.projects.length === 0)
 }
 
-// The refusal is remembered per board, so closing it once is not an answer for
-// every board that follows.
-export function dismissedFor(boardId: string): boolean {
+// shouldOfferSetup is the rule for opening the wizard by itself, and it fires
+// once per board — on the first board you open after making it. It used to fire
+// on every launch until the setup was finished or refused, which meant the app
+// greeted you with a modal every morning for as long as you had not got round
+// to it. A thing you have already seen and closed is a reminder, not a dialog.
+export function shouldOfferSetup(board: Board | undefined, registry: Registry | null): boolean {
+    return setupNeeded(board, registry) && !offeredFor(board!.id)
+}
+
+// Remembered per board, so a board you have seen the wizard for is not the
+// answer for the next one you make. The stored value predates this and meant
+// "dismissed"; having dismissed it is having been offered it, so old settings
+// carry over without a migration.
+export function offeredFor(boardId: string): boolean {
     return Boolean(UserSettings.acpSetupDismissed[boardId])
 }
 
-export function rememberDismissed(boardId: string): void {
+export function rememberOffered(boardId: string): void {
     UserSettings.setAcpSetupDismissed(boardId)
 }
 
 export async function readRegistry(): Promise<Registry | null> {
     const bindings = agentBindings()
-    if (!bindings?.ListAgentRepos || !bindings.ListAgents) {
+    if (!bindings?.ListAgentProjects || !bindings.ListAgents) {
         return null
     }
-    const [repos, agents] = await Promise.all([bindings.ListAgentRepos(), bindings.ListAgents()])
-    return {repos: JSON.parse(repos) || [], agents: JSON.parse(agents) || []}
+    const [projects, agents] = await Promise.all([bindings.ListAgentProjects(), bindings.ListAgents()])
+    return {projects: JSON.parse(projects) || [], agents: JSON.parse(agents) || []}
 }
 
 type Props = {
@@ -97,13 +106,13 @@ const BoardSetupWizard = (props: Props) => {
     const bindings = agentBindings()
 
     const [step, setStep] = createSignal(STEP_REPO)
-    const [registry, setRegistry] = createSignal<Registry>({agents: [], repos: []})
+    const [registry, setRegistry] = createSignal<Registry>({agents: [], projects: []})
     const [error, setError] = createSignal('')
     const [busy, setBusy] = createSignal(false)
 
-    // Step 1: a repository.
-    const [repoPath, setRepoPath] = createSignal('')
-    const [repoName, setRepoName] = createSignal('')
+    // Step 1: a project.
+    const [projectPath, setProjectPath] = createSignal('')
+    const [projectName, setProjectName] = createSignal('')
 
     // Step 2: an agent.
     const [agentName, setAgentName] = createSignal('claude')
@@ -155,16 +164,16 @@ const BoardSetupWizard = (props: Props) => {
         }
     }
 
-    const pickRepo = async () => {
+    const pickProject = async () => {
         if (!bindings?.PickDirectory) {
             return
         }
         setError('')
         try {
-            const picked = await bindings.PickDirectory(intl.formatMessage({id: 'BoardSetup.pick-repo', defaultMessage: 'Choose a repository'}))
+            const picked = await bindings.PickDirectory(intl.formatMessage({id: 'BoardSetup.pick-project', defaultMessage: 'Choose a project folder'}))
             if (picked) {
-                setRepoPath(picked)
-                setRepoName((current) => current || picked.split('/').filter(Boolean).pop() || '')
+                setProjectPath(picked)
+                setProjectName((current) => current || picked.split('/').filter(Boolean).pop() || '')
             }
         } catch (e) {
             setError(String(e))
@@ -172,7 +181,7 @@ const BoardSetupWizard = (props: Props) => {
     }
 
     const addRepo = () => run(async () => {
-        await bindings!.AddAgentRepo!(repoName().trim(), repoPath())
+        await bindings!.AddAgentProject!(projectName().trim(), projectPath())
     }, STEP_AGENT)
 
     const addAgent = () => run(async () => {
@@ -219,7 +228,7 @@ const BoardSetupWizard = (props: Props) => {
         props.onClose()
     }
 
-    const hasRepo = () => registry().repos.length > 0
+    const hasProject = () => registry().projects.length > 0
     const hasAgent = () => registry().agents.length > 0
 
     const body = () => {
@@ -227,22 +236,22 @@ const BoardSetupWizard = (props: Props) => {
         case STEP_REPO:
             return (
                 <div class='BoardSetupWizard__step'>
-                    <p>{intl.formatMessage({id: 'BoardSetup.repo-why', defaultMessage: 'An agent works in a repository on your machine. A card is matched to one by its "Repositories" field, which this fills in for you.'})}</p>
-                    <Show when={hasRepo()}>
+                    <p>{intl.formatMessage({id: 'BoardSetup.project-why', defaultMessage: 'An agent works in a project on your machine. A card is matched to one by its "Projects" field, which this fills in for you.'})}</p>
+                    <Show when={hasProject()}>
                         <div class='BoardSetupWizard__known'>
-                            {intl.formatMessage({id: 'BoardSetup.repo-known', defaultMessage: 'Already registered: {names}'}, {names: registry().repos.map((r) => r.name).join(', ')})}
+                            {intl.formatMessage({id: 'BoardSetup.project-known', defaultMessage: 'Already registered: {names}'}, {names: registry().projects.map((r) => r.name).join(', ')})}
                         </div>
                     </Show>
-                    <Button onClick={pickRepo}>
+                    <Button onClick={pickProject}>
                         {intl.formatMessage({id: 'BoardSetup.choose-folder', defaultMessage: 'Choose a folder…'})}
                     </Button>
-                    <Show when={repoPath()}>
-                        <span class='BoardSetupWizard__path'>{repoPath()}</span>
+                    <Show when={projectPath()}>
+                        <span class='BoardSetupWizard__path'>{projectPath()}</span>
                         <label>
-                            {intl.formatMessage({id: 'BoardSetup.repo-name', defaultMessage: 'Name'})}
+                            {intl.formatMessage({id: 'BoardSetup.project-name', defaultMessage: 'Name'})}
                             <input
-                                value={repoName()}
-                                onInput={(e) => setRepoName(e.currentTarget.value)}
+                                value={projectName()}
+                                onInput={(e) => setProjectName(e.currentTarget.value)}
                             />
                         </label>
                     </Show>
@@ -355,8 +364,8 @@ const BoardSetupWizard = (props: Props) => {
             return (
                 <Button
                     emphasis='primary'
-                    disabled={busy() || (!hasRepo() && !(repoPath() && repoName().trim()))}
-                    onClick={() => (repoPath() && repoName().trim() ? addRepo() : setStep(STEP_AGENT))}
+                    disabled={busy() || (!hasProject() && !(projectPath() && projectName().trim()))}
+                    onClick={() => (projectPath() && projectName().trim() ? addRepo() : setStep(STEP_AGENT))}
                 >
                     {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
                 </Button>
@@ -414,7 +423,7 @@ const BoardSetupWizard = (props: Props) => {
     }
 
     const titles = [
-        intl.formatMessage({id: 'BoardSetup.step-repo', defaultMessage: 'Repository'}),
+        intl.formatMessage({id: 'BoardSetup.step-project', defaultMessage: 'Project'}),
         intl.formatMessage({id: 'BoardSetup.step-agent', defaultMessage: 'Agent'}),
         intl.formatMessage({id: 'BoardSetup.step-deploy', defaultMessage: 'Deploy'}),
         intl.formatMessage({id: 'BoardSetup.step-browser', defaultMessage: 'Testing'}),

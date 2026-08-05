@@ -11,7 +11,7 @@ moves the card on. Written for a person using the board; the code is in
 |---|---|---|
 | **Column** | column menu → *Agents in this column…* | what happens when a card lands here, who works it, how many at once |
 | **Flow (route)** | board menu → *Workflows…* | where the card goes next, and on what event |
-| **Registries** | board menu → *Agent repositories…*, *Agents…*, *Deploy targets…* | the machine: which agents exist, which repositories, where to deploy |
+| **Registries** | board menu → *Agent projects…*, *Agents…*, *Deploy targets…* | the machine: which agents exist, which projects, where to deploy |
 
 The split is worth holding onto: a **column says what is done**, a **route says
 where the card goes afterwards**. A board with columns but no route still works
@@ -34,10 +34,10 @@ flowchart TD
     C -- no --> D{"Column full?<br/>crew busy or limit reached"}
     D -- yes --> Q["Card waits in the queue.<br/>Starts by itself when a place frees up"]
     D -- no --> E["Pick an agent:<br/>card property → assignee → Agent option<br/>→ the column's crew → the only one registered"]
-    E --> F["Find the repository:<br/>repo_path → Repositories option → source column name"]
+    E --> F["Find the project:<br/>project_path → Проекты option → source column name"]
     F --> G{"worktreeMode"}
     G -- always, the default --> H["Create a git worktree<br/>on a new branch acp/card-title-abcd1234"]
-    G -- never --> I["Work in the repository itself.<br/>A second card is refused while one is running"]
+    G -- never --> I["Work in the project itself.<br/>A second card is refused while one is running"]
     H --> J["Session runs: the agent works,<br/>progress and result land as card comments"]
     I --> J
     J --> K{"Is the card on a route?"}
@@ -64,20 +64,20 @@ gets its own git worktree:
   agent actually wrote survives even a failed session. `keepFailedWorktrees`
   keeps them all.
 
-Three kinds of session never get a worktree, and run in the repository itself: a
+Three kinds of session never get a worktree, and run in the project itself: a
 **deploy** (it publishes an existing branch), a **test** (it reads the code it
 is checking), and a **planning** session (it changes nothing).
 
 ## Which branch is followed
 
 The card rarely names its branch, and with worktrees the agent's branch is
-invented by us — so anything that watches a repository asks in this order:
+invented by us — so anything that watches a project asks in this order:
 
 ```mermaid
 flowchart LR
     A["Card property<br/>branch"] --> B["The branch this card's<br/>sessions worked on"]
     B --> C["What the route<br/>already carried"]
-    C --> D["The repository's<br/>checked-out branch"]
+    C --> D["The project's<br/>checked-out branch"]
 ```
 
 The second one is what makes worktrees and routes work together: without it a
@@ -85,14 +85,14 @@ stage waiting for a merge would watch whatever happened to be checked out. The
 deploy column resolves its branch the same way, so it publishes what the agent
 wrote — the same branch as the **Deploy** button next to it on the card.
 
-## Waiting for the repository
+## Waiting for the project
 
 A stage can wait for something that happens outside the board:
 
 | Trigger | Where it comes from | Needs |
 |---|---|---|
 | `branch.pushed`, `branch.merged` | local git | nothing |
-| `pr.opened`, `pr.merged`, `pr.closed`, `review.approved`, `checks.passed`, `checks.failed` | GitHub API | a token in `githubToken` or `GITHUB_TOKEN` for private repositories |
+| `pr.opened`, `pr.merged`, `pr.closed`, `review.approved`, `checks.passed`, `checks.failed` | GitHub API | a token in `githubToken` or `GITHUB_TOKEN` for private projects |
 
 There is nowhere for a webhook to arrive on a laptop, so this is polling —
 `vcsPollSeconds`, 60 by default — and **only for the branches a parked card is
@@ -210,7 +210,7 @@ adapters have no such channel.
 | Card sits, no comment | The column is not configured, or the property that changed is not the one the columns are on |
 | "Агент не запускается" | Somebody is assigned to the card |
 | "Колонка занята" | The crew is busy or the limit is reached; it starts by itself later |
-| "не задан ни repo_path…" | The card matched no repository: check the **Repositories** field against the registry |
+| "не задан ни project_path…" | The card matched no project: check the **Проекты** field against the registry |
 | Card never leaves *In Review* | Nobody is watching its branch — see [which branch is followed](#which-branch-is-followed), or the route has no edge for what happened |
 | Test stage refuses to start | The agent has no browser MCP server (*Agents…* → MCP servers) |
 
@@ -228,7 +228,7 @@ by hand:
 | `maxConcurrent` | how many sessions run at once on this machine (3) |
 | `sessionTimeoutMinutes` / `testTimeoutMinutes` | one turn (15) and one browser pass (30) |
 | `sessionIdleMinutes` | how long a console session sits between turns (30) |
-| `vcsPollSeconds` / `gitRemote` / `githubToken` | watching repositories |
+| `vcsPollSeconds` / `gitRemote` / `githubToken` | watching projects |
 | `autoAllowTools` | what an agent may do without asking. A card-triggered session has nobody to ask, so anything not on the list is refused |
 | `artifactsDir` | screenshots and verdicts of test runs |
 

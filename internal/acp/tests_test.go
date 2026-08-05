@@ -9,48 +9,48 @@ import (
 
 func TestResolvePreviewURL(t *testing.T) {
 	m := agentManager(t, "")
-	m.cfg.Repos = []RepoEntry{{Name: "webapp", Path: "/repos/webapp"}}
+	m.cfg.Projects = []ProjectEntry{{Name: "webapp", Path: "/projects/webapp"}}
 	// A target is a host now, so the single registered entry answers for the
-	// card without being tied to its repository.
+	// card without being tied to its project.
 	m.cfg.Deploys = []DeployEntry{deployEntry("preview")}
 
 	// 1. An explicit preview_url on the card wins — whatever put it there.
 	url, branch, err := m.resolvePreviewURL(CardMoved{
 		Props: map[string]string{"preview_url": "https://feat-x.api.example.com", "branch": "feat/x"},
-	}, "/repos/webapp")
+	}, "/projects/webapp")
 	if err != nil || url != "https://feat-x.api.example.com" || branch != "feat/x" {
 		t.Fatalf("explicit url: %q, %q, %v", url, branch, err)
 	}
 	// The property is also accepted under the name a board is likely to show.
 	url, _, err = m.resolvePreviewURL(CardMoved{
 		Props: map[string]string{"preview url": "https://feat-y.api.example.com/app"},
-	}, "/repos/webapp")
+	}, "/projects/webapp")
 	if err != nil || url != "https://feat-y.api.example.com/app" {
 		t.Fatalf("spaced property name: %q, %v", url, err)
 	}
 	// Something that is not an address is an error, not a browser crash later.
 	if _, _, err := m.resolvePreviewURL(CardMoved{
 		Props: map[string]string{"preview_url": "feat-x.api.example.com"},
-	}, "/repos/webapp"); err == nil {
+	}, "/projects/webapp"); err == nil {
 		t.Fatal("a scheme-less preview_url should be rejected")
 	}
 
 	// 2. Otherwise the address the deploy registry gives the card's branch.
 	url, branch, err = m.resolvePreviewURL(CardMoved{
 		Props: map[string]string{"branch": "feat/Big Thing"},
-	}, "/repos/webapp")
+	}, "/projects/webapp")
 	if err != nil || branch != "feat/Big Thing" {
 		t.Fatalf("derived branch: %q, %v", branch, err)
 	}
 	// The address is composed the way a deploy composes it: one label carrying
-	// the app name (the repository, or the target's override) and the branch.
+	// the app name (the project, or the target's override) and the branch.
 	if url != "http://api-feat-big-thing.example.com" {
 		t.Fatalf("derived url: %q", url)
 	}
 
 	// 3. With neither, the error says what is missing.
 	m.cfg.Deploys = nil
-	if _, _, err := m.resolvePreviewURL(CardMoved{Props: map[string]string{"branch": "feat/x"}}, "/repos/webapp"); err == nil ||
+	if _, _, err := m.resolvePreviewURL(CardMoved{Props: map[string]string{"branch": "feat/x"}}, "/projects/webapp"); err == nil ||
 		!strings.Contains(err.Error(), "preview_url") {
 		t.Fatalf("error should mention preview_url: %v", err)
 	}
@@ -83,11 +83,11 @@ func TestResolveTestRun(t *testing.T) {
 
 	// An ordinary session resolves nothing, so the launch path can call this
 	// unconditionally.
-	if run, err := m.resolveTestRun(ev, "/repo", "/data/run", false); run != nil || err != nil {
+	if run, err := m.resolveTestRun(ev, "/project", "/data/run", false); run != nil || err != nil {
 		t.Fatalf("non-test session: %+v, %v", run, err)
 	}
 
-	run, err := m.resolveTestRun(ev, "/repo", "/data/run", true)
+	run, err := m.resolveTestRun(ev, "/project", "/data/run", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +132,7 @@ func TestSessionMCPServersForATestSession(t *testing.T) {
 	agent := AgentEntry{Name: "jojo", Kind: "junie", MCPServers: map[string]AgentMCPServer{
 		"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest", "--headless"}},
 	}}
-	s := &Session{RepoPath: "/repo", Agent: agent, Test: &TestRun{URL: "https://feat-x.example.com", Artifacts: "/data/run"}}
+	s := &Session{ProjectPath: "/project", Agent: agent, Test: &TestRun{URL: "https://feat-x.example.com", Artifacts: "/data/run"}}
 
 	specs, err := sessionMCPServers(s, cfg)
 	if err != nil {
@@ -154,12 +154,12 @@ func TestSessionMCPServersForATestSession(t *testing.T) {
 }
 
 func TestTestSessionNeedsABrowserServer(t *testing.T) {
-	repo := initTestRepo(t)
+	project := initTestProject(t)
 	m := agentManager(t, "", AgentEntry{Name: "bare", Kind: "claude"})
 	m.cfg.Deploys = []DeployEntry{deployEntry("prod")}
-	m.cfg.Repos = []RepoEntry{{Name: "webapp", Path: repo}}
+	m.cfg.Projects = []ProjectEntry{{Name: "webapp", Path: project}}
 
-	ev := CardMoved{CardID: "cardT", Title: "Проверить", Props: map[string]string{"repo_path": repo, "branch": "feat/x"}}
+	ev := CardMoved{CardID: "cardT", Title: "Проверить", Props: map[string]string{"repo_path": project, "branch": "feat/x"}}
 	_, err := m.startSession(ev, startOptions{test: true})
 	if err == nil {
 		t.Fatal("a test session without a browser server should not start")

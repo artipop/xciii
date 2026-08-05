@@ -23,7 +23,7 @@ func (w *fakeWatcher) Poll(_ context.Context, t vcs.Target) ([]vcs.Event, error)
 	out := make([]vcs.Event, 0, len(w.events))
 	for _, e := range w.events {
 		if t.Wants(e.Kind) && e.Branch == t.Branch {
-			e.RepoPath = t.RepoPath
+			e.ProjectPath = t.ProjectPath
 			out = append(out, e)
 		}
 	}
@@ -34,7 +34,7 @@ func TestPollVCSMovesTheCardOnceAndOnlyWhereSomebodyWaits(t *testing.T) {
 	flow := sampleFlow()
 	flow.Nodes = append(flow.Nodes, FlowNode{ID: "done", Column: "Done", Action: FlowActionNone})
 	flow.Edges = append(flow.Edges, FlowEdge{From: "review", To: "done", On: TriggerBranchMerged})
-	m, writer, events, repo := flowManager(t, fakeClaudeHappy, flow)
+	m, writer, events, project := flowManager(t, fakeClaudeHappy, flow)
 
 	watcher := &fakeWatcher{events: []vcs.Event{{
 		Kind: TriggerBranchMerged, Branch: "feat/x", Marker: "abc123", Detail: "ветка влита в main",
@@ -47,7 +47,7 @@ func TestPollVCSMovesTheCardOnceAndOnlyWhereSomebodyWaits(t *testing.T) {
 		t.Fatalf("polled with no card waiting: %+v", watcher.targets)
 	}
 
-	events.ch <- flowEvent("cardV", repo, "Backlog", "To Agent")
+	events.ch <- flowEvent("cardV", project, "Backlog", "To Agent")
 	waitFor(t, 20*time.Second, "card parked on Review", func() bool {
 		st, ok, _ := m.store.FlowStateForCard("cardV")
 		return ok && st.NodeID == "review"
@@ -58,7 +58,7 @@ func TestPollVCSMovesTheCardOnceAndOnlyWhereSomebodyWaits(t *testing.T) {
 		moves := writer.cardMoves()
 		return len(moves) == 2 && moves[1].option == "Done"
 	})
-	if got := watcher.targets[0]; got.Branch != "feat/x" || got.RepoPath != repo ||
+	if got := watcher.targets[0]; got.Branch != "feat/x" || got.ProjectPath != project ||
 		!got.Wants(TriggerBranchMerged) || got.Remote != "origin" {
 		t.Fatalf("poll target: %+v", got)
 	}
@@ -81,23 +81,23 @@ func TestPollVCSMovesTheCardOnceAndOnlyWhereSomebodyWaits(t *testing.T) {
 func TestClaimVCSEvent(t *testing.T) {
 	st := openTestStore(t)
 
-	fresh, err := st.ClaimVCSEvent("/repo", "feat/x", TriggerBranchMerged, "sha1")
+	fresh, err := st.ClaimVCSEvent("/project", "feat/x", TriggerBranchMerged, "sha1")
 	if err != nil || !fresh {
 		t.Fatalf("first sighting: %v, %v", fresh, err)
 	}
-	fresh, err = st.ClaimVCSEvent("/repo", "feat/x", TriggerBranchMerged, "sha1")
+	fresh, err = st.ClaimVCSEvent("/project", "feat/x", TriggerBranchMerged, "sha1")
 	if err != nil || fresh {
 		t.Fatalf("the same state must not fire twice: %v, %v", fresh, err)
 	}
 	// A new commit is a new occurrence.
-	fresh, err = st.ClaimVCSEvent("/repo", "feat/x", TriggerBranchMerged, "sha2")
+	fresh, err = st.ClaimVCSEvent("/project", "feat/x", TriggerBranchMerged, "sha2")
 	if err != nil || !fresh {
 		t.Fatalf("a changed marker is a new event: %v, %v", fresh, err)
 	}
-	// Другая ветка, другое событие и другой репозиторий учитываются отдельно.
+	// Другая ветка, другое событие и другой проект учитываются отдельно.
 	for _, args := range [][3]string{
-		{"/repo", "feat/y", TriggerBranchMerged},
-		{"/repo", "feat/x", TriggerBranchPushed},
+		{"/project", "feat/y", TriggerBranchMerged},
+		{"/project", "feat/x", TriggerBranchPushed},
 		{"/other", "feat/x", TriggerBranchMerged},
 	} {
 		if fresh, err := st.ClaimVCSEvent(args[0], args[1], args[2], "sha2"); err != nil || !fresh {

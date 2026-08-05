@@ -10,7 +10,7 @@
 // installed on the host beyond a normal Dokku with our ssh key.
 //
 // The package knows nothing about the board: it is handed a Target, a local
-// repository path and a branch, which is exactly what the MCP process receives
+// project path and a branch, which is exactly what the MCP process receives
 // through its environment.
 package dokku
 
@@ -27,11 +27,11 @@ import (
 // The whole app name is one DNS label — <baseApp>-<slug>.<baseDomain> — and a
 // label is 63 characters, which both halves have to fit inside once each has
 // been folded. A folded half that had to be cut carries "-<6-char hash>", and a
-// repository half may also carry the "r-" prefix, so the worst case is
+// project half may also carry the "r-" prefix, so the worst case is
 // (2+16+7) + 1 + (30+7) = 63 exactly.
 const (
 	maxSlug      = 30 // branch half
-	maxRepoLabel = 16 // repository half
+	maxRepoLabel = 16 // project half
 )
 
 // Target is one Dokku deployment destination: which host to talk to and how
@@ -45,8 +45,8 @@ type Target struct {
 
 	// BaseApp prefixes every branch app, and the app name is the subdomain:
 	// "api" → app api-<slug> at api-<slug>.<preview domain>. It is normally left
-	// empty and derived from the repository name (WithBaseApp), so a target can
-	// serve every repository pointed at it; set it only to override that.
+	// empty and derived from the project name (WithBaseApp), so a target can
+	// serve every project pointed at it; set it only to override that.
 	BaseApp string `json:"baseApp,omitempty"`
 
 	// BaseDomain is the zone previews live under: "example.com" →
@@ -63,7 +63,7 @@ type Target struct {
 
 // Validate normalizes and checks a target. BaseApp may be empty here: the
 // registry stores a target without one and the deploy path fills it from the
-// repository (WithBaseApp), so New — where an actual deploy starts — is what
+// project (WithBaseApp), so New — where an actual deploy starts — is what
 // insists on having it.
 func (t Target) Validate() (Target, error) {
 	t.SSHHost = strings.ToLower(strings.Trim(strings.TrimSpace(t.SSHHost), "."))
@@ -131,33 +131,33 @@ func (t Target) PreviewDomain() string {
 }
 
 // Domain is the hostname a branch slug is served at: the app name as a single
-// label under the preview domain — <repo>-<branch>.example.com. One label is
+// label under the preview domain — <project>-<branch>.example.com. One label is
 // what makes a single wildcard record (*.example.com) cover every preview of
-// every repository, and it is also Dokku's own convention, the vhost being the
+// every project, and it is also Dokku's own convention, the vhost being the
 // app name under a global domain.
 func (t Target) Domain(slug string) string {
 	return t.AppName(slug) + "." + t.PreviewDomain()
 }
 
-// WithBaseApp derives the missing BaseApp from the repository the branch is
-// pushed from, which is what makes one target serve several repositories. An
-// explicit BaseApp wins, and an empty repository name changes nothing — New
+// WithBaseApp derives the missing BaseApp from the project the branch is
+// pushed from, which is what makes one target serve several projects. An
+// explicit BaseApp wins, and an empty project name changes nothing — New
 // then reports the target as unusable rather than building "-<slug>".
-func (t Target) WithBaseApp(repoName string) Target {
+func (t Target) WithBaseApp(projectName string) Target {
 	if t.BaseApp != "" {
 		return t
 	}
-	t.BaseApp = AppLabel(repoName)
+	t.BaseApp = AppLabel(projectName)
 	return t
 }
 
-// AppLabel turns a repository name into the leading half of an app name: the
+// AppLabel turns a project name into the leading half of an app name: the
 // same folding as a branch slug on a shorter budget, plus a leading letter,
 // which Dokku requires of an app name and a name like "2fa-service" lacks.
 //
-// TODO: validate the name where it is entered — the repository registry — so a
+// TODO: validate the name where it is entered — the project registry — so a
 // name that cannot be a hostname is rejected there instead of being quietly
-// folded here, which is how two repositories could end up on one subdomain.
+// folded here, which is how two projects could end up on one subdomain.
 func AppLabel(name string) string {
 	if strings.TrimSpace(name) == "" {
 		return ""
@@ -171,7 +171,7 @@ func AppLabel(name string) string {
 
 // URL is the address to open in a browser.
 // A preview is plain http: TLS is per app rather than per host, so it belongs
-// with the other per-repository settings whenever those land.
+// with the other per-project settings whenever those land.
 func (t Target) URL(slug string) string {
 	return "http://" + t.Domain(slug)
 }

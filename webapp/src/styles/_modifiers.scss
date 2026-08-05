@@ -50,9 +50,13 @@ $positions: 't'top,
     width: 100%;
 }
 
+// A hairline ring set off from the control, not a blurred halo around it: at
+// 2px radius a soft glow reads as a smudge.
 .a11y--focused {
-    border-radius: 4px;
-    box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
+    border-radius: var(--radius-sm);
+    outline: 1px solid rgb(var(--sidebar-text-active-border-rgb));
+    outline-offset: 2px;
+    box-shadow: none;
 }
 
 .pos-relative {
@@ -74,5 +78,5 @@ $positions: 't'top,
 }
 
 .bg--white {
-    background: var(--center-channel-bg);
+    background: rgb(var(--surface-bg-rgb));
 }

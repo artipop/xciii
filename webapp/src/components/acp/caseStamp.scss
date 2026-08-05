@@ -1,0 +1,41 @@
+.CaseStamp {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 16px;
+    margin: 4px 0 12px;
+
+    font-size: var(--text-micro);
+
+    &__field {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    // The stamp is where the three voices sit side by side and the rule is
+    // easiest to see: `BRANCH` is what the system calls the thing, and
+    // `xciii/card-1` is what it measured.
+    &__label {
+        font-family: var(--font-label);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: var(--track-label);
+        color: rgba(var(--center-channel-color-rgb), 0.4);
+    }
+
+    &__value {
+        font-family: var(--font-mono);
+        font-feature-settings: 'tnum' 1, 'zero' 1;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // A terminal that is open now is the only thing here worth a colour.
+    &__field--terminal &__value {
+        color: rgb(var(--sidebar-text-active-border-rgb));
+    }
+}

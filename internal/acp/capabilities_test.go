@@ -78,7 +78,7 @@ func TestAgentOptionsAreCachedPerLaunch(t *testing.T) {
 // gives it: a select value and a boolean toggle.
 func TestAgentOptionsAreAppliedToTheSession(t *testing.T) {
 	script := writeFakeAgent(t, fakeClaudeHappy)
-	m, _, events, repo := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{
 			Name:    "tuned",
 			Kind:    "codex",
@@ -92,7 +92,7 @@ func TestAgentOptionsAreAppliedToTheSession(t *testing.T) {
 		}}
 	})
 
-	ev := moveEvent("cardOptions", repo, "opt-backlog", "opt-agent")
+	ev := moveEvent("cardOptions", project, "opt-backlog", "opt-agent")
 	ev.OptionNames = []string{"tuned"}
 	events.ch <- ev
 
@@ -115,7 +115,7 @@ func TestAgentOptionsAreAppliedToTheSession(t *testing.T) {
 // switches every codex session into.
 func TestAgentOptionsOutrankTheKindDefaults(t *testing.T) {
 	script := writeFakeAgent(t, fakeClaudeHappy)
-	m, _, events, repo := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{
 			Name:    "careful",
 			Kind:    "codex",
@@ -125,7 +125,7 @@ func TestAgentOptionsOutrankTheKindDefaults(t *testing.T) {
 		}}
 	})
 
-	ev := moveEvent("cardOverride", repo, "opt-backlog", "opt-agent")
+	ev := moveEvent("cardOverride", project, "opt-backlog", "opt-agent")
 	ev.OptionNames = []string{"careful"}
 	events.ch <- ev
 

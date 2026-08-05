@@ -15,9 +15,23 @@ const BaseTextEditor = (props: PropertyProps & {validator: () => boolean, spellC
     const [value, setValue] = createSignal(props.card.fields.properties[props.propertyTemplate.id || ''] || '')
     const onCancel = () => setValue(props.propertyValue || '')
 
+    // The card this value was read from. The card dialog is reused when you
+    // switch cards, so without this the pending value would be flushed onto
+    // whichever card is open when the editor is finally disposed.
+    const editedCardId = props.card.id
+
     const saveTextProperty = () => {
-        if (value() !== (props.card.fields.properties[props.propertyTemplate?.id || ''] || '')) {
-            mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate?.id || '', value())
+        // The card can already be gone: this also runs from onCleanup, and
+        // closing a card disposes the dialog in the same tick the store stops
+        // knowing about the card. Reading `.fields` off nothing threw from
+        // inside disposal, which aborts it — so the dialog never came off the
+        // screen and the card could not be closed at all.
+        const card = props.card
+        if (!card || card.id !== editedCardId) {
+            return
+        }
+        if (value() !== (card.fields.properties[props.propertyTemplate?.id || ''] || '')) {
+            mutator.changePropertyValue(props.board.id, card, props.propertyTemplate?.id || '', value())
         }
     }
 

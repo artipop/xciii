@@ -40,6 +40,7 @@ exports[`components/cardDetail/CardDetail > should render hidden view if limited
         />
       </div>
     </div>
+    
     <div
       class="CardDetail__limited-wrapper"
     >

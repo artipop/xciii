@@ -43,11 +43,11 @@ describe('components/acp/deployTargetsDialog', () => {
         userEvent.type(screen.getByPlaceholderText('dokku.example.com'), 'dokku.example.com')
 
         // A target is a host and a domain, nothing else: what a preview needs
-        // beyond that belongs to the repository, so the form does not ask.
+        // beyond that belongs to the project, so the form does not ask.
         expect(screen.queryByText(/Let's Encrypt/)).not.toBeInTheDocument()
         expect(screen.queryByPlaceholderText('DATABASE_URL=postgres://…')).not.toBeInTheDocument()
 
-        // The app name is left empty: it comes from the repository being
+        // The app name is left empty: it comes from the project being
         // deployed, and the form says what the address will look like.
         expect(screen.getByText('A branch is served at reponame-my-branch.dokku.example.com')).toBeInTheDocument()
 
@@ -60,7 +60,7 @@ describe('components/acp/deployTargetsDialog', () => {
         })
 
         // Neither the app name nor the domain is typed: one comes from the
-        // repository, the other from the host itself.
+        // project, the other from the host itself.
         expect(sent.baseApp).toBeFalsy()
         expect(sent.baseDomain).toBeFalsy()
     })

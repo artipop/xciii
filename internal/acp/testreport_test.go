@@ -59,7 +59,7 @@ func writeRun(t *testing.T, dir string, res TestResult, shots ...string) {
 	}
 }
 
-func TestReportTestRunPassMovesTheCardAndAttachsEvidence(t *testing.T) {
+func TestProjectrtTestRunPassMovesTheCardAndAttachsEvidence(t *testing.T) {
 	m, w, s := testSession(t, nil)
 	writeRun(t, s.Test.Artifacts, TestResult{
 		Verdict: VerdictPass,
@@ -100,7 +100,7 @@ func TestReportTestRunPassMovesTheCardAndAttachsEvidence(t *testing.T) {
 	}
 }
 
-func TestReportTestRunFailListsBugsAndMovesToFailed(t *testing.T) {
+func TestProjectrtTestRunFailListsBugsAndMovesToFailed(t *testing.T) {
 	m, w, s := testSession(t, nil)
 	writeRun(t, s.Test.Artifacts, TestResult{
 		Verdict: VerdictFail,
@@ -121,7 +121,7 @@ func TestReportTestRunFailListsBugsAndMovesToFailed(t *testing.T) {
 	}
 }
 
-func TestReportTestRunBlockedLeavesTheCardAlone(t *testing.T) {
+func TestProjectrtTestRunBlockedLeavesTheCardAlone(t *testing.T) {
 	m, w, s := testSession(t, nil)
 	writeRun(t, s.Test.Artifacts, TestResult{
 		Verdict: VerdictBlocked,
@@ -138,7 +138,7 @@ func TestReportTestRunBlockedLeavesTheCardAlone(t *testing.T) {
 	}
 }
 
-func TestReportTestRunWithoutAVerdict(t *testing.T) {
+func TestProjectrtTestRunWithoutAVerdict(t *testing.T) {
 	m, w, s := testSession(t, nil)
 	// The agent took a screenshot but never called report_result.
 	writeRun(t, s.Test.Artifacts, TestResult{Verdict: VerdictPass})
@@ -161,7 +161,7 @@ func TestReportTestRunWithoutAVerdict(t *testing.T) {
 	}
 }
 
-func TestReportTestRunOnABrokenOffTurnStillReports(t *testing.T) {
+func TestProjectrtTestRunOnABrokenOffTurnStillReports(t *testing.T) {
 	m, w, s := testSession(t, nil)
 	writeRun(t, s.Test.Artifacts, TestResult{
 		Verdict: VerdictFail,
@@ -180,7 +180,7 @@ func TestReportTestRunOnABrokenOffTurnStillReports(t *testing.T) {
 	}
 }
 
-func TestReportTestRunHonoursUnconfiguredColumns(t *testing.T) {
+func TestProjectrtTestRunHonoursUnconfiguredColumns(t *testing.T) {
 	m, w, s := testSession(t, func(c *Config) { c.TestPassColumn = "" })
 	writeRun(t, s.Test.Artifacts, TestResult{Verdict: VerdictPass, Summary: "ок"})
 
@@ -191,7 +191,7 @@ func TestReportTestRunHonoursUnconfiguredColumns(t *testing.T) {
 	}
 }
 
-func TestReportTestRunCapsAttachments(t *testing.T) {
+func TestProjectrtTestRunCapsAttachments(t *testing.T) {
 	m, w, s := testSession(t, nil)
 	shots := make([]string, maxAttachments+5)
 	for i := range shots {

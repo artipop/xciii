@@ -13,8 +13,8 @@ import (
 	"github.com/artipop/xciii/internal/dokku"
 )
 
-// RepoEntry is one named local repository in the registry.
-type RepoEntry struct {
+// ProjectEntry is one named local project in the registry.
+type ProjectEntry struct {
 	Name string `json:"name"`
 	Path string `json:"path"`
 }
@@ -289,7 +289,7 @@ type ProxyEntry struct {
 
 // DeployEntry is one named Dokku destination in the registry: where the branch
 // of a card moved into the deploy column is published. A card is mapped to an
-// entry by a select option carrying its name, by the repository it resolved to,
+// entry by a select option carrying its name, by the project it resolved to,
 // or — with a single entry registered — by default.
 //
 // The Dokku half is dokku.Target verbatim, because that is exactly what the MCP
@@ -299,7 +299,7 @@ type DeployEntry struct {
 
 	// An entry is the host and the domain, nothing else: what a preview needs
 	// beyond that — environment, TLS, how long a build may take — is a property
-	// of the repository being deployed, not of the machine it lands on.
+	// of the project being deployed, not of the machine it lands on.
 	dokku.Target
 }
 
@@ -504,7 +504,7 @@ func knownAdapter(kind string) bool {
 }
 
 // Config controls the agent integration. It is stored as JSON in the app data
-// directory; the repo registry is edited through the desktop UI, the rest by
+// directory; the project registry is edited through the desktop UI, the rest by
 // hand for now.
 type Config struct {
 	Enabled bool `json:"enabled"`
@@ -534,14 +534,17 @@ type Config struct {
 	TestPassColumn string `json:"testPassColumn"`
 	TestFailColumn string `json:"testFailColumn"`
 
-	// RepoWhitelist lists directory roots a card's repo_path must be under.
-	// Empty means every repo_path is rejected (explicit opt-in).
-	RepoWhitelist []string `json:"repoWhitelist"`
+	// ProjectWhitelist lists directory roots a card's project_path must be
+	// under. Empty means every project_path is rejected (explicit opt-in).
+	ProjectWhitelist []string `json:"projectWhitelist"`
 
-	// Repos is the registry of named local repositories. A card is mapped to
-	// a repo when one of its select/multiSelect option names (e.g. a tag)
+	// Projects is the registry of named local projects. A card is mapped to
+	// a project when one of its select/multiSelect option names (e.g. a tag)
 	// matches a registry entry name. Registered paths are implicitly allowed.
-	Repos []RepoEntry `json:"repos"`
+	//
+	// A project is a git repository; the product stopped calling it one because
+	// a board that runs agents is not only for software.
+	Projects []ProjectEntry `json:"projects"`
 
 	// Agents is the registry of named coding agents (claude/codex, with their
 	// own prompt, model and env). A card is mapped to an agent when one of its
@@ -575,7 +578,7 @@ type Config struct {
 	SystemPrompt string `json:"systemPrompt"`
 
 	// DeployPrompt is what a deploy session is told to do; the concrete facts
-	// (repository, branch, target, expected URL) are appended to it.
+	// (project, branch, target, expected URL) are appended to it.
 	DeployPrompt string `json:"deployPrompt"`
 
 	// TestPrompt is what a test session is told to do; the preview URL and the
@@ -591,21 +594,21 @@ type Config struct {
 	// ArtifactsDir is where screenshots and result.json of test runs are kept.
 	ArtifactsDir string `json:"artifactsDir"`
 
-	// VCSPollSeconds is how often the repositories cards wait on are polled for
-	// branch and pull-request events. Zero disables repository watching.
+	// VCSPollSeconds is how often the projects cards wait on are polled for
+	// branch and pull-request events. Zero disables project watching.
 	VCSPollSeconds int `json:"vcsPollSeconds"`
 	// GitRemote is the remote consulted for those events.
 	GitRemote string `json:"gitRemote"`
 	// GithubToken authorizes the pull-request triggers. Empty falls back to
-	// GITHUB_TOKEN in the environment; without either, only public repositories
+	// GITHUB_TOKEN in the environment; without either, only public projects
 	// answer, and slowly (60 requests an hour).
 	GithubToken string `json:"githubToken,omitempty"`
 
 	// WorktreeMode controls where sessions run: "always" (default) — a
 	// dedicated git worktree per session, which is what gives a card its own
-	// branch to show and to deploy; "never" — directly in the repository
-	// working tree, with concurrent sessions per repo rejected. A smarter
-	// "auto" (escalate to a worktree when the repo is busy/dirty) may come later.
+	// branch to show and to deploy; "never" — directly in the project
+	// working tree, with concurrent sessions per project rejected. A smarter
+	// "auto" (escalate to a worktree when the project is busy/dirty) may come later.
 	WorktreeMode string `json:"worktreeMode"`
 
 	MaxConcurrent int `json:"maxConcurrent"`
@@ -651,8 +654,8 @@ func DefaultConfig(dataDir string) Config {
 		TestColumn:               "To Test",
 		TestPassColumn:           "Tested",
 		TestFailColumn:           "Failed",
-		RepoWhitelist:            []string{},
-		Repos:                    []RepoEntry{},
+		ProjectWhitelist:         []string{},
+		Projects:                 []ProjectEntry{},
 		Agents:                   []AgentEntry{},
 		Proxies:                  []ProxyEntry{},
 		Deploys:                  []DeployEntry{},
@@ -823,7 +826,7 @@ func (c Config) GithubTokenValue() string {
 	return strings.TrimSpace(os.Getenv("GITHUB_TOKEN"))
 }
 
-// VCSPoll is how often repositories are polled; zero turns watching off.
+// VCSPoll is how often projects are polled; zero turns watching off.
 func (c Config) VCSPoll() time.Duration {
 	if c.VCSPollSeconds <= 0 {
 		return 0
@@ -852,7 +855,7 @@ func (c Config) ToolAllowed(toolName string, input any) bool {
 	return ToolPolicy(c.AutoAllowTools).Allows(toolName, input)
 }
 
-// SaveConfig writes cfg to path (used when the UI edits the repo registry).
+// SaveConfig writes cfg to path (used when the UI edits the project registry).
 func SaveConfig(path string, cfg Config) error {
 	out, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
@@ -867,16 +870,16 @@ func SaveConfig(path string, cfg Config) error {
 	return os.Chmod(path, 0o600)
 }
 
-// ValidateRepoPath checks a card's repo_path against the whitelist, the repo
+// ValidateProjectPath checks a card's repo_path against the whitelist, the project
 // registry and the filesystem. It returns the cleaned absolute path.
-func (c Config) ValidateRepoPath(repoPath string) (string, error) {
-	if strings.TrimSpace(repoPath) == "" {
+func (c Config) ValidateProjectPath(projectPath string) (string, error) {
+	if strings.TrimSpace(projectPath) == "" {
 		return "", fmt.Errorf("repo_path is empty")
 	}
-	if !filepath.IsAbs(repoPath) {
-		return "", fmt.Errorf("repo_path must be absolute: %s", repoPath)
+	if !filepath.IsAbs(projectPath) {
+		return "", fmt.Errorf("repo_path must be absolute: %s", projectPath)
 	}
-	clean := filepath.Clean(repoPath)
+	clean := filepath.Clean(projectPath)
 	info, err := os.Stat(clean)
 	if err != nil {
 		return "", fmt.Errorf("repo_path does not exist: %s", clean)
@@ -884,8 +887,8 @@ func (c Config) ValidateRepoPath(repoPath string) (string, error) {
 	if !info.IsDir() {
 		return "", fmt.Errorf("repo_path is not a directory: %s", clean)
 	}
-	roots := append([]string(nil), c.RepoWhitelist...)
-	for _, r := range c.Repos {
+	roots := append([]string(nil), c.ProjectWhitelist...)
+	for _, r := range c.Projects {
 		roots = append(roots, r.Path)
 	}
 	for _, root := range roots {
@@ -894,5 +897,5 @@ func (c Config) ValidateRepoPath(repoPath string) (string, error) {
 			return clean, nil
 		}
 	}
-	return "", fmt.Errorf("repo_path %s is not under any whitelisted root (repoWhitelist / repos in acp config)", clean)
+	return "", fmt.Errorf("repo_path %s is not under any whitelisted root (repoWhitelist / projects in acp config)", clean)
 }

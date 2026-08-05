@@ -10,12 +10,12 @@ import (
 	"testing"
 )
 
-func initTestRepo(t *testing.T) string {
+func initTestProject(t *testing.T) string {
 	t.Helper()
-	repo := t.TempDir()
+	project := t.TempDir()
 	run := func(args ...string) {
 		t.Helper()
-		cmd := exec.Command("git", append([]string{"-C", repo}, args...)...)
+		cmd := exec.Command("git", append([]string{"-C", project}, args...)...)
 		cmd.Env = append(os.Environ(),
 			"GIT_AUTHOR_NAME=t", "GIT_AUTHOR_EMAIL=t@t", "GIT_COMMITTER_NAME=t", "GIT_COMMITTER_EMAIL=t@t")
 		if out, err := cmd.CombinedOutput(); err != nil {
@@ -23,12 +23,12 @@ func initTestRepo(t *testing.T) string {
 		}
 	}
 	run("init", "-b", "main")
-	if err := os.WriteFile(filepath.Join(repo, "README.md"), []byte("hi\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(project, "README.md"), []byte("hi\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	run("add", ".")
 	run("commit", "-m", "init")
-	return repo
+	return project
 }
 
 func TestWorktreeBranchNamesTheCard(t *testing.T) {
@@ -58,11 +58,11 @@ func TestWorktreeBranchNamesTheCard(t *testing.T) {
 }
 
 func TestCreateWorktreeNamingAndBase(t *testing.T) {
-	repo := initTestRepo(t)
+	project := initTestProject(t)
 	root := t.TempDir()
 	ctx := context.Background()
 
-	wt, err := CreateWorktree(ctx, repo, "", "Логин через SSO", "card-1234abcd", "sess-5678efgh", root)
+	wt, err := CreateWorktree(ctx, project, "", "Логин через SSO", "card-1234abcd", "sess-5678efgh", root)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,33 +78,33 @@ func TestCreateWorktreeNamingAndBase(t *testing.T) {
 }
 
 func TestCreateWorktreeBadBase(t *testing.T) {
-	repo := initTestRepo(t)
-	if _, err := CreateWorktree(context.Background(), repo, "no-such-branch", "title", "c", "s", t.TempDir()); err == nil {
+	project := initTestProject(t)
+	if _, err := CreateWorktree(context.Background(), project, "no-such-branch", "title", "c", "s", t.TempDir()); err == nil {
 		t.Fatal("expected error for missing base branch")
 	}
 }
 
 func TestRemoveWorktreeCleanVsDirty(t *testing.T) {
-	repo := initTestRepo(t)
+	project := initTestProject(t)
 	ctx := context.Background()
 
-	clean, err := CreateWorktree(ctx, repo, "", "clean card", "card1", "sessclean", t.TempDir())
+	clean, err := CreateWorktree(ctx, project, "", "clean card", "card1", "sessclean", t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
-	removed, err := RemoveWorktreeIfClean(ctx, repo, clean)
+	removed, err := RemoveWorktreeIfClean(ctx, project, clean)
 	if err != nil || !removed {
 		t.Fatalf("clean worktree should be removed: removed=%v err=%v", removed, err)
 	}
 
-	dirty, err := CreateWorktree(ctx, repo, "", "dirty card", "card2", "sessdirty", t.TempDir())
+	dirty, err := CreateWorktree(ctx, project, "", "dirty card", "card2", "sessdirty", t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(dirty.Path, "new.txt"), []byte("x"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	removed, err = RemoveWorktreeIfClean(ctx, repo, dirty)
+	removed, err = RemoveWorktreeIfClean(ctx, project, dirty)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +117,7 @@ func TestRemoveWorktreeCleanVsDirty(t *testing.T) {
 }
 
 func TestConcurrentWorktreeCreation(t *testing.T) {
-	repo := initTestRepo(t)
+	project := initTestProject(t)
 	root := t.TempDir()
 	var wg sync.WaitGroup
 	errs := make([]error, 4)
@@ -125,7 +125,7 @@ func TestConcurrentWorktreeCreation(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			_, errs[i] = CreateWorktree(context.Background(), repo, "", "card", "card", "sess"+string(rune('a'+i)), root)
+			_, errs[i] = CreateWorktree(context.Background(), project, "", "card", "card", "sess"+string(rune('a'+i)), root)
 		}(i)
 	}
 	wg.Wait()

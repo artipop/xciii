@@ -19,17 +19,17 @@ type WorktreeInfo struct {
 	BaseRef string
 }
 
-// worktreeLocks serializes worktree creation per repository to avoid
+// worktreeLocks serializes worktree creation per project to avoid
 // concurrent git index locks.
-var worktreeLocks sync.Map // repo path → *sync.Mutex
+var worktreeLocks sync.Map // project path → *sync.Mutex
 
-func repoLock(repo string) *sync.Mutex {
-	mu, _ := worktreeLocks.LoadOrStore(repo, &sync.Mutex{})
+func repoLock(project string) *sync.Mutex {
+	mu, _ := worktreeLocks.LoadOrStore(project, &sync.Mutex{})
 	return mu.(*sync.Mutex)
 }
 
-func gitCmd(ctx context.Context, repo string, args ...string) (string, error) {
-	cmd := exec.CommandContext(ctx, "git", append([]string{"-C", repo}, args...)...)
+func gitCmd(ctx context.Context, project string, args ...string) (string, error) {
+	cmd := exec.CommandContext(ctx, "git", append([]string{"-C", project}, args...)...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("git %s: %w: %s", strings.Join(args, " "), err, strings.TrimSpace(string(out)))
@@ -39,28 +39,28 @@ func gitCmd(ctx context.Context, repo string, args ...string) (string, error) {
 
 // CreateWorktree adds a new worktree for the session off baseBranch (or HEAD
 // when empty), on a fresh branch named after the card (see WorktreeBranch).
-func CreateWorktree(ctx context.Context, repo, baseBranch, title, cardID, sessionID, worktreeRoot string) (WorktreeInfo, error) {
-	mu := repoLock(repo)
+func CreateWorktree(ctx context.Context, project, baseBranch, title, cardID, sessionID, worktreeRoot string) (WorktreeInfo, error) {
+	mu := repoLock(project)
 	mu.Lock()
 	defer mu.Unlock()
 
-	if _, err := gitCmd(ctx, repo, "rev-parse", "--git-dir"); err != nil {
-		return WorktreeInfo{}, fmt.Errorf("%s is not a git repository: %w", repo, err)
+	if _, err := gitCmd(ctx, project, "rev-parse", "--git-dir"); err != nil {
+		return WorktreeInfo{}, fmt.Errorf("%s is not a git project: %w", project, err)
 	}
 
 	baseRef := strings.TrimSpace(baseBranch)
 	if baseRef == "" {
 		baseRef = "HEAD"
-	} else if _, err := gitCmd(ctx, repo, "rev-parse", "--verify", baseRef); err != nil {
-		return WorktreeInfo{}, fmt.Errorf("base branch %q not found in %s", baseRef, repo)
+	} else if _, err := gitCmd(ctx, project, "rev-parse", "--verify", baseRef); err != nil {
+		return WorktreeInfo{}, fmt.Errorf("base branch %q not found in %s", baseRef, project)
 	}
 
 	branch := WorktreeBranch(title, cardID, sessionID)
-	path := filepath.Join(worktreeRoot, fmt.Sprintf("%s-%s", filepath.Base(repo), shortID(sessionID)))
+	path := filepath.Join(worktreeRoot, fmt.Sprintf("%s-%s", filepath.Base(project), shortID(sessionID)))
 	if err := os.MkdirAll(worktreeRoot, 0o755); err != nil {
 		return WorktreeInfo{}, err
 	}
-	if _, err := gitCmd(ctx, repo, "worktree", "add", "-b", branch, path, baseRef); err != nil {
+	if _, err := gitCmd(ctx, project, "worktree", "add", "-b", branch, path, baseRef); err != nil {
 		return WorktreeInfo{}, err
 	}
 	return WorktreeInfo{Path: path, Branch: branch, BaseRef: baseRef}, nil
@@ -68,8 +68,8 @@ func CreateWorktree(ctx context.Context, repo, baseBranch, title, cardID, sessio
 
 // RemoveWorktreeIfClean removes the worktree (and its branch) only when it has
 // no uncommitted changes and no commits ahead of its base ref.
-func RemoveWorktreeIfClean(ctx context.Context, repo string, w WorktreeInfo) (bool, error) {
-	mu := repoLock(repo)
+func RemoveWorktreeIfClean(ctx context.Context, project string, w WorktreeInfo) (bool, error) {
+	mu := repoLock(project)
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -84,18 +84,18 @@ func RemoveWorktreeIfClean(ctx context.Context, repo string, w WorktreeInfo) (bo
 	if err == nil && ahead != "0" {
 		return false, nil
 	}
-	if _, err := gitCmd(ctx, repo, "worktree", "remove", "--force", w.Path); err != nil {
+	if _, err := gitCmd(ctx, project, "worktree", "remove", "--force", w.Path); err != nil {
 		return false, err
 	}
-	_, _ = gitCmd(ctx, repo, "branch", "-D", w.Branch)
+	_, _ = gitCmd(ctx, project, "branch", "-D", w.Branch)
 	return true, nil
 }
 
-// PruneStale runs `git worktree prune` on every known repo, cleaning up
+// PruneStale runs `git worktree prune` on every known project, cleaning up
 // records of worktrees whose directories are gone.
-func PruneStale(ctx context.Context, repos []string) {
-	for _, repo := range repos {
-		_, _ = gitCmd(ctx, repo, "worktree", "prune")
+func PruneStale(ctx context.Context, projects []string) {
+	for _, project := range projects {
+		_, _ = gitCmd(ctx, project, "worktree", "prune")
 	}
 }
 

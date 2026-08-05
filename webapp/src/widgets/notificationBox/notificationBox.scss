@@ -5,8 +5,8 @@
     position: fixed;
     bottom: 52px;
     right: 32px;
-    border-radius: 4px;
-    background: rgb(var(--center-channel-bg-rgb));
+    border-radius: var(--radius-sm);
+    background: rgb(var(--surface-bg-rgb));
     box-shadow: rgba(var(--center-channel-color-rgb), 0.1) 0 0 0 1px,
         rgba(var(--center-channel-color-rgb), 0.1) 0 2px 4px;
     display: flex;

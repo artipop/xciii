@@ -10,11 +10,11 @@ import {useIntl} from '../../intl'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 
 import './planningDialog.scss'
 
-// Planning a task before it exists: the agent's own CLI, in the repository, in
+// Planning a task before it exists: the agent's own CLI, in the project, in
 // a window.
 //
 // This dialog used to hold the conversation itself — a transcript, a prompt box
@@ -39,9 +39,9 @@ const PlanningDialog = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [repos, setRepos] = createSignal<NamedEntry[]>([])
+    const [projects, setProjects] = createSignal<NamedEntry[]>([])
     const [agents, setAgents] = createSignal<NamedEntry[]>([])
-    const [repoName, setRepoName] = createSignal('')
+    const [projectName, setProjectName] = createSignal('')
     const [agentName, setAgentName] = createSignal('')
     const [terminals, setTerminals] = createSignal<LiveTerminal[]>([])
     const [busy, setBusy] = createSignal(false)
@@ -66,17 +66,17 @@ const PlanningDialog = (props: Props) => {
         }
         try {
             const [repoList, agentList] = await Promise.all([
-                bindings.ListAgentRepos(),
+                bindings.ListAgentProjects(),
                 bindings.ListAgents(),
             ])
             const parsedRepos: NamedEntry[] = JSON.parse(repoList) || []
             const parsedAgents: NamedEntry[] = JSON.parse(agentList) || []
-            setRepos(parsedRepos)
+            setProjects(parsedRepos)
             setAgents(parsedAgents)
 
             // One of a kind needs no choosing.
             if (parsedRepos.length === 1) {
-                setRepoName(parsedRepos[0].name)
+                setProjectName(parsedRepos[0].name)
             }
             if (parsedAgents.length === 1) {
                 setAgentName(parsedAgents[0].name)
@@ -101,7 +101,7 @@ const PlanningDialog = (props: Props) => {
         setError('')
         setBusy(true)
         try {
-            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(repoName(), agentName())))
+            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(projectName(), agentName())))
             await refreshTerminals()
         } catch (e: any) {
             setError(String(e?.message || e))
@@ -132,23 +132,23 @@ const PlanningDialog = (props: Props) => {
                 <p class='PlanningDialog__hint'>
                     {intl.formatMessage({
                         id: 'Planning.hint-terminal',
-                        defaultMessage: 'Opens the agent\'s CLI in the repository. Nothing is committed for you and no card is created — this is a place to think out loud.',
+                        defaultMessage: 'Opens the agent\'s CLI in the project. Nothing is committed for you and no card is created — this is a place to think out loud.',
                     })}
                 </p>
 
                 <div class='PlanningDialog__pickers'>
                     <label>
-                        {intl.formatMessage({id: 'Planning.repository', defaultMessage: 'Repository'})}
+                        {intl.formatMessage({id: 'Planning.project', defaultMessage: 'Project'})}
                         <select
-                            value={repoName()}
-                            onChange={(e) => setRepoName(e.currentTarget.value)}
+                            value={projectName()}
+                            onChange={(e) => setProjectName(e.currentTarget.value)}
                         >
                             <option value=''>{intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})}</option>
-                            <For each={repos()}>
+                            <For each={projects()}>
                                 {(r) => (
                                     <option
                                         value={r.name}
-                                        selected={repoName() === r.name}
+                                        selected={projectName() === r.name}
                                     >{r.name}</option>
                                 )}
                             </For>
@@ -174,7 +174,7 @@ const PlanningDialog = (props: Props) => {
                     <Button
                         filled={true}
                         onClick={start}
-                        disabled={busy() || !agentName() || !repoName()}
+                        disabled={busy() || !agentName() || !projectName()}
                     >
                         {intl.formatMessage({id: 'Planning.start-terminal', defaultMessage: 'Open a terminal'})}
                     </Button>

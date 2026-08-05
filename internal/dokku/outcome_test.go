@@ -47,7 +47,7 @@ func TestOutcomeRoundTrip(t *testing.T) {
 
 func TestDeployToolRecordsWhatHappened(t *testing.T) {
 	dir := t.TempDir()
-	cl, _ := New(testTarget(), "/repo", "feat/x")
+	cl, _ := New(testTarget(), "/project", "feat/x")
 	cl.Run = (&fakeRunner{}).run
 	cs := connectWithArtifacts(t, cl, dir)
 

@@ -21,7 +21,7 @@ import (
 // and policies, and reports results back to the board and the UI.
 type Manager struct {
 	cfg     Config
-	cfgMu   sync.RWMutex // guards the UI-mutable parts of cfg (Repos, Agents, SystemPrompt)
+	cfgMu   sync.RWMutex // guards the UI-mutable parts of cfg (Projects, Agents, SystemPrompt)
 	cfgPath string       // where registry edits are persisted; empty in tests
 	store   *Store
 	writer  BoardWriter
@@ -52,7 +52,7 @@ type Manager struct {
 	optionsMu    sync.Mutex
 	optionsCache map[string][]AgentOption
 
-	watchers []vcs.Watcher // repository watchers feeding the flow engine
+	watchers []vcs.Watcher // project watchers feeding the flow engine
 
 	sem     chan struct{}
 	rootCtx context.Context
@@ -74,7 +74,7 @@ func (m *Manager) SetBoardReader(r BoardReader) { m.reader = r }
 // agent" needs. Optional: without it only the "Agent" field routes cards.
 func (m *Manager) SetBoardUsers(u BoardUsers) { m.users = u }
 
-// NewManager wires the manager. cfgPath is where repo-registry edits are
+// NewManager wires the manager. cfgPath is where project-registry edits are
 // persisted (may be empty in tests). Call Start to begin consuming events.
 func NewManager(cfg Config, cfgPath string, st *Store, w BoardWriter, ui UIEmitter, log *slog.Logger) *Manager {
 	if log == nil {
@@ -126,7 +126,7 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 	}
 
 	m.recover()
-	PruneStale(m.rootCtx, m.cfg.RepoWhitelist)
+	PruneStale(m.rootCtx, m.cfg.ProjectWhitelist)
 
 	ch, err := events.Subscribe(m.rootCtx)
 	if err != nil {
@@ -135,7 +135,7 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 	m.wg.Add(1)
 	go m.triggerLoop(ch)
 
-	// Repository polling only matters once some card waits on a branch, but the
+	// Project polling only matters once some card waits on a branch, but the
 	// loop itself is cheap: it does nothing at all until FlowTargets is non-empty.
 	if m.cfg.VCSPoll() > 0 && len(m.watchers) > 0 {
 		m.wg.Add(1)
@@ -168,9 +168,9 @@ type startOptions struct {
 	// test makes this a test session: it resolves the card's preview address, is
 	// given the browser MCP tools and gets the tester prompt.
 	test bool
-	// repoName picks a repository explicitly, for a console opened on a card
+	// projectName picks a project explicitly, for a console opened on a card
 	// that does not say which one it is about.
-	repoName string
+	projectName string
 	// flowName/flowNodeID tie the session to the stage of a route that started
 	// it, so its outcome can move the card on.
 	flowName, flowNodeID string
@@ -202,7 +202,7 @@ func (m *Manager) StartSessionForEvent(ev CardMoved) (*Session, error) {
 // deploy, a browser test — is started here, runs its one turn and ends.
 func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error) {
 	// Asked before anything is resolved: a card somebody took for themselves is
-	// theirs, and there is no point working out which repository an agent would
+	// theirs, and there is no point working out which project an agent would
 	// not be using. Deploy and test are unaffected — that is machine work, not
 	// the assignee's — and an explicit `agent` property still wins, since it is
 	// a direct instruction. Somebody who wants to work the card *with* an agent
@@ -216,11 +216,11 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		}
 	}
 
-	repoPath, err := m.resolveRepo(ev)
-	if opts.repoName != "" {
+	projectPath, err := m.resolveProject(ev)
+	if opts.projectName != "" {
 		// An explicit choice wins: the console offers one exactly when the card
-		// itself does not say which repository it is about.
-		repoPath, err = m.resolveNamedRepo(opts.repoName)
+		// itself does not say which project it is about.
+		projectPath, err = m.resolveNamedProject(opts.projectName)
 	}
 	if err != nil {
 		return nil, err
@@ -229,7 +229,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	if deployName == "" {
 		deployName = opts.column.DeployName
 	}
-	deploy, deployBranch, err := m.resolveDeploy(ev, repoPath, opts.deploy, deployName)
+	deploy, deployBranch, err := m.resolveDeploy(ev, projectPath, opts.deploy, deployName)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	if err != nil {
 		return nil, err
 	}
-	test, err := m.resolveTestRun(ev, repoPath, artifacts, opts.test)
+	test, err := m.resolveTestRun(ev, projectPath, artifacts, opts.test)
 	if err != nil {
 		return nil, err
 	}
@@ -265,10 +265,10 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	// without a browser MCP server on the agent there is nothing to test with,
 	// and finding that out mid-turn costs a whole session.
 	if test != nil && len(agent.MCPServers) == 0 {
-		return nil, fmt.Errorf("агенту %q не задан MCP-сервер браузера — тестировать нечем (меню доски → Агенты → «MCP-серверы»)", agent.Name)
+		return nil, fmt.Errorf("агенту %q не задан MCP-сервер браузера — тестировать нечем (меню доски → «Агенты…» → «MCP-серверы»)", agent.Name)
 	}
 	// Without worktrees, two agents must never share one working tree
-	// (spec §7): reject while another live session uses the same repo. A deploy
+	// (spec §7): reject while another live session uses the same project. A deploy
 	// session is exempt for the same reason a planning one is — it only pushes
 	// an existing branch and never touches the checkout.
 	if !m.cfg.UseWorktrees() && !opts.deploy {
@@ -277,14 +277,14 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		for _, other := range m.active {
 			// A planning session only reads, so it neither claims the working
 			// copy nor keeps a card's session out of it.
-			if other.RepoPath == repoPath && !other.Planning {
+			if other.ProjectPath == projectPath && !other.Planning {
 				busyCard = other.CardID
 				break
 			}
 		}
 		m.mu.Unlock()
 		if busyCard != "" {
-			return nil, fmt.Errorf("в репозитории %s уже работает сессия другой карточки (%s) — дождитесь её завершения или закройте её консоль", repoPath, busyCard)
+			return nil, fmt.Errorf("в проекте %s уже работает сессия другой карточки (%s) — дождитесь её завершения или закройте её консоль", projectPath, busyCard)
 		}
 	}
 
@@ -313,7 +313,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		CardID:       ev.CardID,
 		Title:        ev.Title,
 		BoardID:      ev.BoardID,
-		RepoPath:     repoPath,
+		ProjectPath:  projectPath,
 		BaseBranch:   ev.Props["branch"],
 		Agent:        agent,
 		Net:          net,
@@ -392,8 +392,8 @@ func (m *Manager) CancelSessionForCard(cardID, reason string) bool {
 // worktree branch (the one the agent is actually committing to) gets deployed;
 // empty falls back to the card property and then to the checked-out branch.
 //
-// The branch lives in the repository's shared object store even when it was
-// created in a worktree, so pushing it from the repository itself — which is
+// The branch lives in the project's shared object store even when it was
+// created in a worktree, so pushing it from the project itself — which is
 // where a deploy session always runs — reaches it.
 func (m *Manager) StartDeployForCard(cardID, branch string) (*Session, error) {
 	if m.reader == nil {
@@ -415,25 +415,25 @@ func (m *Manager) StartDeployForCard(cardID, branch string) (*Session, error) {
 }
 
 // planningRepo picks the registry entry to plan against. An empty name means
-// planning without a repository, which is a valid choice rather than a default:
+// planning without a project, which is a valid choice rather than a default:
 // the dialog preselects a lone entry, so nothing here has to guess.
-func (m *Manager) planningRepo(name string) (RepoEntry, error) {
+func (m *Manager) planningRepo(name string) (ProjectEntry, error) {
 	if name == "" {
-		return RepoEntry{}, nil
+		return ProjectEntry{}, nil
 	}
-	for _, r := range m.Repos() {
+	for _, r := range m.Projects() {
 		if strings.EqualFold(r.Name, name) {
 			return r, nil
 		}
 	}
-	return RepoEntry{}, fmt.Errorf("репозиторий %q не найден в реестре", name)
+	return ProjectEntry{}, fmt.Errorf("проект %q не найден в реестре", name)
 }
 
 // planningAgent picks the registry entry that will do the planning.
 func (m *Manager) planningAgent(name string) (AgentEntry, error) {
 	agents := m.Agents()
 	if len(agents) == 0 {
-		return AgentEntry{}, fmt.Errorf("не зарегистрировано ни одного агента (меню доски → Agents)")
+		return AgentEntry{}, fmt.Errorf("не зарегистрировано ни одного агента (меню доски → «Агенты…»)")
 	}
 	if name == "" {
 		if len(agents) > 1 {
@@ -691,7 +691,7 @@ func resolveArgv0(argv []string) []string {
 // planningPrompt opens a planning conversation: the board/agent system prompts,
 // then what this session is for. It is deliberately explicit that nothing is to
 // be changed — the tool policy enforces it, but the agent should not try.
-func planningPrompt(systemPrompt string, agent AgentEntry, repo RepoEntry) string {
+func planningPrompt(systemPrompt string, agent AgentEntry, project ProjectEntry) string {
 	var b []byte
 	if p := strings.TrimSpace(systemPrompt); p != "" {
 		b = fmt.Appendf(b, "%s\n\n", p)
@@ -699,13 +699,13 @@ func planningPrompt(systemPrompt string, agent AgentEntry, repo RepoEntry) strin
 	if p := strings.TrimSpace(agent.Prompt); p != "" {
 		b = fmt.Appendf(b, "%s\n\n", p)
 	}
-	if repo.Path == "" {
+	if project.Path == "" {
 		b = fmt.Appendf(b, "Мы планируем новую задачу. Репозиторий не выбран, кода под рукой нет — ")
 		b = fmt.Appendf(b, "опирайся на то, что расскажет пользователь, и не пытайся ничего искать в файлах.\n\n")
 		b = fmt.Appendf(b, "Начни с короткого вопроса о том, что нужно сделать.")
 		return string(b)
 	}
-	b = fmt.Appendf(b, "Мы планируем новую задачу по репозиторию `%s` (%s).\n", repo.Name, repo.Path)
+	b = fmt.Appendf(b, "Мы планируем новую задачу по проекту `%s` (%s).\n", project.Name, project.Path)
 	b = fmt.Appendf(b, "Код у тебя есть — читай файлы, ищи по ним, смотри историю git: ")
 	b = fmt.Appendf(b, "чтение и безопасные команды осмотра разрешены, опирайся на код, а не на догадки.\n")
 	b = fmt.Appendf(b, "Не меняй ничего: ни файлов, ни состояния. Это обсуждение, а не выполнение. ")
@@ -732,7 +732,7 @@ func composePrompt(ev CardMoved, agent AgentEntry, systemPrompt string, useWorkt
 	if useWorktree {
 		b = fmt.Appendf(b, "\nРаботай в текущем каталоге — это отдельный git worktree, созданный специально для этой задачи. Можешь делать локальные коммиты. Не выполняй git push.")
 	} else {
-		b = fmt.Appendf(b, "\nРаботай в текущем каталоге — это рабочая копия репозитория пользователя. Не переключай ветки, не делай коммитов и git push: оставь изменения незакоммиченными для ревью.")
+		b = fmt.Appendf(b, "\nРаботай в текущем каталоге — это рабочая копия проекта пользователя. Не переключай ветки, не делай коммитов и git push: оставь изменения незакоммиченными для ревью.")
 	}
 	return string(b)
 }

@@ -17,7 +17,7 @@
     &__status {
         font-size: 12px;
         padding: 1px 8px;
-        border-radius: 10px;
+        border-radius: var(--radius-md);
         background: rgba(var(--center-channel-color-rgb), 0.08);
 
         &--running,
@@ -26,7 +26,7 @@
         }
 
         &--failed {
-            background: rgba(var(--error-text-color-rgb), 0.16);
+            background: rgba(var(--error-text-rgb), 0.16);
         }
     }
 
@@ -46,7 +46,7 @@
     &__branchName {
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        border-radius: 3px;
+        border-radius: var(--radius-sm);
         padding: 1px 6px;
     }
 
@@ -55,7 +55,7 @@
     }
 
     &__error {
-        color: rgba(var(--error-text-color-rgb), 1);
+        color: rgba(var(--error-text-rgb), 1);
         font-size: 12px;
         white-space: pre-wrap;
     }

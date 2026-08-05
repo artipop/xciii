@@ -14,14 +14,24 @@ import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 import {sendFlashMessage} from '../flashMessages'
 
-import './agentReposDialog.scss'
+import './agentProjectsDialog.scss'
 
 // The dedicated card property the registry syncs into. Cards are mapped to a
-// repository by an option of this (multiSelect) property; it also exists in the
-// "My Project Tasks" board template.
-const REPO_PROPERTY_NAME = 'Repositories'
+// project by an option of this (multiSelect) property.
+//
+// A project is a git project, and the code still calls it one — that is what
+// it is. What a person sees is "проект", because the board is not only for
+// software: the thing a card sends an agent into happens to be a project.
+const PROJECT_PROPERTY_NAME = 'Проекты'
 
-type AgentRepo = {
+// What the property was called before, so a board that already has one is
+// renamed rather than given a second. Only the name changes: the property keeps
+// its id and its options, and a card refers to an option by id, so nothing a
+// card points at moves. The Go side matches a card to a project by the option's
+// *value*, never by the property's name, so it is not affected either.
+const LEGACY_PROJECT_PROPERTY_NAMES = ['Repositories']
+
+type AgentProject = {
     name: string
     path: string
 }
@@ -32,8 +42,8 @@ export function agentBindings() {
     return (window as unknown as import('../../types').IAppWindow).go?.main?.App
 }
 
-export function isAgentReposAvailable(): boolean {
-    return Boolean(agentBindings()?.ListAgentRepos)
+export function isAgentProjectsAvailable(): boolean {
+    return Boolean(agentBindings()?.ListAgentProjects)
 }
 
 type Props = {
@@ -41,31 +51,39 @@ type Props = {
     onClose: () => void
 }
 
-const AgentReposDialog = (props: Props) => {
+const AgentProjectsDialog = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [repos, setRepos] = createSignal<AgentRepo[]>([])
+    const [projects, setProjects] = createSignal<AgentProject[]>([])
     const [pendingPath, setPendingPath] = createSignal('')
     const [pendingName, setPendingName] = createSignal('')
     const [error, setError] = createSignal('')
 
-    // syncToBoard mirrors the registry into the board's "Repositories" property,
-    // creating that multiSelect property when the board has none. Add-only:
-    // existing options (which cards may reference) are never removed, and a
-    // board that already lists every repository is left untouched — this runs
-    // on its own, so it must not churn the board or the undo history.
-    const syncToBoard = async (registry: AgentRepo[]) => {
+    // The board's project property, under its current name or the one it had
+    // before the rename.
+    const findProjectProperty = (properties: IPropertyTemplate[]) => {
+        const names = [PROJECT_PROPERTY_NAME, ...LEGACY_PROJECT_PROPERTY_NAMES].map((n) => n.toLowerCase())
+        return properties.find((p: IPropertyTemplate) =>
+            names.includes(p.name.trim().toLowerCase()) &&
+            (p.type === 'select' || p.type === 'multiSelect'))
+    }
+
+    // syncToBoard mirrors the registry into that property, creating it when the
+    // board has none. Add-only: existing options (which cards may reference) are
+    // never removed, and a board that already lists every project is left
+    // untouched — this runs on its own, so it must not churn the board or the
+    // undo history.
+    const syncToBoard = async (registry: AgentProject[]) => {
         if (registry.length === 0) {
             return
         }
         const board = props.board
-        const property = board.cardProperties.find((p: IPropertyTemplate) =>
-            p.name.trim().toLowerCase() === REPO_PROPERTY_NAME.toLowerCase() &&
-            (p.type === 'select' || p.type === 'multiSelect'))
+        const property = findProjectProperty(board.cardProperties)
         const existing = new Set((property?.options || []).map((o: IPropertyOption) => o.value.trim().toLowerCase()))
         const missing = registry.filter((r) => !existing.has(r.name.trim().toLowerCase()))
-        if (property && missing.length === 0) {
+        const needsRename = Boolean(property) && property?.name !== PROJECT_PROPERTY_NAME
+        if (property && missing.length === 0 && !needsRename) {
             return
         }
 
@@ -74,32 +92,34 @@ const AgentReposDialog = (props: Props) => {
                 ...p,
                 options: [...p.options],
             }))
-            let target = newProperties.find((p) =>
-                p.name.trim().toLowerCase() === REPO_PROPERTY_NAME.toLowerCase() &&
-                (p.type === 'select' || p.type === 'multiSelect'))
-            if (!target) {
+            let target = findProjectProperty(newProperties)
+            if (target) {
+                // A board from before the rename keeps the property, its id and
+                // its options; only the label a person reads changes.
+                target.name = PROJECT_PROPERTY_NAME
+            } else {
                 target = {
                     id: Utils.createGuid(IDType.BlockID),
-                    name: REPO_PROPERTY_NAME,
+                    name: PROJECT_PROPERTY_NAME,
                     type: 'multiSelect',
                     options: [],
                 }
                 newProperties.push(target)
             }
-            for (const repo of missing) {
+            for (const project of missing) {
                 target.options.push({
                     id: Utils.createGuid(IDType.BlockID),
-                    value: repo.name,
+                    value: project.name,
                     color: 'propColorDefault',
                 })
             }
 
-            await mutator.updateBoardCardProperties(board.id, board.cardProperties, newProperties, 'sync repositories')
+            await mutator.updateBoardCardProperties(board.id, board.cardProperties, newProperties, 'sync projects')
             if (missing.length > 0) {
                 sendFlashMessage({
                     content: intl.formatMessage(
-                        {id: 'AgentRepos.options-added', defaultMessage: 'Added {count} repository option(s) to "{property}"'},
-                        {count: missing.length, property: REPO_PROPERTY_NAME},
+                        {id: 'AgentProjects.options-added', defaultMessage: 'Added {count} project option(s) to "{property}"'},
+                        {count: missing.length, property: PROJECT_PROPERTY_NAME},
                     ),
                     severity: 'normal',
                 })
@@ -113,17 +133,17 @@ const AgentReposDialog = (props: Props) => {
         if (!bindings) {
             return
         }
-        let registry: AgentRepo[] = []
+        let registry: AgentProject[] = []
         try {
-            registry = JSON.parse(await bindings.ListAgentRepos()) || []
-            setRepos(registry)
+            registry = JSON.parse(await bindings.ListAgentProjects()) || []
+            setProjects(registry)
         } catch (e) {
             setError(String(e))
             return
         }
 
         // The board's "Repositories" field is kept in step on its own, so a
-        // registered repository is selectable on a card without a second step.
+        // registered project is selectable on a card without a second step.
         await syncToBoard(registry)
     }
 
@@ -137,7 +157,7 @@ const AgentReposDialog = (props: Props) => {
         }
         setError('')
         try {
-            const path = await bindings.PickDirectory(intl.formatMessage({id: 'AgentRepos.pick-title', defaultMessage: 'Choose a local git repository'}))
+            const path = await bindings.PickDirectory(intl.formatMessage({id: 'AgentProjects.pick-title', defaultMessage: 'Choose a project folder'}))
             if (path) {
                 setPendingPath(path)
                 setPendingName(path.split('/').filter(Boolean).pop() || '')
@@ -153,7 +173,7 @@ const AgentReposDialog = (props: Props) => {
         }
         setError('')
         try {
-            await bindings.AddAgentRepo(pendingName().trim(), pendingPath())
+            await bindings.AddAgentProject(pendingName().trim(), pendingPath())
             setPendingPath('')
             setPendingName('')
             await refresh()
@@ -168,7 +188,7 @@ const AgentReposDialog = (props: Props) => {
         }
         setError('')
         try {
-            await bindings.RemoveAgentRepo(name)
+            await bindings.RemoveAgentProject(name)
             await refresh()
         } catch (e) {
             setError(String(e))
@@ -177,30 +197,30 @@ const AgentReposDialog = (props: Props) => {
 
     return (
         <Dialog
-            class='AgentReposDialog'
-            title={<span>{intl.formatMessage({id: 'AgentRepos.title', defaultMessage: 'Repositories'})}</span>}
-            subtitle={<span>{intl.formatMessage({id: 'AgentRepos.subtitle', defaultMessage: 'Local git repositories an agent can work in. A card is matched to one by its "Repositories" field.'})}</span>}
+            class='AgentProjectsDialog'
+            title={<span>{intl.formatMessage({id: 'AgentProjects.title', defaultMessage: 'Projects'})}</span>}
+            subtitle={<span>{intl.formatMessage({id: 'AgentProjects.subtitle', defaultMessage: 'Projects on your machine an agent can work in. A card is matched to one by its "Projects" field.'})}</span>}
             onClose={props.onClose}
         >
             <div class='AgentReposDialog__content'>
-                <Show when={repos().length === 0 && !pendingPath()}>
+                <Show when={projects().length === 0 && !pendingPath()}>
                     <div class='AgentReposDialog__empty'>
-                        {intl.formatMessage({id: 'AgentRepos.empty', defaultMessage: 'No repositories registered yet.'})}
+                        {intl.formatMessage({id: 'AgentProjects.empty', defaultMessage: 'No projects registered yet.'})}
                     </div>
                 </Show>
 
-                <For each={repos()}>
-                    {(repo) => (
+                <For each={projects()}>
+                    {(project) => (
                         <div
                             class='AgentReposDialog__row'
                         >
-                            <span class='AgentReposDialog__name'>{repo.name}</span>
-                            <span class='AgentReposDialog__path'>{repo.path}</span>
+                            <span class='AgentReposDialog__name'>{project.name}</span>
+                            <span class='AgentReposDialog__path'>{project.path}</span>
                             <Button
-                                onClick={() => removeRepo(repo.name)}
-                                title={intl.formatMessage({id: 'AgentRepos.remove', defaultMessage: 'Remove'})}
+                                onClick={() => removeRepo(project.name)}
+                                title={intl.formatMessage({id: 'AgentProjects.remove', defaultMessage: 'Remove'})}
                             >
-                                {intl.formatMessage({id: 'AgentRepos.remove', defaultMessage: 'Remove'})}
+                                {intl.formatMessage({id: 'AgentProjects.remove', defaultMessage: 'Remove'})}
                             </Button>
                         </div>
                     )}
@@ -211,7 +231,7 @@ const AgentReposDialog = (props: Props) => {
                         <input
                             class='AgentReposDialog__nameInput'
                             value={pendingName()}
-                            placeholder={intl.formatMessage({id: 'AgentRepos.name-placeholder', defaultMessage: 'Name (matches the "Repositories" option)'})}
+                            placeholder={intl.formatMessage({id: 'AgentProjects.name-placeholder', defaultMessage: 'Name (matches the "Projects" option)'})}
                             onInput={(e) => setPendingName(e.currentTarget.value)}
                         />
                         <span class='AgentReposDialog__path'>{pendingPath()}</span>
@@ -219,10 +239,10 @@ const AgentReposDialog = (props: Props) => {
                             emphasis='primary'
                             onClick={confirmAdd}
                         >
-                            {intl.formatMessage({id: 'AgentRepos.add', defaultMessage: 'Add'})}
+                            {intl.formatMessage({id: 'AgentProjects.add', defaultMessage: 'Add'})}
                         </Button>
                         <Button onClick={() => setPendingPath('')}>
-                            {intl.formatMessage({id: 'AgentRepos.cancel', defaultMessage: 'Cancel'})}
+                            {intl.formatMessage({id: 'AgentProjects.cancel', defaultMessage: 'Cancel'})}
                         </Button>
                     </div>
                 </Show>
@@ -233,15 +253,15 @@ const AgentReposDialog = (props: Props) => {
                             emphasis='primary'
                             onClick={pickDirectory}
                         >
-                            {intl.formatMessage({id: 'AgentRepos.add-repository', defaultMessage: 'Add repository…'})}
+                            {intl.formatMessage({id: 'AgentProjects.add-project', defaultMessage: 'Add project…'})}
                         </Button>
                     </div>
                 </Show>
 
-                <Show when={repos().length > 0}>
+                <Show when={projects().length > 0}>
                     <div class='AgentReposDialog__sync'>
                         <span>
-                            {intl.formatMessage({id: 'AgentRepos.sync-hint', defaultMessage: 'Every repository above is an option of the board’s "Repositories" field, so a card picks one there.'})}
+                            {intl.formatMessage({id: 'AgentProjects.sync-hint', defaultMessage: 'Every project above is an option of the board’s "Projects" field, so a card picks one there.'})}
                         </span>
                     </div>
                 </Show>
@@ -254,4 +274,4 @@ const AgentReposDialog = (props: Props) => {
     )
 }
 
-export default AgentReposDialog
+export default AgentProjectsDialog

@@ -38,13 +38,13 @@ type Session struct {
 	CardID string
 	// Title is the card's own title, which is what the session's worktree
 	// branch is named after — and therefore what a preview address reads like.
-	Title      string
-	BoardID    string
-	RepoPath   string
-	BaseBranch string
-	PromptText string
-	Agent      AgentEntry      // resolved agent (kind/bin/model/env/prompt)
-	Net        NetworkSettings // resolved proxy configuration (Agent.ProxyName)
+	Title       string
+	BoardID     string
+	ProjectPath string
+	BaseBranch  string
+	PromptText  string
+	Agent       AgentEntry      // resolved agent (kind/bin/model/env/prompt)
+	Net         NetworkSettings // resolved proxy configuration (Agent.ProxyName)
 
 	// Deploy is set only for a session started by the deploy column: it is the
 	// Dokku destination the session's MCP server is configured from, and its
@@ -80,15 +80,15 @@ type Session struct {
 	usedWorktree bool // a dedicated worktree was actually created
 
 	// Planning is a session with no card behind it: it exists only to talk
-	// through a task before one is created. It reads the repository but never
-	// writes, so it neither takes the repo lock nor reports to a card.
+	// through a task before one is created. It reads the project but never
+	// writes, so it neither takes the project lock nor reports to a card.
 	Planning bool
 	// Policy decides which tool calls run without asking. It is resolved once
 	// at start — planning is held read-only, an agent may carry its own list,
 	// otherwise the global one applies — so the rule cannot drift mid-session.
 	Policy ToolPolicy
 	// scratchDir is a throwaway working directory made for a session that has
-	// no repository, removed when the session ends.
+	// no project, removed when the session ends.
 	scratchDir string
 
 	mu            sync.Mutex
@@ -115,7 +115,7 @@ func (s *Session) Status() SessionStatus {
 }
 
 // recordedBranch is the branch the session is filed under: the worktree it
-// created, or — for a deploy session, which works in the repo itself — the
+// created, or — for a deploy session, which works in the project itself — the
 // branch it publishes.
 func (s *Session) recordedBranch() string {
 	switch {
@@ -227,7 +227,7 @@ func (m *Manager) runSession(s *Session) {
 	defer m.wg.Done()
 	// Deferred before releaseSession, so they run after it: the next stage of a
 	// flow, and the next card waiting for this column, must not race the
-	// finished session for the repository or for its own place.
+	// finished session for the project or for its own place.
 	defer m.drainColumn(s.ColumnKey)
 	defer m.flowAfterSession(s)
 	defer m.releaseSession(s)
@@ -237,7 +237,7 @@ func (m *Manager) runSession(s *Session) {
 		return
 	}
 
-	// 1. Working directory: a dedicated worktree, or the repo itself.
+	// 1. Working directory: a dedicated worktree, or the project itself.
 	if err := m.prepareWorkdir(s); err != nil {
 		m.finishSession(s, StatusFailed, err.Error())
 		m.comment(s, failComment(s, err.Error()))
@@ -263,14 +263,14 @@ func (m *Manager) runSession(s *Session) {
 
 // prepareWorkdir sets up the session's working directory and announces it.
 func (m *Manager) prepareWorkdir(s *Session) error {
-	// Three kinds of session run in the repository itself even under
+	// Three kinds of session run in the project itself even under
 	// worktreeMode "always": a planning session only reads, so a worktree would
 	// cost a checkout and leave a branch behind for a conversation that changes
 	// nothing; a deploy session publishes an existing branch rather than writing
 	// code, so a throwaway branch is not the one anybody deploys; and a test
 	// session only reads the code it is checking.
 	if m.cfg.UseWorktrees() && !s.Planning && s.Deploy == nil && s.Test == nil {
-		wt, err := CreateWorktree(m.rootCtx, s.RepoPath, s.BaseBranch, s.Title, s.CardID, s.ID, m.cfg.WorktreeDir)
+		wt, err := CreateWorktree(m.rootCtx, s.ProjectPath, s.BaseBranch, s.Title, s.CardID, s.ID, m.cfg.WorktreeDir)
 		if err != nil {
 			return fmt.Errorf("не удалось создать git worktree: %w", err)
 		}
@@ -285,8 +285,8 @@ func (m *Manager) prepareWorkdir(s *Session) error {
 		m.emitSession(s, "")
 		return nil
 	}
-	s.Worktree = WorktreeInfo{Path: s.RepoPath, BaseRef: "HEAD"}
-	if err := m.store.UpdateSession(s.ID, StatusRunning, "", s.RepoPath, "", s.recordedBranch(), "", nil); err != nil {
+	s.Worktree = WorktreeInfo{Path: s.ProjectPath, BaseRef: "HEAD"}
+	if err := m.store.UpdateSession(s.ID, StatusRunning, "", s.ProjectPath, "", s.recordedBranch(), "", nil); err != nil {
 		m.log.Warn("acp: failed to persist session cwd", "session", s.ID, "err", err)
 	}
 	if s.Deploy != nil {
@@ -298,7 +298,7 @@ func (m *Manager) prepareWorkdir(s *Session) error {
 		m.comment(s, fmt.Sprintf("Тестирую превью: %s", s.Test.URL))
 		return nil
 	}
-	m.comment(s, fmt.Sprintf("Агент запущен прямо в репозитории `%s`.", s.RepoPath))
+	m.comment(s, fmt.Sprintf("Агент запущен прямо в проекте `%s`.", s.ProjectPath))
 	return nil
 }
 
@@ -311,7 +311,7 @@ func (m *Manager) cleanupWorktree(s *Session) {
 	if !s.usedWorktree || s.Status() == StatusDone || m.cfg.KeepFailedWorktrees {
 		return
 	}
-	if removed, err := RemoveWorktreeIfClean(context.Background(), s.RepoPath, s.Worktree); err != nil {
+	if removed, err := RemoveWorktreeIfClean(context.Background(), s.ProjectPath, s.Worktree); err != nil {
 		m.log.Warn("acp: worktree cleanup failed", "session", s.ID, "err", err)
 	} else if removed {
 		s.Worktree = WorktreeInfo{}
@@ -449,7 +449,7 @@ func (m *Manager) runTurn(s *Session, conn *acpsdk.ClientSideConnection, acpSess
 	// A cancel that arrived before this turn existed still applies to it: the
 	// card was dragged out of the column while the agent was starting up, and
 	// there was no turn to stop yet. Starting the work anyway would leave a
-	// session nobody asked for holding the repository.
+	// session nobody asked for holding the project.
 	pending := s.cancelPending
 	s.cancelPending = false
 	s.cancelSent = pending
@@ -759,15 +759,15 @@ func doneComment(s *Session, finalText string) string {
 		slug := dokku.AppSlug(s.DeployBranch)
 		fmt.Fprintf(&b, "Ветка: `%s`\nПриложение Dokku: `%s`\nАдрес: %s\n",
 			s.DeployBranch, s.Deploy.AppName(slug), s.Deploy.URL(slug))
-		fmt.Fprintf(&b, "Если агент правил файлы, изменения не закоммичены: `git -C %s diff`", s.RepoPath)
+		fmt.Fprintf(&b, "Если агент правил файлы, изменения не закоммичены: `git -C %s diff`", s.ProjectPath)
 		return b.String()
 	}
 	if s.usedWorktree {
 		fmt.Fprintf(&b, "Worktree: `%s`\nВетка: `%s`\n", s.Worktree.Path, s.Worktree.Branch)
 		fmt.Fprintf(&b, "Посмотреть дифф: `git -C %s diff %s`", s.Worktree.Path, s.Worktree.BaseRef)
 	} else {
-		fmt.Fprintf(&b, "Изменения не закоммичены и лежат в рабочей копии `%s`.\n", s.RepoPath)
-		fmt.Fprintf(&b, "Посмотреть дифф: `git -C %s diff`", s.RepoPath)
+		fmt.Fprintf(&b, "Изменения не закоммичены и лежат в рабочей копии `%s`.\n", s.ProjectPath)
+		fmt.Fprintf(&b, "Посмотреть дифф: `git -C %s diff`", s.ProjectPath)
 	}
 	return b.String()
 }
@@ -779,7 +779,7 @@ func failComment(s *Session, reason string) string {
 	// 407 arrives as a bare status code from the CLI, with no hint that the
 	// proxy — not the model API — refused the request.
 	if s.Net.Proxy != "" && strings.Contains(reason, "407") {
-		b.WriteString("\n\nПрокси требует аутентификацию (407): задай логин и пароль в конфигурации прокси (меню доски → Proxy configurations).")
+		b.WriteString("\n\nПрокси требует аутентификацию (407): задай логин и пароль в конфигурации прокси (меню доски → «Агенты…» → «Настройки прокси»).")
 	}
 	if s.usedWorktree && s.Worktree.Path != "" {
 		fmt.Fprintf(&b, "\nWorktree (если остался): `%s`", s.Worktree.Path)

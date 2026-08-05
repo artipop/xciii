@@ -175,7 +175,7 @@ const EDGE_COLOR: Record<string, string> = {
 }
 
 // edgeKind styles a transition by what produces it: the stage's own outcome, or
-// something that happened in the repository.
+// something that happened in the project.
 export function edgeKind(on: string): string {
     if (on === SUCCESS) {
         return 'success'

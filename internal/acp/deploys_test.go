@@ -89,7 +89,7 @@ func TestResolveDeployTarget(t *testing.T) {
 		t.Error("two unrelated targets should not resolve")
 	}
 	// A single registered target is the answer by default, which is the usual
-	// case now that a target is a host rather than a per-repository setting.
+	// case now that a target is a host rather than a per-project setting.
 	m.cfg.Deploys = []DeployEntry{prod}
 	got, err = m.resolveDeployTarget(CardMoved{})
 	if err != nil || got.Name != "prod" {
@@ -103,14 +103,14 @@ func TestResolveDeployTarget(t *testing.T) {
 }
 
 func TestResolveDeployNamesTheAppAfterTheRepository(t *testing.T) {
-	repo := initTestRepo(t)
+	project := initTestProject(t)
 	m := agentManager(t, "")
 	entry := deployEntry("preview")
-	entry.Target.BaseApp = "" // the ordinary case: one target, many repositories
+	entry.Target.BaseApp = "" // the ordinary case: one target, many projects
 	m.cfg.Deploys = []DeployEntry{entry}
-	m.cfg.Repos = []RepoEntry{{Name: "My Webapp", Path: repo}}
+	m.cfg.Projects = []ProjectEntry{{Name: "My Webapp", Path: project}}
 
-	got, branch, err := m.resolveDeploy(CardMoved{}, repo, true, "")
+	got, branch, err := m.resolveDeploy(CardMoved{}, project, true, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -124,37 +124,37 @@ func TestResolveDeployNamesTheAppAfterTheRepository(t *testing.T) {
 		t.Errorf("branch %q", branch)
 	}
 
-	// An unregistered repository is named after its directory.
-	m.cfg.Repos = nil
-	got, _, err = m.resolveDeploy(CardMoved{}, repo, true, "")
+	// An unregistered project is named after its directory.
+	m.cfg.Projects = nil
+	got, _, err = m.resolveDeploy(CardMoved{}, project, true, "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := dokku.AppLabel(filepath.Base(repo)); got.Target.BaseApp != want {
+	if want := dokku.AppLabel(filepath.Base(project)); got.Target.BaseApp != want {
 		t.Errorf("base app %q, want %q from the directory name", got.Target.BaseApp, want)
 	}
 
 	// An explicit name is left alone, and an ordinary session resolves nothing.
 	entry.Target.BaseApp = "api"
 	m.cfg.Deploys = []DeployEntry{entry}
-	got, _, err = m.resolveDeploy(CardMoved{}, repo, true, "")
+	got, _, err = m.resolveDeploy(CardMoved{}, project, true, "")
 	if err != nil || got.Target.BaseApp != "api" {
 		t.Errorf("explicit base app: %+v, %v", got.Target, err)
 	}
-	if d, b, err := m.resolveDeploy(CardMoved{}, repo, false, ""); d != nil || b != "" || err != nil {
+	if d, b, err := m.resolveDeploy(CardMoved{}, project, false, ""); d != nil || b != "" || err != nil {
 		t.Errorf("a non-deploy session resolved a target: %+v, %q, %v", d, b, err)
 	}
 }
 
 func TestResolveDeployBranch(t *testing.T) {
-	repo := initTestRepo(t)
+	project := initTestProject(t)
 
 	// The card property wins, so a card can deploy a branch that is not checked out.
-	branch, err := resolveDeployBranch(CardMoved{Props: map[string]string{"branch": "feat/x"}}, repo)
+	branch, err := resolveDeployBranch(CardMoved{Props: map[string]string{"branch": "feat/x"}}, project)
 	if err != nil || branch != "feat/x" {
 		t.Fatalf("card branch: %q, %v", branch, err)
 	}
-	branch, err = resolveDeployBranch(CardMoved{}, repo)
+	branch, err = resolveDeployBranch(CardMoved{}, project)
 	if err != nil || branch != "main" {
 		t.Fatalf("checked-out branch: %q, %v", branch, err)
 	}
@@ -207,13 +207,13 @@ func TestComposeDeployPromptCarriesTheFacts(t *testing.T) {
 }
 
 func TestSessionMCPServersOnlyForDeploySessions(t *testing.T) {
-	if specs, err := sessionMCPServers(&Session{RepoPath: "/repo"}, Config{}); err != nil || specs != nil {
+	if specs, err := sessionMCPServers(&Session{ProjectPath: "/project"}, Config{}); err != nil || specs != nil {
 		t.Fatalf("an ordinary session must get no MCP servers: %+v, %v", specs, err)
 	}
 
 	target := deployEntry("prod")
 	target.SSHKey = "/keys/id_ed25519"
-	specs, err := sessionMCPServers(&Session{RepoPath: "/repo", Deploy: &target, DeployBranch: "feat/x"}, Config{})
+	specs, err := sessionMCPServers(&Session{ProjectPath: "/project", Deploy: &target, DeployBranch: "feat/x"}, Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -225,7 +225,7 @@ func TestSessionMCPServersOnlyForDeploySessions(t *testing.T) {
 	if spec.Command != self || strings.Join(spec.Args, " ") != "mcp dokku" {
 		t.Errorf("the server must be this binary re-invoked: %s %v", spec.Command, spec.Args)
 	}
-	if spec.Env[dokku.EnvRepo] != "/repo" || spec.Env[dokku.EnvBranch] != "feat/x" {
+	if spec.Env[dokku.EnvRepo] != "/project" || spec.Env[dokku.EnvBranch] != "feat/x" {
 		t.Errorf("env: %v", spec.Env)
 	}
 	var decoded dokku.Target
@@ -256,7 +256,7 @@ func TestDeploySessionMayUseItsOwnTools(t *testing.T) {
 	// MCP?" prompt, which some agents send with no tool name to match on.
 	target := deployEntry("prod")
 	cfg := DefaultConfig(t.TempDir())
-	deploySession := &Session{RepoPath: "/repo", Deploy: &target, DeployBranch: "feat/x"}
+	deploySession := &Session{ProjectPath: "/project", Deploy: &target, DeployBranch: "feat/x"}
 	if _, err := sessionMCPServers(deploySession, cfg); err != nil {
 		t.Fatal(err)
 	}
@@ -265,14 +265,14 @@ func TestDeploySessionMayUseItsOwnTools(t *testing.T) {
 	}
 	// A test session brings its own browser server; without one it is given
 	// nothing, and startSession refuses it before it can start.
-	testSession := &Session{RepoPath: "/repo", Test: &TestRun{URL: "http://preview.example.com", Artifacts: t.TempDir()}}
+	testSession := &Session{ProjectPath: "/project", Test: &TestRun{URL: "http://preview.example.com", Artifacts: t.TempDir()}}
 	specs, err := sessionMCPServers(testSession, cfg)
 	if err != nil || len(specs) != 0 {
 		t.Errorf("a test session without a browser server: %+v, %v", specs, err)
 	}
 
 	// An ordinary session gets neither.
-	plain := &Session{RepoPath: "/repo"}
+	plain := &Session{ProjectPath: "/project"}
 	if _, err := sessionMCPServers(plain, cfg); err != nil {
 		t.Fatal(err)
 	}
@@ -326,13 +326,13 @@ func TestMCPServersForSessionNew(t *testing.T) {
 	}
 }
 
-func deployMoveEvent(cardID, repo, column string) CardMoved {
+func deployMoveEvent(cardID, project, column string) CardMoved {
 	return CardMoved{
 		EventID:    "ev-" + cardID + column,
 		CardID:     cardID,
 		BoardID:    "board1",
 		Title:      "Deploy me",
-		Props:      map[string]string{"repo_path": repo},
+		Props:      map[string]string{"repo_path": project},
 		FromColumn: Column{PropertyID: "p1", PropertyName: "Status", OptionID: "opt-backlog", Name: "Backlog"},
 		ToColumn:   Column{PropertyID: "p1", PropertyName: "Status", OptionID: "opt-deploy", Name: column},
 		At:         time.Now(),
@@ -340,11 +340,11 @@ func deployMoveEvent(cardID, repo, column string) CardMoved {
 }
 
 func TestDeployColumnStartsASessionWithTheDokkuTools(t *testing.T) {
-	m, writer, events, repo := testManager(t, fakeClaudeRecordingArgs, func(c *Config) {
+	m, writer, events, project := testManager(t, fakeClaudeRecordingArgs, func(c *Config) {
 		c.Deploys = []DeployEntry{deployEntry("prod")}
 	})
 
-	events.ch <- deployMoveEvent("cardD", repo, "Deploy")
+	events.ch <- deployMoveEvent("cardD", project, "Deploy")
 
 	waitFor(t, 15*time.Second, "deploy session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardD")
@@ -378,7 +378,7 @@ func TestDeployColumnStartsASessionWithTheDokkuTools(t *testing.T) {
 		t.Errorf("the agent was not given the dokku MCP server:\n%s", servers)
 	}
 
-	// The branch it deploys is recorded, unlike an ordinary in-repo session.
+	// The branch it deploys is recorded, unlike an ordinary in-project session.
 	sessions, _, _ := m.store.SessionsForCard("cardD")
 	if sessions[0].Branch != "main" {
 		t.Errorf("branch not persisted: %q", sessions[0].Branch)
@@ -386,12 +386,12 @@ func TestDeployColumnStartsASessionWithTheDokkuTools(t *testing.T) {
 }
 
 func TestDeployColumnIgnoredWhenDisabled(t *testing.T) {
-	m, writer, events, repo := testManager(t, fakeClaudeRecordingArgs, func(c *Config) {
+	m, writer, events, project := testManager(t, fakeClaudeRecordingArgs, func(c *Config) {
 		c.DeployColumn = ""
 		c.Deploys = []DeployEntry{deployEntry("prod")}
 	})
 
-	events.ch <- deployMoveEvent("cardOff", repo, "Deploy")
+	events.ch <- deployMoveEvent("cardOff", project, "Deploy")
 
 	// Nothing should happen at all — give the trigger loop a moment to prove it.
 	time.Sleep(500 * time.Millisecond)
@@ -405,15 +405,15 @@ func TestDeployColumnIgnoredWhenDisabled(t *testing.T) {
 }
 
 func TestDeployWithoutTargetsCommentsOnTheCard(t *testing.T) {
-	m, writer, events, repo := testManager(t, fakeClaudeRecordingArgs, nil)
+	m, writer, events, project := testManager(t, fakeClaudeRecordingArgs, nil)
 
-	events.ch <- deployMoveEvent("cardNoTarget", repo, "Deploy")
+	events.ch <- deployMoveEvent("cardNoTarget", project, "Deploy")
 
 	waitFor(t, 5*time.Second, "failure comment", func() bool {
 		return len(writer.cardComments("cardNoTarget")) > 0
 	})
 	comment := writer.cardComments("cardNoTarget")[0]
-	if !strings.Contains(comment, "Деплой не запущен") || !strings.Contains(comment, "Deploy targets") {
+	if !strings.Contains(comment, "Деплой не запущен") || !strings.Contains(comment, "Цели деплоя") {
 		t.Errorf("comment should say what to configure: %q", comment)
 	}
 	if sessions, _, _ := m.store.SessionsForCard("cardNoTarget"); len(sessions) != 0 {
@@ -422,7 +422,7 @@ func TestDeployWithoutTargetsCommentsOnTheCard(t *testing.T) {
 }
 
 func TestStartDeployForCardPublishesTheGivenBranch(t *testing.T) {
-	m, writer, _, repo, emitter := testManagerWithEmitter(t, fakeClaudeHappy, func(c *Config) {
+	m, writer, _, project, emitter := testManagerWithEmitter(t, fakeClaudeHappy, func(c *Config) {
 		c.Deploys = []DeployEntry{{Name: "prod", Target: dokku.Target{SSHHost: "dokku.example.com"}}}
 	})
 
@@ -438,12 +438,12 @@ func TestStartDeployForCardPublishesTheGivenBranch(t *testing.T) {
 	if s.Deploy == nil || s.Deploy.Name != "prod" {
 		t.Fatalf("deploy target: %+v", s.Deploy)
 	}
-	// The app is named after the repository, and the host doubles as the domain.
-	if want := dokku.AppLabel(filepath.Base(repo)); s.Deploy.BaseApp != want {
+	// The app is named after the project, and the host doubles as the domain.
+	if want := dokku.AppLabel(filepath.Base(project)); s.Deploy.BaseApp != want {
 		t.Errorf("base app %q, want %q", s.Deploy.BaseApp, want)
 	}
-	if s.RepoPath != repo {
-		t.Errorf("a deploy must run in the repository itself, ran in %q", s.RepoPath)
+	if s.ProjectPath != project {
+		t.Errorf("a deploy must run in the project itself, ran in %q", s.ProjectPath)
 	}
 
 	waitFor(t, 15*time.Second, "deploy session done", func() bool {
@@ -469,14 +469,14 @@ func TestStartDeployForCardPublishesTheGivenBranch(t *testing.T) {
 }
 
 func TestDeployRunsAlongsideTheCardsOwnSession(t *testing.T) {
-	// Worktrees off is the strict case: the repo-busy rule would otherwise
+	// Worktrees off is the strict case: the project-busy rule would otherwise
 	// refuse, even though a deploy only pushes an existing branch.
-	m, _, events, repo := testManager(t, fakeClaudeHang, func(c *Config) {
+	m, _, events, project := testManager(t, fakeClaudeHang, func(c *Config) {
 		c.WorktreeMode = "never"
 		c.Deploys = []DeployEntry{{Name: "prod", Target: dokku.Target{SSHHost: "dokku.example.com"}}}
 	})
 
-	events.ch <- moveEvent("cardE", repo, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardE", project, "opt-backlog", "opt-agent")
 	waitFor(t, 10*time.Second, "agent session running", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardE")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusRunning

@@ -2,16 +2,33 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background: #18181b;
-    color: #e4e4e7;
+    // The terminal window is the same product as the board, and used to be the
+    // one place that said otherwise: it carried a Tailwind zinc palette of its
+    // own.
+    //
+    // It is always the screen, never the paper — a console on a warm off-white
+    // is a mistake — so it redeclares the raw tokens for its own subtree. Every
+    // derived token in `_tokens.scss` is written in terms of these and is
+    // inherited, so danger, warning and success all re-resolve against the dark
+    // values here without this file naming a single colour.
+    --canvas-rgb: 12, 12, 14;
+    --surface-rgb: 24, 24, 27;
+    --ink-rgb: 233, 233, 236;
+    --danger-rgb: 255, 122, 122;
+    --warning-rgb: 255, 180, 76;
+    --success-rgb: 61, 184, 135;
+
+    background: rgb(var(--canvas-rgb));
+    color: rgb(var(--ink-rgb));
+    font-family: var(--font-mono);
 
     &__header {
         display: flex;
         align-items: center;
         gap: 12px;
         padding: 8px 12px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        font-size: 12px;
+        border-bottom: 1px solid rgba(var(--ink-rgb), 0.12);
+        font-size: var(--text-small);
         flex: 0 0 auto;
     }
 
@@ -41,8 +58,8 @@
         min-width: 0;
 
         code {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 3px;
+            background: rgba(var(--ink-rgb), 0.1);
+            border-radius: var(--radius-sm);
             padding: 1px 6px;
             max-width: 320px;
             overflow: hidden;
@@ -61,18 +78,18 @@
         }
 
         &--live {
-            color: #4ade80;
+            color: rgb(var(--online-indicator-rgb));
         }
 
         &--closed {
-            color: #fbbf24;
+            color: rgb(var(--away-indicator-rgb));
         }
     }
 
     &__error {
         padding: 8px 12px;
-        background: rgba(248, 113, 113, 0.15);
-        color: #fca5a5;
+        background: rgba(var(--error-text-rgb), 0.15);
+        color: rgb(var(--error-text-rgb));
         flex: 0 0 auto;
     }
 

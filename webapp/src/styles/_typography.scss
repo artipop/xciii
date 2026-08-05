@@ -1,17 +1,130 @@
+// The rule the whole product is drawn around. A dossier has three voices, and
+// so does this:
+//
+//   label — how the system NAMES things: column names, property names,
+//           statuses, buttons, menus. Caps, spread right out.
+//   data  — what the system MEASURED: branches, paths, timestamps, counts,
+//           code, the terminal. Monospace, no tracking, tabular figures.
+//   prose — a person: a card's title, its description, comments.
+//
+// Every piece of text on screen now answers "who wrote this, and is it a name
+// or a measurement", and the answer is visible.
+//
+// The label voice is proportional on purpose. The even, official rhythm of a
+// case file comes from tracking, not from every glyph being the same width —
+// monospace under wide tracking is the same effect applied twice, and in
+// Russian it eats a third of the line.
+
+@mixin label {
+    font-family: var(--font-label);
+    font-size: var(--text-small);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--track-label);
+}
+
+// Deliberately no font-size: prose inherits the body size, and the few places
+// that are larger — a card's title at 32px — set their own. Putting a size here
+// made the mixin fight every component that had one.
+@mixin prose {
+    font-family: var(--font-prose);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: var(--track-prose);
+}
+
+@mixin data {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    text-transform: none;
+    letter-spacing: 0;
+    font-feature-settings: 'tnum' 1, 'zero' 1;
+}
+
+.t-label {
+    @include label;
+}
+
+.t-prose {
+    @include prose;
+}
+
+.t-data {
+    @include data;
+}
+
+// ---------------------------------------------------------------------------
+// Where the rule applies to what is already on screen. New components should
+// reach for `.t-label` / `.t-data` / `.t-prose` instead of being added here.
+// ---------------------------------------------------------------------------
+
+// The label voice: navigation, controls, and everything that names a thing.
+.ViewHeader,
+.ViewHeader .Button,
+.octo-propertyname,
+.Label,
+.Label-text,
+.octo-board-header-cell,
+.MenuOption,
+.menu-name,
+.Button,
+.octo-sidebar-header,
+.add-board,
+.TableHeaders,
+.octo-table-footer,
+.Calendar__weekday {
+    @include label;
+}
+
+// The data voice: counts, calculations, table values, timestamps, code.
+.KanbanCalculation,
+.octo-table-cell .octo-propertyvalue,
+.comment-date,
+.version,
+code,
+kbd {
+    @include data;
+}
+
+// A person. This block comes after the label block on purpose — a card title
+// lives inside chrome, and prose has to win.
+.KanbanCard .octo-icontitle,
+.CardDetail .octo-icontitle,
+.Editable.title,
+.octo-block,
+.comment-text,
+.CommentsList {
+    @include prose;
+}
+
+// A board's name is the name of a case: wide, light, spread right out. This is
+// the one place the type is allowed to be large.
+.ViewTitle .Editable.title,
+.ViewTitle .title {
+    font-family: var(--font-label);
+    font-size: var(--text-h2);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--track-title);
+}
+
 h1,
 h2,
 h3,
 .title {
-    font-family: Metropolis, sans-serif;
+    font-family: var(--font-prose);
     font-weight: 600;
+    letter-spacing: var(--track-prose);
 }
 
 .font-semibold {
     font-weight: 600;
 }
 
+// The size scale. Every one of these is a token; there used to be fourteen
+// hard-coded sizes, two of them (14.4px, 31.2px) inherited by accident.
 .text-heading8 {
-    font-size: 32px;
+    font-size: var(--text-h1);
     font-weight: 600;
 }
 
@@ -31,7 +144,7 @@ h3,
 }
 
 .text-heading4 {
-    font-size: 20px;
+    font-size: var(--text-h3);
     font-weight: 600;
 }
 
@@ -41,67 +154,24 @@ h3,
 }
 
 .text-heading2 {
-    font-size: 16px;
+    font-size: var(--text-lead);
     font-weight: 600;
 }
 
 .text-heading1 {
-    font-size: 14px;
+    font-size: var(--text-body);
     font-weight: 600;
 }
 
 .text-base {
-    font-size: 16px;
+    font-size: var(--text-lead);
 }
 
 .text-75 {
-    font-size: 12px;
-    line-height: 16px;
+    font-size: var(--text-small);
+    line-height: var(--line-body);
 }
 
 .text-danger {
     color: var(--error-text);
-}
-
-// Metropolis font definitions
-@font-face {
-    font-family: 'Metropolis';
-    font-style: normal;
-    font-weight: 600;
-    src: url('../fonts/metropolis/Metropolis-SemiBold.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Metropolis';
-    font-style: italic;
-    font-weight: 600;
-    src: url('../fonts/metropolis/Metropolis-SemiBoldItalic.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Metropolis';
-    font-style: normal;
-    font-weight: 400;
-    src: url('../fonts/metropolis/Metropolis-Regular.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Metropolis';
-    font-style: italic;
-    font-weight: 400;
-    src: url('../fonts/metropolis/Metropolis-RegularItalic.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Metropolis';
-    font-style: normal;
-    font-weight: 300;
-    src: url('../fonts/metropolis/Metropolis-Light.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Metropolis';
-    font-style: italic;
-    font-weight: 300;
-    src: url('../fonts/metropolis/Metropolis-LightItalic.woff2') format('woff2');
 }

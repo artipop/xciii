@@ -26,8 +26,34 @@
     .comment-avatar {
         width: 20px;
         height: 20px;
-        border-radius: 100%;
-        box-shadow: rgba(15, 15, 15, 0.1) 0 2px 4px;
+        border-radius: var(--radius-round);
+        box-shadow: var(--elevation-1);
+    }
+
+    // A session's report, filed against the case: ruled off, set back, and
+    // written in the machine's voice rather than a person's.
+    &--agent {
+        border-left: 1px solid var(--border-strong);
+        padding-left: 12px;
+        margin: 12px 0;
+
+        .comment-avatar {
+            display: none;
+        }
+
+        .comment-username {
+            font-family: var(--font-label);
+            font-size: var(--text-micro);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: var(--track-label);
+            color: rgba(var(--center-channel-color-rgb), 0.5);
+            margin-left: 0;
+        }
+
+        .comment-text {
+            padding-left: 0;
+        }
     }
 
     .comment-username {
@@ -36,8 +62,8 @@
     }
 
     .comment-date {
-        color: #ccc;
-        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.4);
+        font-size: var(--text-small);
     }
 
     .comment-text {

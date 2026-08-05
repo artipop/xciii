@@ -47,7 +47,7 @@
         margin: 8px 0;
         padding: 12px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
 
         label {
             display: flex;
@@ -61,8 +61,8 @@
         select {
             padding: 6px 8px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-            border-radius: 4px;
-            background: rgba(var(--center-channel-bg-rgb), 1);
+            border-radius: var(--radius-sm);
+            background: rgb(var(--surface-bg-rgb));
             color: rgba(var(--center-channel-color-rgb), 1);
         }
     }
@@ -79,7 +79,7 @@
         gap: 8px;
         padding: 10px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        border-radius: 4px;
+        border-radius: var(--radius-sm);
         background: rgba(var(--center-channel-color-rgb), 0.04);
     }
 
@@ -121,7 +121,7 @@
     }
 
     .WorkflowsDialog__error {
-        color: rgba(var(--error-text-color-rgb), 1);
+        color: rgba(var(--error-text-rgb), 1);
         font-size: 12px;
     }
 }

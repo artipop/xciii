@@ -11,14 +11,14 @@ import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 
 import '@xterm/xterm/css/xterm.css'
 import './terminalPage.scss'
 
 // The page a terminal window shows: the agent's own CLI, drawn by xterm.js and
 // wired to the pty over the WebSocket at /acp/terminal/<id>/ws. Everything else
-// about the session — which repository, which worktree, which branch, what the
+// about the session — which project, which worktree, which branch, what the
 // card asked for — was decided when the terminal was started; this only draws
 // it and types into it.
 //
@@ -87,12 +87,25 @@ const TerminalPage = (): JSX.Element => {
                 return
             }
 
+            // xterm paints on a canvas, so it cannot read CSS: the family and
+            // the two colours have to be handed to it as strings. They are
+            // taken off the page rather than written here, so the emulator and
+            // the chrome around it can never drift apart.
+            const style = getComputedStyle(host)
+            const colour = (token: string, fallback: string) => {
+                const triple = style.getPropertyValue(token).trim()
+                return triple ? `rgb(${triple})` : fallback
+            }
             terminal = new Terminal({
-                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                fontFamily: style.getPropertyValue('--font-mono').trim() ||
+                    'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
                 fontSize: 13,
                 cursorBlink: true,
                 convertEol: false,
-                theme: {background: '#18181b', foreground: '#e4e4e7'},
+                theme: {
+                    background: colour('--canvas-rgb', '#0c0c0e'),
+                    foreground: colour('--ink-rgb', '#e9e9ec'),
+                },
             })
             fit = new FitAddon()
             terminal.loadAddon(fit)

@@ -93,7 +93,7 @@ func (m *Manager) RemoveDeploy(name string) error {
 
 // resolveDeployTarget maps a card to a Dokku destination: a select/multiSelect
 // option naming an entry, otherwise the single registered entry. A target is a
-// host rather than a per-repository setting, so one entry usually answers for
+// host rather than a per-project setting, so one entry usually answers for
 // everything and a card names one only where there are several hosts.
 func (m *Manager) resolveDeployTarget(ev CardMoved) (DeployEntry, error) {
 	m.cfgMu.RLock()
@@ -101,7 +101,7 @@ func (m *Manager) resolveDeployTarget(ev CardMoved) (DeployEntry, error) {
 	m.cfgMu.RUnlock()
 
 	if len(deploys) == 0 {
-		return DeployEntry{}, fmt.Errorf("не настроено ни одной цели деплоя (меню доски → Deploy targets)")
+		return DeployEntry{}, fmt.Errorf("не настроено ни одной цели деплоя (меню доски → «Цели деплоя…»)")
 	}
 	for _, opt := range ev.OptionNames {
 		for _, d := range deploys {
@@ -120,7 +120,7 @@ func (m *Manager) resolveDeployTarget(ev CardMoved) (DeployEntry, error) {
 // to publish. For an ordinary session it returns nothing and no error, so the
 // launch path can call it unconditionally. override names the target a flow
 // node pinned, which wins over the card's own resolution.
-func (m *Manager) resolveDeploy(ev CardMoved, repoPath string, deploy bool, override string) (*DeployEntry, string, error) {
+func (m *Manager) resolveDeploy(ev CardMoved, projectPath string, deploy bool, override string) (*DeployEntry, string, error) {
 	if !deploy {
 		return nil, "", nil
 	}
@@ -128,11 +128,11 @@ func (m *Manager) resolveDeploy(ev CardMoved, repoPath string, deploy bool, over
 	if err != nil {
 		return nil, "", err
 	}
-	target.Target = target.Target.WithBaseApp(m.deployAppName(repoPath))
+	target.Target = target.Target.WithBaseApp(m.deployAppName(projectPath))
 
 	// What to publish: what the card says, else the branch its own sessions
 	// have been committing to — with worktrees the agent works on a branch the
-	// card never learns about, and deploying the repository's checked-out one
+	// card never learns about, and deploying the project's checked-out one
 	// would publish somebody else's work. That is also what the Deploy button
 	// next to the branch does, so the column and the button agree.
 	branch := strings.TrimSpace(ev.Props["branch"])
@@ -141,7 +141,7 @@ func (m *Manager) resolveDeploy(ev CardMoved, repoPath string, deploy bool, over
 	}
 	if branch == "" {
 		var err error
-		if branch, err = resolveDeployBranch(ev, repoPath); err != nil {
+		if branch, err = resolveDeployBranch(ev, projectPath); err != nil {
 			return nil, "", err
 		}
 	}
@@ -167,20 +167,20 @@ func (m *Manager) resolveDeployTargetNamed(ev CardMoved, name string) (DeployEnt
 }
 
 // deployAppName is what a target without an explicit base app names its apps
-// and its level of the hostname after: the repository's own name in the
-// registry, or the directory it sits in for a repository that is not registered.
-func (m *Manager) deployAppName(repoPath string) string {
-	if strings.TrimSpace(repoPath) == "" {
+// and its level of the hostname after: the project's own name in the
+// registry, or the directory it sits in for a project that is not registered.
+func (m *Manager) deployAppName(projectPath string) string {
+	if strings.TrimSpace(projectPath) == "" {
 		return ""
 	}
 	m.cfgMu.RLock()
-	repos := append([]RepoEntry(nil), m.cfg.Repos...)
+	projects := append([]ProjectEntry(nil), m.cfg.Projects...)
 	m.cfgMu.RUnlock()
 
-	if name := repoNameForPath(repos, repoPath); name != "" {
+	if name := rrojectNameForPath(projects, projectPath); name != "" {
 		return name
 	}
-	return filepath.Base(filepath.Clean(repoPath))
+	return filepath.Base(filepath.Clean(projectPath))
 }
 
 // deployTools are the dokku tools a deploy session may use without asking, for
@@ -198,18 +198,18 @@ func deployTools() map[string]bool {
 }
 
 // resolveDeployBranch is the branch a deploy session publishes: the card's
-// explicit "branch" property, otherwise whatever the repository has checked out.
-func resolveDeployBranch(ev CardMoved, repoPath string) (string, error) {
+// explicit "branch" property, otherwise whatever the project has checked out.
+func resolveDeployBranch(ev CardMoved, projectPath string) (string, error) {
 	if b := strings.TrimSpace(ev.Props["branch"]); b != "" {
 		return b, nil
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	return dokku.CurrentBranch(ctx, nil, repoPath)
+	return dokku.CurrentBranch(ctx, nil, projectPath)
 }
 
-func repoNameForPath(repos []RepoEntry, path string) string {
-	for _, r := range repos {
+func rrojectNameForPath(projects []ProjectEntry, path string) string {
+	for _, r := range projects {
 		if r.Path == path {
 			return r.Name
 		}

@@ -10,7 +10,7 @@ import (
 
 func TestCodexAgentRunsWithIsolatedEnv(t *testing.T) {
 	codexScript := writeFakeAgent(t, fakeCodexEnv)
-	m, writer, events, repo := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, writer, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{
 			Name:    "codexagent",
 			Kind:    "codex",
@@ -19,7 +19,7 @@ func TestCodexAgentRunsWithIsolatedEnv(t *testing.T) {
 		}}
 	})
 
-	ev := moveEvent("cardCodex", repo, "opt-backlog", "opt-agent")
+	ev := moveEvent("cardCodex", project, "opt-backlog", "opt-agent")
 	ev.OptionNames = []string{"codexagent"} // routes to the codex agent
 	events.ch <- ev
 
@@ -52,7 +52,7 @@ func TestCodexAgentRunsWithIsolatedEnv(t *testing.T) {
 // only one that still works.
 func TestCodexModelIsChosenOverTheProtocol(t *testing.T) {
 	script := writeFakeAgent(t, fakeCodexEnv)
-	m, _, events, repo := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{
 			Name:    "codexagent",
 			Kind:    "codex",
@@ -61,7 +61,7 @@ func TestCodexModelIsChosenOverTheProtocol(t *testing.T) {
 		}}
 	})
 
-	ev := moveEvent("cardModel", repo, "opt-backlog", "opt-agent")
+	ev := moveEvent("cardModel", project, "opt-backlog", "opt-agent")
 	ev.OptionNames = []string{"codexagent"}
 	events.ch <- ev
 
@@ -80,7 +80,7 @@ func TestCodexModelIsChosenOverTheProtocol(t *testing.T) {
 // proxy settings: both must survive all the way to the spawned process.
 func TestCodexAgentWrapperCommandAndProxy(t *testing.T) {
 	script := writeFakeAgent(t, fakeCodexProxy)
-	m, writer, events, repo := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, writer, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Proxies = []ProxyEntry{{
 			Name: "office",
 			NetworkSettings: NetworkSettings{
@@ -96,7 +96,7 @@ func TestCodexAgentWrapperCommandAndProxy(t *testing.T) {
 		}}
 	})
 
-	ev := moveEvent("cardProxy", repo, "opt-backlog", "opt-agent")
+	ev := moveEvent("cardProxy", project, "opt-backlog", "opt-agent")
 	ev.OptionNames = []string{"proxiedcodex"}
 	events.ch <- ev
 

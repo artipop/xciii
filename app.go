@@ -79,12 +79,12 @@ func (a *App) CancelSession(cardID string) bool {
 	return a.mgr.CancelSessionForCard(cardID, "отменено пользователем")
 }
 
-// ListAgentRepos returns the repo registry as JSON: [{"name","path"}, …].
-func (a *App) ListAgentRepos() (string, error) {
+// ListAgentProjects returns the project registry as JSON: [{"name","path"}, …].
+func (a *App) ListAgentProjects() (string, error) {
 	if a.mgr == nil {
 		return "[]", nil
 	}
-	out, err := json.Marshal(a.mgr.Repos())
+	out, err := json.Marshal(a.mgr.Projects())
 	if err != nil {
 		return "", err
 	}
@@ -103,13 +103,13 @@ func (a *App) PickDirectory(title string) (string, error) {
 	return pickDirectory(wapp, title)
 }
 
-// AddAgentRepo registers a local repository (name defaults to the directory
+// AddAgentProject registers a local project (name defaults to the directory
 // basename when empty) and returns the created entry as JSON.
-func (a *App) AddAgentRepo(name, path string) (string, error) {
+func (a *App) AddAgentProject(name, path string) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
-	entry, err := a.mgr.AddRepo(name, path)
+	entry, err := a.mgr.AddProject(name, path)
 	if err != nil {
 		return "", err
 	}
@@ -117,12 +117,12 @@ func (a *App) AddAgentRepo(name, path string) (string, error) {
 	return string(out), nil
 }
 
-// RemoveAgentRepo deletes a repo registry entry by name.
-func (a *App) RemoveAgentRepo(name string) error {
+// RemoveAgentProject deletes a project registry entry by name.
+func (a *App) RemoveAgentProject(name string) error {
 	if a.mgr == nil {
 		return errACPDisabled
 	}
-	return a.mgr.RemoveRepo(name)
+	return a.mgr.RemoveProject(name)
 }
 
 // ListAgentAdapters reports, per agent kind, whether it can be started on this
@@ -526,7 +526,7 @@ func (a *App) GetBoardFlowOverview(boardID string) (string, error) {
 }
 
 // GetWorktreeMode reports where sessions run ("always" or "never"). The column
-// editor asks, because a crew of several agents in one repository only works
+// editor asks, because a crew of several agents in one project only works
 // when each session gets its own worktree.
 func (a *App) GetWorktreeMode() (string, error) {
 	if a.mgr == nil {
@@ -568,7 +568,7 @@ func (a *App) StartCardDeploy(cardID, branch string) (string, error) {
 
 // ---- terminal windows ----
 
-// A terminal is the agent's own CLI in a window of ours: the same repository,
+// A terminal is the agent's own CLI in a window of ours: the same project,
 // worktree, branch and environment a session would get, with a human at the
 // keyboard instead of a prompt loop. These bindings start one and hand back
 // where to draw it; the drawing is xterm.js on a WebSocket (terminalws.go).
@@ -585,13 +585,13 @@ type terminalHandle struct {
 }
 
 // OpenCardTerminal opens (or focuses) the agent CLI for a card and returns the
-// terminal as JSON. repoName/agentName may be empty, in which case the card
+// terminal as JSON. projectName/agentName may be empty, in which case the card
 // decides exactly as it does for a session.
-func (a *App) OpenCardTerminal(cardID, repoName, agentName string) (string, error) {
+func (a *App) OpenCardTerminal(cardID, projectName, agentName string) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
-	t, err := a.mgr.StartCardTerminal(cardID, repoName, agentName)
+	t, err := a.mgr.StartCardTerminal(cardID, projectName, agentName)
 	if err != nil {
 		return "", err
 	}
@@ -600,11 +600,11 @@ func (a *App) OpenCardTerminal(cardID, repoName, agentName string) (string, erro
 
 // OpenPlanningTerminal opens the CLI with no card behind it — the terminal half
 // of "Plan a task".
-func (a *App) OpenPlanningTerminal(repoName, agentName string) (string, error) {
+func (a *App) OpenPlanningTerminal(projectName, agentName string) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
-	t, err := a.mgr.StartPlanningTerminal(repoName, agentName)
+	t, err := a.mgr.StartPlanningTerminal(projectName, agentName)
 	if err != nil {
 		return "", err
 	}

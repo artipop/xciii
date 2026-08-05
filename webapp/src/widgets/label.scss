@@ -3,15 +3,26 @@
     align-items: center;
     padding: 2px 8px;
     margin: 4px 4px 0 0;
-    border-radius: 3px;
-    line-height: 20px;
+    // A label is a token of state, so it is a pill. Its type comes from the
+    // machine rule in `_typography.scss` and is deliberately not repeated here.
+    border-radius: var(--radius-pill);
+    line-height: var(--line-body);
     color: rgba(var(--center-channel-color-rgb), 0.8);
     white-space: nowrap;
-    text-transform: uppercase;
     overflow: hidden;
-    font-weight: 600;
-    font-size: 13px;
     max-width: 100%;
+
+    // A column header is a Label wrapping an Editable, and a form control does
+    // not inherit its ancestor's type on its own — without this the board's
+    // column names were the one place the machine spoke in mixed case.
+    input,
+    .Editable {
+        font: inherit;
+        text-transform: inherit;
+        letter-spacing: inherit;
+        color: inherit;
+        background: transparent;
+    }
 
     &.empty {
         color: rgba(var(--center-channel-color-rgb), 0.4);

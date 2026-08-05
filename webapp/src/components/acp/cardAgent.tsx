@@ -9,7 +9,8 @@ import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
+import {cardAgentState, refreshCardAgent} from './cardAgentState'
 
 import './cardAgent.scss'
 
@@ -25,18 +26,6 @@ import './cardAgent.scss'
 // branch the work is on with the button that deploys it, and — while the
 // automation is running — a way to stop it.
 
-type CardAgentState = {
-    session?: {
-        sessionId?: string
-        status?: string
-        branch?: string
-        worktree?: string
-        error?: string
-    }
-    running?: {id: string}
-    resume?: {available?: boolean, branch?: string, cwd?: string}
-}
-
 export function isCardAgentAvailable(): boolean {
     return Boolean(agentBindings()?.GetCardAgent)
 }
@@ -49,19 +38,18 @@ const CardAgent = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [state, setState] = createSignal<CardAgentState>({})
-    const [repos, setRepos] = createSignal<Array<{name: string}>>([])
-    const [repoName, setRepoName] = createSignal('')
+    // Shared with the case stamp above the title, so the two never disagree
+    // and the card asks Go once.
+    const state = cardAgentState(props.cardId)
+    const [projects, setProjects] = createSignal<Array<{name: string}>>([])
+    const [projectName, setProjectName] = createSignal('')
     const [busy, setBusy] = createSignal(false)
     const [error, setError] = createSignal('')
     const [deployStatus, setDeployStatus] = createSignal('')
 
     const refresh = async () => {
-        if (!bindings?.GetCardAgent) {
-            return
-        }
         try {
-            setState(JSON.parse(await bindings.GetCardAgent(props.cardId)))
+            await refreshCardAgent(props.cardId)
         } catch (e: any) {
             setError(String(e?.message || e))
         }
@@ -86,14 +74,14 @@ const CardAgent = (props: Props) => {
         })
     })
 
-    // A card that does not say which repository it is about cannot open a
+    // A card that does not say which project it is about cannot open a
     // terminal until somebody picks one; the list is only fetched then.
-    const offerRepos = async () => {
-        if (!bindings?.ListAgentRepos || repos().length > 0) {
+    const offerProjects = async () => {
+        if (!bindings?.ListAgentProjects || projects().length > 0) {
             return
         }
         try {
-            setRepos(JSON.parse(await bindings.ListAgentRepos()))
+            setProjects(JSON.parse(await bindings.ListAgentProjects()))
         } catch (e) {
             // An empty registry is not an error to report here.
         }
@@ -106,7 +94,7 @@ const CardAgent = (props: Props) => {
         setBusy(true)
         setError('')
         try {
-            const handle = JSON.parse(await bindings.OpenCardTerminal(props.cardId, repoName(), ''))
+            const handle = JSON.parse(await bindings.OpenCardTerminal(props.cardId, projectName(), ''))
 
             // The desktop app has already opened the window by now; a server
             // build has no windows, so the browser opens a tab instead.
@@ -116,7 +104,7 @@ const CardAgent = (props: Props) => {
             await refresh()
         } catch (e: any) {
             setError(String(e?.message || e))
-            offerRepos()
+            offerProjects()
         } finally {
             setBusy(false)
         }
@@ -214,16 +202,16 @@ const CardAgent = (props: Props) => {
                 <div class='CardAgent__error'>{error()}</div>
             </Show>
 
-            <Show when={repos().length > 0}>
+            <Show when={projects().length > 0}>
                 <div class='CardAgent__repoPicker'>
                     <select
-                        value={repoName()}
-                        onChange={(e) => setRepoName(e.currentTarget.value)}
+                        value={projectName()}
+                        onChange={(e) => setProjectName(e.currentTarget.value)}
                     >
                         <option value=''>
-                            {intl.formatMessage({id: 'CardAgent.choose-repo', defaultMessage: 'Choose a repository…'})}
+                            {intl.formatMessage({id: 'CardAgent.choose-project', defaultMessage: 'Choose a project…'})}
                         </option>
-                        <For each={repos()}>
+                        <For each={projects()}>
                             {(r) => (
                                 <option
                                     value={r.name}
@@ -233,7 +221,7 @@ const CardAgent = (props: Props) => {
                     </select>
                     <Button
                         onClick={openTerminal}
-                        disabled={busy() || !repoName()}
+                        disabled={busy() || !projectName()}
                     >
                         {intl.formatMessage({id: 'CardAgent.terminal-open', defaultMessage: 'Open terminal'})}
                     </Button>

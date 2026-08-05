@@ -3,7 +3,7 @@
 
 .Calculation {
     cursor: pointer;
-    transition: opacity 0.1s ease-in;
+    transition: opacity var(--dur) var(--ease);
 
     &.disabled {
         cursor: unset;

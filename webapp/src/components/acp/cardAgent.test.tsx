@@ -16,7 +16,7 @@ function cardBindings(state: any = {}) {
         OpenCardTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-1', windowed: true})),
         StartCardDeploy: vi.fn().mockResolvedValue('deploy-1'),
         CancelSession: vi.fn().mockResolvedValue(true),
-        ListAgentRepos: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
+        ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
     }
 }
 
@@ -77,9 +77,9 @@ describe('components/acp/cardAgent', () => {
         await waitFor(() => expect(bindings.CancelSession).toHaveBeenCalledWith('card-1'))
     })
 
-    // A card that does not name a repository cannot open a terminal until one
+    // A card that does not name a project cannot open a terminal until one
     // is chosen, and the refusal has to offer the choice rather than just fail.
-    it('offers the repositories when the card names none', async () => {
+    it('offers the projects when the card names none', async () => {
         const bindings = cardBindings()
         bindings.OpenCardTerminal = vi.fn().mockRejectedValue(new Error('карточка не указывает репозиторий'))
         anyWindow.go = {main: {App: bindings}}
@@ -88,6 +88,6 @@ describe('components/acp/cardAgent', () => {
 
         await userEvent.click(await screen.findByText('Open terminal'))
         expect(await screen.findByText(/не указывает репозиторий/)).toBeInTheDocument()
-        expect(await screen.findByText('Choose a repository…')).toBeInTheDocument()
+        expect(await screen.findByText('Choose a project…')).toBeInTheDocument()
     })
 })

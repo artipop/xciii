@@ -3,8 +3,8 @@
 }
 
 .AttachmentView {
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
     padding: 10px;
     margin-bottom: 10px;
 }

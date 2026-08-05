@@ -1,5 +1,5 @@
 .CardActionsMenuIcon {
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     padding: 0;
     box-shadow: rgba(var(--center-channel-color-rgb), 0.1) 0 0 0 1px,
         rgba(var(--center-channel-color-rgb), 0.1) 0 2px 4px;

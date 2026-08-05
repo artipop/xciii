@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event'
 import {mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
-import {defaultThemeName} from '../../theme'
+import {lightThemeName} from '../../theme'
 
 import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../../telemetry/telemetryClient'
 
@@ -39,7 +39,7 @@ describe('components/sidebar/SidebarSettingsMenu', () => {
     test('settings menu closed should match snapshot', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
-                <SidebarSettingsMenu activeTheme={defaultThemeName}/>
+                <SidebarSettingsMenu activeTheme={lightThemeName}/>
             </AppStoreProvider>,
         )
 
@@ -50,7 +50,7 @@ describe('components/sidebar/SidebarSettingsMenu', () => {
     test('settings menu open should match snapshot', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
-                <SidebarSettingsMenu activeTheme={defaultThemeName}/>
+                <SidebarSettingsMenu activeTheme={lightThemeName}/>
             </AppStoreProvider>,
         )
 
@@ -62,7 +62,7 @@ describe('components/sidebar/SidebarSettingsMenu', () => {
     test('theme menu open should match snapshot', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
-                <SidebarSettingsMenu activeTheme={defaultThemeName}/>
+                <SidebarSettingsMenu activeTheme={lightThemeName}/>
             </AppStoreProvider>,
         )
 
@@ -75,7 +75,7 @@ describe('components/sidebar/SidebarSettingsMenu', () => {
     test('languages menu open should match snapshot', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
-                <SidebarSettingsMenu activeTheme={defaultThemeName}/>
+                <SidebarSettingsMenu activeTheme={lightThemeName}/>
             </AppStoreProvider>,
         )
 
@@ -89,7 +89,7 @@ describe('components/sidebar/SidebarSettingsMenu', () => {
         window.open = vi.fn()
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
-                <SidebarSettingsMenu activeTheme={defaultThemeName}/>
+                <SidebarSettingsMenu activeTheme={lightThemeName}/>
             </AppStoreProvider>,
         )
 

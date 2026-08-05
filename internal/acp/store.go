@@ -136,23 +136,23 @@ CREATE TABLE IF NOT EXISTS stage_queue (
 );
 CREATE INDEX IF NOT EXISTS idx_stage_queue_column ON stage_queue(column_key, queued_at);
 CREATE TABLE IF NOT EXISTS vcs_seen (
-	repo TEXT NOT NULL,
+	project TEXT NOT NULL,
 	branch TEXT NOT NULL,
 	kind TEXT NOT NULL,
 	marker TEXT NOT NULL DEFAULT '',
 	created_at INTEGER NOT NULL,
-	PRIMARY KEY (repo, branch, kind)
+	PRIMARY KEY (project, branch, kind)
 );`)
 	return err
 }
 
-// ClaimVCSEvent reports whether a repository event is new, and remembers it. A
+// ClaimVCSEvent reports whether a project event is new, and remembers it. A
 // watcher sees the same state on every poll — the branch stays merged — so the
 // event fires once per marker (the commit it refers to) instead of once a minute.
-func (s *Store) ClaimVCSEvent(repo, branch, kind, marker string) (bool, error) {
+func (s *Store) ClaimVCSEvent(project, branch, kind, marker string) (bool, error) {
 	var seen string
-	err := s.db.QueryRow(`SELECT marker FROM vcs_seen WHERE repo=? AND branch=? AND kind=?`,
-		repo, branch, kind).Scan(&seen)
+	err := s.db.QueryRow(`SELECT marker FROM vcs_seen WHERE project=? AND branch=? AND kind=?`,
+		project, branch, kind).Scan(&seen)
 	switch {
 	case err == sql.ErrNoRows:
 	case err != nil:
@@ -160,9 +160,9 @@ func (s *Store) ClaimVCSEvent(repo, branch, kind, marker string) (bool, error) {
 	case seen == marker:
 		return false, nil
 	}
-	_, err = s.db.Exec(`INSERT INTO vcs_seen (repo, branch, kind, marker, created_at) VALUES (?,?,?,?,?)
-		ON CONFLICT(repo, branch, kind) DO UPDATE SET marker=excluded.marker, created_at=excluded.created_at`,
-		repo, branch, kind, marker, time.Now().UnixMilli())
+	_, err = s.db.Exec(`INSERT INTO vcs_seen (project, branch, kind, marker, created_at) VALUES (?,?,?,?,?)
+		ON CONFLICT(project, branch, kind) DO UPDATE SET marker=excluded.marker, created_at=excluded.created_at`,
+		project, branch, kind, marker, time.Now().UnixMilli())
 	if err != nil {
 		return false, err
 	}
@@ -171,13 +171,13 @@ func (s *Store) ClaimVCSEvent(repo, branch, kind, marker string) (bool, error) {
 
 // FlowState is where a card currently stands on its route.
 type FlowState struct {
-	CardID    string    `json:"cardId"`
-	BoardID   string    `json:"boardId"`
-	Flow      string    `json:"flow"`
-	NodeID    string    `json:"nodeId"`
-	Branch    string    `json:"branch"`
-	RepoPath  string    `json:"repoPath"`
-	EnteredAt time.Time `json:"enteredAt"`
+	CardID      string    `json:"cardId"`
+	BoardID     string    `json:"boardId"`
+	Flow        string    `json:"flow"`
+	NodeID      string    `json:"nodeId"`
+	Branch      string    `json:"branch"`
+	ProjectPath string    `json:"projectPath"`
+	EnteredAt   time.Time `json:"enteredAt"`
 }
 
 // FlowEventRecord is one transition, kept as the card's route history.
@@ -202,7 +202,7 @@ func (s *Store) SaveFlowState(st FlowState) error {
 		ON CONFLICT(card_id) DO UPDATE SET
 			board_id=excluded.board_id, flow=excluded.flow, node_id=excluded.node_id,
 			branch=excluded.branch, repo_path=excluded.repo_path, entered_at=excluded.entered_at`,
-		st.CardID, st.BoardID, st.Flow, st.NodeID, st.Branch, st.RepoPath, st.EnteredAt.UnixMilli())
+		st.CardID, st.BoardID, st.Flow, st.NodeID, st.Branch, st.ProjectPath, st.EnteredAt.UnixMilli())
 	return err
 }
 
@@ -280,7 +280,7 @@ type scanner interface{ Scan(dest ...any) error }
 func scanFlowState(row scanner) (FlowState, error) {
 	var st FlowState
 	var entered int64
-	if err := row.Scan(&st.CardID, &st.BoardID, &st.Flow, &st.NodeID, &st.Branch, &st.RepoPath, &entered); err != nil {
+	if err := row.Scan(&st.CardID, &st.BoardID, &st.Flow, &st.NodeID, &st.Branch, &st.ProjectPath, &entered); err != nil {
 		return FlowState{}, err
 	}
 	st.EnteredAt = time.UnixMilli(entered)
@@ -488,7 +488,7 @@ func (s *Store) DequeueStage(cardID string) error {
 // LatestBranchForCard is the branch the card was last worked on: the worktree
 // branch of its most recent session. With worktrees on — the default — that is
 // the branch the agent commits to, and the card itself never learns its name,
-// so this is where anything watching the repository has to ask.
+// so this is where anything watching the project has to ask.
 func (s *Store) LatestBranchForCard(cardID string) (string, error) {
 	var branch string
 	err := s.db.QueryRow(`SELECT branch FROM agent_session
@@ -507,18 +507,18 @@ func (s *Store) LatestBranchForCard(cardID string) (string, error) {
 // resumable — the next one on that card goes back to the same directory and
 // branch, and asks the CLI to continue the conversation it left there.
 type TerminalRecord struct {
-	ID        string     `json:"id"`
-	CardID    string     `json:"cardId,omitempty"`
-	BoardID   string     `json:"boardId,omitempty"`
-	Title     string     `json:"title,omitempty"`
-	RepoPath  string     `json:"repoPath,omitempty"`
-	Cwd       string     `json:"cwd"`
-	Branch    string     `json:"branch,omitempty"`
-	Agent     string     `json:"agent,omitempty"`
-	Kind      string     `json:"kind,omitempty"`
-	StartedAt time.Time  `json:"startedAt"`
-	EndedAt   *time.Time `json:"endedAt,omitempty"`
-	ExitCode  int        `json:"exitCode"`
+	ID          string     `json:"id"`
+	CardID      string     `json:"cardId,omitempty"`
+	BoardID     string     `json:"boardId,omitempty"`
+	Title       string     `json:"title,omitempty"`
+	ProjectPath string     `json:"projectPath,omitempty"`
+	Cwd         string     `json:"cwd"`
+	Branch      string     `json:"branch,omitempty"`
+	Agent       string     `json:"agent,omitempty"`
+	Kind        string     `json:"kind,omitempty"`
+	StartedAt   time.Time  `json:"startedAt"`
+	EndedAt     *time.Time `json:"endedAt,omitempty"`
+	ExitCode    int        `json:"exitCode"`
 }
 
 // InsertTerminal records a terminal session as it starts.
@@ -526,7 +526,7 @@ func (s *Store) InsertTerminal(r TerminalRecord) error {
 	_, err := s.db.Exec(`INSERT INTO terminal_session
 		(id, card_id, board_id, title, repo_path, cwd, branch, agent, kind, started_at)
 		VALUES (?,?,?,?,?,?,?,?,?,?)`,
-		r.ID, r.CardID, r.BoardID, r.Title, r.RepoPath, r.Cwd, r.Branch, r.Agent, r.Kind, r.StartedAt.UnixMilli())
+		r.ID, r.CardID, r.BoardID, r.Title, r.ProjectPath, r.Cwd, r.Branch, r.Agent, r.Kind, r.StartedAt.UnixMilli())
 	return err
 }
 
@@ -558,7 +558,7 @@ func scanTerminal(row scanner) (TerminalRecord, error) {
 		started int64
 		ended   sql.NullInt64
 	)
-	if err := row.Scan(&rec.ID, &rec.CardID, &rec.BoardID, &rec.Title, &rec.RepoPath, &rec.Cwd,
+	if err := row.Scan(&rec.ID, &rec.CardID, &rec.BoardID, &rec.Title, &rec.ProjectPath, &rec.Cwd,
 		&rec.Branch, &rec.Agent, &rec.Kind, &started, &ended, &rec.ExitCode); err != nil {
 		return TerminalRecord{}, err
 	}
