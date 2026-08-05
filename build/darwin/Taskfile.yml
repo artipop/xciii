@@ -183,6 +183,14 @@ tasks:
 
   run:
     cmds:
+      # Rebuild the bundle from scratch rather than copying over the old one.
+      # LaunchServices caches an app's icon against the bundle directory's own
+      # mod date, and replacing files *inside* the bundle never changes it — so
+      # a dev app that was ever launched with the old icon keeps showing it in
+      # the Dock forever, however many times the icns underneath is replaced.
+      # A fresh directory gets a fresh record. The binary is copied every run
+      # anyway, so this costs nothing.
+      - rm -rf "{{.BIN_DIR}}/{{.APP_NAME}}.dev.app"
       - mkdir -p "{{.BIN_DIR}}/{{.APP_NAME}}.dev.app/Contents/MacOS"
       - mkdir -p "{{.BIN_DIR}}/{{.APP_NAME}}.dev.app/Contents/Resources"
       - cp build/darwin/icons.icns "{{.BIN_DIR}}/{{.APP_NAME}}.dev.app/Contents/Resources"
