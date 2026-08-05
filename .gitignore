@@ -1,7 +1,10 @@
 .task
 bin
 # The webapp bundle go:embed compiles in — Vite's output, not a source tree.
-pack
+# The .gitkeep stays tracked so the directory always exists and stays
+# embeddable for `go mod tidy`, which checks the pattern under every tag.
+**/pack/*
+!**/pack/.gitkeep
 # `go build .` with no -o leaves a binary named after this directory.
 trixi
 # The webapp is its own npm project.

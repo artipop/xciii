@@ -100,7 +100,12 @@ export default defineConfig(({mode}) => {
         build: {
             outDir,
             assetsDir: 'static',
-            emptyOutDir: true,
+
+            // The build task clears pack/ itself, around a .gitkeep that keeps
+            // the directory embeddable for `go mod tidy` at every moment — see
+            // build:frontend in build/Taskfile.yml. Emptying it here again
+            // would delete that placeholder and reopen the race.
+            emptyOutDir: false,
             target: 'es2019',
             sourcemap: !isProduction,
             minify: isProduction,
