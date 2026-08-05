@@ -98,6 +98,10 @@ export type SidebarDropTarget = {
     // Set by a category's boards drop zone, which is not a sortable and so has
     // no group to name the category by.
     categoryID?: string
+
+    // The vertical middle of the target, which decides whether a board coming
+    // from another category lands above it or below it.
+    centerY?: number
 }
 
 // Where a board sits as handleCategoryBoardDND wants it: its index in its
@@ -108,11 +112,25 @@ function boardMetadataIndex(categories: CategoryBoards[], categoryID: string, bo
     return category ? category.boardMetadata.findIndex((metadata) => metadata.boardID === boardID) : -1
 }
 
-function boardDropDestination(categories: CategoryBoards[], target: SidebarDropTarget): {index: number, droppableId: string} | undefined {
-    // Released over another board: it takes that board's place.
+function boardDropDestination(categories: CategoryBoards[], fromCategoryID: string, target: SidebarDropTarget, pointerY?: number): {index: number, droppableId: string} | undefined {
+    // Released over another board.
     if (target.group !== undefined) {
         const index = boardMetadataIndex(categories, target.group, target.id)
-        return index < 0 ? undefined : {index, droppableId: target.group}
+        if (index < 0) {
+            return undefined
+        }
+
+        // Within one category this is a move to the target's index and the
+        // whole list shifts around it, which is what arrayMove does and what
+        // react-beautiful-dnd reported. Across categories the board is inserted
+        // instead, so which half of the target it was released over decides
+        // whether it lands above or below -- the same comparison dnd-kit's own
+        // sortable makes, down to rounding away sub-pixel jitter.
+        if (target.group === fromCategoryID) {
+            return {index, droppableId: target.group}
+        }
+        const below = target.centerY !== undefined && pointerY !== undefined && Math.round(pointerY) > Math.round(target.centerY)
+        return {index: index + (below ? 1 : 0), droppableId: target.group}
     }
 
     // Released over a category but not over any board in it -- all an empty
@@ -133,7 +151,7 @@ function boardDropDestination(categories: CategoryBoards[], target: SidebarDropT
 // -- so at dragend both still say where the drag began. Asking the source where
 // it ended answered "where it started" every time, and every sidebar drag
 // cancelled itself on the equality check in onDragEnd.
-export function sidebarDropResult(categories: CategoryBoards[], source: SidebarDragSource, target: SidebarDropTarget): DropResult | undefined {
+export function sidebarDropResult(categories: CategoryBoards[], source: SidebarDragSource, target: SidebarDropTarget, pointerY?: number): DropResult | undefined {
     if (source.type === 'category') {
         if (target.index === undefined) {
             return undefined
@@ -152,7 +170,7 @@ export function sidebarDropResult(categories: CategoryBoards[], source: SidebarD
 
     const fromCategoryID = source.group ?? ''
     const sourceIndex = boardMetadataIndex(categories, fromCategoryID, source.id)
-    const destination = boardDropDestination(categories, target)
+    const destination = boardDropDestination(categories, fromCategoryID, target, pointerY)
     if (sourceIndex < 0 || !destination) {
         return undefined
     }
@@ -417,6 +435,11 @@ const Sidebar = (props: Props) => {
                 return
             }
 
+            // Where the pointer let go: the middle of the dragged element when
+            // it has a shape, as dnd-kit's own sortable measures it, and the
+            // bare pointer before anything has been measured.
+            const pointer = event.operation.shape?.current.center ?? event.operation.position.current
+
             const result = sidebarDropResult(
                 sidebarCategories(),
                 {
@@ -430,7 +453,9 @@ const Sidebar = (props: Props) => {
                     index: isSortable(target) ? target.index : undefined,
                     group: isSortable(target) && target.group !== undefined ? String(target.group) : undefined,
                     categoryID: (target.data as CategoryBoardsDroppableData | undefined)?.categoryID,
+                    centerY: target.shape?.center.y,
                 },
+                pointer?.y,
             )
 
             if (result) {

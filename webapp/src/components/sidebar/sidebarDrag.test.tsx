@@ -133,17 +133,31 @@ describe('components/sidebar dragging', () => {
         return {boardRow, categoryOf, categoryTops, rowTops, container}
     }
 
-    // Onto board3, which is what the board dropped takes the place of. Aimed at
-    // the middle of the row: a pointer intersection scores 1/distance-to-centre,
-    // and a row shares its category's drop zone, so anywhere else in the row the
-    // two are a coin toss decided by which was measured first.
+    // A row shares its category's drop zone, and a pointer intersection scores
+    // 1/distance-to-centre, so the aim has to be nearer the row's middle than
+    // the category's or which of the two is the target comes down to a tie
+    // broken by measurement order. Both halves of board3 satisfy that here.
+    const upperHalfOf = (top: number) => top + ((rowHeight * 3) / 8)
+    const lowerHalfOf = (top: number) => top + ((rowHeight * 3) / 4)
+
     it('moves a board into another category', async () => {
         const {boardRow, rowTops} = setup()
 
-        await drag(act, boardRow('board1'), {x: 100, y: rowTops.get('board3')! + (rowHeight / 2)})
+        await drag(act, boardRow('board1'), {x: 100, y: upperHalfOf(rowTops.get('board3')!)})
 
         expect(mockedOctoClient.moveBoardToCategory).toHaveBeenCalledWith('team-id', 'board1', 'category2', 'category1')
         expect(mockedOctoClient.reorderSidebarCategoryBoards).toHaveBeenCalledWith('team-id', 'category2', ['board1', 'board3'])
+    })
+
+    // Released over the bottom of board3 rather than the top of it, which is the
+    // whole difference between landing above it and landing below it.
+    it('puts a board under the one it was dropped on the lower half of', async () => {
+        const {boardRow, rowTops} = setup()
+
+        await drag(act, boardRow('board1'), {x: 100, y: lowerHalfOf(rowTops.get('board3')!)})
+
+        expect(mockedOctoClient.moveBoardToCategory).toHaveBeenCalledWith('team-id', 'board1', 'category2', 'category1')
+        expect(mockedOctoClient.reorderSidebarCategoryBoards).toHaveBeenCalledWith('team-id', 'category2', ['board3', 'board1'])
     })
 
     // The category that holds no boards offers nothing to drop onto but itself,

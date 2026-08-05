@@ -500,11 +500,41 @@ describe('components/sidebarSidebar drops', () => {
         const result = sidebarDropResult(
             categories,
             {id: 'board1', type: 'board', index: 0, group: 'category1'},
-            {id: 'board2', index: 0, group: 'category2'},
+            {id: 'board2', index: 0, group: 'category2', centerY: 100},
+            90,
         )
 
         expect(result?.source).toStrictEqual({index: 1, droppableId: 'category1'})
         expect(result?.destination).toStrictEqual({index: 0, droppableId: 'category2'})
+    })
+
+    // Coming from another category the board is inserted rather than swapped
+    // into place, so the half of the target it was released over is what says
+    // on which side of it the board belongs -- the same rule dnd-kit's own
+    // sortable follows, and the one react-beautiful-dnd followed before it.
+    test('a board dropped on the lower half of a board in another category lands under it', () => {
+        const result = sidebarDropResult(
+            categories,
+            {id: 'board1', type: 'board', index: 0, group: 'category1'},
+            {id: 'board2', index: 0, group: 'category2', centerY: 100},
+            110,
+        )
+
+        expect(result?.destination).toStrictEqual({index: 1, droppableId: 'category2'})
+    })
+
+    // Within one category nothing is inserted: the list closes behind the board
+    // and reopens at the target's index, so both halves mean the same place.
+    test('a board reordered within its category ignores which half it was dropped on', () => {
+        const dropped = (pointerY: number) => sidebarDropResult(
+            categories,
+            {id: 'hidden_board', type: 'board', index: 0, group: 'category1'},
+            {id: 'board1', index: 1, group: 'category1', centerY: 100},
+            pointerY,
+        )
+
+        expect(dropped(90)?.destination).toStrictEqual({index: 1, droppableId: 'category1'})
+        expect(dropped(110)?.destination).toStrictEqual({index: 1, droppableId: 'category1'})
     })
 
     // A category holding no boards has no board to drop onto, so it offers a
