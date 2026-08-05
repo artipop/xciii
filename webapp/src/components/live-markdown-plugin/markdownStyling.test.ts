@@ -41,7 +41,7 @@ describe('live-markdown markdownStyling', () => {
     test('heading: block type + level, sized text, delimiter dimmed', () => {
         const [line] = computeStyledLines('## Title')
         expect(line.blockType).toBe('header-two')
-        expect(line.className).toBe('heading-block')
+        expect(line.class).toBe('heading-block')
 
         // title text carries the heading base size
         expect(styleAt(line, 3)).toMatchObject({fontSize: '1.5em', fontWeight: 'bold'})

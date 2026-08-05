@@ -129,7 +129,7 @@ function DateFilter(props: Props): JSX.Element {
 
     const buttonText = () => displayValue() || intl.formatMessage({id: 'DateFilter.empty', defaultMessage: 'Empty'})
 
-    const className = 'DateFilter'
+    const classes = 'DateFilter'
     return (
         <div class={`DateFilter ${displayValue() ? '' : 'empty'} `}>
             <Button
@@ -144,9 +144,9 @@ function DateFilter(props: Props): JSX.Element {
                         onClose={() => onClose()}
                     >
                         <div
-                            class={className + '-overlayWrapper'}
+                            class={classes + '-overlayWrapper'}
                         >
-                            <div class={className + '-overlay'}>
+                            <div class={classes + '-overlay'}>
                                 <div class={'inputContainer'}>
                                     <Editable
                                         value={input()}

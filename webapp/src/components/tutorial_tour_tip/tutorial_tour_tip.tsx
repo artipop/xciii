@@ -61,7 +61,7 @@ type TourTipBoxProps = {
     anchor: () => HTMLElement | undefined
     placement?: Placement
     width: string | number
-    className?: string
+    class?: string
     labelledBy: string
     children: JSX.Element
 }
@@ -128,7 +128,7 @@ const TourTipBox = (props: TourTipBoxProps): JSX.Element => {
                 style={position() ? {transform: `translate(${Math.round(position()!.x)}px, ${Math.round(position()!.y)}px)`} : undefined}
             >
                 <div
-                    class={`tutorial-tour-tip__box ${props.className || ''}`}
+                    class={`tutorial-tour-tip__box ${props.class || ''}`}
                     style={{'max-width': typeof props.width === 'number' ? `${props.width}px` : props.width}}
                     role='dialog'
                     aria-labelledby={props.labelledBy}
@@ -163,7 +163,7 @@ type Props = {
     autoTour?: boolean
     pulsatingDotPosition?: Coords | undefined
     width?: string | number
-    className?: string
+    class?: string
     hideNavButtons?: boolean
     hideBackdrop?: boolean
     clickThroughPunchhole?: boolean
@@ -250,7 +250,7 @@ const TutorialTourTip = (props: Props): JSX.Element => {
                     {props.title}
                 </h4>
                 <IconButton
-                    className='tutorial-tour-tip__header__close'
+                    class='tutorial-tour-tip__header__close'
                     size='small'
                     icon={<CloseIcon/>}
                     onClick={(e: MouseEvent) => {
@@ -299,7 +299,7 @@ const TutorialTourTip = (props: Props): JSX.Element => {
                                 onClick={handlePrevious}
                                 icon={
                                     <CompassIcon
-                                        className='icon'
+                                        class='icon'
                                         icon='chevron-left'
                                     />}
                             >
@@ -312,14 +312,14 @@ const TutorialTourTip = (props: Props): JSX.Element => {
 
                         <Show when={!hideNavButtons()}>
                             <Button
-                                className='tipNextButton'
+                                class='tipNextButton'
                                 size='small'
                                 filled={true}
                                 onClick={handleNext}
                                 rightIcon={true}
                                 icon={(props.singleTip || props.step === getLastStep()) ? '' : (
                                     <CompassIcon
-                                        className='icon'
+                                        class='icon'
                                         icon='chevron-right'
                                     />
                                 )
@@ -357,7 +357,7 @@ const TutorialTourTip = (props: Props): JSX.Element => {
                 ref={triggerRef}
                 onClick={handleOpen}
                 aria-expanded={show()}
-                class={`tutorial-tour-tip__pulsating-dot-ctr ${props.className || ''}`}
+                class={`tutorial-tour-tip__pulsating-dot-ctr ${props.class || ''}`}
             >
                 <PulsatingDot coords={props.pulsatingDotPosition}/>
             </div>
@@ -390,7 +390,7 @@ const TutorialTourTip = (props: Props): JSX.Element => {
                     anchor={() => triggerRef}
                     placement={props.placement}
                     width={width()}
-                    className={props.className}
+                    class={props.class}
                     labelledBy={titleId}
                 >
                     {content}

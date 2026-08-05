@@ -68,7 +68,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
         setGroupTitle(props.group.option.value)
     })
 
-    const className = () => {
+    const classes = () => {
         let name = 'octo-board-header-cell KanbanColumnHeader'
         if (isOver()) {
             name += ' dragover'
@@ -83,7 +83,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
         <div
             ref={headerRef}
             style={{opacity: isDragging() ? 0.5 : 1}}
-            class={className()}
+            class={classes()}
         >
             <Show when={!props.group.option.id}>
                 <Label

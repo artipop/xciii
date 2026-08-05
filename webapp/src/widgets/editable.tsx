@@ -9,7 +9,7 @@ export type EditableProps = {
     onChange: (value: string) => void
     value?: string
     placeholderText?: string
-    className?: string
+    class?: string
     saveOnEsc?: boolean
     readonly?: boolean
     spellCheck?: boolean
@@ -92,7 +92,7 @@ export function useEditable(
     return {
         get class() {
             const error = props.validator ? !props.validator(props.value || '') : false
-            return 'Editable ' + (error ? 'error ' : '') + (props.readonly ? 'readonly ' : '') + (props.className || '')
+            return 'Editable ' + (error ? 'error ' : '') + (props.readonly ? 'readonly ' : '') + (props.class || '')
         },
         get placeholder() {
             return props.placeholderText

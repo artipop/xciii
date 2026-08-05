@@ -126,7 +126,7 @@ const UserPermissionsRow = (props: Props): JSX.Element => {
                             {roleState().displayRole}
                             <CompassIcon
                                 icon='chevron-down'
-                                className='CompassIcon'
+                                class='CompassIcon'
                             />
                         </button>
                     </MenuWrapper>

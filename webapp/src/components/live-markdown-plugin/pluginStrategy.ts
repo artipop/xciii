@@ -25,6 +25,6 @@ export interface InlineStrategy {
 // (or the empty string for a plain line).
 export interface BlockStrategy {
     type: string
-    className: string
+    class: string
     mapLineType: (text: string, lineIndex: number, lines: string[]) => string
 }

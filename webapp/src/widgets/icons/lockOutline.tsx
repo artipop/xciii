@@ -9,7 +9,7 @@ export default function LockOutline(): JSX.Element {
     return (
         <CompassIcon
             icon='lock-outline'
-            className='LockOutlineIcon'
+            class='LockOutlineIcon'
         />
     )
 }

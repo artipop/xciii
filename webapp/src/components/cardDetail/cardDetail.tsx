@@ -220,7 +220,7 @@ const CardDetail = (props: Props): JSX.Element => {
                     ref={(f) => {
                         titleRef = f
                     }}
-                    className='title'
+                    class='title'
                     value={title()}
                     placeholderText='Untitled'
                     onChange={(newTitle: string) => setTitle(newTitle)}
@@ -236,7 +236,7 @@ const CardDetail = (props: Props): JSX.Element => {
                 <Show when={limited()}>
                     <div class='CardDetail__limited-wrapper'>
                         <CardSkeleton
-                            className='CardDetail__limited-bg'
+                            class='CardDetail__limited-bg'
                         />
                         <p class='CardDetail__limited-title'>
                             <FormattedMessage
@@ -265,7 +265,7 @@ const CardDetail = (props: Props): JSX.Element => {
                             </a>
                         </p>
                         <Button
-                            className='CardDetail__limited-button'
+                            class='CardDetail__limited-button'
                             onClick={() => {
                                 props.onClose();
                                 (window as any).openPricingModal()({trackingLocation: 'boards > upgrade_click'})

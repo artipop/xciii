@@ -93,7 +93,7 @@ const FilterValue = (props: Props): JSX.Element => {
             </Match>
             <Match when={true}>
                 <MenuWrapper
-                    className='filterValue'
+                    class='filterValue'
                     menu={
                         <Menu>
                             <For each={props.template?.options}>

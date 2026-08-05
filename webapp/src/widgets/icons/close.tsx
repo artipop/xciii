@@ -9,7 +9,7 @@ export default function CloseIcon(): JSX.Element {
     return (
         <CompassIcon
             icon='close'
-            className='CloseIcon'
+            class='CloseIcon'
         />
     )
 }

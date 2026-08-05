@@ -21,7 +21,7 @@ type SubMenuOptionProps = {
     position?: 'bottom' | 'top' | 'left' | 'left-bottom' | 'auto'
     icon?: JSX.Element
     children: JSX.Element
-    className?: string
+    class?: string
 }
 
 function SubMenuOption(props: SubMenuOptionProps): JSX.Element {
@@ -55,7 +55,7 @@ function SubMenuOption(props: SubMenuOptionProps): JSX.Element {
     return (
         <div
             id={props.id}
-            class={`MenuOption SubMenuOption menu-option${openLeftClass()}${isOpen() ? ' menu-option-active' : ''}${props.className ? ' ' + props.className : ''}`}
+            class={`MenuOption SubMenuOption menu-option${openLeftClass()}${isOpen() ? ' menu-option-active' : ''}${props.class ? ' ' + props.class : ''}`}
             onClick={(e: MouseEvent) => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -86,7 +86,7 @@ function SubMenuOption(props: SubMenuOptionProps): JSX.Element {
                             <TextOption
                                 id='menu-cancel'
                                 name={'Cancel'}
-                                className='menu-cancel'
+                                class='menu-cancel'
                                 onClick={() => undefined}
                             />
                         </div>

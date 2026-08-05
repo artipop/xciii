@@ -88,7 +88,7 @@ const TableRow = (props: Props) => {
     const visiblePropertyTemplates = () =>
         props.visiblePropertyIds.map((id) => props.board.cardProperties.find((t) => t.id === id)).filter((i) => i) as IPropertyTemplate[]
 
-    const className = () => {
+    const classes = () => {
         const {card, board} = props
         let name = props.isSelected ? 'TableRow octo-table-row selected' : 'TableRow octo-table-row'
         if (isOver()) {
@@ -149,7 +149,7 @@ const TableRow = (props: Props) => {
 
     return (
         <div
-            class={className()}
+            class={classes()}
             onClick={onClick}
             ref={cardRef}
             style={{opacity: isDragging() ? 0.5 : 1}}
@@ -186,7 +186,7 @@ const TableRow = (props: Props) => {
 
                 <Show when={!props.readonly}>
                     <MenuWrapper
-                        className='optionsMenu ml-2 mr-2'
+                        class='optionsMenu ml-2 mr-2'
                         stopPropagationOnToggle={true}
                         menu={
                             <CardActionsMenu

@@ -48,7 +48,7 @@ const TableGroupHeaderRow = (props: Props): JSX.Element => {
         setGroupTitle(props.group.option.value)
     })
 
-    const className = () => {
+    const classes = () => {
         let name = 'octo-group-header-cell'
         if (isOver()) {
             name += ' dragover'
@@ -65,7 +65,7 @@ const TableGroupHeaderRow = (props: Props): JSX.Element => {
         <div
             ref={groupHeaderRef}
             style={{opacity: isDragging() ? 0.5 : 1}}
-            class={className()}
+            class={classes()}
         >
             <div
                 class='octo-table-cell'
@@ -78,7 +78,7 @@ const TableGroupHeaderRow = (props: Props): JSX.Element => {
                             icon='menu-right'
                         />}
                     onClick={() => (props.readonly ? {} : props.hideGroup(props.group.option.id || 'undefined'))}
-                    className={`octo-table-cell__expand ${props.readonly ? 'readonly' : ''}`}
+                    class={`octo-table-cell__expand ${props.readonly ? 'readonly' : ''}`}
                 />
 
                 <Show when={!props.group.option.id}>

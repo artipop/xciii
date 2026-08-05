@@ -218,7 +218,7 @@ const CardDialog = (props: Props): JSX.Element => {
             <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
                 <Button
                     icon={<CompassIcon icon='paperclip'/>}
-                    className='cardFollowBtn cardFollowBtn--attach'
+                    class='cardFollowBtn cardFollowBtn--attach'
                     emphasis='gray'
                     size='medium'
                     onClick={addElement}
@@ -233,7 +233,7 @@ const CardDialog = (props: Props): JSX.Element => {
         <>
             <Dialog
                 title={<div/>}
-                className='cardDialog'
+                class='cardDialog'
                 onClose={props.onClose}
                 toolsMenu={!props.readonly && !card()?.limited && menu()}
                 toolbar={attachBtn()}

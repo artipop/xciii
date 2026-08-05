@@ -27,7 +27,7 @@ export const ConfirmationDialogBox: Component<Props> = (props) => {
     return (
         <Dialog
             size='small'
-            className='confirmation-dialog-box'
+            class='confirmation-dialog-box'
             onClose={props.dialogBox.onClose}
         >
             <div

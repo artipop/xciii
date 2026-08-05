@@ -156,7 +156,7 @@ const WelcomePage = () => {
                                     icon={
                                         <CompassIcon
                                             icon='chevron-right'
-                                            className='Icon Icon--right'
+                                            class='Icon Icon--right'
                                         />}
                                     rightIcon={true}
                                 >

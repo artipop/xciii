@@ -33,7 +33,6 @@ export type CategoryOrder = string[]
 
 export type WSMessagePayloads = Block | Category | BoardCategoryWebsocketData[] | BoardType | BoardMember | null | CategoryOrder
 
-// eslint-disable-next-line no-shadow
 enum IDType {
     None = '7',
     Workspace = 'w',
@@ -237,7 +236,7 @@ class Utils {
                 myResults.padding += Utils.getHorizontalMargin(style)
                 myResults.fontDescriptor = Utils.getFontString(style)
             } else {
-                switch (element.className) {
+                switch (element.class) {
                 case IconClass:
                 case HorizontalGripClass:
                     myResults.padding += element.clientWidth
@@ -698,7 +697,7 @@ class Utils {
     }
 
     static generateClassName(conditions: Record<string, boolean>): string {
-        return Object.entries(conditions).map(([className, condition]) => (condition ? className : '')).filter((className) => className !== '').join(' ')
+        return Object.entries(conditions).map(([name, condition]) => (condition ? name : '')).filter((name) => name !== '').join(' ')
     }
 
     static buildOriginalPath(teamID = '', boardId = '', viewId = '', cardId = ''): string {

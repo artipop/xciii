@@ -174,14 +174,14 @@ function DateRange(props: PropertyProps): JSX.Element {
         return ''
     }
 
-    const className = () => props.property.valueClassName(props.readOnly)
+    const classes = () => props.property.valueClassName(props.readOnly)
 
     return (
         <Show
             when={!props.readOnly}
-            fallback={<div class={className()}>{displayValue()}</div>}
+            fallback={<div class={classes()}>{displayValue()}</div>}
         >
-            <div class={`DateRange ${displayValue() ? '' : 'empty'} ` + className()}>
+            <div class={`DateRange ${displayValue() ? '' : 'empty'} ` + classes()}>
                 <Button
                     onClick={() => setShowDialog(true)}
                 >
@@ -194,9 +194,9 @@ function DateRange(props: PropertyProps): JSX.Element {
                             onClose={() => onClose()}
                         >
                             <div
-                                class={className() + '-overlayWrapper'}
+                                class={classes() + '-overlayWrapper'}
                             >
-                                <div class={className() + '-overlay'}>
+                                <div class={classes() + '-overlay'}>
                                     <div class={'inputContainer'}>
                                         <Editable
                                             value={fromInput()}

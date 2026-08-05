@@ -55,7 +55,7 @@ const ViewHeaderSearch = (): JSX.Element => {
         <div class='board-search-field'>
             <CompassIcon
                 icon='magnify'
-                className='board-search-icon'
+                class='board-search-icon'
             />
             <Editable
                 ref={(f) => {

@@ -63,7 +63,7 @@ const CommentsList = (props: Props) => {
                         src={Utils.getProfilePicture(me()?.id)}
                     />
                     <MarkdownEditor
-                        className='newcomment'
+                        class='newcomment'
                         text={newComment()}
                         placeholderText={intl.formatMessage({id: 'CardDetail.new-comment-placeholder', defaultMessage: 'Add a comment...'})}
                         onChange={(value: string) => {

@@ -177,7 +177,7 @@ const AgentReposDialog = (props: Props) => {
 
     return (
         <Dialog
-            className='AgentReposDialog'
+            class='AgentReposDialog'
             title={<span>{intl.formatMessage({id: 'AgentRepos.title', defaultMessage: 'Repositories'})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'AgentRepos.subtitle', defaultMessage: 'Local git repositories an agent can work in. A card is matched to one by its "Repositories" field.'})}</span>}
             onClose={props.onClose}

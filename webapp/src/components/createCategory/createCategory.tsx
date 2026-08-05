@@ -81,7 +81,7 @@ const CreateCategory = (props: Props): JSX.Element => {
     return (
         <Dialog
             title={props.title}
-            className='CreateCategoryModal'
+            class='CreateCategoryModal'
             onClose={props.onClose}
         >
             <div class='CreateCategory'>

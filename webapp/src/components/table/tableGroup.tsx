@@ -36,7 +36,7 @@ const TableGroup = (props: Props): JSX.Element => {
 
     const [isOver, drop] = useDropZone<Card>('card', () => true, (card) => props.onDropToGroup(card, groupId(), ''))
 
-    const className = () => {
+    const classes = () => {
         let name = 'octo-table-group'
         if (isOver()) {
             name += ' dragover'
@@ -47,7 +47,7 @@ const TableGroup = (props: Props): JSX.Element => {
     return (
         <div
             ref={drop}
-            class={className()}
+            class={classes()}
         >
             <TableGroupHeaderRow
                 group={props.group}

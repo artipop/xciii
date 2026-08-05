@@ -6,7 +6,7 @@ import './pulsating_dot.scss'
 import {Coords} from '../tutorial_tour_tip/tutorial_tour_tip_backdrop'
 
 type Props = {
-    className?: string
+    class?: string
     onClick?: (e: MouseEvent) => void
     coords?: Coords
 }
@@ -20,8 +20,8 @@ const PulsatingDot = (props: Props): JSX.Element => {
         if (props.onClick) {
             name += ' pulsating_dot-clickable'
         }
-        if (props.className) {
-            name += ' ' + props.className
+        if (props.class) {
+            name += ' ' + props.class
         }
         return name
     }

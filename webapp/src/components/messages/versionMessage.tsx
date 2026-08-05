@@ -53,7 +53,7 @@ const VersionMessage = () => {
                 <div class='banner'>
                     <CompassIcon
                         icon='information-outline'
-                        className='CompassIcon'
+                        class='CompassIcon'
                     />
                     <FormattedMessage
                         id='VersionMessage.help'
@@ -78,7 +78,7 @@ const VersionMessage = () => {
                 </div>
 
                 <IconButton
-                    className='margin-right'
+                    class='margin-right'
                     onClick={onClose}
                     icon={<CloseIcon/>}
                     title={closeDialogText}

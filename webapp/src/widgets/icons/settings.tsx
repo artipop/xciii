@@ -11,7 +11,7 @@ export default function SettingsIcon(): JSX.Element {
     return (
         <CompassIcon
             icon='settings-outline'
-            className='SettingsIcon'
+            class='SettingsIcon'
         />
     )
 }

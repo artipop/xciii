@@ -161,7 +161,7 @@ const CalendarFullView = (props: Props): JSX.Element => {
             >
                 <Show when={!props.readonly}>
                     <MenuWrapper
-                        className='optionsMenu'
+                        class='optionsMenu'
                         stopPropagationOnToggle={true}
                         menu={
                             <CardActionsMenu

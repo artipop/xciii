@@ -301,7 +301,7 @@ const BoardPage = (props: Props): JSX.Element => {
                             }}
                             icon={<CloseIcon/>}
                             title='Close'
-                            className='margin-right'
+                            class='margin-right'
                         />
                     </div>
                 </Show>

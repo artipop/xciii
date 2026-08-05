@@ -238,7 +238,7 @@ const SidebarBoardItem = (props: Props) => {
                 </div>
                 <div>
                     <MenuWrapper
-                        className={boardsMenuOpen()[props.board.id] ? 'menuOpen' : 'x'}
+                        class={boardsMenuOpen()[props.board.id] ? 'menuOpen' : 'x'}
                         stopPropagationOnToggle={true}
                         onToggle={(open) => {
                             setBoardsMenuOpen((menuState) => {
@@ -255,7 +255,7 @@ const SidebarBoardItem = (props: Props) => {
                             >
                                 <Menu.SubMenu
                                     id='moveBlock'
-                                    className='boardMoveToCategorySubmenu'
+                                    class='boardMoveToCategorySubmenu'
                                     name={intl.formatMessage({id: 'SidebarCategories.BlocksMenu.Move', defaultMessage: 'Move To...'})}
                                     icon={<CreateNewFolder/>}
                                     position='auto'
@@ -294,7 +294,7 @@ const SidebarBoardItem = (props: Props) => {
                                 >
                                     <Menu.Text
                                         id='deleteBlock'
-                                        className='text-danger'
+                                        class='text-danger'
                                         name={intl.formatMessage({id: 'Sidebar.delete-board', defaultMessage: 'Delete board'})}
                                         icon={<DeleteIcon/>}
                                         onClick={() => {

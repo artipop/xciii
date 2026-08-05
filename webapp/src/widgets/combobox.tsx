@@ -49,7 +49,7 @@ type Props<T> = {
     resultsMessage?: (count: number) => string
     clearLabel?: string
 
-    className?: string
+    class?: string
 
     // The class names the menu and its rows answer to. Several stylesheets are
     // written against react-select's own `classNamePrefix` output, so this
@@ -239,7 +239,7 @@ function Combobox<T>(props: Props<T>): JSX.Element {
     const optionCount = () => rows().filter((row) => row.kind === 'option').length
 
     return (
-        <div class={`Combobox ${props.className || ''}`}>
+        <div class={`Combobox ${props.class || ''}`}>
 
             {/* What react-select announced for a screen reader, and what a
                 combobox without one silently stops saying: how many results
@@ -349,7 +349,7 @@ function Combobox<T>(props: Props<T>): JSX.Element {
                 <ComboboxMenu
                     anchor={() => controlRef}
                     portalTarget={props.portalTarget}
-                    className={`${props.classNamePrefix}__menu`}
+                    class={`${props.classNamePrefix}__menu`}
                 >
                     <div
                         class={`${props.classNamePrefix}__menu-list`}
@@ -412,7 +412,7 @@ function Combobox<T>(props: Props<T>): JSX.Element {
 type MenuProps = {
     anchor: () => HTMLElement | undefined
     portalTarget?: HTMLElement | null
-    className: string
+    class: string
     children: JSX.Element
 }
 
@@ -452,7 +452,7 @@ const ComboboxMenu = (props: MenuProps): JSX.Element => {
     const node = (
         <div
             ref={setMenu}
-            class={`Combobox__menu ${props.className} ${position() ? 'is-positioned' : ''}`}
+            class={`Combobox__menu ${props.class} ${position() ? 'is-positioned' : ''}`}
             style={position() ? {transform: `translate(${Math.round(position()!.x)}px, ${Math.round(position()!.y)}px)`} : undefined}
         >
             {props.children}

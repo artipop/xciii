@@ -98,7 +98,7 @@ const ViewTitle = (props: Props) => {
                     readonly={readonly()}
                 />
                 <Editable
-                    className='title'
+                    class='title'
                     value={title()}
                     placeholderText={intl.formatMessage({id: 'ViewTitle.untitled-board', defaultMessage: 'Untitled board'})}
                     onChange={(newTitle) => setTitle(newTitle)}

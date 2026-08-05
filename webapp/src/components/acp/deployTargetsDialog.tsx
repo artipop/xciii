@@ -122,7 +122,7 @@ const DeployTargetsDialog = (props: Props) => {
 
     return (
         <Dialog
-            className='DeployTargetsDialog'
+            class='DeployTargetsDialog'
             title={<span>{intl.formatMessage({id: 'DeployTargets.title', defaultMessage: 'Deploy targets'})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'DeployTargets.subtitle', defaultMessage: 'Dokku hosts a card\'s branch is published to when it moves into the Deploy column. One branch becomes one app of its own, at “repository-branch.base-domain”.'})}</span>}
             onClose={props.onClose}

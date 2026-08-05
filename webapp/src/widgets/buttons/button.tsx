@@ -19,7 +19,7 @@ type Props = {
     emphasis?: string
     size?: string
     danger?: boolean
-    className?: string
+    class?: string
     rightIcon?: boolean
     disabled?: boolean
 }
@@ -35,7 +35,7 @@ function Button(props: Props): JSX.Element {
         danger: Boolean(props.danger),
         [`emphasis--${props.emphasis}`]: Boolean(props.emphasis),
         [`size--${props.size}`]: Boolean(props.size),
-        [`${props.className}`]: Boolean(props.className),
+        [`${props.class}`]: Boolean(props.class),
     })
 
     return (

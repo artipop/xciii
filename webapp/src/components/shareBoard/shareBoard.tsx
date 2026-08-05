@@ -323,7 +323,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
         <Dialog
             onClose={props.onClose}
             title={board().isTemplate ? shareTemplateTitle : shareBoardTitle}
-            className='ShareBoardDialog'
+            class='ShareBoardDialog'
         >
             <Show when={showLinkChannelConfirmation()}>
                 <ConfirmationDialog
@@ -343,7 +343,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                         <SearchIcon/>
                         <Combobox
                             value={selectedUser() ? asShareOption(selectedUser()!) : null}
-                            className={'userSearchInput'}
+                            class={'userSearchInput'}
                             classNamePrefix={'userSearchInput'}
                             loadOptions={loadShareOptions}
                             renderOption={(option) => formatOptionLabel(option.data)}
@@ -455,7 +455,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                                     icon={
                                         <CompassIcon
                                             icon='content-copy'
-                                            className='CompassIcon'
+                                            class='CompassIcon'
                                         />
                                     }
                                     onClick={() => {
@@ -520,7 +520,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                             icon={
                                 <CompassIcon
                                     icon='content-copy'
-                                    className='CompassIcon'
+                                    class='CompassIcon'
                                 />
                             }
                         >

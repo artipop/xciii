@@ -9,7 +9,7 @@ export default function Update(): JSX.Element {
     return (
         <CompassIcon
             icon='update'
-            className='UpdateIcon'
+            class='UpdateIcon'
         />
     )
 }

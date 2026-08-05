@@ -24,8 +24,8 @@ const BlockIconSelector = (props: Props) => {
 
     // Setting an icon on a card that had none has to make the selector appear,
     // and removing it has to make it go away.
-    const className = () => `octo-icon size-${props.size || 'm'}${props.readonly ? ' readonly' : ''}`
-    const iconElement = () => <div class={className()}><span>{props.block.fields.icon}</span></div>
+    const classes = () => `octo-icon size-${props.size || 'm'}${props.readonly ? ' readonly' : ''}`
+    const iconElement = () => <div class={classes()}><span>{props.block.fields.icon}</span></div>
 
     return (
         <Show when={props.block.fields.icon}>

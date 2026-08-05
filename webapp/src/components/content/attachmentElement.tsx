@@ -130,7 +130,7 @@ const AttachmentElement = (props: Props): JSX.Element => {
                 <div class='fileElement-icon-division'>
                     <CompassIcon
                         icon={fileIcon()}
-                        className='fileElement-icon'
+                        class='fileElement-icon'
                     />
                 </div>
                 <div class='fileElement-file-details mt-3'>
@@ -174,7 +174,7 @@ const AttachmentElement = (props: Props): JSX.Element => {
                     <div class='fileElement-delete-download'>
                         <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
                             <MenuWrapper
-                                className='mt-3 fileElement-menu-icon'
+                                class='mt-3 fileElement-menu-icon'
                                 menu={
                                     <div class='delete-menu'>
                                         <Menu position='left'>

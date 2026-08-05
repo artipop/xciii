@@ -39,7 +39,7 @@ const BaseTextEditor = (props: PropertyProps & {validator: () => boolean, spellC
             fallback={<div class={props.property.valueClassName(true)}>{props.propertyValue}</div>}
         >
             <Editable
-                className={props.property.valueClassName(props.readOnly)}
+                class={props.property.valueClassName(props.readOnly)}
                 placeholderText={emptyDisplayValue()}
                 value={value().toString()}
                 autoExpand={true}

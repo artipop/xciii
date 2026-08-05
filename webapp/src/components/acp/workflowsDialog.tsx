@@ -252,7 +252,7 @@ const WorkflowsDialog = (props: Props) => {
 
     return (
         <Dialog
-            className='WorkflowsDialog'
+            class='WorkflowsDialog'
             title={<span>{intl.formatMessage({id: 'Workflows.title', defaultMessage: 'Workflows'})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'Workflows.subtitle', defaultMessage: 'The route a card takes across the board: what runs in each column, and which event moves the card on. A card without a matching flow keeps the standalone trigger columns.'})}</span>}
             onClose={props.onClose}
@@ -275,9 +275,7 @@ const WorkflowsDialog = (props: Props) => {
                                     <div class='WorkflowsDialog__row'>
                                         <span class='WorkflowsDialog__name'>{flow.name}</span>
                                         <span class='WorkflowsDialog__route'>
-                                            {stages() && stages()!.cards > 0 ?
-                                                intl.formatMessage({id: 'Workflows.cards-on-route', defaultMessage: '{count} cards on this route'}, {count: stages()!.cards}) :
-                                                intl.formatMessage({id: 'Workflows.no-cards', defaultMessage: 'no cards on this route'})}
+                                            {stages() && stages()!.cards > 0 ? intl.formatMessage({id: 'Workflows.cards-on-route', defaultMessage: '{count} cards on this route'}, {count: stages()!.cards}) : intl.formatMessage({id: 'Workflows.no-cards', defaultMessage: 'no cards on this route'})}
                                         </span>
                                         <Button onClick={() => startEdit(flow)}>
                                             {intl.formatMessage({id: 'Workflows.edit', defaultMessage: 'Edit'})}

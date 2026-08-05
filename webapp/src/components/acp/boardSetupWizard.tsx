@@ -423,7 +423,7 @@ const BoardSetupWizard = (props: Props) => {
 
     return (
         <Dialog
-            className='BoardSetupWizard'
+            class='BoardSetupWizard'
             title={<span>{intl.formatMessage({id: 'BoardSetup.title', defaultMessage: 'Set up this board: {step}'}, {step: titles[step()]})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'BoardSetup.subtitle', defaultMessage: 'The board already knows how the work is organised. What it does not know is your machine.'})}</span>}
             onClose={props.onClose}

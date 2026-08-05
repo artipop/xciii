@@ -153,7 +153,7 @@ const PersonSelector = (props: Props): JSX.Element => {
                 isMulti={props.isMulti}
                 isClearable={true}
                 closeMenuOnSelect={closeMenuOnSelect()}
-                className={`${primaryClass()}${secondaryClass()}`}
+                class={`${primaryClass()}${secondaryClass()}`}
                 classNamePrefix={'react-select'}
                 renderOption={(option) => formatOptionLabel(option.data)}
                 placeholder={props.emptyDisplayValue}

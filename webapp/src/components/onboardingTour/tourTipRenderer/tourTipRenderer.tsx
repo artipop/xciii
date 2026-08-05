@@ -64,7 +64,7 @@ const TourTipRenderer = (props: Props): JSX.Element | null => {
                 step={currentStep()}
                 tutorialCategory={props.category}
                 placement={props.placement}
-                className={props.classname}
+                class={props.classname}
                 imageURL={props.imageURL}
                 telemetryTag={props.telemetryTag}
                 skipCategoryFromBackdrop={true}

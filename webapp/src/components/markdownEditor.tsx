@@ -12,7 +12,7 @@ type Props = {
     id?: string
     text?: string
     placeholderText?: string
-    className?: string
+    class?: string
     readonly?: boolean
 
     onChange?: (text: string) => void
@@ -34,7 +34,7 @@ const MarkdownEditor = (props: Props): JSX.Element => {
     }
 
     return (
-        <div class={`MarkdownEditor octo-editor ${props.className || ''} ${isEditing() ? 'active' : ''}`}>
+        <div class={`MarkdownEditor octo-editor ${props.class || ''} ${isEditing() ? 'active' : ''}`}>
             <Show
                 when={isEditing()}
                 fallback={

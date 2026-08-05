@@ -17,7 +17,7 @@ type Props = {
     toolsMenu?: JSX.Element // some dialogs may not  require a toolmenu
     toolbar?: JSX.Element
     hideCloseButton?: boolean
-    className?: string
+    class?: string
     title?: JSX.Element
     subtitle?: JSX.Element
     onClose: () => void
@@ -36,7 +36,7 @@ const Dialog: ParentComponent<Props> = (props) => {
     let isBackdropClicked = false
 
     return (
-        <div class={`Dialog dialog-back ${props.className} size--${props.size || 'medium'}`}>
+        <div class={`Dialog dialog-back ${props.class} size--${props.size || 'medium'}`}>
             <div class='backdrop'/>
             <div
                 class='wrapper'
@@ -79,7 +79,7 @@ const Dialog: ParentComponent<Props> = (props) => {
                             </Show>
                             <Show when={!props.hideCloseButton}>
                                 <IconButton
-                                    className='dialog__close'
+                                    class='dialog__close'
                                     onClick={props.onClose}
                                     icon={<CloseIcon/>}
                                     title={closeDialogText}

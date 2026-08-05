@@ -184,7 +184,7 @@ const CardLimitNotification = (props: Props) => {
 
                 <Show when={showNotifyAdminSuccess()}>
                     <NotificationBox
-                        className='NotifyAdminSuccessNotify'
+                        class='NotifyAdminSuccessNotify'
                         icon={<CheckIcon/>}
                         title={intl.formatMessage({id: 'ViewLimitDialog.notifyAdmin.Success', defaultMessage: 'Your admin has been notified'})}
                         onClose={() => setShowNotifyAdminSuccess(false)}

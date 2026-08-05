@@ -34,7 +34,7 @@ const AttachmentList = (props: Props): JSX.Element => {
                     >
                         <CompassIcon
                             icon='plus'
-                            className='attachment-plus-icon'
+                            class='attachment-plus-icon'
                         />
                     </div>
                 </BoardPermissionGate>

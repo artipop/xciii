@@ -136,7 +136,7 @@ export const CalculationOptions = (props: BaseCalculationOptionProps): JSX.Eleme
 
     return (
         <Combobox
-            className='CalculationOptions'
+            class='CalculationOptions'
             classNamePrefix='CalculationOptions'
             isSearchable={false}
             menuIsOpen={props.menuOpen}

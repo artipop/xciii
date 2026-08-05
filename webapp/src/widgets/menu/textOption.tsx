@@ -9,16 +9,16 @@ type TextOptionProps = MenuOptionProps & {
     check?: boolean
     icon?: JSX.Element
     rightIcon?: JSX.Element
-    className?: string
+    classes?: string
     subText?: string
     disabled?: boolean
 }
 
 function TextOption(props: TextOptionProps): JSX.Element {
-    const className = () => {
+    const classes = () => {
         let name = 'MenuOption TextOption menu-option'
-        if (props.className) {
-            name += ' ' + props.className
+        if (props.class) {
+            name += ' ' + props.class
         }
         if (props.subText) {
             name += ' menu-option--with-subtext'
@@ -33,7 +33,7 @@ function TextOption(props: TextOptionProps): JSX.Element {
         <div
             role='button'
             aria-label={props.name}
-            class={className()}
+            class={classes()}
             onClick={(e: MouseEvent) => {
                 (e.target as HTMLElement).dispatchEvent(new Event('menuItemClicked'))
                 props.onClick(props.id)

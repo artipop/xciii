@@ -20,10 +20,10 @@ jest.mock('@xterm/xterm', () => ({
     Terminal: class {
         cols = 100
         rows = 30
-        loadAddon() {} // eslint-disable-line @typescript-eslint/no-empty-function
-        open() {} // eslint-disable-line @typescript-eslint/no-empty-function
-        focus() {} // eslint-disable-line @typescript-eslint/no-empty-function
-        dispose() {} // eslint-disable-line @typescript-eslint/no-empty-function
+        loadAddon() {}
+        open() {}
+        focus() {}
+        dispose() {}
         write(data: Uint8Array) {
             written.push(data)
         }
@@ -34,7 +34,7 @@ jest.mock('@xterm/xterm', () => ({
 }))
 jest.mock('@xterm/addon-fit', () => ({
     FitAddon: class {
-        fit() {} // eslint-disable-line @typescript-eslint/no-empty-function
+        fit() {}
     },
 }))
 jest.mock('@xterm/xterm/css/xterm.css', () => ({}), {virtual: true})
@@ -94,8 +94,8 @@ describe('components/acp/terminalPage', () => {
         FakeSocket.last = null
         ;(global as any).WebSocket = FakeSocket
         ;(global as any).ResizeObserver = class {
-            observe() {} // eslint-disable-line @typescript-eslint/no-empty-function
-            disconnect() {} // eslint-disable-line @typescript-eslint/no-empty-function
+            observe() {}
+            disconnect() {}
         }
         ;(window as any).go = {
             main: {

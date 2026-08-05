@@ -4,12 +4,12 @@
 import type {JSX} from 'solid-js'
 
 type Props = {
-    className?: string
+    class?: string
 }
 
 export default function CardSkeleton(props: Props): JSX.Element {
     return (
-        <span class={props.className}>
+        <span class={props.class}>
             <svg
                 width='468'
                 height='521'

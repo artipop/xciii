@@ -63,9 +63,6 @@ describe('components/cardDetail/CardDetail', () => {
 
     test('should show comments', async () => {
         const store = mockAppStore({
-            teams: {
-                current: {id: 'team-id'} as any,
-            },
             users: {
                 boardUsers: {
                     'user-id-1': {username: 'username_1'},
@@ -200,9 +197,6 @@ describe('components/cardDetail/CardDetail', () => {
         welcomeCard.title = 'Create a new card'
 
         const store = mockAppStore({
-            teams: {
-                current: {id: 'team-id'} as any,
-            },
             users: {
                 me: {
                     id: 'user_id_1',
@@ -297,9 +291,6 @@ describe('components/cardDetail/CardDetail', () => {
         welcomeCard.title = 'Create a new card'
 
         const store = mockAppStore({
-            teams: {
-                current: {id: 'team-id'} as any,
-            },
             users: {
                 me: {
                     id: 'user_id_1',
@@ -490,9 +481,6 @@ describe('components/cardDetail/CardDetail', () => {
     test('should render hidden view if limited', async () => {
         const limitedCard = {...card, limited: true}
         const store = mockAppStore({
-            teams: {
-                current: {id: 'team-id'} as any,
-            },
             users: {
                 workspaceUsers: [
                     {username: 'username_1'},

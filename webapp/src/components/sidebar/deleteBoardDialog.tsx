@@ -28,7 +28,7 @@ export default function DeleteBoardDialog(props: Props): JSX.Element {
             <Dialog
                 onClose={props.onClose}
                 toolsMenu={null}
-                className='DeleteBoardDialog'
+                class='DeleteBoardDialog'
             >
                 <div class='container'>
                     <h2 class='header text-heading5'>

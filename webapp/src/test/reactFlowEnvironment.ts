@@ -33,9 +33,9 @@ export function setupReactFlowEnvironment(): void {
 
     if (!anyGlobal.ResizeObserver) {
         anyGlobal.ResizeObserver = class {
-            observe() {} // eslint-disable-line class-methods-use-this
-            unobserve() {} // eslint-disable-line class-methods-use-this
-            disconnect() {} // eslint-disable-line class-methods-use-this
+            observe() {}
+            unobserve() {}
+            disconnect() {}
         }
     }
 

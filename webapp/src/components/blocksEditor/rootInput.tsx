@@ -28,7 +28,7 @@ export default function RootInput(props: Props) {
 
     return (
         <Combobox
-            className='RootInput'
+            class='RootInput'
             classNamePrefix='RootInput'
             placeholder={'Introduce your text or your slash command'}
             autoFocus={true}

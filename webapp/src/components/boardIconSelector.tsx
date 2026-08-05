@@ -24,7 +24,7 @@ const BoardIconSelector: Component<Props> = (props) => {
     const onAddRandomIcon = () => mutator.changeBoardIcon(props.board.id, props.board.icon, BlockIcons.shared.randomIcon())
     const onRemoveIcon = () => mutator.changeBoardIcon(props.board.id, props.board.icon, '', 'remove board icon')
 
-    const className = () => {
+    const classes = () => {
         let name = `octo-icon size-${props.size || 'm'}`
         if (props.readonly) {
             name += ' readonly'
@@ -36,7 +36,7 @@ const BoardIconSelector: Component<Props> = (props) => {
         <Show when={props.board.icon}>
             <IconSelector
                 readonly={props.readonly}
-                iconElement={<div class={className()}><span>{props.board.icon}</span></div>}
+                iconElement={<div class={classes()}><span>{props.board.icon}</span></div>}
                 onAddRandomIcon={onAddRandomIcon}
                 onSelectEmoji={onSelectEmoji}
                 onRemoveIcon={onRemoveIcon}
