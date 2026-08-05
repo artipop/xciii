@@ -6,11 +6,11 @@ import {render} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
-import {Provider as ReduxProvider} from 'react-redux'
 
 import {mocked} from 'jest-mock'
 
-import {mockStateStore, wrapIntl, mockThunk as thunk} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {IUser} from '../../user'
 
@@ -45,38 +45,38 @@ describe('components/createCategory/CreateCategory', () => {
             me,
         },
     }
-    const store = mockStateStore([thunk], state)
+    const store = mockAppStore(state)
 
     it('base case should match snapshot', () => {
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <CreateCategory
                     onClose={jest.fn()}
                     title={
                         <span>{'title'}</span>
                     }
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     it('should call onClose on being closed', () => {
         const onCloseHandler = jest.fn()
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <CreateCategory
                     onClose={onCloseHandler}
                     title={
                         <span>{'title'}</span>
                     }
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         const cancelBtn = container.querySelector('.createCategoryActions > .Button.danger')
         expect(cancelBtn).toBeTruthy()
         userEvent.click(cancelBtn as Element)
@@ -89,18 +89,18 @@ describe('components/createCategory/CreateCategory', () => {
     })
 
     it('should call onCreate on pressing enter', () => {
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <CreateCategory
                     onClose={jest.fn()}
                     title={
                         <span>{'title'}</span>
                     }
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         const inputField = container.querySelector('.categoryNameInput')
         expect(inputField).toBeTruthy()
         userEvent.type(inputField as Element, 'category name{enter}')
@@ -112,8 +112,8 @@ describe('components/createCategory/CreateCategory', () => {
     })
 
     it('should show initial value', () => {
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <CreateCategory
                     initialValue='Dwight prank ideas'
                     onClose={jest.fn()}
@@ -121,18 +121,18 @@ describe('components/createCategory/CreateCategory', () => {
                         <span>{'title'}</span>
                     }
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         const inputField = container.querySelector('.categoryNameInput')
         expect(inputField).toBeTruthy()
         expect((inputField as HTMLInputElement).value).toBe('Dwight prank ideas')
     })
 
     it('should clear input field on clicking clear icon', () => {
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <CreateCategory
                     initialValue='Dunder Mifflin'
                     onClose={jest.fn()}
@@ -140,10 +140,10 @@ describe('components/createCategory/CreateCategory', () => {
                         <span>{'title'}</span>
                     }
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         const inputField = container.querySelector('.categoryNameInput')
         expect(inputField).toBeTruthy()
         expect((inputField as HTMLInputElement).value).toBe('Dunder Mifflin')

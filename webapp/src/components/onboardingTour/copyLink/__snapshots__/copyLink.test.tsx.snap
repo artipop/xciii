@@ -2,7 +2,7 @@
 
 exports[`components/onboardingTour/addComments/CopyLinkTourStep after hover 1`] = `
 <div
-  aria-labelledby="_r_1_"
+  aria-labelledby="cl-1"
   class="tutorial-tour-tip__box CopyLinkTourStep"
   role="dialog"
   style="max-width: 320px;"
@@ -17,7 +17,7 @@ exports[`components/onboardingTour/addComments/CopyLinkTourStep after hover 1`] 
     >
       <h4
         class="tutorial-tour-tip__header__title"
-        id="_r_1_"
+        id="cl-1"
       >
         Copy link
       </h4>
@@ -53,10 +53,10 @@ exports[`components/onboardingTour/addComments/CopyLinkTourStep after hover 1`] 
           class="tutorial-tour-tip__circles-ctr"
         >
           <div
-            class="tutorial-tour-tip__circular-ring"
+            class="tutorial-tour-tip__circular-ring "
           >
             <a
-              class="tutorial-tour-tip__circle"
+              class="tutorial-tour-tip__circle "
               data-screen="0"
               href="#"
             />
@@ -71,10 +71,10 @@ exports[`components/onboardingTour/addComments/CopyLinkTourStep after hover 1`] 
             />
           </div>
           <div
-            class="tutorial-tour-tip__circular-ring"
+            class="tutorial-tour-tip__circular-ring "
           >
             <a
-              class="tutorial-tour-tip__circle"
+              class="tutorial-tour-tip__circle "
               data-screen="2"
               href="#"
             />
@@ -94,11 +94,13 @@ exports[`components/onboardingTour/addComments/CopyLinkTourStep after hover 1`] 
             <span>
               Previous
             </span>
+            
           </button>
           <button
             class="Button filled size--small tipNextButton"
             type="button"
           >
+            
             <span>
               Next
             </span>
@@ -108,6 +110,7 @@ exports[`components/onboardingTour/addComments/CopyLinkTourStep after hover 1`] 
           </button>
         </div>
       </div>
+      
     </div>
   </div>
 </div>
@@ -123,5 +126,6 @@ exports[`components/onboardingTour/addComments/CopyLinkTourStep before hover 1`]
       class="pulsating_dot"
     />
   </div>
+  
 </div>
 `;

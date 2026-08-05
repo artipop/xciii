@@ -18,7 +18,7 @@ describe('components/propertyValueElement', () => {
 
     test('should match snapshot, select', async () => {
         const propertyTemplate = board.cardProperties.find((p) => p.id === 'property1')
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <PropertyValueElement
                 board={board}
                 readOnly={false}
@@ -28,13 +28,13 @@ describe('components/propertyValueElement', () => {
             />,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot, select, read-only', async () => {
         const propertyTemplate = board.cardProperties.find((p) => p.id === 'property1')
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <PropertyValueElement
                 board={board}
                 readOnly={true}
@@ -44,7 +44,7 @@ describe('components/propertyValueElement', () => {
             />,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -66,7 +66,7 @@ describe('components/propertyValueElement', () => {
             options,
         }
         card.fields.properties.multiSelect = ['ms1', 'ms2']
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <PropertyValueElement
                 board={board}
                 readOnly={false}
@@ -76,7 +76,7 @@ describe('components/propertyValueElement', () => {
             />,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -89,7 +89,7 @@ describe('components/propertyValueElement', () => {
         }
         card.fields.properties.property_url = 'http://localhost'
 
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <PropertyValueElement
                 board={board}
                 readOnly={false}
@@ -99,7 +99,7 @@ describe('components/propertyValueElement', () => {
             />,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -112,7 +112,7 @@ describe('components/propertyValueElement', () => {
         }
         card.fields.properties.person = 'value1'
 
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <PropertyValueElement
                 board={board}
                 readOnly={false}
@@ -122,7 +122,7 @@ describe('components/propertyValueElement', () => {
             />,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -135,7 +135,7 @@ describe('components/propertyValueElement', () => {
         }
         card.fields.properties.date = 'invalid date'
 
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <PropertyValueElement
                 board={board}
                 readOnly={false}
@@ -144,7 +144,7 @@ describe('components/propertyValueElement', () => {
                 showEmptyPlaceholder={true}
             />,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -156,7 +156,7 @@ describe('components/propertyValueElement', () => {
             options: [],
         }
 
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <PropertyValueElement
                 board={board}
                 readOnly={false}
@@ -166,7 +166,7 @@ describe('components/propertyValueElement', () => {
             />,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         const editElement = container.querySelector('.Editable')
         expect(editElement).toBeDefined()
 
@@ -182,7 +182,7 @@ describe('components/propertyValueElement', () => {
             options: [],
         }
 
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <PropertyValueElement
                 board={board}
                 readOnly={false}
@@ -192,7 +192,7 @@ describe('components/propertyValueElement', () => {
             />,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         const editElement = container.querySelector('.Editable')
         expect(editElement).toBeDefined()
 

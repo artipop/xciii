@@ -20,6 +20,7 @@ exports[`components/table/TableHeaders should match snapshot 1`] = `
         >
           Name
         </span>
+        
       </div>
       <div
         class="octo-spacer"
@@ -28,6 +29,7 @@ exports[`components/table/TableHeaders should match snapshot 1`] = `
         class="HorizontalGrip"
       />
     </div>
+    
   </div>
 </div>
 `;

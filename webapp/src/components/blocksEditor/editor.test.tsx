@@ -38,7 +38,7 @@ describe('components/blocksEditor/editor', () => {
     const store = mockAppStore(state)
 
     test('should match snapshot', async () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Editor
                     id='block-id'
@@ -53,7 +53,7 @@ describe('components/blocksEditor/editor', () => {
     })
 
     test('should match snapshot on empty', async () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Editor
                     boardId='fake-board-id'
@@ -66,7 +66,7 @@ describe('components/blocksEditor/editor', () => {
 
     test('should call onSave after introduce text and hit enter', async () => {
         const onSave = jest.fn()
-        render(wrapDNDIntl(() =>
+        render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Editor
                     boardId='fake-board-id'

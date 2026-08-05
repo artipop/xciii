@@ -49,6 +49,8 @@ exports[`component/BoardSwitcherDialog base case 1`] = `
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               class="IconButton dialog__close size--medium"
@@ -74,6 +76,7 @@ exports[`component/BoardSwitcherDialog base case 1`] = `
                 class="CompassIcon icon-magnify MagnifyIcon"
               />
               <input
+                autofocus=""
                 class="searchQuery"
                 maxlength="100"
                 placeholder="Search for boards"

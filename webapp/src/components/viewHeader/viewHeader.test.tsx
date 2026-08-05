@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {render} from '@solidjs/testing-library'
-import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import ViewHeader from './viewHeader'
 
@@ -71,11 +71,12 @@ describe('components/viewHeader/viewHeader', () => {
             },
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     test('return viewHeader', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <ViewHeader
                         board={board}
                         activeView={activeView}
@@ -88,16 +89,18 @@ describe('components/viewHeader/viewHeader', () => {
                         editCardTemplate={jest.fn()}
                         readonly={false}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
     })
     test('return viewHeader without permissions', () => {
-        const localStore = mockStateStore([], {...state, teams: {current: undefined}})
-        const {container} = render(
+        const localStore = mockAppStore({...state, teams: {current: undefined}})
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={localStore}>
+                <AppStoreProvider store={localStore}>
+                    <TestRouter>
                     <ViewHeader
                         board={board}
                         activeView={activeView}
@@ -110,15 +113,17 @@ describe('components/viewHeader/viewHeader', () => {
                         editCardTemplate={jest.fn()}
                         readonly={false}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
     })
     test('return viewHeader readonly', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <ViewHeader
                         board={board}
                         activeView={activeView}
@@ -131,7 +136,8 @@ describe('components/viewHeader/viewHeader', () => {
                         editCardTemplate={jest.fn()}
                         readonly={true}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()

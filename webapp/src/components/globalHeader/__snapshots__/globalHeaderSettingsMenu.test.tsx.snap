@@ -71,6 +71,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                           >
                             Import archive
                           </div>
+                          
                         </div>
                         <div
                           class="noicon"
@@ -96,6 +97,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                           >
                             Trello
                           </div>
+                          
                         </div>
                         <div
                           class="noicon"
@@ -121,6 +123,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                           >
                             Asana
                           </div>
+                          
                         </div>
                         <div
                           class="noicon"
@@ -146,6 +149,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                           >
                             Notion
                           </div>
+                          
                         </div>
                         <div
                           class="noicon"
@@ -171,6 +175,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                           >
                             Jira
                           </div>
+                          
                         </div>
                         <div
                           class="noicon"
@@ -196,6 +201,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                           >
                             Todoist
                           </div>
+                          
                         </div>
                         <div
                           class="noicon"
@@ -228,6 +234,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                           >
                             Cancel
                           </div>
+                          
                         </div>
                         <div
                           class="noicon"
@@ -254,6 +261,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                 <i
                   class="CompassIcon icon-chevron-right"
                 />
+                
               </div>
             </div>
             <div>
@@ -300,6 +308,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                   >
                     Product tour
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -333,6 +342,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -388,11 +398,12 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu languages menu open should 
                 <i
                   class="CompassIcon icon-chevron-right"
                 />
+                
               </div>
             </div>
             <div>
               <div
-                class="MenuOption SubMenuOption menu-option open-left menu-option-active"
+                class="MenuOption SubMenuOption menu-option open-left"
                 id="lang"
               >
                 <div
@@ -406,481 +417,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu languages menu open should 
                 <i
                   class="CompassIcon icon-chevron-right"
                 />
-                <div
-                  class="SubMenu Menu noselect left-bottom"
-                >
-                  <div
-                    class="menu-contents"
-                  >
-                    <div
-                      class="menu-options"
-                    >
-                      <div
-                        aria-label="English"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            English
-                          </div>
-                        </div>
-                        <svg
-                          class="CheckIcon Icon"
-                          viewBox="0 0 100 100"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <polyline
-                            points="20,60 40,80 80,40"
-                          />
-                        </svg>
-                      </div>
-                      <div
-                        aria-label="Español"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Español
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Deutsch"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Deutsch
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="日本語"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            日本語
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Français"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Français
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Nederlands"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Nederlands
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Pусский"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Pусский
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="中文 (繁體)"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            中文 (繁體)
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="中文 (简体)"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            中文 (简体)
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Türkçe"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Türkçe
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Occitan"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Occitan
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Português (Brasil)"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Português (Brasil)
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Català"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Català
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Ελληνικά"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Ελληνικά
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="bahasa Indonesia"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            bahasa Indonesia
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Italiano"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Italiano
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Svenska"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Svenska
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                    </div>
-                    <div
-                      class="menu-spacer hideOnWidescreen"
-                    />
-                    <div
-                      class="menu-options hideOnWidescreen"
-                    >
-                      <div
-                        aria-label="Cancel"
-                        class="MenuOption TextOption menu-option menu-cancel"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Cancel
-                          </div>
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                
               </div>
             </div>
             <div>
@@ -927,6 +464,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu languages menu open should 
                   >
                     Product tour
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -960,6 +498,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu languages menu open should 
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -990,6 +529,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu settings menu closed should
           class="CompassIcon icon-settings-outline SettingsIcon"
         />
       </div>
+      
     </div>
   </div>
 </div>
@@ -1037,6 +577,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu settings menu open should m
                 <i
                   class="CompassIcon icon-chevron-right"
                 />
+                
               </div>
             </div>
             <div>
@@ -1055,6 +596,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu settings menu open should m
                 <i
                   class="CompassIcon icon-chevron-right"
                 />
+                
               </div>
             </div>
             <div>
@@ -1101,6 +643,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu settings menu open should m
                   >
                     Product tour
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1134,6 +677,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu settings menu open should m
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"

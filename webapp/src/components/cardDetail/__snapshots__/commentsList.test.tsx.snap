@@ -24,6 +24,8 @@ exports[`components/cardDetail/CommentsList comments show up 1`] = `
           </p>
         </div>
       </div>
+      
+      
     </div>
     <div
       class="Comment comment"
@@ -38,6 +40,7 @@ exports[`components/cardDetail/CommentsList comments show up 1`] = `
         <div
           class="comment-username"
         />
+        
         <div
           class="octo-tooltip tooltip-top"
           data-tooltip="a long time ago"
@@ -61,6 +64,7 @@ exports[`components/cardDetail/CommentsList comments show up 1`] = `
               class="CompassIcon icon-dots-horizontal OptionsIcon"
             />
           </button>
+          
         </div>
       </div>
       <div
@@ -84,6 +88,7 @@ exports[`components/cardDetail/CommentsList comments show up 1`] = `
         <div
           class="comment-username"
         />
+        
         <div
           class="octo-tooltip tooltip-top"
           data-tooltip="a long time ago"
@@ -107,6 +112,7 @@ exports[`components/cardDetail/CommentsList comments show up 1`] = `
               class="CompassIcon icon-dots-horizontal OptionsIcon"
             />
           </button>
+          
         </div>
       </div>
       <div
@@ -129,6 +135,7 @@ exports[`components/cardDetail/CommentsList comments show up in readonly mode 1`
   <div
     class="CommentsList"
   >
+    
     <div
       class="Comment comment"
     >
@@ -142,6 +149,7 @@ exports[`components/cardDetail/CommentsList comments show up in readonly mode 1`
         <div
           class="comment-username"
         />
+        
         <div
           class="octo-tooltip tooltip-top"
           data-tooltip="a long time ago"
@@ -152,6 +160,7 @@ exports[`components/cardDetail/CommentsList comments show up in readonly mode 1`
             a long time ago
           </div>
         </div>
+        
       </div>
       <div
         class="comment-text"
@@ -174,6 +183,7 @@ exports[`components/cardDetail/CommentsList comments show up in readonly mode 1`
         <div
           class="comment-username"
         />
+        
         <div
           class="octo-tooltip tooltip-top"
           data-tooltip="a long time ago"
@@ -184,6 +194,7 @@ exports[`components/cardDetail/CommentsList comments show up in readonly mode 1`
             a long time ago
           </div>
         </div>
+        
       </div>
       <div
         class="comment-text"

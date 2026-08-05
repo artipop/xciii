@@ -13,6 +13,7 @@ exports[`components/content/TextElement return a textElement 1`] = `
         data-testid="preview-element"
       />
     </div>
+    
   </div>
 </div>
 `;

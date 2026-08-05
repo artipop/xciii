@@ -1,19 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createMemoryHistory} from 'history'
-import {Router} from 'react-router-dom'
 
 import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
-import {Provider as ReduxProvider} from 'react-redux'
 
-import configureStore from 'redux-mock-store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
-import {wrapIntl, wrapRBDNDDroppable} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapIntl, wrapRBDNDDroppable} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import SidebarCategory from './sidebarCategory'
 
@@ -23,7 +20,6 @@ describe('components/sidebarCategory', () => {
 
     const view = TestBlockFactory.createBoardView(board)
     view.fields.sortOptions = []
-    const history = createMemoryHistory()
 
     const board1 = TestBlockFactory.createBoard()
     board1.id = 'board_1_id'
@@ -84,12 +80,11 @@ describe('components/sidebarCategory', () => {
     }
 
     test('sidebar call hideSidebar', () => {
-        const mockStore = configureStore([])
-        const store = mockStore(state)
+        const store = mockAppStore(state)
 
         const component = wrapRBDNDDroppable(wrapIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <SidebarCategory
                         hideSidebar={() => {}}
                         categoryBoards={categoryBoards1}
@@ -97,10 +92,10 @@ describe('components/sidebarCategory', () => {
                         allCategories={allCategoryBoards}
                         index={0}
                     />
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         ))
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
 
         // testing collapsed state of category
@@ -111,12 +106,11 @@ describe('components/sidebarCategory', () => {
     })
 
     test('sidebar collapsed without active board', () => {
-        const mockStore = configureStore([])
-        const store = mockStore(state)
+        const store = mockAppStore(state)
 
         const component = wrapRBDNDDroppable(wrapIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <SidebarCategory
                         hideSidebar={() => {}}
                         categoryBoards={categoryBoards1}
@@ -124,10 +118,10 @@ describe('components/sidebarCategory', () => {
                         allCategories={allCategoryBoards}
                         index={0}
                     />
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         ))
-        const {container} = render(() => component)
+        const {container} = render(component)
 
         const subItems = container.querySelectorAll('.category-title')
         expect(subItems).toBeDefined()
@@ -136,12 +130,11 @@ describe('components/sidebarCategory', () => {
     })
 
     test('sidebar collapsed with active board in it', () => {
-        const mockStore = configureStore([])
-        const store = mockStore(state)
+        const store = mockAppStore(state)
 
         const component = wrapRBDNDDroppable(wrapIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <SidebarCategory
                         hideSidebar={() => {}}
                         activeBoardID={board1.id}
@@ -150,10 +143,10 @@ describe('components/sidebarCategory', () => {
                         allCategories={allCategoryBoards}
                         index={0}
                     />
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         ))
-        const {container} = render(() => component)
+        const {container} = render(component)
 
         const subItems = container.querySelectorAll('.category-title')
         expect(subItems).toBeDefined()
@@ -162,14 +155,13 @@ describe('components/sidebarCategory', () => {
     })
 
     test('sidebar template close self', () => {
-        const mockStore = configureStore([])
-        const store = mockStore(state)
+        const store = mockAppStore(state)
 
         const mockTemplateClose = jest.fn()
 
         const component = wrapRBDNDDroppable(wrapIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <SidebarCategory
                         activeBoardID={board1.id}
                         hideSidebar={() => {}}
@@ -179,10 +171,10 @@ describe('components/sidebarCategory', () => {
                         index={0}
                         onBoardTemplateSelectorClose={mockTemplateClose}
                     />
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         ))
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
 
         // testing collapsed state of category
@@ -193,14 +185,13 @@ describe('components/sidebarCategory', () => {
     })
 
     test('sidebar template close other', () => {
-        const mockStore = configureStore([])
-        const store = mockStore(state)
+        const store = mockAppStore(state)
 
         const mockTemplateClose = jest.fn()
 
         const component = wrapRBDNDDroppable(wrapIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <SidebarCategory
                         activeBoardID={board2.id}
                         hideSidebar={() => {}}
@@ -210,10 +201,10 @@ describe('components/sidebarCategory', () => {
                         index={0}
                         onBoardTemplateSelectorClose={mockTemplateClose}
                     />
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         ))
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
 
         // testing collapsed state of category

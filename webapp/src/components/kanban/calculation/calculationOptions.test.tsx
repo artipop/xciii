@@ -14,7 +14,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
     const board = TestBlockFactory.createBoard()
 
     test('base case', () => {
-        const component = wrapIntl(() =>
+        const component = () => wrapIntl(() =>
             <KanbanCalculationOptions
                 value={'count'}
                 property={board.cardProperties[1]}
@@ -24,12 +24,12 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
             />,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('with menu open', () => {
-        const component = wrapIntl(() =>
+        const component = () => wrapIntl(() =>
             <KanbanCalculationOptions
                 value={'count'}
                 property={board.cardProperties[1]}
@@ -39,12 +39,12 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
             />,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('with submenu open', () => {
-        const component = wrapIntl(() =>
+        const component = () => wrapIntl(() =>
             <KanbanCalculationOptions
                 value={'count'}
                 property={board.cardProperties[1]}
@@ -54,7 +54,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
             />,
         )
 
-        const {container, getByText} = render(() => component)
+        const {container, getByText} = render(component)
         const countUniqueValuesOption = getByText('Count Unique Values')
         expect(countUniqueValuesOption).toBeDefined()
         userEvent.hover(countUniqueValuesOption)
@@ -76,7 +76,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
             options: [],
         })
 
-        const component = wrapIntl(() =>
+        const component = () => wrapIntl(() =>
             <KanbanCalculationOptions
                 value={'count'}
                 property={boardWithProps.cardProperties[1]}
@@ -86,7 +86,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
             />,
         )
 
-        const {getAllByText} = render(() => component)
+        const {getAllByText} = render(component)
         const sumOptions = getAllByText('Sum')
         expect(sumOptions).toBeDefined()
         expect(sumOptions.length).toBe(1)
@@ -116,7 +116,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
             options: [],
         })
 
-        const component = wrapIntl(() =>
+        const component = () => wrapIntl(() =>
             <KanbanCalculationOptions
                 value={'count'}
                 property={boardWithProps.cardProperties[1]}
@@ -126,7 +126,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
             />,
         )
 
-        const {getAllByText} = render(() => component)
+        const {getAllByText} = render(component)
 
         const earliestDateMenu = getAllByText('Earliest Date')
         expect(earliestDateMenu).toBeDefined()

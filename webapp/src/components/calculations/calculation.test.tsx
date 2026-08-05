@@ -1,5 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import type {JSX} from 'solid-js'
 
 import {render} from '@solidjs/testing-library'
 
@@ -27,13 +28,13 @@ describe('components/calculations/Calculation', () => {
     card2.fields.properties.property_3 = ''
     card2.fields.properties.property_4 = 'Baz'
 
-    const Wrapper: React.FC<React.PropsWithChildren> = ({children}) => {
+    const Wrapper = (props: {children?: JSX.Element}) => {
         return wrapIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
                 onResizeColumn={jest.fn()}
             >
-                {children}
+                {props.children}
             </ColumnResizeProvider>,
         )
     }

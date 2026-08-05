@@ -40,7 +40,7 @@ describe('components/blocksEditor/blockContent', () => {
     const store = mockAppStore(state)
 
     test('should match snapshot', async () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlockContent
                     boardId='fake-board-id'
@@ -58,7 +58,7 @@ describe('components/blocksEditor/blockContent', () => {
     })
 
     test('should match snapshot editing', async () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlockContent
                     boardId='fake-board-id'
@@ -77,7 +77,7 @@ describe('components/blocksEditor/blockContent', () => {
 
     test('should call setEditing on click the content', async () => {
         const setEditing = jest.fn()
-        render(wrapDNDIntl(() =>
+        render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlockContent
                     boardId='fake-board-id'
@@ -99,7 +99,7 @@ describe('components/blocksEditor/blockContent', () => {
 
     test('should call setEditing on click the content', async () => {
         const setAfterBlock = jest.fn()
-        render(wrapDNDIntl(() =>
+        render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlockContent
                     boardId='fake-board-id'
@@ -121,7 +121,7 @@ describe('components/blocksEditor/blockContent', () => {
 
     test('should call onSave on hit enter in the input', async () => {
         const onSave = jest.fn()
-        render(wrapDNDIntl(() =>
+        render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlockContent
                     boardId='fake-board-id'

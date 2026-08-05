@@ -4,14 +4,15 @@ exports[`components/calculations/Calculation should match snapshot - count 1`] =
 <div>
   <div
     class="Calculation count fooClass  hovered"
-    style="width: 100px;"
     tabindex="0"
   >
+    
     <span
       class="calculationLabel"
     >
       Count
     </span>
+    
     <span
       class="calculationValue"
     >
@@ -25,14 +26,15 @@ exports[`components/calculations/Calculation should match snapshot - countUnique
 <div>
   <div
     class="Calculation countUniqueValue fooClass  hovered"
-    style="width: 100px;"
     tabindex="0"
   >
+    
     <span
       class="calculationLabel"
     >
       Unique
     </span>
+    
     <span
       class="calculationValue"
     >
@@ -46,14 +48,15 @@ exports[`components/calculations/Calculation should match snapshot - countValue 
 <div>
   <div
     class="Calculation countValue fooClass  hovered"
-    style="width: 100px;"
     tabindex="0"
   >
+    
     <span
       class="calculationLabel"
     >
       Values
     </span>
+    
     <span
       class="calculationValue"
     >
@@ -67,9 +70,9 @@ exports[`components/calculations/Calculation should match snapshot - none 1`] = 
 <div>
   <div
     class="Calculation none fooClass  hovered"
-    style="width: 100px;"
     tabindex="0"
   >
+    
     <span
       class="calculationLabel"
     >
@@ -78,6 +81,7 @@ exports[`components/calculations/Calculation should match snapshot - none 1`] = 
     <i
       class="CompassIcon icon-chevron-up ChevronUpIcon"
     />
+    
   </div>
 </div>
 `;
@@ -86,7 +90,6 @@ exports[`components/calculations/Calculation should match snapshot - option chan
 <div>
   <div
     class="Calculation none fooClass menuOpen hovered"
-    style="width: 100px;"
     tabindex="0"
   >
     <div>
@@ -106,36 +109,39 @@ exports[`components/calculations/Calculation should match snapshot - option chan
           <div
             class="CalculationOptions__value-container"
           >
+            
             <div
               class="CalculationOptions__single-value"
             >
               Calculate
             </div>
+            
             <input
-              aria-activedescendant="_r_0_-option-1"
-              aria-controls="_r_0_"
+              aria-activedescendant="cl-4-option-1"
+              aria-controls="cl-4"
               aria-expanded="true"
               autocomplete="off"
               class="CalculationOptions__input"
               readonly=""
               role="combobox"
               type="text"
-              value=""
             />
           </div>
+          
         </div>
         <div
           class="Combobox__menu CalculationOptions__menu "
         >
           <div
             class="CalculationOptions__menu-list"
-            id="_r_0_"
+            id="cl-4"
             role="listbox"
           >
+            
             <div
               aria-selected="true"
               class="CalculationOptions__option CalculationOptions__option--is-selected"
-              id="_r_0_-option-0"
+              id="cl-4-option-0"
               role="option"
             >
               None
@@ -143,7 +149,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option CalculationOptions__option--is-focused"
-              id="_r_0_-option-1"
+              id="cl-4-option-1"
               role="option"
             >
               Count
@@ -151,7 +157,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="_r_0_-option-2"
+              id="cl-4-option-2"
               role="option"
             >
               Count Empty
@@ -159,7 +165,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="_r_0_-option-3"
+              id="cl-4-option-3"
               role="option"
             >
               Count Not Empty
@@ -167,7 +173,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="_r_0_-option-4"
+              id="cl-4-option-4"
               role="option"
             >
               Percent Empty
@@ -175,7 +181,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="_r_0_-option-5"
+              id="cl-4-option-5"
               role="option"
             >
               Percent Not Empty
@@ -183,7 +189,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="_r_0_-option-6"
+              id="cl-4-option-6"
               role="option"
             >
               Count value
@@ -191,7 +197,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="_r_0_-option-7"
+              id="cl-4-option-7"
               role="option"
             >
               Count unique values
@@ -208,6 +214,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
     <i
       class="CompassIcon icon-chevron-up ChevronUpIcon"
     />
+    
   </div>
 </div>
 `;

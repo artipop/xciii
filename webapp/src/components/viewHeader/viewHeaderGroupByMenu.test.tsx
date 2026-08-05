@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {render, screen} from '@solidjs/testing-library'
-import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
@@ -13,7 +12,8 @@ import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import mutator from '../../mutator'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import {IPropertyOption} from '../../blocks/board'
 
 import ViewHeaderGroupByMenu from './viewHeaderGroupByMenu'
@@ -87,7 +87,7 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
             },
             searchText: {},
         }
-        store = mockStateStore([], state)
+        store = mockAppStore(state)
     }
 
     beforeEach(() => {
@@ -95,15 +95,15 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
         setDefaultOptions()
     })
     test('return groupBy menu', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderGroupByMenu
                         activeView={activeView}
                         groupByProperty={property}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -111,15 +111,15 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
         expect(container).toMatchSnapshot()
     })
     test('return groupBy menu and groupBy Status', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderGroupByMenu
                         activeView={activeView}
                         groupByProperty={property}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -131,15 +131,15 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
     })
     test('return groupBy menu, hideEmptyGroups and ungroup in viewType table', () => {
         activeView.fields.viewType = 'table'
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderGroupByMenu
                         activeView={activeView}
                         groupByProperty={property}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
 
@@ -167,15 +167,15 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
         activeView.fields.viewType = 'table'
         activeView.fields.hiddenOptionIds = []
 
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderGroupByMenu
                         activeView={activeView}
                         groupByProperty={property}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -194,17 +194,17 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
 
         const cardToFillTheEmptyGroup = TestBlockFactory.createCard(board)
         state.cards.cards.push(cardToFillTheEmptyGroup)
-        store = mockStateStore([], state)
+        store = mockAppStore(state)
 
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderGroupByMenu
                         activeView={activeView}
                         groupByProperty={property}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})

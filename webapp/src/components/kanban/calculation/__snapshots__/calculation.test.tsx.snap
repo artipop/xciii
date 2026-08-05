@@ -10,10 +10,13 @@ exports[`components/kanban/calculation/KanbanCalculation base case 1`] = `
       title="3"
       type="button"
     >
+      
       <span>
         3
       </span>
+      
     </button>
+    
   </div>
 </div>
 `;
@@ -28,9 +31,11 @@ exports[`components/kanban/calculation/KanbanCalculation calculations menu open 
       title="3"
       type="button"
     >
+      
       <span>
         3
       </span>
+      
     </button>
     <div
       class="Combobox CalculationOptions"
@@ -48,36 +53,39 @@ exports[`components/kanban/calculation/KanbanCalculation calculations menu open 
         <div
           class="CalculationOptions__value-container"
         >
+          
           <div
             class="CalculationOptions__single-value"
           >
             Count
           </div>
+          
           <input
-            aria-activedescendant="_r_0_-option-0"
-            aria-controls="_r_0_"
+            aria-activedescendant="cl-0-option-0"
+            aria-controls="cl-0"
             aria-expanded="true"
             autocomplete="off"
             class="CalculationOptions__input"
             readonly=""
             role="combobox"
             type="text"
-            value=""
           />
         </div>
+        
       </div>
       <div
         class="Combobox__menu CalculationOptions__menu "
       >
         <div
           class="CalculationOptions__menu-list"
-          id="_r_0_"
+          id="cl-0"
           role="listbox"
         >
+          
           <div
             aria-selected="true"
             class="CalculationOptions__option CalculationOptions__option--is-focused CalculationOptions__option--is-selected"
-            id="_r_0_-option-0"
+            id="cl-0-option-0"
             role="option"
           >
             <div
@@ -86,13 +94,15 @@ exports[`components/kanban/calculation/KanbanCalculation calculations menu open 
               <span>
                 Count
                  
+                
               </span>
+              
             </div>
           </div>
           <div
             aria-selected="false"
             class="CalculationOptions__option"
-            id="_r_0_-option-1"
+            id="cl-0-option-1"
             role="option"
           >
             <div
@@ -105,12 +115,13 @@ exports[`components/kanban/calculation/KanbanCalculation calculations menu open 
                   class="CompassIcon icon-chevron-right ChevronRightIcon"
                 />
               </span>
+              
             </div>
           </div>
           <div
             aria-selected="false"
             class="CalculationOptions__option"
-            id="_r_0_-option-2"
+            id="cl-0-option-2"
             role="option"
           >
             <div
@@ -123,12 +134,13 @@ exports[`components/kanban/calculation/KanbanCalculation calculations menu open 
                   class="CompassIcon icon-chevron-right ChevronRightIcon"
                 />
               </span>
+              
             </div>
           </div>
           <div
             aria-selected="false"
             class="CalculationOptions__option"
-            id="_r_0_-option-3"
+            id="cl-0-option-3"
             role="option"
           >
             <div
@@ -141,12 +153,13 @@ exports[`components/kanban/calculation/KanbanCalculation calculations menu open 
                   class="CompassIcon icon-chevron-right ChevronRightIcon"
                 />
               </span>
+              
             </div>
           </div>
           <div
             aria-selected="false"
             class="CalculationOptions__option"
-            id="_r_0_-option-4"
+            id="cl-0-option-4"
             role="option"
           >
             <div
@@ -159,12 +172,13 @@ exports[`components/kanban/calculation/KanbanCalculation calculations menu open 
                   class="CompassIcon icon-chevron-right ChevronRightIcon"
                 />
               </span>
+              
             </div>
           </div>
           <div
             aria-selected="false"
             class="CalculationOptions__option"
-            id="_r_0_-option-5"
+            id="cl-0-option-5"
             role="option"
           >
             <div
@@ -177,12 +191,13 @@ exports[`components/kanban/calculation/KanbanCalculation calculations menu open 
                   class="CompassIcon icon-chevron-right ChevronRightIcon"
                 />
               </span>
+              
             </div>
           </div>
           <div
             aria-selected="false"
             class="CalculationOptions__option"
-            id="_r_0_-option-6"
+            id="cl-0-option-6"
             role="option"
           >
             <div
@@ -195,6 +210,7 @@ exports[`components/kanban/calculation/KanbanCalculation calculations menu open 
                   class="CompassIcon icon-chevron-right ChevronRightIcon"
                 />
               </span>
+              
             </div>
           </div>
         </div>
@@ -214,10 +230,13 @@ exports[`components/kanban/calculation/KanbanCalculation no menu should appear i
       title="3"
       type="button"
     >
+      
       <span>
         3
       </span>
+      
     </button>
+    
   </div>
 </div>
 `;

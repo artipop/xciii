@@ -2,7 +2,7 @@
 
 exports[`components/onboardingTour/addComments/AddViewTourStep after hover 1`] = `
 <div
-  aria-labelledby="_r_1_"
+  aria-labelledby="cl-1"
   class="tutorial-tour-tip__box AddViewTourStep"
   role="dialog"
   style="max-width: 320px;"
@@ -17,7 +17,7 @@ exports[`components/onboardingTour/addComments/AddViewTourStep after hover 1`] =
     >
       <h4
         class="tutorial-tour-tip__header__title"
-        id="_r_1_"
+        id="cl-1"
       >
         Add a new view
       </h4>
@@ -62,19 +62,19 @@ exports[`components/onboardingTour/addComments/AddViewTourStep after hover 1`] =
             />
           </div>
           <div
-            class="tutorial-tour-tip__circular-ring"
+            class="tutorial-tour-tip__circular-ring "
           >
             <a
-              class="tutorial-tour-tip__circle"
+              class="tutorial-tour-tip__circle "
               data-screen="1"
               href="#"
             />
           </div>
           <div
-            class="tutorial-tour-tip__circular-ring"
+            class="tutorial-tour-tip__circular-ring "
           >
             <a
-              class="tutorial-tour-tip__circle"
+              class="tutorial-tour-tip__circle "
               data-screen="2"
               href="#"
             />
@@ -83,10 +83,12 @@ exports[`components/onboardingTour/addComments/AddViewTourStep after hover 1`] =
         <div
           class="tutorial-tour-tip__btn-ctr"
         >
+          
           <button
             class="Button filled size--small tipNextButton"
             type="button"
           >
+            
             <span>
               Next
             </span>
@@ -96,6 +98,7 @@ exports[`components/onboardingTour/addComments/AddViewTourStep after hover 1`] =
           </button>
         </div>
       </div>
+      
     </div>
   </div>
 </div>
@@ -111,5 +114,7 @@ exports[`components/onboardingTour/addComments/AddViewTourStep before hover 1`] 
       class="pulsating_dot"
     />
   </div>
+  
+  
 </div>
 `;

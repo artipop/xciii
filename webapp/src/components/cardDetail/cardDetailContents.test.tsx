@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {ReactElement, ReactNode} from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
+import type {JSX} from 'solid-js'
 
 import {fireEvent, render} from '@solidjs/testing-library'
 
@@ -9,7 +8,8 @@ import {act} from 'react-dom/test-utils'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import CardDetailContents from './cardDetailContents'
 import {CardDetailProvider} from './cardDetailContext'
@@ -75,19 +75,19 @@ describe('components/cardDetail/cardDetailContents', () => {
             value: {},
         },
     }
-    const store = mockStateStore([], state)
-    const wrap = (child: ReactNode): ReactElement => (
+    const store = mockAppStore(state)
+    const wrap = (child: () => JSX.Element): JSX.Element => (
         wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+            <AppStoreProvider store={store}>
                 <CardDetailProvider card={card}>
-                    {child}
+                    {child()}
                 </CardDetailProvider>
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
     )
 
     test('should match snapshot', async () => {
-        const component = wrap((
+        const component = () => wrap(() => (
             <CardDetailContents
                 id='test-id'
                 card={card}
@@ -96,17 +96,13 @@ describe('components/cardDetail/cardDetailContents', () => {
             />
         ))
 
-        let container: Element | undefined
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot with contents array', async () => {
         const contents = [TestBlockFactory.createDivider(card)]
-        const component = wrap((
+        const component = () => wrap(() => (
             <CardDetailContents
                 id='test-id'
                 card={card}
@@ -115,17 +111,13 @@ describe('components/cardDetail/cardDetailContents', () => {
             />
         ))
 
-        let container: Element | undefined
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot with contents array that has array inside it', async () => {
         const contents = [TestBlockFactory.createDivider(card), [TestBlockFactory.createDivider(card), TestBlockFactory.createDivider(card)]]
-        const component = wrap((
+        const component = () => wrap(() => (
             <CardDetailContents
                 id='test-id'
                 card={card}
@@ -133,18 +125,14 @@ describe('components/cardDetail/cardDetailContents', () => {
                 readonly={false}
             />
         ))
-        let container: Element | undefined
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot after drag and drop event', async () => {
         const contents = [TestBlockFactory.createDivider(card), [TestBlockFactory.createDivider(card), TestBlockFactory.createDivider(card)]]
         card.fields.contentOrder = contents.map((content) => (Array.isArray(content) ? content.map((c) => c.id) : (content as any).id))
-        const component = wrap((
+        const component = () => wrap(() => (
             <CardDetailContents
                 id='test-id'
                 card={card}
@@ -153,11 +141,7 @@ describe('components/cardDetail/cardDetailContents', () => {
             />
         ))
 
-        let container: Element | undefined
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const {container} = render(component)
 
         const drag = container!.querySelectorAll('.dnd-handle')[0]
         const drop = container!.querySelectorAll('.addToRow')[4]
@@ -173,7 +157,7 @@ describe('components/cardDetail/cardDetailContents', () => {
     test('should match snapshot after drag and drop event 2', async () => {
         const contents = [TestBlockFactory.createDivider(card), TestBlockFactory.createDivider(card)]
         card.fields.contentOrder = contents.map((content) => (Array.isArray(content) ? content.map((c) => c.id) : (content as any).id))
-        const component = wrap((
+        const component = () => wrap(() => (
             <CardDetailContents
                 id='test-id'
                 card={card}
@@ -182,11 +166,7 @@ describe('components/cardDetail/cardDetailContents', () => {
             />
         ))
 
-        let container: Element | undefined
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const {container} = render(component)
 
         const drag = container!.querySelectorAll('.dnd-handle')[0]
         const drop = container!.querySelectorAll('.addToRow')[4]
@@ -202,7 +182,7 @@ describe('components/cardDetail/cardDetailContents', () => {
     test('should match snapshot after drag and drop event 3', async () => {
         const contents = [TestBlockFactory.createDivider(card), TestBlockFactory.createDivider(card)]
         card.fields.contentOrder = contents.map((content) => (Array.isArray(content) ? content.map((c) => c.id) : (content as any).id))
-        const component = wrap((
+        const component = () => wrap(() => (
             <CardDetailContents
                 id='test-id'
                 card={card}
@@ -211,11 +191,7 @@ describe('components/cardDetail/cardDetailContents', () => {
             />
         ))
 
-        let container: Element | undefined
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const {container} = render(component)
 
         const drag = container!.querySelectorAll('.dnd-handle')[1]
         const drop = container!.querySelectorAll('.addToRow')[2]

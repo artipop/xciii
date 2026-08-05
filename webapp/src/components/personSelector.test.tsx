@@ -1,24 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Provider as ReduxProvider} from 'react-redux'
 
 import {render, waitFor} from '@solidjs/testing-library'
 
-import configureStore from 'redux-mock-store'
 
 import {act} from 'react-dom/test-utils'
 
 import userEvent from '@testing-library/user-event'
 
-import {wrapIntl} from '../testUtils'
+import {mockAppStore, wrapIntl} from '../testUtils'
+import {AppStoreProvider} from '../store'
 
 import PersonProperty from '../properties/person/property'
 
 import PersonSelector from './personSelector'
 
 describe('properties/person', () => {
-    const mockStore = configureStore([])
     const state = {
         users: {
             me: {
@@ -74,9 +72,9 @@ describe('properties/person', () => {
     }
 
     test('not readOnly, show username', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <PersonSelector
                     readOnly={false}
                     userIDs={['user-id-1']}
@@ -87,10 +85,10 @@ describe('properties/person', () => {
                     closeMenuOnSelect={true}
                     onChange={() => {}}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const renderResult = render(() => component)
+        const renderResult = render(component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -101,7 +99,7 @@ describe('properties/person', () => {
     })
 
     test('not readOnly, show firstname', async () => {
-        const store = mockStore({
+        const store = mockAppStore({
             ...state,
             clientConfig: {
                 value: {
@@ -109,8 +107,8 @@ describe('properties/person', () => {
                 },
             },
         })
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <PersonSelector
                     readOnly={false}
                     userIDs={['user-id-1']}
@@ -121,10 +119,10 @@ describe('properties/person', () => {
                     closeMenuOnSelect={true}
                     onChange={() => {}}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const renderResult = render(() => component)
+        const renderResult = render(component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -135,9 +133,9 @@ describe('properties/person', () => {
     })
 
     test('not readOnly, show modal', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <PersonSelector
                     readOnly={false}
                     userIDs={[]}
@@ -148,10 +146,10 @@ describe('properties/person', () => {
                     closeMenuOnSelect={true}
                     onChange={() => {}}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const renderResult = render(() => component)
+        const renderResult = render(component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -166,9 +164,7 @@ describe('properties/person', () => {
             const userProperty = container.querySelector(".Person input[role='combobox']")
             expect(userProperty).not.toBeNull()
 
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            userEvent.click(userProperty as Element)
 
             const userList = container.querySelector('.Person-item')
             expect(userList).not.toBeNull()
@@ -179,9 +175,9 @@ describe('properties/person', () => {
     })
 
     test('readOnly view', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <PersonSelector
                     readOnly={true}
                     userIDs={['user-id-1']}
@@ -192,10 +188,10 @@ describe('properties/person', () => {
                     closeMenuOnSelect={true}
                     onChange={() => {}}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const renderResult = render(() => component)
+        const renderResult = render(component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -215,9 +211,9 @@ describe('properties/person', () => {
     })
 
     test('show multiple', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <PersonSelector
                     readOnly={false}
                     userIDs={['user-id-1', 'user-id-2']}
@@ -228,10 +224,10 @@ describe('properties/person', () => {
                     closeMenuOnSelect={true}
                     onChange={() => {}}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const renderResult = render(() => component)
+        const renderResult = render(component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -241,9 +237,9 @@ describe('properties/person', () => {
         expect(container).toMatchSnapshot()
     })
     test('show multiple, display modal', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <PersonSelector
                     readOnly={false}
                     userIDs={['user-id-1', 'user-id-2']}
@@ -254,10 +250,10 @@ describe('properties/person', () => {
                     closeMenuOnSelect={true}
                     onChange={() => {}}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const renderResult = render(() => component)
+        const renderResult = render(component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -272,9 +268,7 @@ describe('properties/person', () => {
             const userProperty = container.querySelector(".MultiPerson input[role='combobox']")
             expect(userProperty).not.toBeNull()
 
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            userEvent.click(userProperty as Element)
             const userList = container.querySelector('.MultiPerson-item')
             expect(userList).not.toBeNull()
             expect(container).toMatchSnapshot()
@@ -284,9 +278,9 @@ describe('properties/person', () => {
     })
 
     test('not readOnly, show me', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <PersonSelector
                     readOnly={false}
                     showMe={true}
@@ -298,10 +292,10 @@ describe('properties/person', () => {
                     closeMenuOnSelect={true}
                     onChange={() => {}}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const renderResult = render(() => component)
+        const renderResult = render(component)
         const container = await waitFor(() => {
             if (!renderResult.container) {
                 return Promise.reject(new Error('container not found'))
@@ -315,9 +309,7 @@ describe('properties/person', () => {
             // opening of the dropdown
             const userProperty = container.querySelector(".Person input[role='combobox']")
             expect(userProperty).not.toBeNull()
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            userEvent.click(userProperty as Element)
 
             const userList = container.querySelector('.Person-item')
             expect(userList).not.toBeNull()

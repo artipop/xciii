@@ -5,12 +5,11 @@ import 'isomorphic-fetch'
 import {render} from '@solidjs/testing-library'
 import {act} from 'react-dom/test-utils'
 
-import {Provider as ReduxProvider} from 'react-redux'
-import configureStore from 'redux-mock-store'
 
 import {CommentBlock} from '../../blocks/commentBlock'
 
-import {mockDOM, wrapIntl} from '../../testUtils'
+import {mockAppStore, mockDOM, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import {Utils} from '../../utils'
 
 import {FetchMock} from '../../test/fetchMock'
@@ -46,8 +45,7 @@ describe('components/cardDetail/CommentsList', () => {
     } as CommentBlock
 
     test('comments show up', async () => {
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             users: {
                 boardUsers: {
                     'user-id-1': {username: 'username_1'},
@@ -76,8 +74,8 @@ describe('components/cardDetail/CommentsList', () => {
             },
         })
 
-        const component = (
-            <ReduxProvider store={store}>
+        const component = () => (
+            <AppStoreProvider store={store}>
                 {wrapIntl(() =>
                     <CommentsList
                         comments={[comment1, comment2]}
@@ -86,14 +84,12 @@ describe('components/cardDetail/CommentsList', () => {
                         readonly={false}
                     />,
                 )}
-            </ReduxProvider>)
+            </AppStoreProvider>)
 
         let container: Element | DocumentFragment | null = null
 
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const result = render(component)
+        container = result.container
 
         expect(container).toBeDefined()
         expect(container).toMatchSnapshot()
@@ -108,8 +104,7 @@ describe('components/cardDetail/CommentsList', () => {
     })
 
     test('comments show up in readonly mode', async () => {
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             users: {
                 boardUsers: {
                     'user-id-1': {username: 'username_1'},
@@ -129,8 +124,8 @@ describe('components/cardDetail/CommentsList', () => {
             },
         })
 
-        const component = (
-            <ReduxProvider store={store}>
+        const component = () => (
+            <AppStoreProvider store={store}>
                 {wrapIntl(() =>
                     <CommentsList
                         comments={[comment1, comment2]}
@@ -139,14 +134,12 @@ describe('components/cardDetail/CommentsList', () => {
                         readonly={true}
                     />,
                 )}
-            </ReduxProvider>)
+            </AppStoreProvider>)
 
         let container: Element | DocumentFragment | null = null
 
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const result = render(component)
+        container = result.container
 
         expect(container).toBeDefined()
         expect(container).toMatchSnapshot()

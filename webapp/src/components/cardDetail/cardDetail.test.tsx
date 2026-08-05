@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 import 'isomorphic-fetch'
-import {act, render} from '@solidjs/testing-library'
+import {render} from '@solidjs/testing-library'
 
-import configureStore from 'redux-mock-store'
-import {Provider as ReduxProvider} from 'react-redux'
 
 import userEvent from '@testing-library/user-event'
 
@@ -14,7 +12,8 @@ import {mocked} from 'jest-mock'
 import {FetchMock} from '../../test/fetchMock'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
-import {mockDOM, wrapDNDIntl, wrapIntl} from '../../testUtils'
+import {mockAppStore, mockDOM, wrapDNDIntl, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import octoClient from '../../octoClient'
 
@@ -64,8 +63,7 @@ describe('components/cardDetail/CardDetail', () => {
     comment2.createAt = createdAt
 
     test('should show comments', async () => {
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             users: {
                 boardUsers: {
                     'user-id-1': {username: 'username_1'},
@@ -94,8 +92,8 @@ describe('components/cardDetail/CardDetail', () => {
             },
         })
 
-        const component = (
-            <ReduxProvider store={store}>
+        const component = () => (
+            <AppStoreProvider store={store}>
                 {wrapIntl(() =>
                     <CardDetail
                         board={board}
@@ -112,15 +110,13 @@ describe('components/cardDetail/CardDetail', () => {
                         addAttachment={jest.fn()}
                     />,
                 )}
-            </ReduxProvider>
+            </AppStoreProvider>
         )
 
         let container: Element | DocumentFragment | null = null
 
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const result = render(component)
+        container = result.container
 
         expect(container).toBeDefined()
 
@@ -134,8 +130,7 @@ describe('components/cardDetail/CardDetail', () => {
     })
 
     test('should show comments in readonly view', async () => {
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             teams: {
                 current: {id: 'team-id'},
             },
@@ -158,8 +153,8 @@ describe('components/cardDetail/CardDetail', () => {
             },
         })
 
-        const component = (
-            <ReduxProvider store={store}>
+        const component = () => (
+            <AppStoreProvider store={store}>
                 {wrapIntl(() =>
                     <CardDetail
                         board={board}
@@ -176,15 +171,13 @@ describe('components/cardDetail/CardDetail', () => {
                         addAttachment={jest.fn()}
                     />,
                 )}
-            </ReduxProvider>
+            </AppStoreProvider>
         )
 
         let container: Element | DocumentFragment | null = null
 
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const result = render(component)
+        container = result.container
 
         expect(container).toBeDefined()
 
@@ -198,7 +191,6 @@ describe('components/cardDetail/CardDetail', () => {
     })
 
     test('should show add properties tour tip', async () => {
-        const mockStore = configureStore([])
 
         const welcomeBoard = TestBlockFactory.createBoard()
         welcomeBoard.title = 'Welcome to Boards!'
@@ -206,7 +198,7 @@ describe('components/cardDetail/CardDetail', () => {
         const welcomeCard = TestBlockFactory.createCard(welcomeBoard)
         welcomeCard.title = 'Create a new card'
 
-        const store = mockStore({
+        const store = mockAppStore({
             users: {
                 me: {
                     id: 'user_id_1',
@@ -250,8 +242,8 @@ describe('components/cardDetail/CardDetail', () => {
         const onboardingCard = TestBlockFactory.createCard(board)
         onboardingCard.title = 'Create a new card'
 
-        const component = (
-            <ReduxProvider store={store}>
+        const component = () => (
+            <AppStoreProvider store={store}>
                 {wrapIntl(() =>
                     <CardDetail
                         board={onboardingBoard}
@@ -268,15 +260,13 @@ describe('components/cardDetail/CardDetail', () => {
                         addAttachment={jest.fn()}
                     />,
                 )}
-            </ReduxProvider>
+            </AppStoreProvider>
         )
 
         let container: Element | DocumentFragment | null = null
 
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const result = render(component)
+        container = result.container
 
         expect(container).toBeDefined()
         expect(container).not.toBeNull()
@@ -291,9 +281,7 @@ describe('components/cardDetail/CardDetail', () => {
         const nextBtn = document!.querySelector('.tipNextButton')
         expect(nextBtn).toBeDefined()
         expect(nextBtn).not.toBeNull()
-        await act(async () => {
-            userEvent.click(nextBtn!)
-        })
+        userEvent.click(nextBtn!)
         expect(mockedOctoClient.patchUserConfig).toHaveBeenCalledWith(
             'user_id_1',
             {
@@ -305,7 +293,6 @@ describe('components/cardDetail/CardDetail', () => {
     })
 
     test('should show add comments tour tip', async () => {
-        const mockStore = configureStore([])
 
         const welcomeBoard = TestBlockFactory.createBoard()
         welcomeBoard.title = 'Welcome to Boards!'
@@ -313,7 +300,7 @@ describe('components/cardDetail/CardDetail', () => {
         const welcomeCard = TestBlockFactory.createCard(welcomeBoard)
         welcomeCard.title = 'Create a new card'
 
-        const store = mockStore({
+        const store = mockAppStore({
             users: {
                 me: {
                     id: 'user_id_1',
@@ -357,8 +344,8 @@ describe('components/cardDetail/CardDetail', () => {
         const onboardingCard = TestBlockFactory.createCard(board)
         onboardingCard.title = 'Create a new card'
 
-        const component = (
-            <ReduxProvider store={store}>
+        const component = () => (
+            <AppStoreProvider store={store}>
                 {wrapIntl(() =>
                     <CardDetail
                         board={onboardingBoard}
@@ -375,15 +362,13 @@ describe('components/cardDetail/CardDetail', () => {
                         addAttachment={jest.fn()}
                     />,
                 )}
-            </ReduxProvider>
+            </AppStoreProvider>
         )
 
         let container: Element | DocumentFragment | null = null
 
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const result = render(component)
+        container = result.container
 
         expect(container).toBeDefined()
         expect(container).not.toBeNull()
@@ -398,9 +383,7 @@ describe('components/cardDetail/CardDetail', () => {
         const nextBtn = document!.querySelector('.tipNextButton')
         expect(nextBtn).toBeDefined()
         expect(nextBtn).not.toBeNull()
-        await act(async () => {
-            userEvent.click(nextBtn!)
-        })
+        userEvent.click(nextBtn!)
         expect(mockedOctoClient.patchUserConfig).toHaveBeenCalledWith(
             'user_id_1',
             {
@@ -412,7 +395,6 @@ describe('components/cardDetail/CardDetail', () => {
     })
 
     test('should show add description tour tip', async () => {
-        const mockStore = configureStore([])
         const welcomeBoard = TestBlockFactory.createBoard()
         welcomeBoard.title = 'Welcome to Boards!'
 
@@ -455,7 +437,7 @@ describe('components/cardDetail/CardDetail', () => {
                 value: {},
             },
         }
-        const store = mockStore(state)
+        const store = mockAppStore(state)
 
         const onboardingBoard = TestBlockFactory.createBoard()
         onboardingBoard.title = 'Welcome to Boards!'
@@ -468,8 +450,8 @@ describe('components/cardDetail/CardDetail', () => {
         text.parentId = onboardingCard.id
         onboardingCard.fields.contentOrder = [text.id]
 
-        const component = (
-            <ReduxProvider store={store}>
+        const component = () => (
+            <AppStoreProvider store={store}>
                 {wrapDNDIntl(() =>
                     <CardDetail
                         board={onboardingBoard}
@@ -486,15 +468,13 @@ describe('components/cardDetail/CardDetail', () => {
                         addAttachment={jest.fn()}
                     />,
                 )}
-            </ReduxProvider>
+            </AppStoreProvider>
         )
 
         let container: Element | DocumentFragment | null = null
 
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const result = render(component)
+        container = result.container
 
         expect(container).toBeDefined()
         expect(container).not.toBeNull()
@@ -509,9 +489,7 @@ describe('components/cardDetail/CardDetail', () => {
         const nextBtn = document!.querySelector('.tipNextButton')
         expect(nextBtn).toBeDefined()
         expect(nextBtn).not.toBeNull()
-        await act(async () => {
-            userEvent.click(nextBtn!)
-        })
+        userEvent.click(nextBtn!)
         expect(mockedOctoClient.patchUserConfig).toHaveBeenCalledWith(
             'user_id_1',
             {
@@ -524,8 +502,7 @@ describe('components/cardDetail/CardDetail', () => {
 
     test('should render hidden view if limited', async () => {
         const limitedCard = {...card, limited: true}
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             users: {
                 workspaceUsers: [
                     {username: 'username_1'},
@@ -554,8 +531,8 @@ describe('components/cardDetail/CardDetail', () => {
             },
         })
 
-        const component = (
-            <ReduxProvider store={store}>
+        const component = () => (
+            <AppStoreProvider store={store}>
                 {wrapIntl(() =>
                     <CardDetail
                         board={board}
@@ -572,15 +549,13 @@ describe('components/cardDetail/CardDetail', () => {
                         addAttachment={jest.fn()}
                     />,
                 )}
-            </ReduxProvider>
+            </AppStoreProvider>
         )
 
         let container: Element | DocumentFragment | null = null
 
-        await act(async () => {
-            const result = render(() => component)
-            container = result.container
-        })
+        const result = render(component)
+        container = result.container
 
         expect(container).toMatchSnapshot()
     })

@@ -4,16 +4,14 @@
 
 import {render} from '@solidjs/testing-library'
 
-import configureStore from 'redux-mock-store'
 
-import {Provider as ReduxProvider} from 'react-redux'
 
-import {wrapIntl} from '../../../testUtils'
+import {mockAppStore, wrapIntl} from '../../../testUtils'
+import {AppStoreProvider} from '../../../store'
 
 import ShareBoardTourStep from './shareBoard'
 
 describe('components/onboardingTour/addComments/ShareBoardTourStep', () => {
-    const mockStore = configureStore([])
     const state = {
         users: {
             me: {
@@ -41,29 +39,29 @@ describe('components/onboardingTour/addComments/ShareBoardTourStep', () => {
             value: {},
         },
     }
-    let store = mockStore(state)
+    let store = mockAppStore(state)
 
     beforeEach(() => {
-        store = mockStore(state)
+        store = mockAppStore(state)
     })
 
     test('before hover', () => {
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <ShareBoardTourStep/>
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('after hover', () => {
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <ShareBoardTourStep/>
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
-        render(() => component)
+        render(component)
         const elements = document.querySelectorAll('.ShareBoardTourStep')
         expect(elements.length).toBe(2)
         expect(elements[1]).toMatchSnapshot()

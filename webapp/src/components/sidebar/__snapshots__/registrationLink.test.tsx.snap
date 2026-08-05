@@ -42,9 +42,11 @@ exports[`components/sidebar/RegistrationLink renders with signupToken in URL que
           class="Button filled size--small"
           type="button"
         >
+          
           <span>
             Copy link
           </span>
+          
         </button>
       </div>
       <div
@@ -54,9 +56,11 @@ exports[`components/sidebar/RegistrationLink renders with signupToken in URL que
           class="Button emphasis--secondary size--small"
           type="button"
         >
+          
           <span>
             Regenerate token
           </span>
+          
         </button>
       </div>
     </div>

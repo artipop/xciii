@@ -17,7 +17,9 @@ exports[`components/viewTitle add random icon 1`] = `
         <span>
           Add icon
         </span>
+        
       </button>
+      
       <button
         type="button"
       >
@@ -27,19 +29,21 @@ exports[`components/viewTitle add random icon 1`] = `
         <span>
           show description
         </span>
+        
       </button>
     </div>
     <div
       class="title"
     >
+      
       <input
         class="Editable title"
         placeholder="Untitled board"
         spellcheck="true"
         title="board title"
-        value="board title"
       />
     </div>
+    
   </div>
 </div>
 `;
@@ -52,6 +56,8 @@ exports[`components/viewTitle hide description 1`] = `
     <div
       class="add-buttons add-visible"
     >
+      
+      
       <button
         type="button"
       >
@@ -61,6 +67,7 @@ exports[`components/viewTitle hide description 1`] = `
         <span>
           show description
         </span>
+        
       </button>
     </div>
     <div
@@ -81,6 +88,7 @@ exports[`components/viewTitle hide description 1`] = `
               i
             </span>
           </div>
+          
         </div>
       </div>
       <input
@@ -88,9 +96,9 @@ exports[`components/viewTitle hide description 1`] = `
         placeholder="Untitled board"
         spellcheck="true"
         title="board title"
-        value="board title"
       />
     </div>
+    
   </div>
 </div>
 `;
@@ -103,6 +111,7 @@ exports[`components/viewTitle should match snapshot 1`] = `
     <div
       class="add-buttons add-visible"
     >
+      
       <button
         type="button"
       >
@@ -112,7 +121,9 @@ exports[`components/viewTitle should match snapshot 1`] = `
         <span>
           hide description
         </span>
+        
       </button>
+      
     </div>
     <div
       class="title"
@@ -132,6 +143,7 @@ exports[`components/viewTitle should match snapshot 1`] = `
               i
             </span>
           </div>
+          
         </div>
       </div>
       <input
@@ -139,7 +151,6 @@ exports[`components/viewTitle should match snapshot 1`] = `
         placeholder="Untitled board"
         spellcheck="true"
         title="board title"
-        value="board title"
       />
     </div>
     <div
@@ -165,7 +176,11 @@ exports[`components/viewTitle should match snapshot readonly 1`] = `
   >
     <div
       class="add-buttons add-visible"
-    />
+    >
+      
+      
+      
+    </div>
     <div
       class="title"
     >
@@ -186,7 +201,6 @@ exports[`components/viewTitle should match snapshot readonly 1`] = `
         readonly=""
         spellcheck="true"
         title="board title"
-        value="board title"
       />
     </div>
     <div
@@ -213,6 +227,7 @@ exports[`components/viewTitle show description 1`] = `
     <div
       class="add-buttons add-visible"
     >
+      
       <button
         type="button"
       >
@@ -222,7 +237,9 @@ exports[`components/viewTitle show description 1`] = `
         <span>
           hide description
         </span>
+        
       </button>
+      
     </div>
     <div
       class="title"
@@ -242,6 +259,7 @@ exports[`components/viewTitle show description 1`] = `
               i
             </span>
           </div>
+          
         </div>
       </div>
       <input
@@ -249,7 +267,6 @@ exports[`components/viewTitle show description 1`] = `
         placeholder="Untitled board"
         spellcheck="true"
         title="board title"
-        value="board title"
       />
     </div>
     <div

@@ -18,7 +18,7 @@ describe('components/table/TableHeaders', () => {
     const view = TestBlockFactory.createBoardView(board)
 
     test('should match snapshot', async () => {
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
                 onResizeColumn={() => {}}
@@ -33,7 +33,7 @@ describe('components/table/TableHeaders', () => {
             </ColumnResizeProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 })

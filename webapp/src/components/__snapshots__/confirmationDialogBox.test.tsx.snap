@@ -22,10 +22,13 @@ exports[`/components/confirmationDialogBox confirmDialog should match snapshot 1
             <h1
               class="dialog-title"
             />
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               class="IconButton dialog__close size--medium"
@@ -60,18 +63,22 @@ exports[`/components/confirmationDialogBox confirmDialog should match snapshot 1
               title="Cancel"
               type="button"
             >
+              
               <span>
                 Cancel
               </span>
+              
             </button>
             <button
               class="Button filled size--medium"
               title="test-btn-text"
               type="submit"
             >
+              
               <span>
                 test-btn-text
               </span>
+              
             </button>
           </div>
         </div>
@@ -103,10 +110,13 @@ exports[`/components/confirmationDialogBox confirmDialog with Confirm Button Tex
             <h1
               class="dialog-title"
             />
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               class="IconButton dialog__close size--medium"
@@ -141,18 +151,22 @@ exports[`/components/confirmationDialogBox confirmDialog with Confirm Button Tex
               title="Cancel"
               type="button"
             >
+              
               <span>
                 Cancel
               </span>
+              
             </button>
             <button
               class="Button filled size--medium"
               title="test-btn-text"
               type="submit"
             >
+              
               <span>
                 test-btn-text
               </span>
+              
             </button>
           </div>
         </div>

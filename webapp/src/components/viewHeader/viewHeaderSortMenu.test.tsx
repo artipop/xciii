@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {render, screen} from '@solidjs/testing-library'
-import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
@@ -31,20 +31,20 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
                 username: 'username_1'},
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     beforeEach(() => {
         jest.clearAllMocks()
     })
     test('return sort menu', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderSortMenu
                         activeView={activeView}
                         orderedCards={cards}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -52,15 +52,15 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
         expect(container).toMatchSnapshot()
     })
     test('return sort menu and do manual', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderSortMenu
                         activeView={activeView}
                         orderedCards={cards}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -71,15 +71,15 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
         expect(mockedMutator.updateBlock).toHaveBeenCalledTimes(1)
     })
     test('return sort menu and do revert', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderSortMenu
                         activeView={activeView}
                         orderedCards={cards}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -91,15 +91,15 @@ describe('components/viewHeader/viewHeaderSortMenu', () => {
         expect(mockedMutator.changeViewSortOptions).toHaveBeenCalledWith(activeView.boardId, activeView.id, activeView.fields.sortOptions, [])
     })
     test('return sort menu and do Name sort', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderSortMenu
                         activeView={activeView}
                         orderedCards={cards}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})

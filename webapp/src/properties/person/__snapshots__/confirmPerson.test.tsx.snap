@@ -18,23 +18,26 @@ exports[`properties/person select user - cancel 1`] = `
       <div
         class="react-select__value-container"
       >
+        
         <div
           class="react-select__single-value"
         >
           <div
             class="Person-item"
           >
+            
             username-1
+            
           </div>
         </div>
+        
         <input
-          aria-controls="_r_2_"
+          aria-controls="cl-2"
           aria-expanded="false"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
       <div
@@ -45,6 +48,7 @@ exports[`properties/person select user - cancel 1`] = `
         ×
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -67,24 +71,27 @@ exports[`properties/person select user - cancel 2`] = `
       <div
         class="react-select__value-container"
       >
+        
         <div
           class="react-select__single-value"
         >
           <div
             class="Person-item"
           >
+            
             username-1
+            
           </div>
         </div>
+        
         <input
-          aria-activedescendant="_r_2_-option-1"
-          aria-controls="_r_2_"
+          aria-activedescendant="cl-2-option-1"
+          aria-controls="cl-2"
           aria-expanded="true"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
       <div
@@ -100,9 +107,10 @@ exports[`properties/person select user - cancel 2`] = `
     >
       <div
         class="react-select__menu-list"
-        id="_r_2_"
+        id="cl-2"
         role="listbox"
       >
+        
         <div
           class="react-select__group-heading"
         >
@@ -111,25 +119,29 @@ exports[`properties/person select user - cancel 2`] = `
         <div
           aria-selected="false"
           class="react-select__option react-select__option--is-focused"
-          id="_r_2_-option-1"
+          id="cl-2-option-1"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-4
+            
           </div>
         </div>
         <div
           aria-selected="false"
           class="react-select__option"
-          id="_r_2_-option-2"
+          id="cl-2-option-2"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-5
+            
           </div>
         </div>
       </div>
@@ -156,23 +168,26 @@ exports[`properties/person select user - confirm 1`] = `
       <div
         class="react-select__value-container"
       >
+        
         <div
           class="react-select__single-value"
         >
           <div
             class="Person-item"
           >
+            
             username-1
+            
           </div>
         </div>
+        
         <input
-          aria-controls="_r_0_"
+          aria-controls="cl-0"
           aria-expanded="false"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
       <div
@@ -183,6 +198,7 @@ exports[`properties/person select user - confirm 1`] = `
         ×
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -205,24 +221,27 @@ exports[`properties/person select user - confirm 2`] = `
       <div
         class="react-select__value-container"
       >
+        
         <div
           class="react-select__single-value"
         >
           <div
             class="Person-item"
           >
+            
             username-1
+            
           </div>
         </div>
+        
         <input
-          aria-activedescendant="_r_0_-option-1"
-          aria-controls="_r_0_"
+          aria-activedescendant="cl-0-option-1"
+          aria-controls="cl-0"
           aria-expanded="true"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
       <div
@@ -238,9 +257,10 @@ exports[`properties/person select user - confirm 2`] = `
     >
       <div
         class="react-select__menu-list"
-        id="_r_0_"
+        id="cl-0"
         role="listbox"
       >
+        
         <div
           class="react-select__group-heading"
         >
@@ -249,25 +269,29 @@ exports[`properties/person select user - confirm 2`] = `
         <div
           aria-selected="false"
           class="react-select__option react-select__option--is-focused"
-          id="_r_0_-option-1"
+          id="cl-0-option-1"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-4
+            
           </div>
         </div>
         <div
           aria-selected="false"
           class="react-select__option"
-          id="_r_0_-option-2"
+          id="cl-0-option-2"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-5
+            
           </div>
         </div>
       </div>

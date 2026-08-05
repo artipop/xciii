@@ -10,7 +10,6 @@ exports[`properties/link should match snapshot for link with empty url 1`] = `
       placeholder=""
       style="width: 100%;"
       title=""
-      value=""
     />
   </div>
 </div>
@@ -66,6 +65,7 @@ exports[`properties/link should match snapshot for readonly link with non-empty 
     >
       https://github.com/mattermost/focalboard
     </a>
+    
     <button
       aria-label="Copy"
       class="IconButton Button_Copy"

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {render, screen} from '@solidjs/testing-library'
-import {Provider as ReduxProvider} from 'react-redux'
 
 import {mocked} from 'jest-mock'
 import '@testing-library/jest-dom'
@@ -14,7 +13,8 @@ import {FilterClause} from '../../blocks/filterClause'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import mutator from '../../mutator'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import FilterComponenet from './filterComponent'
 
@@ -43,7 +43,7 @@ const state = {
         },
     },
 }
-const store = mockStateStore([], state)
+const store = mockAppStore(state)
 describe('components/viewHeader/filterComponent', () => {
     beforeEach(() => {
         jest.clearAllMocks()
@@ -51,15 +51,15 @@ describe('components/viewHeader/filterComponent', () => {
         activeView.fields.filter.filters = [filter]
     })
     test('return filterComponent', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <FilterComponenet
                         board={board}
                         activeView={activeView}
                         onClose={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
@@ -67,15 +67,15 @@ describe('components/viewHeader/filterComponent', () => {
         expect(container).toMatchSnapshot()
     })
     test('return filterComponent and add Filter', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <FilterComponenet
                         board={board}
                         activeView={activeView}
                         onClose={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
@@ -88,15 +88,15 @@ describe('components/viewHeader/filterComponent', () => {
 
     test('return filterComponent and filter by status', () => {
         activeView.fields.filter.filters = [unknownFilter]
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <FilterComponenet
                         board={board}
                         activeView={activeView}
                         onClose={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
@@ -108,15 +108,15 @@ describe('components/viewHeader/filterComponent', () => {
     })
 
     test('return filterComponent and click is empty', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <FilterComponenet
                         board={board}
                         activeView={activeView}
                         onClose={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]

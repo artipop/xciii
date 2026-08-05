@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {render} from '@solidjs/testing-library'
-import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {Permission} from '../../constants'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import BoardPermissionGate from './boardPermissionGate'
 
@@ -30,66 +30,66 @@ describe('components/permission/boardPermissionGate', () => {
             },
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     test('match snapshot when the user has the permissions', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <BoardPermissionGate
                         permissions={[Permission.ManageBoardCards]}
                     >
                         {'Content'}
                     </BoardPermissionGate>
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
     })
 
     test('match snapshot when the user has the permissions with invert', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <BoardPermissionGate
                         permissions={[Permission.ManageBoardCards]}
                         invert={true}
                     >
                         {'Content'}
                     </BoardPermissionGate>
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
     })
 
     test('match snapshot when the user doesnt have the permissions', () => {
-        const localStore = mockStateStore([], {...state, teams: {current: undefined}})
-        const {container} = render(
+        const localStore = mockAppStore({...state, teams: {current: undefined}})
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={localStore}>
+                <AppStoreProvider store={localStore}>
                     <BoardPermissionGate
                         permissions={[Permission.ManageBoardCards]}
                     >
                         {'Content'}
                     </BoardPermissionGate>
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
     })
 
     test('match snapshot when the user doesnt have the permissions with invert', () => {
-        const localStore = mockStateStore([], {...state, teams: {current: undefined}})
-        const {container} = render(
+        const localStore = mockAppStore({...state, teams: {current: undefined}})
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={localStore}>
+                <AppStoreProvider store={localStore}>
                     <BoardPermissionGate
                         permissions={[Permission.ManageBoardCards]}
                         invert={true}
                     >
                         {'Content'}
                     </BoardPermissionGate>
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()

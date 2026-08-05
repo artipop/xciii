@@ -18,23 +18,26 @@ exports[`properties/person not readOnly, show firstname 1`] = `
       <div
         class="react-select__value-container"
       >
+        
         <div
           class="react-select__single-value"
         >
           <div
             class="Person-item"
           >
+            
             test user
+            
           </div>
         </div>
+        
         <input
-          aria-controls="_r_1_"
+          aria-controls="cl-1"
           aria-expanded="false"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
       <div
@@ -45,6 +48,7 @@ exports[`properties/person not readOnly, show firstname 1`] = `
         ×
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -67,77 +71,88 @@ exports[`properties/person not readOnly, show me 1`] = `
       <div
         class="react-select__value-container"
       >
+        
+        
         <div
           class="react-select__placeholder"
         >
           Empty
         </div>
         <input
-          aria-activedescendant="_r_5_-option-0"
-          aria-controls="_r_5_"
+          aria-activedescendant="cl-5-option-0"
+          aria-controls="cl-5"
           aria-expanded="true"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
+      
     </div>
     <div
       class="Combobox__menu react-select__menu "
     >
       <div
         class="react-select__menu-list"
-        id="_r_5_"
+        id="cl-5"
         role="listbox"
       >
+        
         <div
           aria-selected="false"
           class="react-select__option react-select__option--is-focused"
-          id="_r_5_-option-0"
+          id="cl-5-option-0"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             Me
+            
           </div>
         </div>
         <div
           aria-selected="false"
           class="react-select__option"
-          id="_r_5_-option-1"
+          id="cl-5-option-1"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-1
+            
           </div>
         </div>
         <div
           aria-selected="false"
           class="react-select__option"
-          id="_r_5_-option-2"
+          id="cl-5-option-2"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-2
+            
           </div>
         </div>
         <div
           aria-selected="false"
           class="react-select__option"
-          id="_r_5_-option-3"
+          id="cl-5-option-3"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-3
+            
           </div>
         </div>
       </div>
@@ -164,77 +179,88 @@ exports[`properties/person not readOnly, show me 2`] = `
       <div
         class="react-select__value-container"
       >
+        
+        
         <div
           class="react-select__placeholder"
         >
           Empty
         </div>
         <input
-          aria-activedescendant="_r_5_-option-0"
-          aria-controls="_r_5_"
+          aria-activedescendant="cl-5-option-0"
+          aria-controls="cl-5"
           aria-expanded="true"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
+      
     </div>
     <div
       class="Combobox__menu react-select__menu "
     >
       <div
         class="react-select__menu-list"
-        id="_r_5_"
+        id="cl-5"
         role="listbox"
       >
+        
         <div
           aria-selected="false"
           class="react-select__option react-select__option--is-focused"
-          id="_r_5_-option-0"
+          id="cl-5-option-0"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             Me
+            
           </div>
         </div>
         <div
           aria-selected="false"
           class="react-select__option"
-          id="_r_5_-option-1"
+          id="cl-5-option-1"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-1
+            
           </div>
         </div>
         <div
           aria-selected="false"
           class="react-select__option"
-          id="_r_5_-option-2"
+          id="cl-5-option-2"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-2
+            
           </div>
         </div>
         <div
           aria-selected="false"
           class="react-select__option"
-          id="_r_5_-option-3"
+          id="cl-5-option-3"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-3
+            
           </div>
         </div>
       </div>
@@ -261,22 +287,25 @@ exports[`properties/person not readOnly, show modal 1`] = `
       <div
         class="react-select__value-container"
       >
+        
+        
         <div
           class="react-select__placeholder"
         >
           Empty
         </div>
         <input
-          aria-controls="_r_2_"
+          aria-controls="cl-2"
           aria-expanded="false"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -299,65 +328,74 @@ exports[`properties/person not readOnly, show modal 2`] = `
       <div
         class="react-select__value-container"
       >
+        
+        
         <div
           class="react-select__placeholder"
         >
           Empty
         </div>
         <input
-          aria-activedescendant="_r_2_-option-0"
-          aria-controls="_r_2_"
+          aria-activedescendant="cl-2-option-0"
+          aria-controls="cl-2"
           aria-expanded="true"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
+      
     </div>
     <div
       class="Combobox__menu react-select__menu "
     >
       <div
         class="react-select__menu-list"
-        id="_r_2_"
+        id="cl-2"
         role="listbox"
       >
+        
         <div
           aria-selected="false"
           class="react-select__option react-select__option--is-focused"
-          id="_r_2_-option-0"
+          id="cl-2-option-0"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-1
+            
           </div>
         </div>
         <div
           aria-selected="false"
           class="react-select__option"
-          id="_r_2_-option-1"
+          id="cl-2-option-1"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-2
+            
           </div>
         </div>
         <div
           aria-selected="false"
           class="react-select__option"
-          id="_r_2_-option-2"
+          id="cl-2-option-2"
           role="option"
         >
           <div
             class="Person-item"
           >
+            
             username-3
+            
           </div>
         </div>
       </div>
@@ -384,23 +422,26 @@ exports[`properties/person not readOnly, show username 1`] = `
       <div
         class="react-select__value-container"
       >
+        
         <div
           class="react-select__single-value"
         >
           <div
             class="Person-item"
           >
+            
             username-1
+            
           </div>
         </div>
+        
         <input
-          aria-controls="_r_0_"
+          aria-controls="cl-0"
           aria-expanded="false"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
       <div
@@ -411,6 +452,7 @@ exports[`properties/person not readOnly, show username 1`] = `
         ×
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -423,7 +465,9 @@ exports[`properties/person readOnly view 1`] = `
     <div
       class="Person-item"
     >
+      
       username-1
+      
     </div>
   </div>
 </div>
@@ -456,7 +500,9 @@ exports[`properties/person show multiple 1`] = `
             <div
               class="MultiPerson-item"
             >
+              
               username-1
+              
             </div>
           </div>
           <div
@@ -476,7 +522,9 @@ exports[`properties/person show multiple 1`] = `
             <div
               class="MultiPerson-item"
             >
+              
               username-2
+              
             </div>
           </div>
           <div
@@ -487,14 +535,15 @@ exports[`properties/person show multiple 1`] = `
             ×
           </div>
         </div>
+        
+        
         <input
-          aria-controls="_r_3_"
+          aria-controls="cl-3"
           aria-expanded="false"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
       <div
@@ -505,6 +554,7 @@ exports[`properties/person show multiple 1`] = `
         ×
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -536,7 +586,9 @@ exports[`properties/person show multiple, display modal 1`] = `
             <div
               class="MultiPerson-item"
             >
+              
               username-1
+              
             </div>
           </div>
           <div
@@ -556,7 +608,9 @@ exports[`properties/person show multiple, display modal 1`] = `
             <div
               class="MultiPerson-item"
             >
+              
               username-2
+              
             </div>
           </div>
           <div
@@ -567,14 +621,15 @@ exports[`properties/person show multiple, display modal 1`] = `
             ×
           </div>
         </div>
+        
+        
         <input
-          aria-controls="_r_4_"
+          aria-controls="cl-4"
           aria-expanded="false"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
       <div
@@ -585,6 +640,7 @@ exports[`properties/person show multiple, display modal 1`] = `
         ×
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -616,7 +672,9 @@ exports[`properties/person show multiple, display modal 2`] = `
             <div
               class="MultiPerson-item"
             >
+              
               username-1
+              
             </div>
           </div>
           <div
@@ -636,7 +694,9 @@ exports[`properties/person show multiple, display modal 2`] = `
             <div
               class="MultiPerson-item"
             >
+              
               username-2
+              
             </div>
           </div>
           <div
@@ -647,15 +707,16 @@ exports[`properties/person show multiple, display modal 2`] = `
             ×
           </div>
         </div>
+        
+        
         <input
-          aria-activedescendant="_r_4_-option-0"
-          aria-controls="_r_4_"
+          aria-activedescendant="cl-4-option-0"
+          aria-controls="cl-4"
           aria-expanded="true"
           autocomplete="off"
           class="react-select__input"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
       <div
@@ -671,43 +732,50 @@ exports[`properties/person show multiple, display modal 2`] = `
     >
       <div
         class="react-select__menu-list"
-        id="_r_4_"
+        id="cl-4"
         role="listbox"
       >
+        
         <div
           aria-selected="true"
           class="react-select__option react-select__option--is-focused react-select__option--is-selected"
-          id="_r_4_-option-0"
+          id="cl-4-option-0"
           role="option"
         >
           <div
             class="MultiPerson-item"
           >
+            
             username-1
+            
           </div>
         </div>
         <div
           aria-selected="true"
           class="react-select__option react-select__option--is-selected"
-          id="_r_4_-option-1"
+          id="cl-4-option-1"
           role="option"
         >
           <div
             class="MultiPerson-item"
           >
+            
             username-2
+            
           </div>
         </div>
         <div
           aria-selected="false"
           class="react-select__option"
-          id="_r_4_-option-2"
+          id="cl-4-option-2"
           role="option"
         >
           <div
             class="MultiPerson-item"
           >
+            
             username-3
+            
           </div>
         </div>
       </div>

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {fireEvent, render, screen, within, act} from '@solidjs/testing-library'
+import {fireEvent, render, screen, within} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import {mocked} from 'jest-mock'
-import {Provider as ReduxProvider} from 'react-redux'
 
-import {mockDOM, mockStateStore, wrapDNDIntl} from '../testUtils'
+import {TestRouter, mockAppStore, mockDOM, wrapDNDIntl} from '../testUtils'
+import {AppStoreProvider} from '../store'
 import {TestBlockFactory} from '../test/testBlockFactory'
 import {IPropertyTemplate} from '../blocks/board'
 import {Utils} from '../utils'
@@ -16,16 +16,7 @@ import {Constants} from '../constants'
 
 import CenterPanel from './centerPanel'
 Object.defineProperty(Constants, 'versionString', {value: '1.0.0'})
-jest.mock('react-router-dom', () => {
-    const originalModule = jest.requireActual('react-router-dom')
 
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {url: '/board/view'}
-        }),
-    }
-})
 jest.mock('../utils')
 jest.mock('../octoClient')
 jest.mock('../mutator')
@@ -131,14 +122,9 @@ describe('components/centerPanel', () => {
                 [card2.id]: [comment2],
             },
         },
-        imits: {
-            limits: {
-                views: 0,
-            },
-        },
     }
     mockedOctoClient.searchTeamUsers.mockResolvedValue(Object.values(state.users.boardUsers) as IUser[])
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     beforeAll(() => {
         mockDOM()
         console.error = jest.fn()
@@ -148,8 +134,9 @@ describe('components/centerPanel', () => {
         jest.clearAllMocks()
     })
     test('should match snapshot for Kanban, not shared', () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                 <CenterPanel
                     cards={[card1]}
                     views={[activeView]}
@@ -161,13 +148,15 @@ describe('components/centerPanel', () => {
                     shownCardId={card1.id}
                     hiddenCardsCount={0}
                 />
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot for Kanban', () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                 <CenterPanel
                     cards={[card1]}
                     views={[activeView]}
@@ -179,14 +168,16 @@ describe('components/centerPanel', () => {
                     shownCardId={card1.id}
                     hiddenCardsCount={0}
                 />
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot for Gallery', () => {
         activeView.fields.viewType = 'gallery'
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                 <CenterPanel
                     cards={[card1]}
                     views={[activeView]}
@@ -198,14 +189,16 @@ describe('components/centerPanel', () => {
                     shownCardId={card1.id}
                     hiddenCardsCount={0}
                 />
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot for Table', () => {
         activeView.fields.viewType = 'table'
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                 <CenterPanel
                     cards={[card1]}
                     views={[activeView]}
@@ -217,15 +210,17 @@ describe('components/centerPanel', () => {
                     shownCardId={card1.id}
                     hiddenCardsCount={0}
                 />
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
     describe('return centerPanel and', () => {
         test('select one card and click background', () => {
             activeView.fields.viewType = 'table'
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <CenterPanel
                         cards={[card1, card2]}
                         views={[activeView]}
@@ -237,7 +232,8 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ))
 
             //select card
@@ -255,8 +251,9 @@ describe('components/centerPanel', () => {
 
         test('press touch 1 with readonly', () => {
             activeView.fields.viewType = 'table'
-            const {container, baseElement} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container, baseElement} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <CenterPanel
                         cards={[card1, card2]}
                         views={[activeView]}
@@ -268,7 +265,8 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ))
 
             //touch '1'
@@ -278,8 +276,9 @@ describe('components/centerPanel', () => {
 
         test('press touch esc for one card selected', () => {
             activeView.fields.viewType = 'table'
-            const {container, baseElement} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container, baseElement} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <CenterPanel
                         cards={[card1, card2]}
                         views={[activeView]}
@@ -291,14 +290,13 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ))
 
-            act(() => {
-                const cardElement = screen.getByRole('textbox', {name: 'card1'})
-                expect(cardElement.parentNode).not.toBeNull()
-                userEvent.click(cardElement as HTMLElement, {shiftKey: true})
-            })
+            const cardElement = screen.getByRole('textbox', {name: 'card1'})
+            expect(cardElement.parentNode).not.toBeNull()
+            userEvent.click(cardElement as HTMLElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
 
             //escape
@@ -307,8 +305,9 @@ describe('components/centerPanel', () => {
         })
         test('press touch esc for two cards selected', async () => {
             activeView.fields.viewType = 'table'
-            const {container, baseElement} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container, baseElement} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <CenterPanel
                         cards={[card1, card2]}
                         views={[activeView]}
@@ -320,23 +319,20 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ))
 
-            act(() => {
-                //select card1
-                const card1Element = screen.getByRole('textbox', {name: 'card1'})
-                expect(card1Element).not.toBeNull()
-                userEvent.click(card1Element, {shiftKey: true})
-            })
+            //select card1
+            const card1Element = screen.getByRole('textbox', {name: 'card1'})
+            expect(card1Element).not.toBeNull()
+            userEvent.click(card1Element, {shiftKey: true})
             expect(container).toMatchSnapshot()
 
-            act(() => {
-                //select card2
-                const card2Element = screen.getByRole('textbox', {name: 'card2'})
-                expect(card2Element).not.toBeNull()
-                userEvent.click(card2Element, {shiftKey: true, ctrlKey: true})
-            })
+            //select card2
+            const card2Element = screen.getByRole('textbox', {name: 'card2'})
+            expect(card2Element).not.toBeNull()
+            userEvent.click(card2Element, {shiftKey: true, ctrlKey: true})
             expect(container).toMatchSnapshot()
 
             //escape
@@ -345,8 +341,9 @@ describe('components/centerPanel', () => {
         })
         test('press touch del for one card selected', () => {
             activeView.fields.viewType = 'table'
-            const {container, baseElement} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container, baseElement} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <CenterPanel
                         cards={[card1, card2]}
                         views={[activeView]}
@@ -358,13 +355,12 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ))
-            act(() => {
-                const cardElement = screen.getByRole('textbox', {name: 'card1'})
-                expect(cardElement).not.toBeNull()
-                userEvent.click(cardElement, {shiftKey: true})
-            })
+            const cardElement = screen.getByRole('textbox', {name: 'card1'})
+            expect(cardElement).not.toBeNull()
+            userEvent.click(cardElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
 
             //delete
@@ -373,8 +369,9 @@ describe('components/centerPanel', () => {
         })
         test('press touch ctrl+d for one card selected', () => {
             activeView.fields.viewType = 'table'
-            const {container, baseElement} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container, baseElement} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <CenterPanel
                         cards={[card1, card2]}
                         views={[activeView]}
@@ -386,13 +383,12 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ))
-            act(() => {
-                const cardElement = screen.getByRole('textbox', {name: 'card1'})
-                expect(cardElement).not.toBeNull()
-                userEvent.click(cardElement, {shiftKey: true})
-            })
+            const cardElement = screen.getByRole('textbox', {name: 'card1'})
+            expect(cardElement).not.toBeNull()
+            userEvent.click(cardElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
 
             //ctrl+d
@@ -402,8 +398,9 @@ describe('components/centerPanel', () => {
         test('click on card to show card', () => {
             activeView.fields.viewType = 'board'
             const mockedShowCard = jest.fn()
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <CenterPanel
                         cards={[card1, card2]}
                         views={[activeView]}
@@ -415,7 +412,8 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ))
 
             const kanbanCardElements = container.querySelectorAll('.KanbanCard')
@@ -427,8 +425,9 @@ describe('components/centerPanel', () => {
         })
         test('click on new card to add card', () => {
             activeView.fields.viewType = 'table'
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <CenterPanel
                         cards={[card1, card2]}
                         views={[activeView]}
@@ -440,7 +439,8 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ))
             const buttonWithMenuElement = container.querySelector('.ButtonWithMenu')
             expect(buttonWithMenuElement).not.toBeNull()
@@ -449,8 +449,9 @@ describe('components/centerPanel', () => {
         })
         test('click on new card to add card template', () => {
             activeView.fields.viewType = 'table'
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <CenterPanel
                         cards={[card1, card2]}
                         views={[activeView]}
@@ -462,7 +463,8 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ))
             const elementMenuWrapper = container.querySelector('.ButtonWithMenu > div.MenuWrapper')
             expect(elementMenuWrapper).not.toBeNull()
@@ -475,8 +477,9 @@ describe('components/centerPanel', () => {
         test('click on new card to add card from template', () => {
             activeView.fields.viewType = 'table'
             activeView.fields.defaultTemplateId = '1'
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <CenterPanel
                         cards={[card1, card2]}
                         views={[activeView]}
@@ -488,7 +491,8 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ))
             const elementMenuWrapper = container.querySelector('.ButtonWithMenu > div.MenuWrapper')
             expect(elementMenuWrapper).not.toBeNull()
@@ -502,8 +506,9 @@ describe('components/centerPanel', () => {
         test('click on new card to edit template', () => {
             activeView.fields.viewType = 'table'
             activeView.fields.defaultTemplateId = '1'
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
                     <CenterPanel
                         cards={[card1, card2]}
                         views={[activeView]}
@@ -515,7 +520,8 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
-                </ReduxProvider>,
+                    </TestRouter>
+                </AppStoreProvider>,
             ))
             const elementMenuWrapper = container.querySelector('.ButtonWithMenu > div.MenuWrapper')
             expect(elementMenuWrapper).not.toBeNull()
@@ -623,7 +629,7 @@ describe('components/centerPanel', () => {
             },
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     beforeAll(() => {
         mockDOM()
         console.error = jest.fn()
@@ -636,8 +642,9 @@ describe('components/centerPanel', () => {
     test('Clicking on the Hidden card count should open a dailog', () => {
         activeView.fields.viewType = 'table'
         activeView.fields.defaultTemplateId = '1'
-        const {container, getByTitle, getByText} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container, getByTitle, getByText} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                 <CenterPanel
                     cards={[card1, card2]}
                     views={[activeView]}
@@ -649,7 +656,8 @@ describe('components/centerPanel', () => {
                     shownCardId={card1.id}
                     hiddenCardsCount={2}
                 />
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         ))
         fireEvent.click(getByTitle('hidden-card-count'))
         expect(getByText('2 cards hidden from board')).not.toBeNull()

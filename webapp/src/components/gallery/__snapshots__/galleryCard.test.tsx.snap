@@ -6,6 +6,7 @@ exports[`src/components/gallery/GalleryCard with a comment content return Galler
     class="GalleryCard selected"
     style="opacity: 1;"
   >
+    
     <div
       class="gallery-item"
     />
@@ -23,6 +24,8 @@ exports[`src/components/gallery/GalleryCard with a comment content return Galler
         title
       </div>
     </div>
+    
+    
   </div>
 </div>
 `;
@@ -79,11 +82,14 @@ exports[`src/components/gallery/GalleryCard with a comment content should match 
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Duplicate"
                 class="MenuOption TextOption menu-option"
@@ -108,6 +114,7 @@ exports[`src/components/gallery/GalleryCard with a comment content should match 
                   >
                     Duplicate
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -139,6 +146,7 @@ exports[`src/components/gallery/GalleryCard with a comment content should match 
                   >
                     Copy link
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -173,6 +181,7 @@ exports[`src/components/gallery/GalleryCard with a comment content should match 
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -199,6 +208,8 @@ exports[`src/components/gallery/GalleryCard with a comment content should match 
         title
       </div>
     </div>
+    
+    
   </div>
 </div>
 `;
@@ -255,11 +266,14 @@ exports[`src/components/gallery/GalleryCard with an image content should match s
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Duplicate"
                 class="MenuOption TextOption menu-option"
@@ -284,6 +298,7 @@ exports[`src/components/gallery/GalleryCard with an image content should match s
                   >
                     Duplicate
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -315,6 +330,7 @@ exports[`src/components/gallery/GalleryCard with an image content should match s
                   >
                     Copy link
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -349,6 +365,7 @@ exports[`src/components/gallery/GalleryCard with an image content should match s
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -359,14 +376,8 @@ exports[`src/components/gallery/GalleryCard with an image content should match s
       </div>
     </div>
     <div
-      class="gallery-image"
-    >
-      <img
-        alt=""
-        class="ImageElement"
-        src="test.jpg"
-      />
-    </div>
+      class="gallery-item"
+    />
     <div
       class="gallery-title"
     >
@@ -381,6 +392,8 @@ exports[`src/components/gallery/GalleryCard with an image content should match s
         title
       </div>
     </div>
+    
+    
   </div>
 </div>
 `;
@@ -391,13 +404,10 @@ exports[`src/components/gallery/GalleryCard with many contents return GalleryCar
     class="GalleryCard selected"
     style="opacity: 1;"
   >
+    
     <div
       class="gallery-item"
-    >
-      <div
-        class="DividerElement"
-      />
-    </div>
+    />
     <div
       class="gallery-title"
     >
@@ -412,6 +422,8 @@ exports[`src/components/gallery/GalleryCard with many contents return GalleryCar
         title
       </div>
     </div>
+    
+    
   </div>
 </div>
 `;
@@ -468,11 +480,14 @@ exports[`src/components/gallery/GalleryCard with many contents should match snap
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Duplicate"
                 class="MenuOption TextOption menu-option"
@@ -497,6 +512,7 @@ exports[`src/components/gallery/GalleryCard with many contents should match snap
                   >
                     Duplicate
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -528,6 +544,7 @@ exports[`src/components/gallery/GalleryCard with many contents should match snap
                   >
                     Copy link
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -562,6 +579,7 @@ exports[`src/components/gallery/GalleryCard with many contents should match snap
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -573,11 +591,7 @@ exports[`src/components/gallery/GalleryCard with many contents should match snap
     </div>
     <div
       class="gallery-item"
-    >
-      <div
-        class="DividerElement"
-      />
-    </div>
+    />
     <div
       class="gallery-title"
     >
@@ -592,6 +606,8 @@ exports[`src/components/gallery/GalleryCard with many contents should match snap
         title
       </div>
     </div>
+    
+    
   </div>
 </div>
 `;
@@ -648,11 +664,14 @@ exports[`src/components/gallery/GalleryCard with many images content should matc
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Duplicate"
                 class="MenuOption TextOption menu-option"
@@ -677,6 +696,7 @@ exports[`src/components/gallery/GalleryCard with many images content should matc
                   >
                     Duplicate
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -708,6 +728,7 @@ exports[`src/components/gallery/GalleryCard with many images content should matc
                   >
                     Copy link
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -742,6 +763,7 @@ exports[`src/components/gallery/GalleryCard with many images content should matc
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -752,14 +774,8 @@ exports[`src/components/gallery/GalleryCard with many images content should matc
       </div>
     </div>
     <div
-      class="gallery-image"
-    >
-      <img
-        alt=""
-        class="ImageElement"
-        src="test.jpg"
-      />
-    </div>
+      class="gallery-item"
+    />
     <div
       class="gallery-title"
     >
@@ -774,6 +790,8 @@ exports[`src/components/gallery/GalleryCard with many images content should matc
         title
       </div>
     </div>
+    
+    
   </div>
 </div>
 `;
@@ -796,6 +814,7 @@ exports[`src/components/gallery/GalleryCard without block content return Gallery
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <div
       class="gallery-item"
@@ -814,6 +833,8 @@ exports[`src/components/gallery/GalleryCard without block content return Gallery
         title
       </div>
     </div>
+    
+    
   </div>
 </div>
 `;
@@ -836,6 +857,7 @@ exports[`src/components/gallery/GalleryCard without block content return Gallery
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <div
       class="gallery-item"
@@ -854,6 +876,8 @@ exports[`src/components/gallery/GalleryCard without block content return Gallery
         title
       </div>
     </div>
+    
+    
   </div>
 </div>
 `;
@@ -876,6 +900,7 @@ exports[`src/components/gallery/GalleryCard without block content return Gallery
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <div
       class="gallery-item"
@@ -894,6 +919,8 @@ exports[`src/components/gallery/GalleryCard without block content return Gallery
         title
       </div>
     </div>
+    
+    
   </div>
   <div
     class="Dialog dialog-back confirmation-dialog-box size--small"
@@ -915,10 +942,13 @@ exports[`src/components/gallery/GalleryCard without block content return Gallery
             <h1
               class="dialog-title"
             />
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -949,17 +979,21 @@ exports[`src/components/gallery/GalleryCard without block content return Gallery
               title="Cancel"
               type="button"
             >
+              
               <span>
                 Cancel
               </span>
+              
             </button>
             <button
               title="Delete"
               type="submit"
             >
+              
               <span>
                 Delete
               </span>
+              
             </button>
           </div>
         </div>
@@ -987,6 +1021,7 @@ exports[`src/components/gallery/GalleryCard without block content return Gallery
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <div
       class="gallery-item"
@@ -1005,6 +1040,8 @@ exports[`src/components/gallery/GalleryCard without block content return Gallery
         title
       </div>
     </div>
+    
+    
   </div>
 </div>
 `;
@@ -1061,11 +1098,14 @@ exports[`src/components/gallery/GalleryCard without block content should match s
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Duplicate"
                 class="MenuOption TextOption menu-option"
@@ -1090,6 +1130,7 @@ exports[`src/components/gallery/GalleryCard without block content should match s
                   >
                     Duplicate
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1121,6 +1162,7 @@ exports[`src/components/gallery/GalleryCard without block content should match s
                   >
                     Copy link
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1155,6 +1197,7 @@ exports[`src/components/gallery/GalleryCard without block content should match s
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -1193,6 +1236,7 @@ exports[`src/components/gallery/GalleryCard without block content should match s
         />
       </div>
     </div>
+    
   </div>
 </div>
 `;

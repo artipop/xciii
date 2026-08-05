@@ -11,7 +11,7 @@ describe('components/kanban/calculations/Option', () => {
     const board = TestBlockFactory.createBoard()
 
     test('base case', () => {
-        const component = (
+        const component = () => (
             <Option
                 data={{
                     label: 'Count Unique Values',
@@ -25,7 +25,7 @@ describe('components/kanban/calculations/Option', () => {
             />
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 })

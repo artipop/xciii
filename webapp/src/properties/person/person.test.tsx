@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Provider as ReduxProvider} from 'react-redux'
 
 import {render, waitFor} from '@solidjs/testing-library'
 
-import configureStore from 'redux-mock-store'
 
 import {act} from 'react-dom/test-utils'
 
 import userEvent from '@testing-library/user-event'
 
-import {wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import {IPropertyTemplate, Board} from '../../blocks/board'
 import {Card} from '../../blocks/card'
 
@@ -19,7 +18,6 @@ import PersonProperty from './property'
 import Person from './person'
 
 describe('properties/person', () => {
-    const mockStore = configureStore([])
     const state = {
         users: {
             boardUsers: {
@@ -42,9 +40,9 @@ describe('properties/person', () => {
     }
 
     test('not readOnly not existing user', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <Person
                     property={new PersonProperty()}
                     propertyValue={'user-id-2'}
@@ -54,7 +52,7 @@ describe('properties/person', () => {
                     board={{} as Board}
                     card={{} as Card}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         const renderResult = render(component)
@@ -68,9 +66,9 @@ describe('properties/person', () => {
     })
 
     test('not readonly', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <Person
                     property={new PersonProperty()}
                     propertyValue={'user-id-1'}
@@ -80,7 +78,7 @@ describe('properties/person', () => {
                     board={{} as Board}
                     card={{} as Card}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         const renderResult = render(component)
@@ -94,9 +92,9 @@ describe('properties/person', () => {
     })
 
     test('not readonly guest user', async () => {
-        const store = mockStore({...state, users: {boardUsers: {'user-id-1': {...state.users.boardUsers['user-id-1'], is_guest: true}}}})
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore({...state, users: {boardUsers: {'user-id-1': {...state.users.boardUsers['user-id-1'], is_guest: true}}}})
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <Person
                     property={new PersonProperty()}
                     propertyValue={'user-id-1'}
@@ -106,7 +104,7 @@ describe('properties/person', () => {
                     board={{} as Board}
                     card={{} as Card}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         const renderResult = render(component)
@@ -120,9 +118,9 @@ describe('properties/person', () => {
     })
 
     test('readonly view', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <Person
                     property={new PersonProperty()}
                     propertyValue={'user-id-1'}
@@ -132,7 +130,7 @@ describe('properties/person', () => {
                     board={{} as Board}
                     card={{} as Card}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         const renderResult = render(component)
@@ -146,9 +144,9 @@ describe('properties/person', () => {
     })
 
     test('user dropdown open', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <Person
                     property={new PersonProperty()}
                     propertyValue={'user-id-1'}
@@ -158,7 +156,7 @@ describe('properties/person', () => {
                     board={{} as Board}
                     card={{} as Card}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         const renderResult = render(component)
@@ -175,9 +173,7 @@ describe('properties/person', () => {
             const userProperty = container.querySelector(".Person input[role='combobox']")
             expect(userProperty).not.toBeNull()
 
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            userEvent.click(userProperty as Element)
             expect(container).toMatchSnapshot()
         } else {
             throw new Error('container should have been initialized')

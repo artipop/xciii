@@ -4,18 +4,16 @@
 
 import {MockStoreEnhanced} from 'redux-mock-store'
 
-import {Provider as ReduxProvider} from 'react-redux'
 
 import {render} from '@solidjs/testing-library'
 
-import {createMemoryHistory, History} from 'history'
 
-import {Router} from 'react-router-dom'
 
 import {Team} from '../../store/teams'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
-import {mockStateStore, wrapDNDIntl} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import BoardSwitcherDialog from './boardSwitcherDialog'
 
@@ -52,21 +50,20 @@ describe('component/BoardSwitcherDialog', () => {
     let history: History
 
     beforeEach(() => {
-        store = mockStateStore([], state)
-        history = createMemoryHistory()
+        store = mockAppStore(state)
     })
 
     test('base case', () => {
         const onCloseHandler = jest.fn()
-        const component = wrapDNDIntl(() =>
-            <Router history={history}>
-                <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <TestRouter>
+                <AppStoreProvider store={store}>
                     <BoardSwitcherDialog onClose={onCloseHandler}/>
-                </ReduxProvider>
-            </Router>,
+                </AppStoreProvider>
+            </TestRouter>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 })

@@ -1,24 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import configureStore from 'redux-mock-store'
 
-import {createMemoryHistory} from 'history'
-import {Provider as ReduxProvider} from 'react-redux'
-import {Router} from 'react-router-dom'
 
 import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
 
-import {mockMatchMedia, wrapIntl, mockThunk as thunk} from '../../testUtils'
+import {TestRouter, mockAppStore, mockMatchMedia, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import octoClient from '../../../../webapp/src/octoClient'
 
 import Sidebar from './sidebar'
 
-jest.mock('../../../../webapp/src/octoClient')
+jest.mock('../../octoClient')
 const mockedOctoClient = mocked(octoClient)
 
 beforeAll(() => {
@@ -29,8 +26,6 @@ describe('components/sidebarSidebar', () => {
     beforeEach(() => {
         jest.clearAllMocks()
     })
-
-    const mockStore = configureStore([thunk])
 
     const board = TestBlockFactory.createBoard()
     board.id = 'board1'
@@ -46,7 +41,7 @@ describe('components/sidebarSidebar', () => {
     defaultCategory.boardMetadata = []
 
     test('sidebar hidden', () => {
-        const store = mockStore({
+        const store = mockAppStore({
             teams: {
                 current: {id: 'team-id'},
             },
@@ -80,19 +75,17 @@ describe('components/sidebarSidebar', () => {
                 ],
                 hiddenBoardIDs: [],
             },
-        })
-
-        const history = createMemoryHistory()
+        }, {client: mockedOctoClient as any})
         const onBoardTemplateSelectorOpen = jest.fn()
 
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <Sidebar onBoardTemplateSelectorOpen={onBoardTemplateSelectorOpen}/>
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
 
         const hideSidebar = container.querySelector('button > .HideSidebarIcon')
@@ -115,7 +108,7 @@ describe('components/sidebarSidebar', () => {
         localCategoryAttribute.name = 'Category 1'
         categoryAttribute1.boardMetadata = [{boardID: board.id, hidden: false}]
 
-        const store = mockStore({
+        const store = mockAppStore({
             teams: {
                 current: {id: 'team-id'},
             },
@@ -149,19 +142,17 @@ describe('components/sidebarSidebar', () => {
                 ],
                 hiddenBoardIDs: [],
             },
-        })
-
-        const history = createMemoryHistory()
+        }, {client: mockedOctoClient as any})
         const onBoardTemplateSelectorOpen = jest.fn()
 
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <Sidebar onBoardTemplateSelectorOpen={onBoardTemplateSelectorOpen}/>
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
 
         const hideSidebar = container.querySelector('button > .HideSidebarIcon')
@@ -179,7 +170,7 @@ describe('components/sidebarSidebar', () => {
         localCategoryAttribute.name = 'Category 1'
         localCategoryAttribute.boardMetadata = [{boardID: board.id, hidden: true}]
 
-        const store = mockStore({
+        const store = mockAppStore({
             teams: {
                 current: {id: 'team-id'},
             },
@@ -218,18 +209,16 @@ describe('components/sidebarSidebar', () => {
                 hiddenBoardIDs: [board.id],
             },
         })
-
-        const history = createMemoryHistory()
         const onBoardTemplateSelectorOpen = jest.fn()
 
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <Sidebar onBoardTemplateSelectorOpen={onBoardTemplateSelectorOpen}/>
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         )
-        const {container, getAllByText} = render(() => component)
+        const {container, getAllByText} = render(component)
         expect(container).toMatchSnapshot()
 
         const sidebarBoards = container.getElementsByClassName('SidebarBoardItem')
@@ -249,7 +238,7 @@ describe('components/sidebarSidebar', () => {
         collapsedCategory.collapsed = true
         collapsedCategory.boardMetadata = []
 
-        const store = mockStore({
+        const store = mockAppStore({
             teams: {
                 current: {id: 'team-id'},
             },
@@ -284,19 +273,17 @@ describe('components/sidebarSidebar', () => {
                 ],
                 hiddenBoardIDs: [],
             },
-        })
-
-        const history = createMemoryHistory()
+        }, {client: mockedOctoClient as any})
         const onBoardTemplateSelectorOpen = jest.fn()
 
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <Sidebar onBoardTemplateSelectorOpen={onBoardTemplateSelectorOpen}/>
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
 
         const sidebarCollapsedCategory = container.querySelectorAll('.octo-sidebar-item.category.collapsed')
@@ -307,7 +294,7 @@ describe('components/sidebarSidebar', () => {
         const board2 = TestBlockFactory.createBoard()
         board2.id = 'board2'
 
-        const store = mockStore({
+        const store = mockAppStore({
             teams: {
                 current: {id: 'team-id'},
             },
@@ -342,21 +329,19 @@ describe('components/sidebarSidebar', () => {
                 ],
                 hiddenBoardIDs: [],
             },
-        })
-
-        const history = createMemoryHistory()
+        }, {client: mockedOctoClient as any})
         const onBoardTemplateSelectorOpen = jest.fn()
 
         mockedOctoClient.moveBoardToCategory.mockResolvedValueOnce({} as Response)
 
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <Sidebar onBoardTemplateSelectorOpen={onBoardTemplateSelectorOpen}/>
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
 
         expect(mockedOctoClient.moveBoardToCategory).toHaveBeenCalledWith('team-id', 'board2', 'default_category', '')
@@ -371,7 +356,7 @@ describe('components/sidebarSidebar', () => {
         categoryAttribute2.name = 'Category 2'
         categoryAttribute2.boardMetadata = [{boardID: board2.id, hidden: false}]
 
-        const store = mockStore({
+        const store = mockAppStore({
             teams: {
                 current: {id: 'team-id'},
             },
@@ -406,19 +391,17 @@ describe('components/sidebarSidebar', () => {
                     defaultCategory,
                 ],
             },
-        })
-
-        const history = createMemoryHistory()
+        }, {client: mockedOctoClient as any})
         const onBoardTemplateSelectorOpen = jest.fn()
 
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <Sidebar onBoardTemplateSelectorOpen={onBoardTemplateSelectorOpen}/>
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
 
         expect(mockedOctoClient.moveBoardToCategory).toHaveBeenCalledTimes(0)
@@ -426,7 +409,7 @@ describe('components/sidebarSidebar', () => {
 
     // TODO: Fix this later
     // test('global templates', () => {
-    //     const store = mockStore({
+    //     const store = mockAppStore({
     //         teams: {
     //             current: {id: 'team-id'},
     //         },
@@ -453,18 +436,18 @@ describe('components/sidebarSidebar', () => {
     //                 categoryAttribute1,
     //             ],
     //         },
-    //     })
+    //     }, {client: mockedOctoClient as any})
 
     //     const history = createMemoryHistory()
 
-    //     const component = wrapIntl(
-    //         <ReduxProvider store={store}>
-    //             <Router history={history}>
+    //     const component = () => wrapIntl(
+    //         <AppStoreProvider store={store}>
+    //             <TestRouter>
     //                 <Sidebar onBoardTemplateSelectorOpen={onBoardTemplateSelectorOpen}/>
-    //             </Router>
-    //         </ReduxProvider>,
+    //             </TestRouter>
+    //         </AppStoreProvider>,
     //     )
-    //     const {container} = render(() => component)
+    //     const {container} = render(component)
     //     expect(container).toMatchSnapshot()
 
     //     const addBoardButton = container.querySelector('.SidebarAddBoardMenu > .MenuWrapper')

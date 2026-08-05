@@ -45,8 +45,8 @@ describe('properties/number', () => {
     })
 
     it('should match snapshot for number with empty value', () => {
-        const {container} = render(
-            wrapIntl((
+        const {container} = render(() =>
+            wrapIntl(() => (
                 <NumberEditor
                     {...baseProps}
                 />
@@ -56,8 +56,8 @@ describe('properties/number', () => {
     })
 
     it('should fire change event when valid number value is entered', async () => {
-        render(
-            wrapIntl(
+        render(() =>
+            wrapIntl(() =>
                 <NumberEditor
                     {...baseProps}
                 />,

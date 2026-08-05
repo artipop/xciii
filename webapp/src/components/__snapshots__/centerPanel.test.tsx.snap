@@ -5,6 +5,8 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -38,6 +40,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -48,7 +51,9 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -68,6 +73,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -75,7 +81,6 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -108,8 +113,12 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -123,7 +132,6 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -139,7 +147,9 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -154,10 +164,13 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -168,16 +181,19 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -186,9 +202,11 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -200,10 +218,13 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -214,6 +235,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -232,6 +254,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -254,6 +277,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -282,6 +306,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -290,6 +315,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -319,14 +345,18 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -341,6 +371,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -351,6 +382,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -371,6 +403,8 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -379,7 +413,6 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -387,9 +420,11 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -404,6 +439,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -448,7 +484,6 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -471,6 +506,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -479,12 +515,16 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row"
@@ -520,7 +560,6 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
                 <div
@@ -543,6 +582,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -551,12 +591,16 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -578,6 +622,8 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -586,7 +632,6 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -594,9 +639,11 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -611,6 +658,7 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -621,7 +669,9 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -631,14 +681,15 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -660,9 +711,11 @@ exports[`components/centerPanel Clicking on the Hidden card count should open a 
           title="hidden-card-count"
           type="button"
         >
+          
           <span>
             2
           </span>
+          
         </button>
       </div>
     </div>
@@ -707,6 +760,8 @@ exports[`components/centerPanel return centerPanel and click on card to show car
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -740,6 +795,7 @@ exports[`components/centerPanel return centerPanel and click on card to show car
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -750,7 +806,9 @@ exports[`components/centerPanel return centerPanel and click on card to show car
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -770,6 +828,7 @@ exports[`components/centerPanel return centerPanel and click on card to show car
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -777,7 +836,6 @@ exports[`components/centerPanel return centerPanel and click on card to show car
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -810,8 +868,12 @@ exports[`components/centerPanel return centerPanel and click on card to show car
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -825,7 +887,6 @@ exports[`components/centerPanel return centerPanel and click on card to show car
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -841,7 +902,9 @@ exports[`components/centerPanel return centerPanel and click on card to show car
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -856,10 +919,13 @@ exports[`components/centerPanel return centerPanel and click on card to show car
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -870,16 +936,19 @@ exports[`components/centerPanel return centerPanel and click on card to show car
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -888,9 +957,11 @@ exports[`components/centerPanel return centerPanel and click on card to show car
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -902,10 +973,13 @@ exports[`components/centerPanel return centerPanel and click on card to show car
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -916,6 +990,7 @@ exports[`components/centerPanel return centerPanel and click on card to show car
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -934,6 +1009,7 @@ exports[`components/centerPanel return centerPanel and click on card to show car
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -956,6 +1032,7 @@ exports[`components/centerPanel return centerPanel and click on card to show car
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -977,6 +1054,8 @@ exports[`components/centerPanel return centerPanel and click on card to show car
           >
             No name
           </span>
+          
+          
           <div
             class="KanbanCalculation"
           >
@@ -985,11 +1064,15 @@ exports[`components/centerPanel return centerPanel and click on card to show car
               title="0"
               type="button"
             >
+              
               <span>
                 0
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -1006,6 +1089,7 @@ exports[`components/centerPanel return centerPanel and click on card to show car
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             class="IconButton"
@@ -1015,11 +1099,14 @@ exports[`components/centerPanel return centerPanel and click on card to show car
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
           style="opacity: 1;"
         >
+          
+          
           <span
             class="Label propColorOrange "
           >
@@ -1028,7 +1115,6 @@ exports[`components/centerPanel return centerPanel and click on card to show car
               placeholder="New Select"
               spellcheck="true"
               title="Q1"
-              value="Q1"
             />
           </span>
           <div
@@ -1039,11 +1125,15 @@ exports[`components/centerPanel return centerPanel and click on card to show car
               title="2"
               type="button"
             >
+              
               <span>
                 2
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -1060,6 +1150,7 @@ exports[`components/centerPanel return centerPanel and click on card to show car
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             class="IconButton"
@@ -1069,11 +1160,14 @@ exports[`components/centerPanel return centerPanel and click on card to show car
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
           style="opacity: 1;"
         >
+          
+          
           <span
             class="Label propColorBlue "
           >
@@ -1082,7 +1176,6 @@ exports[`components/centerPanel return centerPanel and click on card to show car
               placeholder="New Select"
               spellcheck="true"
               title="Q2"
-              value="Q2"
             />
           </span>
           <div
@@ -1093,11 +1186,15 @@ exports[`components/centerPanel return centerPanel and click on card to show car
               title="0"
               type="button"
             >
+              
               <span>
                 0
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -1114,6 +1211,7 @@ exports[`components/centerPanel return centerPanel and click on card to show car
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             class="IconButton"
@@ -1123,7 +1221,9 @@ exports[`components/centerPanel return centerPanel and click on card to show car
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
+        
         <div
           class="octo-board-header-cell narrow"
         >
@@ -1131,9 +1231,11 @@ exports[`components/centerPanel return centerPanel and click on card to show car
             class="Button"
             type="button"
           >
+            
             <span>
               + Add a group
             </span>
+            
           </button>
         </div>
       </div>
@@ -1148,9 +1250,11 @@ exports[`components/centerPanel return centerPanel and click on card to show car
             class="Button"
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
         <div
@@ -1173,6 +1277,7 @@ exports[`components/centerPanel return centerPanel and click on card to show car
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
             <div
               class="octo-icontitle"
@@ -1188,6 +1293,8 @@ exports[`components/centerPanel return centerPanel and click on card to show car
                 card1
               </div>
             </div>
+            
+            
           </div>
           <div
             class="KanbanCard"
@@ -1206,6 +1313,7 @@ exports[`components/centerPanel return centerPanel and click on card to show car
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
             <div
               class="octo-icontitle"
@@ -1221,14 +1329,18 @@ exports[`components/centerPanel return centerPanel and click on card to show car
                 card2
               </div>
             </div>
+            
+            
           </div>
           <button
             class="Button"
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
         <div
@@ -1238,13 +1350,17 @@ exports[`components/centerPanel return centerPanel and click on card to show car
             class="Button"
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
+        
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -1254,6 +1370,8 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -1287,6 +1405,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -1297,7 +1416,9 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -1317,6 +1438,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -1324,7 +1446,6 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -1357,8 +1478,12 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -1372,7 +1497,6 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -1388,7 +1512,9 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -1403,10 +1529,13 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -1417,16 +1546,19 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -1435,9 +1567,11 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -1449,10 +1583,13 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -1463,6 +1600,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -1481,6 +1619,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -1503,6 +1642,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -1531,6 +1671,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -1539,6 +1680,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -1568,14 +1710,18 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -1590,6 +1736,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -1600,6 +1747,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -1620,6 +1768,8 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -1628,7 +1778,6 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -1636,9 +1785,11 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -1653,6 +1804,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -1697,7 +1849,6 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -1720,6 +1871,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -1728,12 +1880,16 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row"
@@ -1769,7 +1925,6 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
                 <div
@@ -1792,6 +1947,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -1800,12 +1956,16 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -1827,6 +1987,8 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -1835,7 +1997,6 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -1843,9 +2004,11 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -1860,6 +2023,7 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -1870,7 +2034,9 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -1880,14 +2046,15 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -1896,7 +2063,9 @@ exports[`components/centerPanel return centerPanel and click on new card to edit
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -1906,6 +2075,8 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -1938,7 +2109,11 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
         >
           <div
             class="add-buttons add-visible"
-          />
+          >
+            
+            
+            
+          </div>
           <div
             class="title"
           >
@@ -1959,7 +2134,6 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
               readonly=""
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -1978,6 +2152,7 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
         <div
           class="shareButtonWrapper"
         >
+          
           <div
             class="ShareBoardLoginButton"
           >
@@ -1986,11 +2161,14 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
               title="Login"
               type="button"
             >
+              
               <span>
                 Login
               </span>
+              
             </button>
           </div>
+          
         </div>
       </div>
       <div
@@ -2005,12 +2183,13 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
             readonly=""
             spellcheck="true"
             title="view title"
-            value="view title"
           />
+          
         </div>
         <div
           class="octo-spacer"
         />
+        
         <div
           class="board-search-field"
         >
@@ -2020,8 +2199,10 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
+        
       </div>
     </div>
     <div
@@ -2048,11 +2229,14 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
             />
+            
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -2082,16 +2266,22 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
+              
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -2112,6 +2302,8 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -2121,7 +2313,6 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                     readonly=""
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -2129,10 +2320,13 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
+              
             </div>
             <div
               class="TableRow octo-table-row readonly"
@@ -2160,9 +2354,9 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                     readonly=""
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
+                
                 <div
                   class="open-button"
                 >
@@ -2170,12 +2364,16 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row readonly"
@@ -2203,9 +2401,9 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                     readonly=""
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
+                
                 <div
                   class="open-button"
                 >
@@ -2213,12 +2411,16 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -2240,6 +2442,8 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -2249,7 +2453,6 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                     readonly=""
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -2257,12 +2460,17 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
+              
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -2272,14 +2480,15 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
         >
           <div
             class="Calculation count octo-table-cell disabled  "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -2288,7 +2497,9 @@ exports[`components/centerPanel return centerPanel and press touch 1 with readon
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -2298,6 +2509,8 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -2331,6 +2544,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -2341,7 +2555,9 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -2361,6 +2577,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -2368,7 +2585,6 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -2401,8 +2617,12 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -2416,7 +2636,6 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -2432,7 +2651,9 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -2447,10 +2668,13 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -2461,16 +2685,19 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -2479,9 +2706,11 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -2493,10 +2722,13 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -2507,6 +2739,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -2525,6 +2758,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -2547,6 +2781,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -2575,6 +2810,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -2583,6 +2819,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -2612,14 +2849,18 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -2634,6 +2875,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -2644,6 +2886,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -2664,6 +2907,8 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -2672,7 +2917,6 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -2680,9 +2924,11 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -2697,6 +2943,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -2741,7 +2988,6 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -2764,6 +3010,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -2772,12 +3019,16 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row"
@@ -2813,7 +3064,6 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
                 <div
@@ -2836,6 +3086,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -2844,12 +3095,16 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -2871,6 +3126,8 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -2879,7 +3136,6 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -2887,9 +3143,11 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -2904,6 +3162,7 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -2914,7 +3173,9 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -2924,14 +3185,15 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -2940,7 +3202,9 @@ exports[`components/centerPanel return centerPanel and press touch ctrl+d for on
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -2950,6 +3214,8 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -2983,6 +3249,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -2993,7 +3260,9 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -3013,6 +3282,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -3020,7 +3290,6 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -3053,8 +3322,12 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -3068,7 +3341,6 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -3084,7 +3356,9 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -3099,10 +3373,13 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -3113,16 +3390,19 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -3131,9 +3411,11 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -3145,10 +3427,13 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -3159,6 +3444,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -3177,6 +3463,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -3199,6 +3486,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -3227,6 +3515,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -3235,6 +3524,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -3264,14 +3554,18 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -3286,6 +3580,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -3296,6 +3591,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -3316,6 +3612,8 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -3324,7 +3622,6 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -3332,9 +3629,11 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -3349,6 +3648,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -3393,7 +3693,6 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -3416,6 +3715,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -3424,12 +3724,16 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row"
@@ -3465,7 +3769,6 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
                 <div
@@ -3488,6 +3791,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -3496,12 +3800,16 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -3523,6 +3831,8 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -3531,7 +3841,6 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -3539,9 +3848,11 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -3556,6 +3867,7 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -3566,7 +3878,9 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -3576,14 +3890,15 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -3592,7 +3907,9 @@ exports[`components/centerPanel return centerPanel and press touch del for one c
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -3602,6 +3919,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -3635,6 +3954,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -3645,7 +3965,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -3665,6 +3987,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -3672,7 +3995,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -3705,8 +4027,12 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -3720,7 +4046,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -3736,7 +4061,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -3751,10 +4078,13 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -3765,16 +4095,19 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -3783,9 +4116,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -3797,10 +4132,13 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -3811,6 +4149,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -3829,6 +4168,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -3851,6 +4191,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -3879,6 +4220,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -3887,6 +4229,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -3916,14 +4259,18 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -3938,6 +4285,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -3948,6 +4296,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -3968,6 +4317,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -3976,7 +4327,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -3984,9 +4334,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -4001,6 +4353,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -4045,7 +4398,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -4068,6 +4420,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -4076,12 +4429,16 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row"
@@ -4117,7 +4474,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
                 <div
@@ -4140,6 +4496,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -4148,12 +4505,16 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -4175,6 +4536,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -4183,7 +4546,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -4191,9 +4553,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -4208,6 +4572,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -4218,7 +4583,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -4228,14 +4595,15 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -4244,7 +4612,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -4254,6 +4624,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -4287,6 +4659,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -4297,7 +4670,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -4317,6 +4692,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -4324,7 +4700,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -4357,8 +4732,12 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -4372,7 +4751,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -4388,7 +4766,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -4403,10 +4783,13 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -4417,16 +4800,19 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -4435,9 +4821,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -4449,10 +4837,13 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -4463,6 +4854,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -4481,6 +4873,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -4503,6 +4896,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -4531,6 +4925,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -4539,6 +4934,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -4568,14 +4964,18 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -4590,6 +4990,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -4600,6 +5001,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -4620,6 +5022,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -4628,7 +5032,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -4636,9 +5039,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -4653,6 +5058,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -4697,7 +5103,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -4720,6 +5125,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -4728,12 +5134,16 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row"
@@ -4769,7 +5179,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
                 <div
@@ -4792,6 +5201,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -4800,12 +5210,16 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -4827,6 +5241,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -4835,7 +5251,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -4843,9 +5258,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -4860,6 +5277,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -4870,7 +5288,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -4880,14 +5300,15 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -4896,7 +5317,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for one c
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -4906,6 +5329,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -4939,6 +5364,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -4949,7 +5375,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -4969,6 +5397,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -4976,7 +5405,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -5009,8 +5437,12 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -5024,7 +5456,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -5040,7 +5471,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -5055,10 +5488,13 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -5069,16 +5505,19 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -5087,9 +5526,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -5101,10 +5542,13 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -5115,6 +5559,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -5133,6 +5578,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -5155,6 +5601,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -5183,6 +5630,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -5191,6 +5639,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -5220,14 +5669,18 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -5242,6 +5695,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -5252,6 +5706,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -5272,6 +5727,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -5280,7 +5737,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -5288,9 +5744,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -5305,6 +5763,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -5349,7 +5808,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -5372,6 +5830,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -5380,12 +5839,16 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row"
@@ -5421,7 +5884,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
                 <div
@@ -5444,6 +5906,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -5452,12 +5915,16 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -5479,6 +5946,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -5487,7 +5956,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -5495,9 +5963,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -5512,6 +5982,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -5522,7 +5993,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -5532,14 +6005,15 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -5548,7 +6022,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -6862,6 +7338,8 @@ exports[`components/centerPanel return centerPanel and select one card and click
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -6895,6 +7373,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -6905,7 +7384,9 @@ exports[`components/centerPanel return centerPanel and select one card and click
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -6925,6 +7406,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -6932,7 +7414,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -6965,8 +7446,12 @@ exports[`components/centerPanel return centerPanel and select one card and click
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -6980,7 +7465,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -6996,7 +7480,9 @@ exports[`components/centerPanel return centerPanel and select one card and click
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -7011,10 +7497,13 @@ exports[`components/centerPanel return centerPanel and select one card and click
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -7025,16 +7514,19 @@ exports[`components/centerPanel return centerPanel and select one card and click
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -7043,9 +7535,11 @@ exports[`components/centerPanel return centerPanel and select one card and click
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -7057,10 +7551,13 @@ exports[`components/centerPanel return centerPanel and select one card and click
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -7071,6 +7568,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -7089,6 +7587,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -7111,6 +7610,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -7139,6 +7639,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -7147,6 +7648,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -7176,14 +7678,18 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -7198,6 +7704,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -7208,6 +7715,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -7228,6 +7736,8 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -7236,7 +7746,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -7244,9 +7753,11 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -7261,6 +7772,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -7305,7 +7817,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -7328,6 +7839,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -7336,12 +7848,16 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row"
@@ -7377,7 +7893,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
                 <div
@@ -7400,6 +7915,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -7408,12 +7924,16 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -7435,6 +7955,8 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -7443,7 +7965,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -7451,9 +7972,11 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -7468,6 +7991,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -7478,7 +8002,9 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -7488,14 +8014,15 @@ exports[`components/centerPanel return centerPanel and select one card and click
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -7504,7 +8031,9 @@ exports[`components/centerPanel return centerPanel and select one card and click
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -7514,6 +8043,8 @@ exports[`components/centerPanel return centerPanel and select one card and click
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -7547,6 +8078,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -7557,7 +8089,9 @@ exports[`components/centerPanel return centerPanel and select one card and click
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -7577,6 +8111,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -7584,7 +8119,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -7617,8 +8151,12 @@ exports[`components/centerPanel return centerPanel and select one card and click
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -7632,7 +8170,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -7648,7 +8185,9 @@ exports[`components/centerPanel return centerPanel and select one card and click
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -7663,10 +8202,13 @@ exports[`components/centerPanel return centerPanel and select one card and click
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -7677,16 +8219,19 @@ exports[`components/centerPanel return centerPanel and select one card and click
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -7695,9 +8240,11 @@ exports[`components/centerPanel return centerPanel and select one card and click
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -7709,10 +8256,13 @@ exports[`components/centerPanel return centerPanel and select one card and click
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -7723,6 +8273,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -7741,6 +8292,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -7763,6 +8315,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -7791,6 +8344,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -7799,6 +8353,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -7828,14 +8383,18 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -7850,6 +8409,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -7860,6 +8420,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -7880,6 +8441,8 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -7888,7 +8451,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -7896,9 +8458,11 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -7913,6 +8477,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -7957,7 +8522,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -7980,6 +8544,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -7988,12 +8553,16 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row"
@@ -8029,7 +8598,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
                 <div
@@ -8052,6 +8620,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -8060,12 +8629,16 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -8087,6 +8660,8 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -8095,7 +8670,6 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -8103,9 +8677,11 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -8120,6 +8696,7 @@ exports[`components/centerPanel return centerPanel and select one card and click
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -8130,7 +8707,9 @@ exports[`components/centerPanel return centerPanel and select one card and click
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -8140,14 +8719,15 @@ exports[`components/centerPanel return centerPanel and select one card and click
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -8156,7 +8736,9 @@ exports[`components/centerPanel return centerPanel and select one card and click
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -8166,6 +8748,8 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -8199,6 +8783,7 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -8209,7 +8794,9 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -8229,6 +8816,7 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -8236,7 +8824,6 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -8269,8 +8856,12 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -8284,7 +8875,6 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -8300,7 +8890,9 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -8315,10 +8907,13 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -8327,9 +8922,11 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -8341,10 +8938,13 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -8355,6 +8955,7 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -8373,6 +8974,7 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -8395,6 +8997,7 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -8419,17 +9022,23 @@ exports[`components/centerPanel should match snapshot for Gallery 1`] = `
               class="CompassIcon icon-dots-horizontal OptionsIcon"
             />
           </button>
+          
         </div>
         <div
           class="gallery-item"
         />
+        
+        
+        
       </div>
       <div
         class="octo-gallery-new"
       >
         + New
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -8439,6 +9048,8 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -8472,6 +9083,7 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -8482,7 +9094,9 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -8502,6 +9116,7 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -8509,7 +9124,6 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -8542,8 +9156,12 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -8557,7 +9175,6 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -8573,7 +9190,9 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -8588,10 +9207,13 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -8602,16 +9224,19 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -8620,9 +9245,11 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -8634,10 +9261,13 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -8648,6 +9278,7 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -8666,6 +9297,7 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -8688,6 +9320,7 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -8709,6 +9342,8 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
           >
             No name
           </span>
+          
+          
           <div
             class="KanbanCalculation"
           >
@@ -8717,11 +9352,15 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
               title="0"
               type="button"
             >
+              
               <span>
                 0
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -8738,6 +9377,7 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             class="IconButton"
@@ -8747,11 +9387,14 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
           style="opacity: 1;"
         >
+          
+          
           <span
             class="Label propColorOrange "
           >
@@ -8760,7 +9403,6 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
               placeholder="New Select"
               spellcheck="true"
               title="Q1"
-              value="Q1"
             />
           </span>
           <div
@@ -8771,11 +9413,15 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
               title="1"
               type="button"
             >
+              
               <span>
                 1
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -8792,6 +9438,7 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             class="IconButton"
@@ -8801,11 +9448,14 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
           style="opacity: 1;"
         >
+          
+          
           <span
             class="Label propColorBlue "
           >
@@ -8814,7 +9464,6 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
               placeholder="New Select"
               spellcheck="true"
               title="Q2"
-              value="Q2"
             />
           </span>
           <div
@@ -8825,11 +9474,15 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
               title="0"
               type="button"
             >
+              
               <span>
                 0
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -8846,6 +9499,7 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             class="IconButton"
@@ -8855,7 +9509,9 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
+        
         <div
           class="octo-board-header-cell narrow"
         >
@@ -8863,9 +9519,11 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
             class="Button"
             type="button"
           >
+            
             <span>
               + Add a group
             </span>
+            
           </button>
         </div>
       </div>
@@ -8880,9 +9538,11 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
             class="Button"
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
         <div
@@ -8905,6 +9565,7 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
             <div
               class="octo-icontitle"
@@ -8920,14 +9581,18 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
                 card1
               </div>
             </div>
+            
+            
           </div>
           <button
             class="Button"
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
         <div
@@ -8937,13 +9602,17 @@ exports[`components/centerPanel should match snapshot for Kanban 1`] = `
             class="Button"
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
+        
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -8953,6 +9622,8 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -8986,6 +9657,7 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -8996,7 +9668,9 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -9016,6 +9690,7 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -9023,7 +9698,6 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -9056,8 +9730,12 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -9071,7 +9749,6 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -9087,7 +9764,9 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -9102,10 +9781,13 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -9116,16 +9798,19 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -9134,9 +9819,11 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -9148,10 +9835,13 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -9162,6 +9852,7 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -9180,6 +9871,7 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -9202,6 +9894,7 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -9223,6 +9916,8 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
           >
             No name
           </span>
+          
+          
           <div
             class="KanbanCalculation"
           >
@@ -9231,11 +9926,15 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
               title="0"
               type="button"
             >
+              
               <span>
                 0
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -9252,6 +9951,7 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             class="IconButton"
@@ -9261,11 +9961,14 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
           style="opacity: 1;"
         >
+          
+          
           <span
             class="Label propColorOrange "
           >
@@ -9274,7 +9977,6 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
               placeholder="New Select"
               spellcheck="true"
               title="Q1"
-              value="Q1"
             />
           </span>
           <div
@@ -9285,11 +9987,15 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
               title="1"
               type="button"
             >
+              
               <span>
                 1
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -9306,6 +10012,7 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             class="IconButton"
@@ -9315,11 +10022,14 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
           style="opacity: 1;"
         >
+          
+          
           <span
             class="Label propColorBlue "
           >
@@ -9328,7 +10038,6 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
               placeholder="New Select"
               spellcheck="true"
               title="Q2"
-              value="Q2"
             />
           </span>
           <div
@@ -9339,11 +10048,15 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
               title="0"
               type="button"
             >
+              
               <span>
                 0
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -9360,6 +10073,7 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             class="IconButton"
@@ -9369,7 +10083,9 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
+        
         <div
           class="octo-board-header-cell narrow"
         >
@@ -9377,9 +10093,11 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
             class="Button"
             type="button"
           >
+            
             <span>
               + Add a group
             </span>
+            
           </button>
         </div>
       </div>
@@ -9394,9 +10112,11 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
             class="Button"
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
         <div
@@ -9419,6 +10139,7 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
             <div
               class="octo-icontitle"
@@ -9434,14 +10155,18 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
                 card1
               </div>
             </div>
+            
+            
           </div>
           <button
             class="Button"
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
         <div
@@ -9451,13 +10176,17 @@ exports[`components/centerPanel should match snapshot for Kanban, not shared 1`]
             class="Button"
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
+        
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -9467,6 +10196,8 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -9500,6 +10231,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -9510,7 +10242,9 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -9530,6 +10264,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -9537,7 +10272,6 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -9570,8 +10304,12 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -9585,7 +10323,6 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -9601,7 +10338,9 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -9616,10 +10355,13 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -9630,16 +10372,19 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -9648,9 +10393,11 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -9662,10 +10409,13 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -9676,6 +10426,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -9694,6 +10445,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -9716,6 +10468,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -9744,6 +10497,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -9752,6 +10506,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -9781,14 +10536,18 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -9803,6 +10562,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -9813,6 +10573,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -9833,6 +10594,8 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -9841,7 +10604,6 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -9849,9 +10611,11 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   1
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -9866,6 +10630,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -9910,7 +10675,6 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -9933,6 +10697,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -9941,12 +10706,16 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -9968,6 +10737,8 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -9976,7 +10747,6 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -9984,9 +10754,11 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -10001,6 +10773,7 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -10011,7 +10784,9 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -10021,14 +10796,15 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -10037,7 +10813,9 @@ exports[`components/centerPanel should match snapshot for Table 1`] = `
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;

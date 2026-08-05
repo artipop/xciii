@@ -13,7 +13,7 @@ import ConfirmAddUserForNotifications from './confirmAddUserForNotifications'
 
 describe('/components/confirmAddUserForNotifications', () => {
     it('should match snapshot', async () => {
-        const result = render(
+        const result = render(() =>
             wrapDNDIntl(() =>
                 <ConfirmAddUserForNotifications
                     allowManageBoardRoles={true}
@@ -30,7 +30,7 @@ describe('/components/confirmAddUserForNotifications', () => {
     it('confirm button click, run onConfirm Function once', () => {
         const onConfirm = jest.fn()
 
-        const result = render(
+        const result = render(() =>
             wrapDNDIntl(() =>
                 <ConfirmAddUserForNotifications
                     allowManageBoardRoles={true}
@@ -48,7 +48,7 @@ describe('/components/confirmAddUserForNotifications', () => {
     it('cancel button click runs onClose function', () => {
         const onClose = jest.fn()
 
-        const result = render(
+        const result = render(() =>
             wrapDNDIntl(() =>
                 <ConfirmAddUserForNotifications
                     allowManageBoardRoles={true}

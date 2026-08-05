@@ -8,7 +8,6 @@ exports[`components/propertyValueElement Generic fields should allow cancel 1`] 
     spellcheck="true"
     style="width: 100%;"
     title=""
-    value=""
   />
 </div>
 `;
@@ -59,10 +58,13 @@ exports[`components/propertyValueElement should match snapshot, date, array valu
       class="Button"
       type="button"
     >
+      
       <span>
         Empty
       </span>
+      
     </button>
+    
   </div>
 </div>
 `;
@@ -84,6 +86,7 @@ exports[`components/propertyValueElement should match snapshot, multi-select 1`]
     >
       value 2
     </span>
+    
   </div>
 </div>
 `;
@@ -96,7 +99,6 @@ exports[`components/propertyValueElement should match snapshot, person, array va
     spellcheck="true"
     style="width: 100%;"
     title=""
-    value=""
   />
 </div>
 `;

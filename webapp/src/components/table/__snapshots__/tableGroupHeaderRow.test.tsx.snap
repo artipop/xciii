@@ -18,6 +18,8 @@ exports[`should match snapshot on read only 1`] = `
           class="CompassIcon icon-menu-right"
         />
       </button>
+      
+      
       <span
         class="Label propColorBrown "
       >
@@ -27,7 +29,6 @@ exports[`should match snapshot on read only 1`] = `
           readonly=""
           spellcheck="true"
           title="value 1"
-          value="value 1"
         />
       </span>
     </div>
@@ -35,10 +36,13 @@ exports[`should match snapshot on read only 1`] = `
       class="Button"
       type="button"
     >
+      
       <span>
         0
       </span>
+      
     </button>
+    
   </div>
 </div>
 `;
@@ -61,6 +65,8 @@ exports[`should match snapshot with Group 1`] = `
           class="CompassIcon icon-menu-right"
         />
       </button>
+      
+      
       <span
         class="Label propColorBrown "
       >
@@ -69,7 +75,6 @@ exports[`should match snapshot with Group 1`] = `
           placeholder="New Select"
           spellcheck="true"
           title="value 1"
-          value="value 1"
         />
       </span>
     </div>
@@ -77,9 +82,11 @@ exports[`should match snapshot with Group 1`] = `
       class="Button"
       type="button"
     >
+      
       <span>
         0
       </span>
+      
     </button>
     <div
       aria-label="menuwrapper"
@@ -94,6 +101,7 @@ exports[`should match snapshot with Group 1`] = `
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <button
       class="IconButton"
@@ -125,6 +133,8 @@ exports[`should match snapshot, add new 1`] = `
           class="CompassIcon icon-menu-right"
         />
       </button>
+      
+      
       <span
         class="Label propColorBrown "
       >
@@ -133,7 +143,6 @@ exports[`should match snapshot, add new 1`] = `
           placeholder="New Select"
           spellcheck="true"
           title="value 1"
-          value="value 1"
         />
       </span>
     </div>
@@ -141,9 +150,11 @@ exports[`should match snapshot, add new 1`] = `
       class="Button"
       type="button"
     >
+      
       <span>
         0
       </span>
+      
     </button>
     <div
       aria-label="menuwrapper"
@@ -158,6 +169,7 @@ exports[`should match snapshot, add new 1`] = `
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <button
       class="IconButton"
@@ -189,6 +201,8 @@ exports[`should match snapshot, edit title 1`] = `
           class="CompassIcon icon-menu-right"
         />
       </button>
+      
+      
       <span
         class="Label propColorBrown "
       >
@@ -197,7 +211,6 @@ exports[`should match snapshot, edit title 1`] = `
           placeholder="New Select"
           spellcheck="true"
           title="value 1"
-          value="value 1"
         />
       </span>
     </div>
@@ -205,9 +218,11 @@ exports[`should match snapshot, edit title 1`] = `
       class="Button"
       type="button"
     >
+      
       <span>
         0
       </span>
+      
     </button>
     <div
       aria-label="menuwrapper"
@@ -222,6 +237,7 @@ exports[`should match snapshot, edit title 1`] = `
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <button
       class="IconButton"
@@ -253,6 +269,8 @@ exports[`should match snapshot, hide group 1`] = `
           class="CompassIcon icon-menu-right"
         />
       </button>
+      
+      
       <span
         class="Label propColorBrown "
       >
@@ -261,7 +279,6 @@ exports[`should match snapshot, hide group 1`] = `
           placeholder="New Select"
           spellcheck="true"
           title="value 1"
-          value="value 1"
         />
       </span>
     </div>
@@ -269,9 +286,11 @@ exports[`should match snapshot, hide group 1`] = `
       class="Button"
       type="button"
     >
+      
       <span>
         0
       </span>
+      
     </button>
     <div
       aria-label="menuwrapper"
@@ -286,6 +305,7 @@ exports[`should match snapshot, hide group 1`] = `
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <button
       class="IconButton"
@@ -323,14 +343,18 @@ exports[`should match snapshot, no groups 1`] = `
       >
         No Property 1
       </span>
+      
+      
     </div>
     <button
       class="Button"
       type="button"
     >
+      
       <span>
         0
       </span>
+      
     </button>
     <div
       aria-label="menuwrapper"
@@ -345,6 +369,7 @@ exports[`should match snapshot, no groups 1`] = `
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <button
       class="IconButton"

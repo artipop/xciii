@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {render, screen} from '@solidjs/testing-library'
-import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
@@ -14,7 +13,8 @@ import {IPropertyTemplate} from '../../blocks/board'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import mutator from '../../mutator'
 import propsRegistry from '../../properties'
@@ -34,7 +34,7 @@ const state = {
         },
     },
 }
-const store = mockStateStore([], state)
+const store = mockAppStore(state)
 const filter: FilterClause = {
     propertyId: '1',
     condition: 'includes',
@@ -48,16 +48,16 @@ describe('components/viewHeader/filterValue', () => {
         activeView.fields.filter.filters = [filter]
     })
     test('return filterValue', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <FilterValue
                         view={activeView}
                         filter={filter}
                         template={board.cardProperties[0]}
                         propertyType={propsRegistry.get(board.cardProperties[0].type)}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -65,16 +65,16 @@ describe('components/viewHeader/filterValue', () => {
         expect(container).toMatchSnapshot()
     })
     test('return filterValue and click Status', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <FilterValue
                         view={activeView}
                         filter={filter}
                         template={board.cardProperties[0]}
                         propertyType={propsRegistry.get(board.cardProperties[0].type)}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -87,16 +87,16 @@ describe('components/viewHeader/filterValue', () => {
     test('return filterValue and click Status with Status not in filter', () => {
         filter.values = ['test']
         activeView.fields.filter.filters = [filter]
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <FilterValue
                         view={activeView}
                         filter={filter}
                         template={board.cardProperties[0]}
                         propertyType={propsRegistry.get(board.cardProperties[0].type)}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -109,16 +109,16 @@ describe('components/viewHeader/filterValue', () => {
     test('return filterValue and verify that menu is not closed after clicking on the item', () => {
         filter.values = []
         activeView.fields.filter.filters = [filter]
-        render(
+        render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <FilterValue
                         view={activeView}
                         filter={filter}
                         template={board.cardProperties[0]}
                         propertyType={propsRegistry.get(board.cardProperties[0].type)}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: '(empty)'})
@@ -146,16 +146,16 @@ describe('components/viewHeader/filterValue', () => {
 
         // filter.values = []
         activeView.fields.filter.filters = [dateFilter]
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <FilterValue
                         view={activeView}
                         filter={filter}
                         template={propertyTemplate}
                         propertyType={propsRegistry.get(propertyTemplate.type)}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()

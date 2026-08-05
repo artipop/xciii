@@ -18,7 +18,7 @@ describe('components/kanban/calculation/KanbanCalculation', () => {
     ]
 
     test('base case', () => {
-        const component = wrapIntl((
+        const component = () => wrapIntl(() => (
             <KanbanCalculation
                 cards={cards}
                 cardProperties={board.cardProperties}
@@ -32,12 +32,12 @@ describe('components/kanban/calculation/KanbanCalculation', () => {
             />
         ))
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('calculations menu open', () => {
-        const component = wrapIntl((
+        const component = () => wrapIntl(() => (
             <KanbanCalculation
                 cards={cards}
                 cardProperties={board.cardProperties}
@@ -51,12 +51,12 @@ describe('components/kanban/calculation/KanbanCalculation', () => {
             />
         ))
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('no menu should appear in readonly mode', () => {
-        const component = wrapIntl((
+        const component = () => wrapIntl(() => (
             <KanbanCalculation
                 cards={cards}
                 cardProperties={board.cardProperties}
@@ -70,7 +70,7 @@ describe('components/kanban/calculation/KanbanCalculation', () => {
             />
         ))
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 })

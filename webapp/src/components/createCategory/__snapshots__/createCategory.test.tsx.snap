@@ -26,10 +26,13 @@ exports[`components/createCategory/CreateCategory base case should match snapsho
                 title
               </span>
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               class="IconButton dialog__close size--medium"
@@ -49,12 +52,13 @@ exports[`components/createCategory/CreateCategory base case should match snapsho
             class="inputWrapper"
           >
             <input
+              autofocus=""
               class="categoryNameInput"
               maxlength="100"
               placeholder="Name your category"
               type="text"
-              value=""
             />
+            
           </div>
           <div
             class="createCategoryActions"
@@ -63,18 +67,22 @@ exports[`components/createCategory/CreateCategory base case should match snapsho
               class="Button danger size--medium"
               type="button"
             >
+              
               <span>
                 Cancel
               </span>
+              
             </button>
             <button
               class="Button size--medium"
               disabled=""
               type="button"
             >
+              
               <span>
                 Create
               </span>
+              
             </button>
           </div>
         </div>

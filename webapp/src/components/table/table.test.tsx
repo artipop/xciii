@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Provider as ReduxProvider} from 'react-redux'
 import {render, screen} from '@solidjs/testing-library'
-import configureStore from 'redux-mock-store'
 import '@testing-library/jest-dom'
 import userEvents from '@testing-library/user-event'
 
@@ -18,7 +16,8 @@ import {IUser} from '../../user'
 
 import {Utils, IDType} from '../../utils'
 
-import {wrapDNDIntl} from '../../testUtils'
+import {mockAppStore, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import Mutator from '../../mutator'
 
@@ -88,12 +87,10 @@ describe('components/table/Table', () => {
     test('should match snapshot', async () => {
         const callback = jest.fn()
         const addCard = jest.fn()
+        const store = mockAppStore(state)
 
-        const mockStore = configureStore([])
-        const store = mockStore(state)
-
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Table
                     board={board}
                     activeView={view}
@@ -109,21 +106,19 @@ describe('components/table/Table', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot without permissions', async () => {
         const callback = jest.fn()
         const addCard = jest.fn()
+        const store = mockAppStore({...state, teams: {current: undefined}})
 
-        const mockStore = configureStore([])
-        const store = mockStore({...state, teams: {current: undefined}})
-
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Table
                     board={board}
                     activeView={view}
@@ -139,21 +134,19 @@ describe('components/table/Table', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot, read-only', async () => {
         const callback = jest.fn()
         const addCard = jest.fn()
+        const store = mockAppStore(state)
 
-        const mockStore = configureStore([])
-        const store = mockStore(state)
-
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Table
                     board={board}
                     activeView={view}
@@ -169,22 +162,20 @@ describe('components/table/Table', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot with GroupBy', async () => {
         const callback = jest.fn()
         const addCard = jest.fn()
+        const store = mockAppStore(state)
 
-        const mockStore = configureStore([])
-        const store = mockStore(state)
-
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Table
                     board={board}
                     activeView={{...view, fields: {...view.fields, groupById: 'property1'}} as BoardView}
@@ -206,9 +197,9 @@ describe('components/table/Table', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -218,7 +209,6 @@ describe('components/table/Table', () => {
         const boardTest = TestBlockFactory.createBoard()
         const card1 = TestBlockFactory.createCard(boardTest)
         const card2 = TestBlockFactory.createCard(boardTest)
-        const mockStore = configureStore([])
 
         const stateTest = {
             comments: {
@@ -247,11 +237,11 @@ describe('components/table/Table', () => {
             },
         }
 
-        const storeTest = mockStore(stateTest)
+        const storeTest = mockAppStore(stateTest)
         card.limited = true
 
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={storeTest}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={storeTest}>
                 <Table
                     board={boardTest}
                     activeView={view}
@@ -267,9 +257,9 @@ describe('components/table/Table', () => {
                     hiddenCardsCount={2}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
-        const {container, getByTitle} = render(() => component)
+        const {container, getByTitle} = render(component)
         expect(getByTitle('hidden-card-count')).toHaveTextContent('2')
         expect(container).toMatchSnapshot()
     })
@@ -339,9 +329,7 @@ describe('components/table/Table extended', () => {
 
         const callback = jest.fn()
         const addCard = jest.fn()
-
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             ...state,
             cards: {
                 cards: {
@@ -363,8 +351,8 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Table
                     board={board}
                     activeView={view}
@@ -380,9 +368,9 @@ describe('components/table/Table extended', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -421,9 +409,7 @@ describe('components/table/Table extended', () => {
 
         const callback = jest.fn()
         const addCard = jest.fn()
-
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             ...state,
             comments: {
                 comments: {
@@ -449,8 +435,8 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Table
                     board={board}
                     activeView={view}
@@ -466,9 +452,9 @@ describe('components/table/Table extended', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -496,9 +482,7 @@ describe('components/table/Table extended', () => {
 
         const callback = jest.fn()
         const addCard = jest.fn()
-
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             ...state,
             cards: {
                 cards: {
@@ -508,8 +492,8 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Table
                     board={board}
                     activeView={view}
@@ -525,10 +509,10 @@ describe('components/table/Table extended', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -572,9 +556,7 @@ describe('components/table/Table extended', () => {
 
         const callback = jest.fn()
         const addCard = jest.fn()
-
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             ...state,
             comments: {
                 comments: {
@@ -600,8 +582,8 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Table
                     board={board}
                     activeView={view}
@@ -617,10 +599,10 @@ describe('components/table/Table extended', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -642,8 +624,7 @@ describe('components/table/Table extended', () => {
         view.fields.viewType = 'table'
         view.fields.groupById = undefined
         view.fields.visiblePropertyIds = ['property1', 'property2', modifiedById]
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             ...state,
             cards: {
                 cards: {
@@ -653,8 +634,8 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Table
                     board={board}
                     activeView={view}
@@ -670,10 +651,10 @@ describe('components/table/Table extended', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const {getByTitle, getByRole, getAllByTitle} = render(() => component)
+        const {getByTitle, getByRole, getAllByTitle} = render(component)
         const card1Name = getByTitle(card1.title)
         userEvents.hover(card1Name)
         const menuBtn = getAllByTitle('MenuBtn')
@@ -703,8 +684,7 @@ describe('components/table/Table extended', () => {
         view.fields.viewType = 'table'
         view.fields.groupById = undefined
         view.fields.visiblePropertyIds = ['property1', 'property2', modifiedById]
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             ...state,
             cards: {
                 cards: {
@@ -714,8 +694,8 @@ describe('components/table/Table extended', () => {
             },
         })
 
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Table
                     board={board}
                     activeView={view}
@@ -731,10 +711,10 @@ describe('components/table/Table extended', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
-        const {getByTitle, getByRole, getAllByTitle, container} = render(() => component)
+        const {getByTitle, getByRole, getAllByTitle, container} = render(component)
         const card1Name = getByTitle(card1.title)
         userEvents.hover(card1Name)
         const menuBtn = getAllByTitle('MenuBtn')

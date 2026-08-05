@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import type {JSX} from 'solid-js'
+import type {JSX, ParentComponent} from 'solid-js'
+import {MemoryRouter, Route, createMemoryHistory} from '@solidjs/router'
 
 import {IntlProvider} from './intl'
 import {SortableProvider} from './hooks/sortable'
@@ -40,10 +41,36 @@ export const wrapRBDNDContext = (children?: () => JSX.Element): JSX.Element => {
 
 export const wrapRBDNDDroppable = (children?: () => JSX.Element): JSX.Element => wrapRBDNDContext(children)
 
+// A memory router around a component that only needs the router to exist —
+// links, useNavigate, useRouteMatch. The wildcard route matches whatever path
+// the test starts at, and children are read inside it, so router context is
+// there by the time they are created. What react-router tests spelled as
+// <Router history={history}> around the component.
+export const TestRouter: ParentComponent<{path?: string}> = (props) => {
+    const history = createMemoryHistory()
+    history.set({value: props.path || '/'})
+    return (
+        <MemoryRouter history={history}>
+            <Route
+                path='*rest'
+                component={() => props.children}
+            />
+        </MemoryRouter>
+    )
+}
+
 // The successor of redux-mock-store's mockStateStore: a real app store seeded
 // with the test's state, so selectors read it and actions write over it.
+// The default client answers every call with a resolved undefined — an action
+// fired by a mounting component must not crash a test that never asked for it.
+// A test that asserts on client calls passes its own (usually the automocked
+// octoClient) through deps.
+const nullClient = new Proxy({}, {
+    get: () => () => Promise.resolve(undefined),
+}) as StoreDeps['client']
+
 export function mockAppStore(state?: {[K in keyof RootState]?: Partial<RootState[K]>}, deps?: StoreDeps): AppStore {
-    return createAppStore(deps ?? {client: {} as StoreDeps['client']}, state)
+    return createAppStore(deps ?? {client: nullClient}, state)
 }
 
 export const wrapStore = (store: AppStore, children?: () => JSX.Element): JSX.Element => (

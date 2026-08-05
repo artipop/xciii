@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Provider as ReduxProvider} from 'react-redux'
 import {mocked} from 'jest-mock'
 
 import {render, screen, waitFor, within} from '@solidjs/testing-library'
 
-import configureStore from 'redux-mock-store'
 
 import {act} from 'react-dom/test-utils'
 
@@ -14,7 +12,8 @@ import userEvent from '@testing-library/user-event'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
-import {wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import {IPropertyTemplate} from '../../blocks/board'
 
 import client from '../../octoClient'
@@ -37,7 +36,6 @@ board.teamId = 'team-id-1'
 const card = TestBlockFactory.createCard(board)
 
 describe('properties/person', () => {
-    const mockStore = configureStore([])
     const state = {
         boards: {
             boards: {
@@ -128,9 +126,9 @@ describe('properties/person', () => {
     mockedOctoClient.searchTeamUsers.mockResolvedValue(additionalUsers)
 
     test('select user - confirm', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <ConfirmPerson
                     property={new PersonProperty()}
                     propertyValue={'user-id-1'}
@@ -140,7 +138,7 @@ describe('properties/person', () => {
                     board={board}
                     card={card}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
         const renderResult = render(component)
         const container = await waitFor(() => {
@@ -157,16 +155,12 @@ describe('properties/person', () => {
             const userProperty = container.querySelector(".Person input[role='combobox']")
             expect(userProperty).not.toBeNull()
 
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            userEvent.click(userProperty as Element)
             expect(container).toMatchSnapshot()
 
             const option = renderResult.getByText('username-4')
             expect(option).not.toBeNull()
-            act(() => {
-                userEvent.click(option as Element)
-            })
+            userEvent.click(option as Element)
 
             const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
             expect(confirmDialog).toBeDefined()
@@ -182,9 +176,9 @@ describe('properties/person', () => {
 
     test('select user - cancel', async () => {
         mockedMutator.createBoardMember.mockClear()
-        const store = mockStore(state)
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <ConfirmPerson
                     property={new PersonProperty()}
                     propertyValue={'user-id-1'}
@@ -194,7 +188,7 @@ describe('properties/person', () => {
                     board={board}
                     card={card}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
         const renderResult = render(component)
         const container = await waitFor(() => {
@@ -211,16 +205,12 @@ describe('properties/person', () => {
             const userProperty = container.querySelector(".Person input[role='combobox']")
             expect(userProperty).not.toBeNull()
 
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            userEvent.click(userProperty as Element)
             expect(container).toMatchSnapshot()
 
             const option = renderResult.getByText('username-4')
             expect(option).not.toBeNull()
-            act(() => {
-                userEvent.click(option as Element)
-            })
+            userEvent.click(option as Element)
 
             const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
             expect(confirmDialog).toBeDefined()

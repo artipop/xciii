@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import type {JSX} from 'solid-js'
 
-import React, {ReactElement, ReactNode} from 'react'
 import {fireEvent, render, screen, waitFor} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import {mocked} from 'jest-mock'
@@ -46,10 +46,10 @@ const cardDetailContextValue = (autoAdded: boolean): CardDetailContextType => ({
     addBlock: jest.fn(),
 })
 
-const wrap = (child: ReactNode): ReactElement => (
+const wrap = (child: () => JSX.Element): JSX.Element => (
     wrapIntl(() =>
         <CardDetailProvider card={card}>
-            {child}
+            {child()}
         </CardDetailProvider>,
     )
 )
@@ -58,29 +58,29 @@ describe('components/content/checkboxElement', () => {
     beforeEach(jest.clearAllMocks)
 
     it('should match snapshot', () => {
-        const component = wrap(
+        const component = () => wrap(() =>
             <CheckboxElement
                 block={checkboxBlock}
                 readonly={false}
             />,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     it('should match snapshot when read only', () => {
-        const component = wrap(
+        const component = () => wrap(() =>
             <CheckboxElement
                 block={checkboxBlock}
                 readonly={true}
             />,
         )
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     it('should change title', () => {
-        const {container} = render(wrap(
+        const {container} = render(() => wrap(() =>
             <CheckboxElement
                 block={checkboxBlock}
                 readonly={false}
@@ -102,7 +102,7 @@ describe('components/content/checkboxElement', () => {
     })
 
     it('should toggle value', () => {
-        const {container} = render(wrap(
+        const {container} = render(() => wrap(() =>
             <CheckboxElement
                 block={checkboxBlock}
                 readonly={false}
@@ -120,7 +120,7 @@ describe('components/content/checkboxElement', () => {
     })
 
     it('should have focus when last added', () => {
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <CardDetailContext.Provider value={cardDetailContextValue(false)}>
                 <CheckboxElement
                     block={checkboxBlock}
@@ -134,7 +134,7 @@ describe('components/content/checkboxElement', () => {
 
     it('should add new checkbox when enter pressed', async () => {
         const addElement = jest.fn()
-        render(wrap(
+        render(() => wrap(() =>
             <CheckboxElement
                 block={checkboxBlock}
                 readonly={false}
@@ -159,7 +159,7 @@ describe('components/content/checkboxElement', () => {
         addedBlock.title = ''
         const deleteElement = jest.fn()
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <CardDetailContext.Provider value={cardDetailContextValue(true)}>
                 <CheckboxElement
                     block={addedBlock}

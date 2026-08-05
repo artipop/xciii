@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Provider as ReduxProvider} from 'react-redux'
 
 import {render, screen} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
 import {TestBlockFactory} from '../test/testBlockFactory'
-import {blocksById, mockStateStore, wrapDNDIntl} from '../testUtils'
+import {blocksById, mockAppStore, wrapDNDIntl} from '../testUtils'
+import {AppStoreProvider} from '../store'
 
 import {RootState} from '../store'
 
@@ -56,31 +56,31 @@ describe('components/cardBadges', () => {
             },
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
 
     it('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <CardBadges card={card}/>
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
 
     it('should match snapshot for empty card', () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <CardBadges card={emptyCard}/>
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
 
     it('should render correct values', () => {
-        render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <CardBadges card={card}/>
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         expect(screen.getByTitle(/card has a description/)).toBeInTheDocument()
         expect(screen.getByTitle('Comments')).toHaveTextContent('3')

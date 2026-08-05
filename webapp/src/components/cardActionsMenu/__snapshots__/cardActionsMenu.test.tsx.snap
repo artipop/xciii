@@ -36,12 +36,14 @@ exports[`components/cardActionsMenu should match snapshot 1`] = `
               >
                 Delete
               </div>
+              
             </div>
             <div
               class="noicon"
             />
           </div>
         </div>
+        <div />
         <div>
           <div
             aria-label="Copy link"
@@ -67,6 +69,7 @@ exports[`components/cardActionsMenu should match snapshot 1`] = `
               >
                 Copy link
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -101,6 +104,7 @@ exports[`components/cardActionsMenu should match snapshot 1`] = `
             >
               Cancel
             </div>
+            
           </div>
           <div
             class="noicon"
@@ -148,12 +152,14 @@ exports[`components/cardActionsMenu should match snapshot w/ children prop 1`] =
               >
                 Delete
               </div>
+              
             </div>
             <div
               class="noicon"
             />
           </div>
         </div>
+        <div />
         <div>
           <div
             aria-label="Copy link"
@@ -179,6 +185,7 @@ exports[`components/cardActionsMenu should match snapshot w/ children prop 1`] =
               >
                 Copy link
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -215,6 +222,7 @@ exports[`components/cardActionsMenu should match snapshot w/ children prop 1`] =
             >
               Cancel
             </div>
+            
           </div>
           <div
             class="noicon"
@@ -262,11 +270,14 @@ exports[`components/cardActionsMenu should match snapshot w/ onClickDuplicate pr
               >
                 Delete
               </div>
+              
             </div>
             <div
               class="noicon"
             />
           </div>
+        </div>
+        <div>
           <div
             aria-label="Duplicate"
             class="MenuOption TextOption menu-option"
@@ -291,6 +302,7 @@ exports[`components/cardActionsMenu should match snapshot w/ onClickDuplicate pr
               >
                 Duplicate
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -322,6 +334,7 @@ exports[`components/cardActionsMenu should match snapshot w/ onClickDuplicate pr
               >
                 Copy link
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -356,6 +369,7 @@ exports[`components/cardActionsMenu should match snapshot w/ onClickDuplicate pr
             >
               Cancel
             </div>
+            
           </div>
           <div
             class="noicon"

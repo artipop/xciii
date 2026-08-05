@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render, within, act, waitFor} from '@solidjs/testing-library'
+import {render, within, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import {MockStoreEnhanced} from 'redux-mock-store'
-import {Provider as ReduxProvider} from 'react-redux'
 
 import {Board, MemberRole, IPropertyTemplate} from '../../blocks/board'
-import {mockStateStore, wrapDNDIntl} from '../../testUtils'
+import {mockAppStore, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {IUser} from '../../user'
 import {Team} from '../../store/teams'
@@ -126,12 +126,12 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
                 },
             },
         }
-        store = mockStateStore([], state)
+        store = mockAppStore(state)
     })
 
     test('should match snapshot', async () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={false}
                     template={template}
@@ -139,15 +139,15 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
                     onDelete={jest.fn()}
                     onEdit={jest.fn()}
                 />
-            </ReduxProvider>
+            </AppStoreProvider>
             ,
         ))
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot when active', async () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={true}
                     template={template}
@@ -155,15 +155,15 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
                     onDelete={jest.fn()}
                     onEdit={jest.fn()}
                 />
-            </ReduxProvider>
+            </AppStoreProvider>
             ,
         ))
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot with global template', async () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={false}
                     template={globalTemplate}
@@ -171,7 +171,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
                     onDelete={jest.fn()}
                     onEdit={jest.fn()}
                 />
-            </ReduxProvider>
+            </AppStoreProvider>
             ,
         ))
         expect(container).toMatchSnapshot()
@@ -181,8 +181,8 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
         const onSelect = jest.fn()
         const onDelete = jest.fn()
         const onEdit = jest.fn()
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={false}
                     template={template}
@@ -190,7 +190,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
                     onDelete={onDelete}
                     onEdit={onEdit}
                 />
-            </ReduxProvider>
+            </AppStoreProvider>
             ,
         ))
         userEvent.click(container.querySelector('.BoardTemplateSelectorItem')!)
@@ -204,8 +204,8 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
         const onSelect = jest.fn()
         const onDelete = jest.fn()
         const onEdit = jest.fn()
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={false}
                     template={template}
@@ -213,7 +213,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
                     onDelete={onDelete}
                     onEdit={onEdit}
                 />
-            </ReduxProvider>
+            </AppStoreProvider>
             ,
         ))
         userEvent.click(container.querySelector('.BoardTemplateSelectorItem .EditIcon')!)
@@ -230,8 +230,8 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
 
         const root = document.createElement('div')
         root.setAttribute('id', 'focalboard-root-portal')
-        render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <BoardTemplateSelectorItem
                     isActive={false}
                     template={template}
@@ -239,19 +239,15 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
                     onDelete={onDelete}
                     onEdit={onEdit}
                 />
-            </ReduxProvider>
+            </AppStoreProvider>
             ,
         ), {container: document.body.appendChild(root)})
-        act(() => {
-            userEvent.click(root.querySelector('.BoardTemplateSelectorItem .DeleteIcon')!)
-        })
+        userEvent.click(root.querySelector('.BoardTemplateSelectorItem .DeleteIcon')!)
 
         expect(root).toMatchSnapshot()
 
         const {getByText} = within(root)
-        act(() => {
-            userEvent.click(getByText('Delete')!)
-        })
+        userEvent.click(getByText('Delete')!)
 
         await waitFor(async () => expect(onDelete).toHaveBeenCalledTimes(1))
         await waitFor(async () => expect(onDelete).toHaveBeenCalledWith(template))

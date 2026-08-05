@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {render, waitFor} from '@solidjs/testing-library'
-import {MockStoreEnhanced} from 'redux-mock-store'
 
-import {Provider as ReduxProvider} from 'react-redux'
 
 import {IPropertyTemplate} from '../../blocks/board'
-import {mockDOM, mockStateStore, wrapDNDIntl} from '../../testUtils'
+import {mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
@@ -91,7 +90,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
     const template1Title = 'Template 1'
     const globalTemplateTitle = 'Template Global'
     const boardTitle = 'Board 1'
-    let store: MockStoreEnhanced<unknown, unknown>
+    let store: ReturnType<typeof mockAppStore>
     beforeAll(mockDOM)
     beforeEach(() => {
         jest.clearAllMocks()
@@ -172,24 +171,24 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
                 },
             },
         }
-        store = mockStateStore([], state)
+        store = mockAppStore(state)
     })
 
     test('should match snapshot', async () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
-                <BoardTemplateSelectorPreview activeTemplate={(store.getState() as any).boards.templates[0]}/>
-            </ReduxProvider>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <BoardTemplateSelectorPreview activeTemplate={(store.state as any).boards.templates[0]}/>
+            </AppStoreProvider>
             ,
         ))
         await waitFor(() => expect(container.querySelector('.top-head')).not.toBeNull())
         expect(container).toMatchSnapshot()
     })
     test('should be null without activeTemplate', () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <BoardTemplateSelectorPreview activeTemplate={null}/>
-            </ReduxProvider>
+            </AppStoreProvider>
             ,
         ))
         expect(container).toMatchSnapshot()

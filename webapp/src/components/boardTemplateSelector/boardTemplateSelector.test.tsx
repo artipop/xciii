@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render, screen, act, waitFor} from '@solidjs/testing-library'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import {MockStoreEnhanced} from 'redux-mock-store'
 
 import {mocked} from 'jest-mock'
 
-import {Provider as ReduxProvider} from 'react-redux'
 
-import {MemoryRouter} from 'react-router-dom'
 
 import Mutator from '../../mutator'
 import {Team} from '../../store/teams'
 import {createBoard, Board} from '../../blocks/board'
 import {IUser} from '../../user'
-import {mockDOM, mockStateStore, wrapDNDIntl} from '../../testUtils'
+import {TestRouter, mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import TelemetryClient from '../../telemetry/telemetryClient'
 
@@ -153,71 +152,71 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
                 }],
             },
         }
-        store = mockStateStore([], state)
+        store = mockAppStore(state)
         jest.useRealTimers()
     })
     describe('not a focalboard Plugin', () => {
         test('should match snapshot', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
-                </ReduxProvider>
+                </AppStoreProvider>
                 ,
-            ), {wrapper: MemoryRouter})
+            ), {wrapper: TestRouter})
             expect(container).toMatchSnapshot()
         })
     })
     describe('a focalboard Plugin', () => {
         test('should match snapshot', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
-                </ReduxProvider>
+                </AppStoreProvider>
                 ,
-            ), {wrapper: MemoryRouter})
+            ), {wrapper: TestRouter})
             expect(container).toMatchSnapshot()
         })
         test('should match snapshot without close', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <BoardTemplateSelector/>
-                </ReduxProvider>
+                </AppStoreProvider>
                 ,
-            ), {wrapper: MemoryRouter})
+            ), {wrapper: TestRouter})
             expect(container).toMatchSnapshot()
         })
         test('should match snapshot with custom title and description', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <BoardTemplateSelector
                         title='test-title'
                         description='test-description'
                     />
-                </ReduxProvider>
+                </AppStoreProvider>
                 ,
-            ), {wrapper: MemoryRouter})
+            ), {wrapper: TestRouter})
             expect(container).toMatchSnapshot()
         })
         test('return BoardTemplateSelector and click close call the onClose callback', () => {
             const onClose = jest.fn()
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <BoardTemplateSelector onClose={onClose}/>
-                </ReduxProvider>
+                </AppStoreProvider>
                 ,
-            ), {wrapper: MemoryRouter})
+            ), {wrapper: TestRouter})
             const divCloseButton = container.querySelector('div.toolbar .CloseIcon')
             expect(divCloseButton).not.toBeNull()
             userEvent.click(divCloseButton!)
             expect(onClose).toHaveBeenCalledTimes(1)
         })
         test('return BoardTemplateSelector and click new template', () => {
-            render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
-                </ReduxProvider>
+                </AppStoreProvider>
                 ,
-            ), {wrapper: MemoryRouter})
+            ), {wrapper: TestRouter})
             const divNewTemplate = screen.getByText('Create new template').parentElement
             expect(divNewTemplate).not.toBeNull()
             userEvent.click(divNewTemplate!)
@@ -227,12 +226,12 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const newBoard = createBoard({id: 'new-board'} as Board)
             mockedMutator.addEmptyBoard.mockResolvedValue({boards: [newBoard], blocks: []})
 
-            render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
-                </ReduxProvider>
+                </AppStoreProvider>
                 ,
-            ), {wrapper: MemoryRouter})
+            ), {wrapper: TestRouter})
 
             const divEmptyboard = screen.getByText('Create empty board').parentElement
             expect(divEmptyboard).not.toBeNull()
@@ -241,12 +240,12 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             await waitFor(() => expect(mockedMutator.updateBoard).toHaveBeenCalledWith(newBoard, newBoard, 'linked channel'))
         })
         test('shows only the My Project Tasks template and hides the rest', () => {
-            render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
-                </ReduxProvider>
+                </AppStoreProvider>
                 ,
-            ), {wrapper: MemoryRouter})
+            ), {wrapper: TestRouter})
 
             // the copy is the only template offered
             expect(screen.getByText(globalTemplateTitle)).not.toBeNull()
@@ -259,24 +258,20 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const newBoard = createBoard({id: 'new-board'} as Board)
             mockedMutator.addBoardFromTemplate.mockResolvedValue({boards: [newBoard], blocks: []})
 
-            render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
-                </ReduxProvider>
+                </AppStoreProvider>
                 ,
-            ), {wrapper: MemoryRouter})
+            ), {wrapper: TestRouter})
             const divBoardToSelect = screen.getByText(globalTemplateTitle).parentElement
             expect(divBoardToSelect).not.toBeNull()
 
-            act(() => {
-                userEvent.click(divBoardToSelect!)
-            })
+            userEvent.click(divBoardToSelect!)
 
             const useTemplateButton = screen.getByText('Use this template').parentElement
             expect(useTemplateButton).not.toBeNull()
-            act(() => {
-                userEvent.click(useTemplateButton!)
-            })
+            userEvent.click(useTemplateButton!)
 
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), 'global-1', team1.id))
@@ -287,27 +282,23 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const newBoard = createBoard({id: 'new-board'} as Board)
             mockedMutator.addBoardFromTemplate.mockResolvedValue({boards: [newBoard], blocks: []})
 
-            render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <BoardTemplateSelector
                         onClose={jest.fn()}
                         channelId='test-channel'
                     />
-                </ReduxProvider>
+                </AppStoreProvider>
                 ,
-            ), {wrapper: MemoryRouter})
+            ), {wrapper: TestRouter})
             const divBoardToSelect = screen.getByText(globalTemplateTitle).parentElement
             expect(divBoardToSelect).not.toBeNull()
 
-            act(() => {
-                userEvent.click(divBoardToSelect!)
-            })
+            userEvent.click(divBoardToSelect!)
 
             const useTemplateButton = screen.getByText('Use this template').parentElement
             expect(useTemplateButton).not.toBeNull()
-            act(() => {
-                userEvent.click(useTemplateButton!)
-            })
+            userEvent.click(useTemplateButton!)
 
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), 'global-1', team1.id))
@@ -318,24 +309,20 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             const newBoard = createBoard({id: 'new-board'} as Board)
             mockedMutator.addBoardFromTemplate.mockResolvedValue({boards: [newBoard], blocks: []})
 
-            render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <BoardTemplateSelector onClose={jest.fn()}/>
-                </ReduxProvider>
+                </AppStoreProvider>
                 ,
-            ), {wrapper: MemoryRouter})
+            ), {wrapper: TestRouter})
             const divBoardToSelect = screen.getByText(globalTemplateTitle).parentElement
             expect(divBoardToSelect).not.toBeNull()
 
-            act(() => {
-                userEvent.click(divBoardToSelect!)
-            })
+            userEvent.click(divBoardToSelect!)
 
             const useTemplateButton = screen.getByText('Use this template').parentElement
             expect(useTemplateButton).not.toBeNull()
-            act(() => {
-                userEvent.click(useTemplateButton!)
-            })
+            userEvent.click(useTemplateButton!)
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), 'global-1', team1.id))
             await waitFor(() => expect(mockedTelemetry.trackEvent).toHaveBeenCalledWith('boards', 'createBoardViaTemplate', {boardTemplateId: 'template_id_global'}))

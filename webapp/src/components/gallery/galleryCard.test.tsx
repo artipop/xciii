@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, render, screen} from '@solidjs/testing-library'
+import {render, screen} from '@solidjs/testing-library'
 
-import {Provider as ReduxProvider} from 'react-redux'
 
 import userEvent from '@testing-library/user-event'
 
@@ -11,7 +10,8 @@ import {mocked} from 'jest-mock'
 
 import {MockStoreEnhanced} from 'redux-mock-store'
 
-import {wrapDNDIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
@@ -91,11 +91,11 @@ describe('src/components/gallery/GalleryCard', () => {
                     },
                 },
             }
-            store = mockStateStore([], state)
+            store = mockAppStore(state)
         })
         test('should match snapshot', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -108,7 +108,7 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
             userEvent.click(buttonElement)
@@ -116,8 +116,8 @@ describe('src/components/gallery/GalleryCard', () => {
         })
         test('return GalleryCard and click on it', () => {
             const mockedOnClick = jest.fn()
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -130,15 +130,15 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
             const galleryCardElement = container.querySelector('.GalleryCard')
             userEvent.click(galleryCardElement!)
             expect(mockedOnClick).toHaveBeenCalledTimes(1)
         })
         test('return GalleryCard and delete card', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -151,7 +151,7 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
             userEvent.click(buttonElement)
@@ -161,8 +161,8 @@ describe('src/components/gallery/GalleryCard', () => {
         })
 
         test('return GalleryCard and duplicate card', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -175,7 +175,7 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
             userEvent.click(buttonElement)
@@ -186,8 +186,8 @@ describe('src/components/gallery/GalleryCard', () => {
             expect(mockedMutator.duplicateCard).toHaveBeenCalledWith(card.id, board.id)
         })
         test('return GalleryCard and copy link', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -200,7 +200,7 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
             userEvent.click(buttonElement)
@@ -210,8 +210,8 @@ describe('src/components/gallery/GalleryCard', () => {
             expect(mockedUtils.copyTextToClipboard).toHaveBeenCalledTimes(1)
         })
         test('return GalleryCard and cancel', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -224,7 +224,7 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
             userEvent.click(buttonElement)
@@ -274,11 +274,11 @@ describe('src/components/gallery/GalleryCard', () => {
                     },
                 },
             }
-            store = mockStateStore([], state)
+            store = mockAppStore(state)
         })
         test('should match snapshot', async () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -291,12 +291,10 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
-            await act(async () => {
-                const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-                userEvent.click(buttonElement)
-            })
+            const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
+            userEvent.click(buttonElement)
             expect(container).toMatchSnapshot()
         })
     })
@@ -346,11 +344,11 @@ describe('src/components/gallery/GalleryCard', () => {
                     },
                 },
             }
-            store = mockStateStore([], state)
+            store = mockAppStore(state)
         })
         test('should match snapshot with only first image', async () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -363,12 +361,10 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
-            await act(async () => {
-                const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
-                userEvent.click(buttonElement)
-            })
+            const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
+            userEvent.click(buttonElement)
             expect(container).toMatchSnapshot()
         })
     })
@@ -413,11 +409,11 @@ describe('src/components/gallery/GalleryCard', () => {
                     },
                 },
             }
-            store = mockStateStore([], state)
+            store = mockAppStore(state)
         })
         test('should match snapshot', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -430,15 +426,15 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
             userEvent.click(buttonElement)
             expect(container).toMatchSnapshot()
         })
         test('return GalleryCard with content readonly', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -451,7 +447,7 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
             expect(container).toMatchSnapshot()
         })
@@ -499,11 +495,11 @@ describe('src/components/gallery/GalleryCard', () => {
                     },
                 },
             }
-            store = mockStateStore([], state)
+            store = mockAppStore(state)
         })
         test('should match snapshot', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -516,15 +512,15 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
             const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
             userEvent.click(buttonElement)
             expect(container).toMatchSnapshot()
         })
         test('return GalleryCard with contents readonly', () => {
-            const {container} = render(wrapDNDIntl(() =>
-                <ReduxProvider store={store}>
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
                     <GalleryCard
                         board={board}
                         card={card}
@@ -537,7 +533,7 @@ describe('src/components/gallery/GalleryCard', () => {
                         isManualSort={true}
                         onDrop={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ))
             expect(container).toMatchSnapshot()
         })

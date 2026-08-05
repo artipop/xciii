@@ -17,6 +17,7 @@ exports[`components/blockIconSelector return an icon correctly 1`] = `
           👍
         </span>
       </div>
+      
     </div>
   </div>
 </div>
@@ -73,6 +74,7 @@ exports[`components/blockIconSelector return menu on click 1`] = `
                   >
                     Random
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -105,6 +107,7 @@ exports[`components/blockIconSelector return menu on click 1`] = `
                 <i
                   class="CompassIcon icon-chevron-right"
                 />
+                
               </div>
             </div>
             <div>
@@ -132,6 +135,7 @@ exports[`components/blockIconSelector return menu on click 1`] = `
                   >
                     Remove icon
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -165,6 +169,7 @@ exports[`components/blockIconSelector return menu on click 1`] = `
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"

@@ -11,9 +11,11 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu return properties menu 1
       class="Button"
       type="button"
     >
+      
       <span>
         Properties
       </span>
+      
     </button>
     <div
       class="Menu noselect bottom "
@@ -167,6 +169,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu return properties menu 1
               >
                 Cancel
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -190,9 +193,11 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu return properties menu w
       class="Button"
       type="button"
     >
+      
       <span>
         Properties
       </span>
+      
     </button>
     <div
       class="Menu noselect bottom "
@@ -368,6 +373,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu return properties menu w
               >
                 Cancel
               </div>
+              
             </div>
             <div
               class="noicon"

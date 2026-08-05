@@ -4,15 +4,12 @@ import '@testing-library/jest-dom'
 import {render} from '@solidjs/testing-library'
 import 'isomorphic-fetch'
 
-import {Provider as ReduxProvider} from 'react-redux'
-import {Router} from 'react-router-dom'
-import {createMemoryHistory} from 'history'
 
-import configureStore from 'redux-mock-store'
 
 import {FetchMock} from '../test/fetchMock'
 import {TestBlockFactory} from '../test/testBlockFactory'
-import {wrapDNDIntl} from '../testUtils'
+import {TestRouter, mockAppStore, wrapDNDIntl} from '../testUtils'
+import {AppStoreProvider} from '../store'
 
 import ViewMenu from './viewMenu'
 
@@ -66,47 +63,43 @@ describe('/components/viewMenu', () => {
         clientConfig: {},
     }
 
-    const history = createMemoryHistory()
-
     it('should match snapshot', () => {
-        const mockStore = configureStore([])
-        const store = mockStore(state)
+        const store = mockAppStore(state)
 
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <ViewMenu
                         board={board}
                         activeView={activeView}
                         views={views}
                         readonly={false}
                     />
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         )
 
-        const container = render(() => component)
+        const container = render(component)
         expect(container).toMatchSnapshot()
     })
 
     it('should match snapshot, read only', () => {
-        const mockStore = configureStore([])
-        const store = mockStore(state)
+        const store = mockAppStore(state)
 
-        const component = wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
-                <Router history={history}>
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
                     <ViewMenu
                         board={board}
                         activeView={activeView}
                         views={views}
                         readonly={true}
                     />
-                </Router>
-            </ReduxProvider>,
+                </TestRouter>
+            </AppStoreProvider>,
         )
 
-        const container = render(() => component)
+        const container = render(component)
         expect(container).toMatchSnapshot()
     })
 })

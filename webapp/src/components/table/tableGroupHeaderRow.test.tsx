@@ -1,5 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import type {JSX} from 'solid-js'
 
 import {fireEvent, render} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
@@ -41,13 +42,13 @@ const boardTreeGroup = {
     cards: [],
 }
 
-const Wrapper: React.FC<React.PropsWithChildren> = ({children}) => {
+const Wrapper = (props: {children?: JSX.Element}) => {
     return wrapDNDIntl(() =>
         <ColumnResizeProvider
             columnWidths={{}}
             onResizeColumn={jest.fn()}
         >
-            {children}
+            {props.children}
         </ColumnResizeProvider>,
     )
 }
@@ -136,9 +137,7 @@ test('should match snapshot, hide group', async () => {
     const triangle = container.querySelector('.octo-table-cell__expand')
     expect(triangle).not.toBeNull()
 
-    act(() => {
-        fireEvent.click(triangle as Element)
-    })
+    fireEvent.click(triangle as Element)
     expect(hideGroup).toHaveBeenCalled()
     expect(container).toMatchSnapshot()
 })
@@ -164,9 +163,7 @@ test('should match snapshot, add new', async () => {
     const triangle = container.querySelector('i.AddIcon')
     expect(triangle).not.toBeNull()
 
-    act(() => {
-        fireEvent.click(triangle as Element)
-    })
+    fireEvent.click(triangle as Element)
     expect(addNew).toHaveBeenCalled()
     expect(container).toMatchSnapshot()
 })
@@ -188,10 +185,8 @@ test('should match snapshot, edit title', async () => {
     )
 
     const input = getByTitle(/value 1/)
-    act(() => {
-        userEvent.click(input)
-        userEvent.keyboard('{enter}')
-    })
+    userEvent.click(input)
+    userEvent.keyboard('{enter}')
 
     expect(container).toMatchSnapshot()
 })

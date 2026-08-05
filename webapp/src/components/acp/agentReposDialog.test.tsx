@@ -37,7 +37,7 @@ describe('components/acp/agentReposDialog', () => {
         anyWindow.go = {main: {App: bindings}}
         expect(isAgentReposAvailable()).toBe(true)
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentReposDialog
                 board={board}
                 onClose={jest.fn()}
@@ -66,7 +66,7 @@ describe('components/acp/agentReposDialog', () => {
         anyWindow.go = {main: {App: bindings}}
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentReposDialog
                 board={board}
                 onClose={jest.fn()}
@@ -105,7 +105,7 @@ describe('components/acp/agentReposDialog', () => {
         anyWindow.go = {main: {App: bindings}}
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentReposDialog
                 board={boardWithRepos}
                 onClose={jest.fn()}
@@ -136,7 +136,7 @@ describe('components/acp/agentReposDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(() =>
+        render(() => wrapIntl(() =>
             <AgentReposDialog
                 board={boardWithRepos}
                 onClose={jest.fn()}

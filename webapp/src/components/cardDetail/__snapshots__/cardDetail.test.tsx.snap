@@ -16,20 +16,18 @@ exports[`components/cardDetail/CardDetail should render hidden view if limited 1
         </span>
       </div>
     </div>
+    
     <div
       class="EditableAreaWrap"
     >
       <textarea
         class="EditableArea Editable readonly title"
-        height="0"
         placeholder="Untitled"
         readonly=""
         rows="1"
         spellcheck="true"
         title="title"
-      >
-        title
-      </textarea>
+      />
       <div
         class="EditableAreaContainer"
       >
@@ -39,9 +37,7 @@ exports[`components/cardDetail/CardDetail should render hidden view if limited 1
           dir="auto"
           disabled=""
           rows="1"
-        >
-          title
-        </textarea>
+        />
       </div>
     </div>
     <div
@@ -184,11 +180,18 @@ exports[`components/cardDetail/CardDetail should render hidden view if limited 1
         class="Button emphasis--primary size--large CardDetail__limited-button"
         type="button"
       >
+        
         <span>
           Upgrade
         </span>
+        
       </button>
     </div>
+    
+    
+    
+    
+    
   </div>
 </div>
 `;

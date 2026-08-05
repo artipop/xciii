@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Provider as ReduxProvider} from 'react-redux'
 import {render} from '@solidjs/testing-library'
 import {act} from 'react-dom/test-utils'
 import {mocked} from 'jest-mock'
 
 import {AttachmentBlock} from '../../blocks/attachmentBlock'
-import {mockStateStore, wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import octoClient from '../../octoClient'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {IUser} from '../../user'
@@ -96,21 +96,19 @@ describe('component/content/FileBlock', () => {
         },
     }
 
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
 
     test('should match snapshot', async () => {
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <AttachmentElement
                     block={defaultBlock}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
         let fileContainer: Element | undefined
-        await act(async () => {
-            const {container} = render(() => component)
-            fileContainer = container
-        })
+        const {container} = render(component)
+        fileContainer = container
         expect(fileContainer).toMatchSnapshot()
     })
 
@@ -122,18 +120,16 @@ describe('component/content/FileBlock', () => {
             size: 165002,
         })
 
-        const component = wrapIntl(() =>
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <AttachmentElement
                     block={defaultBlock}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
         let fileContainer: Element | undefined
-        await act(async () => {
-            const {container} = render(() => component)
-            fileContainer = container
-        })
+        const {container} = render(component)
+        fileContainer = container
         expect(fileContainer).toMatchSnapshot()
     })
 })

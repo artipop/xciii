@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Provider as ReduxProvider} from 'react-redux'
 
 import {render, waitFor} from '@solidjs/testing-library'
 
-import configureStore from 'redux-mock-store'
 
 import {act} from 'react-dom/test-utils'
 
 import userEvent from '@testing-library/user-event'
 
-import {wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import {IPropertyTemplate, Board} from '../../blocks/board'
 import {Card} from '../../blocks/card'
 
@@ -19,7 +18,6 @@ import MultiPersonProperty from './property'
 import MultiPerson from './multiperson'
 
 describe('properties/multiperson', () => {
-    const mockStore = configureStore([])
 
     const state = {
         users: {
@@ -62,9 +60,9 @@ describe('properties/multiperson', () => {
     }
 
     test('not readonly not existing user', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <MultiPerson
                     property={new MultiPersonProperty()}
                     propertyValue={['user-id-4']}
@@ -79,7 +77,7 @@ describe('properties/multiperson', () => {
                     board={{} as Board}
                     card={{} as Card}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         const renderResult = render(component)
@@ -93,9 +91,9 @@ describe('properties/multiperson', () => {
     })
 
     test('not readonly', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <MultiPerson
                     property={new MultiPersonProperty()}
                     propertyValue={['user-id-1', 'user-id-2']}
@@ -110,7 +108,7 @@ describe('properties/multiperson', () => {
                     board={{} as Board}
                     card={{} as Card}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         const renderResult = render(component)
@@ -124,9 +122,9 @@ describe('properties/multiperson', () => {
     })
 
     test('readonly view', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <MultiPerson
                     property={new MultiPersonProperty()}
                     propertyValue={['user-id-1', 'user-id-2']}
@@ -141,7 +139,7 @@ describe('properties/multiperson', () => {
                     board={{} as Board}
                     card={{} as Card}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         const renderResult = render(component)
@@ -155,9 +153,9 @@ describe('properties/multiperson', () => {
     })
 
     test('user dropdown open', async () => {
-        const store = mockStore(state)
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <MultiPerson
                     property={new MultiPersonProperty()}
                     propertyValue={['user-id-1', 'user-id-2']}
@@ -172,7 +170,7 @@ describe('properties/multiperson', () => {
                     board={{} as Board}
                     card={{} as Card}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         const renderResult = render(component)
@@ -189,9 +187,7 @@ describe('properties/multiperson', () => {
             const userProperty = container.querySelector(".MultiPerson input[role='combobox']")
             expect(userProperty).not.toBeNull()
 
-            act(() => {
-                userEvent.click(userProperty as Element)
-            })
+            userEvent.click(userProperty as Element)
             expect(container).toMatchSnapshot()
         } else {
             throw new Error('container should have been initialized')

@@ -7,7 +7,6 @@ exports[`properties/number should match snapshot for number with empty value 1`]
     placeholder=""
     style="width: 100%;"
     title=""
-    value=""
   />
 </div>
 `;

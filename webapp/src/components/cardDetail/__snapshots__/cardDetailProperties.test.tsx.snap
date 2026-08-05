@@ -20,11 +20,14 @@ exports[`components/cardDetail/CardDetailProperties cancel on delete dialog shou
             class="Button"
             type="button"
           >
+            
             <span>
               Owner
             </span>
+            
           </button>
         </div>
+        
       </div>
       <div
         class="octo-propertyvalue"
@@ -57,20 +60,23 @@ exports[`components/cardDetail/CardDetailProperties cancel on delete dialog shou
             class="Button"
             type="button"
           >
+            
             <span>
               MockStatus
             </span>
+            
           </button>
         </div>
+        
       </div>
       <input
         class="Editable octo-propertyvalue"
         placeholder="Empty"
         style="width: 100%;"
         title="1234"
-        value="1234"
       />
     </div>
+    
     <div
       class="octo-propertyname add-property"
     >
@@ -83,11 +89,15 @@ exports[`components/cardDetail/CardDetailProperties cancel on delete dialog shou
           class="Button"
           type="button"
         >
+          
           <span>
             + Add a property
           </span>
+          
         </button>
+        
       </div>
+      
     </div>
   </div>
 </div>
@@ -113,11 +123,14 @@ exports[`components/cardDetail/CardDetailProperties should match snapshot 1`] = 
             class="Button"
             type="button"
           >
+            
             <span>
               Owner
             </span>
+            
           </button>
         </div>
+        
       </div>
       <div
         class="octo-propertyvalue"
@@ -150,20 +163,23 @@ exports[`components/cardDetail/CardDetailProperties should match snapshot 1`] = 
             class="Button"
             type="button"
           >
+            
             <span>
               MockStatus
             </span>
+            
           </button>
         </div>
+        
       </div>
       <input
         class="Editable octo-propertyvalue"
         placeholder="Empty"
         style="width: 100%;"
         title="1234"
-        value="1234"
       />
     </div>
+    
     <div
       class="octo-propertyname add-property"
     >
@@ -176,11 +192,15 @@ exports[`components/cardDetail/CardDetailProperties should match snapshot 1`] = 
           class="Button"
           type="button"
         >
+          
           <span>
             + Add a property
           </span>
+          
         </button>
+        
       </div>
+      
     </div>
   </div>
 </div>
@@ -206,11 +226,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
             class="Button"
             type="button"
           >
+            
             <span>
               Owner
             </span>
+            
           </button>
         </div>
+        
       </div>
       <div
         class="octo-propertyvalue"
@@ -243,20 +266,23 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
             class="Button"
             type="button"
           >
+            
             <span>
               MockStatus
             </span>
+            
           </button>
         </div>
+        
       </div>
       <input
         class="Editable octo-propertyvalue"
         placeholder="Empty"
         style="width: 100%;"
         title="1234"
-        value="1234"
       />
     </div>
+    
     <div
       class="octo-propertyname add-property"
     >
@@ -269,9 +295,11 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
           class="Button"
           type="button"
         >
+          
           <span>
             + Add a property
           </span>
+          
         </button>
         <div
           class="Menu noselect bottom "
@@ -300,9 +328,13 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   class="MenuOption MenuSeparator menu-separator"
                 />
+              </div>
+              <div>
                 <div
                   aria-label="Text"
                   class="MenuOption TextOption menu-option"
@@ -323,11 +355,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Text
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Number"
                   class="MenuOption TextOption menu-option"
@@ -348,11 +383,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Number
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Email"
                   class="MenuOption TextOption menu-option"
@@ -373,11 +411,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Email
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Phone"
                   class="MenuOption TextOption menu-option"
@@ -398,11 +439,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Phone
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="URL"
                   class="MenuOption TextOption menu-option"
@@ -423,11 +467,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       URL
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Select"
                   class="MenuOption TextOption menu-option"
@@ -448,11 +495,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Select
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Multi select"
                   class="MenuOption TextOption menu-option"
@@ -473,11 +523,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Multi select
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Date"
                   class="MenuOption TextOption menu-option"
@@ -498,11 +551,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Date
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Person"
                   class="MenuOption TextOption menu-option"
@@ -523,11 +579,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Person
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Multi person"
                   class="MenuOption TextOption menu-option"
@@ -548,11 +607,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Multi person
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Checkbox"
                   class="MenuOption TextOption menu-option"
@@ -573,11 +635,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Checkbox
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Created time"
                   class="MenuOption TextOption menu-option"
@@ -598,11 +663,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Created time
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Created by"
                   class="MenuOption TextOption menu-option"
@@ -623,11 +691,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Created by
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Last updated time"
                   class="MenuOption TextOption menu-option"
@@ -648,11 +719,14 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Last updated time
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Last updated by"
                   class="MenuOption TextOption menu-option"
@@ -673,6 +747,7 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                     >
                       Last updated by
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -706,6 +781,7 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -715,6 +791,7 @@ exports[`components/cardDetail/CardDetailProperties should show property types m
           </div>
         </div>
       </div>
+      
     </div>
   </div>
 </div>

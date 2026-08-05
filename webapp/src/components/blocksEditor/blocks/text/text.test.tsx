@@ -39,7 +39,7 @@ describe('components/blocksEditor/blocks/text', () => {
 
     test('should match Display snapshot', async () => {
         const Component = TextBlock.Display
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Component
                     onChange={jest.fn()}
@@ -54,7 +54,7 @@ describe('components/blocksEditor/blocks/text', () => {
 
     test('should match Input snapshot', async () => {
         const Component = TextBlock.Input
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Component
                     onChange={jest.fn()}

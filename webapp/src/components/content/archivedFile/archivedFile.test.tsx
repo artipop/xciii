@@ -17,8 +17,7 @@ describe('components/content/archivedFile', () => {
             size: 2056,
         }
 
-        const component = (<ArchivedFile fileInfo={fileInfo}/>)
-        const {container} = render(() => component)
+        const {container} = render(() => <ArchivedFile fileInfo={fileInfo}/>)
         expect(container).toMatchSnapshot()
     })
 })

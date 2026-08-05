@@ -31,7 +31,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         console.error = jest.fn()
     })
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <KanbanHiddenColumnItem
                 activeView={activeView}
                 group={{
@@ -46,7 +46,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot readonly', () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <KanbanHiddenColumnItem
                 activeView={activeView}
                 group={{
@@ -61,7 +61,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         expect(container).toMatchSnapshot()
     })
     test('return kanbanHiddenColumnItem and click menuwrapper', () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <KanbanHiddenColumnItem
                 activeView={activeView}
                 group={{
@@ -79,7 +79,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         expect(container).toMatchSnapshot()
     })
     test('return kanbanHiddenColumnItem, click menuwrapper and click show', () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <KanbanHiddenColumnItem
                 activeView={activeView}
                 group={{
@@ -104,7 +104,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         card.limited = true
         card2.limited = true
         option.id = 'hidden-card-group-id'
-        const {container, getByTitle} = render(wrapDNDIntl(() =>
+        const {container, getByTitle} = render(() => wrapDNDIntl(() =>
             <KanbanHiddenColumnItem
                 activeView={activeView}
                 group={{

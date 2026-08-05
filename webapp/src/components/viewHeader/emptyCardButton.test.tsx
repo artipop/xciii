@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {render, screen} from '@solidjs/testing-library'
-import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
@@ -40,32 +40,32 @@ describe('components/viewHeader/emptyCardButton', () => {
         },
     }
 
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     const mockFunction = jest.fn()
 
     beforeEach(() => {
         jest.clearAllMocks()
     })
     test('return EmptyCardButton', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <EmptyCardButton
                         addCard={mockFunction}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
     })
     test('return EmptyCardButton and addCard', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <EmptyCardButton
                         addCard={mockFunction}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
@@ -74,13 +74,13 @@ describe('components/viewHeader/emptyCardButton', () => {
         expect(mockFunction).toHaveBeenCalledTimes(1)
     })
     test('return EmptyCardButton and Set Template', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <EmptyCardButton
                         addCard={mockFunction}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})

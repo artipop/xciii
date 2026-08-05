@@ -15,7 +15,7 @@ describe('components/calculations/Options', () => {
             type: 'number',
         } as IPropertyTemplate
 
-        const component = wrapIntl(() =>
+        const component = () => wrapIntl(() =>
             <CalculationOptions
                 value={'none'}
                 onChange={() => {}}
@@ -29,7 +29,7 @@ describe('components/calculations/Options', () => {
             />,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -38,7 +38,7 @@ describe('components/calculations/Options', () => {
             type: 'number',
         } as IPropertyTemplate
 
-        const component = wrapIntl(() =>
+        const component = () => wrapIntl(() =>
             <CalculationOptions
                 value={'none'}
                 menuOpen={true}
@@ -59,7 +59,7 @@ describe('components/calculations/Options', () => {
             />,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 })

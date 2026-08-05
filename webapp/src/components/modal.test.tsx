@@ -11,7 +11,7 @@ describe('components/modal', () => {
     beforeAll(mockDOM)
     beforeEach(jest.clearAllMocks)
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <Modal
                 onClose={jest.fn()}
             >
@@ -22,7 +22,7 @@ describe('components/modal', () => {
     })
     test('return Modal and close', () => {
         const onMockedClose = jest.fn()
-        render(wrapDNDIntl(() =>
+        render(() => wrapDNDIntl(() =>
             <Modal
                 onClose={onMockedClose}
             >
@@ -34,7 +34,7 @@ describe('components/modal', () => {
         expect(onMockedClose).toHaveBeenCalledTimes(1)
     })
     test('return Modal on position top', () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <Modal
                 position={'top'}
                 onClose={jest.fn()}
@@ -46,7 +46,7 @@ describe('components/modal', () => {
     })
 
     test('return Modal on position bottom', () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <Modal
                 position={'bottom'}
                 onClose={jest.fn()}
@@ -58,7 +58,7 @@ describe('components/modal', () => {
     })
 
     test('return Modal on position bottom-right', () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <Modal
                 position={'bottom-right'}
                 onClose={jest.fn()}

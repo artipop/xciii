@@ -4,10 +4,10 @@ import {fireEvent, render, screen, within} from '@solidjs/testing-library'
 import {createIntl} from '../../intl'
 import userEvent from '@testing-library/user-event'
 import {mocked} from 'jest-mock'
-import {Provider as ReduxProvider} from 'react-redux'
 
 import Mutator from '../../mutator'
-import {wrapDNDIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {IPropertyOption} from '../../blocks/board'
 
@@ -46,14 +46,14 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
             },
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     beforeAll(() => {
         console.error = jest.fn()
     })
     beforeEach(jest.resetAllMocks)
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
                     activeView={activeView}
@@ -70,13 +70,13 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     onCalculationMenuOpen={jest.fn()}
                     onCalculationMenuClose={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot readonly', () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
                     activeView={activeView}
@@ -93,14 +93,14 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     onCalculationMenuOpen={jest.fn()}
                     onCalculationMenuClose={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
     test('return kanbanColumnHeader and edit title', () => {
         const mockedPropertyNameChanged = jest.fn()
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
                     activeView={activeView}
@@ -117,7 +117,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     onCalculationMenuOpen={jest.fn()}
                     onCalculationMenuClose={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const inputTitle = screen.getByRole('textbox', {name: option.value})
         expect(inputTitle).toBeDefined()
@@ -128,8 +128,8 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(container).toMatchSnapshot()
     })
     test('return kanbanColumnHeader and click on menuwrapper', () => {
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
                     activeView={activeView}
@@ -146,7 +146,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     onCalculationMenuOpen={jest.fn()}
                     onCalculationMenuClose={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(buttonMenuWrapper).toBeDefined()
@@ -154,8 +154,8 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(container).toMatchSnapshot()
     })
     test('return kanbanColumnHeader, click on menuwrapper and click on hide menu', () => {
-        render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
                     activeView={activeView}
@@ -172,7 +172,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     onCalculationMenuOpen={jest.fn()}
                     onCalculationMenuClose={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(buttonMenuWrapper).toBeDefined()
@@ -183,8 +183,8 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(mockedMutator.hideViewColumn).toHaveBeenCalledTimes(1)
     })
     test('return kanbanColumnHeader, click on menuwrapper and click on delete menu', () => {
-        render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
                     activeView={activeView}
@@ -201,7 +201,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     onCalculationMenuOpen={jest.fn()}
                     onCalculationMenuClose={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(buttonMenuWrapper).toBeDefined()
@@ -212,8 +212,8 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(mockedMutator.deletePropertyOption).toHaveBeenCalledTimes(1)
     })
     test('return kanbanColumnHeader, click on menuwrapper and click on blue color menu', () => {
-        render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
                     activeView={activeView}
@@ -230,7 +230,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     onCalculationMenuOpen={jest.fn()}
                     onCalculationMenuClose={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(buttonMenuWrapper).toBeDefined()
@@ -243,8 +243,8 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
 
     test('return kanbanColumnHeader and click to add card', () => {
         const mockedAddCard = jest.fn()
-        const {container} = render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
                     activeView={activeView}
@@ -261,7 +261,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     onCalculationMenuOpen={jest.fn()}
                     onCalculationMenuClose={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonAddCard = container.querySelector('.AddIcon')?.parentElement
         expect(buttonAddCard).toBeDefined()
@@ -270,8 +270,8 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
     })
     test('return kanbanColumnHeader and click KanbanCalculationMenu', () => {
         const mockedCalculationMenuOpen = jest.fn()
-        render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
                     activeView={activeView}
@@ -288,7 +288,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     onCalculationMenuOpen={mockedCalculationMenuOpen}
                     onCalculationMenuClose={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonKanbanCalculation = screen.getByText(/0/i).parentElement
         expect(buttonKanbanCalculation).toBeDefined()
@@ -296,8 +296,8 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(mockedCalculationMenuOpen).toHaveBeenCalledTimes(1)
     })
     test('return kanbanColumnHeader and click count on KanbanCalculationMenu', () => {
-        render(wrapDNDIntl(() =>
-            <ReduxProvider store={store}>
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanColumnHeader
                     board={board}
                     activeView={activeView}
@@ -314,7 +314,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     onCalculationMenuOpen={jest.fn()}
                     onCalculationMenuClose={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const menuCountEmpty = screen.getByText('Count')
         expect(menuCountEmpty).toBeDefined()

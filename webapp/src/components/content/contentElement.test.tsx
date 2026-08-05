@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {ReactElement, ReactNode} from 'react'
+import type {JSX} from 'solid-js'
 
 import '@testing-library/jest-dom'
 
@@ -33,17 +33,17 @@ const contentBlock: ContentBlock = {
     limited: false,
 }
 
-const wrap = (child: ReactNode): ReactElement => (
+const wrap = (child: () => JSX.Element): JSX.Element => (
     wrapIntl(() =>
         <CardDetailProvider card={card}>
-            {child}
+            {child()}
         </CardDetailProvider>,
     )
 )
 
 describe('components/content/contentElement', () => {
     it('should match snapshot for checkbox type', () => {
-        const {container} = render(wrap(
+        const {container} = render(() => wrap(() =>
             <ContentElement
                 block={contentBlock}
                 readonly={false}
@@ -55,7 +55,7 @@ describe('components/content/contentElement', () => {
 
     it('should return null for unknown type', () => {
         const block: ContentBlock = {...contentBlock, type: 'unknown'}
-        const {container} = render(wrap(
+        const {container} = render(() => wrap(() =>
             <ContentElement
                 block={block}
                 readonly={false}

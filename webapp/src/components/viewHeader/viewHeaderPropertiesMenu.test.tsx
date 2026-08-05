@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {render, screen} from '@solidjs/testing-library'
-import {Provider as ReduxProvider} from 'react-redux'
 
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
@@ -14,7 +13,8 @@ import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import mutator from '../../mutator'
 
-import {mockStateStore, wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {Constants} from '../../constants'
 
@@ -34,20 +34,20 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
                 username: 'username_1'},
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     beforeEach(() => {
         jest.clearAllMocks()
         activeView = TestBlockFactory.createBoardView(board)
     })
     test('return properties menu', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderPropertiesMenu
                         activeView={activeView}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'Properties menu'})
@@ -56,14 +56,14 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
     })
     test('return properties menu with gallery typeview', () => {
         activeView.fields.viewType = 'gallery'
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderPropertiesMenu
                         activeView={activeView}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'Properties menu'})
@@ -71,14 +71,14 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
         expect(container).toMatchSnapshot()
     })
     test('show menu and verify the call for showing card badges', () => {
-        render(
+        render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderPropertiesMenu
                         activeView={activeView}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const menuButton = screen.getByRole('button', {name: 'Properties menu'})
@@ -93,14 +93,14 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
         )
     })
     test('show menu and verify that it is not closed after clicking on the item', () => {
-        render(
+        render(() =>
             wrapIntl(() =>
-                <ReduxProvider store={store}>
+                <AppStoreProvider store={store}>
                     <ViewHeaderPropertiesMenu
                         activeView={activeView}
                         properties={board.cardProperties}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const menuButton = screen.getByRole('button', {name: 'Properties menu'})

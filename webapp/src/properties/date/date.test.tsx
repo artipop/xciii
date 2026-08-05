@@ -42,7 +42,7 @@ describe('properties/dateRange', () => {
     })
 
     test('returns default correctly', () => {
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <DateProp
                 property={new DateProperty()}
                 propertyValue=''
@@ -80,7 +80,7 @@ describe('properties/dateRange', () => {
     })
 
     test('handles calendar click event', () => {
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <DateProp
                 property={new DateProperty()}
                 propertyValue=''
@@ -108,7 +108,7 @@ describe('properties/dateRange', () => {
     })
 
     test('handles setting range', () => {
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <DateProp
                 property={new DateProperty()}
                 propertyValue={''}
@@ -146,7 +146,7 @@ describe('properties/dateRange', () => {
     })
 
     test('handle clear', () => {
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <DateProp
                 property={new DateProperty()}
                 propertyValue={June15Local.getTime().toString()}
@@ -174,7 +174,7 @@ describe('properties/dateRange', () => {
     })
 
     test('set via text input', () => {
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <DateProp
                 property={new DateProperty()}
                 propertyValue={'{"from": ' + June15.getTime().toString() + ',"to": ' + June20.getTime().toString() + '}'}
@@ -251,7 +251,7 @@ describe('properties/dateRange', () => {
     })
 
     test('cancel set via text input', () => {
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <DateProp
                 property={new DateProperty()}
                 propertyValue={'{"from": ' + June15.getTime().toString() + ',"to": ' + June20.getTime().toString() + '}'}
@@ -284,7 +284,7 @@ describe('properties/dateRange', () => {
     })
 
     test('handles `Today` button click event', () => {
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <DateProp
                 property={new DateProperty()}
                 propertyValue={''}
@@ -316,7 +316,7 @@ describe('properties/dateRange', () => {
     })
 
     test('returns component with new date after prop change', () => {
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <DateProp
                 property={new DateProperty()}
                 propertyValue=''
@@ -328,10 +328,13 @@ describe('properties/dateRange', () => {
             />,
         )
 
-        const {container, rerender} = render(component)
+        const first = render(component)
+        first.unmount()
 
-        rerender(
-            wrapIntl(
+        // a fresh render stands in for the rerender @solidjs/testing-library
+        // does not have
+        const {container} = render(() =>
+            wrapIntl(() =>
                 <DateProp
                     property={new DateProperty()}
                     propertyValue={'{"from": ' + June15.getTime().toString() + '}'}

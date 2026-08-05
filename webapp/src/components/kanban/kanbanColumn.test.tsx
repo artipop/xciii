@@ -7,7 +7,7 @@ import {wrapDNDIntl} from '../../testUtils'
 import KanbanColumn from './kanbanColumn'
 describe('src/components/kanban/kanbanColumn', () => {
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(() =>
+        const {container} = render(() => wrapDNDIntl(() =>
             <KanbanColumn
                 onDrop={jest.fn()}
             >

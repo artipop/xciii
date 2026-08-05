@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import type {JSX} from 'solid-js'
 
-import {Provider as ReduxProvider} from 'react-redux'
 import {render} from '@solidjs/testing-library'
-import configureStore from 'redux-mock-store'
 
 import '@testing-library/jest-dom'
-import {wrapDNDIntl} from '../../testUtils'
+import {mockAppStore, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import 'isomorphic-fetch'
 
@@ -41,18 +41,16 @@ describe('components/table/TableRow', () => {
         },
     }
 
-    const mockStore = configureStore([])
-
-    const Wrapper: React.FC<React.PropsWithChildren> = ({children}) => {
-        const store = mockStore(state)
+    const Wrapper = (props: {children?: JSX.Element}) => {
+        const store = mockAppStore(state)
         return wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
                 onResizeColumn={jest.fn()}
             >
-                <ReduxProvider store={store}>
-                    {children}
-                </ReduxProvider>
+                <AppStoreProvider store={store}>
+                    {props.children}
+                </AppStoreProvider>
             </ColumnResizeProvider>,
         )
     }

@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import '@testing-library/jest-dom'
-import {act, render, screen, fireEvent} from '@solidjs/testing-library'
+import {render, screen, fireEvent} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
-import {Provider as ReduxProvider} from 'react-redux'
 import {mocked} from 'jest-mock'
 
 import mutator from '../mutator'
 import {Utils} from '../utils'
 import {TestBlockFactory} from '../test/testBlockFactory'
-import {mockDOM, mockStateStore, wrapIntl} from '../testUtils'
+import {mockAppStore, mockDOM, wrapIntl} from '../testUtils'
+import {AppStoreProvider} from '../store'
 
 import ViewTitle from './viewTitle'
 
@@ -55,58 +55,46 @@ describe('components/viewTitle', () => {
             value: {},
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
 
     beforeEach(() => {
         jest.clearAllMocks()
     })
 
     test('should match snapshot', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapIntl(() =>
-                <ReduxProvider store={store}>
-                    <ViewTitle
-                        board={board}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <ViewTitle
+                    board={board}
+                    readonly={false}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot readonly', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapIntl(() =>
-                <ReduxProvider store={store}>
-                    <ViewTitle
-                        board={board}
-                        readonly={true}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <ViewTitle
+                    board={board}
+                    readonly={true}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 
     test('show description', async () => {
         board.showDescription = true
-        let container
-        await act(async () => {
-            const result = render(wrapIntl(() =>
-                <ReduxProvider store={store}>
-                    <ViewTitle
-                        board={board}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <ViewTitle
+                    board={board}
+                    readonly={false}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
         const hideDescriptionButton = screen.getAllByRole('button')[0]
         userEvent.click(hideDescriptionButton)
@@ -115,18 +103,14 @@ describe('components/viewTitle', () => {
 
     test('hide description', async () => {
         board.showDescription = false
-        let container
-        await act(async () => {
-            const result = render(wrapIntl(() =>
-                <ReduxProvider store={store}>
-                    <ViewTitle
-                        board={board}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <ViewTitle
+                    board={board}
+                    readonly={false}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
         const showDescriptionButton = screen.getAllByRole('button')[0]
         userEvent.click(showDescriptionButton)
@@ -135,18 +119,14 @@ describe('components/viewTitle', () => {
 
     test('add random icon', async () => {
         board.icon = ''
-        let container
-        await act(async () => {
-            const result = render(wrapIntl(() =>
-                <ReduxProvider store={store}>
-                    <ViewTitle
-                        board={board}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <ViewTitle
+                    board={board}
+                    readonly={false}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
         const randomIconButton = screen.getAllByRole('button')[0]
         userEvent.click(randomIconButton)
@@ -154,16 +134,14 @@ describe('components/viewTitle', () => {
     })
 
     test('change title', async () => {
-        await act(async () => {
-            render(wrapIntl(() =>
-                <ReduxProvider store={store}>
-                    <ViewTitle
-                        board={board}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
-            ))
-        })
+        render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <ViewTitle
+                    board={board}
+                    readonly={false}
+                />
+            </AppStoreProvider>,
+        ))
         const titleInput = screen.getAllByRole('textbox')[0]
         userEvent.type(titleInput, 'other title')
         fireEvent.blur(titleInput)

@@ -49,7 +49,7 @@ describe('components/viewHeader/dateFilter', () => {
     })
 
     test('return dateFilter default value', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
                 <DateFilter
                     view={activeView}
@@ -61,7 +61,7 @@ describe('components/viewHeader/dateFilter', () => {
     })
 
     test('return dateFilter invalid value', () => {
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
                 <DateFilter
                     view={activeView}
@@ -78,7 +78,7 @@ describe('components/viewHeader/dateFilter', () => {
 
     test('return dateFilter valid value', () => {
         const june15 = June15.getTime().toString()
-        const {container} = render(
+        const {container} = render(() =>
             wrapIntl(() =>
                 <DateFilter
                     view={activeView}
@@ -99,7 +99,7 @@ describe('components/viewHeader/dateFilter', () => {
         activeView.fields.filter = createFilterGroup()
         activeView.fields.filter.filters = [todayFilterClause]
 
-        const component = (
+        const component = () => (
             <IntlProvider locale='es'>
                 <DateFilter
                     view={activeView}
@@ -108,7 +108,7 @@ describe('components/viewHeader/dateFilter', () => {
             </IntlProvider>
         )
 
-        const {container, getByText} = render(() => component)
+        const {container, getByText} = render(component)
         const input = getByText('15 de junio')
         expect(input).not.toBeNull()
         expect(container).toMatchSnapshot()
@@ -126,7 +126,7 @@ describe('components/viewHeader/dateFilter', () => {
                 />,
             )
         expect(component).toMatchSnapshot()
-        const {getByText, getByTitle} = render(() => component)
+        const {getByText, getByTitle} = render(component)
 
         const dayDisplay = getByText('Empty')
         userEvent.click(dayDisplay)
@@ -158,7 +158,7 @@ describe('components/viewHeader/dateFilter', () => {
                     filter={todayFilterClause}
                 />,
             )
-        const {container, getByText, getByTitle} = render(() => component)
+        const {container, getByText, getByTitle} = render(component)
         expect(container).toMatchSnapshot()
 
         // open modal
@@ -188,7 +188,7 @@ describe('components/viewHeader/dateFilter', () => {
                 />,
             )
 
-        const {container, getByText, getByTitle, getByPlaceholderText} = render(() => component)
+        const {container, getByText, getByTitle, getByPlaceholderText} = render(component)
         expect(container).toMatchSnapshot()
 
         // open modal
@@ -219,7 +219,7 @@ describe('components/viewHeader/dateFilter', () => {
 
         console.log('handle today')
 
-        const {container, getByText, getByTitle} = render(() => component)
+        const {container, getByText, getByTitle} = render(component)
         expect(container).toMatchSnapshot()
 
         // To see if 'Today' button correctly selects today's date,

@@ -21,7 +21,7 @@ describe('components/table/TableHeaderMenu', () => {
 
     test('should match snapshot, title column', async () => {
         const onAutoSizeColumn = jest.fn()
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
                 onResizeColumn={jest.fn()}
@@ -41,7 +41,7 @@ describe('components/table/TableHeaderMenu', () => {
             </ColumnResizeProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 })

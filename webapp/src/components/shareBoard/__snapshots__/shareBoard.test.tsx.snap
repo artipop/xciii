@@ -24,10 +24,13 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
             >
               Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -64,22 +67,25 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
                     Search for people and channels
                   </div>
                   <input
-                    aria-controls="_r_2_"
+                    aria-controls="cl-2"
                     aria-expanded="false"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
+              
             </div>
           </div>
         </div>
@@ -89,6 +95,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -114,9 +121,12 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
         </div>
         <div
           class="tabs-container"
@@ -163,11 +173,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
             >
               <a
                 class="shareUrl"
-                href="http://localhost/1/1"
+                href="http://localhost/undefined"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/1/1
+                http://localhost/undefined
               </a>
             </div>
             <button
@@ -180,6 +190,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
               <span>
                 Copy link
               </span>
+              
             </button>
           </div>
         </div>
@@ -213,10 +224,13 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
             >
               Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -253,22 +267,25 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
                     Search for people and channels
                   </div>
                   <input
-                    aria-controls="_r_2_"
+                    aria-controls="cl-2"
                     aria-expanded="false"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
+              
             </div>
           </div>
         </div>
@@ -278,6 +295,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -303,9 +321,12 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
         </div>
         <div
           class="tabs-container"
@@ -352,11 +373,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
             >
               <a
                 class="shareUrl"
-                href="http://localhost/1/1"
+                href="http://localhost/undefined"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/1/1
+                http://localhost/undefined
               </a>
             </div>
             <button
@@ -369,6 +390,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Copy l
               <span>
                 Copied!
               </span>
+              
             </button>
           </div>
         </div>
@@ -614,10 +636,13 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -654,22 +679,25 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
                     Search for people and channels
                   </div>
                   <input
-                    aria-controls="_r_7_"
+                    aria-controls="cl-7"
                     aria-expanded="false"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
+              
             </div>
           </div>
         </div>
@@ -679,6 +707,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -704,9 +733,12 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
         </div>
         <div
           class="tabs-content"
@@ -739,11 +771,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               <a
                 class="shareUrl"
-                href="http://localhost/1/1"
+                href="http://localhost/undefined"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/1/1
+                http://localhost/undefined
               </a>
             </div>
             <button
@@ -756,6 +788,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
               <span>
                 Copy link
               </span>
+              
             </button>
           </div>
         </div>
@@ -789,10 +822,13 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -829,124 +865,36 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
                     Search for people and channels
                   </div>
                   <input
-                    aria-activedescendant="_r_7_-option-0"
-                    aria-controls="_r_7_"
+                    aria-controls="cl-7"
                     aria-expanded="true"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
               <div
-                class="Combobox__menu userSearchInput__menu is-positioned"
-                style="min-width: 0px; max-height: -16px; transform: translate(8px, 4px);"
+                class="Combobox__menu userSearchInput__menu "
               >
                 <div
                   class="userSearchInput__menu-list"
-                  id="_r_7_"
+                  id="cl-7"
                   role="listbox"
                 >
                   <div
-                    aria-selected="false"
-                    class="userSearchInput__option userSearchInput__option--is-focused"
-                    id="_r_7_-option-0"
-                    role="option"
-                  >
-                    <div
-                      class="user-item"
-                    >
-                      <div
-                        class="ml-3"
-                      >
-                        <strong>
-                          username_1
-                        </strong>
-                        <strong
-                          class="ml-2 text-light"
-                        >
-                          @username_1
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    aria-selected="false"
-                    class="userSearchInput__option"
-                    id="_r_7_-option-1"
-                    role="option"
-                  >
-                    <div
-                      class="user-item"
-                    >
-                      <div
-                        class="ml-3"
-                      >
-                        <strong>
-                          username_2
-                        </strong>
-                        <strong
-                          class="ml-2 text-light"
-                        >
-                          @username_2
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    aria-selected="false"
-                    class="userSearchInput__option"
-                    id="_r_7_-option-2"
-                    role="option"
-                  >
-                    <div
-                      class="user-item"
-                    >
-                      <div
-                        class="ml-3"
-                      >
-                        <strong>
-                          username_3
-                        </strong>
-                        <strong
-                          class="ml-2 text-light"
-                        >
-                          @username_3
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    aria-selected="false"
-                    class="userSearchInput__option"
-                    id="_r_7_-option-3"
-                    role="option"
-                  >
-                    <div
-                      class="user-item"
-                    >
-                      <div
-                        class="ml-3"
-                      >
-                        <strong>
-                          username_4
-                        </strong>
-                        <strong
-                          class="ml-2 text-light"
-                        >
-                          @username_4
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
+                    class="userSearchInput__no-options"
+                  />
+                  
                 </div>
               </div>
             </div>
@@ -958,6 +906,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -983,9 +932,12 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
         </div>
         <div
           class="tabs-content"
@@ -1018,11 +970,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               <a
                 class="shareUrl"
-                href="http://localhost/1/1"
+                href="http://localhost/undefined"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/1/1
+                http://localhost/undefined
               </a>
             </div>
             <button
@@ -1035,6 +987,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
               <span>
                 Copy link
               </span>
+              
             </button>
           </div>
         </div>
@@ -1068,10 +1021,13 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -1108,22 +1064,25 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
                     Search for people and channels
                   </div>
                   <input
-                    aria-controls="_r_8_"
+                    aria-controls="cl-8"
                     aria-expanded="false"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
+              
             </div>
           </div>
         </div>
@@ -1133,6 +1092,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -1158,9 +1118,12 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
         </div>
         <div
           class="tabs-content"
@@ -1193,11 +1156,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               <a
                 class="shareUrl"
-                href="http://localhost/1/1"
+                href="http://localhost/undefined"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/1/1
+                http://localhost/undefined
               </a>
             </div>
             <button
@@ -1210,6 +1173,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
               <span>
                 Copy link
               </span>
+              
             </button>
           </div>
         </div>
@@ -1243,10 +1207,13 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -1283,142 +1250,36 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
                     Search for people and channels
                   </div>
                   <input
-                    aria-activedescendant="_r_8_-option-0"
-                    aria-controls="_r_8_"
+                    aria-controls="cl-8"
                     aria-expanded="true"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
               <div
-                class="Combobox__menu userSearchInput__menu is-positioned"
-                style="min-width: 0px; max-height: -16px; transform: translate(8px, 4px);"
+                class="Combobox__menu userSearchInput__menu "
               >
                 <div
                   class="userSearchInput__menu-list"
-                  id="_r_8_"
+                  id="cl-8"
                   role="listbox"
                 >
                   <div
-                    aria-selected="false"
-                    class="userSearchInput__option userSearchInput__option--is-focused"
-                    id="_r_8_-option-0"
-                    role="option"
-                  >
-                    <div
-                      class="user-item"
-                    >
-                      <div
-                        class="ml-3"
-                      >
-                        <strong>
-                          username_1
-                        </strong>
-                        <strong
-                          class="ml-2 text-light"
-                        >
-                          @username_1
-                        </strong>
-                        <div
-                          class="AdminBadge"
-                        >
-                          <div
-                            class="AdminBadge__box"
-                          >
-                            Team Admin
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    aria-selected="false"
-                    class="userSearchInput__option"
-                    id="_r_8_-option-1"
-                    role="option"
-                  >
-                    <div
-                      class="user-item"
-                    >
-                      <div
-                        class="ml-3"
-                      >
-                        <strong>
-                          username_2
-                        </strong>
-                        <strong
-                          class="ml-2 text-light"
-                        >
-                          @username_2
-                        </strong>
-                        <div
-                          class="AdminBadge"
-                        >
-                          <div
-                            class="AdminBadge__box"
-                          >
-                            Admin
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    aria-selected="false"
-                    class="userSearchInput__option"
-                    id="_r_8_-option-2"
-                    role="option"
-                  >
-                    <div
-                      class="user-item"
-                    >
-                      <div
-                        class="ml-3"
-                      >
-                        <strong>
-                          username_3
-                        </strong>
-                        <strong
-                          class="ml-2 text-light"
-                        >
-                          @username_3
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    aria-selected="false"
-                    class="userSearchInput__option"
-                    id="_r_8_-option-3"
-                    role="option"
-                  >
-                    <div
-                      class="user-item"
-                    >
-                      <div
-                        class="ml-3"
-                      >
-                        <strong>
-                          username_4
-                        </strong>
-                        <strong
-                          class="ml-2 text-light"
-                        >
-                          @username_4
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
+                    class="userSearchInput__no-options"
+                  />
+                  
                 </div>
               </div>
             </div>
@@ -1430,6 +1291,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -1455,9 +1317,12 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
         </div>
         <div
           class="tabs-content"
@@ -1490,11 +1355,11 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
             >
               <a
                 class="shareUrl"
-                href="http://localhost/1/1"
+                href="http://localhost/undefined"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/1/1
+                http://localhost/undefined
               </a>
             </div>
             <button
@@ -1507,6 +1372,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Select
               <span>
                 Copy link
               </span>
+              
             </button>
           </div>
         </div>
@@ -1538,12 +1404,15 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
             <h1
               class="dialog-title"
             >
-              Share Template
+              Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -1580,22 +1449,25 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people
+                    Search for people and channels
                   </div>
                   <input
-                    aria-controls="_r_a_"
+                    aria-controls="cl-10"
                     aria-expanded="false"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
+              
             </div>
           </div>
         </div>
@@ -1605,6 +1477,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -1630,8 +1503,63 @@ exports[`src/components/shareBoard/shareBoard return shareBoard template and cli
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
+              </div>
+              
+            </div>
+          </div>
+          
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
               </div>
             </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/undefined"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/undefined
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+              
+            </button>
           </div>
         </div>
       </div>
@@ -2338,10 +2266,13 @@ exports[`src/components/shareBoard/shareBoard should match snapshot 1`] = `
             >
               Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -2378,22 +2309,25 @@ exports[`src/components/shareBoard/shareBoard should match snapshot 1`] = `
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
                     Search for people and channels
                   </div>
                   <input
-                    aria-controls="_r_0_"
+                    aria-controls="cl-0"
                     aria-expanded="false"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
+              
             </div>
           </div>
         </div>
@@ -2403,6 +2337,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot 1`] = `
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -2428,9 +2363,12 @@ exports[`src/components/shareBoard/shareBoard should match snapshot 1`] = `
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
         </div>
         <div
           class="tabs-container"
@@ -2477,11 +2415,11 @@ exports[`src/components/shareBoard/shareBoard should match snapshot 1`] = `
             >
               <a
                 class="shareUrl"
-                href="http://localhost/1/1"
+                href="http://localhost/undefined"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/1/1
+                http://localhost/undefined
               </a>
             </div>
             <button
@@ -2494,6 +2432,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot 1`] = `
               <span>
                 Copy link
               </span>
+              
             </button>
           </div>
         </div>
@@ -2527,10 +2466,13 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
             >
               Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -2567,22 +2509,25 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
                     Search for people and channels
                   </div>
                   <input
-                    aria-controls="_r_1_"
+                    aria-controls="cl-1"
                     aria-expanded="false"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
+              
             </div>
           </div>
         </div>
@@ -2592,6 +2537,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -2617,9 +2563,12 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
         </div>
         <div
           class="tabs-container"
@@ -2666,11 +2615,11 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
             >
               <a
                 class="shareUrl"
-                href="http://localhost/1/1"
+                href="http://localhost/undefined"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/1/1
+                http://localhost/undefined
               </a>
             </div>
             <button
@@ -2683,6 +2632,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
               <span>
                 Copy link
               </span>
+              
             </button>
           </div>
         </div>
@@ -2716,10 +2666,13 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
             >
               Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -2756,22 +2709,25 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
                     Search for people and channels
                   </div>
                   <input
-                    aria-controls="_r_6_"
+                    aria-controls="cl-6"
                     aria-expanded="false"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
+              
             </div>
           </div>
         </div>
@@ -2781,6 +2737,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -2806,9 +2763,12 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
         </div>
         <div
           class="tabs-container"
@@ -2855,11 +2815,11 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
             >
               <a
                 class="shareUrl"
-                href="http://localhost/test-subpath/plugins/boards1/1"
+                href="http://localhost/test-subpath/plugins/boardsundefined"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/test-subpath/plugins/boards1/1
+                http://localhost/test-subpath/plugins/boardsundefined
               </a>
             </div>
             <button
@@ -2872,6 +2832,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
               <span>
                 Copy link
               </span>
+              
             </button>
           </div>
         </div>
@@ -2905,10 +2866,13 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
             >
               Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -2945,22 +2909,25 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
                     Search for people and channels
                   </div>
                   <input
-                    aria-controls="_r_5_"
+                    aria-controls="cl-5"
                     aria-expanded="false"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
+              
             </div>
           </div>
         </div>
@@ -2970,6 +2937,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -2995,9 +2963,12 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
         </div>
         <div
           class="tabs-container"
@@ -3044,11 +3015,11 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
             >
               <a
                 class="shareUrl"
-                href="http://localhost/test-subpath/plugins/boards1/1"
+                href="http://localhost/test-subpath/plugins/boardsundefined"
                 rel="noreferrer"
                 target="_blank"
               >
-                http://localhost/test-subpath/plugins/boards1/1
+                http://localhost/test-subpath/plugins/boardsundefined
               </a>
             </div>
             <button
@@ -3061,6 +3032,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot with sharing
               <span>
                 Copy link
               </span>
+              
             </button>
           </div>
         </div>
@@ -3092,12 +3064,15 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, with templa
             <h1
               class="dialog-title"
             >
-              Share Template
+              Share Board
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -3134,22 +3109,25 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, with templa
                 <div
                   class="userSearchInput__value-container"
                 >
+                  
+                  
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people
+                    Search for people and channels
                   </div>
                   <input
-                    aria-controls="_r_9_"
+                    aria-controls="cl-9"
                     aria-expanded="false"
                     autocomplete="off"
                     class="userSearchInput__input"
                     role="combobox"
                     type="text"
-                    value=""
                   />
                 </div>
+                
               </div>
+              
             </div>
           </div>
         </div>
@@ -3159,6 +3137,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, with templa
           <div
             class="user-item"
           >
+            
             <div
               class="user-item__content"
             >
@@ -3184,8 +3163,77 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, with templa
                     class="CompassIcon icon-chevron-down CompassIcon"
                   />
                 </button>
+                
+              </div>
+              
+            </div>
+          </div>
+          
+        </div>
+        <div
+          class="tabs-container"
+        >
+          <button
+            class="tab-item tab-item--active"
+          >
+            Share
+          </button>
+          <button
+            class="tab-item false"
+          >
+            Publish
+          </button>
+        </div>
+        <div
+          class="tabs-content"
+        >
+          <div>
+            <div
+              class="d-flex justify-content-between"
+            >
+              <div
+                class="d-flex flex-column"
+              >
+                <div
+                  class="text-heading2"
+                >
+                  Share internally
+                </div>
+                <div
+                  class="text-light"
+                >
+                  Users who have permissions will be able to use this link.
+                </div>
               </div>
             </div>
+          </div>
+          <div
+            class="d-flex justify-content-between tabs-inputs"
+          >
+            <div
+              class="d-flex input-container"
+            >
+              <a
+                class="shareUrl"
+                href="http://localhost/undefined"
+                rel="noreferrer"
+                target="_blank"
+              >
+                http://localhost/undefined
+              </a>
+            </div>
+            <button
+              title="Copy link"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-content-copy CompassIcon"
+              />
+              <span>
+                Copy link
+              </span>
+              
+            </button>
           </div>
         </div>
       </div>

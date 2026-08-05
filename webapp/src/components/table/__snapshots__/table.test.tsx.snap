@@ -26,6 +26,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
             >
               Name
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -60,6 +61,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -94,6 +96,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -116,6 +119,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
             >
               Status
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -128,6 +132,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
       <div
         class="table-row-container"
       >
+        
         <div
           class="TableRow octo-table-row"
           style="opacity: 1;"
@@ -161,7 +166,6 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
                 placeholder="Untitled"
                 spellcheck="true"
                 title="card1"
-                value="card1"
               />
             </div>
             <div
@@ -183,6 +187,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
                   />
                 </button>
               </div>
+              
             </div>
             <div
               class="open-button"
@@ -190,9 +195,11 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -252,6 +259,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
               </span>
             </div>
           </div>
+          
         </div>
         <div
           class="TableRow octo-table-row"
@@ -286,7 +294,6 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
                 placeholder="Untitled"
                 spellcheck="true"
                 title="card2"
-                value="card2"
               />
             </div>
             <div
@@ -308,6 +315,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
                   />
                 </button>
               </div>
+              
             </div>
             <div
               class="open-button"
@@ -315,9 +323,11 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -377,6 +387,7 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
               </span>
             </div>
           </div>
+          
         </div>
       </div>
       <div
@@ -393,14 +404,15 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
       >
         <div
           class="Calculation count octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
             Count
           </span>
+          
           <span
             class="calculationValue"
           >
@@ -409,9 +421,9 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -420,12 +432,13 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -434,12 +447,13 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -448,9 +462,11 @@ exports[`components/table/Table extended should have Duplicate Button 1`] = `
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -481,10 +497,12 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
             >
               Name
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -512,10 +530,12 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -543,10 +563,12 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -562,15 +584,18 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
             >
               Status
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
       </div>
       <div
         class="table-row-container"
       >
+        
         <div
           class="TableRow octo-table-row readonly"
           style="opacity: 1;"
@@ -597,18 +622,20 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
                 readonly=""
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
+            
             <div
               class="open-button"
             >
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -668,6 +695,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
               </span>
             </div>
           </div>
+          
         </div>
         <div
           class="TableRow octo-table-row readonly"
@@ -695,18 +723,20 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
                 readonly=""
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
+            
             <div
               class="open-button"
             >
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -766,6 +796,7 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
               </span>
             </div>
           </div>
+          
         </div>
       </div>
       <div
@@ -776,14 +807,15 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
       >
         <div
           class="Calculation count octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
             Count
           </span>
+          
           <span
             class="calculationValue"
           >
@@ -792,9 +824,9 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -803,12 +835,13 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -817,12 +850,13 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -831,9 +865,11 @@ exports[`components/table/Table extended should match snapshot with CreatedAt 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -864,6 +900,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
             >
               Name
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -898,6 +935,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -932,6 +970,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -954,6 +993,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
             >
               Status
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -966,6 +1006,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
       <div
         class="table-row-container"
       >
+        
         <div
           class="TableRow octo-table-row"
           style="opacity: 1;"
@@ -999,7 +1040,6 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
                 placeholder="Untitled"
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
             <div
@@ -1021,6 +1061,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
                   />
                 </button>
               </div>
+              
             </div>
             <div
               class="open-button"
@@ -1028,9 +1069,11 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -1090,6 +1133,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
               </span>
             </div>
           </div>
+          
         </div>
         <div
           class="TableRow octo-table-row"
@@ -1124,7 +1168,6 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
                 placeholder="Untitled"
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
             <div
@@ -1146,6 +1189,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
                   />
                 </button>
               </div>
+              
             </div>
             <div
               class="open-button"
@@ -1153,9 +1197,11 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -1215,6 +1261,7 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
               </span>
             </div>
           </div>
+          
         </div>
       </div>
       <div
@@ -1231,14 +1278,15 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
       >
         <div
           class="Calculation count octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
             Count
           </span>
+          
           <span
             class="calculationValue"
           >
@@ -1247,9 +1295,9 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -1258,12 +1306,13 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -1272,12 +1321,13 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -1286,9 +1336,11 @@ exports[`components/table/Table extended should match snapshot with CreatedBy 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -1319,6 +1371,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
             >
               Name
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -1353,6 +1406,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -1387,6 +1441,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -1409,6 +1464,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
             >
               Status
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -1421,6 +1477,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
       <div
         class="table-row-container"
       >
+        
         <div
           class="TableRow octo-table-row"
           style="opacity: 1;"
@@ -1454,7 +1511,6 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
                 placeholder="Untitled"
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
             <div
@@ -1476,6 +1532,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
                   />
                 </button>
               </div>
+              
             </div>
             <div
               class="open-button"
@@ -1483,9 +1540,11 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -1545,6 +1604,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
               </span>
             </div>
           </div>
+          
         </div>
         <div
           class="TableRow octo-table-row"
@@ -1579,7 +1639,6 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
                 placeholder="Untitled"
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
             <div
@@ -1601,6 +1660,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
                   />
                 </button>
               </div>
+              
             </div>
             <div
               class="open-button"
@@ -1608,9 +1668,11 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -1670,6 +1732,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
               </span>
             </div>
           </div>
+          
         </div>
       </div>
       <div
@@ -1686,14 +1749,15 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
       >
         <div
           class="Calculation count octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
             Count
           </span>
+          
           <span
             class="calculationValue"
           >
@@ -1702,9 +1766,9 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -1713,12 +1777,13 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -1727,12 +1792,13 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -1741,9 +1807,11 @@ exports[`components/table/Table extended should match snapshot with UpdatedAt 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -1774,6 +1842,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
             >
               Name
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -1808,6 +1877,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -1842,6 +1912,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -1864,6 +1935,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
             >
               Status
             </span>
+            
           </div>
           <div
             class="octo-spacer"
@@ -1876,6 +1948,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
       <div
         class="table-row-container"
       >
+        
         <div
           class="TableRow octo-table-row"
           style="opacity: 1;"
@@ -1909,7 +1982,6 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
                 placeholder="Untitled"
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
             <div
@@ -1931,6 +2003,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
                   />
                 </button>
               </div>
+              
             </div>
             <div
               class="open-button"
@@ -1938,9 +2011,11 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -2000,6 +2075,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
               </span>
             </div>
           </div>
+          
         </div>
         <div
           class="TableRow octo-table-row"
@@ -2034,7 +2110,6 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
                 placeholder="Untitled"
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
             <div
@@ -2056,6 +2131,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
                   />
                 </button>
               </div>
+              
             </div>
             <div
               class="open-button"
@@ -2063,9 +2139,11 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -2125,6 +2203,7 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
               </span>
             </div>
           </div>
+          
         </div>
       </div>
       <div
@@ -2141,14 +2220,15 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
       >
         <div
           class="Calculation count octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
             Count
           </span>
+          
           <span
             class="calculationValue"
           >
@@ -2157,9 +2237,9 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -2168,12 +2248,13 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -2182,12 +2263,13 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell   "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -2196,9 +2278,11 @@ exports[`components/table/Table extended should match snapshot with UpdatedBy 1`
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -2229,10 +2313,12 @@ exports[`components/table/Table limited card in table view 1`] = `
             >
               Name
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -2260,10 +2346,12 @@ exports[`components/table/Table limited card in table view 1`] = `
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -2291,15 +2379,18 @@ exports[`components/table/Table limited card in table view 1`] = `
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
       </div>
       <div
         class="table-row-container"
       >
+        
         <div
           class="TableRow octo-table-row readonly"
           style="opacity: 1;"
@@ -2326,18 +2417,20 @@ exports[`components/table/Table limited card in table view 1`] = `
                 readonly=""
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
+            
             <div
               class="open-button"
             >
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -2379,6 +2472,7 @@ exports[`components/table/Table limited card in table view 1`] = `
               </span>
             </div>
           </div>
+          
         </div>
         <div
           class="TableRow octo-table-row readonly"
@@ -2406,18 +2500,20 @@ exports[`components/table/Table limited card in table view 1`] = `
                 readonly=""
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
+            
             <div
               class="open-button"
             >
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -2459,6 +2555,7 @@ exports[`components/table/Table limited card in table view 1`] = `
               </span>
             </div>
           </div>
+          
         </div>
       </div>
       <div
@@ -2469,14 +2566,15 @@ exports[`components/table/Table limited card in table view 1`] = `
       >
         <div
           class="Calculation count octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
             Count
           </span>
+          
           <span
             class="calculationValue"
           >
@@ -2485,9 +2583,9 @@ exports[`components/table/Table limited card in table view 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -2496,12 +2594,13 @@ exports[`components/table/Table limited card in table view 1`] = `
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -2510,6 +2609,7 @@ exports[`components/table/Table limited card in table view 1`] = `
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
       </div>
     </div>
@@ -2525,9 +2625,11 @@ exports[`components/table/Table limited card in table view 1`] = `
         title="hidden-card-count"
         type="button"
       >
+        
         <span>
           2
         </span>
+        
       </button>
     </div>
   </div>
@@ -2560,10 +2662,12 @@ exports[`components/table/Table should match snapshot 1`] = `
             >
               Name
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -2591,10 +2695,12 @@ exports[`components/table/Table should match snapshot 1`] = `
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -2622,15 +2728,18 @@ exports[`components/table/Table should match snapshot 1`] = `
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
       </div>
       <div
         class="table-row-container"
       >
+        
         <div
           class="TableRow octo-table-row readonly"
           style="opacity: 1;"
@@ -2657,18 +2766,20 @@ exports[`components/table/Table should match snapshot 1`] = `
                 readonly=""
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
+            
             <div
               class="open-button"
             >
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -2710,6 +2821,7 @@ exports[`components/table/Table should match snapshot 1`] = `
               </span>
             </div>
           </div>
+          
         </div>
       </div>
       <div
@@ -2720,14 +2832,15 @@ exports[`components/table/Table should match snapshot 1`] = `
       >
         <div
           class="Calculation count octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
             Count
           </span>
+          
           <span
             class="calculationValue"
           >
@@ -2736,9 +2849,9 @@ exports[`components/table/Table should match snapshot 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -2747,12 +2860,13 @@ exports[`components/table/Table should match snapshot 1`] = `
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -2761,9 +2875,11 @@ exports[`components/table/Table should match snapshot 1`] = `
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -2794,10 +2910,12 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
             >
               Name
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -2825,10 +2943,12 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -2856,10 +2976,12 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
       </div>
       <div
@@ -2889,16 +3011,23 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
               >
                 No Property 1
               </span>
+              
+              
             </div>
             <button
               type="button"
             >
+              
               <span>
                 0
               </span>
+              
             </button>
+            
           </div>
+          
         </div>
+        
       </div>
       <div
         class="octo-table-footer"
@@ -2908,14 +3037,15 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
       >
         <div
           class="Calculation count octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
             Count
           </span>
+          
           <span
             class="calculationValue"
           >
@@ -2924,9 +3054,9 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -2935,12 +3065,13 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -2949,9 +3080,11 @@ exports[`components/table/Table should match snapshot with GroupBy 1`] = `
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -2982,10 +3115,12 @@ exports[`components/table/Table should match snapshot without permissions 1`] = 
             >
               Name
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -3013,10 +3148,12 @@ exports[`components/table/Table should match snapshot without permissions 1`] = 
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -3044,15 +3181,18 @@ exports[`components/table/Table should match snapshot without permissions 1`] = 
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
       </div>
       <div
         class="table-row-container"
       >
+        
         <div
           class="TableRow octo-table-row readonly"
           style="opacity: 1;"
@@ -3079,18 +3219,20 @@ exports[`components/table/Table should match snapshot without permissions 1`] = 
                 readonly=""
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
+            
             <div
               class="open-button"
             >
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -3132,6 +3274,7 @@ exports[`components/table/Table should match snapshot without permissions 1`] = 
               </span>
             </div>
           </div>
+          
         </div>
       </div>
       <div
@@ -3142,14 +3285,15 @@ exports[`components/table/Table should match snapshot without permissions 1`] = 
       >
         <div
           class="Calculation count octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
             Count
           </span>
+          
           <span
             class="calculationValue"
           >
@@ -3158,9 +3302,9 @@ exports[`components/table/Table should match snapshot without permissions 1`] = 
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -3169,12 +3313,13 @@ exports[`components/table/Table should match snapshot without permissions 1`] = 
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -3183,9 +3328,11 @@ exports[`components/table/Table should match snapshot without permissions 1`] = 
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -3216,10 +3363,12 @@ exports[`components/table/Table should match snapshot, read-only 1`] = `
             >
               Name
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -3247,10 +3396,12 @@ exports[`components/table/Table should match snapshot, read-only 1`] = `
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
         <div
           class="octo-table-cell header-cell"
@@ -3278,15 +3429,18 @@ exports[`components/table/Table should match snapshot, read-only 1`] = `
                 />
               </svg>
             </span>
+            
           </div>
           <div
             class="octo-spacer"
           />
+          
         </div>
       </div>
       <div
         class="table-row-container"
       >
+        
         <div
           class="TableRow octo-table-row readonly"
           style="opacity: 1;"
@@ -3313,18 +3467,20 @@ exports[`components/table/Table should match snapshot, read-only 1`] = `
                 readonly=""
                 spellcheck="true"
                 title="title"
-                value="title"
               />
             </div>
+            
             <div
               class="open-button"
             >
               <button
                 type="button"
               >
+                
                 <span>
                   Open
                 </span>
+                
               </button>
             </div>
           </div>
@@ -3366,6 +3522,7 @@ exports[`components/table/Table should match snapshot, read-only 1`] = `
               </span>
             </div>
           </div>
+          
         </div>
       </div>
       <div
@@ -3376,14 +3533,15 @@ exports[`components/table/Table should match snapshot, read-only 1`] = `
       >
         <div
           class="Calculation count octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
             Count
           </span>
+          
           <span
             class="calculationValue"
           >
@@ -3392,9 +3550,9 @@ exports[`components/table/Table should match snapshot, read-only 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -3403,12 +3561,13 @@ exports[`components/table/Table should match snapshot, read-only 1`] = `
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
-          style="width: 100px;"
           tabindex="0"
         >
+          
           <span
             class="calculationLabel"
           >
@@ -3417,9 +3576,11 @@ exports[`components/table/Table should match snapshot, read-only 1`] = `
           <i
             class="CompassIcon icon-chevron-up ChevronUpIcon"
           />
+          
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;

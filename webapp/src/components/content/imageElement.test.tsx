@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@solidjs/testing-library'
-
-import {act} from 'react-dom/test-utils'
+import {render, waitFor} from '@solidjs/testing-library'
 
 import {mocked} from 'jest-mock'
 
@@ -39,17 +37,16 @@ describe('components/content/ImageElement', () => {
     }
 
     test('should match snapshot', async () => {
-        const component = wrapIntl(() =>
+        const component = () => wrapIntl(() =>
             <ImageElement
                 block={defaultBlock}
             />,
         )
-        let imageContainer: Element | undefined
-        await act(async () => {
-            const {container} = render(() => component)
-            imageContainer = container
-        })
-        expect(imageContainer).toMatchSnapshot()
+        const {container} = render(component)
+
+        // the file URL arrives async; the snapshot is of the loaded image
+        await waitFor(() => expect(container.querySelector('img')).not.toBeNull())
+        expect(container).toMatchSnapshot()
     })
 
     test('archived file', async () => {
@@ -60,16 +57,15 @@ describe('components/content/ImageElement', () => {
             size: 165002,
         })
 
-        const component = wrapIntl(() =>
+        const component = () => wrapIntl(() =>
             <ImageElement
                 block={defaultBlock}
             />,
         )
-        let imageContainer: Element | undefined
-        await act(async () => {
-            const {container} = render(() => component)
-            imageContainer = container
-        })
-        expect(imageContainer).toMatchSnapshot()
+        const {container} = render(component)
+
+        // the archived answer arrives async; the snapshot is of the notice
+        await waitFor(() => expect(container.querySelector('.ArchivedFile')).not.toBeNull())
+        expect(container).toMatchSnapshot()
     })
 })

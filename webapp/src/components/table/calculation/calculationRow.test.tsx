@@ -56,7 +56,7 @@ describe('components/table/calculation/CalculationRow', () => {
     test('should render three calculation elements', async () => {
         FetchMock.fn.mockReturnValueOnce(FetchMock.jsonResponse(JSON.stringify([board, view, card])))
 
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
                 onResizeColumn={jest.fn()}
@@ -70,7 +70,7 @@ describe('components/table/calculation/CalculationRow', () => {
             </ColumnResizeProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
@@ -81,7 +81,7 @@ describe('components/table/calculation/CalculationRow', () => {
             property_4: 'countUniqueValue',
         }
 
-        const component = wrapDNDIntl(() =>
+        const component = () => wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
                 onResizeColumn={jest.fn()}
@@ -95,7 +95,7 @@ describe('components/table/calculation/CalculationRow', () => {
             </ColumnResizeProvider>,
         )
 
-        const {container} = render(() => component)
+        const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 })
