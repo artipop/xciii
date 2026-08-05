@@ -543,8 +543,7 @@ type Config struct {
 	// matches a registry entry name. Registered paths are implicitly allowed.
 	//
 	// A project is a git repository; the product stopped calling it one because
-	// a board that runs agents is not only for software. See legacyConfig for
-	// what that rename costs on disk.
+	// a board that runs agents is not only for software.
 	Projects []ProjectEntry `json:"projects"`
 
 	// Agents is the registry of named coding agents (claude/codex, with their
@@ -743,38 +742,6 @@ func (c Config) TestTimeout() time.Duration {
 }
 
 // LoadConfig reads path, creating it with defaults when absent.
-// adoptLegacyProjectKeys fills the project registry from the names the config
-// used before projects were called projects. A repository is what a project is
-// on disk, and that is what these keys said; renaming them without reading the
-// old ones would have emptied the registry of every install that already had
-// one, and an agent with no project silently stops finding anything to work in.
-//
-// Only used when the new key is absent, so a config that has been written since
-// the rename is never second-guessed. The next save writes the new names.
-func adoptLegacyProjectKeys(raw []byte, cfg *Config) error {
-	var legacy struct {
-		Projects         *[]ProjectEntry `json:"repos"`
-		ProjectWhitelist *[]string       `json:"repoWhitelist"`
-	}
-	if err := json.Unmarshal(raw, &legacy); err != nil {
-		return err
-	}
-	var current struct {
-		Projects         *json.RawMessage `json:"projects"`
-		ProjectWhitelist *json.RawMessage `json:"projectWhitelist"`
-	}
-	if err := json.Unmarshal(raw, &current); err != nil {
-		return err
-	}
-	if current.Projects == nil && legacy.Projects != nil {
-		cfg.Projects = *legacy.Projects
-	}
-	if current.ProjectWhitelist == nil && legacy.ProjectWhitelist != nil {
-		cfg.ProjectWhitelist = *legacy.ProjectWhitelist
-	}
-	return nil
-}
-
 func LoadConfig(path, dataDir string) (Config, error) {
 	b, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
@@ -797,9 +764,6 @@ func LoadConfig(path, dataDir string) (Config, error) {
 	}
 	cfg := DefaultConfig(dataDir)
 	if err := json.Unmarshal(b, &cfg); err != nil {
-		return Config{}, fmt.Errorf("parse %s: %w", path, err)
-	}
-	if err := adoptLegacyProjectKeys(b, &cfg); err != nil {
 		return Config{}, fmt.Errorf("parse %s: %w", path, err)
 	}
 	// An existing config keeps whatever it says, so the old default would live

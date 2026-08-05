@@ -1,7 +1,6 @@
 package acp
 
 import (
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -141,48 +140,5 @@ func TestTriggerSessionViaTag(t *testing.T) {
 	}
 	if got := writer.cardComments("card10"); len(got) < 2 {
 		t.Errorf("expected comments, got %v", got)
-	}
-}
-
-// A config written before projects were called projects still names them
-// "repos". Reading only the new key would have emptied the registry of every
-// install that had one, and an agent with no project quietly finds nowhere to
-// work — the kind of breakage that looks like the feature never worked.
-func TestConfigWrittenBeforeTheRenameStillHasItsProjects(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-	legacy := `{"repos":[{"name":"app","path":"/tmp/app"}],"repoWhitelist":["/tmp"]}`
-	if err := os.WriteFile(path, []byte(legacy), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	cfg, err := LoadConfig(path, dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(cfg.Projects) != 1 || cfg.Projects[0].Name != "app" || cfg.Projects[0].Path != "/tmp/app" {
-		t.Fatalf("the old registry was not adopted: %+v", cfg.Projects)
-	}
-	if len(cfg.ProjectWhitelist) != 1 || cfg.ProjectWhitelist[0] != "/tmp" {
-		t.Fatalf("the old whitelist was not adopted: %+v", cfg.ProjectWhitelist)
-	}
-}
-
-// And a config written since the rename is never second-guessed: an emptied
-// registry is a decision, not an invitation to go looking for the old key.
-func TestAnEmptiedProjectRegistryIsNotRefilledFromTheOldKey(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-	both := `{"projects":[],"repos":[{"name":"app","path":"/tmp/app"}]}`
-	if err := os.WriteFile(path, []byte(both), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	cfg, err := LoadConfig(path, dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(cfg.Projects) != 0 {
-		t.Fatalf("the new key was overridden by the old one: %+v", cfg.Projects)
 	}
 }
