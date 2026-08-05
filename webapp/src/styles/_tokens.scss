@@ -20,15 +20,19 @@
     // ---------------------------------------------------------------------
     --canvas-rgb: 240, 237, 229;
     --surface-rgb: 250, 248, 244;
-    --ink-rgb: 20, 22, 26;
-    // A black mixed from the paper rather than borrowed from the dark theme:
-    // it was a blue-black left over from when the whole system was navy, and
-    // against a warm off-white a hue that opposes it reads as cold.
+
+    // Every dark value here is mixed from the paper, never borrowed from the
+    // dark theme. They were all blue-blacks left over from when the system was
+    // navy, and against a warm off-white a hue that opposes it reads as cold —
+    // the ink most of all, since it is most of what you look at.
+    --ink-rgb: 22, 20, 16;
     --sidebar-rgb: 28, 26, 22;
     --sidebar-ink-rgb: 240, 237, 229;
 
     // The accent and the stamp are the two lines a colour experiment touches.
-    --accent-rgb: 20, 24, 30;
+    // On paper the accent is the print, which is the same black the navigation
+    // is made of: one ink, used in two places.
+    --accent-rgb: 28, 26, 22;
     --accent-ink-rgb: 240, 237, 229;
     --stamp-rgb: 179, 38, 30;
 
@@ -52,11 +56,11 @@
 
     // On paper the shadow is a real one; on screen (below) depth is carried by
     // the surface being lighter than the canvas, and shadows nearly vanish.
-    --shadow-rgb: 20, 24, 30;
+    --shadow-rgb: 28, 26, 22;
     --shadow-1: 0 1px 0 rgba(var(--shadow-rgb), 0.06);
     --shadow-2: 0 2px 6px -2px rgba(var(--shadow-rgb), 0.16);
     --shadow-3: 0 16px 48px -12px rgba(var(--shadow-rgb), 0.32);
-    --backdrop: rgba(20, 24, 30, 0.44);
+    --backdrop: rgba(28, 26, 22, 0.44);
 }
 
 :root[data-theme='dark'] {
