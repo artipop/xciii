@@ -87,17 +87,20 @@
     --sidebar-rgb: 8, 8, 10;
     --sidebar-ink-rgb: 233, 233, 236;
 
-    --accent-rgb: 255, 180, 76;
-    // Dark text on the bright accent is deliberate: white on this amber is
-    // 1.9:1 and unreadable, the near-black is 12:1. Dimming the accent far
-    // enough for white to work would lose the glow against the canvas.
+    // The same red the paper theme stamps with, so both themes make one mark.
+    --accent-rgb: 226, 66, 52;
+    // Dark text again, for the same reason as the amber before it and against
+    // the instinct: white on this red is 3.7:1 and fails, and the red that does
+    // carry white — around #C62828 — is only 3.5:1 against the canvas, so the
+    // button sinks into the board. Bright accent, dark ink, both readable.
     --accent-ink-rgb: 8, 8, 10;
-    --stamp-rgb: 255, 180, 76;
+    --stamp-rgb: 226, 66, 52;
 
-    --danger-rgb: 255, 122, 122;
-    // Attention has one colour on this screen. Splitting "warning" off from the
-    // accent gave two ambers a few degrees apart, which reads as a mistake
-    // rather than as a distinction.
+    // Danger has to stay apart from an accent that is now red, so it moves
+    // toward pink — far enough that a failed field is not just the accent
+    // again, close enough that it still reads as a warning.
+    --danger-rgb: 255, 140, 160;
+    // Amber keeps "attention" for itself now that the accent has left it.
     --warning-rgb: 255, 180, 76;
     --success-rgb: 61, 184, 135;
     --visited-rgb: 176, 156, 255;
