@@ -23,6 +23,7 @@ import DeployTargetsDialog, {isDeployTargetsAvailable} from '../acp/deployTarget
 import WorkflowsDialog, {isWorkflowsAvailable} from '../acp/workflowsDialog'
 import PlanningDialog, {isPlanningAvailable} from '../acp/planningDialog'
 import BoardSetupWizard, {isBoardSetupAvailable} from '../acp/boardSetupWizard'
+import {boardDeploys} from '../acp/boardAutomation'
 
 type Props = {
     board: Board
@@ -101,7 +102,11 @@ const ViewHeaderActionsMenu = (props: Props) => {
                                 onClick={() => setShowAgents(true)}
                             />
                         </Show>
-                        <Show when={isDeployTargetsAvailable()}>
+
+                        {/* The registries are per machine, but the questions are
+                            per board: a board that never deploys should not be
+                            offered somewhere to deploy to. */}
+                        <Show when={isDeployTargetsAvailable() && boardDeploys(props.board)}>
                             <Menu.Text
                                 id='deployTargets'
                                 name={intl.formatMessage({id: 'ViewHeader.deploy-targets', defaultMessage: 'Deploy targets…'})}

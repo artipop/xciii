@@ -69,7 +69,23 @@ exports[`components/boardTemplateSelector/boardTemplateSelector > a plugin deplo
               <span
                 class="template-name"
               >
-                My Project Tasks
+                Developer Tasks
+              </span>
+              
+              
+            </div>
+            <div
+              class="BoardTemplateSelectorItem"
+            >
+              <span
+                class="template-icon"
+              >
+                🏠
+              </span>
+              <span
+                class="template-name"
+              >
+                Домашние дела
               </span>
               
               
@@ -181,7 +197,23 @@ exports[`components/boardTemplateSelector/boardTemplateSelector > a plugin deplo
               <span
                 class="template-name"
               >
-                My Project Tasks
+                Developer Tasks
+              </span>
+              
+              
+            </div>
+            <div
+              class="BoardTemplateSelectorItem"
+            >
+              <span
+                class="template-icon"
+              >
+                🏠
+              </span>
+              <span
+                class="template-name"
+              >
+                Домашние дела
               </span>
               
               
@@ -293,7 +325,23 @@ exports[`components/boardTemplateSelector/boardTemplateSelector > a plugin deplo
               <span
                 class="template-name"
               >
-                My Project Tasks
+                Developer Tasks
+              </span>
+              
+              
+            </div>
+            <div
+              class="BoardTemplateSelectorItem"
+            >
+              <span
+                class="template-icon"
+              >
+                🏠
+              </span>
+              <span
+                class="template-name"
+              >
+                Домашние дела
               </span>
               
               
@@ -417,7 +465,23 @@ exports[`components/boardTemplateSelector/boardTemplateSelector > not a plugin d
               <span
                 class="template-name"
               >
-                My Project Tasks
+                Developer Tasks
+              </span>
+              
+              
+            </div>
+            <div
+              class="BoardTemplateSelectorItem"
+            >
+              <span
+                class="template-icon"
+              >
+                🏠
+              </span>
+              <span
+                class="template-name"
+              >
+                Домашние дела
               </span>
               
               

@@ -8,14 +8,33 @@ import {Board} from '../../blocks/board'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {wrapIntl} from '../../testUtils'
 
-import BoardSetupWizard, {isBoardSetupAvailable, readRegistry, rememberOffered, setupNeeded, shouldOfferSetup} from './boardSetupWizard'
+import BoardSetupWizard, {isBoardSetupAvailable, readRegistry, rememberOffered, setupNeeded, shouldOfferSetup, stepsFor} from './boardSetupWizard'
 
 const anyWindow = window as any
 
-// A board made from the template: it carries the routes it runs.
+// A board made from the developer template: it runs an agent, publishes and
+// tests, so every question the wizard has is one it can answer.
 function templateBoard(): Board {
     const board = TestBlockFactory.createBoard()
-    board.properties = {acpFlows: '[]'} as any
+    board.properties = {
+        acpColumns: [
+            {column: 'In Progress', action: 'agent'},
+            {column: 'Deploy', action: 'deploy'},
+            {column: 'To Test', action: 'test'},
+        ],
+        acpFlows: [],
+    } as any
+    return board
+}
+
+// A board made from one of the everyday-life templates: an agent and nothing
+// else — no Dokku host to name and no browser to test with.
+function choresBoard(): Board {
+    const board = TestBlockFactory.createBoard()
+    board.properties = {
+        acpColumns: [{column: 'Агент готовит', action: 'agent'}],
+        acpFlows: [],
+    } as any
     return board
 }
 
@@ -96,6 +115,17 @@ describe('components/acp/boardSetupWizard when it offers itself', () => {
     })
 })
 
+describe('components/acp/boardSetupWizard which steps it has', () => {
+    test('the board decides: nothing is asked that its automation never uses', () => {
+        expect(stepsFor(templateBoard())).toEqual(['project', 'agent', 'deploy', 'browser', 'done'])
+        expect(stepsFor(choresBoard())).toEqual(['project', 'agent', 'done'])
+
+        // A board that ships no automation of its own says nothing about the
+        // machine either, so nothing is ruled out for it.
+        expect(stepsFor(TestBlockFactory.createBoard())).toEqual(['project', 'agent', 'deploy', 'browser', 'done'])
+    })
+})
+
 describe('components/acp/boardSetupWizard steps', () => {
     afterEach(() => {
         delete anyWindow.go
@@ -103,9 +133,9 @@ describe('components/acp/boardSetupWizard steps', () => {
         vi.clearAllMocks()
     })
 
-    const renderWizard = (onClose = vi.fn()) => render(() => wrapIntl(() =>
+    const renderWizard = (onClose = vi.fn(), board = templateBoard()) => render(() => wrapIntl(() =>
         <BoardSetupWizard
-            board={templateBoard()}
+            board={board}
             onClose={onClose}
         />,
     ))
@@ -182,6 +212,28 @@ describe('components/acp/boardSetupWizard steps', () => {
         userEvent.click(screen.getByRole('button', {name: 'Done'}))
         await waitFor(() => expect(bindings.SeedBoardAutomation).toHaveBeenCalled())
         expect(onClose).toHaveBeenCalled()
+    })
+
+    test('a board that only runs an agent goes straight from the agent to the end', async () => {
+        const bindings = stubBindings({
+            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'notes', path: '/src'}])),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
+        })
+        renderWizard(vi.fn(), choresBoard())
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Next'})).toBeEnabled())
+
+        // The two questions this board cannot answer are not even listed.
+        expect(screen.queryByText('Deploy')).toBeNull()
+        expect(screen.queryByText('Testing')).toBeNull()
+
+        userEvent.click(screen.getByRole('button', {name: 'Next'}))
+        await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
+        userEvent.click(screen.getByRole('button', {name: 'Next'}))
+
+        // Straight to the end, and the end names this board's own column.
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Done'})).toBeInTheDocument())
+        expect(screen.getByText(/Агент готовит/)).toBeInTheDocument()
+        expect(bindings.AddDeployTarget).not.toHaveBeenCalled()
     })
 
     test('the browser server is offered ready to accept', async () => {

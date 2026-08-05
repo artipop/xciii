@@ -55,10 +55,11 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
     }
     const template1Title = 'Template 1'
 
-    // The selector only shows the template whose title matches VISIBLE_TEMPLATE_TITLE
-    // ('My Project Tasks'); everything else is hidden. The global template fixture
-    // below carries that title, so it stands in for the visible copy.
-    const globalTemplateTitle = 'My Project Tasks'
+    // The selector shows only the templates named in VISIBLE_TEMPLATE_TITLES —
+    // the ones that ship their own automation; everything else is hidden. The
+    // global template fixtures below carry two of those titles.
+    const globalTemplateTitle = 'Developer Tasks'
+    const householdTemplateTitle = 'Домашние дела'
     const boardTitle = 'Board 1'
     let store: ReturnType<typeof mockAppStore>
     beforeAll(mockDOM)
@@ -122,8 +123,26 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
                 cards: [],
                 views: [],
             },
+
+            // Deliberately not in the order the selector offers them: the
+            // archive decides this order, the component decides that one.
             globalTemplates: {
                 value: [{
+                    id: 'global-2',
+                    title: householdTemplateTitle,
+                    teamId: '0',
+                    icon: '🏠',
+                    cardProperties: [
+                        {id: 'global-id-6'},
+                    ],
+                    dateDisplayPropertyId: 'global-id-6',
+                    isTemplate: true,
+                    templateVersion: 2,
+                    properties: {
+                        trackingTemplateId: 'template_id_household',
+                    },
+                    createdBy: 'system',
+                }, {
                     id: 'global-1',
                     title: globalTemplateTitle,
                     teamId: '0',
@@ -228,7 +247,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(mockedMutator.addEmptyBoard).toHaveBeenCalledTimes(1)
             await waitFor(() => expect(mockedMutator.updateBoard).toHaveBeenCalledWith(newBoard, newBoard, 'linked channel'))
         })
-        test('shows only the My Project Tasks template and hides the rest', () => {
+        test('offers the templates that ship automation and hides the rest', () => {
             render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <BoardTemplateSelector onClose={vi.fn()}/>
@@ -236,12 +255,28 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
                 ,
             ), {wrapper: TestRouter})
 
-            // the copy is the only template offered
+            // the everyday-life boards stand beside the developer one
             expect(screen.getByText(globalTemplateTitle)).not.toBeNull()
+            expect(screen.getByText(householdTemplateTitle)).not.toBeNull()
 
             // every other template is hidden from the selector
             expect(screen.queryByText(template1Title)).toBeNull()
             expect(screen.queryByText('Welcome to Boards!')).toBeNull()
+        })
+        test('opens on the developer template however the archive ordered them', () => {
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
+                </AppStoreProvider>
+                ,
+            ), {wrapper: TestRouter})
+
+            const offered = [...container.querySelectorAll('.BoardTemplateSelectorItem')]
+            expect(offered.map((item) => item.textContent)).toEqual([
+                expect.stringContaining(globalTemplateTitle),
+                expect.stringContaining(householdTemplateTitle),
+            ])
+            expect(offered[0]!.className).toContain('active')
         })
         test('return BoardTemplateSelector and click to add board from template', async () => {
             const newBoard = createBoard({id: 'new-board'} as Board)

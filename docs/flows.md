@@ -19,9 +19,24 @@ where the card goes afterwards**. A board with columns but no route still works
 but no columns moves cards around without doing anything.
 
 The registries are per machine, the columns and routes belong to a board. A
-board made from the "My Project Tasks" template brings its own columns and
-routes; the first time it is opened on a machine with empty registries, the
-setup wizard asks for the rest.
+board made from any of the offered templates brings its own columns and routes;
+the first time it is opened on a machine with empty registries, the setup wizard
+asks for the rest.
+
+Four templates are offered. "Developer Tasks" is the one written for code, with
+the `Feature`, `Hotfix` and `Review only` routes across `In Progress`, `Deploy`
+and `To Test`. The other three are the same machinery pointed at ordinary life
+— «Домашние дела», «Покупки и меню», «Дом и техника» — and they are worth
+reading as examples, because they show what is left when deploys and browser
+tests are taken away: one column where an agent works, and a route that waits
+for a person. There the agent writes into a project of household notes (any
+folder with `git init` in it, added under *Проекты…*): a plan for the
+cleaning, a menu and a shopping list for the week, what to ask the plumber. It
+answers on a branch, and merging that branch is how you accept the answer —
+that is the event that moves the card to «Готово». The short routes («Сделать
+сразу», «Быстрый список») skip the reading and close the card as soon as the
+agent is done, and «Позвать мастера» deliberately stops at «Ждём мастера»: the
+last step is not the machine's.
 
 ## What happens when a card lands in a column
 

@@ -88,7 +88,7 @@ The Go code is platform-agnostic — the same files build for every OS:
   it, so a session is now one turn (a card's task, run and reported) and a tool
   outside the policy is refused rather than put to somebody who is not there.
   It is not an ACP session (an ACP agent speaks JSON-RPC on stdio and has no terminal
-  UI) — it reuses everything around one: the repository, the worktree and branch, the
+  UI) — it reuses everything around one: the project, the worktree and branch, the
   agent's environment and proxy. The card is told when it opens and what it left on
   the branch when the CLI exits, and the next terminal on that card returns to the
   same worktree with `claude --continue` / `codex resume --last`.
@@ -179,11 +179,26 @@ the one thing a rewrite must not quietly drop.
   gets a directory under `artifactsDir` (default
   `<dataDir>/artifacts/<session-id>`) where the agent is asked to save its
   screenshots and write `result.json` — that verdict is what moves the card.
-- **First run**: a board made from the template opens a setup wizard by itself
-  when the registries are still empty — a repository and an agent are asked for
+- **Templates**: the board selector offers four of them, and each ships the
+  columns and routes it needs in the board's own properties — "Developer Tasks"
+  for code, and «Домашние дела», «Покупки и меню» and «Дом и техника» for the
+  ordinary life the same machinery turns out to fit: an agent that prepares a
+  plan, a checklist or a shopping list in a project of household notes, and a
+  route that closes the card once the branch it wrote is merged. Every other
+  upstream template is hidden, because a board the automation knows nothing
+  about arrives empty. They live in `server/assets/templates-boardarchive`, one
+  directory per board, and `make templates-archive` packs them into the archive
+  the server embeds; bumping `defaultTemplateVersion` in
+  `server/app/templates.go` is what makes an existing install re-import them.
+- **First run**: a board made from a template opens a setup wizard by itself
+  when the registries are still empty — a project and an agent are asked for
   (nothing runs without them), Dokku and a browser MCP server are offered and
-  skippable. It can be reopened from the board menu (*Set up this board…*), and
-  closing it is remembered for that board.
+  skippable. Which steps it has is the board's own answer: the two that come
+  last are asked only by a board whose automation deploys and tests, so a board
+  of household chores is three steps long, and *Deploy targets…* is likewise
+  absent from its menu — a setting that could never do anything there. It can be
+  reopened from the board menu (*Set up this board…*), and closing it is
+  remembered for that board.
 - **Columns** (column menu → *Agents in this column…*) say what happens when a
   card lands in one: the action, the crew of agents who work it, and how many of
   them at once. A card without an agent of its own goes to whoever of the crew is
@@ -192,7 +207,7 @@ the one thing a rewrite must not quietly drop.
   `triggerColumn`/`deployColumn`/`testColumn` keys are migrated into this
   registry on first load, so nothing changes until you edit it. A crew of several
   agents needs `worktreeMode: "always"` (the default) — without worktrees two
-  agents cannot share one repository, and the crew works one card at a time.
+  agents cannot share one project, and the crew works one card at a time.
 - **Taking a card yourself**: assign it to yourself and no agent starts on it —
   the card keeps its place on the route and waits for you to move it on. Deploy
   and test still run, since that is machine work; assigning a registered agent,
@@ -206,14 +221,14 @@ the one thing a rewrite must not quietly drop.
   (default `origin`). Which branch is watched: the card's `branch` property if
   it has one, otherwise the branch the card's own sessions worked on — with
   worktrees that is the agent's branch, which the card never names itself. A fresh config is seeded with three routes — `Feature`,
-  `Hotfix` and `Review only` — and the "My Project Tasks" board template ships
+  `Hotfix` and `Review only` — and the "Developer Tasks" board template ships
   the columns they name plus a `Workflow` property to pick one with, so a new
   board runs them without any setup. Picking a route stays optional: a card with
   no `Workflow` option takes none, and the trigger columns work as they always
   did. The editor draws the route as a graph and offers whichever shipped route
   the registry is missing. A card shows its own route: which stage it stands on
   and what that stage is waiting for. Routes belong to the board they were made
-  on, and a board made from the "My Project Tasks" template arrives with them:
+  on, and a board made from the "Developer Tasks" template arrives with them:
   the template carries its columns and routes in the board's own properties, and
   the first card moved on it takes them into the registry. The Workflows dialog
   is both the map and the builder: it draws each route with the number of cards

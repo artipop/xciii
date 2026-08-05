@@ -80,6 +80,49 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
         expect(mockedCsvExporter.exportTableCsv).toHaveBeenCalledTimes(1)
     })
 
+    // The registries are per machine, but what a board needs from them is not:
+    // offering a Dokku host to a board of household chores is offering a setting
+    // that can never do anything.
+    describe('the board decides which registries are worth opening', () => {
+        const anyWindow = window as any
+        const openMenuFor = (properties: Record<string, unknown>) => {
+            const themed = TestBlockFactory.createBoard()
+            themed.properties = properties as any
+            render(() =>
+                wrapIntl(() =>
+                    <AppStoreProvider store={store}>
+                        <ViewHeaderActionsMenu
+                            board={themed}
+                            activeView={activeView}
+                            cards={[card]}
+                        />
+                    </AppStoreProvider>,
+                ),
+            )
+            userEvent.click(screen.getByRole('button', {name: 'View header menu'}))
+        }
+
+        beforeEach(() => {
+            anyWindow.go = {main: {App: {ListDeployTargets: vi.fn(), ListAgentProjects: vi.fn()}}}
+        })
+        afterEach(() => {
+            delete anyWindow.go
+        })
+
+        test('a board that publishes is offered somewhere to publish to', () => {
+            openMenuFor({acpColumns: [{column: 'Deploy', action: 'deploy'}], acpFlows: []})
+            expect(screen.getByRole('button', {name: 'Deploy targets…'})).toBeInTheDocument()
+        })
+
+        test('a board that only runs an agent is not', () => {
+            openMenuFor({acpColumns: [{column: 'Агент готовит', action: 'agent'}], acpFlows: []})
+            expect(screen.queryByRole('button', {name: 'Deploy targets…'})).toBeNull()
+
+            // The registries it does use are still there.
+            expect(screen.getByRole('button', {name: 'Projects…'})).toBeInTheDocument()
+        })
+    })
+
     test('return menu and verify call to board archive', () => {
         const {container} = render(() =>
             wrapIntl(() =>

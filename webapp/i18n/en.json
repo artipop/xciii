@@ -96,7 +96,7 @@
   "BoardSetup.deploy-user": "SSH user (default dokku)",
   "BoardSetup.deploy-why": "Where a card’s branch is published from the \"Deploy\" column. Skip it if nothing is deployed from here — everything else still works.",
   "BoardSetup.done-branch": "For transitions that wait for a branch to be merged, fill the card’s \"branch\" property: that is the branch being watched.",
-  "BoardSetup.done-how": "Drag a card into \"In Progress\" — creating it there does not start anything, the trigger is the move. Pick a route in the card’s \"Workflow\" field, or the card will only be worked on where it stands.",
+  "BoardSetup.done-how": "Drag a card into \"{column}\" — creating it there does not start anything, the trigger is the move. Pick a route in the card’s route field, or the card will only be worked on where it stands.",
   "BoardSetup.finish": "Done",
   "BoardSetup.next": "Next",
   "BoardSetup.pick-project": "Choose a project folder",

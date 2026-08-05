@@ -14,6 +14,7 @@ import Dialog from '../dialog'
 
 import {agentBindings} from './agentProjectsDialog'
 import {AGENT_KINDS, textToServers, AdapterStatus} from './agentsDialog'
+import {agentColumn, boardCarriesAutomation, boardDeploys, boardTests} from './boardAutomation'
 
 import './boardSetupWizard.scss'
 
@@ -43,12 +44,7 @@ export function isBoardSetupAvailable(): boolean {
     return Boolean(agentBindings()?.ListAgentProjects)
 }
 
-// boardCarriesAutomation reports whether this board was made from a template
-// that ships columns and routes — there is nothing to set up for a board that
-// runs nothing.
-export function boardCarriesAutomation(board?: Board): boolean {
-    return Boolean(board?.properties && board.properties.acpFlows !== undefined)
-}
+export {boardCarriesAutomation}
 
 // setupNeeded says the board runs something this machine cannot run yet. It is
 // true for as long as that is the case, which is what the reminder in the
@@ -95,20 +91,47 @@ type Props = {
     onClose: () => void
 }
 
-const STEP_REPO = 0
-const STEP_AGENT = 1
-const STEP_DEPLOY = 2
-const STEP_BROWSER = 3
-const STEP_DONE = 4
+const STEP_PROJECT = 'project'
+const STEP_AGENT = 'agent'
+const STEP_DEPLOY = 'deploy'
+const STEP_BROWSER = 'browser'
+const STEP_DONE = 'done'
+
+type Step = typeof STEP_PROJECT | typeof STEP_AGENT | typeof STEP_DEPLOY | typeof STEP_BROWSER | typeof STEP_DONE
+
+// stepsFor is the wizard's shape, and the board decides it: a project and an
+// agent are what nothing runs without, and the two that follow are asked only by
+// a board that has somewhere to deploy to and something to test — the everyday
+// templates have neither, and an unanswerable question reads as a missing
+// feature.
+export function stepsFor(board?: Board): Step[] {
+    const steps: Step[] = [STEP_PROJECT, STEP_AGENT]
+    if (boardDeploys(board)) {
+        steps.push(STEP_DEPLOY)
+    }
+    if (boardTests(board)) {
+        steps.push(STEP_BROWSER)
+    }
+    steps.push(STEP_DONE)
+    return steps
+}
 
 const BoardSetupWizard = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [step, setStep] = createSignal(STEP_REPO)
+    const [step, setStep] = createSignal<Step>(STEP_PROJECT)
     const [registry, setRegistry] = createSignal<Registry>({agents: [], projects: []})
     const [error, setError] = createSignal('')
     const [busy, setBusy] = createSignal(false)
+
+    const steps = () => stepsFor(props.board)
+
+    // Where the wizard goes on from a step: the next one this board asks for.
+    const after = (current: Step): Step => {
+        const order = steps()
+        return order[order.indexOf(current) + 1] || STEP_DONE
+    }
 
     // Step 1: a project.
     const [projectPath, setProjectPath] = createSignal('')
@@ -150,7 +173,7 @@ const BoardSetupWizard = (props: Props) => {
 
     // Every step does its work through the same registry calls the dialogs use,
     // and shows what Go says when it refuses.
-    const run = async (work: () => Promise<void>, next: number) => {
+    const run = async (work: () => Promise<void>, next: Step) => {
         setError('')
         setBusy(true)
         try {
@@ -180,9 +203,9 @@ const BoardSetupWizard = (props: Props) => {
         }
     }
 
-    const addRepo = () => run(async () => {
+    const addProject = () => run(async () => {
         await bindings!.AddAgentProject!(projectName().trim(), projectPath())
-    }, STEP_AGENT)
+    }, after(STEP_PROJECT))
 
     const addAgent = () => run(async () => {
         await bindings!.AddAgent!(JSON.stringify({name: agentName().trim(), kind: agentKind()}))
@@ -190,7 +213,7 @@ const BoardSetupWizard = (props: Props) => {
             // So the agent can be put in a card's "Assignee" like a teammate.
             await bindings!.SyncAgentUsers(props.board.id)
         }
-    }, STEP_DEPLOY)
+    }, after(STEP_AGENT))
 
     const addDeploy = () => run(async () => {
         await bindings!.AddDeployTarget!(JSON.stringify({
@@ -200,7 +223,7 @@ const BoardSetupWizard = (props: Props) => {
             sshKey: deploy().sshKey.trim(),
             baseDomain: deploy().baseDomain.trim(),
         }))
-    }, STEP_BROWSER)
+    }, after(STEP_DEPLOY))
 
     const addBrowser = () => run(async () => {
         const agent = registry().agents[0]
@@ -233,7 +256,7 @@ const BoardSetupWizard = (props: Props) => {
 
     const body = () => {
         switch (step()) {
-        case STEP_REPO:
+        case STEP_PROJECT:
             return (
                 <div class='BoardSetupWizard__step'>
                     <p>{intl.formatMessage({id: 'BoardSetup.project-why', defaultMessage: 'An agent works in a project on your machine. A card is matched to one by its "Projects" field, which this fills in for you.'})}</p>
@@ -349,7 +372,7 @@ const BoardSetupWizard = (props: Props) => {
         default:
             return (
                 <div class='BoardSetupWizard__step'>
-                    <p>{intl.formatMessage({id: 'BoardSetup.done-how', defaultMessage: 'Drag a card into "In Progress" — creating it there does not start anything, the trigger is the move. Pick a route in the card’s "Workflow" field, or the card will only be worked on where it stands.'})}</p>
+                    <p>{intl.formatMessage({id: 'BoardSetup.done-how', defaultMessage: 'Drag a card into "{column}" — creating it there does not start anything, the trigger is the move. Pick a route in the card’s route field, or the card will only be worked on where it stands.'}, {column: agentColumn(props.board)})}</p>
                     <p class='BoardSetupWizard__hint'>
                         {intl.formatMessage({id: 'BoardSetup.done-branch', defaultMessage: 'For transitions that wait for a branch to be merged, fill the card’s "branch" property: that is the branch being watched.'})}
                     </p>
@@ -360,12 +383,12 @@ const BoardSetupWizard = (props: Props) => {
 
     const actions = () => {
         switch (step()) {
-        case STEP_REPO:
+        case STEP_PROJECT:
             return (
                 <Button
                     emphasis='primary'
                     disabled={busy() || (!hasProject() && !(projectPath() && projectName().trim()))}
-                    onClick={() => (projectPath() && projectName().trim() ? addRepo() : setStep(STEP_AGENT))}
+                    onClick={() => (projectPath() && projectName().trim() ? addProject() : setStep(after(STEP_PROJECT)))}
                 >
                     {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
                 </Button>
@@ -375,7 +398,7 @@ const BoardSetupWizard = (props: Props) => {
                 <Button
                     emphasis='primary'
                     disabled={busy() || (!hasAgent() && !agentName().trim())}
-                    onClick={() => (agentName().trim() && !hasAgent() ? addAgent() : setStep(STEP_DEPLOY))}
+                    onClick={() => (agentName().trim() && !hasAgent() ? addAgent() : setStep(after(STEP_AGENT)))}
                 >
                     {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
                 </Button>
@@ -390,7 +413,7 @@ const BoardSetupWizard = (props: Props) => {
                     >
                         {intl.formatMessage({id: 'BoardSetup.save', defaultMessage: 'Save'})}
                     </Button>
-                    <Button onClick={() => setStep(STEP_BROWSER)}>
+                    <Button onClick={() => setStep(after(STEP_DEPLOY))}>
                         {intl.formatMessage({id: 'BoardSetup.skip', defaultMessage: 'Skip'})}
                     </Button>
                 </>
@@ -405,7 +428,7 @@ const BoardSetupWizard = (props: Props) => {
                     >
                         {intl.formatMessage({id: 'BoardSetup.save', defaultMessage: 'Save'})}
                     </Button>
-                    <Button onClick={() => setStep(STEP_DONE)}>
+                    <Button onClick={() => setStep(after(STEP_BROWSER))}>
                         {intl.formatMessage({id: 'BoardSetup.skip', defaultMessage: 'Skip'})}
                     </Button>
                 </>
@@ -422,28 +445,35 @@ const BoardSetupWizard = (props: Props) => {
         }
     }
 
-    const titles = [
-        intl.formatMessage({id: 'BoardSetup.step-project', defaultMessage: 'Project'}),
-        intl.formatMessage({id: 'BoardSetup.step-agent', defaultMessage: 'Agent'}),
-        intl.formatMessage({id: 'BoardSetup.step-deploy', defaultMessage: 'Deploy'}),
-        intl.formatMessage({id: 'BoardSetup.step-browser', defaultMessage: 'Testing'}),
-        intl.formatMessage({id: 'BoardSetup.step-done', defaultMessage: 'Ready'}),
-    ]
+    const title = (of: Step) => {
+        switch (of) {
+        case STEP_PROJECT:
+            return intl.formatMessage({id: 'BoardSetup.step-project', defaultMessage: 'Project'})
+        case STEP_AGENT:
+            return intl.formatMessage({id: 'BoardSetup.step-agent', defaultMessage: 'Agent'})
+        case STEP_DEPLOY:
+            return intl.formatMessage({id: 'BoardSetup.step-deploy', defaultMessage: 'Deploy'})
+        case STEP_BROWSER:
+            return intl.formatMessage({id: 'BoardSetup.step-browser', defaultMessage: 'Testing'})
+        default:
+            return intl.formatMessage({id: 'BoardSetup.step-done', defaultMessage: 'Ready'})
+        }
+    }
 
     return (
         <Dialog
             class='BoardSetupWizard'
-            title={<span>{intl.formatMessage({id: 'BoardSetup.title', defaultMessage: 'Set up this board: {step}'}, {step: titles[step()]})}</span>}
+            title={<span>{intl.formatMessage({id: 'BoardSetup.title', defaultMessage: 'Set up this board: {step}'}, {step: title(step())})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'BoardSetup.subtitle', defaultMessage: 'The board already knows how the work is organised. What it does not know is your machine.'})}</span>}
             onClose={props.onClose}
         >
             <div class='BoardSetupWizard__content'>
                 <ol class='BoardSetupWizard__steps'>
-                    <For each={titles}>
-                        {(title, i) => (
+                    <For each={steps()}>
+                        {(name) => (
                             <li
-                                class={i() === step() ? 'BoardSetupWizard__stepName--current' : ''}
-                            >{title}</li>
+                                class={name === step() ? 'BoardSetupWizard__stepName--current' : ''}
+                            >{title(name)}</li>
                         )}
                     </For>
                 </ol>

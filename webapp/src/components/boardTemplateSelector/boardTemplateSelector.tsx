@@ -43,9 +43,19 @@ type Props = {
     channelId?: string
 }
 
-// Only this template is offered in the selector; every other template
-// (default templates, the onboarding board, user-created ones) is hidden.
-const VISIBLE_TEMPLATE_TITLE = 'My Project Tasks'
+// Only these templates are offered in the selector; every other template
+// (the rest of the upstream defaults, the onboarding board, user-created ones)
+// is hidden. Each of them ships its own columns and routes in the board's own
+// properties, which is what makes a board from it run without any setup — an
+// upstream template would land here as a board the automation knows nothing
+// about. The titles are the ones in the template archive
+// (`server/assets/templates-boardarchive`).
+const VISIBLE_TEMPLATE_TITLES = [
+    'Developer Tasks',
+    'Домашние дела',
+    'Покупки и меню',
+    'Дом и техника',
+]
 
 const BoardTemplateSelector = (props: Props) => {
     const globalTemplates = useAppSelector<Board[]>(getGlobalTemplates)
@@ -90,7 +100,12 @@ const BoardTemplateSelector = (props: Props) => {
     const unsortedTemplates = useAppSelector(getTemplates)
     const allTemplates = createMemo(() => {
         const templates = Object.values(unsortedTemplates()).sort((a: Board, b: Board) => a.createAt - b.createAt)
-        return (globalTemplates() || []).concat(templates).filter((template) => template.title === VISIBLE_TEMPLATE_TITLE)
+        const visible = (globalTemplates() || []).concat(templates).filter((template) => VISIBLE_TEMPLATE_TITLES.includes(template.title))
+
+        // The archive hands them over in whatever order it was packed in, so the
+        // list above is also the order they are offered in — and its first entry
+        // is what the selector opens on.
+        return visible.sort((a: Board, b: Board) => VISIBLE_TEMPLATE_TITLES.indexOf(a.title) - VISIBLE_TEMPLATE_TITLES.indexOf(b.title))
     })
 
     const resetTour = async () => {
