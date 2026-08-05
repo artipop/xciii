@@ -38,6 +38,7 @@ export default defineConfig({
             'cypress/e2e/group*.ts',
             'cypress/e2e/card*.ts',
             'cypress/e2e/kanban*.ts',
+            'cypress/e2e/sidebar*.ts',
         ],
         setupNodeEvents(on, config) {
             on('before:run', () => {
