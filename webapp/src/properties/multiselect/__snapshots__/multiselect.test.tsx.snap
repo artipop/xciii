@@ -17,6 +17,7 @@ exports[`properties/multiSelect shows only the selected options when menu is not
     >
       b
     </span>
+    
   </div>
 </div>
 `;

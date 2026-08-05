@@ -1,22 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-
-import {MockStoreEnhanced} from 'redux-mock-store'
-
-import {Provider as ReduxProvider} from 'react-redux'
-
-import {render} from '@testing-library/react'
-
-import {createMemoryHistory, History} from 'history'
-
-import {Router} from 'react-router-dom'
+import {render} from '@solidjs/testing-library'
 
 import {Team} from '../../store/teams'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
-import {mockStateStore, wrapDNDIntl} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import BoardSwitcherDialog from './boardSwitcherDialog'
 
@@ -49,22 +40,20 @@ describe('component/BoardSwitcherDialog', () => {
         },
     }
 
-    let store: MockStoreEnhanced<unknown, unknown>
-    let history: History
+    let store: ReturnType<typeof mockAppStore>
 
     beforeEach(() => {
-        store = mockStateStore([], state)
-        history = createMemoryHistory()
+        store = mockAppStore(state)
     })
 
     test('base case', () => {
         const onCloseHandler = jest.fn()
-        const component = wrapDNDIntl(
-            <Router history={history}>
-                <ReduxProvider store={store}>
+        const component = () => wrapDNDIntl(() =>
+            <TestRouter>
+                <AppStoreProvider store={store}>
                     <BoardSwitcherDialog onClose={onCloseHandler}/>
-                </ReduxProvider>
-            </Router>,
+                </AppStoreProvider>
+            </TestRouter>,
         )
 
         const {container} = render(component)

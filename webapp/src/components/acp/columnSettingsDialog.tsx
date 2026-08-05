@@ -3,8 +3,9 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {For, Show, createSignal, onMount} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import {IPropertyOption, IPropertyTemplate} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
@@ -56,168 +57,178 @@ type Props = {
 }
 
 const ColumnSettingsDialog = (props: Props) => {
-    const {boardId, property, option, onClose, onSaved} = props
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [form, setForm] = useState<ColumnSpec>({
-        boardId,
-        propertyId: property.id,
-        optionId: option.id,
-        property: property.name,
-        column: option.value,
+    const [form, setForm] = createSignal<ColumnSpec>({
+        boardId: props.boardId,
+        propertyId: props.property.id,
+        optionId: props.option.id,
+        property: props.property.name,
+        column: props.option.value,
         action: 'none',
     })
-    const [agents, setAgents] = useState<RegisteredAgent[]>([])
-    const [deploys, setDeploys] = useState<Array<{name: string}>>([])
-    const [error, setError] = useState('')
-    const [worktrees, setWorktrees] = useState(true)
+    const [agents, setAgents] = createSignal<RegisteredAgent[]>([])
+    const [deploys, setDeploys] = createSignal<Array<{name: string}>>([])
+    const [error, setError] = createSignal('')
+    const [worktrees, setWorktrees] = createSignal(true)
 
-    useEffect(() => {
-        const load = async () => {
-            if (!bindings?.ListBoardColumns) {
-                return
-            }
-            try {
-                const specs: ColumnSpec[] = JSON.parse(await bindings.ListBoardColumns(boardId)) || []
-                const saved = specFor(specs, option.id, option.value)
-                if (saved) {
-                    setForm({...saved, boardId, propertyId: property.id, optionId: option.id, property: property.name, column: option.value})
-                }
-                if (bindings.ListAgents) {
-                    setAgents(JSON.parse(await bindings.ListAgents()) || [])
-                }
-                if (bindings.ListDeployTargets) {
-                    setDeploys(JSON.parse(await bindings.ListDeployTargets()) || [])
-                }
-                if (bindings.GetWorktreeMode) {
-                    setWorktrees((await bindings.GetWorktreeMode()) !== 'never')
-                }
-            } catch (e) {
-                setError(String(e))
-            }
+    onMount(async () => {
+        if (!bindings?.ListBoardColumns) {
+            return
         }
-        load()
-    }, [bindings, boardId, option.id, option.value, property.id, property.name])
+        try {
+            const specs: ColumnSpec[] = JSON.parse(await bindings.ListBoardColumns(props.boardId)) || []
+            const saved = specFor(specs, props.option.id, props.option.value)
+            if (saved) {
+                setForm({...saved, boardId: props.boardId, propertyId: props.property.id, optionId: props.option.id, property: props.property.name, column: props.option.value})
+            }
+            if (bindings.ListAgents) {
+                setAgents(JSON.parse(await bindings.ListAgents()) || [])
+            }
+            if (bindings.ListDeployTargets) {
+                setDeploys(JSON.parse(await bindings.ListDeployTargets()) || [])
+            }
+            if (bindings.GetWorktreeMode) {
+                setWorktrees((await bindings.GetWorktreeMode()) !== 'never')
+            }
+        } catch (e) {
+            setError(String(e))
+        }
+    })
 
-    const toggleAgent = useCallback((name: string) => setForm((f) => {
+    const toggleAgent = (name: string) => setForm((f) => {
         const crew = f.agents || []
         return {...f, agents: crew.includes(name) ? crew.filter((n) => n !== name) : [...crew, name]}
-    }), [])
+    })
 
-    const save = useCallback(async () => {
+    const save = async () => {
         if (!bindings?.SaveBoardColumn) {
             return
         }
         setError('')
         try {
-            await bindings.SaveBoardColumn(JSON.stringify(form))
-            onSaved?.()
-            onClose()
+            await bindings.SaveBoardColumn(JSON.stringify(form()))
+            props.onSaved?.()
+            props.onClose()
         } catch (e) {
             setError(String(e))
         }
-    }, [bindings, form, onClose, onSaved])
+    }
 
-    const crew = form.agents || []
+    const crew = () => form().agents || []
 
     return (
         <Dialog
             className='ColumnSettingsDialog'
-            title={<span>{intl.formatMessage({id: 'ColumnSettings.title', defaultMessage: 'Column: {name}'}, {name: option.value})}</span>}
+            title={<span>{intl.formatMessage({id: 'ColumnSettings.title', defaultMessage: 'Column: {name}'}, {name: props.option.value})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'ColumnSettings.subtitle', defaultMessage: 'What happens when a card lands here, and who does it. A flow only says where the card goes next.'})}</span>}
-            onClose={onClose}
+            onClose={props.onClose}
         >
-            <div className='ColumnSettingsDialog__content'>
+            <div class='ColumnSettingsDialog__content'>
                 <label>
                     {intl.formatMessage({id: 'ColumnSettings.action', defaultMessage: 'On arrival'})}
                     <select
-                        value={form.action}
-                        onChange={(e) => setForm({...form, action: e.target.value})}
+                        value={form().action}
+                        onChange={(e) => setForm({...form(), action: e.currentTarget.value})}
                     >
-                        {COLUMN_ACTIONS.map((a) => (
-                            <option
-                                key={a}
-                                value={a}
-                            >{actionLabel(intl, a)}</option>
-                        ))}
+                        <For each={COLUMN_ACTIONS}>
+                            {(a) => (
+                                <option
+                                    value={a}
+                                    selected={form().action === a}
+                                >{actionLabel(intl, a)}</option>
+                            )}
+                        </For>
                     </select>
                 </label>
 
-                {form.action !== 'none' &&
-                    <div className='ColumnSettingsDialog__crew'>
-                        <span className='ColumnSettingsDialog__label'>
+                <Show when={form().action !== 'none'}>
+                    <div class='ColumnSettingsDialog__crew'>
+                        <span class='ColumnSettingsDialog__label'>
                             {intl.formatMessage({id: 'ColumnSettings.crew', defaultMessage: 'Worked by'})}
                         </span>
-                        {agents.length === 0 &&
-                            <span className='ColumnSettingsDialog__hint'>
+                        <Show when={agents().length === 0}>
+                            <span class='ColumnSettingsDialog__hint'>
                                 {intl.formatMessage({id: 'ColumnSettings.no-agents', defaultMessage: 'No agents registered yet — see “Agents…” in the board menu.'})}
-                            </span>}
-                        {agents.map((a) => (
-                            <label
-                                key={a.name}
-                                className='ColumnSettingsDialog__agent'
-                            >
-                                <input
-                                    type='checkbox'
-                                    checked={crew.includes(a.name)}
-                                    onChange={() => toggleAgent(a.name)}
-                                />
-                                {a.name}
-                            </label>
-                        ))}
-                        <span className='ColumnSettingsDialog__hint'>
+                            </span>
+                        </Show>
+                        <For each={agents()}>
+                            {(a) => (
+                                <label
+                                    class='ColumnSettingsDialog__agent'
+                                >
+                                    <input
+                                        type='checkbox'
+                                        checked={crew().includes(a.name)}
+                                        onChange={() => toggleAgent(a.name)}
+                                    />
+                                    {a.name}
+                                </label>
+                            )}
+                        </For>
+                        <span class='ColumnSettingsDialog__hint'>
                             {intl.formatMessage({id: 'ColumnSettings.crew-hint', defaultMessage: 'Nobody chosen — the card decides, as before. With a crew, a card goes to whoever of them is free.'})}
                         </span>
-                    </div>}
+                    </div>
+                </Show>
 
-                {form.action !== 'none' &&
+                <Show when={form().action !== 'none'}>
                     <label>
                         {intl.formatMessage({id: 'ColumnSettings.limit', defaultMessage: 'At once (0 — no limit)'})}
                         <input
                             type='number'
                             min={0}
-                            value={form.maxRunning || 0}
-                            onChange={(e) => setForm({...form, maxRunning: Number(e.target.value)})}
+                            value={form().maxRunning || 0}
+                            onInput={(e) => setForm({...form(), maxRunning: Number(e.currentTarget.value)})}
                         />
-                    </label>}
+                    </label>
+                </Show>
 
-                {form.action !== 'none' && (form.maxRunning || 0) !== 1 && crew.length > 1 && !worktrees &&
-                    <div className='ColumnSettingsDialog__warning'>
+                <Show when={form().action !== 'none' && (form().maxRunning || 0) !== 1 && crew().length > 1 && !worktrees()}>
+                    <div class='ColumnSettingsDialog__warning'>
                         {intl.formatMessage({id: 'ColumnSettings.no-worktrees', defaultMessage: 'worktreeMode is “never”, so two agents cannot work one repository at the same time: the crew will take cards one after another.'})}
-                    </div>}
+                    </div>
+                </Show>
 
-                {form.action === 'deploy' &&
+                <Show when={form().action === 'deploy'}>
                     <label>
                         {intl.formatMessage({id: 'ColumnSettings.deploy', defaultMessage: 'Deploy target'})}
                         <select
-                            value={form.deployName || ''}
-                            onChange={(e) => setForm({...form, deployName: e.target.value})}
+                            value={form().deployName || ''}
+                            onChange={(e) => setForm({...form(), deployName: e.currentTarget.value})}
                         >
-                            <option value=''>{intl.formatMessage({id: 'ColumnSettings.deploy-default', defaultMessage: '— the card’s own —'})}</option>
-                            {deploys.map((d) => (
-                                <option
-                                    key={d.name}
-                                    value={d.name}
-                                >{d.name}</option>
-                            ))}
+                            <option
+                                value=''
+                                selected={!form().deployName}
+                            >{intl.formatMessage({id: 'ColumnSettings.deploy-default', defaultMessage: '— the card’s own —'})}</option>
+                            <For each={deploys()}>
+                                {(d) => (
+                                    <option
+                                        value={d.name}
+                                        selected={form().deployName === d.name}
+                                    >{d.name}</option>
+                                )}
+                            </For>
                         </select>
-                    </label>}
+                    </label>
+                </Show>
 
-                <div className='ColumnSettingsDialog__actions'>
+                <div class='ColumnSettingsDialog__actions'>
                     <Button
                         emphasis='primary'
                         onClick={save}
                     >
                         {intl.formatMessage({id: 'ColumnSettings.save', defaultMessage: 'Save'})}
                     </Button>
-                    <Button onClick={onClose}>
+                    <Button onClick={props.onClose}>
                         {intl.formatMessage({id: 'ColumnSettings.cancel', defaultMessage: 'Cancel'})}
                     </Button>
                 </div>
 
-                {error &&
-                    <div className='ColumnSettingsDialog__error'>{error}</div>}
+                <Show when={error()}>
+                    <div class='ColumnSettingsDialog__error'>{error()}</div>
+                </Show>
             </div>
         </Dialog>
     )
@@ -237,4 +248,4 @@ function actionLabel(intl: {formatMessage: (d: {id: string, defaultMessage: stri
     }
 }
 
-export default React.memo(ColumnSettingsDialog)
+export default ColumnSettingsDialog

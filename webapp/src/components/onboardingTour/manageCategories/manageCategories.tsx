@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../../intl'
 
 import {SidebarTourSteps, TOUR_SIDEBAR} from '..'
 
@@ -29,17 +29,16 @@ const ManageCategoriesTourStep = (): JSX.Element | null => {
         />
     )
 
-    const punchout = useMeasurePunchouts([`.${ClassForManageCategoriesTourStep}`], [])
+    const punchout = useMeasurePunchouts([`.${ClassForManageCategoriesTourStep}`])
 
     return (
         <TourTipRenderer
-            key='ManageCatergoriesTourStep'
             requireCard={false}
             category={TOUR_SIDEBAR}
             step={SidebarTourSteps.MANAGE_CATEGORIES}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='ManageCatergoies'
             telemetryTag='tourPoint4b'
             placement={'right'}

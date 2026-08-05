@@ -1,37 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {FormattedMessage} from 'react-intl'
-import {generatePath, useRouteMatch, useHistory} from 'react-router-dom'
+import {useNavigate} from '@solidjs/router'
+
+import {FormattedMessage} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
 import {Utils} from '../../utils'
+import {useRouteMatch} from '../../hooks/routerMatch'
 
 import './shareBoardLoginButton.scss'
 
 const ShareBoardLoginButton = () => {
-    const match = useRouteMatch<{teamId: string, boardId: string, viewId?: string, cardId?: string}>()
-    const history = useHistory()
+    const match = useRouteMatch()
+    const navigate = useNavigate()
 
-    let redirectQueryParam = 'r=' + encodeURIComponent(generatePath('/:boardId?/:viewId?/:cardId?', match.params))
-    if (Utils.isFocalboardLegacy()) {
-        redirectQueryParam = 'redirect_to=' + encodeURIComponent(generatePath('/boards/team/:teamId/:boardId?/:viewId?/:cardId?', match.params))
+    const loginPath = () => {
+        let redirectQueryParam = 'r=' + encodeURIComponent(Utils.generatePath('/:boardId?/:viewId?/:cardId?', match().params))
+        if (Utils.isFocalboardLegacy()) {
+            redirectQueryParam = 'redirect_to=' + encodeURIComponent(Utils.generatePath('/boards/team/:teamId/:boardId?/:viewId?/:cardId?', match().params))
+        }
+        return '/login?' + redirectQueryParam
     }
-    const loginPath = '/login?' + redirectQueryParam
 
     const onLoginClick = () => {
         TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ShareBoardLogin)
         if (Utils.isFocalboardLegacy()) {
-            location.assign(loginPath)
+            location.assign(loginPath())
         } else {
-            history.push(loginPath)
+            navigate(loginPath())
         }
     }
 
     return (
-        <div className='ShareBoardLoginButton'>
+        <div class='ShareBoardLoginButton'>
             <Button
                 title='Login'
                 size='medium'
@@ -47,4 +50,4 @@ const ShareBoardLoginButton = () => {
     )
 }
 
-export default React.memo(ShareBoardLoginButton)
+export default ShareBoardLoginButton

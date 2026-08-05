@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useCallback, useEffect, useRef} from 'react'
+import {onCleanup} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import {useColumnResize} from './tableColumnResizeContext'
 import './horizontalGrip.scss'
@@ -14,64 +15,61 @@ type Props = {
 type OffsetCallback = (offset: number) => void
 
 function useResizable(liveOffset: OffsetCallback, finalOffset: OffsetCallback) {
-    const state = useRef({
+    const state = {
         initialX: 0,
         lastOffset: 0,
         isResizing: false,
-    })
+    }
 
-    const updateOffset = useCallback((event: MouseEvent) => {
-        state.current.lastOffset = event.clientX - state.current.initialX
-        liveOffset(state.current.lastOffset)
-    }, [liveOffset])
+    const updateOffset = (event: MouseEvent) => {
+        state.lastOffset = event.clientX - state.initialX
+        liveOffset(state.lastOffset)
+    }
 
-    const stopResizing = useCallback(() => {
-        if (state.current.isResizing) {
-            state.current.isResizing = false
+    const stopResizing = () => {
+        if (state.isResizing) {
+            state.isResizing = false
             document.removeEventListener('mousemove', updateOffset)
             document.removeEventListener('mouseup', stopResizing)
             document.body.style.userSelect = ''
-            finalOffset(state.current.lastOffset)
+            finalOffset(state.lastOffset)
         }
-    }, [updateOffset])
+    }
 
-    useEffect(() => stopResizing, [stopResizing])
+    onCleanup(stopResizing)
 
-    return useCallback((event: React.MouseEvent) => {
-        state.current = {
-            initialX: event.clientX,
-            lastOffset: 0,
-            isResizing: true,
-        }
+    return (event: MouseEvent) => {
+        state.initialX = event.clientX
+        state.lastOffset = 0
+        state.isResizing = true
         document.addEventListener('mousemove', updateOffset)
         document.addEventListener('mouseup', stopResizing)
         document.body.style.userSelect = 'none'
         event.preventDefault()
-    }, [updateOffset, stopResizing])
+    }
 }
 
 const HorizontalGrip = (props: Props): JSX.Element => {
-    const {templateId, onAutoSizeColumn} = props
     const columnResize = useColumnResize()
 
-    const liveOffset = useCallback((offset: number) => {
-        columnResize.updateOffset(templateId, offset)
-    }, [columnResize, templateId])
+    const liveOffset = (offset: number) => {
+        columnResize.updateOffset(props.templateId, offset)
+    }
 
-    const finalOffset = useCallback((offset: number) => {
-        const width = columnResize.width(templateId) + offset
-        columnResize.updateWidth(templateId, width)
-    }, [columnResize, templateId])
+    const finalOffset = (offset: number) => {
+        const width = columnResize.width(props.templateId) + offset
+        columnResize.updateWidth(props.templateId, width)
+    }
 
     const startResize = useResizable(liveOffset, finalOffset)
 
     return (
         <div
-            className='HorizontalGrip'
-            onDoubleClick={() => onAutoSizeColumn(templateId)}
+            class='HorizontalGrip'
+            onDblClick={() => props.onAutoSizeColumn(props.templateId)}
             onMouseDown={startResize}
         />
     )
 }
 
-export default React.memo(HorizontalGrip)
+export default HorizontalGrip

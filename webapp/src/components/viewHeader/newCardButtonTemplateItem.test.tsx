@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen} from '@testing-library/react'
-import {Provider as ReduxProvider} from 'react-redux'
+import {render, screen} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
@@ -44,22 +43,22 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
         },
     }
 
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     const mockFunction = jest.fn()
 
     beforeEach(() => {
         jest.clearAllMocks()
     })
     test('return NewCardButtonTemplateItem', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
                         addCardFromTemplate={jest.fn()}
                         editCardTemplate={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -67,15 +66,15 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
         expect(container).toMatchSnapshot()
     })
     test('return NewCardButtonTemplateItem and edit', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
                         addCardFromTemplate={jest.fn()}
                         editCardTemplate={mockFunction}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -88,15 +87,15 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
     })
 
     test('return NewCardButtonTemplateItem and add Card from template', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
                         addCardFromTemplate={mockFunction}
                         editCardTemplate={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonAdd = screen.getByRole('button', {name: 'title'})
@@ -105,15 +104,15 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
         expect(mockFunction).toHaveBeenCalledTimes(1)
     })
     test('return NewCardButtonTemplateItem and delete', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
                         addCardFromTemplate={jest.fn()}
                         editCardTemplate={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
@@ -124,15 +123,15 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
         expect(mockedMutator.performAsUndoGroup).toHaveBeenCalledTimes(1)
     })
     test('return NewCardButtonTemplateItem and Set as default', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
                         addCardFromTemplate={jest.fn()}
                         editCardTemplate={jest.fn()}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})

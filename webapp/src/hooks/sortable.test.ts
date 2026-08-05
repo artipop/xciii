@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import type {DragEndEvent} from '@dnd-kit/react'
+import type {DragEndEvent} from '@dnd-kit/dom'
 
 import {dispatchDrop} from './sortable'
 

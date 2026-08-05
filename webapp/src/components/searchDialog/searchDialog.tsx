@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, ReactNode, useEffect, useState} from 'react'
+import {For, Match, Switch, createEffect, createSignal, onCleanup} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import './searchDialog.scss'
-import {FormattedMessage} from 'react-intl'
-
 import debounce from 'lodash/debounce'
+
+import {FormattedMessage} from '../../intl'
 
 import Dialog from '../dialog'
 import {Utils} from '../../utils'
@@ -15,19 +16,19 @@ import {Constants} from '../../constants'
 type Props = {
     onClose: () => void
     title: string
-    subTitle?: string | ReactNode
-    searchHandler: (query: string) => Promise<ReactNode[]>
-    initialData?: ReactNode[]
+    subTitle?: string | JSX.Element
+    searchHandler: (query: string) => Promise<JSX.Element[]>
+    initialData?: JSX.Element[]
     selected: number
     setSelected: (n: number) => void
 }
 
 export const EmptySearch = (): JSX.Element => (
-    <div className='noResults introScreen'>
-        <div className='iconWrapper'>
+    <div class='noResults introScreen'>
+        <div class='iconWrapper'>
             <Search/>
         </div>
-        <h4 className='text-heading4'>
+        <h4 class='text-heading4'>
             <FormattedMessage
                 id='FindBoardsDialog.IntroText'
                 defaultMessage='Search for boards'
@@ -37,11 +38,11 @@ export const EmptySearch = (): JSX.Element => (
 )
 
 export const EmptyResults = (props: {query: string}): JSX.Element => (
-    <div className='noResults'>
-        <div className='iconWrapper'>
+    <div class='noResults'>
+        <div class='iconWrapper'>
             <Search/>
         </div>
-        <h4 className='text-heading4'>
+        <h4 class='text-heading4'>
             <FormattedMessage
                 id='FindBoardsDialog.NoResultsFor'
                 defaultMessage='No results for "{searchQuery}"'
@@ -60,14 +61,13 @@ export const EmptyResults = (props: {query: string}): JSX.Element => (
 )
 
 const SearchDialog = (props: Props): JSX.Element => {
-    const {selected, setSelected} = props
-    const [results, setResults] = useState<ReactNode[]>(props.initialData || [])
-    const [isSearching, setIsSearching] = useState<boolean>(false)
-    const [searchQuery, setSearchQuery] = useState<string>('')
+    const [results, setResults] = createSignal<JSX.Element[]>(props.initialData || [])
+    const [isSearching, setIsSearching] = createSignal<boolean>(false)
+    const [searchQuery, setSearchQuery] = createSignal<string>('')
 
     const searchHandler = async (query: string): Promise<void> => {
         setIsSearching(true)
-        setSelected(-1)
+        props.setSelected(-1)
         setSearchQuery(query)
         const searchResults = await props.searchHandler(query)
         setResults(searchResults)
@@ -76,32 +76,32 @@ const SearchDialog = (props: Props): JSX.Element => {
 
     const debouncedSearchHandler = debounce(searchHandler, 200)
 
-    const emptyResult = results.length === 0 && !isSearching && searchQuery
+    const emptyResult = () => results().length === 0 && !isSearching() && searchQuery()
 
     const handleUpDownKeyPress = (e: KeyboardEvent) => {
         if (Utils.isKeyPressed(e, Constants.keyCodes.DOWN)) {
             e.preventDefault()
-            if (results.length > 0) {
-                setSelected(((selected + 1) < results.length) ? (selected + 1) : selected)
+            if (results().length > 0) {
+                props.setSelected(((props.selected + 1) < results().length) ? (props.selected + 1) : props.selected)
             }
         }
 
         if (Utils.isKeyPressed(e, Constants.keyCodes.UP)) {
             e.preventDefault()
-            if (results.length > 0) {
-                setSelected(((selected - 1) > -1) ? (selected - 1) : selected)
+            if (results().length > 0) {
+                props.setSelected(((props.selected - 1) > -1) ? (props.selected - 1) : props.selected)
             }
         }
     }
 
-    useEffect(() => {
+    createEffect(() => {
         document.addEventListener('keydown', handleUpDownKeyPress)
 
         // cleanup function
-        return () => {
+        onCleanup(() => {
             document.removeEventListener('keydown', handleUpDownKeyPress)
-        }
-    }, [results, selected])
+        })
+    })
 
     return (
         <Dialog
@@ -110,39 +110,46 @@ const SearchDialog = (props: Props): JSX.Element => {
             className='BoardSwitcherDialog'
             onClose={props.onClose}
         >
-            <div className='BoardSwitcherDialogBody'>
-                <div className='head'>
-                    <div className='queryWrapper'>
+            <div class='BoardSwitcherDialogBody'>
+                <div class='head'>
+                    <div class='queryWrapper'>
                         <Search/>
                         <input
-                            className='searchQuery'
+                            class='searchQuery'
                             placeholder='Search for boards'
                             type='text'
-                            onChange={(e) => debouncedSearchHandler(e.target.value)}
-                            autoFocus={true}
+                            onInput={(e) => debouncedSearchHandler(e.target.value)}
+                            autofocus={true}
                             maxLength={100}
                         />
                     </div>
                 </div>
-                <div className='searchResults'>
-                    {/*When there are results to show*/}
-                    {searchQuery && results.length > 0 &&
-                        results.map((result) => (
-                            <div
-                                key={Utils.uuid()}
-                                className='searchResult'
-                                tabIndex={-1}
-                            >
-                                {result}
-                            </div>
-                        ))
-                    }
+                <div class='searchResults'>
+                    <Switch>
+                        {/*When there are results to show*/}
+                        <Match when={searchQuery() && results().length > 0}>
+                            <For each={results()}>
+                                {(result) => (
+                                    <div
+                                        class='searchResult'
+                                        tabIndex={-1}
+                                    >
+                                        {result}
+                                    </div>
+                                )}
+                            </For>
+                        </Match>
 
-                    {/*when user searched for something and there were no results*/}
-                    {emptyResult && <EmptyResults query={searchQuery}/>}
+                        {/*when user searched for something and there were no results*/}
+                        <Match when={emptyResult()}>
+                            <EmptyResults query={searchQuery()}/>
+                        </Match>
 
-                    {/*default state, when user didn't search for anything. This is the initial screen*/}
-                    {!emptyResult && !searchQuery && <EmptySearch/>}
+                        {/*default state, when user didn't search for anything. This is the initial screen*/}
+                        <Match when={!emptyResult() && !searchQuery()}>
+                            <EmptySearch/>
+                        </Match>
+                    </Switch>
                 </div>
             </div>
         </Dialog>

@@ -18,23 +18,26 @@ exports[`components/calculations/Options should match snapshot 1`] = `
       <div
         class="CalculationOptions__value-container"
       >
+        
         <div
           class="CalculationOptions__single-value"
         >
           Calculate
         </div>
+        
         <input
-          aria-controls="_r_0_"
+          aria-controls="cl-0"
           aria-expanded="false"
           autocomplete="off"
           class="CalculationOptions__input"
           readonly=""
           role="combobox"
           type="text"
-          value=""
         />
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -57,36 +60,39 @@ exports[`components/calculations/Options should match snapshot menu open 1`] = `
       <div
         class="CalculationOptions__value-container"
       >
+        
         <div
           class="CalculationOptions__single-value"
         >
           Calculate
         </div>
+        
         <input
-          aria-activedescendant="_r_1_-option-0"
-          aria-controls="_r_1_"
+          aria-activedescendant="cl-1-option-0"
+          aria-controls="cl-1"
           aria-expanded="true"
           autocomplete="off"
           class="CalculationOptions__input"
           readonly=""
           role="combobox"
           type="text"
-          value=""
         />
       </div>
+      
     </div>
     <div
       class="Combobox__menu CalculationOptions__menu "
     >
       <div
         class="CalculationOptions__menu-list"
-        id="_r_1_"
+        id="cl-1"
         role="listbox"
       >
+        
         <div
           aria-selected="false"
           class="CalculationOptions__option CalculationOptions__option--is-focused"
-          id="_r_1_-option-0"
+          id="cl-1-option-0"
           role="option"
         >
           Count
@@ -94,7 +100,7 @@ exports[`components/calculations/Options should match snapshot menu open 1`] = `
         <div
           aria-selected="false"
           class="CalculationOptions__option"
-          id="_r_1_-option-1"
+          id="cl-1-option-1"
           role="option"
         >
           Max

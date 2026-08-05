@@ -20,30 +20,7 @@ exports[`components/blocksEditor/blocks/text should match Input snapshot 1`] = `
   >
     <div
       class="MarkdownEditor octo-editor  active"
-    >
-      <div
-        class="MarkdownEditorInput"
-      >
-        <div
-          class="MarkdownEditorInput__content"
-          contenteditable="true"
-          data-lexical-editor="true"
-          role="textbox"
-          spellcheck="true"
-          style="user-select: text; white-space: pre-wrap; word-break: break-word;"
-        >
-          <p
-            dir="auto"
-          >
-            <span
-              data-lexical-text="true"
-            >
-              test-value
-            </span>
-          </p>
-        </div>
-      </div>
-    </div>
+    />
   </div>
 </div>
 `;

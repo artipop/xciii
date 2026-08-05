@@ -3,8 +3,9 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {Accessor, Show, createMemo, createSignal, onCleanup, onMount} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import {agentBindings} from './agentReposDialog'
 import {ColumnSpec, specFor} from './columnSettingsDialog'
@@ -44,23 +45,20 @@ async function loadColumns(boardId: string): Promise<ColumnSpec[]> {
 
 // useBoardColumns gives a component the board's column settings, reloading them
 // whenever anything invalidates the cache.
-export function useBoardColumns(boardId: string): ColumnSpec[] {
-    const [specs, setSpecs] = useState<ColumnSpec[]>([])
+export function useBoardColumns(boardId: string): Accessor<ColumnSpec[]> {
+    const [specs, setSpecs] = createSignal<ColumnSpec[]>([])
 
-    const refresh = useCallback(() => {
-        let cancelled = false
+    let cancelled = false
+    const refresh = () => {
         loadColumns(boardId).then((loaded) => {
             if (!cancelled) {
                 setSpecs(loaded)
             }
         }).catch(() => setSpecs([]))
-        return () => {
-            cancelled = true
-        }
-    }, [boardId])
+    }
 
-    useEffect(() => {
-        const cancel = refresh()
+    onMount(() => {
+        refresh()
         listeners.add(refresh)
 
         // A session starting or ending changes what the badge counts.
@@ -69,12 +67,12 @@ export function useBoardColumns(boardId: string): ColumnSpec[] {
             cache.clear()
             refresh()
         })
-        return () => {
-            cancel()
+        onCleanup(() => {
+            cancelled = true
             listeners.delete(refresh)
             off?.()
-        }
-    }, [refresh])
+        })
+    })
 
     return specs
 }
@@ -100,34 +98,33 @@ function actionIcon(action: string): string {
 }
 
 const ColumnBadge = (props: Props) => {
-    const {boardId, optionId, columnName} = props
     const intl = useIntl()
-    const specs = useBoardColumns(boardId)
-    const spec = specFor(specs, optionId, columnName)
+    const specs = useBoardColumns(props.boardId)
+    const spec = createMemo(() => specFor(specs(), props.optionId, props.columnName))
 
-    if (!spec || spec.action === 'none') {
-        return null
-    }
-
-    const crew = spec.agents || []
-    const limit = spec.maxRunning || 0
-    const title = [
-        actionTitle(intl, spec.action),
-        crew.length > 0 ? intl.formatMessage({id: 'ColumnBadge.crew', defaultMessage: 'Worked by: {crew}'}, {crew: crew.join(', ')}) : '',
-        limit > 0 ? intl.formatMessage({id: 'ColumnBadge.limit', defaultMessage: 'At once: {limit}'}, {limit}) : '',
+    const crew = () => spec()?.agents || []
+    const limit = () => spec()?.maxRunning || 0
+    const title = () => [
+        actionTitle(intl, spec()!.action),
+        crew().length > 0 ? intl.formatMessage({id: 'ColumnBadge.crew', defaultMessage: 'Worked by: {crew}'}, {crew: crew().join(', ')}) : '',
+        limit() > 0 ? intl.formatMessage({id: 'ColumnBadge.limit', defaultMessage: 'At once: {limit}'}, {limit: limit()}) : '',
     ].filter(Boolean).join('\n')
 
     return (
-        <span
-            className='ColumnBadge'
-            title={title}
-        >
-            <span className='ColumnBadge__icon'>{actionIcon(spec.action)}</span>
-            {crew.length > 0 &&
-                <span className='ColumnBadge__crew'>{crew.length === 1 ? crew[0] : crew.length}</span>}
-            {limit > 0 &&
-                <span className='ColumnBadge__limit'>{limit}</span>}
-        </span>
+        <Show when={spec() && spec()!.action !== 'none'}>
+            <span
+                class='ColumnBadge'
+                title={title()}
+            >
+                <span class='ColumnBadge__icon'>{actionIcon(spec()!.action)}</span>
+                <Show when={crew().length > 0}>
+                    <span class='ColumnBadge__crew'>{crew().length === 1 ? crew()[0] : crew().length}</span>
+                </Show>
+                <Show when={limit() > 0}>
+                    <span class='ColumnBadge__limit'>{limit()}</span>
+                </Show>
+            </span>
+        </Show>
     )
 }
 
@@ -144,4 +141,4 @@ function actionTitle(intl: {formatMessage: (d: {id: string, defaultMessage: stri
     }
 }
 
-export default React.memo(ColumnBadge)
+export default ColumnBadge

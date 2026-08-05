@@ -22,10 +22,13 @@ exports[`/components/confirmAddUserForNotifications should match snapshot 1`] = 
             <h1
               class="dialog-title"
             />
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               class="IconButton dialog__close size--medium"
@@ -82,23 +85,26 @@ exports[`/components/confirmAddUserForNotifications should match snapshot 1`] = 
                   <div
                     class="select__value-container"
                   >
+                    
                     <div
                       class="select__single-value"
                     >
                       Editor
                     </div>
+                    
                     <input
-                      aria-controls="_r_0_"
+                      aria-controls="cl-0"
                       aria-expanded="false"
                       autocomplete="off"
                       class="select__input"
                       readonly=""
                       role="combobox"
                       type="text"
-                      value=""
                     />
                   </div>
+                  
                 </div>
+                
               </div>
             </div>
           </div>
@@ -110,18 +116,22 @@ exports[`/components/confirmAddUserForNotifications should match snapshot 1`] = 
               title="Cancel"
               type="button"
             >
+              
               <span>
                 Cancel
               </span>
+              
             </button>
             <button
               class="Button filled size--medium"
               title="Add to board"
               type="submit"
             >
+              
               <span>
                 Add to board
               </span>
+              
             </button>
           </div>
         </div>

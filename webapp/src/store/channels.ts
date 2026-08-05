@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
+import type {StoreContext} from './context'
 
-import {RootState} from './index'
+import type {RootState} from './index'
 
 export const ChannelTypeOpen = 'O'
 export const ChannelTypePrivate = 'P'
@@ -19,28 +19,19 @@ export interface Channel {
     type: ChannelType
 }
 
-type ChannelState = {
+export type ChannelsState = {
     current: Channel | null
 }
 
-const channelSlice = createSlice({
-    name: 'channels',
-    initialState: {
-        current: null,
-    } as ChannelState,
-    reducers: {
-        setChannel: (state, action: PayloadAction<Channel>) => {
-            const channel = action.payload
-            if (state.current === channel) {
-                return
-            }
+export const initialChannelsState = (): ChannelsState => ({current: null})
 
-            state.current = channel
-        },
+export const createChannelsActions = ({state, setState}: StoreContext) => ({
+    setChannel(channel: Channel) {
+        if (state.channels.current === channel) {
+            return
+        }
+        setState('channels', 'current', channel)
     },
 })
-
-export const {setChannel} = channelSlice.actions
-export const {reducer} = channelSlice
 
 export const getCurrentChannel = (state: RootState): Channel|null => state.channels.current

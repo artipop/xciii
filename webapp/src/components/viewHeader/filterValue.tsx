@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState} from 'react'
+import {For, Match, Switch, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
 
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {PropertyType} from '../../properties/types'
 import {IPropertyTemplate} from '../../blocks/board'
@@ -28,106 +29,106 @@ type Props = {
     propertyType: PropertyType
 }
 
-const FilterValue = (props: Props): JSX.Element|null => {
-    const {filter, template, view, propertyType} = props
-    const [value, setValue] = useState(filter.values.length > 0 ? filter.values[0] : '')
+const FilterValue = (props: Props): JSX.Element => {
+    const [value, setValue] = createSignal(props.filter.values.length > 0 ? props.filter.values[0] : '')
     const intl = useIntl()
 
-    if (propertyType.filterValueType === 'none') {
-        return null
-    }
-
-    if (propertyType.filterValueType === 'boolean') {
-        return null
-    }
-
-    if ((propertyType.filterValueType === 'options' || propertyType.filterValueType === 'person') && filter.condition !== 'includes' && filter.condition !== 'notIncludes') {
-        return null
-    }
-
-    if (propertyType.filterValueType === 'text') {
-        return (
-            <Editable
-                onChange={setValue}
-                value={value}
-                placeholderText={intl.formatMessage({id: 'FilterByText.placeholder', defaultMessage: 'filter text'})}
-                onSave={() => {
-                    const filterIndex = view.fields.filter.filters.indexOf(filter)
-                    Utils.assert(filterIndex >= 0, "Can't find filter")
-
-                    const filterGroup = createFilterGroup(view.fields.filter)
-                    const newFilter = filterGroup.filters[filterIndex] as FilterClause
-                    Utils.assert(newFilter, `No filter at index ${filterIndex}`)
-
-                    newFilter.values = [value]
-                    mutator.changeViewFilter(view.boardId, view.id, view.fields.filter, filterGroup)
-                }}
-            />
-        )
-    }
-
-    if (propertyType.filterValueType === 'person') {
-        return (
-            <MultiPersonFilterValue
-                view={view}
-                filter={filter}
-            />
-        )
-    }
-    if (propertyType.filterValueType === 'date') {
-        if (filter.condition === 'isSet' || filter.condition === 'isNotSet') {
-            return null
+    const hidden = () => {
+        const {propertyType, filter} = props
+        if (propertyType.filterValueType === 'none' || propertyType.filterValueType === 'boolean') {
+            return true
         }
-
-        return (
-            <DateFilter
-                view={view}
-                filter={filter}
-            />
-        )
+        if ((propertyType.filterValueType === 'options' || propertyType.filterValueType === 'person') && filter.condition !== 'includes' && filter.condition !== 'notIncludes') {
+            return true
+        }
+        if (propertyType.filterValueType === 'date' && (filter.condition === 'isSet' || filter.condition === 'isNotSet')) {
+            return true
+        }
+        return false
     }
 
-    let displayValue: string
-    if (filter.values.length > 0) {
-        displayValue = filter.values.map((id) => {
-            const option = template?.options.find((o) => o.id === id)
-            return option?.value || '(Unknown)'
-        }).join(', ')
-    } else {
-        displayValue = intl.formatMessage({id: 'FilterValue.empty', defaultMessage: '(empty)'})
+    const displayValue = () => {
+        if (props.filter.values.length > 0) {
+            return props.filter.values.map((id) => {
+                const option = props.template?.options.find((o) => o.id === id)
+                return option?.value || '(Unknown)'
+            }).join(', ')
+        }
+        return intl.formatMessage({id: 'FilterValue.empty', defaultMessage: '(empty)'})
     }
 
     return (
-        <MenuWrapper className='filterValue'>
-            <Button>{displayValue}</Button>
+        <Switch>
+            <Match when={hidden()}>{null}</Match>
+            <Match when={props.propertyType.filterValueType === 'text'}>
+                <Editable
+                    onChange={setValue}
+                    value={value()}
+                    placeholderText={intl.formatMessage({id: 'FilterByText.placeholder', defaultMessage: 'filter text'})}
+                    onSave={() => {
+                        const {view, filter} = props
+                        const filterIndex = view.fields.filter.filters.indexOf(filter)
+                        Utils.assert(filterIndex >= 0, "Can't find filter")
 
-            <Menu>
-                {template?.options.map((o) => (
-                    <Menu.Switch
-                        key={o.id}
-                        id={o.id}
-                        name={o.value}
-                        isOn={filter.values.includes(o.id)}
-                        suppressItemClicked={true}
-                        onClick={(optionId) => {
-                            const filterIndex = view.fields.filter.filters.indexOf(filter)
-                            Utils.assert(filterIndex >= 0, "Can't find filter")
+                        const filterGroup = createFilterGroup(view.fields.filter)
+                        const newFilter = filterGroup.filters[filterIndex] as FilterClause
+                        Utils.assert(newFilter, `No filter at index ${filterIndex}`)
 
-                            const filterGroup = createFilterGroup(view.fields.filter)
-                            const newFilter = filterGroup.filters[filterIndex] as FilterClause
-                            Utils.assert(newFilter, `No filter at index ${filterIndex}`)
-                            if (filter.values.includes(o.id)) {
-                                newFilter.values = newFilter.values.filter((id) => id !== optionId)
-                                mutator.changeViewFilter(view.boardId, view.id, view.fields.filter, filterGroup)
-                            } else {
-                                newFilter.values.push(optionId)
-                                mutator.changeViewFilter(view.boardId, view.id, view.fields.filter, filterGroup)
-                            }
-                        }}
-                    />
-                ))}
-            </Menu>
-        </MenuWrapper>
+                        newFilter.values = [value()]
+                        mutator.changeViewFilter(view.boardId, view.id, view.fields.filter, filterGroup)
+                    }}
+                />
+            </Match>
+            <Match when={props.propertyType.filterValueType === 'person'}>
+                <MultiPersonFilterValue
+                    view={props.view}
+                    filter={props.filter}
+                />
+            </Match>
+            <Match when={props.propertyType.filterValueType === 'date'}>
+                <DateFilter
+                    view={props.view}
+                    filter={props.filter}
+                />
+            </Match>
+            <Match when={true}>
+                <MenuWrapper
+                    className='filterValue'
+                    menu={
+                        <Menu>
+                            <For each={props.template?.options}>
+                                {(o) => (
+                                    <Menu.Switch
+                                        id={o.id}
+                                        name={o.value}
+                                        isOn={props.filter.values.includes(o.id)}
+                                        suppressItemClicked={true}
+                                        onClick={(optionId) => {
+                                            const {view, filter} = props
+                                            const filterIndex = view.fields.filter.filters.indexOf(filter)
+                                            Utils.assert(filterIndex >= 0, "Can't find filter")
+
+                                            const filterGroup = createFilterGroup(view.fields.filter)
+                                            const newFilter = filterGroup.filters[filterIndex] as FilterClause
+                                            Utils.assert(newFilter, `No filter at index ${filterIndex}`)
+                                            if (filter.values.includes(o.id)) {
+                                                newFilter.values = newFilter.values.filter((id) => id !== optionId)
+                                                mutator.changeViewFilter(view.boardId, view.id, view.fields.filter, filterGroup)
+                                            } else {
+                                                newFilter.values.push(optionId)
+                                                mutator.changeViewFilter(view.boardId, view.id, view.fields.filter, filterGroup)
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </For>
+                        </Menu>
+                    }
+                >
+                    <Button>{displayValue()}</Button>
+                </MenuWrapper>
+            </Match>
+        </Switch>
     )
 }
 

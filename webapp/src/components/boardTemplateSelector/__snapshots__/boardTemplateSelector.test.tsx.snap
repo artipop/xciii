@@ -56,6 +56,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
               <span>
                 Create new template
               </span>
+              
             </button>
             <div
               class="BoardTemplateSelectorItem active"
@@ -70,6 +71,8 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
               >
                 My Project Tasks
               </span>
+              
+              
             </div>
           </div>
           <div
@@ -84,6 +87,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
               <span>
                 Create empty board
               </span>
+              
             </button>
           </div>
         </div>
@@ -95,7 +99,10 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
           >
             <div
               class="BoardTemplateSelectorPreview"
-            />
+            >
+              
+              
+            </div>
           </div>
           <div
             class="buttons"
@@ -103,9 +110,11 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
             <button
               type="button"
             >
+              
               <span>
                 Use this template
               </span>
+              
             </button>
           </div>
         </div>
@@ -120,6 +129,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
   <div
     class="BoardTemplateSelector__container BoardTemplateSelector__container--page"
   >
+    
     <div
       class="BoardTemplateSelector"
     >
@@ -158,6 +168,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
               <span>
                 Create new template
               </span>
+              
             </button>
             <div
               class="BoardTemplateSelectorItem active"
@@ -172,6 +183,8 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
               >
                 My Project Tasks
               </span>
+              
+              
             </div>
           </div>
           <div
@@ -186,6 +199,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
               <span>
                 Create empty board
               </span>
+              
             </button>
           </div>
         </div>
@@ -197,7 +211,10 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
           >
             <div
               class="BoardTemplateSelectorPreview"
-            />
+            >
+              
+              
+            </div>
           </div>
           <div
             class="buttons"
@@ -205,9 +222,11 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
             <button
               type="button"
             >
+              
               <span>
                 Use this template
               </span>
+              
             </button>
           </div>
         </div>
@@ -222,6 +241,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
   <div
     class="BoardTemplateSelector__container BoardTemplateSelector__container--page"
   >
+    
     <div
       class="BoardTemplateSelector"
     >
@@ -260,6 +280,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
               <span>
                 Create new template
               </span>
+              
             </button>
             <div
               class="BoardTemplateSelectorItem active"
@@ -274,6 +295,8 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
               >
                 My Project Tasks
               </span>
+              
+              
             </div>
           </div>
           <div
@@ -288,6 +311,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
               <span>
                 Create empty board
               </span>
+              
             </button>
           </div>
         </div>
@@ -299,7 +323,10 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
           >
             <div
               class="BoardTemplateSelectorPreview"
-            />
+            >
+              
+              
+            </div>
           </div>
           <div
             class="buttons"
@@ -307,9 +334,11 @@ exports[`components/boardTemplateSelector/boardTemplateSelector a focalboard Plu
             <button
               type="button"
             >
+              
               <span>
                 Use this template
               </span>
+              
             </button>
           </div>
         </div>
@@ -375,6 +404,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector not a focalboard
               <span>
                 Create new template
               </span>
+              
             </button>
             <div
               class="BoardTemplateSelectorItem active"
@@ -389,6 +419,8 @@ exports[`components/boardTemplateSelector/boardTemplateSelector not a focalboard
               >
                 My Project Tasks
               </span>
+              
+              
             </div>
           </div>
           <div
@@ -403,6 +435,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector not a focalboard
               <span>
                 Create empty board
               </span>
+              
             </button>
           </div>
         </div>
@@ -414,7 +447,10 @@ exports[`components/boardTemplateSelector/boardTemplateSelector not a focalboard
           >
             <div
               class="BoardTemplateSelectorPreview"
-            />
+            >
+              
+              
+            </div>
           </div>
           <div
             class="buttons"
@@ -422,9 +458,11 @@ exports[`components/boardTemplateSelector/boardTemplateSelector not a focalboard
             <button
               type="button"
             >
+              
               <span>
                 Use this template
               </span>
+              
             </button>
           </div>
         </div>

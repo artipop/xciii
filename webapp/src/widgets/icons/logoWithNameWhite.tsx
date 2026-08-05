@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import './logoWithNameWhite.scss'
 
 export default function LogoWithNameWhiteIcon(): JSX.Element {
     return (
         <svg
-            className='LogoWithNameWhiteIcon Icon'
+            class='LogoWithNameWhiteIcon Icon'
             version='1.1'
             x='0px'
             y='0px'
             viewBox='0 0 300 64'
-            enableBackground='new 0 0 300 64'
+            enable-background='new 0 0 300 64'
         >
             <g
                 id='Layer_2'
@@ -23,8 +23,8 @@ export default function LogoWithNameWhiteIcon(): JSX.Element {
                     x='0'
                     y='0.16'
                     display='inline'
-                    fillRule='evenodd'
-                    clipRule='evenodd'
+                    fill-rule='evenodd'
+                    clip-rule='evenodd'
                     fill='#FFFFFF'
                     width='300'
                     height='63.84'
@@ -34,8 +34,8 @@ export default function LogoWithNameWhiteIcon(): JSX.Element {
                 <g>
                     <g>
                         <path
-                            fillRule='evenodd'
-                            clipRule='evenodd'
+                            fill-rule='evenodd'
+                            clip-rule='evenodd'
                             fill='#FFFFFF'
                             d='M33.071,12.289C20.408,8.822,6.018,15.578,1.395,29.232
                         c-4.655,13.75,2.719,28.67,16.469,33.325c13.75,4.655,28.67-2.719,33.326-16.469c3.804-11.235-0.462-22.701-8.976-29.249
@@ -52,16 +52,16 @@ export default function LogoWithNameWhiteIcon(): JSX.Element {
                         c-0.294,0.028-0.588,0.071-0.883,0.127H25.611z'
                         />
                         <polygon
-                            fillRule='evenodd'
-                            clipRule='evenodd'
+                            fill-rule='evenodd'
+                            clip-rule='evenodd'
                             fill='#FFFFFF'
                             points='37.495,11.658 36.79,8.44 41.066,0.207 43.683,4.611
                         48.803,4.434 44.185,12.48 40.902,13.697 29.542,34.491 26.057,32.594 			'
                         />
                     </g>
                     <path
-                        fillRule='evenodd'
-                        clipRule='evenodd'
+                        fill-rule='evenodd'
+                        clip-rule='evenodd'
                         fill='#FFFFFF'
                         d='M68.736,52.902V21.449h19.827v5.982H75.828v7.284H86.73v5.983
                     H75.828v12.204H68.736L68.736,52.902z M102.842,53.481c-1.513,0-2.976-0.282-4.391-0.845c-1.415-0.563-2.661-1.374-3.739-2.437

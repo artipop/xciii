@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as React from 'react'
+// A camelCase style map (fontWeight: 'bold') the styler serializes to inline
+// CSS itself — what StyleMap typed before React left this package.
+export type StyleMap = {[property: string]: string | number}
 
 // An inline style strategy finds the character ranges within a single line of
 // text that should be styled (and, optionally, the delimiter sub-ranges within
@@ -12,8 +14,8 @@ export interface InlineStrategy {
     findStyleRanges: (text: string, blockType: string) => number[][]
     findDelimiterRanges?: (text: string, styleRanges: number[][]) => number[][]
     delimiterStyle?: string
-    styles?: React.CSSProperties
-    delimiterStyles?: React.CSSProperties
+    styles?: StyleMap
+    delimiterStyles?: StyleMap
 }
 
 // A block strategy classifies a single line of text into a block type (heading

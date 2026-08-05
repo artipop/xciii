@@ -3,8 +3,9 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {For, Show, createSignal, onCleanup, onMount} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import {agentBindings} from './agentReposDialog'
 
@@ -65,71 +66,73 @@ type Props = {
 }
 
 const FlowStrip = (props: Props) => {
-    const {cardId} = props
     const intl = useIntl()
     const bindings = agentBindings()
-    const [flow, setFlow] = useState<CardFlow | null>(null)
+    const [flow, setFlow] = createSignal<CardFlow | null>(null)
 
-    const refresh = useCallback(async () => {
+    const refresh = async () => {
         if (!bindings?.GetCardFlow) {
             return
         }
         try {
-            setFlow(JSON.parse(await bindings.GetCardFlow(cardId)))
+            setFlow(JSON.parse(await bindings.GetCardFlow(props.cardId)))
         } catch (e) {
             setFlow(null)
         }
-    }, [bindings, cardId])
+    }
 
-    useEffect(() => {
+    onMount(() => {
         refresh()
 
         // A session starting, finishing or moving the card changes the answer.
         const runtime = (window as any).runtime
         const off = runtime?.EventsOn?.('acp:session', () => refresh())
-        return () => off?.()
-    }, [refresh])
+        onCleanup(() => off?.())
+    })
 
-    if (!flow || flow.stages.length === 0) {
-        return null
+    const since = () => {
+        const age = waited(flow()?.since, Date.now())
+        return age === null ? '' : sinceLabel(intl as Parameters<typeof sinceLabel>[0], age)
     }
-
-    const age = waited(flow.since, Date.now())
-    const since = age === null ? '' : sinceLabel(intl as Parameters<typeof sinceLabel>[0], age)
     const status = () => {
-        if (flow.running) {
+        if (flow()?.running) {
             return intl.formatMessage({id: 'FlowStrip.running', defaultMessage: 'working now'})
         }
-        if (flow.queued) {
+        if (flow()?.queued) {
             return intl.formatMessage({id: 'FlowStrip.queued', defaultMessage: 'waiting for a free place in the column'})
         }
-        if (flow.waitingFor && flow.waitingFor.length > 0) {
-            return intl.formatMessage({id: 'FlowStrip.waiting', defaultMessage: 'waiting: {events}'}, {events: flow.waitingFor.join(', ')})
+        const waitingFor = flow()?.waitingFor
+        if (waitingFor && waitingFor.length > 0) {
+            return intl.formatMessage({id: 'FlowStrip.waiting', defaultMessage: 'waiting: {events}'}, {events: waitingFor.join(', ')})
         }
         return intl.formatMessage({id: 'FlowStrip.idle', defaultMessage: 'nothing to wait for here — the card moves on by hand'})
     }
 
     return (
-        <div className='FlowStrip'>
-            <div className='FlowStrip__head'>
-                <span className='FlowStrip__name'>{flow.flow}</span>
-                {flow.branch &&
-                    <span className='FlowStrip__branch'>{flow.branch}</span>}
+        <Show when={flow() && flow()!.stages.length > 0}>
+            <div class='FlowStrip'>
+                <div class='FlowStrip__head'>
+                    <span class='FlowStrip__name'>{flow()!.flow}</span>
+                    <Show when={flow()!.branch}>
+                        <span class='FlowStrip__branch'>{flow()!.branch}</span>
+                    </Show>
+                </div>
+                <div class='FlowStrip__stages'>
+                    <For each={flow()!.stages}>
+                        {(stage) => (
+                            <span
+                                class={`FlowStrip__stage${stage.current ? ' FlowStrip__stage--current' : ''}${stage.done ? ' FlowStrip__stage--done' : ''}`}
+                                title={stage.crew && stage.crew.length > 0 ? stage.crew.join(', ') : ''}
+                            >{stage.column}</span>
+                        )}
+                    </For>
+                </div>
+                <div class='FlowStrip__status'>
+                    {status()}
+                    {since() && ` · ${since()}`}
+                </div>
             </div>
-            <div className='FlowStrip__stages'>
-                {flow.stages.map((stage) => (
-                    <span
-                        key={stage.nodeId}
-                        className={`FlowStrip__stage${stage.current ? ' FlowStrip__stage--current' : ''}${stage.done ? ' FlowStrip__stage--done' : ''}`}
-                        title={stage.crew && stage.crew.length > 0 ? stage.crew.join(', ') : ''}
-                    >{stage.column}</span>
-                ))}
-            </div>
-            <div className='FlowStrip__status'>
-                {status()}
-                {since && ` · ${since}`}
-            </div>
-        </div>
+        </Show>
     )
 }
 
@@ -148,4 +151,4 @@ function sinceLabel(
     }
 }
 
-export default React.memo(FlowStrip)
+export default FlowStrip

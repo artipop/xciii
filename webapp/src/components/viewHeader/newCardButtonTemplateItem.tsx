@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import mutator from '../../mutator'
 import {Card} from '../../blocks/card'
@@ -25,60 +24,62 @@ type Props = {
 
 const NewCardButtonTemplateItem = (props: Props) => {
     const currentView = useAppSelector(getCurrentView)
-    const {cardTemplate} = props
     const intl = useIntl()
-    const displayName = cardTemplate.title || intl.formatMessage({id: 'ViewHeader.untitled', defaultMessage: 'Untitled'})
-    const isDefaultTemplate = currentView.fields.defaultTemplateId === cardTemplate.id
+    const displayName = () => props.cardTemplate.title || intl.formatMessage({id: 'ViewHeader.untitled', defaultMessage: 'Untitled'})
+    const isDefaultTemplate = () => currentView().fields.defaultTemplateId === props.cardTemplate.id
     const boardId = useAppSelector(getCurrentBoardId)
 
     return (
         <Menu.Text
-            key={cardTemplate.id}
-            id={cardTemplate.id}
-            name={displayName}
-            icon={<div className='Icon'>{cardTemplate.fields.icon}</div>}
-            className={isDefaultTemplate ? 'bold-menu-text' : ''}
+            id={props.cardTemplate.id}
+            name={displayName()}
+            icon={<div class='Icon'>{props.cardTemplate.fields.icon}</div>}
+            className={isDefaultTemplate() ? 'bold-menu-text' : ''}
             onClick={() => {
-                props.addCardFromTemplate(cardTemplate.id)
+                props.addCardFromTemplate(props.cardTemplate.id)
             }}
             rightIcon={
-                <MenuWrapper stopPropagationOnToggle={true}>
+                <MenuWrapper
+                    stopPropagationOnToggle={true}
+                    menu={
+                        <Menu position='left'>
+                            <Menu.Text
+                                icon={<CheckIcon/>}
+                                id='default'
+                                name={intl.formatMessage({id: 'ViewHeader.set-default-template', defaultMessage: 'Set as default'})}
+                                onClick={async () => {
+                                    await mutator.setDefaultTemplate(boardId(), currentView().id, currentView().fields.defaultTemplateId, props.cardTemplate.id)
+                                }}
+                            />
+                            <Menu.Text
+                                icon={<EditIcon/>}
+                                id='edit'
+                                name={intl.formatMessage({id: 'ViewHeader.edit-template', defaultMessage: 'Edit'})}
+                                onClick={() => {
+                                    props.editCardTemplate(props.cardTemplate.id)
+                                }}
+                            />
+                            <Menu.Text
+                                icon={<DeleteIcon/>}
+                                id='delete'
+                                name={intl.formatMessage({id: 'ViewHeader.delete-template', defaultMessage: 'Delete'})}
+                                onClick={async () => {
+                                    await mutator.performAsUndoGroup(async () => {
+                                        if (currentView().fields.defaultTemplateId === props.cardTemplate.id) {
+                                            await mutator.clearDefaultTemplate(boardId(), currentView().id, currentView().fields.defaultTemplateId)
+                                        }
+                                        await mutator.deleteBlock(props.cardTemplate, 'delete card template')
+                                    })
+                                }}
+                            />
+                        </Menu>
+                    }
+                >
                     <IconButton icon={<OptionsIcon/>}/>
-                    <Menu position='left'>
-                        <Menu.Text
-                            icon={<CheckIcon/>}
-                            id='default'
-                            name={intl.formatMessage({id: 'ViewHeader.set-default-template', defaultMessage: 'Set as default'})}
-                            onClick={async () => {
-                                await mutator.setDefaultTemplate(boardId, currentView.id, currentView.fields.defaultTemplateId, cardTemplate.id)
-                            }}
-                        />
-                        <Menu.Text
-                            icon={<EditIcon/>}
-                            id='edit'
-                            name={intl.formatMessage({id: 'ViewHeader.edit-template', defaultMessage: 'Edit'})}
-                            onClick={() => {
-                                props.editCardTemplate(cardTemplate.id)
-                            }}
-                        />
-                        <Menu.Text
-                            icon={<DeleteIcon/>}
-                            id='delete'
-                            name={intl.formatMessage({id: 'ViewHeader.delete-template', defaultMessage: 'Delete'})}
-                            onClick={async () => {
-                                await mutator.performAsUndoGroup(async () => {
-                                    if (currentView.fields.defaultTemplateId === cardTemplate.id) {
-                                        await mutator.clearDefaultTemplate(boardId, currentView.id, currentView.fields.defaultTemplateId)
-                                    }
-                                    await mutator.deleteBlock(cardTemplate, 'delete card template')
-                                })
-                            }}
-                        />
-                    </Menu>
                 </MenuWrapper>
             }
         />
     )
 }
 
-export default React.memo(NewCardButtonTemplateItem)
+export default NewCardButtonTemplateItem

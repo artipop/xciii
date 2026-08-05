@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react'
-import {render, screen} from '@testing-library/react'
+import type {ComponentProps} from 'solid-js'
+import {render, screen} from '@solidjs/testing-library'
 import {mocked} from 'jest-mock'
 
 import userEvent from '@testing-library/user-event'
@@ -45,8 +45,8 @@ describe('properties/number', () => {
     })
 
     it('should match snapshot for number with empty value', () => {
-        const {container} = render(
-            wrapIntl((
+        const {container} = render(() =>
+            wrapIntl(() => (
                 <NumberEditor
                     {...baseProps}
                 />
@@ -56,8 +56,8 @@ describe('properties/number', () => {
     })
 
     it('should fire change event when valid number value is entered', async () => {
-        render(
-            wrapIntl(
+        render(() =>
+            wrapIntl(() =>
                 <NumberEditor
                     {...baseProps}
                 />,

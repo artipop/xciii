@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, useEffect, useRef, useState, useCallback} from 'react'
-import {useIntl} from 'react-intl'
+import {Show, createEffect, createSignal, onCleanup} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import Editable, {Focusable} from '../../widgets/editable'
 
@@ -18,106 +20,103 @@ import {PropertyProps} from '../types'
 import './url.scss'
 
 const URLProperty = (props: PropertyProps): JSX.Element => {
-    const [value, setValue] = useState(props.card.fields.properties[props.propertyTemplate.id || ''] || '')
-    const [isEditing, setIsEditing] = useState(false)
-    const isEmpty = !(props.propertyValue as string)?.trim()
-    const showEditable = !props.readOnly && (isEditing || isEmpty)
-    const editableRef = useRef<Focusable>(null)
+    const [value, setValue] = createSignal(props.card.fields.properties[props.propertyTemplate.id || ''] || '')
+    const [isEditing, setIsEditing] = createSignal(false)
+    const isEmpty = () => !(props.propertyValue as string)?.trim()
+    const showEditable = () => !props.readOnly && (isEditing() || isEmpty())
+    let editableRef: Focusable | undefined
     const intl = useIntl()
 
-    const emptyDisplayValue = props.showEmptyPlaceholder ? intl.formatMessage({id: 'PropertyValueElement.empty', defaultMessage: 'Empty'}) : ''
+    const emptyDisplayValue = () => (props.showEmptyPlaceholder ? intl.formatMessage({id: 'PropertyValueElement.empty', defaultMessage: 'Empty'}) : '')
 
-    const saveTextProperty = useCallback(() => {
-        if (value !== (props.card.fields.properties[props.propertyTemplate?.id || ''] || '')) {
-            mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate?.id || '', value)
+    const saveTextProperty = () => {
+        if (value() !== (props.card.fields.properties[props.propertyTemplate?.id || ''] || '')) {
+            mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate?.id || '', value())
         }
-    }, [props.board.id, props.card, props.propertyTemplate?.id, value])
-
-    const saveTextPropertyRef = useRef<() => void>(saveTextProperty)
-    if (props.readOnly) {
-        saveTextPropertyRef.current = () => null
-    } else {
-        saveTextPropertyRef.current = saveTextProperty
-    }
-    useEffect(() => {
-        return () => {
-            saveTextPropertyRef.current && saveTextPropertyRef.current()
-        }
-    }, [])
-
-    useEffect(() => {
-        if (isEditing) {
-            editableRef.current?.focus()
-        }
-    }, [isEditing])
-
-    if (!props.propertyTemplate) {
-        return <></>
     }
 
-    if (showEditable) {
-        return (
-            <div className='URLProperty'>
-                <Editable
-                    className={props.property.valueClassName(props.readOnly)}
-                    ref={editableRef}
-                    placeholderText={emptyDisplayValue}
-                    value={value as string}
-                    autoExpand={true}
-                    readonly={props.readOnly}
-                    onChange={setValue}
-                    onSave={() => {
-                        setIsEditing(false)
-                        saveTextProperty()
-                    }}
-                    onCancel={() => {
-                        setIsEditing(false)
-                        setValue(props.propertyValue || '')
-                    }}
-                    onFocus={() => {
-                        setIsEditing(true)
-                    }}
-                    validator={() => {
-                        if (value === '') {
-                            return true
-                        }
-                        const urlRegexp = /(((.+:(?:\/\/)?)?(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www\.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)((?:\/[+~%/.\w\-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[.!/\\\w]*))?)/
-                        return urlRegexp.test(value as string)
-                    }}
-                />
-            </div>
-        )
-    }
+    // The React version flushed an unsaved value on unmount.
+    onCleanup(() => {
+        if (!props.readOnly) {
+            saveTextProperty()
+        }
+    })
+
+    createEffect(() => {
+        if (isEditing()) {
+            editableRef?.focus()
+        }
+    })
 
     return (
-        <div className={`URLProperty ${props.property.valueClassName(props.readOnly)}`}>
-            <a
-                className='link'
-                href={Utils.ensureProtocol((props.propertyValue as string).trim())}
-                target='_blank'
-                rel='noreferrer'
-                onClick={(event) => event.stopPropagation()}
+        <Show when={props.propertyTemplate}>
+            <Show
+                when={showEditable()}
+                fallback={
+                    <div class={`URLProperty ${props.property.valueClassName(props.readOnly)}`}>
+                        <a
+                            class='link'
+                            href={Utils.ensureProtocol(((props.propertyValue as string) || '').trim())}
+                            target='_blank'
+                            rel='noreferrer'
+                            onClick={(event) => event.stopPropagation()}
+                        >
+                            {props.propertyValue}
+                        </a>
+                        <Show when={!props.readOnly}>
+                            <IconButton
+                                className='Button_Edit'
+                                title={intl.formatMessage({id: 'URLProperty.edit', defaultMessage: 'Edit'})}
+                                icon={<EditIcon/>}
+                                onClick={() => setIsEditing(true)}
+                            />
+                        </Show>
+                        <IconButton
+                            className='Button_Copy'
+                            title={intl.formatMessage({id: 'URLProperty.copy', defaultMessage: 'Copy'})}
+                            icon={<DuplicateIcon/>}
+                            onClick={(e: MouseEvent) => {
+                                e.stopPropagation()
+                                Utils.copyTextToClipboard(props.propertyValue as string)
+                                sendFlashMessage({content: intl.formatMessage({id: 'URLProperty.copiedLink', defaultMessage: 'Copied!'}), severity: 'high'})
+                            }}
+                        />
+                    </div>
+                }
             >
-                {props.propertyValue}
-            </a>
-            {!props.readOnly &&
-            <IconButton
-                className='Button_Edit'
-                title={intl.formatMessage({id: 'URLProperty.edit', defaultMessage: 'Edit'})}
-                icon={<EditIcon/>}
-                onClick={() => setIsEditing(true)}
-            />}
-            <IconButton
-                className='Button_Copy'
-                title={intl.formatMessage({id: 'URLProperty.copy', defaultMessage: 'Copy'})}
-                icon={<DuplicateIcon/>}
-                onClick={(e) => {
-                    e.stopPropagation()
-                    Utils.copyTextToClipboard(props.propertyValue as string)
-                    sendFlashMessage({content: intl.formatMessage({id: 'URLProperty.copiedLink', defaultMessage: 'Copied!'}), severity: 'high'})
-                }}
-            />
-        </div>
+                <div class='URLProperty'>
+                    <Editable
+                        className={props.property.valueClassName(props.readOnly)}
+                        ref={(f) => {
+                            editableRef = f
+                        }}
+                        placeholderText={emptyDisplayValue()}
+                        value={value() as string}
+                        autoExpand={true}
+                        readonly={props.readOnly}
+                        onChange={setValue}
+                        onSave={() => {
+                            setIsEditing(false)
+                            saveTextProperty()
+                        }}
+                        onCancel={() => {
+                            setIsEditing(false)
+                            setValue(props.propertyValue || '')
+                        }}
+                        onFocus={() => {
+                            setIsEditing(true)
+                        }}
+                        validator={() => {
+                            if (value() === '') {
+                                return true
+                            }
+                            const urlRegexp = /(((.+:(?:\/\/)?)?(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www\.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)((?:\/[+~%/.\w\-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[.!/\\\w]*))?)/
+                            return urlRegexp.test(value() as string)
+                        }}
+                    />
+                </div>
+            </Show>
+        </Show>
     )
 }
 

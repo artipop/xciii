@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import {FileInfo} from '../../../blocks/block'
 
@@ -18,8 +16,7 @@ describe('components/content/archivedFile', () => {
             size: 2056,
         }
 
-        const component = (<ArchivedFile fileInfo={fileInfo}/>)
-        const {container} = render(component)
+        const {container} = render(() => <ArchivedFile fileInfo={fileInfo}/>)
         expect(container).toMatchSnapshot()
     })
 })

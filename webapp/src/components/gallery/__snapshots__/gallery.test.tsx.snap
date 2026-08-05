@@ -22,10 +22,14 @@ exports[`src/components/gallery/Gallery limited card count check 1`] = `
             class="CompassIcon icon-dots-horizontal OptionsIcon"
           />
         </button>
+        
       </div>
       <div
         class="gallery-item"
       />
+      
+      
+      
     </div>
     <div
       class="GalleryCard"
@@ -44,10 +48,14 @@ exports[`src/components/gallery/Gallery limited card count check 1`] = `
             class="CompassIcon icon-dots-horizontal OptionsIcon"
           />
         </button>
+        
       </div>
       <div
         class="gallery-item"
       />
+      
+      
+      
     </div>
     <div
       class="octo-gallery-new"
@@ -70,9 +78,11 @@ exports[`src/components/gallery/Gallery limited card count check 1`] = `
           title="hidden-card-count"
           type="button"
         >
+          
           <span>
             2
           </span>
+          
         </button>
       </div>
     </div>
@@ -102,6 +112,7 @@ exports[`src/components/gallery/Gallery return Gallery and click new 1`] = `
             class="CompassIcon icon-dots-horizontal OptionsIcon"
           />
         </button>
+        
       </div>
       <div
         class="gallery-item"
@@ -113,6 +124,9 @@ exports[`src/components/gallery/Gallery return Gallery and click new 1`] = `
           class="DividerElement"
         />
       </div>
+      
+      
+      
     </div>
     <div
       class="GalleryCard"
@@ -131,16 +145,21 @@ exports[`src/components/gallery/Gallery return Gallery and click new 1`] = `
             class="CompassIcon icon-dots-horizontal OptionsIcon"
           />
         </button>
+        
       </div>
       <div
         class="gallery-item"
       />
+      
+      
+      
     </div>
     <div
       class="octo-gallery-new"
     >
       + New
     </div>
+    
   </div>
 </div>
 `;
@@ -154,6 +173,7 @@ exports[`src/components/gallery/Gallery return Gallery readonly 1`] = `
       class="GalleryCard selected"
       style="opacity: 1;"
     >
+      
       <div
         class="gallery-item"
       >
@@ -164,15 +184,24 @@ exports[`src/components/gallery/Gallery return Gallery readonly 1`] = `
           class="DividerElement"
         />
       </div>
+      
+      
+      
     </div>
     <div
       class="GalleryCard"
       style="opacity: 1;"
     >
+      
       <div
         class="gallery-item"
       />
+      
+      
+      
     </div>
+    
+    
   </div>
 </div>
 `;
@@ -233,11 +262,14 @@ exports[`src/components/gallery/Gallery should match snapshot 1`] = `
                     >
                       Delete
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
                   />
                 </div>
+              </div>
+              <div>
                 <div
                   aria-label="Duplicate"
                   class="MenuOption TextOption menu-option"
@@ -262,6 +294,7 @@ exports[`src/components/gallery/Gallery should match snapshot 1`] = `
                     >
                       Duplicate
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -293,6 +326,7 @@ exports[`src/components/gallery/Gallery should match snapshot 1`] = `
                     >
                       Copy link
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -327,6 +361,7 @@ exports[`src/components/gallery/Gallery should match snapshot 1`] = `
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -346,6 +381,9 @@ exports[`src/components/gallery/Gallery should match snapshot 1`] = `
           class="DividerElement"
         />
       </div>
+      
+      
+      
     </div>
     <div
       class="GalleryCard"
@@ -364,16 +402,21 @@ exports[`src/components/gallery/Gallery should match snapshot 1`] = `
             class="CompassIcon icon-dots-horizontal OptionsIcon"
           />
         </button>
+        
       </div>
       <div
         class="gallery-item"
       />
+      
+      
+      
     </div>
     <div
       class="octo-gallery-new"
     >
       + New
     </div>
+    
   </div>
 </div>
 `;
@@ -435,6 +478,7 @@ exports[`src/components/gallery/Gallery should match snapshot without permission
                     >
                       Copy link
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -469,6 +513,7 @@ exports[`src/components/gallery/Gallery should match snapshot without permission
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -488,6 +533,9 @@ exports[`src/components/gallery/Gallery should match snapshot without permission
           class="DividerElement"
         />
       </div>
+      
+      
+      
     </div>
     <div
       class="GalleryCard"
@@ -506,11 +554,17 @@ exports[`src/components/gallery/Gallery should match snapshot without permission
             class="CompassIcon icon-dots-horizontal OptionsIcon"
           />
         </button>
+        
       </div>
       <div
         class="gallery-item"
       />
+      
+      
+      
     </div>
+    
+    
   </div>
 </div>
 `;

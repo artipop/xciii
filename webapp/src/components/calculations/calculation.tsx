@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
-import {useIntl} from 'react-intl'
+import type {JSX} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import {Card} from '../../blocks/card'
 
@@ -54,7 +55,7 @@ const Calculation = (props: Props): JSX.Element => {
         // See this for more details-
         // https://stackoverflow.com/questions/47308081/onblur-event-is-not-firing
         <div
-            className={`Calculation ${value} ${props.class} ${props.menuOpen ? 'menuOpen' : ''} ${props.hovered ? 'hovered' : ''}`}
+            class={`Calculation ${value} ${props.class} ${props.menuOpen ? 'menuOpen' : ''} ${props.hovered ? 'hovered' : ''}`}
             onClick={() => (props.menuOpen ? props.onMenuClose() : props.onMenuOpen())}
             tabIndex={0}
             onBlur={props.onMenuClose}
@@ -69,7 +70,7 @@ const Calculation = (props: Props): JSX.Element => {
                 )
             }
 
-            <span className='calculationLabel'>
+            <span class='calculationLabel'>
                 {optionDisplayNameString(valueOption!, intl)}
             </span>
 
@@ -80,7 +81,7 @@ const Calculation = (props: Props): JSX.Element => {
 
             {
                 value !== Options.none.value &&
-                <span className='calculationValue'>
+                <span class='calculationValue'>
                     {Calculations[value] ? Calculations[value](props.cards, props.property, intl) : ''}
                 </span>
             }

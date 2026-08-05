@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import {IntlProvider} from 'react-intl'
+
 import {mocked} from 'jest-mock'
+
+import {IntlProvider} from '../../intl'
 
 import '@testing-library/jest-dom'
 
@@ -50,8 +51,8 @@ describe('components/viewHeader/dateFilter', () => {
     })
 
     test('return dateFilter default value', () => {
-        const {container} = render(
-            wrapIntl(
+        const {container} = render(() =>
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={emptyFilterClause}
@@ -62,8 +63,8 @@ describe('components/viewHeader/dateFilter', () => {
     })
 
     test('return dateFilter invalid value', () => {
-        const {container} = render(
-            wrapIntl(
+        const {container} = render(() =>
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={{
@@ -79,8 +80,8 @@ describe('components/viewHeader/dateFilter', () => {
 
     test('return dateFilter valid value', () => {
         const june15 = June15.getTime().toString()
-        const {container} = render(
-            wrapIntl(
+        const {container} = render(() =>
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={{
@@ -100,7 +101,7 @@ describe('components/viewHeader/dateFilter', () => {
         activeView.fields.filter = createFilterGroup()
         activeView.fields.filter.filters = [todayFilterClause]
 
-        const component = (
+        const component = () => (
             <IntlProvider locale='es'>
                 <DateFilter
                     view={activeView}
@@ -120,7 +121,7 @@ describe('components/viewHeader/dateFilter', () => {
         activeView.fields.filter.filters = [emptyFilterClause]
 
         const component =
-            wrapIntl(
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={emptyFilterClause}
@@ -153,7 +154,7 @@ describe('components/viewHeader/dateFilter', () => {
         activeView.fields.filter.filters = [todayFilterClause]
 
         const component =
-            wrapIntl(
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={todayFilterClause}
@@ -182,7 +183,7 @@ describe('components/viewHeader/dateFilter', () => {
         activeView.fields.filter.filters = [emptyFilterClause]
 
         const component =
-            wrapIntl(
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={emptyFilterClause}
@@ -211,7 +212,7 @@ describe('components/viewHeader/dateFilter', () => {
 
     test('handles `Today` button click event', () => {
         const component =
-            wrapIntl(
+            wrapIntl(() =>
                 <DateFilter
                     view={activeView}
                     filter={emptyFilterClause}

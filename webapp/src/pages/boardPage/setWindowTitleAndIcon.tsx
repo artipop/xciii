@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {useEffect} from 'react'
+import {createEffect} from 'solid-js'
 
 import {Utils} from '../../utils'
 import {getCurrentBoard} from '../../store/boards'
@@ -11,21 +11,22 @@ const SetWindowTitleAndIcon = (): null => {
     const board = useAppSelector(getCurrentBoard)
     const activeView = useAppSelector(getCurrentView)
 
-    useEffect(() => {
-        Utils.setFavicon(board?.icon)
-    }, [board?.icon])
+    createEffect(() => {
+        Utils.setFavicon(board()?.icon)
+    })
 
-    useEffect(() => {
-        if (board) {
-            let title = `${board.title}`
-            if (activeView?.title) {
-                title += ` | ${activeView.title}`
+    createEffect(() => {
+        const currentBoard = board()
+        if (currentBoard) {
+            let title = `${currentBoard.title}`
+            if (activeView()?.title) {
+                title += ` | ${activeView().title}`
             }
             document.title = title
         } else {
             document.title = 'Trixi'
         }
-    }, [board?.title, activeView?.title])
+    })
 
     return null
 }

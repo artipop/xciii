@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect, useState} from 'react'
-import {generatePath, useRouteMatch, useHistory} from 'react-router-dom'
-import {FormattedMessage} from 'react-intl'
+import {Match, Show, Switch, createEffect, createSignal, onCleanup} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {useNavigate} from '@solidjs/router'
+
+import {FormattedMessage} from '../intl'
 
 import {DatePropertyType} from '../properties/types'
 
 import {getCurrentBoard, isLoadingBoard, getTemplates} from '../store/boards'
-import {refreshCards, getCardLimitTimestamp, getCurrentBoardHiddenCardsCount, setLimitTimestamp, getCurrentViewCardsSortedFilteredAndGrouped, setCurrent as setCurrentCard} from '../store/cards'
+import {getCardLimitTimestamp, getCurrentBoardHiddenCardsCount, getCurrentViewCardsSortedFilteredAndGrouped} from '../store/cards'
 import {
     getCurrentBoardViews,
     getCurrentViewGroupBy,
@@ -15,15 +18,16 @@ import {
     getCurrentViewDisplayBy,
     getCurrentView,
 } from '../store/views'
-import {useAppSelector, useAppDispatch} from '../store/hooks'
+import {useAppSelector, useAppStore} from '../store/hooks'
 
-import {getClientConfig, setClientConfig} from '../store/clientConfig'
+import {getClientConfig} from '../store/clientConfig'
 
 import wsClient, {WSClient} from '../wsclient'
 import {ClientConfig} from '../config/clientConfig'
 import {Utils} from '../utils'
 import {IUser} from '../user'
 import propsRegistry from '../properties'
+import {useRouteMatch} from '../hooks/routerMatch'
 
 import {getMe} from '../store/users'
 
@@ -43,7 +47,7 @@ type Props = {
 
 function CenterContent(props: Props) {
     const isLoading = useAppSelector(isLoadingBoard)
-    const match = useRouteMatch<{boardId: string, viewId: string, cardId?: string, channelId?: string}>()
+    const match = useRouteMatch()
     const board = useAppSelector(getCurrentBoard)
     const templates = useAppSelector(getTemplates)
     const cards = useAppSelector(getCurrentViewCardsSortedFilteredAndGrouped)
@@ -54,45 +58,49 @@ function CenterContent(props: Props) {
     const clientConfig = useAppSelector(getClientConfig)
     const hiddenCardsCount = useAppSelector(getCurrentBoardHiddenCardsCount)
     const cardLimitTimestamp = useAppSelector(getCardLimitTimestamp)
-    const history = useHistory()
-    const dispatch = useAppDispatch()
+    const navigate = useNavigate()
+    const {actions} = useAppStore()
     const me = useAppSelector<IUser|null>(getMe)
     const hiddenBoardIDs = useAppSelector(getHiddenBoardIDs)
 
     const isBoardHidden = () => {
-        return hiddenBoardIDs.includes(board.id)
+        return hiddenBoardIDs().includes(board()?.id)
     }
 
     const showCard = (cardId?: string) => {
-        const params = {...match.params, cardId}
-        let newPath = generatePath(Utils.getBoardPagePath(match.path), params)
+        const currentMatch = match()
+        const params = {...currentMatch.params, cardId}
+        let newPath = Utils.generatePath(Utils.getBoardPagePath(currentMatch.path), params)
         if (props.readonly) {
             newPath += `?r=${Utils.getReadToken()}`
         }
-        history.push(newPath)
-        dispatch(setCurrentCard(cardId || ''))
+        navigate(newPath)
+        actions.cards.setCurrent(cardId || '')
     }
 
-    useEffect(() => {
+    createEffect(() => {
+        const currentCardLimitTimestamp = cardLimitTimestamp()
+        const currentTemplates = templates()
+
         const onConfigChangeHandler = (_: WSClient, config: ClientConfig) => {
-            dispatch(setClientConfig(config))
+            actions.clientConfig.setClientConfig(config)
         }
         wsClient.addOnConfigChange(onConfigChangeHandler)
 
         const onCardLimitTimestampChangeHandler = (_: WSClient, timestamp: number) => {
-            dispatch(setLimitTimestamp({timestamp, templates}))
-            if (cardLimitTimestamp > timestamp) {
-                dispatch(refreshCards(timestamp))
+            actions.cards.setLimitTimestamp({timestamp, templates: currentTemplates})
+            if (currentCardLimitTimestamp > timestamp) {
+                actions.cards.refreshCards(timestamp)
             }
         }
         wsClient.addOnCardLimitTimestampChange(onCardLimitTimestampChangeHandler)
 
-        return () => {
+        onCleanup(() => {
             wsClient.removeOnConfigChange(onConfigChangeHandler)
-        }
-    }, [cardLimitTimestamp, match.params.boardId, templates])
+        })
+    })
 
-    const templateSelector = (
+    const templateSelector = () => (
         <BoardTemplateSelector
             title={
                 <FormattedMessage
@@ -106,93 +114,105 @@ function CenterContent(props: Props) {
                     defaultMessage='Add a board to the sidebar using any of the templates defined below or start from scratch.'
                 />
             }
-            channelId={match.params.channelId}
+            channelId={match().params.channelId}
         />
     )
 
-    if (match.params.channelId) {
-        if (me?.is_guest) {
-            return <GuestNoBoards/>
+    const property = () => {
+        let result = groupByProperty()
+        if ((!result || !propsRegistry.get(result.type).canGroup) && activeView()?.fields.viewType === 'board') {
+            result = board()?.cardProperties.find((o) => propsRegistry.get(o.type).canGroup)
         }
-        return templateSelector
+        return result
     }
 
-    if (board && !isBoardHidden() && activeView) {
-        let property = groupByProperty
-        if ((!property || !propsRegistry.get(property.type).canGroup) && activeView.fields.viewType === 'board') {
-            property = board?.cardProperties.find((o) => propsRegistry.get(o.type).canGroup)
+    const displayProperty = () => {
+        let result = dateDisplayProperty()
+        if (!result && activeView()?.fields.viewType === 'calendar') {
+            result = board()?.cardProperties.find((o) => propsRegistry.get(o.type) instanceof DatePropertyType)
         }
-
-        let displayProperty = dateDisplayProperty
-        if (!displayProperty && activeView.fields.viewType === 'calendar') {
-            displayProperty = board.cardProperties.find((o) => propsRegistry.get(o.type) instanceof DatePropertyType)
-        }
-
-        return (
-            <CenterPanel
-                clientConfig={clientConfig}
-                readonly={props.readonly}
-                board={board}
-                cards={cards}
-                shownCardId={match.params.cardId}
-                showCard={showCard}
-                activeView={activeView}
-                groupByProperty={property}
-                dateDisplayProperty={displayProperty}
-                views={views}
-                hiddenCardsCount={hiddenCardsCount}
-            />
-        )
+        return result
     }
 
-    if ((board && !isBoardHidden()) || isLoading) {
-        return null
-    }
-
-    if (me?.is_guest) {
-        return <GuestNoBoards/>
-    }
-
-    return templateSelector
+    return (
+        <Switch>
+            <Match when={match().params.channelId}>
+                <Show
+                    when={!me()?.is_guest}
+                    fallback={<GuestNoBoards/>}
+                >
+                    {templateSelector()}
+                </Show>
+            </Match>
+            <Match when={board() && !isBoardHidden() && activeView()}>
+                <CenterPanel
+                    clientConfig={clientConfig()}
+                    readonly={props.readonly}
+                    board={board()!}
+                    cards={cards()}
+                    shownCardId={match().params.cardId}
+                    showCard={showCard}
+                    activeView={activeView()!}
+                    groupByProperty={property()}
+                    dateDisplayProperty={displayProperty()}
+                    views={views()}
+                    hiddenCardsCount={hiddenCardsCount()}
+                />
+            </Match>
+            <Match when={(board() && !isBoardHidden()) || isLoading()}>
+                {null}
+            </Match>
+            <Match when={me()?.is_guest}>
+                <GuestNoBoards/>
+            </Match>
+            <Match when={true}>
+                {templateSelector()}
+            </Match>
+        </Switch>
+    )
 }
 
-const Workspace = (props: Props) => {
+const Workspace = (props: Props): JSX.Element => {
     const board = useAppSelector(getCurrentBoard)
 
     const viewId = useAppSelector(getCurrentViewId)
-    const [boardTemplateSelectorOpen, setBoardTemplateSelectorOpen] = useState(false)
+    const [boardTemplateSelectorOpen, setBoardTemplateSelectorOpen] = createSignal(false)
 
     const closeBoardTemplateSelector = () => {
         setBoardTemplateSelectorOpen(false)
     }
     const openBoardTemplateSelector = () => {
-        if (board) {
+        if (board()) {
             setBoardTemplateSelectorOpen(true)
         }
     }
-    useEffect(() => {
+    createEffect(() => {
+        board()
+        viewId()
         setBoardTemplateSelectorOpen(false)
-    }, [board, viewId])
+    })
 
     return (
-        <div className='Workspace'>
-            {!props.readonly &&
+        <div class='Workspace'>
+            <Show when={!props.readonly}>
                 <Sidebar
                     onBoardTemplateSelectorOpen={openBoardTemplateSelector}
                     onBoardTemplateSelectorClose={closeBoardTemplateSelector}
-                    activeBoardId={board?.id}
+                    activeBoardId={board()?.id}
                 />
-            }
-            <div className='mainFrame'>
-                {boardTemplateSelectorOpen &&
-                    <BoardTemplateSelector onClose={closeBoardTemplateSelector}/>}
-                {(board?.isTemplate) &&
-                <div className='banner'>
-                    <FormattedMessage
-                        id='Workspace.editing-board-template'
-                        defaultMessage="You're editing a board template."
-                    />
-                </div>}
+            </Show>
+            <div class='mainFrame'>
+                <Show when={boardTemplateSelectorOpen()}>
+                    <BoardTemplateSelector onClose={closeBoardTemplateSelector}/>
+                </Show>
+                <Show when={board()?.isTemplate}>
+                    <div class='banner'>
+                        <FormattedMessage
+                            id='Workspace.editing-board-template'
+                            defaultMessage="You're editing a board template."
+                        />
+                    </div>
+                </Show>
                 <CenterContent
                     readonly={props.readonly}
                 />
@@ -201,4 +221,4 @@ const Workspace = (props: Props) => {
     )
 }
 
-export default React.memo(Workspace)
+export default Workspace

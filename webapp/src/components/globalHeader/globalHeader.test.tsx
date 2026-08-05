@@ -1,31 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
-import {createMemoryHistory} from 'history'
+import {render} from '@solidjs/testing-library'
 
-import {render} from '@testing-library/react'
-
-import configureStore from 'redux-mock-store'
-
-import {wrapIntl} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import GlobalHeader from './globalHeader'
 
 describe('components/sidebar/GlobalHeader', () => {
-    const mockStore = configureStore([])
-    const history = createMemoryHistory()
-
-    let store = mockStore({})
+    let store = mockAppStore({})
     beforeEach(() => {
-        store = mockStore({})
+        store = mockAppStore({})
     })
     test('header menu should match snapshot', () => {
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
-                <GlobalHeader history={history}/>
-            </ReduxProvider>,
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <GlobalHeader history={history}/>
+                </TestRouter>
+            </AppStoreProvider>,
         )
 
         const {container} = render(component)

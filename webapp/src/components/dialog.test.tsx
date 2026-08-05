@@ -2,9 +2,7 @@
 // See LICENSE.txt for license information.
 
 import '@testing-library/jest-dom'
-import {render, screen} from '@testing-library/react'
-
-import React from 'react'
+import {render, screen} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
@@ -19,7 +17,7 @@ import Dialog from './dialog'
 describe('components/dialog', () => {
     beforeEach(jest.clearAllMocks)
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(() => wrapDNDIntl(() =>
             <Dialog
                 onClose={jest.fn()}
             >
@@ -30,7 +28,7 @@ describe('components/dialog', () => {
     })
     test('should return dialog and click onClose button', () => {
         const onCloseMethod = jest.fn()
-        render(wrapDNDIntl(
+        render(() => wrapDNDIntl(() =>
             <Dialog
                 onClose={onCloseMethod}
             >
@@ -43,7 +41,7 @@ describe('components/dialog', () => {
     })
     test('should return dialog and click to close on wrapper', () => {
         const onCloseMethod = jest.fn()
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(() => wrapDNDIntl(() =>
             <Dialog
                 onClose={onCloseMethod}
             >
@@ -66,7 +64,7 @@ describe('components/dialog', () => {
 
     test('should return dialog and click on test button', () => {
         const onTest = jest.fn()
-        render(wrapDNDIntl(
+        render(() => wrapDNDIntl(() =>
             <Dialog
                 onClose={jest.fn()}
                 toolsMenu={<Menu position='left'>
@@ -90,7 +88,7 @@ describe('components/dialog', () => {
         expect(onTest).toHaveBeenCalledTimes(1)
     })
     test('should return dialog and click on cancel button', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(() => wrapDNDIntl(() =>
             <Dialog
                 onClose={jest.fn()}
                 toolsMenu={<Menu position='left'>

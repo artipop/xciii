@@ -1,19 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import configureStore from 'redux-mock-store'
+import {render} from '@solidjs/testing-library'
 
-import {Provider as ReduxProvider} from 'react-redux'
-
-import {render} from '@testing-library/react'
-
-import {wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import RegistrationLink from './registrationLink'
 
 describe('components/sidebar/RegistrationLink', () => {
-    const mockStore = configureStore([])
     const state = {
         teams: {
             current: {
@@ -24,14 +19,14 @@ describe('components/sidebar/RegistrationLink', () => {
     }
 
     test('renders with signupToken in URL query param', () => {
-        const store = mockStore(state)
+        const store = mockAppStore(state)
 
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <RegistrationLink
                     onClose={() => {}}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
         const {container} = render(component)
         expect(container).toMatchSnapshot()

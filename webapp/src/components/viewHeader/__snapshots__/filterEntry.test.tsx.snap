@@ -14,9 +14,11 @@ exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -48,6 +50,7 @@ exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
                   >
                     Title
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -75,6 +78,7 @@ exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
                   >
                     Status
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -102,6 +106,7 @@ exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
                   >
                     Property 1
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -129,6 +134,7 @@ exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
                   >
                     Property 2
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -156,6 +162,7 @@ exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
                   >
                     Property 3
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -189,6 +196,7 @@ exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -207,10 +215,13 @@ exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
         class="Button"
         type="button"
       >
+        
         <span>
           includes
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -221,10 +232,13 @@ exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       class="octo-spacer"
@@ -233,9 +247,11 @@ exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -255,10 +271,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on delet
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -269,9 +288,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on delet
         class="Button"
         type="button"
       >
+        
         <span>
           includes
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -303,11 +324,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on delet
                   >
                     includes
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="doesn't include"
                 class="MenuOption TextOption menu-option"
@@ -328,11 +352,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on delet
                   >
                     doesn't include
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is empty"
                 class="MenuOption TextOption menu-option"
@@ -353,11 +380,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on delet
                   >
                     is empty
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is not empty"
                 class="MenuOption TextOption menu-option"
@@ -378,6 +408,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on delet
                   >
                     is not empty
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -417,6 +448,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on delet
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -435,10 +467,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on delet
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       class="octo-spacer"
@@ -447,9 +482,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on delet
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -469,9 +506,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -503,6 +542,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                   >
                     Title
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -530,6 +570,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                   >
                     Status
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -557,6 +598,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                   >
                     Property 1
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -584,6 +626,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                   >
                     Property 2
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -611,6 +654,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                   >
                     Property 3
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -644,6 +688,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -662,10 +707,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
         class="Button"
         type="button"
       >
+        
         <span>
           includes
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -676,10 +724,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       class="octo-spacer"
@@ -688,9 +739,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -710,9 +763,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
         class="Button"
         type="button"
       >
+        
         <span>
           Property 1
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -744,6 +799,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                   >
                     Title
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -771,6 +827,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                   >
                     Status
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -798,6 +855,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                   >
                     Property 1
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -825,6 +883,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                   >
                     Property 2
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -852,6 +911,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                   >
                     Property 3
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -885,6 +945,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -903,11 +964,15 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
         class="Button"
         type="button"
       >
+        
         <span>
           is set
         </span>
+        
       </button>
+      
     </div>
+    
     <div
       class="octo-spacer"
     />
@@ -915,9 +980,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -937,10 +1004,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on doesn
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -951,9 +1021,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on doesn
         class="Button"
         type="button"
       >
+        
         <span>
           includes
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -985,11 +1057,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on doesn
                   >
                     includes
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="doesn't include"
                 class="MenuOption TextOption menu-option"
@@ -1010,11 +1085,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on doesn
                   >
                     doesn't include
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is empty"
                 class="MenuOption TextOption menu-option"
@@ -1035,11 +1113,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on doesn
                   >
                     is empty
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is not empty"
                 class="MenuOption TextOption menu-option"
@@ -1060,6 +1141,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on doesn
                   >
                     is not empty
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1099,6 +1181,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on doesn
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -1117,10 +1200,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on doesn
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       class="octo-spacer"
@@ -1129,9 +1215,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on doesn
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -1151,10 +1239,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on inclu
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -1165,9 +1256,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on inclu
         class="Button"
         type="button"
       >
+        
         <span>
           includes
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -1199,11 +1292,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on inclu
                   >
                     includes
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="doesn't include"
                 class="MenuOption TextOption menu-option"
@@ -1224,11 +1320,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on inclu
                   >
                     doesn't include
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is empty"
                 class="MenuOption TextOption menu-option"
@@ -1249,11 +1348,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on inclu
                   >
                     is empty
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is not empty"
                 class="MenuOption TextOption menu-option"
@@ -1274,6 +1376,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on inclu
                   >
                     is not empty
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1313,6 +1416,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on inclu
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -1331,10 +1435,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on inclu
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       class="octo-spacer"
@@ -1343,9 +1450,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on inclu
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -1365,10 +1474,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is em
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -1379,9 +1491,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is em
         class="Button"
         type="button"
       >
+        
         <span>
           includes
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -1413,11 +1527,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is em
                   >
                     includes
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="doesn't include"
                 class="MenuOption TextOption menu-option"
@@ -1438,11 +1555,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is em
                   >
                     doesn't include
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is empty"
                 class="MenuOption TextOption menu-option"
@@ -1463,11 +1583,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is em
                   >
                     is empty
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is not empty"
                 class="MenuOption TextOption menu-option"
@@ -1488,6 +1611,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is em
                   >
                     is not empty
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1527,6 +1651,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is em
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -1545,10 +1670,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is em
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       class="octo-spacer"
@@ -1557,9 +1685,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is em
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -1579,10 +1709,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is no
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -1593,9 +1726,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is no
         class="Button"
         type="button"
       >
+        
         <span>
           includes
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -1627,11 +1762,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is no
                   >
                     includes
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="doesn't include"
                 class="MenuOption TextOption menu-option"
@@ -1652,11 +1790,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is no
                   >
                     doesn't include
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is empty"
                 class="MenuOption TextOption menu-option"
@@ -1677,11 +1818,14 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is no
                   >
                     is empty
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is not empty"
                 class="MenuOption TextOption menu-option"
@@ -1702,6 +1846,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is no
                   >
                     is not empty
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1741,6 +1886,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is no
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -1759,10 +1905,13 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is no
         class="Button"
         type="button"
       >
+        
         <span>
           Status
         </span>
+        
       </button>
+      
     </div>
     <div
       class="octo-spacer"
@@ -1771,9 +1920,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is no
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -1793,9 +1944,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on statu
         class="Button"
         type="button"
       >
+        
         <span>
           (unknown)
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -1827,6 +1980,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on statu
                   >
                     Title
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1854,6 +2008,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on statu
                   >
                     Status
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1881,6 +2036,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on statu
                   >
                     Property 1
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1908,6 +2064,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on statu
                   >
                     Property 2
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1935,6 +2092,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on statu
                   >
                     Property 3
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -1968,6 +2126,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on statu
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -1986,11 +2145,15 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on statu
         class="Button"
         type="button"
       >
+        
         <span>
           (unknown)
         </span>
+        
       </button>
+      
     </div>
+    
     <div
       class="octo-spacer"
     />
@@ -1998,9 +2161,11 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on statu
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -2020,10 +2185,13 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
         class="Button"
         type="button"
       >
+        
         <span>
           Property 1
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -2034,11 +2202,15 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
         class="Button"
         type="button"
       >
+        
         <span>
           is set
         </span>
+        
       </button>
+      
     </div>
+    
     <div
       class="octo-spacer"
     />
@@ -2046,9 +2218,11 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -2068,10 +2242,13 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
         class="Button"
         type="button"
       >
+        
         <span>
           Property 1
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -2082,9 +2259,11 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
         class="Button"
         type="button"
       >
+        
         <span>
           is set
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -2119,11 +2298,14 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
                   >
                     is set
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is not set"
                 class="MenuOption TextOption menu-option"
@@ -2144,6 +2326,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
                   >
                     is not set
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -2180,6 +2363,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -2189,6 +2373,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
         </div>
       </div>
     </div>
+    
     <div
       class="octo-spacer"
     />
@@ -2196,9 +2381,11 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -2218,10 +2405,13 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 1`]
         class="Button"
         type="button"
       >
+        
         <span>
           Property 3
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -2232,10 +2422,13 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 1`]
         class="Button"
         type="button"
       >
+        
         <span>
           is
         </span>
+        
       </button>
+      
     </div>
     <div
       class="DateFilter empty "
@@ -2244,10 +2437,13 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 1`]
         class="Button"
         type="button"
       >
+        
         <span>
           Empty
         </span>
+        
       </button>
+      
     </div>
     <div
       class="octo-spacer"
@@ -2256,9 +2452,11 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 1`]
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -2278,10 +2476,13 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 2`]
         class="Button"
         type="button"
       >
+        
         <span>
           Property 3
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -2292,9 +2493,11 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 2`]
         class="Button"
         type="button"
       >
+        
         <span>
           is
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -2331,11 +2534,14 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 2`]
                   >
                     is
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is before"
                 class="MenuOption TextOption menu-option"
@@ -2356,11 +2562,14 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 2`]
                   >
                     is before
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is after"
                 class="MenuOption TextOption menu-option"
@@ -2381,6 +2590,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 2`]
                   >
                     is after
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -2408,11 +2618,14 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 2`]
                   >
                     is set
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="is not set"
                 class="MenuOption TextOption menu-option"
@@ -2433,6 +2646,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 2`]
                   >
                     is not set
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -2466,6 +2680,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 2`]
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -2482,10 +2697,13 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 2`]
         class="Button"
         type="button"
       >
+        
         <span>
           Empty
         </span>
+        
       </button>
+      
     </div>
     <div
       class="octo-spacer"
@@ -2494,9 +2712,11 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 2`]
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -2516,10 +2736,13 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 1`]
         class="Button"
         type="button"
       >
+        
         <span>
           Property 2
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -2530,16 +2753,18 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 1`]
         class="Button"
         type="button"
       >
+        
         <span>
           contains
         </span>
+        
       </button>
+      
     </div>
     <input
       class="Editable "
       placeholder="filter text"
       title=""
-      value=""
     />
     <div
       class="octo-spacer"
@@ -2548,9 +2773,11 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 1`]
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>
@@ -2570,10 +2797,13 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
         class="Button"
         type="button"
       >
+        
         <span>
           Property 2
         </span>
+        
       </button>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -2584,9 +2814,11 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
         class="Button"
         type="button"
       >
+        
         <span>
           contains
         </span>
+        
       </button>
       <div
         class="Menu noselect bottom "
@@ -2622,11 +2854,14 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
                   >
                     is
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="contains"
                 class="MenuOption TextOption menu-option"
@@ -2647,11 +2882,14 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
                   >
                     contains
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="doesn't contain"
                 class="MenuOption TextOption menu-option"
@@ -2672,11 +2910,14 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
                   >
                     doesn't contain
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="starts with"
                 class="MenuOption TextOption menu-option"
@@ -2697,11 +2938,14 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
                   >
                     starts with
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="doesn't start with"
                 class="MenuOption TextOption menu-option"
@@ -2722,11 +2966,14 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
                   >
                     doesn't start with
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="ends with"
                 class="MenuOption TextOption menu-option"
@@ -2747,11 +2994,14 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
                   >
                     ends with
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="doesn't end with"
                 class="MenuOption TextOption menu-option"
@@ -2772,6 +3022,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
                   >
                     doesn't end with
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -2807,6 +3058,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -2820,7 +3072,6 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
       class="Editable "
       placeholder="filter text"
       title=""
-      value=""
     />
     <div
       class="octo-spacer"
@@ -2829,9 +3080,11 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 2`]
       class="Button"
       type="button"
     >
+      
       <span>
         Delete
       </span>
+      
     </button>
   </div>
 </div>

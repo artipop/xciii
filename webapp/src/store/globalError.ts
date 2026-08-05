@@ -1,31 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
+import type {StoreContext} from './context'
 
-import {initialLoad, initialReadOnlyLoad} from './initialLoad'
+import type {RootState} from './index'
 
-import {RootState} from './index'
+export type GlobalErrorState = {value: string}
 
-const globalErrorSlice = createSlice({
-    name: 'globalError',
-    initialState: {value: ''} as {value: string},
-    reducers: {
-        setGlobalError: (state, action: PayloadAction<string>) => {
-            state.value = action.payload
-        },
-    },
-    extraReducers: (builder) => {
-        builder.addCase(initialReadOnlyLoad.rejected, (state, action) => {
-            state.value = action.error.message || ''
-        })
-        builder.addCase(initialLoad.rejected, (state, action) => {
-            state.value = action.error.message || ''
-        })
+export const initialGlobalErrorState = (): GlobalErrorState => ({value: ''})
+
+export const createGlobalErrorActions = ({setState}: StoreContext) => ({
+    setGlobalError(message: string) {
+        setState('globalError', 'value', message)
     },
 })
-
-export const {setGlobalError} = globalErrorSlice.actions
-export const {reducer} = globalErrorSlice
 
 export const getGlobalError = (state: RootState): string => state.globalError.value

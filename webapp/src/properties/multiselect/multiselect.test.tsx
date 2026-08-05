@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
+
 import '@testing-library/jest-dom'
-import {IntlProvider} from 'react-intl'
 import {mocked} from 'jest-mock'
+
+import {IntlProvider} from '../../intl'
 
 import {IPropertyOption, IPropertyTemplate, createBoard} from '../../blocks/board'
 import {createCard} from '../../blocks/card'
@@ -44,11 +45,18 @@ function buildMultiSelectPropertyTemplate(options: IPropertyOption[] = []): IPro
 }
 
 type WrapperProps = {
-    children?: React.ReactNode
+    children?: JSX.Element
 }
 
-const Wrapper = ({children}: WrapperProps) => {
-    return <IntlProvider locale='en'>{children}</IntlProvider>
+// props.children stays a lazy getter here: destructuring it would create the
+// component under test before the provider exists.
+const Wrapper = (props: WrapperProps) => {
+    return (
+        <IntlProvider
+            locale='en'
+            messages={{}}
+        >{props.children}</IntlProvider>
+    )
 }
 
 describe('properties/multiSelect', () => {
@@ -71,7 +79,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        const {container} = render(
+        const {container} = render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={true}
@@ -81,7 +89,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         const multiSelectParent = screen.getByTestId(nonEditableMultiSelectTestId)
@@ -94,7 +102,7 @@ describe('properties/multiSelect', () => {
     it('opens editable multi value selector menu when the button/label is clicked', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -104,7 +112,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -116,7 +124,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -126,7 +134,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -141,7 +149,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -151,7 +159,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -166,7 +174,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -176,7 +184,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -191,7 +199,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -201,7 +209,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -217,7 +225,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -227,7 +235,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         mockedMutator.insertPropertyOption.mockResolvedValue()
@@ -243,7 +251,7 @@ describe('properties/multiSelect', () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -253,7 +261,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -273,7 +281,7 @@ describe('properties/multiSelect', () => {
         const newColorKey = 'propColorYellow'
         const newColorValue = 'yellow'
 
-        render(
+        render(() =>
             <MultiSelect
                 property={new MultiSelectProperty()}
                 readOnly={false}
@@ -283,7 +291,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))

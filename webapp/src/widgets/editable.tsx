@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, forwardRef, useImperativeHandle, useLayoutEffect, useRef} from 'react'
+import {onMount} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import './editable.scss'
 
@@ -18,6 +19,10 @@ export type EditableProps = {
     onCancel?: () => void
     onSave?: (saveType: 'onEnter'|'onEsc'|'onBlur') => void
     onFocus?: () => void
+
+    // What useImperativeHandle exposed under React: callers pass a callback
+    // ref and keep the Focusable it receives.
+    ref?: (focusable: Focusable) => void
 }
 
 export type Focusable = {
@@ -27,23 +32,25 @@ export type Focusable = {
 export type ElementType = HTMLInputElement | HTMLTextAreaElement
 
 export type ElementProps = {
-    className: string
+    class: string
     placeholder?: string
-    onChange: (e: React.ChangeEvent<HTMLTextAreaElement|HTMLInputElement>) => void
+    onInput: (e: Event) => void
     value?: string
     title?: string
     onBlur: () => void
-    onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement|HTMLInputElement>) => void
+    onKeyDown: (e: KeyboardEvent) => void
     readOnly?: boolean
-    spellCheck?: boolean
+    spellcheck?: boolean
     onFocus?: () => void
 }
 
+// The shared half of Editable and EditableArea. The returned object carries
+// getters, so a spread into the element stays live; onInput is what React's
+// per-keystroke onChange compiles to in a real DOM.
 export function useEditable(
     props: EditableProps,
-    focusableRef: React.Ref<Focusable>,
-    elementRef: React.RefObject<ElementType | null>): ElementProps {
-    const saveOnBlur = useRef<boolean>(true)
+    element: () => ElementType | undefined): ElementProps {
+    let saveOnBlur = true
 
     const save = (saveType: 'onEnter'|'onEsc'|'onBlur'): void => {
         if (props.validator && !props.validator(props.value || '')) {
@@ -52,7 +59,7 @@ export function useEditable(
         if (!props.onSave) {
             return
         }
-        if (saveType === 'onBlur' && !saveOnBlur.current) {
+        if (saveType === 'onBlur' && !saveOnBlur) {
             return
         }
         if (saveType === 'onEsc' && !props.saveOnEsc) {
@@ -61,41 +68,46 @@ export function useEditable(
         props.onSave(saveType)
     }
 
-    useImperativeHandle(focusableRef, () => ({
+    props.ref?.({
         focus: (selectAll = false): void => {
-            if (elementRef.current) {
-                const valueLength = elementRef.current.value.length
-                elementRef.current.focus()
+            const el = element()
+            if (el) {
+                const valueLength = el.value.length
+                el.focus()
                 if (selectAll) {
-                    elementRef.current.setSelectionRange(0, valueLength)
+                    el.setSelectionRange(0, valueLength)
                 } else {
-                    elementRef.current.setSelectionRange(valueLength, valueLength)
+                    el.setSelectionRange(valueLength, valueLength)
                 }
             }
         },
-    }))
+    })
 
     const blur = (): void => {
-        saveOnBlur.current = false
-        elementRef.current?.blur()
-        saveOnBlur.current = true
+        saveOnBlur = false
+        element()?.blur()
+        saveOnBlur = true
     }
 
-    const {value, onChange, className, placeholderText, readonly} = props
-    let error = false
-    if (props.validator) {
-        error = !props.validator(value || '')
-    }
     return {
-        className: 'Editable ' + (error ? 'error ' : '') + (readonly ? 'readonly ' : '') + (className || ''),
-        placeholder: placeholderText,
-        onChange: (e: React.ChangeEvent<ElementType>) => {
-            onChange(e.target.value)
+        get class() {
+            const error = props.validator ? !props.validator(props.value || '') : false
+            return 'Editable ' + (error ? 'error ' : '') + (props.readonly ? 'readonly ' : '') + (props.className || '')
         },
-        value,
-        title: value,
+        get placeholder() {
+            return props.placeholderText
+        },
+        onInput: (e: Event) => {
+            props.onChange((e.target as ElementType).value)
+        },
+        get value() {
+            return props.value
+        },
+        get title() {
+            return props.value
+        },
         onBlur: () => save('onBlur'),
-        onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement|HTMLInputElement>): void => {
+        onKeyDown: (e: KeyboardEvent): void => {
             if (e.keyCode === 27 && !(e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) { // ESC
                 e.preventDefault()
                 if (props.saveOnEsc) {
@@ -110,20 +122,25 @@ export function useEditable(
                 blur()
             }
         },
-        readOnly: readonly,
-        spellCheck: props.spellCheck,
-        onFocus: props.onFocus,
+        get readOnly() {
+            return props.readonly
+        },
+        get spellcheck() {
+            return props.spellCheck
+        },
+        get onFocus() {
+            return props.onFocus
+        },
     }
 }
 
-const Editable = (props: EditableProps, ref: React.Ref<Focusable>): JSX.Element => {
-    const elementRef = useRef<HTMLInputElement>(null)
-    const elementProps = useEditable(props, ref, elementRef)
+const Editable = (props: EditableProps): JSX.Element => {
+    let elementRef: HTMLInputElement | undefined
+    const elementProps = useEditable(props, () => elementRef)
 
-    useLayoutEffect(() => {
-        if (props.autoExpand && elementRef.current) {
-            const input = elementRef.current
-            input.style.width = '100%'
+    onMount(() => {
+        if (props.autoExpand && elementRef) {
+            elementRef.style.width = '100%'
         }
     })
 
@@ -135,4 +152,4 @@ const Editable = (props: EditableProps, ref: React.Ref<Focusable>): JSX.Element 
     )
 }
 
-export default forwardRef(Editable)
+export default Editable

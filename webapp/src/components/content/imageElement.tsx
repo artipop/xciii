@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useEffect, useState} from 'react'
-import {IntlShape} from 'react-intl'
+import {Show, createSignal, onMount} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {IntlShape} from '../../intl'
 
 import {ContentBlock} from '../../blocks/contentBlock'
 import {ImageBlock, createImageBlock} from '../../blocks/imageBlock'
@@ -19,39 +21,34 @@ type Props = {
     block: ContentBlock
 }
 
-const ImageElement = (props: Props): JSX.Element|null => {
-    const [imageDataUrl, setImageDataUrl] = useState<string|null>(null)
-    const [fileInfo, setFileInfo] = useState<FileInfo>({})
+const ImageElement = (props: Props): JSX.Element => {
+    const [imageDataUrl, setImageDataUrl] = createSignal<string|null>(null)
+    const [fileInfo, setFileInfo] = createSignal<FileInfo>({})
 
-    const {block} = props
-
-    useEffect(() => {
-        if (!imageDataUrl) {
+    onMount(() => {
+        if (!imageDataUrl()) {
             const loadImage = async () => {
-                const fileURL = await octoClient.getFileAsDataUrl(block.boardId, props.block.fields.fileId)
+                const fileURL = await octoClient.getFileAsDataUrl(props.block.boardId, props.block.fields.fileId)
                 setImageDataUrl(fileURL.url || '')
                 setFileInfo(fileURL)
             }
             loadImage()
         }
-    }, [])
-
-    if (fileInfo.archived) {
-        return (
-            <ArchivedFile fileInfo={fileInfo}/>
-        )
-    }
-
-    if (!imageDataUrl) {
-        return null
-    }
+    })
 
     return (
-        <img
-            className='ImageElement'
-            src={imageDataUrl}
-            alt={block.title}
-        />
+        <Show
+            when={!fileInfo().archived}
+            fallback={<ArchivedFile fileInfo={fileInfo()}/>}
+        >
+            <Show when={imageDataUrl()}>
+                <img
+                    class='ImageElement'
+                    src={imageDataUrl()!}
+                    alt={props.block.title}
+                />
+            </Show>
+        </Show>
     )
 }
 
@@ -76,10 +73,8 @@ contentRegistry.registerContentType({
                 '.jpg,.jpeg,.png,.gif')
             },
         )
-
-        // return new ImageBlock()
     },
     createComponent: (block) => <ImageElement block={block}/>,
 })
 
-export default React.memo(ImageElement)
+export default ImageElement

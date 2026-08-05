@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useMemo, useCallback} from 'react'
-import {FormattedMessage} from 'react-intl'
+import {For, Show} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {FormattedMessage} from '../../intl'
 
 import {Constants, Permission} from '../../constants'
 import HiddenCardCount from '../../components/hiddenCardCount/hiddenCardCount'
@@ -24,24 +26,23 @@ type Props = {
     readonly: boolean
     addCard: (show: boolean) => Promise<void>
     selectedCardIds: string[]
-    onCardClicked: (e: React.MouseEvent, card: Card) => void
+    onCardClicked: (e: MouseEvent, card: Card) => void
     hiddenCardsCount: number
     showHiddenCardCountNotification: (show: boolean) => void
 }
 
 const Gallery = (props: Props): JSX.Element => {
-    const {activeView, board, cards, hiddenCardsCount} = props
-    const visiblePropertyTemplates = useMemo(() => {
-        return board.cardProperties.filter(
-            (template: IPropertyTemplate) => activeView.fields.visiblePropertyIds.includes(template.id),
+    const visiblePropertyTemplates = () => {
+        return props.board.cardProperties.filter(
+            (template: IPropertyTemplate) => props.activeView.fields.visiblePropertyIds.includes(template.id),
         )
-    }, [board.cardProperties, activeView.fields.visiblePropertyIds])
+    }
 
-    const isManualSort = activeView.fields.sortOptions.length === 0
+    const isManualSort = () => props.activeView.fields.sortOptions.length === 0
 
-    const onDropToCard = useCallback((srcCard: Card, dstCard: Card) => {
+    const onDropToCard = (srcCard: Card, dstCard: Card) => {
         Utils.log(`onDropToCard: ${dstCard.title}`)
-        const {selectedCardIds} = props
+        const {selectedCardIds, activeView, board, cards} = props
 
         const draggedCardIds = Array.from(new Set(selectedCardIds).add(srcCard.id))
         const description = draggedCardIds.length > 1 ? `drag ${draggedCardIds.length} cards` : 'drag card'
@@ -59,38 +60,37 @@ const Gallery = (props: Props): JSX.Element => {
         mutator.performAsUndoGroup(async () => {
             await mutator.changeViewCardOrder(board.id, activeView.id, activeView.fields.cardOrder, cardOrder, description)
         })
-    }, [cards.map((o) => o.id).join(','), board.id, activeView.id, activeView.fields.cardOrder, props.selectedCardIds])
+    }
 
-    const visibleTitle = activeView.fields.visiblePropertyIds.includes(Constants.titleColumnId)
-    const visibleBadges = activeView.fields.visiblePropertyIds.includes(Constants.badgesColumnId)
+    const visibleTitle = () => props.activeView.fields.visiblePropertyIds.includes(Constants.titleColumnId)
+    const visibleBadges = () => props.activeView.fields.visiblePropertyIds.includes(Constants.badgesColumnId)
 
     return (
 
-        <div className='Gallery'>
-            {cards.filter((c) => c.boardId === board.id).map((card) => {
-                return (
+        <div class='Gallery'>
+            <For each={props.cards.filter((c) => c.boardId === props.board.id)}>
+                {(card) => (
                     <GalleryCard
-                        key={card.id + card.updateAt}
                         card={card}
-                        board={board}
+                        board={props.board}
                         onClick={props.onCardClicked}
-                        visiblePropertyTemplates={visiblePropertyTemplates}
-                        visibleTitle={visibleTitle}
-                        visibleBadges={visibleBadges}
+                        visiblePropertyTemplates={visiblePropertyTemplates()}
+                        visibleTitle={visibleTitle()}
+                        visibleBadges={visibleBadges()}
                         isSelected={props.selectedCardIds.includes(card.id)}
                         readonly={props.readonly}
                         onDrop={onDropToCard}
-                        isManualSort={isManualSort}
+                        isManualSort={isManualSort()}
                     />
-                )
-            })}
+                )}
+            </For>
 
             {/* Add New row */}
 
-            {!props.readonly &&
+            <Show when={!props.readonly}>
                 <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
                     <div
-                        className='octo-gallery-new'
+                        class='octo-gallery-new'
                         onClick={() => {
                             props.addCard(true)
                         }}
@@ -101,14 +101,15 @@ const Gallery = (props: Props): JSX.Element => {
                         />
                     </div>
                 </BoardPermissionGate>
-            }
-            {hiddenCardsCount > 0 &&
-            <div className='gallery-hidden-cards'>
-                <HiddenCardCount
-                    hiddenCardsCount={hiddenCardsCount}
-                    showHiddenCardNotification={props.showHiddenCardCountNotification}
-                />
-            </div>}
+            </Show>
+            <Show when={props.hiddenCardsCount > 0}>
+                <div class='gallery-hidden-cards'>
+                    <HiddenCardCount
+                        hiddenCardsCount={props.hiddenCardsCount}
+                        showHiddenCardNotification={props.showHiddenCardCountNotification}
+                    />
+                </div>
+            </Show>
         </div>
     )
 }

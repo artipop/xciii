@@ -1,6 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
 export type Coords = {
     x?: string
@@ -9,7 +8,7 @@ export type Coords = {
 export type TutorialTourTipPunchout = Coords & {
     width?: string
     height?: string
-    handleClick?: (e: React.MouseEvent) => void
+    handleClick?: (e: MouseEvent) => void
 }
 
 const TutorialTourTipBackdrop = (props: TutorialTourTipPunchout) => {
@@ -40,7 +39,7 @@ const TutorialTourTipBackdrop = (props: TutorialTourTipPunchout) => {
 
     return (
         <div
-            className={'tip-backdrop'}
+            class={'tip-backdrop'}
             style={{
                 left: x,
                 top: y,

@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
 import 'isomorphic-fetch'
@@ -19,7 +18,7 @@ describe('components/table/TableHeaders', () => {
     const view = TestBlockFactory.createBoardView(board)
 
     test('should match snapshot', async () => {
-        const component = wrapDNDIntl(
+        const component = () => wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
                 onResizeColumn={() => {}}

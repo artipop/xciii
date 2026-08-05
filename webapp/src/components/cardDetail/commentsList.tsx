@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {For, Show, createSignal} from 'solid-js'
+
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {CommentBlock, createCommentBlock} from '../../blocks/commentBlock'
 import mutator from '../../mutator'
@@ -30,12 +31,12 @@ type Props = {
 }
 
 const CommentsList = (props: Props) => {
-    const [newComment, setNewComment] = useState('')
+    const [newComment, setNewComment] = createSignal('')
     const me = useAppSelector<IUser|null>(getMe)
     const canDeleteOthersComments = useHasCurrentBoardPermissions([Permission.DeleteOthersComments])
 
     const onSendClicked = () => {
-        const commentText = newComment
+        const commentText = newComment()
         if (commentText) {
             const {cardId, boardId} = props
             Utils.log(`Send comment: ${commentText}`)
@@ -50,66 +51,66 @@ const CommentsList = (props: Props) => {
         }
     }
 
-    const {comments} = props
     const intl = useIntl()
 
-    const newCommentComponent = (
-        <div className='CommentsList__new'>
-            <img
-                className='comment-avatar'
-                src={Utils.getProfilePicture(me?.id)}
-            />
-            <MarkdownEditor
-                className='newcomment'
-                text={newComment}
-                placeholderText={intl.formatMessage({id: 'CardDetail.new-comment-placeholder', defaultMessage: 'Add a comment...'})}
-                onChange={(value: string) => {
-                    if (newComment !== value) {
-                        setNewComment(value)
-                    }
-                }}
-            />
-
-            {newComment &&
-            <Button
-                filled={true}
-                onClick={onSendClicked}
-            >
-                <FormattedMessage
-                    id='CommentsList.send'
-                    defaultMessage='Send'
-                />
-            </Button>
-            }
-
-            <AddCommentTourStep/>
-        </div>
-    )
-
     return (
-        <div className='CommentsList'>
+        <div class='CommentsList'>
             {/* New comment */}
-            {!props.readonly && newCommentComponent}
-
-            {comments.slice(0).reverse().map((comment) => {
-                // Only modify _own_ comments, EXCEPT for Admins, which can delete _any_ comment
-                // NOTE: editing comments will exist in the future (in addition to deleting)
-                const canDeleteComment: boolean = canDeleteOthersComments || me?.id === comment.modifiedBy
-                return (
-                    <Comment
-                        key={comment.id}
-                        comment={comment}
-                        userImageUrl={Utils.getProfilePicture(comment.modifiedBy)}
-                        userId={comment.modifiedBy}
-                        readonly={props.readonly || !canDeleteComment}
+            <Show when={!props.readonly}>
+                <div class='CommentsList__new'>
+                    <img
+                        class='comment-avatar'
+                        src={Utils.getProfilePicture(me()?.id)}
                     />
-                )
-            })}
+                    <MarkdownEditor
+                        className='newcomment'
+                        text={newComment()}
+                        placeholderText={intl.formatMessage({id: 'CardDetail.new-comment-placeholder', defaultMessage: 'Add a comment...'})}
+                        onChange={(value: string) => {
+                            if (newComment() !== value) {
+                                setNewComment(value)
+                            }
+                        }}
+                    />
+
+                    <Show when={newComment()}>
+                        <Button
+                            filled={true}
+                            onClick={onSendClicked}
+                        >
+                            <FormattedMessage
+                                id='CommentsList.send'
+                                defaultMessage='Send'
+                            />
+                        </Button>
+                    </Show>
+
+                    <AddCommentTourStep/>
+                </div>
+            </Show>
+
+            <For each={props.comments.slice(0).reverse()}>
+                {(comment) => {
+                    // Only modify _own_ comments, EXCEPT for Admins, which can delete _any_ comment
+                    // NOTE: editing comments will exist in the future (in addition to deleting)
+                    const canDeleteComment = () => canDeleteOthersComments() || me()?.id === comment.modifiedBy
+                    return (
+                        <Comment
+                            comment={comment}
+                            userImageUrl={Utils.getProfilePicture(comment.modifiedBy)}
+                            userId={comment.modifiedBy}
+                            readonly={props.readonly || !canDeleteComment()}
+                        />
+                    )
+                }}
+            </For>
 
             {/* horizontal divider below comments */}
-            {!(comments.length === 0 && props.readonly) && <hr className='CommentsList__divider'/>}
+            <Show when={!(props.comments.length === 0 && props.readonly)}>
+                <hr class='CommentsList__divider'/>
+            </Show>
         </div>
     )
 }
 
-export default React.memo(CommentsList)
+export default CommentsList

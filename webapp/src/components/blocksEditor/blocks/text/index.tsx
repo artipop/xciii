@@ -1,6 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
 import {MarkdownEditor} from '../../../markdownEditor'
 import {Utils} from '../../../../utils'
@@ -17,18 +16,17 @@ const TextContent: ContentType = {
     runSlashCommand: (): void => {},
     editable: true,
     Display: (props: BlockInputProps) => {
-        const html: string = Utils.htmlFromMarkdown(props.value || '')
         return (
             <div
-                dangerouslySetInnerHTML={{__html: html}}
-                className={props.value ? 'octo-editor-preview' : 'octo-editor-preview octo-placeholder'}
+                innerHTML={Utils.htmlFromMarkdown(props.value || '')}
+                class={props.value ? 'octo-editor-preview' : 'octo-editor-preview octo-placeholder'}
             />
         )
     },
     Input: (props: BlockInputProps) => {
         return (
             <div
-                className='TextContent'
+                class='TextContent'
                 data-testid='text'
             >
                 <MarkdownEditor

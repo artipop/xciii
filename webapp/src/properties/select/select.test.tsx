@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import {mocked} from 'jest-mock'
 
@@ -55,7 +54,7 @@ describe('properties/select', () => {
         const propertyTemplate = selectPropertyTemplate()
         const option = propertyTemplate.options[0]
 
-        const {container} = render(wrapIntl(
+        const {container} = render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}
@@ -77,7 +76,7 @@ describe('properties/select', () => {
         const propertyTemplate = selectPropertyTemplate()
         const emptyValue = 'Empty'
 
-        const {container} = render(wrapIntl(
+        const {container} = render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}
@@ -99,7 +98,7 @@ describe('properties/select', () => {
         const propertyTemplate = selectPropertyTemplate()
         const selected = propertyTemplate.options[1]
 
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}
@@ -129,7 +128,7 @@ describe('properties/select', () => {
         const propertyTemplate = selectPropertyTemplate()
         const optionToSelect = propertyTemplate.options[2]
 
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}
@@ -152,7 +151,7 @@ describe('properties/select', () => {
         const propertyTemplate = selectPropertyTemplate()
         const selected = propertyTemplate.options[1]
 
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}
@@ -179,7 +178,7 @@ describe('properties/select', () => {
         const initialOption = propertyTemplate.options[0]
         const newOption = 'new-option'
 
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <Select
                 property={new SelectProperty()}
                 board={{...board}}

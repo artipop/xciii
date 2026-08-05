@@ -35,7 +35,6 @@ exports[`components/markdownEditor should match snapshot with on click on previe
       class="MarkdownEditorInput"
     >
       <div
-        autocapitalize="off"
         class="MarkdownEditorInput__content"
         contenteditable="true"
         data-lexical-editor="true"
@@ -53,6 +52,8 @@ exports[`components/markdownEditor should match snapshot with on click on previe
           </span>
         </p>
       </div>
+      
+      
     </div>
   </div>
 </div>
@@ -67,7 +68,6 @@ exports[`components/markdownEditor should match snapshot with on click on previe
       class="MarkdownEditorInput"
     >
       <div
-        autocapitalize="off"
         class="MarkdownEditorInput__content"
         contenteditable="true"
         data-lexical-editor="true"
@@ -85,6 +85,8 @@ exports[`components/markdownEditor should match snapshot with on click on previe
           </span>
         </p>
       </div>
+      
+      
     </div>
   </div>
 </div>

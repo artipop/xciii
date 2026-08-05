@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useRef, useEffect} from 'react'
+import {onMount} from 'solid-js'
 
 import {BlockInputProps, ContentType} from '../types'
 import {Utils} from '../../../../utils'
@@ -15,24 +15,23 @@ const Text: ContentType = {
     runSlashCommand: (): void => {},
     editable: true,
     Display: (props: BlockInputProps) => {
-        const html: string = Utils.htmlFromMarkdown(props.value || '')
         return (
             <div
-                dangerouslySetInnerHTML={{__html: html}}
-                className={props.value ? 'octo-editor-preview' : 'octo-editor-preview octo-placeholder'}
+                innerHTML={Utils.htmlFromMarkdown(props.value || '')}
+                class={props.value ? 'octo-editor-preview' : 'octo-editor-preview octo-placeholder'}
             />
         )
     },
     Input: (props: BlockInputProps) => {
-        const ref = useRef<HTMLInputElement|null>(null)
-        useEffect(() => {
-            ref.current?.focus()
-        }, [])
+        let ref: HTMLInputElement|undefined
+        onMount(() => {
+            ref?.focus()
+        })
         return (
             <input
                 ref={ref}
-                className='Text'
-                onChange={(e) => props.onChange(e.currentTarget.value)}
+                class='Text'
+                onInput={(e) => props.onChange(e.currentTarget.value)}
                 onKeyDown={(e) => {
                     if (props.value === '' && e.key === 'Backspace') {
                         props.onCancel()

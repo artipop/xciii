@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import DividerBlock from '.'
 
 describe('components/blocksEditor/blocks/divider', () => {
     test('should match Display snapshot', async () => {
         const Component = DividerBlock.Display
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value='test-value'
@@ -22,7 +21,7 @@ describe('components/blocksEditor/blocks/divider', () => {
 
     test('should match Input snapshot', async () => {
         const Component = DividerBlock.Input
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value='test-value'
@@ -36,7 +35,7 @@ describe('components/blocksEditor/blocks/divider', () => {
     test('should emit onSave event on mount', async () => {
         const onSave = jest.fn()
         const Component = DividerBlock.Input
-        render(
+        render(() =>
             <Component
                 onChange={jest.fn()}
                 value='test-value'

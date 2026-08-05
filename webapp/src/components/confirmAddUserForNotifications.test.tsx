@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import '@testing-library/jest-dom'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
 
 import {MemberRole} from '../blocks/board'
 
@@ -14,8 +13,8 @@ import ConfirmAddUserForNotifications from './confirmAddUserForNotifications'
 
 describe('/components/confirmAddUserForNotifications', () => {
     it('should match snapshot', async () => {
-        const result = render(
-            wrapDNDIntl(
+        const result = render(() =>
+            wrapDNDIntl(() =>
                 <ConfirmAddUserForNotifications
                     allowManageBoardRoles={true}
                     minimumRole={MemberRole.Editor}
@@ -31,8 +30,8 @@ describe('/components/confirmAddUserForNotifications', () => {
     it('confirm button click, run onConfirm Function once', () => {
         const onConfirm = jest.fn()
 
-        const result = render(
-            wrapDNDIntl(
+        const result = render(() =>
+            wrapDNDIntl(() =>
                 <ConfirmAddUserForNotifications
                     allowManageBoardRoles={true}
                     minimumRole={MemberRole.Editor}
@@ -49,8 +48,8 @@ describe('/components/confirmAddUserForNotifications', () => {
     it('cancel button click runs onClose function', () => {
         const onClose = jest.fn()
 
-        const result = render(
-            wrapDNDIntl(
+        const result = render(() =>
+            wrapDNDIntl(() =>
                 <ConfirmAddUserForNotifications
                     allowManageBoardRoles={true}
                     minimumRole={MemberRole.Editor}

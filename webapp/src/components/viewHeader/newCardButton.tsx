@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {For, Show} from 'solid-js'
+import type {JSX} from 'solid-js'
 
-import {Card} from '../../blocks/card'
+import {FormattedMessage, useIntl} from '../../intl'
+
 import ButtonWithMenu from '../../widgets/buttons/buttonWithMenu'
 import AddIcon from '../../widgets/icons/add'
 import Menu from '../../widgets/menu'
@@ -23,16 +24,20 @@ type Props = {
 }
 
 const NewCardButton = (props: Props): JSX.Element => {
-    const cardTemplates: Card[] = useAppSelector(getCurrentBoardTemplates)
+    const cardTemplates = useAppSelector(getCurrentBoardTemplates)
     const currentView = useAppSelector(getCurrentView)
-    let defaultTemplateID = ''
     const intl = useIntl()
+
+    const defaultTemplateID = () => {
+        const id = currentView().fields.defaultTemplateId
+        return cardTemplates().some((t) => t.id === id) ? id : ''
+    }
 
     return (
         <ButtonWithMenu
             onClick={() => {
-                if (defaultTemplateID) {
-                    props.addCardFromTemplate(defaultTemplateID)
+                if (defaultTemplateID()) {
+                    props.addCardFromTemplate(defaultTemplateID())
                 } else {
                     props.addCard()
                 }
@@ -45,7 +50,7 @@ const NewCardButton = (props: Props): JSX.Element => {
             )}
         >
             <Menu position='left'>
-                {cardTemplates.length > 0 && <>
+                <Show when={cardTemplates().length > 0}>
                     <Menu.Label>
                         <b>
                             <FormattedMessage
@@ -56,21 +61,17 @@ const NewCardButton = (props: Props): JSX.Element => {
                     </Menu.Label>
 
                     <Menu.Separator/>
-                </>}
+                </Show>
 
-                {cardTemplates.map((cardTemplate) => {
-                    if (cardTemplate.id === currentView.fields.defaultTemplateId) {
-                        defaultTemplateID = currentView.fields.defaultTemplateId
-                    }
-                    return (
+                <For each={cardTemplates()}>
+                    {(cardTemplate) => (
                         <NewCardButtonTemplateItem
-                            key={cardTemplate.id}
                             cardTemplate={cardTemplate}
                             addCardFromTemplate={props.addCardFromTemplate}
                             editCardTemplate={props.editCardTemplate}
                         />
-                    )
-                })}
+                    )}
+                </For>
 
                 <EmptyCardButton
                     addCard={props.addCard}
@@ -87,4 +88,4 @@ const NewCardButton = (props: Props): JSX.Element => {
     )
 }
 
-export default React.memo(NewCardButton)
+export default NewCardButton

@@ -5,36 +5,14 @@ exports[`components/blocksEditor/editor should match snapshot 1`] = `
   <div
     class="Editor"
   >
+    
     <div
       class="TextContent"
       data-testid="text"
     >
       <div
         class="MarkdownEditor octo-editor  active"
-      >
-        <div
-          class="MarkdownEditorInput"
-        >
-          <div
-            class="MarkdownEditorInput__content"
-            contenteditable="true"
-            data-lexical-editor="true"
-            role="textbox"
-            spellcheck="true"
-            style="user-select: text; white-space: pre-wrap; word-break: break-word;"
-          >
-            <p
-              dir="auto"
-            >
-              <span
-                data-lexical-text="true"
-              >
-                test-value
-              </span>
-            </p>
-          </div>
-        </div>
-      </div>
+      />
     </div>
   </div>
 </div>
@@ -61,23 +39,28 @@ exports[`components/blocksEditor/editor should match snapshot on empty 1`] = `
         <div
           class="RootInput__value-container"
         >
+          
+          
           <div
             class="RootInput__placeholder"
           >
             Introduce your text or your slash command
           </div>
           <input
-            aria-controls="_r_0_"
+            aria-controls="cl-0"
             aria-expanded="false"
             autocomplete="off"
+            autofocus=""
             class="RootInput__input"
             role="combobox"
             type="text"
-            value=""
           />
         </div>
+        
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;

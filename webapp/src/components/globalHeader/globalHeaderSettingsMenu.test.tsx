@@ -1,18 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
-import {createMemoryHistory} from 'history'
-
-import {render, act} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
-import configureStore from 'redux-mock-store'
 
 import {mocked} from 'jest-mock'
 
-import {wrapIntl} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../../telemetry/telemetryClient'
 
@@ -26,11 +22,9 @@ const mockedTelemetry = mocked(TelemetryClient)
 const mockedOctoClient = mocked(client)
 
 describe('components/sidebar/GlobalHeaderSettingsMenu', () => {
-    const mockStore = configureStore([])
-    const history = createMemoryHistory()
-    let store = mockStore({})
+    let store = mockAppStore({})
     beforeEach(() => {
-        store = mockStore({
+        store = mockAppStore({
             teams: {
                 current: {id: 'team_id_1'},
             },
@@ -51,10 +45,12 @@ describe('components/sidebar/GlobalHeaderSettingsMenu', () => {
         })
     })
     test('settings menu closed should match snapshot', () => {
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
-                <GlobalHeaderSettingsMenu history={history}/>
-            </ReduxProvider>,
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <GlobalHeaderSettingsMenu history={history}/>
+                </TestRouter>
+            </AppStoreProvider>,
         )
 
         const {container} = render(component)
@@ -62,10 +58,12 @@ describe('components/sidebar/GlobalHeaderSettingsMenu', () => {
     })
 
     test('settings menu open should match snapshot', () => {
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
-                <GlobalHeaderSettingsMenu history={history}/>
-            </ReduxProvider>,
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <GlobalHeaderSettingsMenu history={history}/>
+                </TestRouter>
+            </AppStoreProvider>,
         )
 
         const {container} = render(component)
@@ -74,57 +72,51 @@ describe('components/sidebar/GlobalHeaderSettingsMenu', () => {
     })
 
     test('languages menu open should match snapshot', () => {
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
-                <GlobalHeaderSettingsMenu history={history}/>
-            </ReduxProvider>,
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <GlobalHeaderSettingsMenu history={history}/>
+                </TestRouter>
+            </AppStoreProvider>,
         )
 
         const {container} = render(component)
-        act(() => {
-            userEvent.click(container.querySelector('.menu-entry') as Element)
-        })
-        act(() => {
-            userEvent.hover(container.querySelector('#lang') as Element)
-        })
+        userEvent.click(container.querySelector('.menu-entry') as Element)
+        userEvent.hover(container.querySelector('#lang') as Element)
         expect(container).toMatchSnapshot()
     })
 
     test('imports menu open should match snapshot', () => {
         window.open = jest.fn()
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
-                <GlobalHeaderSettingsMenu history={history}/>
-            </ReduxProvider>,
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <GlobalHeaderSettingsMenu history={history}/>
+                </TestRouter>
+            </AppStoreProvider>,
         )
 
         const {container} = render(component)
-        act(() => {
-            userEvent.click(container.querySelector('.menu-entry') as Element)
-        })
-        act(() => {
-            userEvent.hover(container.querySelector('#import') as Element)
-        })
+        userEvent.click(container.querySelector('.menu-entry') as Element)
+        userEvent.click(container.querySelector('#import') as Element)
         expect(container).toMatchSnapshot()
 
-        userEvent.click(container.querySelector('[aria-label="Asana"]') as Element)
+        userEvent.click(document.querySelector('[aria-label="Asana"]') as Element)
         expect(mockedTelemetry.trackEvent).toHaveBeenCalledWith(TelemetryCategory, TelemetryActions.ImportAsana)
     })
 
     test('Product Tour option restarts the tour', () => {
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
-                <GlobalHeaderSettingsMenu history={history}/>
-            </ReduxProvider>,
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <GlobalHeaderSettingsMenu history={history}/>
+                </TestRouter>
+            </AppStoreProvider>,
         )
 
         const {container} = render(component)
-        act(() => {
-            userEvent.click(container.querySelector('.menu-entry') as Element)
-        })
-        act(() => {
-            userEvent.click(container.querySelector('.product-tour') as Element)
-        })
+        userEvent.click(container.querySelector('.menu-entry') as Element)
+        userEvent.click(container.querySelector('.product-tour') as Element)
 
         expect(mockedOctoClient.patchUserConfig).toHaveBeenCalledWith('user-id', {
             updatedFields: {

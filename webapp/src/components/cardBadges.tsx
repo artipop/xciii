@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useMemo} from 'react'
-import {useIntl} from 'react-intl'
+import {Show, createMemo} from 'solid-js'
+
+import {useIntl} from '../intl'
 
 import {Card} from '../blocks/card'
 import {useAppSelector} from '../store/hooks'
@@ -75,35 +76,34 @@ const calculateBadges = (contents: ContentsType, comments: CommentBlock[]): Badg
 }
 
 const CardBadges = (props: Props) => {
-    const {card, className} = props
-    const contents = useAppSelector(getCardContents(card.id))
-    const comments = useAppSelector(getCardComments(card.id))
-    const badges = useMemo(() => calculateBadges(contents, comments), [contents, comments])
+    const contents = useAppSelector((state) => getCardContents(props.card.id)(state))
+    const comments = useAppSelector((state) => getCardComments(props.card.id)(state))
+    const badges = createMemo(() => calculateBadges(contents(), comments()))
     const intl = useIntl()
 
-    if (!hasBadges(badges)) {
-        return null
-    }
-
-    const {checkboxes} = badges
     return (
-        <div className={`CardBadges ${className || ''}`}>
-            {badges.description &&
-                <span title={intl.formatMessage({id: 'CardBadges.title-description', defaultMessage: 'This card has a description'})}>
-                    <TextIcon/>
-                </span>}
-            {badges.comments > 0 &&
-                <span title={intl.formatMessage({id: 'CardBadges.title-comments', defaultMessage: 'Comments'})}>
-                    <MessageIcon/>
-                    {badges.comments}
-                </span>}
-            {checkboxes.total > 0 &&
-                <span title={intl.formatMessage({id: 'CardBadges.title-checkboxes', defaultMessage: 'Checkboxes'})}>
-                    <CheckIcon/>
-                    {`${checkboxes.checked}/${checkboxes.total}`}
-                </span>}
-        </div>
+        <Show when={hasBadges(badges())}>
+            <div class={`CardBadges ${props.className || ''}`}>
+                <Show when={badges().description}>
+                    <span title={intl.formatMessage({id: 'CardBadges.title-description', defaultMessage: 'This card has a description'})}>
+                        <TextIcon/>
+                    </span>
+                </Show>
+                <Show when={badges().comments > 0}>
+                    <span title={intl.formatMessage({id: 'CardBadges.title-comments', defaultMessage: 'Comments'})}>
+                        <MessageIcon/>
+                        {badges().comments}
+                    </span>
+                </Show>
+                <Show when={badges().checkboxes.total > 0}>
+                    <span title={intl.formatMessage({id: 'CardBadges.title-checkboxes', defaultMessage: 'Checkboxes'})}>
+                        <CheckIcon/>
+                        {`${badges().checkboxes.checked}/${badges().checkboxes.total}`}
+                    </span>
+                </Show>
+            </div>
+        </Show>
     )
 }
 
-export default React.memo(CardBadges)
+export default CardBadges

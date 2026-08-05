@@ -68,6 +68,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton 1`] = `
                   >
                     Empty card
                   </div>
+                  
                 </div>
                 <div
                   aria-label="menuwrapper"
@@ -82,6 +83,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton 1`] = `
                       class="CompassIcon icon-dots-horizontal OptionsIcon"
                     />
                   </button>
+                  
                 </div>
               </div>
             </div>
@@ -110,6 +112,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton 1`] = `
                   >
                     New template
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -143,6 +146,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton 1`] = `
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -224,6 +228,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton and addCard 1`
                   >
                     Empty card
                   </div>
+                  
                 </div>
                 <div
                   aria-label="menuwrapper"
@@ -238,6 +243,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton and addCard 1`
                       class="CompassIcon icon-dots-horizontal OptionsIcon"
                     />
                   </button>
+                  
                 </div>
               </div>
             </div>
@@ -266,6 +272,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton and addCard 1`
                   >
                     New template
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -299,6 +306,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton and addCard 1`
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -380,6 +388,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton and addCardTem
                   >
                     Empty card
                   </div>
+                  
                 </div>
                 <div
                   aria-label="menuwrapper"
@@ -394,6 +403,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton and addCardTem
                       class="CompassIcon icon-dots-horizontal OptionsIcon"
                     />
                   </button>
+                  
                 </div>
               </div>
             </div>
@@ -422,6 +432,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton and addCardTem
                   >
                     New template
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -455,6 +466,7 @@ exports[`components/viewHeader/newCardButton return NewCardButton and addCardTem
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"

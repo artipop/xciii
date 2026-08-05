@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {For, Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {useIntl} from '../intl'
 
 import {Card} from '../blocks/card'
 import {ContentBlock as ContentBlockType, IContentBlockWithCords} from '../blocks/contentBlock'
@@ -36,135 +38,149 @@ type Props = {
 }
 
 const ContentBlock = (props: Props): JSX.Element => {
-    const {card, block, readonly, cords} = props
     const intl = useIntl()
-    const [, , gripRef, itemRef] = useSortableWithGrip('content', {block, cords}, true, () => {})
-    const [, isOver2,, itemRef2] = useSortableWithGrip('content', {block, cords}, true, (src, dst) => props.onDrop(src, dst, 'right'))
-    const [, isOver3,, itemRef3] = useSortableWithGrip('content', {block, cords}, true, (src, dst) => props.onDrop(src, dst, 'left'))
-    const [menuOpened, setMenuOpened] = useState(false)
+    const item = () => ({block: props.block, cords: props.cords})
+    const [, , gripRef, itemRef] = useSortableWithGrip('content', item, () => true, () => {})
+    const [, isOver2,, itemRef2] = useSortableWithGrip('content', item, () => true, (src, dst) => props.onDrop(src, dst, 'right'))
+    const [, isOver3,, itemRef3] = useSortableWithGrip('content', item, () => true, (src, dst) => props.onDrop(src, dst, 'left'))
+    const [menuOpened, setMenuOpened] = createSignal(false)
 
-    const index = cords.x
-    const colIndex = (cords.y || cords.y === 0) && cords.y > -1 ? cords.y : -1
-    const contentOrder: Array<string|string[]> = []
-    if (card.fields.contentOrder) {
-        for (const contentId of card.fields.contentOrder) {
-            if (typeof contentId === 'string') {
-                contentOrder.push(contentId)
-            } else {
-                contentOrder.push(contentId.slice())
+    const index = () => props.cords.x
+    const colIndex = () => ((props.cords.y || props.cords.y === 0) && props.cords.y > -1 ? props.cords.y : -1)
+    const contentOrder = (): Array<string|string[]> => {
+        const order: Array<string|string[]> = []
+        if (props.card.fields.contentOrder) {
+            for (const contentId of props.card.fields.contentOrder) {
+                if (typeof contentId === 'string') {
+                    order.push(contentId)
+                } else {
+                    order.push(contentId.slice())
+                }
             }
         }
+        return order
     }
 
-    let className = 'ContentBlock octo-block'
-    if (menuOpened) {
-        className += ' menuOpened'
+    const className = () => {
+        let name = 'ContentBlock octo-block'
+        if (menuOpened()) {
+            name += ' menuOpened'
+        }
+        return name
     }
 
     return (
         <div
-            className='rowContents'
+            class='rowContents'
             style={{width: props.width + '%'}}
         >
             <div
                 ref={itemRef}
-                className={className}
+                class={className()}
             >
-                <div className='octo-block-margin'>
-                    {!props.readonly &&
-                    <MenuWrapper onToggle={setMenuOpened}>
-                        <IconButton icon={<OptionsIcon/>}/>
-                        <Menu>
-                            {index > 0 &&
-                                <Menu.Text
-                                    id='moveUp'
-                                    name={intl.formatMessage({id: 'ContentBlock.moveUp', defaultMessage: 'Move up'})}
-                                    icon={<SortUpIcon/>}
-                                    onClick={() => {
-                                        Utils.arrayMove(contentOrder, index, index - 1)
-                                        mutator.changeCardContentOrder(props.card.boardId, card.id, card.fields.contentOrder, contentOrder)
-                                    }}
-                                />}
-                            {index < (contentOrder.length - 1) &&
-                                <Menu.Text
-                                    id='moveDown'
-                                    name={intl.formatMessage({id: 'ContentBlock.moveDown', defaultMessage: 'Move down'})}
-                                    icon={<SortDownIcon/>}
-                                    onClick={() => {
-                                        Utils.arrayMove(contentOrder, index, index + 1)
-                                        mutator.changeCardContentOrder(props.card.boardId, card.id, card.fields.contentOrder, contentOrder)
-                                    }}
-                                />}
-                            <Menu.SubMenu
-                                id='insertAbove'
-                                name={intl.formatMessage({id: 'ContentBlock.insertAbove', defaultMessage: 'Insert above'})}
-                                icon={<AddIcon/>}
-                                position='top'
-                            >
-                                {contentRegistry.contentTypes.map((type) => (
-                                    <AddContentMenuItem
-                                        key={type}
-                                        type={type}
-                                        card={card}
-                                        cords={cords}
+                <div class='octo-block-margin'>
+                    <Show when={!props.readonly}>
+                        <MenuWrapper
+                            onToggle={setMenuOpened}
+                            menu={
+                                <Menu>
+                                    <Show when={index() > 0}>
+                                        <Menu.Text
+                                            id='moveUp'
+                                            name={intl.formatMessage({id: 'ContentBlock.moveUp', defaultMessage: 'Move up'})}
+                                            icon={<SortUpIcon/>}
+                                            onClick={() => {
+                                                const order = contentOrder()
+                                                Utils.arrayMove(order, index(), index() - 1)
+                                                mutator.changeCardContentOrder(props.card.boardId, props.card.id, props.card.fields.contentOrder, order)
+                                            }}
+                                        />
+                                    </Show>
+                                    <Show when={index() < (contentOrder().length - 1)}>
+                                        <Menu.Text
+                                            id='moveDown'
+                                            name={intl.formatMessage({id: 'ContentBlock.moveDown', defaultMessage: 'Move down'})}
+                                            icon={<SortDownIcon/>}
+                                            onClick={() => {
+                                                const order = contentOrder()
+                                                Utils.arrayMove(order, index(), index() + 1)
+                                                mutator.changeCardContentOrder(props.card.boardId, props.card.id, props.card.fields.contentOrder, order)
+                                            }}
+                                        />
+                                    </Show>
+                                    <Menu.SubMenu
+                                        id='insertAbove'
+                                        name={intl.formatMessage({id: 'ContentBlock.insertAbove', defaultMessage: 'Insert above'})}
+                                        icon={<AddIcon/>}
+                                        position='top'
+                                    >
+                                        <For each={contentRegistry.contentTypes}>
+                                            {(type) => (
+                                                <AddContentMenuItem
+                                                    type={type}
+                                                    card={props.card}
+                                                    cords={props.cords}
+                                                />
+                                            )}
+                                        </For>
+                                    </Menu.SubMenu>
+                                    <Menu.Text
+                                        icon={<DeleteIcon/>}
+                                        id='delete'
+                                        name={intl.formatMessage({id: 'ContentBlock.Delete', defaultMessage: 'Delete'})}
+                                        onClick={() => {
+                                            const description = intl.formatMessage({id: 'ContentBlock.DeleteAction', defaultMessage: 'delete'})
+                                            const order = contentOrder()
+
+                                            if (colIndex() > -1) {
+                                                (order[index()] as string[]).splice(colIndex(), 1)
+                                            } else {
+                                                order.splice(index(), 1)
+                                            }
+
+                                            // If only one item in the row, convert form an array item to normal item ( [item] => item )
+                                            if (Array.isArray(order[index()]) && (order[index()] as string[]).length === 1) {
+                                                order[index()] = order[index()][0]
+                                            }
+
+                                            mutator.performAsUndoGroup(async () => {
+                                                await mutator.deleteBlock(props.block, description)
+                                                await mutator.changeCardContentOrder(props.card.boardId, props.card.id, props.card.fields.contentOrder, order, description)
+                                            })
+                                        }}
                                     />
-                                ))}
-                            </Menu.SubMenu>
-                            <Menu.Text
-                                icon={<DeleteIcon/>}
-                                id='delete'
-                                name={intl.formatMessage({id: 'ContentBlock.Delete', defaultMessage: 'Delete'})}
-                                onClick={() => {
-                                    const description = intl.formatMessage({id: 'ContentBlock.DeleteAction', defaultMessage: 'delete'})
-
-                                    if (colIndex > -1) {
-                                        (contentOrder[index] as string[]).splice(colIndex, 1)
-                                    } else {
-                                        contentOrder.splice(index, 1)
-                                    }
-
-                                    // If only one item in the row, convert form an array item to normal item ( [item] => item )
-                                    if (Array.isArray(contentOrder[index]) && contentOrder[index].length === 1) {
-                                        contentOrder[index] = contentOrder[index][0]
-                                    }
-
-                                    mutator.performAsUndoGroup(async () => {
-                                        await mutator.deleteBlock(block, description)
-                                        await mutator.changeCardContentOrder(props.card.boardId, card.id, card.fields.contentOrder, contentOrder, description)
-                                    })
-                                }}
-                            />
-                        </Menu>
-                    </MenuWrapper>
-                    }
-                    {!props.readonly &&
+                                </Menu>
+                            }
+                        >
+                            <IconButton icon={<OptionsIcon/>}/>
+                        </MenuWrapper>
                         <div
                             ref={gripRef}
-                            className='dnd-handle'
+                            class='dnd-handle'
                         >
                             <GripIcon/>
                         </div>
-                    }
+                    </Show>
                 </div>
-                {!cords.y /* That is to say if cords.y === 0 or cords.y === undefined */ &&
+                <Show when={!props.cords.y /* That is to say if cords.y === 0 or cords.y === undefined */}>
                     <div
                         ref={itemRef3}
-                        className={`addToRow ${isOver3 ? 'dragover' : ''}`}
+                        class={`addToRow ${isOver3() ? 'dragover' : ''}`}
                         style={{flex: 'none', height: '100%'}}
                     />
-                }
+                </Show>
                 <ContentElement
-                    block={block}
-                    readonly={readonly}
-                    cords={cords}
+                    block={props.block}
+                    readonly={props.readonly}
+                    cords={props.cords}
                 />
             </div>
             <div
                 ref={itemRef2}
-                className={`addToRow ${isOver2 ? 'dragover' : ''}`}
+                class={`addToRow ${isOver2() ? 'dragover' : ''}`}
             />
         </div>
     )
 }
 
-export default React.memo(ContentBlock)
+export default ContentBlock

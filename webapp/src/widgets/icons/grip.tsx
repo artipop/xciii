@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import './grip.scss'
 
@@ -9,7 +9,7 @@ export default function GripIcon(): JSX.Element {
     return (
         <svg
             xmlns='http://www.w3.org/2000/svg'
-            className='GripIcon Icon'
+            class='GripIcon Icon'
             viewBox='0 0 24 24'
         >
             <path

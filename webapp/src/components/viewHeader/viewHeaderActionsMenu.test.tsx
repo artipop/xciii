@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen} from '@testing-library/react'
-import {Provider as ReduxProvider} from 'react-redux'
+import {render, screen} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
@@ -12,7 +10,8 @@ import {mocked} from 'jest-mock'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {Archiver} from '../../archiver'
 
@@ -39,21 +38,21 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
             },
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     beforeEach(() => {
         jest.clearAllMocks()
     })
 
     test('return menu', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <ViewHeaderActionsMenu
                         board={board}
                         activeView={activeView}
                         cards={[card]}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {
@@ -64,15 +63,15 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
     })
 
     test('return menu and verify call to csv exporter', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <ViewHeaderActionsMenu
                         board={board}
                         activeView={activeView}
                         cards={[card]}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'View header menu'})
@@ -84,15 +83,15 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
     })
 
     test('return menu and verify call to board archive', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <ViewHeaderActionsMenu
                         board={board}
                         activeView={activeView}
                         cards={[card]}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getByRole('button', {name: 'View header menu'})

@@ -1,15 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
-
-import {render} from '@testing-library/react'
-import configureStore from 'redux-mock-store'
+import {render} from '@solidjs/testing-library'
 
 import {createCard} from '../../blocks/card'
 import {IPropertyTemplate, Board} from '../../blocks/board'
-import {wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {createCommentBlock} from '../../blocks/commentBlock'
 
@@ -27,9 +24,7 @@ describe('properties/updatedTime', () => {
         comment.modifiedBy = 'user-id-1'
         comment.parentId = 'card-id-1'
         comment.updateAt = Date.parse('15 Jun 2021 16:22:00')
-
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             comments: {
                 comments: {
                     [comment.id]: comment,
@@ -40,8 +35,8 @@ describe('properties/updatedTime', () => {
             },
         })
 
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <UpdatedTime
                     property={new UpdatedTimeProperty()}
                     card={card}
@@ -51,7 +46,7 @@ describe('properties/updatedTime', () => {
                     readOnly={false}
                     showEmptyPlaceholder={false}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         const {container} = render(component)

@@ -1,11 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen, within} from '@testing-library/react'
+import {render, screen, within} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
-import {MemoryRouter} from 'react-router-dom'
-
-import {Provider as ReduxProvider} from 'react-redux'
 
 import userEvent from '@testing-library/user-event'
 
@@ -16,7 +12,8 @@ import {Utils} from '../../utils'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {IPropertyTemplate} from '../../blocks/board'
-import {mockStateStore, wrapDNDIntl} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import KanbanCard from './kanbanCard'
 
@@ -78,7 +75,7 @@ describe('src/components/kanban/kanbanCard', () => {
             },
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     beforeEach(jest.clearAllMocks)
 
     // The native HTML5 attribute, left over from react-dnd's HTML5 backend.
@@ -90,8 +87,8 @@ describe('src/components/kanban/kanbanCard', () => {
     // native drag or the five-pixel threshold got there first came down to how
     // fast the hand moved, which is what made it look random.
     test('does not offer the card to the browser own drag and drop', () => {
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanCard
                     card={card}
                     board={board}
@@ -105,15 +102,15 @@ describe('src/components/kanban/kanbanCard', () => {
                     index={0}
                     groupId='group-1'
                 />
-            </ReduxProvider>,
-        ), {wrapper: MemoryRouter})
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
 
         expect(container.querySelector('[draggable="true"]')).toBeNull()
     })
 
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanCard
                     card={card}
                     board={board}
@@ -127,13 +124,13 @@ describe('src/components/kanban/kanbanCard', () => {
                     index={0}
                     groupId='group-1'
                 />
-            </ReduxProvider>,
-        ), {wrapper: MemoryRouter})
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot with readonly', () => {
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanCard
                     card={card}
                     board={board}
@@ -147,13 +144,13 @@ describe('src/components/kanban/kanbanCard', () => {
                     index={0}
                     groupId='group-1'
                 />
-            </ReduxProvider>,
-        ), {wrapper: MemoryRouter})
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
         expect(container).toMatchSnapshot()
     })
     test('return kanbanCard and click on delete menu ', () => {
-        const result = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const result = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanCard
                     card={card}
                     board={board}
@@ -167,8 +164,8 @@ describe('src/components/kanban/kanbanCard', () => {
                     index={0}
                     groupId='group-1'
                 />
-            </ReduxProvider>,
-        ), {wrapper: MemoryRouter})
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
 
         const {container} = result
 
@@ -190,8 +187,8 @@ describe('src/components/kanban/kanbanCard', () => {
     })
 
     test('return kanbanCard and click on duplicate menu ', () => {
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanCard
                     card={card}
                     board={board}
@@ -205,8 +202,8 @@ describe('src/components/kanban/kanbanCard', () => {
                     index={0}
                     groupId='group-1'
                 />
-            </ReduxProvider>,
-        ), {wrapper: MemoryRouter})
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
         const elementMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(elementMenuWrapper).not.toBeNull()
         userEvent.click(elementMenuWrapper)
@@ -218,8 +215,8 @@ describe('src/components/kanban/kanbanCard', () => {
     })
 
     test('return kanbanCard and click on copy link menu ', () => {
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <KanbanCard
                     card={card}
                     board={board}
@@ -233,8 +230,8 @@ describe('src/components/kanban/kanbanCard', () => {
                     index={0}
                     groupId='group-1'
                 />
-            </ReduxProvider>,
-        ), {wrapper: MemoryRouter})
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
         const elementMenuWrapper = screen.getByRole('button', {name: 'menuwrapper'})
         expect(elementMenuWrapper).not.toBeNull()
         userEvent.click(elementMenuWrapper)

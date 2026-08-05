@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
-import {useIntl} from 'react-intl'
+import type {JSX} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import {MenuOptionProps} from './menuItem'
 
 import './colorOption.scss'
 
 type ColorOptionProps = MenuOptionProps & {
-    icon?: React.ReactNode
+    icon?: JSX.Element
 }
 
 function ColorOption(props: ColorOptionProps): JSX.Element {
@@ -18,18 +19,18 @@ function ColorOption(props: ColorOptionProps): JSX.Element {
         <div
             role='button'
             aria-label={intl.formatMessage({id: 'ColorOption.selectColor', defaultMessage: 'Select {color} Color'}, {color: name})}
-            className='MenuOption ColorOption menu-option'
-            onClick={(e: React.MouseEvent): void => {
-                e.target.dispatchEvent(new Event('menuItemClicked'))
+            class='MenuOption ColorOption menu-option'
+            onClick={(e: MouseEvent): void => {
+                (e.target as HTMLElement).dispatchEvent(new Event('menuItemClicked'))
                 props.onClick(props.id)
                 e.stopPropagation()
             }}
         >
-            {icon ?? <div className='noicon'/>}
-            <div className='menu-name'>{name}</div>
-            <div className={`menu-colorbox ${id}`}/>
+            {icon ?? <div class='noicon'/>}
+            <div class='menu-name'>{name}</div>
+            <div class={`menu-colorbox ${id}`}/>
         </div>
     )
 }
 
-export default React.memo(ColorOption)
+export default ColorOption

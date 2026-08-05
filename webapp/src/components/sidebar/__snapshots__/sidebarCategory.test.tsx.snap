@@ -27,6 +27,8 @@ exports[`components/sidebarCategory sidebar call hideSidebar 1`] = `
           <div
             class=""
           >
+            
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper"
@@ -40,8 +42,46 @@ exports[`components/sidebarCategory sidebar call hideSidebar 1`] = `
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
           </div>
+        </div>
+        
+        
+        <div>
+          <div
+            class="SidebarBoardItem subitem "
+          >
+            <div
+              class="octo-sidebar-icon"
+            >
+              i
+            </div>
+            <div
+              class="octo-sidebar-title"
+              title="board title"
+            >
+              board title
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper x"
+                role="button"
+              >
+                <button
+                  class="IconButton"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+                
+              </div>
+            </div>
+          </div>
+          
         </div>
         <div>
           <div
@@ -72,43 +112,16 @@ exports[`components/sidebarCategory sidebar call hideSidebar 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
             </div>
           </div>
+          
         </div>
-        <div>
-          <div
-            class="SidebarBoardItem subitem "
-          >
-            <div
-              class="octo-sidebar-icon"
-            >
-              i
-            </div>
-            <div
-              class="octo-sidebar-title"
-              title="board title"
-            >
-              board title
-            </div>
-            <div>
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper x"
-                role="button"
-              >
-                <button
-                  class="IconButton"
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-dots-horizontal OptionsIcon"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        
+        
+        
+        
       </div>
     </div>
   </div>
@@ -142,6 +155,8 @@ exports[`components/sidebarCategory sidebar call hideSidebar 2`] = `
           <div
             class=""
           >
+            
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper"
@@ -155,8 +170,46 @@ exports[`components/sidebarCategory sidebar call hideSidebar 2`] = `
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
           </div>
+        </div>
+        
+        
+        <div>
+          <div
+            class="SidebarBoardItem subitem "
+          >
+            <div
+              class="octo-sidebar-icon"
+            >
+              i
+            </div>
+            <div
+              class="octo-sidebar-title"
+              title="board title"
+            >
+              board title
+            </div>
+            <div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper x"
+                role="button"
+              >
+                <button
+                  class="IconButton"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+                
+              </div>
+            </div>
+          </div>
+          
         </div>
         <div>
           <div
@@ -187,43 +240,16 @@ exports[`components/sidebarCategory sidebar call hideSidebar 2`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
             </div>
           </div>
+          
         </div>
-        <div>
-          <div
-            class="SidebarBoardItem subitem "
-          >
-            <div
-              class="octo-sidebar-icon"
-            >
-              i
-            </div>
-            <div
-              class="octo-sidebar-title"
-              title="board title"
-            >
-              board title
-            </div>
-            <div>
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper x"
-                role="button"
-              >
-                <button
-                  class="IconButton"
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-dots-horizontal OptionsIcon"
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        
+        
+        
+        
       </div>
     </div>
   </div>
@@ -257,6 +283,8 @@ exports[`components/sidebarCategory sidebar collapsed with active board in it 1`
           <div
             class=""
           >
+            
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper"
@@ -270,9 +298,11 @@ exports[`components/sidebarCategory sidebar collapsed with active board in it 1`
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
           </div>
         </div>
+        
         <div>
           <div
             class="SidebarBoardItem subitem active"
@@ -302,6 +332,7 @@ exports[`components/sidebarCategory sidebar collapsed with active board in it 1`
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
             </div>
           </div>
@@ -335,6 +366,11 @@ exports[`components/sidebarCategory sidebar collapsed with active board in it 1`
             </div>
           </div>
         </div>
+        
+        
+        
+        
+        
       </div>
     </div>
   </div>
@@ -368,6 +404,8 @@ exports[`components/sidebarCategory sidebar collapsed without active board 1`] =
           <div
             class=""
           >
+            
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper"
@@ -381,9 +419,17 @@ exports[`components/sidebarCategory sidebar collapsed without active board 1`] =
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
           </div>
         </div>
+        
+        
+        
+        
+        
+        
+        
       </div>
     </div>
   </div>
@@ -417,6 +463,8 @@ exports[`components/sidebarCategory sidebar template close other 1`] = `
           <div
             class=""
           >
+            
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper"
@@ -430,9 +478,12 @@ exports[`components/sidebarCategory sidebar template close other 1`] = `
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
           </div>
         </div>
+        
+        
         <div>
           <div
             class="SidebarBoardItem subitem "
@@ -462,9 +513,11 @@ exports[`components/sidebarCategory sidebar template close other 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
             </div>
           </div>
+          
         </div>
         <div>
           <div
@@ -495,6 +548,7 @@ exports[`components/sidebarCategory sidebar template close other 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
             </div>
           </div>
@@ -528,6 +582,10 @@ exports[`components/sidebarCategory sidebar template close other 1`] = `
             </div>
           </div>
         </div>
+        
+        
+        
+        
       </div>
     </div>
   </div>
@@ -561,6 +619,8 @@ exports[`components/sidebarCategory sidebar template close self 1`] = `
           <div
             class=""
           >
+            
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper"
@@ -574,9 +634,12 @@ exports[`components/sidebarCategory sidebar template close self 1`] = `
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
           </div>
         </div>
+        
+        
         <div>
           <div
             class="SidebarBoardItem subitem active"
@@ -606,6 +669,7 @@ exports[`components/sidebarCategory sidebar template close self 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
             </div>
           </div>
@@ -668,10 +732,16 @@ exports[`components/sidebarCategory sidebar template close self 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
             </div>
           </div>
+          
         </div>
+        
+        
+        
+        
       </div>
     </div>
   </div>

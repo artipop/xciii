@@ -37,6 +37,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match
         />
       </button>
     </div>
+    
   </div>
 </div>
 `;
@@ -78,6 +79,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match
         />
       </button>
     </div>
+    
   </div>
 </div>
 `;
@@ -97,6 +99,8 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match
     >
       Template global
     </span>
+    
+    
   </div>
 </div>
 `;
@@ -140,6 +144,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorItem should trigg
         />
       </button>
     </div>
+    
   </div>
   <div>
     <div
@@ -162,10 +167,13 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorItem should trigg
               <h1
                 class="dialog-title"
               />
+              
             </div>
             <div
               class="toolbar--right"
             >
+              
+              
               <button
                 aria-label="Close dialog"
                 title="Close dialog"
@@ -196,16 +204,20 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorItem should trigg
               <button
                 type="button"
               >
+                
                 <span>
                   Cancel
                 </span>
+                
               </button>
               <button
                 type="button"
               >
+                
                 <span>
                   Delete
                 </span>
+                
               </button>
             </div>
           </div>

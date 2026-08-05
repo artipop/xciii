@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
+import type {JSX} from 'solid-js'
+
 import './modalWrapper.scss'
 
 type Props = {
-    children: React.ReactNode
+    children: JSX.Element
 }
 
 const ModalWrapper = (props: Props) => {
     return (
-        <div className='ModalWrapper'>
+        <div class='ModalWrapper'>
             {props.children}
         </div>
     )
 }
 
-export default React.memo(ModalWrapper)
+export default ModalWrapper

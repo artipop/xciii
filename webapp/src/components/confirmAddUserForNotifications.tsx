@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, useState, useRef} from 'react'
-import {useIntl, FormattedMessage} from 'react-intl'
+import {createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {useIntl, FormattedMessage} from '../intl'
 
 import Combobox from '../widgets/combobox'
 import type {ComboboxOption} from '../combobox'
@@ -24,57 +26,57 @@ type Props = {
 }
 
 const ConfirmAddUserForNotifications = (props: Props): JSX.Element => {
-    const {user, allowManageBoardRoles} = props
-    const [newUserRole, setNewUserRole] = useState<MemberRole>(props.minimumRole || MemberRole.Viewer)
-    const userRole = useRef<string>(newUserRole)
+    const [newUserRole, setNewUserRole] = createSignal<MemberRole>(props.minimumRole || MemberRole.Viewer)
 
     const intl = useIntl()
 
-    // if allowed to manage board roles, only display roles higher than minimum
-    const roleOptions = []
-    if (allowManageBoardRoles) {
-        if (props.minimumRole === MemberRole.Viewer || props.minimumRole === MemberRole.None) {
-            roleOptions.push(
-                {id: MemberRole.Viewer, label: intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})},
-            )
-        }
-        if (props.minimumRole === MemberRole.Viewer || props.minimumRole === MemberRole.None || props.minimumRole === MemberRole.Commenter) {
-            roleOptions.push(
-                {id: MemberRole.Commenter, label: intl.formatMessage({id: 'BoardMember.schemeCommenter', defaultMessage: 'Commenter'})},
-            )
-        }
-        roleOptions.push(
-            {id: MemberRole.Editor, label: intl.formatMessage({id: 'BoardMember.schemeEditor', defaultMessage: 'Editor'})},
-        )
-        if (!user.is_guest) {
-            roleOptions.push(
-                {id: MemberRole.Admin, label: intl.formatMessage({id: 'BoardMember.schemeAdmin', defaultMessage: 'Admin'})},
-            )
-        }
-    }
+    const roleOptions = () => {
+        const options = []
 
-    // if not admin, (ie. Editor/Commentor on Public board)
-    // set to minimum board role, only option, read only.
-    if (!allowManageBoardRoles) {
-        if (props.minimumRole === MemberRole.Viewer || props.minimumRole === MemberRole.None) {
-            roleOptions.push(
-                {id: MemberRole.Viewer, label: intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})},
-            )
-        }
-        if (props.minimumRole === MemberRole.Commenter) {
-            roleOptions.push(
-                {id: MemberRole.Commenter, label: intl.formatMessage({id: 'BoardMember.schemeCommenter', defaultMessage: 'Commenter'})},
-            )
-        }
-        if (props.minimumRole === MemberRole.Editor) {
-            roleOptions.push(
+        // if allowed to manage board roles, only display roles higher than minimum
+        if (props.allowManageBoardRoles) {
+            if (props.minimumRole === MemberRole.Viewer || props.minimumRole === MemberRole.None) {
+                options.push(
+                    {id: MemberRole.Viewer, label: intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})},
+                )
+            }
+            if (props.minimumRole === MemberRole.Viewer || props.minimumRole === MemberRole.None || props.minimumRole === MemberRole.Commenter) {
+                options.push(
+                    {id: MemberRole.Commenter, label: intl.formatMessage({id: 'BoardMember.schemeCommenter', defaultMessage: 'Commenter'})},
+                )
+            }
+            options.push(
                 {id: MemberRole.Editor, label: intl.formatMessage({id: 'BoardMember.schemeEditor', defaultMessage: 'Editor'})},
             )
+            if (!props.user.is_guest) {
+                options.push(
+                    {id: MemberRole.Admin, label: intl.formatMessage({id: 'BoardMember.schemeAdmin', defaultMessage: 'Admin'})},
+                )
+            }
+        } else {
+            // if not admin, (ie. Editor/Commentor on Public board)
+            // set to minimum board role, only option, read only.
+            if (props.minimumRole === MemberRole.Viewer || props.minimumRole === MemberRole.None) {
+                options.push(
+                    {id: MemberRole.Viewer, label: intl.formatMessage({id: 'BoardMember.schemeViewer', defaultMessage: 'Viewer'})},
+                )
+            }
+            if (props.minimumRole === MemberRole.Commenter) {
+                options.push(
+                    {id: MemberRole.Commenter, label: intl.formatMessage({id: 'BoardMember.schemeCommenter', defaultMessage: 'Commenter'})},
+                )
+            }
+            if (props.minimumRole === MemberRole.Editor) {
+                options.push(
+                    {id: MemberRole.Editor, label: intl.formatMessage({id: 'BoardMember.schemeEditor', defaultMessage: 'Editor'})},
+                )
+            }
         }
+        return options
     }
 
     const subText = (
-        <div className='ConfirmAddUserForNotifications'>
+        <div class='ConfirmAddUserForNotifications'>
             <p>
                 <FormattedMessage
                     id='person.add-user-to-board-warning'
@@ -89,7 +91,7 @@ const ConfirmAddUserForNotifications = (props: Props): JSX.Element => {
                     values={{username: props.user.username}}
                 />
             </p>
-            <div className='permissions-title'>
+            <div class='permissions-title'>
                 <label>
                     <FormattedMessage
                         id='person.add-user-to-board-permissions'
@@ -101,18 +103,17 @@ const ConfirmAddUserForNotifications = (props: Props): JSX.Element => {
                 className='select'
                 classNamePrefix='select'
                 portalTarget={document.body}
-                isDisabled={!allowManageBoardRoles}
+                isDisabled={!props.allowManageBoardRoles}
                 isSearchable={false}
-                options={roleOptions.map((o) => ({id: o.id, label: o.label, data: o}))}
+                options={roleOptions().map((o) => ({id: o.id, label: o.label, data: o}))}
                 onChange={(value) => {
-                    if (allowManageBoardRoles) {
+                    if (props.allowManageBoardRoles) {
                         const role = (value as ComboboxOption<{id: MemberRole}> | null)?.data.id || props.minimumRole
                         setNewUserRole(role)
-                        userRole.current = role
                     }
                 }}
-                value={roleOptions.
-                    filter((o) => o.id === newUserRole).
+                value={roleOptions().
+                    filter((o) => o.id === newUserRole()).
                     map((o) => ({id: o.id, label: o.label, data: o}))[0] || null}
             />
         </div>
@@ -124,7 +125,7 @@ const ConfirmAddUserForNotifications = (props: Props): JSX.Element => {
                 heading: intl.formatMessage({id: 'person.add-user-to-board', defaultMessage: 'Add {username} to board'}, {username: props.user.username}),
                 subText,
                 confirmButtonText: intl.formatMessage({id: 'person.add-user-to-board-confirm-button', defaultMessage: 'Add to board'}),
-                onConfirm: () => props.onConfirm(user.id, userRole.current),
+                onConfirm: () => props.onConfirm(props.user.id, newUserRole()),
                 onClose: props.onClose,
             }}
         />

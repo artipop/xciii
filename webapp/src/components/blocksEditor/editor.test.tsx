@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
-import {render, screen, fireEvent, act} from '@testing-library/react'
+import {render, screen, fireEvent} from '@solidjs/testing-library'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import Editor from './editor'
@@ -36,63 +35,53 @@ describe('components/blocksEditor/editor', () => {
             value: {},
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
 
     test('should match snapshot', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <Editor
-                        id='block-id'
-                        boardId='fake-board-id'
-                        initialValue='test-value'
-                        initialContentType='text'
-                        onSave={jest.fn()}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <Editor
+                    id='block-id'
+                    boardId='fake-board-id'
+                    initialValue='test-value'
+                    initialContentType='text'
+                    onSave={jest.fn()}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot on empty', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <Editor
-                        boardId='fake-board-id'
-                        onSave={jest.fn()}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <Editor
+                    boardId='fake-board-id'
+                    onSave={jest.fn()}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 
     test('should call onSave after introduce text and hit enter', async () => {
         const onSave = jest.fn()
-        await act(async () => {
-            render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <Editor
-                        boardId='fake-board-id'
-                        onSave={onSave}
-                    />
-                </ReduxProvider>,
-            ))
-        })
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <Editor
+                    boardId='fake-board-id'
+                    onSave={onSave}
+                />
+            </AppStoreProvider>,
+        ))
         let input = screen.getByDisplayValue('')
         expect(onSave).not.toHaveBeenCalled()
-        fireEvent.change(input, {target: {value: '/title'}})
+        fireEvent.input(input, {target: {value: '/title'}})
         fireEvent.keyDown(input, {key: 'Enter'})
         expect(onSave).not.toHaveBeenCalled()
 
         input = screen.getByDisplayValue('')
-        fireEvent.change(input, {target: {value: 'test'}})
+        fireEvent.input(input, {target: {value: 'test'}})
         fireEvent.keyDown(input, {key: 'Enter'})
 
         expect(onSave).toHaveBeenCalledWith(expect.objectContaining({value: 'test'}))

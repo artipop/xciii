@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect} from 'react'
+import {ParentComponent, createEffect, onMount} from 'solid-js'
 
 import wsClient, {MMWebSocketClient} from '../wsclient'
 import {Utils} from '../utils'
@@ -12,15 +12,14 @@ type Props = {
         version: string
     }
     webSocketClient?: MMWebSocketClient
-    children: React.ReactNode
 }
 
 // WithWebSockets component initialises the websocket connection if
 // it's not yet running and subscribes to the current team
-const WithWebSockets = (props: Props): React.ReactElement => {
+const WithWebSockets: ParentComponent<Props> = (props) => {
     const queryString = new URLSearchParams(window.location.search)
 
-    useEffect(() => {
+    onMount(() => {
         // if the websocket client was already connected, do nothing
         if (wsClient.state !== 'init') {
             return
@@ -38,9 +37,9 @@ const WithWebSockets = (props: Props): React.ReactElement => {
             wsClient.authenticate(token)
         }
         wsClient.open()
-    }, [props.webSocketClient])
+    })
 
-    useEffect(() => {
+    createEffect(() => {
         if (!props.userId) {
             return
         }
@@ -49,13 +48,9 @@ const WithWebSockets = (props: Props): React.ReactElement => {
         if (wsClient.token !== token) {
             wsClient.authenticate(token)
         }
-    }, [props.userId])
+    })
 
-    return (
-        <>
-            {props.children}
-        </>
-    )
+    return <>{props.children}</>
 }
 
 export default WithWebSockets

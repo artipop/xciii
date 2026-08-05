@@ -1,18 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
-
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import {mocked} from 'jest-mock'
 import userEvent from '@testing-library/user-event'
 
-import configureStore from 'redux-mock-store'
-
 import {IUser} from '../../user'
 
-import {wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStore, AppStoreProvider} from '../../store'
 
 import client from '../../octoClient'
 
@@ -28,105 +24,50 @@ describe('components/messages/VersionMessage', () => {
         jest.clearAllMocks()
     })
 
-    const mockStore = configureStore([])
+    const renderMessage = (store: AppStore) => render(() => wrapIntl(() =>
+        <AppStoreProvider store={store}>
+            <VersionMessage/>
+        </AppStoreProvider>,
+    ))
+
+    const user = (id: string): IUser => ({
+        id,
+        username: 'username_1',
+        email: '',
+        nickname: '',
+        firstname: '',
+        lastname: '',
+        props: {},
+        create_at: 0,
+        update_at: 0,
+        is_bot: false,
+        is_guest: false,
+        roles: 'system_user',
+    })
 
     if (versionProperty) {
         test('single user mode, no display', () => {
-            const me: IUser = {
-                id: 'single-user',
-                username: 'username_1',
-                email: '',
-                nickname: '',
-                firstname: '',
-                lastname: '',
-                props: {},
-                create_at: 0,
-                update_at: 0,
-                is_bot: false,
-                is_guest: false,
-                roles: 'system_user',
-            }
-            const state = {
-                users: {
-                    me,
-                },
-            }
-
-            const store = mockStore(state)
-
-            const component = wrapIntl(
-                <ReduxProvider store={store}>
-                    <VersionMessage/>
-                </ReduxProvider>,
-            )
-            const {container} = render(component)
-            expect(container.firstChild).toBeNull()
+            const store = mockAppStore({users: {me: user('single-user')}})
+            renderMessage(store)
+            expect(screen.queryByText(/what's new/)).toBeNull()
         })
 
         test('property set, no message', () => {
-            const me: IUser = {
-                id: 'user-id-1',
-                username: 'username_1',
-                email: '',
-                nickname: '',
-                firstname: '',
-                lastname: '',
-                props: {},
-                create_at: 0,
-                update_at: 0,
-                is_bot: false,
-                is_guest: false,
-                roles: 'system_user',
-            }
-            const state = {
+            const store = mockAppStore({
                 users: {
-                    me,
+                    me: user('user-id-1'),
                     myConfig: {
                         [versionProperty]: {value: 'true'},
-                    },
+                    } as any,
                 },
-            }
-            const store = mockStore(state)
-
-            const component = wrapIntl(
-                <ReduxProvider store={store}>
-                    <VersionMessage/>
-                </ReduxProvider>,
-            )
-
-            const {container} = render(component)
-            expect(container.firstChild).toBeNull()
+            })
+            renderMessage(store)
+            expect(screen.queryByText(/what's new/)).toBeNull()
         })
 
         test('show message, click close', () => {
-            const me: IUser = {
-                id: 'user-id-1',
-                username: 'username_1',
-                email: '',
-                nickname: '',
-                firstname: '',
-                lastname: '',
-                props: {},
-                create_at: 0,
-                update_at: 0,
-                is_bot: false,
-                is_guest: false,
-                roles: 'system_user',
-            }
-            const state = {
-                users: {
-                    me,
-                },
-            }
-            const store = mockStore(state)
-
-            const component = wrapIntl(
-                <ReduxProvider store={store}>
-                    <VersionMessage/>
-                </ReduxProvider>,
-            )
-
-            render(component)
+            const store = mockAppStore({users: {me: user('user-id-1')}})
+            renderMessage(store)
             const buttonElement = screen.getByRole('button', {name: 'Close dialog'})
             userEvent.click(buttonElement)
             expect(mockedOctoClient.patchUserConfig).toHaveBeenCalledWith('user-id-1', {
@@ -137,50 +78,15 @@ describe('components/messages/VersionMessage', () => {
         })
 
         test('no me, no message', () => {
-            const state = {
-                users: {},
-            }
-            const store = mockStore(state)
-            const component = wrapIntl(
-                <ReduxProvider store={store}>
-                    <VersionMessage/>
-                </ReduxProvider>,
-            )
-
-            const {container} = render(component)
-            expect(container.firstChild).toBeNull()
+            const store = mockAppStore({users: {}})
+            renderMessage(store)
+            expect(screen.queryByText(/what's new/)).toBeNull()
         })
     } else {
         test('no version, does not display', () => {
-            const me: IUser = {
-                id: 'user-id-1',
-                username: 'username_1',
-                email: '',
-                nickname: '',
-                firstname: '',
-                lastname: '',
-                props: {
-                },
-                create_at: 0,
-                update_at: 0,
-                is_bot: false,
-                is_guest: false,
-                roles: 'system_user',
-            }
-            const state = {
-                users: {
-                    me,
-                },
-            }
-            const store = mockStore(state)
-
-            const component = wrapIntl(
-                <ReduxProvider store={store}>
-                    <VersionMessage/>
-                </ReduxProvider>,
-            )
-            const {container} = render(component)
-            expect(container.firstChild).toBeNull()
+            const store = mockAppStore({users: {me: user('user-id-1')}})
+            renderMessage(store)
+            expect(screen.queryByText(/what's new/)).toBeNull()
         })
     }
 })

@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {Show, createEffect, createSignal, onMount} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import octoClient from '../../octoClient'
 
@@ -31,36 +33,35 @@ type Props = {
     onDelete?: (block: Block) => void
 }
 
-const AttachmentElement = (props: Props): JSX.Element|null => {
-    const {block, onDelete} = props
-    const [fileInfo, setFileInfo] = useState<FileInfo>({})
-    const [fileSize, setFileSize] = useState<string>()
-    const [fileIcon, setFileIcon] = useState<string>('file-text-outline-larg')
-    const [fileName, setFileName] = useState<string>()
-    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = useState<boolean>(false)
-    const uploadPercent = useAppSelector(getUploadPercent(block.id))
+const AttachmentElement = (props: Props): JSX.Element => {
+    const [fileInfo, setFileInfo] = createSignal<FileInfo>({})
+    const [fileSize, setFileSize] = createSignal<string>()
+    const [fileIcon, setFileIcon] = createSignal<string>('file-text-outline-larg')
+    const [fileName, setFileName] = createSignal<string>()
+    const [showConfirmationDialogBox, setShowConfirmationDialogBox] = createSignal<boolean>(false)
+    const uploadPercent = useAppSelector((state) => getUploadPercent(props.block.id)(state))
     const intl = useIntl()
 
-    useEffect(() => {
+    onMount(() => {
         const loadFile = async () => {
-            if (block.isUploading) {
+            if (props.block.isUploading) {
                 setFileInfo({
-                    name: block.title,
-                    extension: block.title.split('.').slice(0, -1).join('.'),
+                    name: props.block.title,
+                    extension: props.block.title.split('.').slice(0, -1).join('.'),
                 })
                 return
             }
-            const attachmentInfo = await octoClient.getFileInfo(block.boardId, block.fields.fileId)
+            const attachmentInfo = await octoClient.getFileInfo(props.block.boardId, props.block.fields.fileId)
             setFileInfo(attachmentInfo)
         }
         loadFile()
-    }, [])
+    })
 
-    useEffect(() => {
-        if (fileInfo.size && !fileSize) {
-            setFileSize(Utils.humanFileSize(fileInfo.size))
+    createEffect(() => {
+        if (fileInfo().size && !fileSize()) {
+            setFileSize(Utils.humanFileSize(fileInfo().size!))
         }
-        if (fileInfo.name && !fileName) {
+        if (fileInfo().name && !fileName()) {
             const generateFileName = (fName: string) => {
                 if (fName.length > 18) {
                     let result = fName.slice(0, 15)
@@ -69,12 +70,13 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
                 }
                 return fName
             }
-            setFileName(generateFileName(fileInfo.name))
+            setFileName(generateFileName(fileInfo().name!))
         }
-    }, [fileInfo.size, fileInfo.name])
+    })
 
-    useEffect(() => {
-        if (fileInfo.extension) {
+    createEffect(() => {
+        const extension = fileInfo().extension
+        if (extension) {
             const getFileIcon = (fileExt: string) => {
                 const extType = (Object.keys(Files) as string[]).find((key) => Files[key].find((ext) => ext === fileExt))
                 if (extType) {
@@ -83,13 +85,13 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
                     setFileIcon('file-generic-outline-large')
                 }
             }
-            getFileIcon(fileInfo.extension.substring(1))
+            getFileIcon(extension.substring(1))
         }
-    }, [fileInfo.extension])
+    })
 
     const deleteAttachment = () => {
-        if (onDelete) {
-            onDelete(block)
+        if (props.onDelete) {
+            props.onDelete(props.block)
         }
     }
 
@@ -106,100 +108,113 @@ const AttachmentElement = (props: Props): JSX.Element|null => {
         setShowConfirmationDialogBox(true)
     }
 
-    if (fileInfo.archived) {
-        return (
-            <ArchivedFile fileInfo={fileInfo}/>
-        )
-    }
-
     const attachmentDownloadHandler = async () => {
-        const attachment = await octoClient.getFileAsDataUrl(block.boardId, block.fields.fileId)
+        const attachment = await octoClient.getFileAsDataUrl(props.block.boardId, props.block.fields.fileId)
         const anchor = document.createElement('a')
         anchor.href = attachment.url || ''
-        anchor.download = fileInfo.name || ''
+        anchor.download = fileInfo().name || ''
         document.body.appendChild(anchor)
         anchor.click()
         document.body.removeChild(anchor)
     }
 
     return (
-        <div className='FileElement mr-4'>
-            {showConfirmationDialogBox && <ConfirmationDialogBox dialogBox={confirmDialogProps}/>}
-            <div className='fileElement-icon-division'>
-                <CompassIcon
-                    icon={fileIcon}
-                    className='fileElement-icon'
-                />
-            </div>
-            <div className='fileElement-file-details mt-3'>
-                <Tooltip
-                    title={fileInfo.name ? fileInfo.name : ''}
-                    placement='bottom'
-                >
-                    <div className='fileElement-file-name'>
-                        {fileName}
-                    </div>
-                </Tooltip>
-                {!block.isUploading && <div className='fileElement-file-ext-and-size'>
-                    {fileInfo.extension?.substring(1)} {fileSize}
-                </div> }
-                {block.isUploading && <div className='fileElement-file-uploading'>
-                    {intl.formatMessage({
-                        id: 'AttachmentElement.upload-percentage',
-                        defaultMessage: 'Uploading...({uploadPercent}%)',
-                    }, {
-                        uploadPercent,
-                    })}
-                </div>}
-            </div>
-            {block.isUploading &&
-                <div className='progress'>
-                    <span
-                        className='progress-bar'
-                        style={{width: uploadPercent + '%'}}
+        <Show
+            when={!fileInfo().archived}
+            fallback={<ArchivedFile fileInfo={fileInfo()}/>}
+        >
+            <div class='FileElement mr-4'>
+                <Show when={showConfirmationDialogBox()}>
+                    <ConfirmationDialogBox dialogBox={confirmDialogProps}/>
+                </Show>
+                <div class='fileElement-icon-division'>
+                    <CompassIcon
+                        icon={fileIcon()}
+                        className='fileElement-icon'
+                    />
+                </div>
+                <div class='fileElement-file-details mt-3'>
+                    <Tooltip
+                        title={fileInfo().name ? fileInfo().name! : ''}
+                        placement='bottom'
                     >
-                        {''}
-                    </span>
-                </div>}
-            {!block.isUploading &&
-            <div className='fileElement-delete-download'>
-                <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
-                    <MenuWrapper className='mt-3 fileElement-menu-icon'>
-                        <IconButton
-                            size='medium'
-                            icon={<CompassIcon icon='dots-vertical'/>}
-                        />
-                        <div className='delete-menu'>
-                            <Menu position='left'>
-                                <Menu.Text
-                                    id='makeTemplate'
-                                    icon={
-                                        <CompassIcon
-                                            icon='trash-can-outline'
-                                        />}
-                                    name='Delete'
-                                    onClick={handleDeleteButtonClick}
-                                />
-                            </Menu>
+                        <div class='fileElement-file-name'>
+                            {fileName()}
                         </div>
-                    </MenuWrapper>
-                </BoardPermissionGate>
-                <Tooltip
-                    title={intl.formatMessage({id: 'AttachmentElement.download', defaultMessage: 'Download'})}
-                    placement='bottom'
-                >
-                    <div
-                        className='fileElement-download-btn mt-3 mr-2'
-                        onClick={attachmentDownloadHandler}
+                    </Tooltip>
+                    <Show
+                        when={props.block.isUploading}
+                        fallback={
+                            <div class='fileElement-file-ext-and-size'>
+                                {fileInfo().extension?.substring(1)} {fileSize()}
+                            </div>
+                        }
                     >
-                        <CompassIcon
-                            icon='download-outline'
-                        />
+                        <div class='fileElement-file-uploading'>
+                            {intl.formatMessage({
+                                id: 'AttachmentElement.upload-percentage',
+                                defaultMessage: 'Uploading...({uploadPercent}%)',
+                            }, {
+                                uploadPercent: uploadPercent(),
+                            })}
+                        </div>
+                    </Show>
+                </div>
+                <Show when={props.block.isUploading}>
+                    <div class='progress'>
+                        <span
+                            class='progress-bar'
+                            style={{width: uploadPercent() + '%'}}
+                        >
+                            {''}
+                        </span>
                     </div>
-                </Tooltip>
-            </div> }
-        </div>
+                </Show>
+                <Show when={!props.block.isUploading}>
+                    <div class='fileElement-delete-download'>
+                        <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
+                            <MenuWrapper
+                                className='mt-3 fileElement-menu-icon'
+                                menu={
+                                    <div class='delete-menu'>
+                                        <Menu position='left'>
+                                            <Menu.Text
+                                                id='makeTemplate'
+                                                icon={
+                                                    <CompassIcon
+                                                        icon='trash-can-outline'
+                                                    />}
+                                                name='Delete'
+                                                onClick={handleDeleteButtonClick}
+                                            />
+                                        </Menu>
+                                    </div>
+                                }
+                            >
+                                <IconButton
+                                    size='medium'
+                                    icon={<CompassIcon icon='dots-vertical'/>}
+                                />
+                            </MenuWrapper>
+                        </BoardPermissionGate>
+                        <Tooltip
+                            title={intl.formatMessage({id: 'AttachmentElement.download', defaultMessage: 'Download'})}
+                            placement='bottom'
+                        >
+                            <div
+                                class='fileElement-download-btn mt-3 mr-2'
+                                onClick={attachmentDownloadHandler}
+                            >
+                                <CompassIcon
+                                    icon='download-outline'
+                                />
+                            </div>
+                        </Tooltip>
+                    </div>
+                </Show>
+            </div>
+        </Show>
     )
 }
 
-export default React.memo(AttachmentElement)
+export default AttachmentElement

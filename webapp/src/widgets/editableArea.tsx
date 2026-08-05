@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, forwardRef, useEffect, useRef} from 'react'
+import {createEffect} from 'solid-js'
+import type {JSX} from 'solid-js'
 
-import {EditableProps, Focusable, useEditable} from './editable'
+import {EditableProps, useEditable} from './editable'
 
 import './editableArea.scss'
 
@@ -10,48 +11,46 @@ function getBorderWidth(style: CSSStyleDeclaration): number {
     return parseInt(style.borderTopWidth || '0', 10) + parseInt(style.borderBottomWidth || '0', 10)
 }
 
-const EditableArea = (props: EditableProps, ref: React.Ref<Focusable>): JSX.Element => {
-    const elementRef = useRef<HTMLTextAreaElement>(null)
-    const referenceRef = useRef<HTMLTextAreaElement>(null)
-    const heightRef = useRef(0)
-    const elementProps = useEditable(props, ref, elementRef)
+const EditableArea = (props: EditableProps): JSX.Element => {
+    let elementRef: HTMLTextAreaElement | undefined
+    let referenceRef: HTMLTextAreaElement | undefined
+    let height = 0
+    const elementProps = useEditable(props, () => elementRef)
 
-    useEffect(() => {
-        if (!elementRef.current || !referenceRef.current) {
+    // The hidden reference textarea carries the same value; whenever that
+    // value changes, its scrollHeight is what the visible one grows to.
+    createEffect(() => {
+        void props.value
+        if (!elementRef || !referenceRef) {
             return
         }
 
-        const height = referenceRef.current.scrollHeight
-        const textarea = elementRef.current
+        const nextHeight = referenceRef.scrollHeight
+        const textarea = elementRef
 
-        if (height > 0 && height !== heightRef.current) {
+        if (nextHeight > 0 && nextHeight !== height) {
             const style = getComputedStyle(textarea)
             const borderWidth = getBorderWidth(style)
 
             // Directly change the height to avoid circular rerenders
-            textarea.style.height = String(height + borderWidth) + 'px'
+            textarea.style.height = String(nextHeight + borderWidth) + 'px'
 
-            heightRef.current = height
+            height = nextHeight
         }
     })
 
-    const heightProps = {
-        height: heightRef.current,
-        rows: 1,
-    }
-
     return (
-        <div className={'EditableAreaWrap'}>
+        <div class={'EditableAreaWrap'}>
             <textarea
                 {...elementProps}
-                {...heightProps}
+                rows={1}
                 ref={elementRef}
-                className={'EditableArea ' + elementProps.className}
+                class={'EditableArea ' + elementProps.class}
             />
-            <div className={'EditableAreaContainer'}>
+            <div class={'EditableAreaContainer'}>
                 <textarea
                     ref={referenceRef}
-                    className={'EditableAreaReference ' + elementProps.className}
+                    class={'EditableAreaReference ' + elementProps.class}
                     dir='auto'
                     disabled={true}
                     rows={1}
@@ -63,4 +62,4 @@ const EditableArea = (props: EditableProps, ref: React.Ref<Focusable>): JSX.Elem
     )
 }
 
-export default forwardRef(EditableArea)
+export default EditableArea

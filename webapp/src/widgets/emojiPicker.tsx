@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, FC, useEffect, useRef} from 'react'
+import {onCleanup, onMount} from 'solid-js'
+import type {Component} from 'solid-js'
 import {Picker} from 'emoji-mart'
 
 import './emojiPicker.scss'
@@ -13,22 +14,16 @@ type PickedEmoji = {
     native?: string
 }
 
-// emoji-mart 5 is not a React component: Picker is a custom element that mounts
-// itself into a host node. @emoji-mart/react exists to wrap it but does not
-// support React 19, and the wrapper is this small. The data set is registered
-// once at startup in main.tsx.
-const EmojiPicker: FC<Props> = (props: Props): JSX.Element => {
-    const host = useRef<HTMLDivElement>(null)
+// emoji-mart 5 is not a framework component: Picker is a custom element that
+// mounts itself into a host node, so the wrapper stays this small. The data
+// set is registered once at startup in main.tsx.
+const EmojiPicker: Component<Props> = (props) => {
+    let host: HTMLDivElement | undefined
 
-    // Read through a ref so a new onSelect never remounts the picker, which
-    // would throw away the user's search text and scroll position.
-    const onSelect = useRef(props.onSelect)
-    onSelect.current = props.onSelect
-
-    useEffect(() => {
-        const node = host.current
+    onMount(() => {
+        const node = host
         if (!node) {
-            return undefined
+            return
         }
 
         // v5 draws native glyphs instead of the sprite sheet v3 needed, so the
@@ -40,20 +35,22 @@ const EmojiPicker: FC<Props> = (props: Props): JSX.Element => {
             previewPosition: 'none',
             onEmojiSelect: (emoji: PickedEmoji) => {
                 if (emoji.native) {
-                    onSelect.current(emoji.native)
+                    // props.onSelect is read at pick time, so a new handler
+                    // never remounts the picker and never loses its state.
+                    props.onSelect(emoji.native)
                 }
             },
         }) as unknown as {remove?: () => void}
 
-        return () => {
+        onCleanup(() => {
             picker.remove?.()
             node.replaceChildren()
-        }
-    }, [])
+        })
+    })
 
     return (
         <div
-            className='EmojiPicker'
+            class='EmojiPicker'
             onClick={(e) => e.stopPropagation()}
         >
             <div ref={host}/>

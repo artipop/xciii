@@ -1,15 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
-
-import {render} from '@testing-library/react'
-import configureStore from 'redux-mock-store'
+import {render} from '@solidjs/testing-library'
 
 import {createCard} from '../../blocks/card'
 import {IUser} from '../../user'
-import {wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {createBoard, IPropertyTemplate} from '../../blocks/board'
 
@@ -28,9 +25,7 @@ describe('properties/updatedBy', () => {
         const comment = createCommentBlock()
         comment.modifiedBy = 'user-id-1'
         comment.parentId = 'card-id-1'
-
-        const mockStore = configureStore([])
-        const store = mockStore({
+        const store = mockAppStore({
             users: {
                 boardUsers: {
                     'user-id-1': {username: 'username_1'} as IUser,
@@ -51,8 +46,8 @@ describe('properties/updatedBy', () => {
             },
         })
 
-        const component = (
-            <ReduxProvider store={store}>
+        const component = () => (
+            <AppStoreProvider store={store}>
                 <UpdatedBy
                     property={new UpdatedByProperty()}
                     card={card}
@@ -62,10 +57,10 @@ describe('properties/updatedBy', () => {
                     readOnly={false}
                     showEmptyPlaceholder={false}
                 />
-            </ReduxProvider>
+            </AppStoreProvider>
         )
 
-        const {container} = render(wrapIntl(component))
+        const {container} = render(() => wrapIntl(component))
         expect(container).toMatchSnapshot()
     })
 })

@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect} from 'react'
+import {onMount} from 'solid-js'
 
 import {BlockInputProps, ContentType} from '../types'
 
@@ -13,11 +13,11 @@ const Divider: ContentType = {
     prefix: '--- ',
     runSlashCommand: (): void => {},
     editable: false,
-    Display: () => <hr className='Divider'/>,
+    Display: () => <hr class='Divider'/>,
     Input: (props: BlockInputProps) => {
-        useEffect(() => {
+        onMount(() => {
             props.onSave(props.value)
-        }, [])
+        })
         return null
     },
 }

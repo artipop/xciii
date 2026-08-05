@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useRef, useEffect, useState} from 'react'
+import {Show, createEffect, createSignal, onMount} from 'solid-js'
 
 import {BlockInputProps, ContentType} from '../types'
 import octoClient from '../../../../octoClient'
@@ -21,49 +21,44 @@ const Image: ContentType<FileInfo> = {
     runSlashCommand: (): void => {},
     editable: false,
     Display: (props: BlockInputProps<FileInfo>) => {
-        const [imageDataUrl, setImageDataUrl] = useState<string|null>(null)
+        const [imageDataUrl, setImageDataUrl] = createSignal<string|null>(null)
 
-        useEffect(() => {
-            if (!imageDataUrl) {
-                const loadImage = async () => {
-                    if (props.value && props.value.file && typeof props.value.file === 'string') {
-                        const fileURL = await octoClient.getFileAsDataUrl(props.currentBoardId || '', props.value.file)
-                        setImageDataUrl(fileURL.url || '')
-                    }
-                }
-                loadImage()
+        createEffect(() => {
+            if (!imageDataUrl() && props.value && props.value.file && typeof props.value.file === 'string') {
+                octoClient.getFileAsDataUrl(props.currentBoardId || '', props.value.file).then((fileURL) => {
+                    setImageDataUrl(fileURL.url || '')
+                })
             }
-        }, [props.value, props.value.file, props.currentBoardId])
+        })
 
-        if (imageDataUrl) {
-            return (
+        return (
+            <Show when={imageDataUrl()}>
                 <img
                     data-testid='image'
-                    className='ImageView'
-                    src={imageDataUrl}
+                    class='ImageView'
+                    src={imageDataUrl()!}
                 />
-            )
-        }
-        return null
+            </Show>
+        )
     },
     Input: (props: BlockInputProps<FileInfo>) => {
-        const ref = useRef<HTMLInputElement|null>(null)
-        useEffect(() => {
-            ref.current?.click()
-        }, [])
+        let ref: HTMLInputElement|undefined
+        onMount(() => {
+            ref?.click()
+        })
 
         return (
             <div>
-                {props.value.file && (typeof props.value.file === 'string') && (
+                <Show when={props.value.file && (typeof props.value.file === 'string')}>
                     <img
-                        className='ImageView'
-                        src={props.value.file}
-                        onClick={() => ref.current?.click()}
+                        class='ImageView'
+                        src={props.value.file as string}
+                        onClick={() => ref?.click()}
                     />
-                )}
+                </Show>
                 <input
                     ref={ref}
-                    className='Image'
+                    class='Image'
                     data-testid='image-input'
                     type='file'
                     accept='image/*'

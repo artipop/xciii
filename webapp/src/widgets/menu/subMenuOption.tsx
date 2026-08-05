@@ -1,83 +1,89 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useEffect, useState, useContext, CSSProperties, useRef} from 'react'
+import {Show, createContext, createEffect, createSignal, onMount, useContext} from 'solid-js'
+import type {Accessor, JSX} from 'solid-js'
 
 import CompassIcon from '../../widgets/icons/compassIcon'
 
 import MenuUtil from './menuUtil'
 
-import Menu from '.'
+import TextOption from './textOption'
 
 import './subMenuOption.scss'
 
-export const HoveringContext = React.createContext(false)
+// The value is an accessor: the menu wraps every option and flips this when
+// the pointer moves between wrappers.
+export const HoveringContext = createContext<Accessor<boolean>>(() => false)
 
 type SubMenuOptionProps = {
     id: string
     name: string
     position?: 'bottom' | 'top' | 'left' | 'left-bottom' | 'auto'
-    icon?: React.ReactNode
-    children: React.ReactNode
+    icon?: JSX.Element
+    children: JSX.Element
     className?: string
 }
 
 function SubMenuOption(props: SubMenuOptionProps): JSX.Element {
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpen] = createSignal(false)
     const isHovering = useContext(HoveringContext)
 
-    const openLeftClass = props.position === 'left' || props.position === 'left-bottom' ? ' open-left' : ''
+    const openLeftClass = () => (props.position === 'left' || props.position === 'left-bottom' ? ' open-left' : '')
 
-    useEffect(() => {
-        if (isHovering !== undefined) {
-            setIsOpen(isHovering)
-        }
-    }, [isHovering])
+    createEffect(() => {
+        setIsOpen(isHovering())
+    })
 
-    const ref = useRef<HTMLDivElement>(null)
+    let ref: HTMLDivElement | undefined
 
-    const styleRef = useRef<CSSProperties>({})
+    const [style, setStyle] = createSignal<JSX.CSSProperties>({})
 
-    useEffect(() => {
-        const newStyle: CSSProperties = {}
-        if (props.position === 'auto' && ref.current) {
-            const openUp = MenuUtil.openUp(ref)
+    onMount(() => {
+        const newStyle: JSX.CSSProperties = {}
+        if (props.position === 'auto' && ref) {
+            const openUp = MenuUtil.openUp({current: ref})
             if (openUp.openUp) {
-                newStyle.bottom = 0
+                newStyle.bottom = '0'
             } else {
-                newStyle.top = 0
+                newStyle.top = '0'
             }
         }
 
-        styleRef.current = newStyle
-    }, [ref.current])
+        setStyle(newStyle)
+    })
 
     return (
         <div
             id={props.id}
-            className={`MenuOption SubMenuOption menu-option${openLeftClass}${isOpen ? ' menu-option-active' : ''}${props.className ? ' ' + props.className : ''}`}
-            onClick={(e: React.MouseEvent) => {
+            class={`MenuOption SubMenuOption menu-option${openLeftClass()}${isOpen() ? ' menu-option-active' : ''}${props.className ? ' ' + props.className : ''}`}
+            onClick={(e: MouseEvent) => {
                 e.preventDefault()
                 e.stopPropagation()
                 setIsOpen((open) => !open)
             }}
             ref={ref}
         >
-            {props.icon ? <div className='menu-option__icon'>{props.icon}</div> : <div className='noicon'/>}
-            <div className='menu-name'>{props.name}</div>
+            <Show
+                when={props.icon}
+                fallback={<div class='noicon'/>}
+            >
+                <div class='menu-option__icon'>{props.icon}</div>
+            </Show>
+            <div class='menu-name'>{props.name}</div>
             <CompassIcon icon='chevron-right'/>
-            {isOpen &&
+            <Show when={isOpen()}>
                 <div
-                    className={'SubMenu Menu noselect ' + (props.position || 'bottom')}
-                    style={styleRef.current}
+                    class={'SubMenu Menu noselect ' + (props.position || 'bottom')}
+                    style={style()}
                 >
-                    <div className='menu-contents'>
-                        <div className='menu-options'>
+                    <div class='menu-contents'>
+                        <div class='menu-options'>
                             {props.children}
                         </div>
-                        <div className='menu-spacer hideOnWidescreen'/>
+                        <div class='menu-spacer hideOnWidescreen'/>
 
-                        <div className='menu-options hideOnWidescreen'>
-                            <Menu.Text
+                        <div class='menu-options hideOnWidescreen'>
+                            <TextOption
                                 id='menu-cancel'
                                 name={'Cancel'}
                                 className='menu-cancel'
@@ -87,9 +93,9 @@ function SubMenuOption(props: SubMenuOptionProps): JSX.Element {
                     </div>
 
                 </div>
-            }
+            </Show>
         </div>
     )
 }
 
-export default React.memo(SubMenuOption)
+export default SubMenuOption

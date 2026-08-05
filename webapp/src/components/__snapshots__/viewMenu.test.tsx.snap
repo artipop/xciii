@@ -61,6 +61,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                       >
                         view title
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -106,6 +107,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                       >
                         view title
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -143,6 +145,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                     >
                       Duplicate view
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -174,6 +177,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                     >
                       Delete view
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -200,6 +204,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                   <i
                     class="CompassIcon icon-chevron-right"
                   />
+                  
                 </div>
               </div>
             </div>
@@ -229,6 +234,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -297,6 +303,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                     >
                       view title
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -342,6 +349,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                     >
                       view title
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -379,6 +387,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                   >
                     Duplicate view
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -410,6 +419,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                   >
                     Delete view
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -436,6 +446,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                 <i
                   class="CompassIcon icon-chevron-right"
                 />
+                
               </div>
             </div>
           </div>
@@ -465,6 +476,7 @@ exports[`/components/viewMenu should match snapshot 1`] = `
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -524,7 +536,6 @@ exports[`/components/viewMenu should match snapshot 1`] = `
   "queryByTestId": [Function],
   "queryByText": [Function],
   "queryByTitle": [Function],
-  "rerender": [Function],
   "unmount": [Function],
 }
 `;
@@ -590,6 +601,7 @@ exports[`/components/viewMenu should match snapshot, read only 1`] = `
                       >
                         view title
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -635,6 +647,7 @@ exports[`/components/viewMenu should match snapshot, read only 1`] = `
                       >
                         view title
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -677,6 +690,7 @@ exports[`/components/viewMenu should match snapshot, read only 1`] = `
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -745,6 +759,7 @@ exports[`/components/viewMenu should match snapshot, read only 1`] = `
                     >
                       view title
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -790,6 +805,7 @@ exports[`/components/viewMenu should match snapshot, read only 1`] = `
                     >
                       view title
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -832,6 +848,7 @@ exports[`/components/viewMenu should match snapshot, read only 1`] = `
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -891,7 +908,6 @@ exports[`/components/viewMenu should match snapshot, read only 1`] = `
   "queryByTestId": [Function],
   "queryByText": [Function],
   "queryByTitle": [Function],
-  "rerender": [Function],
   "unmount": [Function],
 }
 `;

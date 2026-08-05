@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react'
-import {useIntl} from 'react-intl'
+import {Show, createSignal} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import {IPropertyOption} from '../../blocks/board'
 
@@ -14,11 +15,10 @@ import ValueSelector from '../../widgets/valueSelector'
 import {PropertyProps} from '../types'
 
 const SelectProperty = (props: PropertyProps) => {
-    const {propertyValue, propertyTemplate, board, card} = props
     const intl = useIntl()
 
-    const [open, setOpen] = useState(false)
-    const isEditable = !props.readOnly && Boolean(board)
+    const [open, setOpen] = createSignal(false)
+    const isEditable = () => !props.readOnly && Boolean(props.board)
 
     const onCreate = (newValue: string) => {
         const option: IPropertyOption = {
@@ -26,50 +26,51 @@ const SelectProperty = (props: PropertyProps) => {
             value: newValue,
             color: 'propColorDefault',
         }
-        mutator.insertPropertyOption(board.id, board.cardProperties, propertyTemplate, option, 'add property option').then(() => {
-            mutator.changePropertyValue(board.id, card, propertyTemplate.id, option.id)
+        mutator.insertPropertyOption(props.board.id, props.board.cardProperties, props.propertyTemplate, option, 'add property option').then(() => {
+            mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate.id, option.id)
         })
     }
 
-    const emptyDisplayValue = props.showEmptyPlaceholder ? intl.formatMessage({id: 'PropertyValueElement.empty', defaultMessage: 'Empty'}) : ''
+    const emptyDisplayValue = () => (props.showEmptyPlaceholder ? intl.formatMessage({id: 'PropertyValueElement.empty', defaultMessage: 'Empty'}) : '')
 
-    const onChange = (newValue: string | string[]) => mutator.changePropertyValue(board.id, card, propertyTemplate.id, newValue)
-    const onChangeColor = (option: IPropertyOption, colorId: string) => mutator.changePropertyOptionColor(board.id, board.cardProperties, propertyTemplate, option, colorId)
-    const onDeleteOption = (option: IPropertyOption) => mutator.deletePropertyOption(board.id, board.cardProperties, propertyTemplate, option)
-    const onDeleteValue = () => mutator.changePropertyValue(board.id, card, propertyTemplate.id, '')
+    const onChange = (newValue: string | string[]) => mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate.id, newValue)
+    const onChangeColor = (option: IPropertyOption, colorId: string) => mutator.changePropertyOptionColor(props.board.id, props.board.cardProperties, props.propertyTemplate, option, colorId)
+    const onDeleteOption = (option: IPropertyOption) => mutator.deletePropertyOption(props.board.id, props.board.cardProperties, props.propertyTemplate, option)
+    const onDeleteValue = () => mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate.id, '')
 
-    const option = propertyTemplate.options.find((o: IPropertyOption) => o.id === propertyValue)
-    const propertyColorCssClassName = option?.color || ''
-    const displayValue = option?.value
-    const finalDisplayValue = displayValue || emptyDisplayValue
+    const option = () => props.propertyTemplate.options.find((o: IPropertyOption) => o.id === props.propertyValue)
+    const displayValue = () => option()?.value
+    const finalDisplayValue = () => displayValue() || emptyDisplayValue()
 
-    if (!isEditable || !open) {
-        return (
-            <div
-                className={props.property.valueClassName(!isEditable)}
-                data-testid='select-non-editable'
-                tabIndex={0}
-                onClick={() => setOpen(true)}
-            >
-                <Label color={displayValue ? propertyColorCssClassName : 'empty'}>
-                    <span className='Label-text'>{finalDisplayValue}</span>
-                </Label>
-            </div>
-        )
-    }
     return (
-        <ValueSelector
-            emptyValue={emptyDisplayValue}
-            options={propertyTemplate.options}
-            value={propertyTemplate.options.find((p: IPropertyOption) => p.id === propertyValue)}
-            onCreate={onCreate}
-            onChange={onChange}
-            onChangeColor={onChangeColor}
-            onDeleteOption={onDeleteOption}
-            onDeleteValue={onDeleteValue}
-            onBlur={() => setOpen(false)}
-        />
+        <Show
+            when={isEditable() && open()}
+            fallback={
+                <div
+                    class={props.property.valueClassName(!isEditable())}
+                    data-testid='select-non-editable'
+                    tabIndex={0}
+                    onClick={() => setOpen(true)}
+                >
+                    <Label color={displayValue() ? (option()?.color || '') : 'empty'}>
+                        <span class='Label-text'>{finalDisplayValue()}</span>
+                    </Label>
+                </div>
+            }
+        >
+            <ValueSelector
+                emptyValue={emptyDisplayValue()}
+                options={props.propertyTemplate.options}
+                value={props.propertyTemplate.options.find((p: IPropertyOption) => p.id === props.propertyValue)}
+                onCreate={onCreate}
+                onChange={onChange}
+                onChangeColor={onChangeColor}
+                onDeleteOption={onDeleteOption}
+                onDeleteValue={onDeleteValue}
+                onBlur={() => setOpen(false)}
+            />
+        </Show>
     )
 }
 
-export default React.memo(SelectProperty)
+export default SelectProperty

@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import type {JSX} from 'solid-js'
 
-import React from 'react'
-import {fireEvent, render} from '@testing-library/react'
+import {fireEvent, render} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
 import 'isomorphic-fetch'
-
-import {act} from 'react-dom/test-utils'
 
 import userEvent from '@testing-library/user-event'
 
@@ -42,19 +40,19 @@ const boardTreeGroup = {
     cards: [],
 }
 
-const Wrapper: React.FC<React.PropsWithChildren> = ({children}) => {
-    return wrapDNDIntl(
+const Wrapper = (props: {children?: JSX.Element}) => {
+    return wrapDNDIntl(() =>
         <ColumnResizeProvider
             columnWidths={{}}
             onResizeColumn={jest.fn()}
         >
-            {children}
+            {props.children}
         </ColumnResizeProvider>,
     )
 }
 
 test('should match snapshot, no groups', async () => {
-    const {container} = render(
+    const {container} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}
@@ -78,7 +76,7 @@ test('should match snapshot, no groups', async () => {
 })
 
 test('should match snapshot with Group', async () => {
-    const {container} = render(
+    const {container} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}
@@ -96,7 +94,7 @@ test('should match snapshot with Group', async () => {
 })
 
 test('should match snapshot on read only', async () => {
-    const {container} = render(
+    const {container} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}
@@ -119,7 +117,7 @@ test('should match snapshot, hide group', async () => {
     const collapsedOptionsView = TestBlockFactory.createBoardView(board)
     collapsedOptionsView.fields.collapsedOptionIds = [boardTreeGroup.option.id]
 
-    const {container} = render(
+    const {container} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}
@@ -137,9 +135,7 @@ test('should match snapshot, hide group', async () => {
     const triangle = container.querySelector('.octo-table-cell__expand')
     expect(triangle).not.toBeNull()
 
-    act(() => {
-        fireEvent.click(triangle as Element)
-    })
+    fireEvent.click(triangle as Element)
     expect(hideGroup).toHaveBeenCalled()
     expect(container).toMatchSnapshot()
 })
@@ -147,7 +143,7 @@ test('should match snapshot, hide group', async () => {
 test('should match snapshot, add new', async () => {
     const addNew = jest.fn()
 
-    const {container} = render(
+    const {container} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}
@@ -165,15 +161,13 @@ test('should match snapshot, add new', async () => {
     const triangle = container.querySelector('i.AddIcon')
     expect(triangle).not.toBeNull()
 
-    act(() => {
-        fireEvent.click(triangle as Element)
-    })
+    fireEvent.click(triangle as Element)
     expect(addNew).toHaveBeenCalled()
     expect(container).toMatchSnapshot()
 })
 
 test('should match snapshot, edit title', async () => {
-    const {container, getByTitle} = render(
+    const {container, getByTitle} = render(() =>
         <Wrapper>
             <TableGroupHeaderRowElement
                 board={board}
@@ -189,10 +183,8 @@ test('should match snapshot, edit title', async () => {
     )
 
     const input = getByTitle(/value 1/)
-    act(() => {
-        userEvent.click(input)
-        userEvent.keyboard('{enter}')
-    })
+    userEvent.click(input)
+    userEvent.keyboard('{enter}')
 
     expect(container).toMatchSnapshot()
 })

@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState} from 'react'
-import {FormattedMessage} from 'react-intl'
+import {Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {FormattedMessage} from '../../intl'
 
 import {Utils} from '../../utils'
 import Button from '../../widgets/buttons/button'
@@ -19,7 +21,7 @@ type Props = {
 }
 
 export default function DeleteBoardDialog(props: Props): JSX.Element {
-    const [isSubmitting, setSubmitting] = useState(false)
+    const [isSubmitting, setSubmitting] = createSignal(false)
 
     return (
         <RootPortal>
@@ -28,44 +30,52 @@ export default function DeleteBoardDialog(props: Props): JSX.Element {
                 toolsMenu={null}
                 className='DeleteBoardDialog'
             >
-                <div className='container'>
-                    <h2 className='header text-heading5'>
-                        {props.isTemplate &&
+                <div class='container'>
+                    <h2 class='header text-heading5'>
+                        <Show
+                            when={props.isTemplate}
+                            fallback={
+                                <FormattedMessage
+                                    id='DeleteBoardDialog.confirm-tite'
+                                    defaultMessage='Confirm delete board'
+                                />
+                            }
+                        >
                             <FormattedMessage
                                 id='DeleteBoardDialog.confirm-tite-template'
                                 defaultMessage='Confirm delete board template'
-                            />}
-                        {!props.isTemplate &&
-                            <FormattedMessage
-                                id='DeleteBoardDialog.confirm-tite'
-                                defaultMessage='Confirm delete board'
-                            />}
+                            />
+                        </Show>
                     </h2>
-                    <p className='body'>
-                        {props.isTemplate &&
+                    <p class='body'>
+                        <Show
+                            when={props.isTemplate}
+                            fallback={
+                                <FormattedMessage
+                                    id='DeleteBoardDialog.confirm-info'
+                                    defaultMessage='Are you sure you want to delete the board “{boardTitle}”? Deleting it will delete all cards in the board.'
+                                    values={{
+                                        boardTitle: props.boardTitle,
+                                    }}
+                                />
+                            }
+                        >
                             <FormattedMessage
                                 id='DeleteBoardDialog.confirm-info-template'
                                 defaultMessage='Are you sure you want to delete the board template “{boardTitle}”?'
                                 values={{
                                     boardTitle: props.boardTitle,
                                 }}
-                            />}
-                        {!props.isTemplate &&
-                            <FormattedMessage
-                                id='DeleteBoardDialog.confirm-info'
-                                defaultMessage='Are you sure you want to delete the board “{boardTitle}”? Deleting it will delete all cards in the board.'
-                                values={{
-                                    boardTitle: props.boardTitle,
-                                }}
-                            />}
+                            />
+                        </Show>
                     </p>
-                    <div className='footer'>
+                    <div class='footer'>
                         <Button
                             size={'medium'}
                             emphasis={'tertiary'}
-                            onClick={(e: React.MouseEvent) => {
+                            onClick={(e: MouseEvent) => {
                                 e.stopPropagation()
-                                !isSubmitting && props.onClose()
+                                !isSubmitting() && props.onClose()
                             }}
                         >
                             <FormattedMessage
@@ -77,7 +87,7 @@ export default function DeleteBoardDialog(props: Props): JSX.Element {
                             size={'medium'}
                             filled={true}
                             danger={true}
-                            onClick={async (e: React.MouseEvent) => {
+                            onClick={async (e: MouseEvent) => {
                                 e.stopPropagation()
                                 try {
                                     setSubmitting(true)

@@ -10,9 +10,11 @@ exports[`src/components/shareBoard/shareBoardLoginButton should match snapshot 1
       title="Login"
       type="button"
     >
+      
       <span>
         Login
       </span>
+      
     </button>
   </div>
 </div>

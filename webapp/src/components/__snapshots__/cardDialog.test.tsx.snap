@@ -24,6 +24,7 @@ exports[`components/cardDialog already following card 1`] = `
             >
               <div />
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
@@ -40,6 +41,7 @@ exports[`components/cardDialog already following card 1`] = `
                 <span>
                   Attach
                 </span>
+                
               </button>
             </div>
             <div
@@ -54,6 +56,7 @@ exports[`components/cardDialog already following card 1`] = `
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
             <button
               aria-label="Close dialog"
@@ -84,21 +87,20 @@ exports[`components/cardDialog already following card 1`] = `
                   i
                 </span>
               </div>
+              
             </div>
           </div>
+          
           <div
             class="EditableAreaWrap"
           >
             <textarea
               class="EditableArea Editable title"
-              height="0"
               placeholder="Untitled"
               rows="1"
               spellcheck="true"
               title="title"
-            >
-              title
-            </textarea>
+            />
             <div
               class="EditableAreaContainer"
             >
@@ -108,14 +110,15 @@ exports[`components/cardDialog already following card 1`] = `
                 dir="auto"
                 disabled=""
                 rows="1"
-              >
-                title
-              </textarea>
+              />
             </div>
           </div>
+          
           <div
             class="octo-propertylist CardDetailProperties"
           >
+            
+            
             <div
               class="octo-propertyname add-property"
             >
@@ -127,13 +130,20 @@ exports[`components/cardDialog already following card 1`] = `
                 <button
                   type="button"
                 >
+                  
                   <span>
                     + Add a property
                   </span>
+                  
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
+          
+          
           <hr />
           <div
             class="CommentsList"
@@ -152,7 +162,10 @@ exports[`components/cardDialog already following card 1`] = `
                   data-testid="preview-element"
                 />
               </div>
+              
+              
             </div>
+            
             <hr
               class="CommentsList__divider"
             />
@@ -191,10 +204,13 @@ exports[`components/cardDialog already following card 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Add content
                 </span>
+                
               </button>
+              
             </div>
           </div>
         </div>
@@ -228,6 +244,7 @@ exports[`components/cardDialog limited card shows hidden view (no toolbar) 1`] =
             >
               <div />
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
@@ -244,8 +261,10 @@ exports[`components/cardDialog limited card shows hidden view (no toolbar) 1`] =
                 <span>
                   Attach
                 </span>
+                
               </button>
             </div>
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -271,20 +290,18 @@ exports[`components/cardDialog limited card shows hidden view (no toolbar) 1`] =
               </span>
             </div>
           </div>
+          
           <div
             class="EditableAreaWrap"
           >
             <textarea
               class="EditableArea Editable readonly title"
-              height="0"
               placeholder="Untitled"
               readonly=""
               rows="1"
               spellcheck="true"
               title="title"
-            >
-              title
-            </textarea>
+            />
             <div
               class="EditableAreaContainer"
             >
@@ -294,9 +311,7 @@ exports[`components/cardDialog limited card shows hidden view (no toolbar) 1`] =
                 dir="auto"
                 disabled=""
                 rows="1"
-              >
-                title
-              </textarea>
+              />
             </div>
           </div>
           <div
@@ -438,11 +453,18 @@ exports[`components/cardDialog limited card shows hidden view (no toolbar) 1`] =
             <button
               type="button"
             >
+              
               <span>
                 Upgrade
               </span>
+              
             </button>
           </div>
+          
+          
+          
+          
+          
         </div>
       </div>
     </div>
@@ -474,6 +496,7 @@ exports[`components/cardDialog return a cardDialog readonly 1`] = `
             >
               <div />
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
@@ -490,8 +513,10 @@ exports[`components/cardDialog return a cardDialog readonly 1`] = `
                 <span>
                   Attach
                 </span>
+                
               </button>
             </div>
+            
             <button
               aria-label="Close dialog"
               title="Close dialog"
@@ -517,20 +542,18 @@ exports[`components/cardDialog return a cardDialog readonly 1`] = `
               </span>
             </div>
           </div>
+          
           <div
             class="EditableAreaWrap"
           >
             <textarea
               class="EditableArea Editable readonly title"
-              height="0"
               placeholder="Untitled"
               readonly=""
               rows="1"
               spellcheck="true"
               title="title"
-            >
-              title
-            </textarea>
+            />
             <div
               class="EditableAreaContainer"
             >
@@ -540,18 +563,28 @@ exports[`components/cardDialog return a cardDialog readonly 1`] = `
                 dir="auto"
                 disabled=""
                 rows="1"
-              >
-                title
-              </textarea>
+              />
             </div>
           </div>
+          
           <div
             class="octo-propertylist CardDetailProperties"
-          />
+          >
+            
+            
+            
+          </div>
+          
+          
+          
           <hr />
           <div
             class="CommentsList"
-          />
+          >
+            
+            
+            
+          </div>
         </div>
         <div
           class="CardDetail CardDetail--fullwidth content-blocks"
@@ -565,6 +598,7 @@ exports[`components/cardDialog return a cardDialog readonly 1`] = `
               <div
                 class="octo-block-margin"
               />
+              
             </div>
           </div>
         </div>
@@ -598,6 +632,7 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
             >
               <div />
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
@@ -614,6 +649,7 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
                 <span>
                   Attach
                 </span>
+                
               </button>
             </div>
             <div
@@ -662,12 +698,14 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
                           >
                             Delete
                           </div>
+                          
                         </div>
                         <div
                           class="noicon"
                         />
                       </div>
                     </div>
+                    <div />
                     <div>
                       <div
                         aria-label="Copy link"
@@ -693,6 +731,7 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
                           >
                             Copy link
                           </div>
+                          
                         </div>
                         <div
                           class="noicon"
@@ -724,6 +763,7 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
                           >
                             New template from card
                           </div>
+                          
                         </div>
                         <div
                           class="noicon"
@@ -757,6 +797,7 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
                         >
                           Cancel
                         </div>
+                        
                       </div>
                       <div
                         class="noicon"
@@ -795,21 +836,20 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
                   i
                 </span>
               </div>
+              
             </div>
           </div>
+          
           <div
             class="EditableAreaWrap"
           >
             <textarea
               class="EditableArea Editable title"
-              height="0"
               placeholder="Untitled"
               rows="1"
               spellcheck="true"
               title="title"
-            >
-              title
-            </textarea>
+            />
             <div
               class="EditableAreaContainer"
             >
@@ -819,14 +859,15 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
                 dir="auto"
                 disabled=""
                 rows="1"
-              >
-                title
-              </textarea>
+              />
             </div>
           </div>
+          
           <div
             class="octo-propertylist CardDetailProperties"
           >
+            
+            
             <div
               class="octo-propertyname add-property"
             >
@@ -838,13 +879,20 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
                 <button
                   type="button"
                 >
+                  
                   <span>
                     + Add a property
                   </span>
+                  
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
+          
+          
           <hr />
           <div
             class="CommentsList"
@@ -863,7 +911,10 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
                   data-testid="preview-element"
                 />
               </div>
+              
+              
             </div>
+            
             <hr
               class="CommentsList__divider"
             />
@@ -902,10 +953,13 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Add content
                 </span>
+                
               </button>
+              
             </div>
           </div>
         </div>
@@ -939,6 +993,7 @@ exports[`components/cardDialog return cardDialog menu content and cancel delete 
             >
               <div />
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
@@ -955,6 +1010,7 @@ exports[`components/cardDialog return cardDialog menu content and cancel delete 
                 <span>
                   Attach
                 </span>
+                
               </button>
             </div>
             <div
@@ -969,6 +1025,7 @@ exports[`components/cardDialog return cardDialog menu content and cancel delete 
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
             <button
               aria-label="Close dialog"
@@ -999,21 +1056,20 @@ exports[`components/cardDialog return cardDialog menu content and cancel delete 
                   i
                 </span>
               </div>
+              
             </div>
           </div>
+          
           <div
             class="EditableAreaWrap"
           >
             <textarea
               class="EditableArea Editable title"
-              height="0"
               placeholder="Untitled"
               rows="1"
               spellcheck="true"
               title="title"
-            >
-              title
-            </textarea>
+            />
             <div
               class="EditableAreaContainer"
             >
@@ -1023,14 +1079,15 @@ exports[`components/cardDialog return cardDialog menu content and cancel delete 
                 dir="auto"
                 disabled=""
                 rows="1"
-              >
-                title
-              </textarea>
+              />
             </div>
           </div>
+          
           <div
             class="octo-propertylist CardDetailProperties"
           >
+            
+            
             <div
               class="octo-propertyname add-property"
             >
@@ -1042,13 +1099,20 @@ exports[`components/cardDialog return cardDialog menu content and cancel delete 
                 <button
                   type="button"
                 >
+                  
                   <span>
                     + Add a property
                   </span>
+                  
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
+          
+          
           <hr />
           <div
             class="CommentsList"
@@ -1067,7 +1131,10 @@ exports[`components/cardDialog return cardDialog menu content and cancel delete 
                   data-testid="preview-element"
                 />
               </div>
+              
+              
             </div>
+            
             <hr
               class="CommentsList__divider"
             />
@@ -1106,10 +1173,13 @@ exports[`components/cardDialog return cardDialog menu content and cancel delete 
               <button
                 type="button"
               >
+                
                 <span>
                   Add content
                 </span>
+                
               </button>
+              
             </div>
           </div>
         </div>
@@ -1143,6 +1213,7 @@ exports[`components/cardDialog should match snapshot 1`] = `
             >
               <div />
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
@@ -1159,6 +1230,7 @@ exports[`components/cardDialog should match snapshot 1`] = `
                 <span>
                   Attach
                 </span>
+                
               </button>
             </div>
             <div
@@ -1173,6 +1245,7 @@ exports[`components/cardDialog should match snapshot 1`] = `
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
             <button
               aria-label="Close dialog"
@@ -1203,21 +1276,20 @@ exports[`components/cardDialog should match snapshot 1`] = `
                   i
                 </span>
               </div>
+              
             </div>
           </div>
+          
           <div
             class="EditableAreaWrap"
           >
             <textarea
               class="EditableArea Editable title"
-              height="0"
               placeholder="Untitled"
               rows="1"
               spellcheck="true"
               title="title"
-            >
-              title
-            </textarea>
+            />
             <div
               class="EditableAreaContainer"
             >
@@ -1227,14 +1299,15 @@ exports[`components/cardDialog should match snapshot 1`] = `
                 dir="auto"
                 disabled=""
                 rows="1"
-              >
-                title
-              </textarea>
+              />
             </div>
           </div>
+          
           <div
             class="octo-propertylist CardDetailProperties"
           >
+            
+            
             <div
               class="octo-propertyname add-property"
             >
@@ -1246,13 +1319,20 @@ exports[`components/cardDialog should match snapshot 1`] = `
                 <button
                   type="button"
                 >
+                  
                   <span>
                     + Add a property
                   </span>
+                  
                 </button>
+                
               </div>
+              
             </div>
           </div>
+          
+          
+          
           <hr />
           <div
             class="CommentsList"
@@ -1271,7 +1351,10 @@ exports[`components/cardDialog should match snapshot 1`] = `
                   data-testid="preview-element"
                 />
               </div>
+              
+              
             </div>
+            
             <hr
               class="CommentsList__divider"
             />
@@ -1310,10 +1393,13 @@ exports[`components/cardDialog should match snapshot 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Add content
                 </span>
+                
               </button>
+              
             </div>
           </div>
         </div>
@@ -1347,6 +1433,7 @@ exports[`components/cardDialog should match snapshot without permissions 1`] = `
             >
               <div />
             </h1>
+            
           </div>
           <div
             class="toolbar--right"
@@ -1366,6 +1453,7 @@ exports[`components/cardDialog should match snapshot without permissions 1`] = `
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
             <button
               aria-label="Close dialog"
@@ -1392,20 +1480,18 @@ exports[`components/cardDialog should match snapshot without permissions 1`] = `
               </span>
             </div>
           </div>
+          
           <div
             class="EditableAreaWrap"
           >
             <textarea
               class="EditableArea Editable readonly title"
-              height="0"
               placeholder="Untitled"
               readonly=""
               rows="1"
               spellcheck="true"
               title="title"
-            >
-              title
-            </textarea>
+            />
             <div
               class="EditableAreaContainer"
             >
@@ -1415,18 +1501,28 @@ exports[`components/cardDialog should match snapshot without permissions 1`] = `
                 dir="auto"
                 disabled=""
                 rows="1"
-              >
-                title
-              </textarea>
+              />
             </div>
           </div>
+          
           <div
             class="octo-propertylist CardDetailProperties"
-          />
+          >
+            
+            
+            
+          </div>
+          
+          
+          
           <hr />
           <div
             class="CommentsList"
-          />
+          >
+            
+            
+            
+          </div>
         </div>
         <div
           class="CardDetail CardDetail--fullwidth content-blocks"
@@ -1440,6 +1536,7 @@ exports[`components/cardDialog should match snapshot without permissions 1`] = `
               <div
                 class="octo-block-margin"
               />
+              
             </div>
           </div>
         </div>

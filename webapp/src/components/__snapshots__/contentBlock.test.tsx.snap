@@ -66,6 +66,7 @@ exports[`components/contentBlock return commentBlock and click on menuwrapper 1`
                       >
                         Move up
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -106,6 +107,7 @@ exports[`components/contentBlock return commentBlock and click on menuwrapper 1`
                       >
                         Move down
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -132,6 +134,7 @@ exports[`components/contentBlock return commentBlock and click on menuwrapper 1`
                     <i
                       class="CompassIcon icon-chevron-right"
                     />
+                    
                   </div>
                 </div>
                 <div>
@@ -159,6 +162,7 @@ exports[`components/contentBlock return commentBlock and click on menuwrapper 1`
                       >
                         Delete
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -192,6 +196,7 @@ exports[`components/contentBlock return commentBlock and click on menuwrapper 1`
                     >
                       Cancel
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -221,8 +226,9 @@ exports[`components/contentBlock return commentBlock and click on menuwrapper 1`
       </div>
       <div
         class="addToRow "
-        style="flex: 0 0 auto; height: 100%;"
+        style="flex:none;height:100%"
       />
+      
     </div>
     <div
       class="addToRow "
@@ -254,6 +260,7 @@ exports[`components/contentBlock should match snapshot with commentBlock 1`] = `
               class="CompassIcon icon-dots-horizontal OptionsIcon"
             />
           </button>
+          
         </div>
         <div
           class="dnd-handle"
@@ -275,8 +282,9 @@ exports[`components/contentBlock should match snapshot with commentBlock 1`] = `
       </div>
       <div
         class="addToRow "
-        style="flex: 0 0 auto; height: 100%;"
+        style="flex:none;height:100%"
       />
+      
     </div>
     <div
       class="addToRow "
@@ -298,8 +306,9 @@ exports[`components/contentBlock should match snapshot with commentBlock readonl
       />
       <div
         class="addToRow "
-        style="flex: 0 0 auto; height: 100%;"
+        style="flex:none;height:100%"
       />
+      
     </div>
     <div
       class="addToRow "
@@ -331,6 +340,7 @@ exports[`components/contentBlock should match snapshot with dividerBlock 1`] = `
               class="CompassIcon icon-dots-horizontal OptionsIcon"
             />
           </button>
+          
         </div>
         <div
           class="dnd-handle"
@@ -352,7 +362,7 @@ exports[`components/contentBlock should match snapshot with dividerBlock 1`] = `
       </div>
       <div
         class="addToRow "
-        style="flex: 0 0 auto; height: 100%;"
+        style="flex:none;height:100%"
       />
       <div
         class="DividerElement"
@@ -388,6 +398,7 @@ exports[`components/contentBlock should match snapshot with imageBlock 1`] = `
               class="CompassIcon icon-dots-horizontal OptionsIcon"
             />
           </button>
+          
         </div>
         <div
           class="dnd-handle"
@@ -409,13 +420,9 @@ exports[`components/contentBlock should match snapshot with imageBlock 1`] = `
       </div>
       <div
         class="addToRow "
-        style="flex: 0 0 auto; height: 100%;"
+        style="flex:none;height:100%"
       />
-      <img
-        alt=""
-        class="ImageElement"
-        src="test.jpg"
-      />
+      
     </div>
     <div
       class="addToRow "
@@ -447,6 +454,7 @@ exports[`components/contentBlock should match snapshot with textBlock 1`] = `
               class="CompassIcon icon-dots-horizontal OptionsIcon"
             />
           </button>
+          
         </div>
         <div
           class="dnd-handle"
@@ -468,7 +476,7 @@ exports[`components/contentBlock should match snapshot with textBlock 1`] = `
       </div>
       <div
         class="addToRow "
-        style="flex: 0 0 auto; height: 100%;"
+        style="flex:none;height:100%"
       />
       <div
         class="TextElement"
@@ -481,6 +489,7 @@ exports[`components/contentBlock should match snapshot with textBlock 1`] = `
             data-testid="preview-element"
           />
         </div>
+        
       </div>
     </div>
     <div

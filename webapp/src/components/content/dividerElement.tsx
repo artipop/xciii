@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import {DividerBlock, createDividerBlock} from '../../blocks/dividerBlock'
 import DividerIcon from '../../widgets/icons/divider'
@@ -8,7 +8,7 @@ import DividerIcon from '../../widgets/icons/divider'
 import {contentRegistry} from './contentRegistry'
 import './dividerElement.scss'
 
-const DividerElement = (): JSX.Element => <div className='DividerElement'/>
+const DividerElement = (): JSX.Element => <div class='DividerElement'/>
 
 contentRegistry.registerContentType({
     type: 'divider',
@@ -20,4 +20,4 @@ contentRegistry.registerContentType({
     createComponent: () => <DividerElement/>,
 })
 
-export default React.memo(DividerElement)
+export default DividerElement

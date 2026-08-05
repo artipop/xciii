@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {For, Show} from 'solid-js'
+
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {DatePropertyType} from '../../properties/types'
 
@@ -23,17 +24,44 @@ type Props = {
 }
 
 const ViewHeaderDisplayByMenu = (props: Props) => {
-    const {properties, activeView, dateDisplayPropertyName} = props
     const intl = useIntl()
 
     const createdDateName = propsRegistry.get('createdTime').displayName(intl)
 
     const getDateProperties = (): IPropertyTemplate[] => {
-        return properties?.filter((o: IPropertyTemplate) => propsRegistry.get(o.type) instanceof DatePropertyType)
+        return props.properties?.filter((o: IPropertyTemplate) => propsRegistry.get(o.type) instanceof DatePropertyType)
     }
 
     return (
-        <MenuWrapper>
+        <MenuWrapper
+            menu={
+                <Menu>
+                    <For each={getDateProperties()}>
+                        {(date: IPropertyTemplate) => (
+                            <Menu.Text
+                                id={date.id}
+                                name={date.name}
+                                rightIcon={props.activeView.fields.dateDisplayPropertyId === date.id ? <CheckIcon/> : undefined}
+                                onClick={(id) => {
+                                    if (props.activeView.fields.dateDisplayPropertyId === id) {
+                                        return
+                                    }
+                                    mutator.changeViewDateDisplayPropertyId(props.activeView.boardId, props.activeView.id, props.activeView.fields.dateDisplayPropertyId, id)
+                                }}
+                            />
+                        )}
+                    </For>
+                    <Show when={getDateProperties().length === 0}>
+                        <Menu.Text
+                            id={'createdDate'}
+                            name={createdDateName}
+                            rightIcon={<CheckIcon/>}
+                            onClick={() => {}}
+                        />
+                    </Show>
+                </Menu>
+            }
+        >
             <Button>
                 <FormattedMessage
                     id='ViewHeader.display-by'
@@ -44,39 +72,14 @@ const ViewHeaderDisplayByMenu = (props: Props) => {
                                 style={{color: 'rgb(var(--center-channel-color-rgb))'}}
                                 id='displayByLabel'
                             >
-                                {dateDisplayPropertyName || createdDateName}
+                                {props.dateDisplayPropertyName || createdDateName}
                             </span>
                         ),
                     }}
                 />
             </Button>
-            <Menu>
-                {getDateProperties().length > 0 && getDateProperties().map((date: IPropertyTemplate) => (
-                    <Menu.Text
-                        key={date.id}
-                        id={date.id}
-                        name={date.name}
-                        rightIcon={activeView.fields.dateDisplayPropertyId === date.id ? <CheckIcon/> : undefined}
-                        onClick={(id) => {
-                            if (activeView.fields.dateDisplayPropertyId === id) {
-                                return
-                            }
-                            mutator.changeViewDateDisplayPropertyId(activeView.boardId, activeView.id, activeView.fields.dateDisplayPropertyId, id)
-                        }}
-                    />
-                ))}
-                {getDateProperties().length === 0 &&
-                    <Menu.Text
-                        key={'createdDate'}
-                        id={'createdDate'}
-                        name={createdDateName}
-                        rightIcon={<CheckIcon/>}
-                        onClick={() => {}}
-                    />
-                }
-            </Menu>
         </MenuWrapper>
     )
 }
 
-export default React.memo(ViewHeaderDisplayByMenu)
+export default ViewHeaderDisplayByMenu

@@ -1,30 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useMemo} from 'react'
+import {createMemo, onMount} from 'solid-js'
+import type {Accessor} from 'solid-js'
 
 import {Board} from '../blocks/board'
 
 import octoClient from '../octoClient'
 
-import {useAppDispatch, useAppSelector} from '../store/hooks'
-import {fetchGlobalTemplates, getGlobalTemplates} from '../store/globalTemplates'
+import {useAppSelector, useAppStore} from '../store/hooks'
+import {getGlobalTemplates} from '../store/globalTemplates'
 import {getTemplates} from '../store/boards'
 
 import {Constants} from '../constants'
 
-export const useGetAllTemplates = () => {
-    const dispatch = useAppDispatch()
-    const globalTemplates = useAppSelector<Board[]>(getGlobalTemplates) || []
+export const useGetAllTemplates = (): Accessor<Board[]> => {
+    const {actions} = useAppStore()
+    const globalTemplates = useAppSelector<Board[]>(getGlobalTemplates)
 
-    useEffect(() => {
-        if (octoClient.teamId !== Constants.globalTeamId && globalTemplates.length === 0) {
-            dispatch(fetchGlobalTemplates())
+    onMount(() => {
+        if (octoClient.teamId !== Constants.globalTeamId && globalTemplates().length === 0) {
+            actions.globalTemplates.fetchGlobalTemplates()
         }
-    }, [octoClient.teamId])
+    })
 
     const unsortedTemplates = useAppSelector(getTemplates)
-    const templates = useMemo(() => Object.values(unsortedTemplates).sort((a: Board, b: Board) => a.createAt - b.createAt), [unsortedTemplates])
+    const templates = createMemo(() => Object.values(unsortedTemplates()).sort((a: Board, b: Board) => a.createAt - b.createAt))
 
-    return useMemo(() => globalTemplates.concat(templates), [globalTemplates])
+    return createMemo(() => (globalTemplates() || []).concat(templates()))
 }

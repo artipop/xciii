@@ -5,11 +5,12 @@ exports[`component/content/FileBlock archived file 1`] = `
   <div
     class="FileElement mr-4"
   >
+    
     <div
       class="fileElement-icon-division"
     >
       <i
-        class="CompassIcon icon-file-text-outline-large fileElement-icon"
+        class="CompassIcon icon-file-text-outline-larg fileElement-icon"
       />
     </div>
     <div
@@ -17,22 +18,21 @@ exports[`component/content/FileBlock archived file 1`] = `
     >
       <div
         class="octo-tooltip tooltip-bottom"
-        data-tooltip="test.txt"
+        data-tooltip=""
       >
         <div
           class="fileElement-file-name"
-        >
-          test.txt
-        </div>
+        />
       </div>
       <div
         class="fileElement-file-ext-and-size"
       >
-        txt
+        
          
-        2.2 KiB
+        
       </div>
     </div>
+    
     <div
       class="fileElement-delete-download"
     >
@@ -49,6 +49,7 @@ exports[`component/content/FileBlock archived file 1`] = `
             class="CompassIcon icon-dots-vertical"
           />
         </button>
+        
       </div>
       <div
         class="octo-tooltip tooltip-bottom"
@@ -72,11 +73,12 @@ exports[`component/content/FileBlock should match snapshot 1`] = `
   <div
     class="FileElement mr-4"
   >
+    
     <div
       class="fileElement-icon-division"
     >
       <i
-        class="CompassIcon icon-file-text-outline-large fileElement-icon"
+        class="CompassIcon icon-file-text-outline-larg fileElement-icon"
       />
     </div>
     <div
@@ -84,22 +86,21 @@ exports[`component/content/FileBlock should match snapshot 1`] = `
     >
       <div
         class="octo-tooltip tooltip-bottom"
-        data-tooltip="test.txt"
+        data-tooltip=""
       >
         <div
           class="fileElement-file-name"
-        >
-          test.txt
-        </div>
+        />
       </div>
       <div
         class="fileElement-file-ext-and-size"
       >
-        txt
+        
          
-        2.2 KiB
+        
       </div>
     </div>
+    
     <div
       class="fileElement-delete-download"
     >
@@ -116,6 +117,7 @@ exports[`component/content/FileBlock should match snapshot 1`] = `
             class="CompassIcon icon-dots-vertical"
           />
         </button>
+        
       </div>
       <div
         class="octo-tooltip tooltip-bottom"

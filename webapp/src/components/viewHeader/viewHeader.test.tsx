@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render} from '@testing-library/react'
-import {Provider as ReduxProvider} from 'react-redux'
+import {render} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import ViewHeader from './viewHeader'
 
@@ -17,17 +16,6 @@ const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
 const card = TestBlockFactory.createCard(board)
 const card2 = TestBlockFactory.createCard(board)
-
-jest.mock('react-router-dom', () => {
-    const originalModule = jest.requireActual('react-router-dom')
-
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {url: '/board/view'}
-        }),
-    }
-})
 
 describe('components/viewHeader/viewHeader', () => {
     const state = {
@@ -72,67 +60,73 @@ describe('components/viewHeader/viewHeader', () => {
             },
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     test('return viewHeader', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
-                    <ViewHeader
-                        board={board}
-                        activeView={activeView}
-                        views={[activeView]}
-                        cards={[card]}
-                        groupByProperty={board.cardProperties[0]}
-                        addCard={jest.fn()}
-                        addCardFromTemplate={jest.fn()}
-                        addCardTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
+                        <ViewHeader
+                            board={board}
+                            activeView={activeView}
+                            views={[activeView]}
+                            cards={[card]}
+                            groupByProperty={board.cardProperties[0]}
+                            addCard={jest.fn()}
+                            addCardFromTemplate={jest.fn()}
+                            addCardTemplate={jest.fn()}
+                            editCardTemplate={jest.fn()}
+                            readonly={false}
+                        />
+                    </TestRouter>
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
     })
     test('return viewHeader without permissions', () => {
-        const localStore = mockStateStore([], {...state, teams: {current: undefined}})
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={localStore}>
-                    <ViewHeader
-                        board={board}
-                        activeView={activeView}
-                        views={[activeView]}
-                        cards={[card]}
-                        groupByProperty={board.cardProperties[0]}
-                        addCard={jest.fn()}
-                        addCardFromTemplate={jest.fn()}
-                        addCardTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
-                        readonly={false}
-                    />
-                </ReduxProvider>,
+        const localStore = mockAppStore({...state, teams: {current: undefined}})
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={localStore}>
+                    <TestRouter>
+                        <ViewHeader
+                            board={board}
+                            activeView={activeView}
+                            views={[activeView]}
+                            cards={[card]}
+                            groupByProperty={board.cardProperties[0]}
+                            addCard={jest.fn()}
+                            addCardFromTemplate={jest.fn()}
+                            addCardTemplate={jest.fn()}
+                            editCardTemplate={jest.fn()}
+                            readonly={false}
+                        />
+                    </TestRouter>
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
     })
     test('return viewHeader readonly', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
-                    <ViewHeader
-                        board={board}
-                        activeView={activeView}
-                        views={[activeView]}
-                        cards={[card]}
-                        groupByProperty={board.cardProperties[0]}
-                        addCard={jest.fn()}
-                        addCardFromTemplate={jest.fn()}
-                        addCardTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
-                        readonly={true}
-                    />
-                </ReduxProvider>,
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
+                        <ViewHeader
+                            board={board}
+                            activeView={activeView}
+                            views={[activeView]}
+                            cards={[card]}
+                            groupByProperty={board.cardProperties[0]}
+                            addCard={jest.fn()}
+                            addCardFromTemplate={jest.fn()}
+                            addCardTemplate={jest.fn()}
+                            editCardTemplate={jest.fn()}
+                            readonly={true}
+                        />
+                    </TestRouter>
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()

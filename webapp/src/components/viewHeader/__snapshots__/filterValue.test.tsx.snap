@@ -9,10 +9,13 @@ exports[`components/viewHeader/filterValue return date filter value 1`] = `
       class="Button"
       type="button"
     >
+      
       <span>
         Empty
       </span>
+      
     </button>
+    
   </div>
 </div>
 `;
@@ -28,9 +31,11 @@ exports[`components/viewHeader/filterValue return filterValue 1`] = `
       class="Button"
       type="button"
     >
+      
       <span>
         Status
       </span>
+      
     </button>
     <div
       class="Menu noselect bottom "
@@ -91,6 +96,7 @@ exports[`components/viewHeader/filterValue return filterValue 1`] = `
               >
                 Cancel
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -114,9 +120,11 @@ exports[`components/viewHeader/filterValue return filterValue and click Status 1
       class="Button"
       type="button"
     >
+      
       <span>
         Status
       </span>
+      
     </button>
     <div
       class="Menu noselect bottom "
@@ -177,6 +185,7 @@ exports[`components/viewHeader/filterValue return filterValue and click Status 1
               >
                 Cancel
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -200,9 +209,11 @@ exports[`components/viewHeader/filterValue return filterValue and click Status w
       class="Button"
       type="button"
     >
+      
       <span>
         (Unknown)
       </span>
+      
     </button>
     <div
       class="Menu noselect bottom "
@@ -263,6 +274,7 @@ exports[`components/viewHeader/filterValue return filterValue and click Status w
               >
                 Cancel
               </div>
+              
             </div>
             <div
               class="noicon"

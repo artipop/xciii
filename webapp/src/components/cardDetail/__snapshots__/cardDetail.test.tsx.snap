@@ -16,20 +16,18 @@ exports[`components/cardDetail/CardDetail should render hidden view if limited 1
         </span>
       </div>
     </div>
+    
     <div
       class="EditableAreaWrap"
     >
       <textarea
         class="EditableArea Editable readonly title"
-        height="0"
         placeholder="Untitled"
         readonly=""
         rows="1"
         spellcheck="true"
         title="title"
-      >
-        title
-      </textarea>
+      />
       <div
         class="EditableAreaContainer"
       >
@@ -39,9 +37,7 @@ exports[`components/cardDetail/CardDetail should render hidden view if limited 1
           dir="auto"
           disabled=""
           rows="1"
-        >
-          title
-        </textarea>
+        />
       </div>
     </div>
     <div
@@ -184,25 +180,32 @@ exports[`components/cardDetail/CardDetail should render hidden view if limited 1
         class="Button emphasis--primary size--large CardDetail__limited-button"
         type="button"
       >
+        
         <span>
           Upgrade
         </span>
+        
       </button>
     </div>
+    
+    
+    
+    
+    
   </div>
 </div>
 `;
 
 exports[`components/cardDetail/CardDetail should show add comments tour tip 1`] = `
 <div
-  aria-labelledby="_r_1_"
+  aria-labelledby="cl-1"
   class="tutorial-tour-tip__box AddCommentTourStep"
   role="dialog"
   style="max-width: 320px;"
 >
   <div
     class="tutorial-tour-tip__arrow"
-    style="top: -1px; right: -6px;"
+    style="left: -6px;"
   />
   <div>
     <div
@@ -210,7 +213,7 @@ exports[`components/cardDetail/CardDetail should show add comments tour tip 1`] 
     >
       <h4
         class="tutorial-tour-tip__header__title"
-        id="_r_1_"
+        id="cl-1"
       >
         Add comments
       </h4>
@@ -246,10 +249,10 @@ exports[`components/cardDetail/CardDetail should show add comments tour tip 1`] 
           class="tutorial-tour-tip__circles-ctr"
         >
           <div
-            class="tutorial-tour-tip__circular-ring"
+            class="tutorial-tour-tip__circular-ring "
           >
             <a
-              class="tutorial-tour-tip__circle"
+              class="tutorial-tour-tip__circle "
               data-screen="0"
               href="#"
             />
@@ -264,10 +267,10 @@ exports[`components/cardDetail/CardDetail should show add comments tour tip 1`] 
             />
           </div>
           <div
-            class="tutorial-tour-tip__circular-ring"
+            class="tutorial-tour-tip__circular-ring "
           >
             <a
-              class="tutorial-tour-tip__circle"
+              class="tutorial-tour-tip__circle "
               data-screen="2"
               href="#"
             />
@@ -287,11 +290,13 @@ exports[`components/cardDetail/CardDetail should show add comments tour tip 1`] 
             <span>
               Previous
             </span>
+            
           </button>
           <button
             class="Button filled size--small tipNextButton"
             type="button"
           >
+            
             <span>
               Next
             </span>
@@ -301,6 +306,7 @@ exports[`components/cardDetail/CardDetail should show add comments tour tip 1`] 
           </button>
         </div>
       </div>
+      
     </div>
   </div>
 </div>
@@ -308,14 +314,14 @@ exports[`components/cardDetail/CardDetail should show add comments tour tip 1`] 
 
 exports[`components/cardDetail/CardDetail should show add description tour tip 1`] = `
 <div
-  aria-labelledby="_r_7_"
+  aria-labelledby="cl-7"
   class="tutorial-tour-tip__box AddDescriptionTourStep"
   role="dialog"
   style="max-width: 320px;"
 >
   <div
     class="tutorial-tour-tip__arrow"
-    style="bottom: -6px; left: -1px;"
+    style="bottom: -6px;"
   />
   <div>
     <div
@@ -323,7 +329,7 @@ exports[`components/cardDetail/CardDetail should show add description tour tip 1
     >
       <h4
         class="tutorial-tour-tip__header__title"
-        id="_r_7_"
+        id="cl-7"
       >
         Add description
       </h4>
@@ -359,19 +365,19 @@ exports[`components/cardDetail/CardDetail should show add description tour tip 1
           class="tutorial-tour-tip__circles-ctr"
         >
           <div
-            class="tutorial-tour-tip__circular-ring"
+            class="tutorial-tour-tip__circular-ring "
           >
             <a
-              class="tutorial-tour-tip__circle"
+              class="tutorial-tour-tip__circle "
               data-screen="0"
               href="#"
             />
           </div>
           <div
-            class="tutorial-tour-tip__circular-ring"
+            class="tutorial-tour-tip__circular-ring "
           >
             <a
-              class="tutorial-tour-tip__circle"
+              class="tutorial-tour-tip__circle "
               data-screen="1"
               href="#"
             />
@@ -400,17 +406,21 @@ exports[`components/cardDetail/CardDetail should show add description tour tip 1
             <span>
               Previous
             </span>
+            
           </button>
           <button
             class="Button filled size--small tipNextButton"
             type="button"
           >
+            
             <span>
               Done
             </span>
+            
           </button>
         </div>
       </div>
+      
     </div>
   </div>
 </div>
@@ -418,14 +428,14 @@ exports[`components/cardDetail/CardDetail should show add description tour tip 1
 
 exports[`components/cardDetail/CardDetail should show add properties tour tip 1`] = `
 <div
-  aria-labelledby="_r_0_"
+  aria-labelledby="cl-0"
   class="tutorial-tour-tip__box AddPropertiesTourStep"
   role="dialog"
   style="max-width: 320px;"
 >
   <div
     class="tutorial-tour-tip__arrow"
-    style="top: -1px; right: -6px;"
+    style="left: -6px;"
   />
   <div>
     <div
@@ -433,7 +443,7 @@ exports[`components/cardDetail/CardDetail should show add properties tour tip 1`
     >
       <h4
         class="tutorial-tour-tip__header__title"
-        id="_r_0_"
+        id="cl-0"
       >
         Add properties
       </h4>
@@ -478,19 +488,19 @@ exports[`components/cardDetail/CardDetail should show add properties tour tip 1`
             />
           </div>
           <div
-            class="tutorial-tour-tip__circular-ring"
+            class="tutorial-tour-tip__circular-ring "
           >
             <a
-              class="tutorial-tour-tip__circle"
+              class="tutorial-tour-tip__circle "
               data-screen="1"
               href="#"
             />
           </div>
           <div
-            class="tutorial-tour-tip__circular-ring"
+            class="tutorial-tour-tip__circular-ring "
           >
             <a
-              class="tutorial-tour-tip__circle"
+              class="tutorial-tour-tip__circle "
               data-screen="2"
               href="#"
             />
@@ -499,10 +509,12 @@ exports[`components/cardDetail/CardDetail should show add properties tour tip 1`
         <div
           class="tutorial-tour-tip__btn-ctr"
         >
+          
           <button
             class="Button filled size--small tipNextButton"
             type="button"
           >
+            
             <span>
               Next
             </span>
@@ -512,6 +524,7 @@ exports[`components/cardDetail/CardDetail should show add properties tour tip 1`
           </button>
         </div>
       </div>
+      
     </div>
   </div>
 </div>

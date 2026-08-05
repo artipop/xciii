@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render} from '@testing-library/react'
-import React from 'react'
+import {render} from '@solidjs/testing-library'
+import {MemoryRouter, Route, createMemoryHistory} from '@solidjs/router'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {wrapDNDIntl} from '../../testUtils'
@@ -14,22 +14,6 @@ const boardId = '1'
 const board = TestBlockFactory.createBoard()
 board.id = boardId
 
-jest.mock('react-router-dom', () => {
-    const originalModule = jest.requireActual('react-router-dom')
-
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {
-                teamId: 'team1',
-                boardId: 'boardId1',
-                viewId: 'viewId1',
-                cardId: 'cardId1',
-            }
-        }),
-    }
-})
-
 describe('src/components/shareBoard/shareBoardLoginButton', () => {
     const savedLocation = window.location
 
@@ -38,11 +22,17 @@ describe('src/components/shareBoard/shareBoardLoginButton', () => {
     })
 
     test('should match snapshot', async () => {
-        // delete window.location
         window.location = Object.assign(new URL('https://example.org/mattermost'))
-        const result = render(
-            wrapDNDIntl(
-                <ShareBoardLoginButton/>,
+        const history = createMemoryHistory()
+        history.set({value: '/team1/boardId1/viewId1/cardId1'})
+        const result = render(() =>
+            wrapDNDIntl(() =>
+                <MemoryRouter history={history}>
+                    <Route
+                        path='/:teamId/:boardId?/:viewId?/:cardId?'
+                        component={ShareBoardLoginButton}
+                    />
+                </MemoryRouter>,
             ))
         const renderer = result.container
 

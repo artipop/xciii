@@ -3,11 +3,11 @@
 
 // Flat config, replacing .eslintrc.json + .eslintignore (ESLint 9 reads neither).
 //
-// The two files under .eslint/ are the configs `plugin:mattermost/react` used to
-// pull in, vendored from github:mattermost/eslint-plugin-mattermost@23abcf99 -- see
-// docs/npm-dependency-warnings.md. Flat config has no `extends`, so only their
-// `rules` are read here; their `parser`/`plugins`/`env` keys are what this file
-// expresses directly.
+// mattermost-base.json under .eslint/ is the config `plugin:mattermost/react`
+// used to pull in, vendored from github:mattermost/eslint-plugin-mattermost@23abcf99
+// -- see docs/npm-dependency-warnings.md. Flat config has no `extends`, so only its
+// `rules` are read here. Its sibling mattermost-react.json was all react/* rules
+// and retired with React itself.
 
 import js from '@eslint/js'
 import stylistic from '@stylistic/eslint-plugin'
@@ -17,12 +17,10 @@ import cypress from 'eslint-plugin-cypress'
 import header from 'eslint-plugin-header'
 import importPlugin from 'eslint-plugin-import'
 import noOnlyTests from 'eslint-plugin-no-only-tests'
-import react from 'eslint-plugin-react'
-import reactHooks from 'eslint-plugin-react-hooks'
+import solid from 'eslint-plugin-solid'
 import globals from 'globals'
 
 import mattermostBase from './.eslint/mattermost-base.json' with {type: 'json'}
-import mattermostReact from './.eslint/mattermost-react.json' with {type: 'json'}
 
 // eslint-plugin-header still ships an eslintrc-era `meta.schema`, which ESLint 9
 // rejects when it validates rule options. The rule itself works; only the schema
@@ -63,23 +61,37 @@ export default [
             'header': header,
             'import': importPlugin,
             'no-only-tests': noOnlyTests,
-            react,
-            'react-hooks': reactHooks,
+            solid,
         },
 
         settings: {
             'import/resolver': 'node',
-            react: {
-                pragma: 'React',
-                version: 'detect',
-            },
         },
 
         rules: {
             ...js.configs.recommended.rules,
             ...mattermostBase.rules,
-            ...react.configs.recommended.rules,
-            ...mattermostReact.rules,
+            ...solid.configs.recommended.rules,
+
+            // The codebase writes `import type {...}` as its own line, which the
+            // core rule counts as a duplicate of the value import above it.
+            'no-duplicate-imports': ['error', {allowSeparateTypeImports: true}],
+
+            // The core pair misreads `new Map<Element, () => void>()` as a call
+            // with a space before its parens; the stylistic rule parses TS.
+            // `void expr` as a statement is how an effect declares a tracking
+            // read it does not otherwise use (and how a promise is knowingly
+            // dropped); only void-in-an-expression stays banned.
+            'no-void': ['error', {allowAsStatement: true}],
+
+            'no-spaced-func': 'off',
+            'func-call-spacing': 'off',
+            '@stylistic/function-call-spacing': ['error', 'never'],
+
+            // innerHTML here is the markdown pipeline (Utils.htmlFromMarkdown),
+            // the same HTML dangerouslySetInnerHTML carried under React; the
+            // rule would only rename a risk the code already owns knowingly.
+            'solid/no-innerhtml': 'off',
 
             // What `extends: ["plugin:@typescript-eslint/recommended"]` used to mean:
             // first the layer that switches off core rules TypeScript already covers
@@ -88,16 +100,22 @@ export default [
             ...tsPlugin.configs['eslint-recommended'].overrides[0].rules,
             ...tsPlugin.configs.recommended.rules,
 
-            // Rules of React, which React Compiler needs held before it can be
-            // switched on: it bails out of any component that breaks them.
-            // rules-of-hooks is the one that is already clean and must stay so --
-            // a hook behind an `if` is a latent bug whatever the compiler does.
-            // The rest still report (they are what the compiler will complain
-            // about) but as warnings, because 79 findings predate this rule set
-            // and gating the build on them before anyone has read them would only
-            // teach people to silence them.
-            ...Object.fromEntries(Object.keys(reactHooks.configs['recommended-latest'].rules).
-                map((rule) => [rule, rule === 'react-hooks/rules-of-hooks' ? 'error' : 'warn'])),
+            // The cutover guard the migration plan asked for: React and Redux are
+            // gone, and an import that would quietly pull them back in — directly
+            // or through an adapter package — fails the lint rather than the
+            // reviewer. Type-only stragglers were rewritten, so there is no
+            // legitimate exception left to carve out.
+            'no-restricted-imports': ['error', {
+                patterns: [
+                    {group: ['react', 'react-*', 'react-*/**', 'react/**'], message: 'React left this codebase with the Solid migration.'},
+                    {group: ['redux', 'redux-*', '@reduxjs/*'], message: 'Redux was replaced by the Solid store (src/store).'},
+                    {group: ['@lexical/react', '@lexical/react/**'], message: 'Lexical runs headless here; its React bindings are gone.'},
+                    {group: ['@dnd-kit/react', '@dnd-kit/react/**'], message: 'Drag and drop runs on @dnd-kit/solid.'},
+                ],
+                paths: [
+                    {name: 'history', message: '@solidjs/router owns navigation.'},
+                ],
+            }],
 
             // Formatting rules that typescript-eslint 8 handed over to @stylistic.
             // Same options as before, new owner.
@@ -137,9 +155,6 @@ export default [
                 },
             ],
             'no-undefined': 0,
-            'react/jsx-filename-extension': 0,
-            'react/prop-types': [2, {ignore: ['location', 'history', 'component']}],
-            'react/no-string-refs': 2,
             'no-only-tests/no-only-tests': ['error', {focus: ['only', 'skip']}],
             'max-nested-callbacks': ['error', {max: 5}],
             'no-shadow': 'off',

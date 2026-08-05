@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
+import {Show} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import {Board, IPropertyOption, IPropertyTemplate, BoardGroup} from '../../blocks/board'
 import {BoardView} from '../../blocks/boardView'
@@ -24,34 +25,35 @@ type Props = {
     addCard: (groupByOptionId?: string) => Promise<void>
     showCard: (cardId?: string) => void
     propertyNameChanged: (option: IPropertyOption, text: string) => Promise<void>
-    onCardClicked: (e: React.MouseEvent, card: Card) => void
+    onCardClicked: (e: MouseEvent, card: Card) => void
     onDropToGroupHeader: (srcOption: IPropertyOption, dstOption?: IPropertyOption) => void
     onDropToCard: (srcCard: Card, dstCard: Card) => void
     onDropToGroup: (srcCard: Card, groupID: string, dstCardID: string) => void
 }
 
 const TableGroup = (props: Props): JSX.Element => {
-    const {board, activeView, group, onDropToGroup, groupByProperty} = props
-    const groupId = group.option.id
+    const groupId = () => props.group.option.id
 
-    const [isOver, drop] = useDropZone<Card>('card', true, (card) => onDropToGroup(card, groupId, ''))
+    const [isOver, drop] = useDropZone<Card>('card', () => true, (card) => props.onDropToGroup(card, groupId(), ''))
 
-    let className = 'octo-table-group'
-    if (isOver) {
-        className += ' dragover'
+    const className = () => {
+        let name = 'octo-table-group'
+        if (isOver()) {
+            name += ' dragover'
+        }
+        return name
     }
 
     return (
         <div
             ref={drop}
-            className={className}
-            key={group.option.id}
+            class={className()}
         >
             <TableGroupHeaderRow
-                group={group}
-                board={board}
-                activeView={activeView}
-                groupByProperty={groupByProperty}
+                group={props.group}
+                board={props.board}
+                activeView={props.activeView}
+                groupByProperty={props.groupByProperty}
                 hideGroup={props.hideGroup}
                 addCard={props.addCard}
                 readonly={props.readonly}
@@ -59,21 +61,22 @@ const TableGroup = (props: Props): JSX.Element => {
                 onDrop={props.onDropToGroupHeader}
             />
 
-            {(group.cards.length > 0) &&
-            <TableRows
-                board={board}
-                activeView={activeView}
-                cards={group.cards}
-                selectedCardIds={props.selectedCardIds}
-                readonly={props.readonly}
-                cardIdToFocusOnRender={props.cardIdToFocusOnRender}
-                showCard={props.showCard}
-                addCard={props.addCard}
-                onCardClicked={props.onCardClicked}
-                onDrop={props.onDropToCard}
-            />}
+            <Show when={props.group.cards.length > 0}>
+                <TableRows
+                    board={props.board}
+                    activeView={props.activeView}
+                    cards={props.group.cards}
+                    selectedCardIds={props.selectedCardIds}
+                    readonly={props.readonly}
+                    cardIdToFocusOnRender={props.cardIdToFocusOnRender}
+                    showCard={props.showCard}
+                    addCard={props.addCard}
+                    onCardClicked={props.onCardClicked}
+                    onDrop={props.onDropToCard}
+                />
+            </Show>
         </div>
     )
 }
 
-export default React.memo(TableGroup)
+export default TableGroup

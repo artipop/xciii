@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import '@testing-library/jest-dom'
-import {act, render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
 
 import {wrapDNDIntl} from '../testUtils'
 
@@ -25,39 +24,32 @@ describe('/components/confirmationDialogBox', () => {
     }
 
     it('confirmDialog should match snapshot', async () => {
-        let container
-
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ConfirmationDialogBox
-                        dialogBox={dialogPropsWithCnfrmBtnText}
-                    />,
-                ),
-            )
-            container = result.container
-        })
+        const result = render(() =>
+            wrapDNDIntl(() =>
+                <ConfirmationDialogBox
+                    dialogBox={dialogPropsWithCnfrmBtnText}
+                />,
+            ),
+        )
+        const container = result.container
         expect(container).toMatchSnapshot()
     })
 
     it('confirmDialog with Confirm Button Text should match snapshot', async () => {
-        let containerWithCnfrmBtnText
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ConfirmationDialogBox
-                        dialogBox={dialogPropsWithCnfrmBtnText}
-                    />,
-                ),
-            )
-            containerWithCnfrmBtnText = result.container
-        })
+        const result = render(() =>
+            wrapDNDIntl(() =>
+                <ConfirmationDialogBox
+                    dialogBox={dialogPropsWithCnfrmBtnText}
+                />,
+            ),
+        )
+        const containerWithCnfrmBtnText = result.container
         expect(containerWithCnfrmBtnText).toMatchSnapshot()
     })
 
     it('confirm button click, run onConfirm Function once', () => {
-        const result = render(
-            wrapDNDIntl(<ConfirmationDialogBox dialogBox={dialogProps}/>),
+        const result = render(() =>
+            wrapDNDIntl(() => <ConfirmationDialogBox dialogBox={dialogProps}/>),
         )
 
         userEvent.click(result.getByTitle('Confirm'))
@@ -65,8 +57,8 @@ describe('/components/confirmationDialogBox', () => {
     })
 
     it('confirm button (with passed prop text), run onConfirm Function once', () => {
-        const resultWithConfirmBtnText = render(
-            wrapDNDIntl(
+        const resultWithConfirmBtnText = render(() =>
+            wrapDNDIntl(() =>
                 <ConfirmationDialogBox
                     dialogBox={dialogPropsWithCnfrmBtnText}
                 />,
@@ -81,7 +73,7 @@ describe('/components/confirmationDialogBox', () => {
     })
 
     it('cancel button click runs onClose function', () => {
-        const result = render(wrapDNDIntl(
+        const result = render(() => wrapDNDIntl(() =>
             <ConfirmationDialogBox
                 dialogBox={dialogProps}
             />,

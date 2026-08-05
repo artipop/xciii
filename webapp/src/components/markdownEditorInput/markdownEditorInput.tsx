@@ -1,24 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {MutableRefObject, ReactElement, useEffect, useRef} from 'react'
+import {onCleanup, onMount} from 'solid-js'
+import type {JSX} from 'solid-js'
 
-import {LexicalComposer} from '@lexical/react/LexicalComposer'
-import {ContentEditable} from '@lexical/react/LexicalContentEditable'
-import {PlainTextPlugin} from '@lexical/react/LexicalPlainTextPlugin'
-import {HistoryPlugin} from '@lexical/react/LexicalHistoryPlugin'
-import {OnChangePlugin} from '@lexical/react/LexicalOnChangePlugin'
-import {LexicalErrorBoundary} from '@lexical/react/LexicalErrorBoundary'
-import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext'
+import {registerPlainText} from '@lexical/plain-text'
+import {createEmptyHistoryState, registerHistory} from '@lexical/history'
 import {mergeRegister} from '@lexical/utils'
 import {
     $getRoot,
     BLUR_COMMAND,
     COMMAND_PRIORITY_LOW,
-    EditorState,
     FOCUS_COMMAND,
     KEY_BACKSPACE_COMMAND,
     KEY_ENTER_COMMAND,
     KEY_ESCAPE_COMMAND,
+    createEditor,
 } from 'lexical'
 
 import {Utils} from '../../utils'
@@ -41,40 +37,55 @@ type Props = {
     saveOnEnter?: boolean
 }
 
-// Registers live-markdown styling on the editor and styles the initial content.
-const LiveMarkdownPlugin = (): null => {
-    const [editor] = useLexicalComposerContext()
-    useEffect(() => {
-        const unregister = registerLiveMarkdown(editor)
-        editor.update(() => $rebuildStyledContent(), {tag: 'live-markdown'})
-        return unregister
-    }, [editor])
-    return null
-}
+// What @lexical/react's HistoryPlugin used between batches of changes.
+const HISTORY_MERGE_DELAY = 300
 
-type EventsProps = {
-    onFocus?: () => void
-    onBlur?: (text: string) => void
-    onEditorCancel?: () => void
-    saveOnEnter?: boolean
-    suppressBlurRef: MutableRefObject<boolean>
-}
+// The Lexical editor without its React bindings: one editor instance per
+// component, the plain-text and history behaviours registered directly from
+// their headless packages, and the board-facing keyboard contract (Esc → blur,
+// Enter → save, Backspace on empty → cancel) as plain commands.
+const MarkdownEditorInput = (props: Props): JSX.Element => {
+    const editor = createEditor({
+        namespace: props.id || 'MarkdownEditorInput',
+        onError: (error: Error) => {
+            Utils.logError(`Lexical editor error: ${error.message}`)
+        },
+        editable: true,
+    })
 
-// Focus on mount and translate editor keyboard/focus events into the callbacks
-// the surrounding board UI expects (Esc → blur, Enter → save, Backspace on empty
-// → cancel).
-const EditorEventsPlugin = (props: EventsProps): null => {
-    const {onFocus, onBlur, onEditorCancel, saveOnEnter, suppressBlurRef} = props
-    const [editor] = useLexicalComposerContext()
+    // What LexicalComposer's initialConfig.editorState did: the initial text is
+    // set under history-merge so the first undo step is the user's own edit.
+    editor.update(() => $setEditorMarkdown(props.initialText || ''), {tag: 'history-merge'})
 
-    useEffect(() => {
-        editor.focus()
-    }, [editor])
+    // Guards the blur-save while the "add user to board" confirm dialog (opened
+    // from the mentions plugin) steals focus.
+    const suppressBlur = {current: false}
+    let lastText = props.initialText || ''
 
-    useEffect(() => {
+    let contentRef: HTMLDivElement | undefined
+
+    onMount(() => {
+        editor.setRootElement(contentRef!)
+
         const readText = () => editor.getEditorState().read(() => $getRoot().getTextContent())
 
-        return mergeRegister(
+        const unregister = mergeRegister(
+            registerPlainText(editor),
+            registerHistory(editor, createEmptyHistoryState(), HISTORY_MERGE_DELAY),
+            registerLiveMarkdown(editor),
+
+            // What OnChangePlugin with ignoreSelectionChange did: report only
+            // updates that touched content, and only when the text differs.
+            editor.registerUpdateListener(({editorState, dirtyElements, dirtyLeaves}) => {
+                if (dirtyElements.size === 0 && dirtyLeaves.size === 0) {
+                    return
+                }
+                const text = editorState.read(() => $getRoot().getTextContent())
+                if (text !== lastText) {
+                    lastText = text
+                    props.onChange?.(text)
+                }
+            }),
             editor.registerCommand(
                 KEY_ESCAPE_COMMAND,
                 () => {
@@ -86,9 +97,9 @@ const EditorEventsPlugin = (props: EventsProps): null => {
             editor.registerCommand<KeyboardEvent | null>(
                 KEY_ENTER_COMMAND,
                 (event) => {
-                    if (saveOnEnter && event && !event.shiftKey) {
+                    if (props.saveOnEnter && event && !event.shiftKey) {
                         event.preventDefault()
-                        onBlur?.(readText())
+                        props.onBlur?.(readText())
                         return true
                     }
                     return false
@@ -98,8 +109,8 @@ const EditorEventsPlugin = (props: EventsProps): null => {
             editor.registerCommand<KeyboardEvent>(
                 KEY_BACKSPACE_COMMAND,
                 () => {
-                    if (onEditorCancel && $getRoot().getTextContent().length === 0) {
-                        onEditorCancel()
+                    if (props.onEditorCancel && $getRoot().getTextContent().length === 0) {
+                        props.onEditorCancel()
                         return true
                     }
                     return false
@@ -109,7 +120,7 @@ const EditorEventsPlugin = (props: EventsProps): null => {
             editor.registerCommand(
                 FOCUS_COMMAND,
                 () => {
-                    onFocus?.()
+                    props.onFocus?.()
                     return false
                 },
                 COMMAND_PRIORITY_LOW,
@@ -117,79 +128,50 @@ const EditorEventsPlugin = (props: EventsProps): null => {
             editor.registerCommand(
                 BLUR_COMMAND,
                 () => {
-                    if (!suppressBlurRef.current) {
-                        onBlur?.(readText())
+                    if (!suppressBlur.current) {
+                        props.onBlur?.(readText())
                     }
                     return false
                 },
                 COMMAND_PRIORITY_LOW,
             ),
         )
-    }, [editor, onBlur, onFocus, onEditorCancel, saveOnEnter, suppressBlurRef])
 
-    return null
-}
+        editor.update(() => $rebuildStyledContent(), {tag: 'live-markdown'})
+        editor.focus()
 
-const MarkdownEditorInput = (props: Props): ReactElement => {
-    const {onChange, onFocus, onBlur, onEditorCancel, initialText, id, saveOnEnter} = props
+        onCleanup(() => {
+            unregister()
+            editor.setRootElement(null)
+        })
+    })
 
-    // Guards the blur-save while the "add user to board" confirm dialog (opened
-    // from the mentions plugin) steals focus.
-    const suppressBlurRef = useRef(false)
-    const lastTextRef = useRef<string>(initialText || '')
-
-    const initialConfig = {
-        namespace: id || 'MarkdownEditorInput',
-        onError: (error: Error) => {
-            Utils.logError(`Lexical editor error: ${error.message}`)
-        },
-        editable: true,
-        editorState: () => $setEditorMarkdown(initialText || ''),
-    }
-
-    const handleChange = (editorState: EditorState) => {
-        const text = editorState.read(() => $getRoot().getTextContent())
-        if (text !== lastTextRef.current) {
-            lastTextRef.current = text
-            onChange?.(text)
-        }
-    }
+    /*
+     * TODO: undo/redo does not actually work here since the draft-js ->
+     * Lexical migration (96cd8494). Ctrl/Cmd+Z is a no-op: not just after a
+     * cut, but for plain typing too. Confirmed outside of test-runner
+     * synthetic events, with CDP-level key presses, for both Meta+Z and
+     * Ctrl+Z. registerHistory is wired above, so the cause is still unknown --
+     * LiveMarkdownPlugin is the first suspect, being the one plugin that
+     * rewrites content on every change. The E2E test covering this (GH-2520 in
+     * cypress/e2e/createBoard.ts) is skipped until it works again.
+     */
 
     return (
-        <div className='MarkdownEditorInput'>
-            <LexicalComposer initialConfig={initialConfig}>
-                <PlainTextPlugin
-                    contentEditable={<ContentEditable className='MarkdownEditorInput__content'/>}
-                    placeholder={null}
-                    ErrorBoundary={LexicalErrorBoundary}
-                />
-                {/*
-                  * TODO: undo/redo does not actually work here since the draft-js ->
-                  * Lexical migration (96cd8494). Ctrl/Cmd+Z is a no-op: not just after a
-                  * cut, but for plain typing too. Confirmed outside of test-runner
-                  * synthetic events, with CDP-level key presses, for both Meta+Z and
-                  * Ctrl+Z. HistoryPlugin is mounted, so the wiring looks correct and the
-                  * cause is still unknown -- LiveMarkdownPlugin below is the first
-                  * suspect, being the one plugin that rewrites content on every change.
-                  * The E2E test covering this (GH-2520 in cypress/e2e/createBoard.ts) is
-                  * skipped until it works again.
-                  */}
-                <HistoryPlugin/>
-                <OnChangePlugin
-                    onChange={handleChange}
-                    ignoreSelectionChange={true}
-                />
-                <LiveMarkdownPlugin/>
-                <EditorEventsPlugin
-                    onFocus={onFocus}
-                    onBlur={onBlur}
-                    onEditorCancel={onEditorCancel}
-                    saveOnEnter={saveOnEnter}
-                    suppressBlurRef={suppressBlurRef}
-                />
-                <MentionsPlugin suppressBlurRef={suppressBlurRef}/>
-                <EmojiPlugin/>
-            </LexicalComposer>
+        <div class='MarkdownEditorInput'>
+            <div
+                ref={contentRef}
+                class='MarkdownEditorInput__content'
+                contenteditable={true}
+                autocapitalize='off'
+                role='textbox'
+                spellcheck={true}
+            />
+            <MentionsPlugin
+                editor={editor}
+                suppressBlur={suppressBlur}
+            />
+            <EmojiPlugin editor={editor}/>
         </div>
     )
 }

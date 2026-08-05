@@ -1,49 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
-
 import {BoardsCloudLimits} from '../boardsCloudLimits'
 
-import {initialLoad} from './initialLoad'
+import type {StoreContext} from './context'
 
-import {RootState} from './index'
+import type {RootState} from './index'
 
-type LimitsState = {
+export type LimitsState = {
     limits: BoardsCloudLimits
 }
 
-const defaultLimits = {
+export const defaultLimits: BoardsCloudLimits = {
     cards: 0,
     used_cards: 0,
     card_limit_timestamp: 0,
     views: 0,
 }
 
-const initialState = {
-    limits: defaultLimits,
-} as LimitsState
+export const initialLimitsState = (): LimitsState => ({limits: {...defaultLimits}})
 
-const limitsSlice = createSlice({
-    name: 'limits',
-    initialState,
-    reducers: {
-        setLimits: (state, action: PayloadAction<BoardsCloudLimits>) => {
-            state.limits = action.payload
-        },
-        setCardLimitTimestamp: (state, action: PayloadAction<number>) => {
-            state.limits.card_limit_timestamp = action.payload
-        },
+export const createLimitsActions = ({setState}: StoreContext) => ({
+    setLimits(limits: BoardsCloudLimits) {
+        setState('limits', 'limits', limits)
     },
-    extraReducers: (builder) => {
-        builder.addCase(initialLoad.fulfilled, (state, action) => {
-            state.limits = action.payload.limits || defaultLimits
-        })
+    setCardLimitTimestamp(timestamp: number) {
+        setState('limits', 'limits', 'card_limit_timestamp', timestamp)
     },
 })
-
-export const {reducer} = limitsSlice
-export const {setCardLimitTimestamp} = limitsSlice.actions
 
 export const getLimits = (state: RootState): BoardsCloudLimits | undefined => state.limits.limits
 export const getCardLimitTimestamp = (state: RootState): number => state.limits.limits.card_limit_timestamp

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {type JSX, useCallback} from 'react'
+import type {JSX} from 'solid-js'
 
 import {ContentBlock} from '../../blocks/contentBlock'
 import {Utils} from '../../utils'
@@ -10,8 +10,7 @@ import {useCardDetailContext} from '../cardDetail/cardDetailContext'
 
 import {contentRegistry} from './contentRegistry'
 
-// Need to require here to prevent webpack from tree-shaking these away
-// TODO: Update webpack to avoid this
+// Need to require here to prevent the bundler from tree-shaking these away
 import './textElement'
 import './imageElement'
 import './dividerElement'
@@ -24,28 +23,27 @@ type Props = {
 }
 
 export default function ContentElement(props: Props): JSX.Element|null {
-    const {block, readonly, cords} = props
     const cardDetail = useCardDetailContext()
 
-    const handler = contentRegistry.getHandler(block.type)
+    const handler = contentRegistry.getHandler(props.block.type)
 
-    const addElement = useCallback(() => {
+    const addElement = () => {
         if (!handler) {
             return
         }
-        const index = cords.x + 1
+        const index = props.cords.x + 1
         cardDetail.addBlock(handler, index, true)
-    }, [cardDetail, cords, handler])
+    }
 
-    const deleteElement = useCallback(() => {
-        const index = cords.x
-        cardDetail.deleteBlock(block, index)
-    }, [block, cords, cardDetail])
+    const deleteElement = () => {
+        const index = props.cords.x
+        cardDetail.deleteBlock(props.block, index)
+    }
 
     if (!handler) {
-        Utils.logError(`ContentElement, unknown content type: ${block.type}`)
+        Utils.logError(`ContentElement, unknown content type: ${props.block.type}`)
         return null
     }
 
-    return handler.createComponent(block, readonly, addElement, deleteElement)
+    return handler.createComponent(props.block, props.readonly, addElement, deleteElement)
 }

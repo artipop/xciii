@@ -16,6 +16,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, title column 1`
       >
         my Name
       </span>
+      
     </div>
     <div
       class="octo-spacer"

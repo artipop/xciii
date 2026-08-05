@@ -6,6 +6,8 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
     class="octo-board-header-cell KanbanColumnHeader"
     style="opacity: 1;"
   >
+    
+    
     <span
       class="Label propColorDefault "
     >
@@ -14,7 +16,6 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
         placeholder="New Select"
         spellcheck="true"
         title="Title"
-        value="Title"
       />
     </span>
     <div
@@ -25,11 +26,15 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
         title="0"
         type="button"
       >
+        
         <span>
           0
         </span>
+        
       </button>
+      
     </div>
+    
     <div
       class="octo-spacer"
     />
@@ -86,12 +91,14 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                   >
                     Hide
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
             </div>
+            <div />
             <div>
               <div
                 aria-label="Delete"
@@ -117,14 +124,19 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 class="MenuOption MenuSeparator menu-separator"
               />
+            </div>
+            <div>
               <div
                 aria-label="Select Default Color"
                 class="MenuOption ColorOption menu-option"
@@ -142,6 +154,8 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                   class="menu-colorbox propColorDefault"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Select Gray Color"
                 class="MenuOption ColorOption menu-option"
@@ -159,6 +173,8 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                   class="menu-colorbox propColorGray"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Select Brown Color"
                 class="MenuOption ColorOption menu-option"
@@ -176,6 +192,8 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                   class="menu-colorbox propColorBrown"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Select Orange Color"
                 class="MenuOption ColorOption menu-option"
@@ -193,6 +211,8 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                   class="menu-colorbox propColorOrange"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Select Yellow Color"
                 class="MenuOption ColorOption menu-option"
@@ -210,6 +230,8 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                   class="menu-colorbox propColorYellow"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Select Green Color"
                 class="MenuOption ColorOption menu-option"
@@ -227,6 +249,8 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                   class="menu-colorbox propColorGreen"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Select Blue Color"
                 class="MenuOption ColorOption menu-option"
@@ -244,6 +268,8 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                   class="menu-colorbox propColorBlue"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Select Purple Color"
                 class="MenuOption ColorOption menu-option"
@@ -261,6 +287,8 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                   class="menu-colorbox propColorPurple"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Select Pink Color"
                 class="MenuOption ColorOption menu-option"
@@ -278,6 +306,8 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                   class="menu-colorbox propColorPink"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Select Red Color"
                 class="MenuOption ColorOption menu-option"
@@ -323,6 +353,7 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -340,6 +371,7 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
         class="CompassIcon icon-plus AddIcon"
       />
     </button>
+    
   </div>
 </div>
 `;
@@ -350,6 +382,8 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
     class="octo-board-header-cell KanbanColumnHeader"
     style="opacity: 1;"
   >
+    
+    
     <span
       class="Label propColorDefault "
     >
@@ -358,7 +392,6 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
         placeholder="New Select"
         spellcheck="true"
         title="New Title"
-        value="New Title"
       />
     </span>
     <div
@@ -369,11 +402,15 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
         title="0"
         type="button"
       >
+        
         <span>
           0
         </span>
+        
       </button>
+      
     </div>
+    
     <div
       class="octo-spacer"
     />
@@ -390,6 +427,7 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <button
       class="IconButton"
@@ -399,6 +437,7 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
         class="CompassIcon icon-plus AddIcon"
       />
     </button>
+    
   </div>
 </div>
 `;
@@ -409,6 +448,8 @@ exports[`src/components/kanban/kanbanColumnHeader should match snapshot 1`] = `
     class="octo-board-header-cell KanbanColumnHeader"
     style="opacity: 1;"
   >
+    
+    
     <span
       class="Label propColorDefault "
     >
@@ -417,7 +458,6 @@ exports[`src/components/kanban/kanbanColumnHeader should match snapshot 1`] = `
         placeholder="New Select"
         spellcheck="true"
         title="Title"
-        value="Title"
       />
     </span>
     <div
@@ -428,11 +468,15 @@ exports[`src/components/kanban/kanbanColumnHeader should match snapshot 1`] = `
         title="0"
         type="button"
       >
+        
         <span>
           0
         </span>
+        
       </button>
+      
     </div>
+    
     <div
       class="octo-spacer"
     />
@@ -449,6 +493,7 @@ exports[`src/components/kanban/kanbanColumnHeader should match snapshot 1`] = `
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <button
       class="IconButton"
@@ -458,6 +503,7 @@ exports[`src/components/kanban/kanbanColumnHeader should match snapshot 1`] = `
         class="CompassIcon icon-plus AddIcon"
       />
     </button>
+    
   </div>
 </div>
 `;
@@ -468,6 +514,8 @@ exports[`src/components/kanban/kanbanColumnHeader should match snapshot readonly
     class="octo-board-header-cell KanbanColumnHeader"
     style="opacity: 1;"
   >
+    
+    
     <span
       class="Label propColorDefault "
     >
@@ -477,7 +525,6 @@ exports[`src/components/kanban/kanbanColumnHeader should match snapshot readonly
         readonly=""
         spellcheck="true"
         title="Title"
-        value="Title"
       />
     </span>
     <div
@@ -488,14 +535,20 @@ exports[`src/components/kanban/kanbanColumnHeader should match snapshot readonly
         title="0"
         type="button"
       >
+        
         <span>
           0
         </span>
+        
       </button>
+      
     </div>
+    
     <div
       class="octo-spacer"
     />
+    
+    
   </div>
 </div>
 `;

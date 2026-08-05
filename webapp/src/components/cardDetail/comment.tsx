@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {FC} from 'react'
-import {useIntl} from 'react-intl'
+import {Show} from 'solid-js'
+import type {Component} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import {Block} from '../../blocks/block'
 import mutator from '../../mutator'
@@ -25,49 +27,50 @@ type Props = {
     readonly: boolean
 }
 
-const Comment: FC<Props> = (props: Props) => {
-    const {comment, userId, userImageUrl} = props
+const Comment: Component<Props> = (props: Props) => {
     const intl = useIntl()
-    const html = Utils.htmlFromMarkdown(comment.title)
-    const user = useAppSelector(getUser(userId))
-    const date = new Date(comment.createAt)
+    const html = () => Utils.htmlFromMarkdown(props.comment.title)
+    const user = useAppSelector((state) => getUser(props.userId)(state))
+    const date = () => new Date(props.comment.createAt)
 
     return (
         <div
-            key={comment.id}
-            className='Comment comment'
+            class='Comment comment'
         >
-            <div className='comment-header'>
+            <div class='comment-header'>
                 <img
-                    className='comment-avatar'
-                    src={userImageUrl}
+                    class='comment-avatar'
+                    src={props.userImageUrl}
                 />
-                <div className='comment-username'>{user?.username}</div>
-                <GuestBadge show={user?.is_guest}/>
+                <div class='comment-username'>{user()?.username}</div>
+                <GuestBadge show={user()?.is_guest}/>
 
-                <Tooltip title={Utils.displayDateTime(date, intl)}>
-                    <div className='comment-date'>
-                        {Utils.relativeDisplayDateTime(date, intl)}
+                <Tooltip title={Utils.displayDateTime(date(), intl)}>
+                    <div class='comment-date'>
+                        {Utils.relativeDisplayDateTime(date(), intl)}
                     </div>
                 </Tooltip>
 
-                {!props.readonly && (
-                    <MenuWrapper>
+                <Show when={!props.readonly}>
+                    <MenuWrapper
+                        menu={
+                            <Menu position='left'>
+                                <Menu.Text
+                                    icon={<DeleteIcon/>}
+                                    id='delete'
+                                    name={intl.formatMessage({id: 'Comment.delete', defaultMessage: 'Delete'})}
+                                    onClick={() => mutator.deleteBlock(props.comment)}
+                                />
+                            </Menu>
+                        }
+                    >
                         <IconButton icon={<OptionsIcon/>}/>
-                        <Menu position='left'>
-                            <Menu.Text
-                                icon={<DeleteIcon/>}
-                                id='delete'
-                                name={intl.formatMessage({id: 'Comment.delete', defaultMessage: 'Delete'})}
-                                onClick={() => mutator.deleteBlock(comment)}
-                            />
-                        </Menu>
                     </MenuWrapper>
-                )}
+                </Show>
             </div>
             <div
-                className='comment-text'
-                dangerouslySetInnerHTML={{__html: html}}
+                class='comment-text'
+                innerHTML={html()}
             />
         </div>
     )

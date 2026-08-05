@@ -8,9 +8,7 @@
 // turns these segments into styled text nodes; keeping this pure makes the
 // styling logic unit-testable without any editor framework.
 
-import * as React from 'react'
-
-import {InlineStrategy, BlockStrategy} from './pluginStrategy'
+import {InlineStrategy, BlockStrategy, StyleMap} from './pluginStrategy'
 
 import createBoldStyleStrategy from './inline-styles/boldStyleStrategy'
 import createItalicStyleStrategy from './inline-styles/italicStyleStrategy'
@@ -27,7 +25,7 @@ import createHeadingBlockStrategy from './block-types/headingBlockStrategy'
 export interface StyledSegment {
     start: number // inclusive
     end: number // exclusive
-    style: React.CSSProperties
+    style: StyleMap
 }
 
 export interface StyledLine {
@@ -70,9 +68,9 @@ const classifyLine = (text: string, lineIndex: number, lines: string[]): {blockT
 }
 
 const applyRanges = (
-    perChar: Array<React.CSSProperties | null>,
+    perChar: Array<StyleMap | null>,
     ranges: number[][],
-    style?: React.CSSProperties,
+    style?: StyleMap,
 ) => {
     if (!style) {
         return
@@ -88,7 +86,7 @@ const applyRanges = (
 // via their block type. In Lexical's single-paragraph plain-text model we cannot
 // give each line its own block element, so we reproduce that block-level look as a
 // base inline style applied to the whole line.
-const HEADING_BASE_STYLES: Record<string, React.CSSProperties> = {
+const HEADING_BASE_STYLES: Record<string, StyleMap> = {
     'header-one': {fontSize: '2em', fontWeight: 'bold'},
     'header-two': {fontSize: '1.5em', fontWeight: 'bold'},
     'header-three': {fontSize: '1.17em', fontWeight: 'bold'},
@@ -97,7 +95,7 @@ const HEADING_BASE_STYLES: Record<string, React.CSSProperties> = {
     'header-six': {fontSize: '0.67em', fontWeight: 'bold'},
 }
 
-const blockBaseStyle = (blockType: string): React.CSSProperties | null => {
+const blockBaseStyle = (blockType: string): StyleMap | null => {
     if (blockType === 'code-block') {
         return {fontFamily: 'monospace'}
     }
@@ -106,7 +104,7 @@ const blockBaseStyle = (blockType: string): React.CSSProperties | null => {
 
 const styleLine = (text: string, blockType: string): StyledSegment[] => {
     const base = blockBaseStyle(blockType)
-    const perChar: Array<React.CSSProperties | null> = new Array(text.length).
+    const perChar: Array<StyleMap | null> = new Array(text.length).
         fill(null).
         map(() => (base ? {...base} : null))
 
@@ -123,7 +121,7 @@ const styleLine = (text: string, blockType: string): StyledSegment[] => {
     // Coalesce consecutive characters carrying an identical style into segments.
     const segments: StyledSegment[] = []
     let runStart = 0
-    const key = (s: React.CSSProperties | null) => (s ? JSON.stringify(s, Object.keys(s).sort()) : '')
+    const key = (s: StyleMap | null) => (s ? JSON.stringify(s, Object.keys(s).sort()) : '')
     for (let i = 1; i <= perChar.length; i++) {
         if (i === perChar.length || key(perChar[i]) !== key(perChar[runStart])) {
             const style = perChar[runStart]

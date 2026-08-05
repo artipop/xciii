@@ -1,25 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
+import {produce} from 'solid-js/store'
 
 import {AttachmentBlock} from '../blocks/attachmentBlock'
+import {Block} from '../blocks/block'
 
-import {loadBoardData, initialReadOnlyLoad} from './initialLoad'
+import type {StoreContext} from './context'
 
-import {RootState} from './index'
+import type {RootState} from './index'
 
-type AttachmentsState = {
+export type AttachmentsState = {
     attachments: {[key: string]: AttachmentBlock}
     attachmentsByCard: {[key: string]: AttachmentBlock[]}
 }
 
-const attachmentSlice = createSlice({
-    name: 'attachments',
-    initialState: {attachments: {}, attachmentsByCard: {}} as AttachmentsState,
-    reducers: {
-        updateAttachments: (state, action: PayloadAction<AttachmentBlock[]>) => {
-            for (const attachment of action.payload) {
+export const initialAttachmentsState = (): AttachmentsState => ({attachments: {}, attachmentsByCard: {}})
+
+// Full board (re)loads rebuild both maps from the block list.
+export const attachmentsFromBlocks = (blocks: Block[]): AttachmentsState => {
+    const next: AttachmentsState = {attachments: {}, attachmentsByCard: {}}
+    for (const block of blocks) {
+        if (block.type === 'attachment') {
+            next.attachments[block.id] = block as AttachmentBlock
+            next.attachmentsByCard[block.parentId] = next.attachmentsByCard[block.parentId] || []
+            next.attachmentsByCard[block.parentId].push(block as AttachmentBlock)
+        }
+    }
+    Object.values(next.attachmentsByCard).forEach((arr) => arr.sort((a, b) => a.createAt - b.createAt))
+    return next
+}
+
+export const createAttachmentsActions = ({setState}: StoreContext) => ({
+    updateAttachments(attachments: AttachmentBlock[]) {
+        setState('attachments', produce((state) => {
+            for (const attachment of attachments) {
                 if (attachment.deleteAt === 0) {
                     state.attachments[attachment.id] = attachment
                     if (!state.attachmentsByCard[attachment.parentId]) {
@@ -43,41 +58,15 @@ const attachmentSlice = createSlice({
                     delete state.attachments[attachment.id]
                 }
             }
-        },
-        updateUploadPrecent: (state, action: PayloadAction<{blockId: string, uploadPercent: number}>) => {
-            state.attachments[action.payload.blockId].uploadingPercent = action.payload.uploadPercent
-        },
+        }))
     },
-    extraReducers: (builder) => {
-        builder.addCase(initialReadOnlyLoad.fulfilled, (state, action) => {
-            state.attachments = {}
-            state.attachmentsByCard = {}
-            for (const block of action.payload.blocks) {
-                if (block.type === 'attachment') {
-                    state.attachments[block.id] = block as AttachmentBlock
-                    state.attachmentsByCard[block.parentId] = state.attachmentsByCard[block.parentId] || []
-                    state.attachmentsByCard[block.parentId].push(block as AttachmentBlock)
-                }
-            }
-            Object.values(state.attachmentsByCard).forEach((arr) => arr.sort((a, b) => a.createAt - b.createAt))
-        })
-        builder.addCase(loadBoardData.fulfilled, (state, action) => {
-            state.attachments = {}
-            state.attachmentsByCard = {}
-            for (const block of action.payload.blocks) {
-                if (block.type === 'attachment') {
-                    state.attachments[block.id] = block as AttachmentBlock
-                    state.attachmentsByCard[block.parentId] = state.attachmentsByCard[block.parentId] || []
-                    state.attachmentsByCard[block.parentId].push(block as AttachmentBlock)
-                }
-            }
-            Object.values(state.attachmentsByCard).forEach((arr) => arr.sort((a, b) => a.createAt - b.createAt))
-        })
+    updateUploadPrecent(payload: {blockId: string, uploadPercent: number}) {
+        setState('attachments', 'attachments', payload.blockId, 'uploadingPercent', payload.uploadPercent)
+    },
+    setAttachments(next: AttachmentsState) {
+        setState('attachments', next)
     },
 })
-
-export const {updateAttachments, updateUploadPrecent} = attachmentSlice.actions
-export const {reducer} = attachmentSlice
 
 export function getCardAttachments(cardId: string): (state: RootState) => AttachmentBlock[] {
     return (state: RootState): AttachmentBlock[] => {

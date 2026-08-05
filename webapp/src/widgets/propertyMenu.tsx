@@ -1,7 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
-import {useIntl, IntlShape} from 'react-intl'
+import {For} from 'solid-js'
+
+// See LICENSE.txt for license information.
+import type {JSX} from 'solid-js'
+
+import {useIntl, IntlShape} from '../intl'
 
 import Menu from '../widgets/menu'
 import propsRegistry from '../properties'
@@ -35,16 +39,13 @@ export const PropertyTypes = (props: TypesProps): JSX.Element => {
 
             <Menu.Separator/>
 
-            {
-                propsRegistry.list().map((p) => (
-                    <Menu.Text
-                        key={p.type}
-                        id={p.type}
-                        name={p.displayName(intl)}
-                        onClick={() => props.onTypeSelected(p)}
-                    />
-                ))
-            }
+            <For each={propsRegistry.list()}>{(p) => (
+                <Menu.Text
+                    id={p.type}
+                    name={p.displayName(intl)}
+                    onClick={() => props.onTypeSelected(p)}
+                />
+            )}</For>
         </>
     )
 }
@@ -88,4 +89,4 @@ const PropertyMenu = (props: Props) => {
     )
 }
 
-export default React.memo(PropertyMenu)
+export default PropertyMenu

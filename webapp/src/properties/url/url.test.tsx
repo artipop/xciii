@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 
 import {mocked} from 'jest-mock'
 
@@ -41,7 +40,7 @@ describe('properties/link', () => {
     }
 
     it('should match snapshot for link with empty url', () => {
-        const {container} = render(wrapIntl((
+        const {container} = render(() => wrapIntl(() => (
             <Url
                 {...baseData}
                 propertyValue=''
@@ -51,7 +50,7 @@ describe('properties/link', () => {
     })
 
     it('should match snapshot for link with non-empty url', () => {
-        const {container} = render(wrapIntl((
+        const {container} = render(() => wrapIntl(() => (
             <Url
                 {...baseData}
                 propertyValue='https://github.com/mattermost/focalboard'
@@ -61,7 +60,7 @@ describe('properties/link', () => {
     })
 
     it('should match snapshot for readonly link with non-empty url', () => {
-        const {container} = render(wrapIntl((
+        const {container} = render(() => wrapIntl(() => (
             <Url
                 {...baseData}
                 propertyValue='https://github.com/mattermost/focalboard'
@@ -72,8 +71,8 @@ describe('properties/link', () => {
     })
 
     it('should change to link after entering url', () => {
-        render(
-            wrapIntl(
+        render(() =>
+            wrapIntl(() =>
                 <Url
                     {...baseData}
                     propertyValue=''
@@ -89,8 +88,8 @@ describe('properties/link', () => {
     })
 
     it('should allow to edit link url', () => {
-        render(
-            wrapIntl(
+        render(() =>
+            wrapIntl(() =>
                 <Url
                     {...baseData}
                     propertyValue='https://mattermost.com'
@@ -108,8 +107,8 @@ describe('properties/link', () => {
 
     it('should allow to copy url', () => {
         const url = 'https://mattermost.com'
-        render(
-            wrapIntl(
+        render(() =>
+            wrapIntl(() =>
                 <Url
                     {...baseData}
                     propertyValue={url}

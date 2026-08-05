@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen} from '@testing-library/react'
-import {Provider as ReduxProvider} from 'react-redux'
+import {render, screen} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
@@ -14,7 +12,8 @@ import {FilterClause} from '../../blocks/filterClause'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import mutator from '../../mutator'
 
@@ -62,7 +61,7 @@ const state = {
         },
     },
 }
-const store = mockStateStore([], state)
+const store = mockAppStore(state)
 const mockedConditionClicked = jest.fn()
 
 describe('components/viewHeader/filterEntry', () => {
@@ -72,16 +71,16 @@ describe('components/viewHeader/filterEntry', () => {
         activeView.fields.filter.filters = [statusFilter]
     })
     test('return filterEntry', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={statusFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
@@ -91,16 +90,16 @@ describe('components/viewHeader/filterEntry', () => {
 
     test('return filterEntry for boolean field', () => {
         activeView.fields.filter.filters = [booleanFilter]
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={booleanFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
@@ -111,16 +110,16 @@ describe('components/viewHeader/filterEntry', () => {
 
     test('return filterEntry for text field', () => {
         activeView.fields.filter.filters = [textFilter]
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={textFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
@@ -131,16 +130,16 @@ describe('components/viewHeader/filterEntry', () => {
 
     test('return filterEntry for date field', () => {
         activeView.fields.filter.filters = [dateFilter]
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={dateFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
@@ -151,16 +150,16 @@ describe('components/viewHeader/filterEntry', () => {
 
     test('return filterEntry and click on status', () => {
         activeView.fields.filter.filters = [unknownFilter]
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={unknownFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
@@ -171,16 +170,16 @@ describe('components/viewHeader/filterEntry', () => {
         expect(mockedMutator.changeViewFilter).toHaveBeenCalledTimes(1)
     })
     test('return filterEntry and click on includes', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={statusFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
@@ -191,16 +190,16 @@ describe('components/viewHeader/filterEntry', () => {
         expect(mockedConditionClicked).toHaveBeenCalledTimes(1)
     })
     test('return filterEntry and click on doesn\'t include', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={statusFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
@@ -211,16 +210,16 @@ describe('components/viewHeader/filterEntry', () => {
         expect(mockedConditionClicked).toHaveBeenCalledTimes(1)
     })
     test('return filterEntry and click on is empty', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={statusFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
@@ -231,16 +230,16 @@ describe('components/viewHeader/filterEntry', () => {
         expect(mockedConditionClicked).toHaveBeenCalledTimes(1)
     })
     test('return filterEntry and click on is not empty', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={statusFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
@@ -251,16 +250,16 @@ describe('components/viewHeader/filterEntry', () => {
         expect(mockedConditionClicked).toHaveBeenCalledTimes(1)
     })
     test('return filterEntry and click on delete', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={statusFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[1]
@@ -272,16 +271,16 @@ describe('components/viewHeader/filterEntry', () => {
     })
     test('return filterEntry and click on different property type', () => {
         activeView.fields.filter.filters = [statusFilter]
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={statusFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
@@ -296,16 +295,16 @@ describe('components/viewHeader/filterEntry', () => {
     })
     test('return filterEntry and click on different property type, but same filterOperation', () => {
         activeView.fields.filter.filters = [booleanFilter]
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <FilterEntry
                         board={board}
                         view={activeView}
                         conditionClicked={mockedConditionClicked}
                         filter={booleanFilter}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]

@@ -33,6 +33,7 @@ exports[`components/sidebarBoardItem renders default icon if no custom icon set 
               class="CompassIcon icon-dots-horizontal OptionsIcon"
             />
           </button>
+          
         </div>
       </div>
     </div>
@@ -130,6 +131,7 @@ exports[`components/sidebarBoardItem sidebar board item 1`] = `
                     <i
                       class="CompassIcon icon-chevron-right"
                     />
+                    
                   </div>
                 </div>
                 <div>
@@ -157,6 +159,7 @@ exports[`components/sidebarBoardItem sidebar board item 1`] = `
                       >
                         Duplicate board
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -188,6 +191,7 @@ exports[`components/sidebarBoardItem sidebar board item 1`] = `
                       >
                         New template from board
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -219,6 +223,7 @@ exports[`components/sidebarBoardItem sidebar board item 1`] = `
                       >
                         Export board archive
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -250,6 +255,7 @@ exports[`components/sidebarBoardItem sidebar board item 1`] = `
                       >
                         Hide board
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -281,6 +287,7 @@ exports[`components/sidebarBoardItem sidebar board item 1`] = `
                       >
                         Delete board
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -314,6 +321,7 @@ exports[`components/sidebarBoardItem sidebar board item 1`] = `
                     >
                       Cancel
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -419,9 +427,9 @@ exports[`components/sidebarBoardItem sidebar board item for guest 1`] = `
                     <i
                       class="CompassIcon icon-chevron-right"
                     />
+                    
                   </div>
                 </div>
-                <div />
                 <div />
                 <div>
                   <div
@@ -448,6 +456,7 @@ exports[`components/sidebarBoardItem sidebar board item for guest 1`] = `
                       >
                         Export board archive
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -479,6 +488,7 @@ exports[`components/sidebarBoardItem sidebar board item for guest 1`] = `
                       >
                         Hide board
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -510,6 +520,7 @@ exports[`components/sidebarBoardItem sidebar board item for guest 1`] = `
                       >
                         Delete board
                       </div>
+                      
                     </div>
                     <div
                       class="noicon"
@@ -543,6 +554,7 @@ exports[`components/sidebarBoardItem sidebar board item for guest 1`] = `
                     >
                       Cancel
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"

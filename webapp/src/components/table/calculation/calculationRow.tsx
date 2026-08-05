@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState, useMemo} from 'react'
+import {For, createMemo, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import {Constants} from '../../../constants'
 
@@ -23,60 +24,58 @@ type Props = {
 }
 
 const CalculationRow = (props: Props): JSX.Element => {
-    const {board, cards, activeView, readonly} = props
+    const [showOptions, setShowOptions] = createSignal<Map<string, boolean>>(new Map<string, boolean>())
     const toggleOptions = (templateId: string, show: boolean) => {
-        const newShowOptions = new Map<string, boolean>(showOptions)
+        const newShowOptions = new Map<string, boolean>(showOptions())
         newShowOptions.set(templateId, show)
         setShowOptions(newShowOptions)
     }
 
-    const [showOptions, setShowOptions] = useState<Map<string, boolean>>(new Map<string, boolean>())
     const titleTemplate: IPropertyTemplate = {
         id: Constants.titleColumnId,
     } as IPropertyTemplate
 
-    const visiblePropertyTemplates = useMemo(() => ([
+    const visiblePropertyTemplates = createMemo(() => ([
         titleTemplate,
-        ...activeView.fields.visiblePropertyIds.map((id) => board.cardProperties.find((t) => t.id === id)).filter((i) => i) as IPropertyTemplate[],
-    ]), [board.cardProperties, activeView.fields.visiblePropertyIds])
+        ...props.activeView.fields.visiblePropertyIds.map((id) => props.board.cardProperties.find((t) => t.id === id)).filter((i) => i) as IPropertyTemplate[],
+    ]))
 
-    const selectedCalculations = activeView.fields.columnCalculations || []
+    const selectedCalculations = () => props.activeView.fields.columnCalculations || []
 
-    const [hovered, setHovered] = useState(false)
+    const [hovered, setHovered] = createSignal(false)
 
     return (
         <div
-            className={'CalculationRow octo-table-row'}
-            onMouseEnter={() => setHovered(!readonly)}
+            class={'CalculationRow octo-table-row'}
+            onMouseEnter={() => setHovered(!props.readonly)}
             onMouseLeave={() => setHovered(false)}
         >
-            {
-                visiblePropertyTemplates.map((template) => {
+            <For each={visiblePropertyTemplates()}>
+                {(template) => {
                     const defaultValue = template.id === Constants.titleColumnId ? Options.count.value : Options.none.value
-                    const value = selectedCalculations[template.id] || defaultValue
+                    const value = () => selectedCalculations()[template.id] || defaultValue
 
                     return (
                         <Calculation
-                            key={template.id}
-                            class={`octo-table-cell ${readonly ? 'disabled' : ''}`}
-                            value={value}
-                            menuOpen={Boolean(readonly ? false : showOptions.get(template.id))}
+                            class={`octo-table-cell ${props.readonly ? 'disabled' : ''}`}
+                            value={value()}
+                            menuOpen={Boolean(props.readonly ? false : showOptions().get(template.id))}
                             onMenuClose={() => toggleOptions(template.id, false)}
                             onMenuOpen={() => toggleOptions(template.id, true)}
                             onChange={(v: string) => {
-                                const calculations = {...selectedCalculations}
+                                const calculations = {...selectedCalculations()}
                                 calculations[template.id] = v
-                                mutator.changeViewColumnCalculations(board.id, activeView.id, selectedCalculations, calculations, 'change column calculation')
+                                mutator.changeViewColumnCalculations(props.board.id, props.activeView.id, selectedCalculations(), calculations, 'change column calculation')
                                 setHovered(false)
                             }}
-                            cards={cards}
+                            cards={props.cards}
                             property={template}
-                            hovered={hovered}
+                            hovered={hovered()}
                             optionsComponent={TableCalculationOptions}
                         />
                     )
-                })
-            }
+                }}
+            </For>
         </div>
     )
 }

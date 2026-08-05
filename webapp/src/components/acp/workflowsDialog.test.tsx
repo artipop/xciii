@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen, waitFor, within} from '@testing-library/react'
+import {render, screen, waitFor, within} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -101,7 +100,7 @@ describe('components/acp/workflowsDialog', () => {
         stubBindings()
         expect(isWorkflowsAvailable()).toBe(true)
 
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
                 onClose={jest.fn()}
@@ -111,11 +110,12 @@ describe('components/acp/workflowsDialog', () => {
         await waitFor(() => expect(screen.getByText('feature')).toBeInTheDocument())
 
         // The route is drawn rather than spelled out, and it says where the
-        // board's cards are standing on it.
+        // board's cards are standing on it. The overview arrives after the
+        // flow list, so it is waited for, not assumed.
         for (const stage of featureFlow.nodes) {
             expect(screen.getByText(stage.column)).toBeInTheDocument()
         }
-        expect(screen.getByText('2 cards on this route')).toBeInTheDocument()
+        await waitFor(() => expect(screen.getByText('2 cards on this route')).toBeInTheDocument())
 
         // Two of them on the first stage, one of those working.
         expect(screen.getByText('2')).toBeInTheDocument()
@@ -123,7 +123,7 @@ describe('components/acp/workflowsDialog', () => {
 
     test('edits a route: stages, outcomes and an awaited event', async () => {
         const bindings = stubBindings()
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
                 onClose={jest.fn()}
@@ -159,7 +159,7 @@ describe('components/acp/workflowsDialog', () => {
 
     test('a validation error from Go is shown, not swallowed', async () => {
         stubBindings({UpdateFlow: jest.fn().mockRejectedValue('у стадии "n1" два перехода по событию')})
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
                 onClose={jest.fn()}
@@ -174,12 +174,10 @@ describe('components/acp/workflowsDialog', () => {
         await waitFor(() => expect(screen.getByText(/два перехода по событию/)).toBeInTheDocument())
     })
 
-    // TODO(react-19): see docs/npm-dependency-warnings.md -- the Edit button appears only after a commit React 19 defers
-    // eslint-disable-next-line no-only-tests/no-only-tests
-    test.skip('asks for the routes of the board it was opened on, and saves them to it', async () => {
+    test('asks for the routes of the board it was opened on, and saves them to it', async () => {
         const bindings = stubBindings()
         const board = boardWithColumns()
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={board}
                 onClose={jest.fn()}
@@ -197,7 +195,7 @@ describe('components/acp/workflowsDialog', () => {
 
     test('offers the shipped routes the registry is missing, and only those', async () => {
         stubBindings()
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
                 onClose={jest.fn()}
@@ -206,6 +204,8 @@ describe('components/acp/workflowsDialog', () => {
         await waitFor(() => expect(screen.getByText('feature')).toBeInTheDocument())
 
         // "feature" is already registered; only "Hotfix" is worth offering.
+        // Templates arrive after the flow list, so the offer is waited for.
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Hotfix'})).toBeInTheDocument())
         expect(screen.queryByRole('button', {name: 'feature'})).toBeNull()
         userEvent.click(screen.getByRole('button', {name: 'Hotfix'}))
 
@@ -217,7 +217,7 @@ describe('components/acp/workflowsDialog', () => {
 
     test('removing a route asks Go to forget it', async () => {
         const bindings = stubBindings()
-        render(wrapIntl(
+        render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
                 onClose={jest.fn()}

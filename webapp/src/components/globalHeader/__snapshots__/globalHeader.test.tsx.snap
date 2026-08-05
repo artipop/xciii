@@ -33,6 +33,7 @@ exports[`components/sidebar/GlobalHeader header menu should match snapshot 1`] =
             class="CompassIcon icon-settings-outline SettingsIcon"
           />
         </div>
+        
       </div>
     </div>
   </div>

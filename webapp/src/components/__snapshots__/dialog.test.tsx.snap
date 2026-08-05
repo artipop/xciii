@@ -22,10 +22,13 @@ exports[`components/dialog should match snapshot 1`] = `
             <h1
               class="dialog-title"
             />
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
+            
             <button
               aria-label="Close dialog"
               class="IconButton dialog__close size--medium"
@@ -69,10 +72,12 @@ exports[`components/dialog should return dialog and click on cancel button 1`] =
             <h1
               class="dialog-title"
             />
+            
           </div>
           <div
             class="toolbar--right"
           >
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper"
@@ -86,6 +91,7 @@ exports[`components/dialog should return dialog and click on cancel button 1`] =
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
             <button
               aria-label="Close dialog"

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState} from 'react'
-import {useIntl, IntlShape} from 'react-intl'
+import {Show, createSignal} from 'solid-js'
+
+import {useIntl, IntlShape} from '../../intl'
 
 import {CsvExporter} from '../../csvExporter'
 import {Archiver} from '../../archiver'
@@ -29,59 +30,6 @@ type Props = {
     cards: Card[]
 }
 
-// import {mutator} from '../../mutator'
-// import {CardFilter} from '../../cardFilter'
-// import {BlockIcons} from '../../blockIcons'
-// async function testAddCards(board: Board, activeView: BoardView, startCount: number, count: number) {
-//     let optionIndex = 0
-
-//     mutator.performAsUndoGroup(async () => {
-//         for (let i = 0; i < count; i++) {
-//             const card = new Card()
-//             card.parentId = board.id
-//             card.boardId = board.boardId
-//             card.fields.properties = CardFilter.propertiesThatMeetFilterGroup(activeView.fields.filter, board.cardProperties)
-//             card.title = `Test Card ${startCount + i + 1}`
-//             card.fields.icon = BlockIcons.shared.randomIcon()
-
-//             const groupByProperty = board.cardProperties.find((o) => o.id === activeView.fields.groupById)
-//             if (groupByProperty && groupByProperty.options.length > 0) {
-//                 // Cycle through options
-//                 const option = groupByProperty.options[optionIndex]
-//                 optionIndex = (optionIndex + 1) % groupByProperty.options.length
-//                 card.fields.properties[groupByProperty.id] = option.id
-//             }
-//             mutator.insertBlock(card, 'test add card')
-//         }
-//     })
-// }
-
-// async function testDistributeCards(boardTree: BoardTree) {
-//     mutator.performAsUndoGroup(async () => {
-//         let optionIndex = 0
-//         for (const card of boardTree.cards) {
-//             if (boardTree.groupByProperty && boardTree.groupByProperty.options.length > 0) {
-//                 // Cycle through options
-//                 const option = boardTree.groupByProperty.options[optionIndex]
-//                 optionIndex = (optionIndex + 1) % boardTree.groupByProperty.options.length
-//                 const newCard = new Card(card)
-//                 if (newCard.properties[boardTree.groupByProperty.id] !== option.id) {
-//                     newCard.properties[boardTree.groupByProperty.id] = option.id
-//                     mutator.updateBlock(newCard, card, 'test distribute cards')
-//                 }
-//             }
-//         }
-//     })
-// }
-
-// async function testRandomizeIcons(boardTree: BoardTree) {
-//     mutator.performAsUndoGroup(async () => {
-//         for (const card of boardTree.cards) {
-//             mutator.changeIcon(card.id, card.fields.icon, BlockIcons.shared.randomIcon(), 'randomize icon')
-//         }
-//     })
-// }
-
 function onExportCsvTrigger(board: Board, activeView: BoardView, cards: Card[], intl: IntlShape) {
     try {
         CsvExporter.exportTableCsv(board, activeView, cards, intl)
@@ -101,136 +49,113 @@ function onExportCsvTrigger(board: Board, activeView: BoardView, cards: Card[], 
 }
 
 const ViewHeaderActionsMenu = (props: Props) => {
-    const {board, activeView, cards} = props
     const intl = useIntl()
-    const [showAgentRepos, setShowAgentRepos] = useState(false)
-    const [showAgents, setShowAgents] = useState(false)
-    const [showDeployTargets, setShowDeployTargets] = useState(false)
-    const [showWorkflows, setShowWorkflows] = useState(false)
-    const [showPlanning, setShowPlanning] = useState(false)
-    const [showSetup, setShowSetup] = useState(false)
+    const [showAgentRepos, setShowAgentRepos] = createSignal(false)
+    const [showAgents, setShowAgents] = createSignal(false)
+    const [showDeployTargets, setShowDeployTargets] = createSignal(false)
+    const [showWorkflows, setShowWorkflows] = createSignal(false)
+    const [showPlanning, setShowPlanning] = createSignal(false)
+    const [showSetup, setShowSetup] = createSignal(false)
 
     return (
         <ModalWrapper>
-            <MenuWrapper label={intl.formatMessage({id: 'ViewHeader.view-header-menu', defaultMessage: 'View header menu'})}>
+            <MenuWrapper
+                label={intl.formatMessage({id: 'ViewHeader.view-header-menu', defaultMessage: 'View header menu'})}
+                menu={
+                    <Menu position='left'>
+                        <Menu.Text
+                            id='exportCsv'
+                            name={intl.formatMessage({id: 'ViewHeader.export-csv', defaultMessage: 'Export to CSV'})}
+                            onClick={() => onExportCsvTrigger(props.board, props.activeView, props.cards, intl)}
+                        />
+                        <Menu.Text
+                            id='exportBoardArchive'
+                            name={intl.formatMessage({id: 'ViewHeader.export-board-archive', defaultMessage: 'Export board archive'})}
+                            onClick={() => Archiver.exportBoardArchive(props.board)}
+                        />
+                        <Show when={isPlanningAvailable()}>
+                            <Menu.Text
+                                id='planTask'
+                                name={intl.formatMessage({id: 'ViewHeader.plan-task', defaultMessage: 'Plan a task…'})}
+                                onClick={() => setShowPlanning(true)}
+                            />
+                        </Show>
+                        <Show when={isBoardSetupAvailable()}>
+                            <Menu.Text
+                                id='boardSetup'
+                                name={intl.formatMessage({id: 'ViewHeader.board-setup', defaultMessage: 'Set up this board…'})}
+                                onClick={() => setShowSetup(true)}
+                            />
+                        </Show>
+                        <Show when={isAgentReposAvailable()}>
+                            <Menu.Text
+                                id='agentRepos'
+                                name={intl.formatMessage({id: 'ViewHeader.agent-repos', defaultMessage: 'Repositories…'})}
+                                onClick={() => setShowAgentRepos(true)}
+                            />
+                        </Show>
+                        <Show when={isAgentsAvailable()}>
+                            <Menu.Text
+                                id='agents'
+                                name={intl.formatMessage({id: 'ViewHeader.agents', defaultMessage: 'Agents…'})}
+                                onClick={() => setShowAgents(true)}
+                            />
+                        </Show>
+                        <Show when={isDeployTargetsAvailable()}>
+                            <Menu.Text
+                                id='deployTargets'
+                                name={intl.formatMessage({id: 'ViewHeader.deploy-targets', defaultMessage: 'Deploy targets…'})}
+                                onClick={() => setShowDeployTargets(true)}
+                            />
+                        </Show>
+                        <Show when={isWorkflowsAvailable()}>
+                            <Menu.Text
+                                id='workflows'
+                                name={intl.formatMessage({id: 'ViewHeader.workflows', defaultMessage: 'Workflows…'})}
+                                onClick={() => setShowWorkflows(true)}
+                            />
+                        </Show>
+                    </Menu>
+                }
+            >
                 <IconButton icon={<OptionsIcon/>}/>
-                <Menu position='left'>
-                    <Menu.Text
-                        id='exportCsv'
-                        name={intl.formatMessage({id: 'ViewHeader.export-csv', defaultMessage: 'Export to CSV'})}
-                        onClick={() => onExportCsvTrigger(board, activeView, cards, intl)}
-                    />
-                    <Menu.Text
-                        id='exportBoardArchive'
-                        name={intl.formatMessage({id: 'ViewHeader.export-board-archive', defaultMessage: 'Export board archive'})}
-                        onClick={() => Archiver.exportBoardArchive(board)}
-                    />
-                    {/* An empty array (unlike false/null) leaves no wrapper
-                        div behind: Menu wraps every child slot in a div. */}
-                    {isPlanningAvailable() ? [
-                        <Menu.Text
-                            key='planTask'
-                            id='planTask'
-                            name={intl.formatMessage({id: 'ViewHeader.plan-task', defaultMessage: 'Plan a task…'})}
-                            onClick={() => setShowPlanning(true)}
-                        />,
-                    ] : []}
-                    {isBoardSetupAvailable() ? [
-                        <Menu.Text
-                            key='boardSetup'
-                            id='boardSetup'
-                            name={intl.formatMessage({id: 'ViewHeader.board-setup', defaultMessage: 'Set up this board…'})}
-                            onClick={() => setShowSetup(true)}
-                        />,
-                    ] : []}
-                    {isAgentReposAvailable() ? [
-                        <Menu.Text
-                            key='agentRepos'
-                            id='agentRepos'
-                            name={intl.formatMessage({id: 'ViewHeader.agent-repos', defaultMessage: 'Repositories…'})}
-                            onClick={() => setShowAgentRepos(true)}
-                        />,
-                    ] : []}
-                    {isAgentsAvailable() ? [
-                        <Menu.Text
-                            key='agents'
-                            id='agents'
-                            name={intl.formatMessage({id: 'ViewHeader.agents', defaultMessage: 'Agents…'})}
-                            onClick={() => setShowAgents(true)}
-                        />,
-                    ] : []}
-                    {isDeployTargetsAvailable() ? [
-                        <Menu.Text
-                            key='deployTargets'
-                            id='deployTargets'
-                            name={intl.formatMessage({id: 'ViewHeader.deploy-targets', defaultMessage: 'Deploy targets…'})}
-                            onClick={() => setShowDeployTargets(true)}
-                        />,
-                    ] : []}
-                    {isWorkflowsAvailable() ? [
-                        <Menu.Text
-                            key='workflows'
-                            id='workflows'
-                            name={intl.formatMessage({id: 'ViewHeader.workflows', defaultMessage: 'Workflows…'})}
-                            onClick={() => setShowWorkflows(true)}
-                        />,
-                    ] : []}
-                    {/*
-                    <Menu.Separator/>
-
-                    <Menu.Text
-                        id='testAdd100Cards'
-                        name={intl.formatMessage({id: 'ViewHeader.test-add-100-cards', defaultMessage: 'TEST: Add 100 cards'})}
-                        onClick={() => testAddCards(board, activeView, cards.length, 100)}
-                    />
-                    <Menu.Text
-                        id='testAdd1000Cards'
-                        name={intl.formatMessage({id: 'ViewHeader.test-add-1000-cards', defaultMessage: 'TEST: Add 1,000 cards'})}
-                        onClick={() => testAddCards(board, activeView, cards.length, 1000)}
-                    />
-                    <Menu.Text
-                        id='testDistributeCards'
-                        name={intl.formatMessage({id: 'ViewHeader.test-distribute-cards', defaultMessage: 'TEST: Distribute cards'})}
-                        onClick={() => testDistributeCards()}
-                    />
-                    <Menu.Text
-                        id='testRandomizeIcons'
-                        name={intl.formatMessage({id: 'ViewHeader.test-randomize-icons', defaultMessage: 'TEST: Randomize icons'})}
-                        onClick={() => testRandomizeIcons()}
-                    />
-                    */}
-                </Menu>
             </MenuWrapper>
-            {showAgentRepos &&
+            <Show when={showAgentRepos()}>
                 <AgentReposDialog
-                    board={board}
+                    board={props.board}
                     onClose={() => setShowAgentRepos(false)}
-                />}
-            {showAgents &&
+                />
+            </Show>
+            <Show when={showAgents()}>
                 <AgentsDialog
-                    board={board}
+                    board={props.board}
                     onClose={() => setShowAgents(false)}
-                />}
-            {showDeployTargets &&
+                />
+            </Show>
+            <Show when={showDeployTargets()}>
                 <DeployTargetsDialog
                     onClose={() => setShowDeployTargets(false)}
-                />}
-            {showWorkflows &&
+                />
+            </Show>
+            <Show when={showWorkflows()}>
                 <WorkflowsDialog
-                    board={board}
+                    board={props.board}
                     onClose={() => setShowWorkflows(false)}
-                />}
-            {showSetup &&
+                />
+            </Show>
+            <Show when={showSetup()}>
                 <BoardSetupWizard
-                    board={board}
+                    board={props.board}
                     onClose={() => setShowSetup(false)}
-                />}
-            {showPlanning &&
+                />
+            </Show>
+            <Show when={showPlanning()}>
                 <PlanningDialog
                     onClose={() => setShowPlanning(false)}
-                />}
+                />
+            </Show>
         </ModalWrapper>
     )
 }
 
-export default React.memo(ViewHeaderActionsMenu)
+export default ViewHeaderActionsMenu

@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {act, render, waitFor} from '@testing-library/react'
-import React from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
-import {MemoryRouter} from 'react-router-dom'
+import {render, waitFor} from '@solidjs/testing-library'
 import {mocked} from 'jest-mock'
 
 import userEvent from '@testing-library/user-event'
@@ -11,7 +8,8 @@ import userEvent from '@testing-library/user-event'
 import {IUser} from '../user'
 import octoClient from '../octoClient'
 import {TestBlockFactory} from '../test/testBlockFactory'
-import {mockDOM, mockMatchMedia, mockStateStore, wrapDNDIntl, mockThunk as thunk} from '../testUtils'
+import {TestRouter, mockAppStore, mockDOM, mockMatchMedia, wrapDNDIntl} from '../testUtils'
+import {AppStoreProvider} from '../store'
 import {Constants} from '../constants'
 import {Utils} from '../utils'
 
@@ -91,23 +89,20 @@ const categoryAttribute1 = TestBlockFactory.createCategoryBoards()
 categoryAttribute1.name = 'Category 1'
 categoryAttribute1.boardMetadata = [{boardID: board.id, hidden: false}]
 
-jest.mock('react-router-dom', () => {
-    const originalModule = jest.requireActual('react-router-dom')
-
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {
-                params: {
-                    boardId: board.id,
-                    viewId: activeView.id,
-                },
-            }
-        }),
-    }
-})
+const mockRouteParams: Record<string, string> = {}
+jest.mock('../hooks/routerMatch', () => ({
+    useRouteMatch: () => () => ({
+        path: '/',
+        params: mockRouteParams,
+    }),
+}))
 
 describe('src/components/workspace', () => {
+    beforeEach(() => {
+        mockRouteParams.boardId = board.id
+        mockRouteParams.viewId = activeView.id
+    })
+
     const state = {
         teams: {
             current: {id: 'team-id', title: 'Test Team'},
@@ -171,7 +166,7 @@ describe('src/components/workspace', () => {
         },
     }
     mockedOctoClient.searchTeamUsers.mockResolvedValue(Object.values(state.users.boardUsers))
-    const store = mockStateStore([thunk], state)
+    const store = mockAppStore(state, {client: mockedOctoClient as any})
     beforeAll(() => {
         mockDOM()
         mockMatchMedia({matches: true})
@@ -179,81 +174,70 @@ describe('src/components/workspace', () => {
     beforeEach(() => {
         jest.clearAllMocks()
         mockedUtils.createGuid.mockReturnValue('test-id')
+
+        // Navigation builds a real path even under the Utils auto-mock:
+        // navigate(undefined) would crash inside the router instead.
+        mockedUtils.generatePath = jest.requireActual('../utils').Utils.generatePath
+        mockedUtils.getBoardPagePath = jest.requireActual('../utils').Utils.getBoardPagePath
     })
     test('should match snapshot', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <Workspace readonly={false}/>
-                </ReduxProvider>,
-            ), {wrapper: MemoryRouter})
-            container = result.container
-            jest.runOnlyPendingTimers()
-        })
+        const result = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <Workspace readonly={false}/>
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
+        const container = result.container
+        jest.runOnlyPendingTimers()
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot with readonly', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <Workspace readonly={true}/>
-                </ReduxProvider>,
-            ), {wrapper: MemoryRouter})
-            container = result.container
-            jest.runOnlyPendingTimers()
-        })
+        const result = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <Workspace readonly={true}/>
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
+        const container = result.container
+        jest.runOnlyPendingTimers()
         expect(container).toMatchSnapshot()
     })
 
     test('return workspace and showcard', async () => {
-        let container: Element | undefined
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <Workspace readonly={false}/>
-                </ReduxProvider>,
-            ), {wrapper: MemoryRouter})
-            container = result.container
-            jest.runOnlyPendingTimers()
-        })
+        const result = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <Workspace readonly={false}/>
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
+        const container = result.container
+        jest.runOnlyPendingTimers()
 
         // React 19 commits when the act callback returns, so the cards only
         // exist to be clicked from a second act.
-        await act(async () => {
-            const cardElements = container!.querySelectorAll('.KanbanCard')
-            expect(cardElements).toBeDefined()
-            userEvent.click(cardElements[0])
-        })
+        const cardElements = container!.querySelectorAll('.KanbanCard')
+        expect(cardElements).toBeDefined()
+        userEvent.click(cardElements[0])
         expect(container).toMatchSnapshot()
     })
 
     test('return workspace readonly and showcard', async () => {
-        let container: Element | undefined
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <Workspace readonly={true}/>
-                </ReduxProvider>,
-            ), {wrapper: MemoryRouter})
-            container = result.container
-            jest.runOnlyPendingTimers()
-        })
+        const result = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <Workspace readonly={true}/>
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
+        const container = result.container
+        jest.runOnlyPendingTimers()
 
         // React 19 commits when the act callback returns, so the cards only
         // exist to be clicked from a second act.
-        await act(async () => {
-            const cardElements = container!.querySelectorAll('.KanbanCard')
-            expect(cardElements).toBeDefined()
-            userEvent.click(cardElements[0])
-        })
+        const cardElements = container!.querySelectorAll('.KanbanCard')
+        expect(cardElements).toBeDefined()
+        userEvent.click(cardElements[0])
         expect(container).toMatchSnapshot()
         expect(mockedUtils.getReadToken).toHaveBeenCalledTimes(1)
     })
 
     test('return workspace with BoardTemplateSelector component', async () => {
-        const emptyStore = mockStateStore([], {
+        const emptyStore = mockAppStore({
             users: {
                 me,
                 boardUsers: {[me.id]: me},
@@ -296,16 +280,13 @@ describe('src/components/workspace', () => {
                 hiddenBoardIDs: [],
             },
         })
-        let container: Element | undefined
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={emptyStore}>
-                    <Workspace readonly={true}/>
-                </ReduxProvider>,
-            ), {wrapper: MemoryRouter})
-            container = result.container
-            jest.runOnlyPendingTimers()
-        })
+        const result = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={emptyStore}>
+                <Workspace readonly={true}/>
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
+        const container = result.container
+        jest.runOnlyPendingTimers()
 
         expect(container).toMatchSnapshot()
     })
@@ -400,15 +381,13 @@ describe('src/components/workspace', () => {
                 hiddenBoardIDs: [],
             },
         }
-        const localStore = mockStateStore([thunk], localState)
+        const localStore = mockAppStore(localState, {client: mockedOctoClient as any})
 
-        await act(async () => {
-            render(wrapDNDIntl(
-                <ReduxProvider store={localStore}>
-                    <Workspace readonly={false}/>
-                </ReduxProvider>,
-            ), {wrapper: MemoryRouter})
-        })
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={localStore}>
+                <Workspace readonly={false}/>
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
 
         jest.runOnlyPendingTimers()
 

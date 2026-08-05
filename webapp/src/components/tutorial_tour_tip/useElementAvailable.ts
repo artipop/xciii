@@ -1,32 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {useEffect, useRef, useState} from 'react'
+import {createSignal, onCleanup, onMount} from 'solid-js'
+import type {Accessor} from 'solid-js'
 
 export default function useElementAvailable(
     elementIds: string[],
-): boolean {
-    const checkAvailableInterval = useRef<NodeJS.Timeout | null>(null)
-    const [available, setAvailable] = useState(false)
-    useEffect(() => {
-        if (available) {
-            if (checkAvailableInterval.current) {
-                clearInterval(checkAvailableInterval.current)
-                checkAvailableInterval.current = null
-            }
-            return
-        } else if (checkAvailableInterval.current) {
-            return
-        }
-        checkAvailableInterval.current = setInterval(() => {
+): Accessor<boolean> {
+    let checkAvailableInterval: ReturnType<typeof setInterval> | null = null
+    const [available, setAvailable] = createSignal(false)
+
+    onMount(() => {
+        checkAvailableInterval = setInterval(() => {
             if (elementIds.every((x) => document.querySelector(x))) {
                 setAvailable(true)
-                if (checkAvailableInterval.current) {
-                    clearInterval(checkAvailableInterval.current)
-                    checkAvailableInterval.current = null
+                if (checkAvailableInterval) {
+                    clearInterval(checkAvailableInterval)
+                    checkAvailableInterval = null
                 }
             }
         }, 500)
-    }, [])
+        onCleanup(() => {
+            if (checkAvailableInterval) {
+                clearInterval(checkAvailableInterval)
+                checkAvailableInterval = null
+            }
+        })
+    })
 
     return available
 }

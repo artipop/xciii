@@ -2,12 +2,11 @@
 // See LICENSE.txt for license information.
 
 import '@testing-library/jest-dom'
-import {act, render} from '@testing-library/react'
-import React from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
+import {render} from '@solidjs/testing-library'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
-import {mockDOM, mockStateStore, wrapIntl} from '../../testUtils'
+import {mockAppStore, mockDOM, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import CardActionsMenu from './cardActionsMenu'
 
@@ -39,61 +38,47 @@ describe('components/cardActionsMenu', () => {
             },
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
 
     test('should match snapshot', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapIntl(
-                <ReduxProvider store={store}>
-                    <CardActionsMenu
-                        cardId='123'
-                        boardId='345'
-                        onClickDelete={jest.fn()}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <CardActionsMenu
+                    cardId='123'
+                    boardId='345'
+                    onClickDelete={jest.fn()}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot w/ onClickDuplicate prop', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapIntl(
-                <ReduxProvider store={store}>
-                    <CardActionsMenu
-                        cardId='123'
-                        boardId='345'
-                        onClickDelete={jest.fn()}
-                        onClickDuplicate={jest.fn()}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <CardActionsMenu
+                    cardId='123'
+                    boardId='345'
+                    onClickDelete={jest.fn()}
+                    onClickDuplicate={jest.fn()}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot w/ children prop', async () => {
-        let container
-        await act(async () => {
-            const result = render(wrapIntl(
-                <ReduxProvider store={store}>
-                    <CardActionsMenu
-                        cardId='123'
-                        boardId='345'
-                        onClickDelete={jest.fn()}
-                    >
-                        <React.Fragment>
-                            {'Test.'}
-                        </React.Fragment>
-                    </CardActionsMenu>
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <CardActionsMenu
+                    cardId='123'
+                    boardId='345'
+                    onClickDelete={jest.fn()}
+                >
+                    {'Test.'}
+                </CardActionsMenu>
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 })

@@ -1,28 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render, waitFor} from '@testing-library/react'
-import React from 'react'
-import {MockStoreEnhanced} from 'redux-mock-store'
-
-import {Provider as ReduxProvider} from 'react-redux'
+import {render, waitFor} from '@solidjs/testing-library'
 
 import {IPropertyTemplate} from '../../blocks/board'
-import {mockDOM, mockStateStore, wrapDNDIntl} from '../../testUtils'
+import {TestRouter, mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import BoardTemplateSelectorPreview from './boardTemplateSelectorPreview'
-
-jest.mock('react-router-dom', () => {
-    const originalModule = jest.requireActual('react-router-dom')
-
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {url: '/'}
-        }),
-    }
-})
 
 const groupProperty: IPropertyTemplate = {
     id: 'group-prop-id',
@@ -92,7 +78,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
     const template1Title = 'Template 1'
     const globalTemplateTitle = 'Template Global'
     const boardTitle = 'Board 1'
-    let store: MockStoreEnhanced<unknown, unknown>
+    let store: ReturnType<typeof mockAppStore>
     beforeAll(mockDOM)
     beforeEach(() => {
         jest.clearAllMocks()
@@ -173,24 +159,28 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
                 },
             },
         }
-        store = mockStateStore([], state)
+        store = mockAppStore(state)
     })
 
     test('should match snapshot', async () => {
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
-                <BoardTemplateSelectorPreview activeTemplate={(store.getState() as any).boards.templates[0]}/>
-            </ReduxProvider>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <BoardTemplateSelectorPreview activeTemplate={(store.state as any).boards.templates[0]}/>
+                </TestRouter>
+            </AppStoreProvider>
             ,
         ))
         await waitFor(() => expect(container.querySelector('.top-head')).not.toBeNull())
         expect(container).toMatchSnapshot()
     })
     test('should be null without activeTemplate', () => {
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
-                <BoardTemplateSelectorPreview activeTemplate={null}/>
-            </ReduxProvider>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <BoardTemplateSelectorPreview activeTemplate={null}/>
+                </TestRouter>
+            </AppStoreProvider>
             ,
         ))
         expect(container).toMatchSnapshot()

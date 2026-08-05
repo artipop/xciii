@@ -3,6 +3,11 @@
 exports[`pages/welcome Welcome Page shows Explore Page 1`] = `
 <div>
   <div
+    data-testid="location"
+  >
+    /welcome
+  </div>
+  <div
     class="WelcomePage"
   >
     <div
@@ -38,6 +43,7 @@ exports[`pages/welcome Welcome Page shows Explore Page 1`] = `
             class="Button filled size--large"
             type="button"
           >
+            
             <span>
               Take a tour
             </span>
@@ -50,6 +56,7 @@ exports[`pages/welcome Welcome Page shows Explore Page 1`] = `
           >
             No thanks, I'll figure it out myself
           </a>
+          
         </div>
       </div>
     </div>
@@ -59,6 +66,11 @@ exports[`pages/welcome Welcome Page shows Explore Page 1`] = `
 
 exports[`pages/welcome Welcome Page shows Explore Page with subpath 1`] = `
 <div>
+  <div
+    data-testid="location"
+  >
+    /welcome
+  </div>
   <div
     class="WelcomePage"
   >
@@ -95,6 +107,7 @@ exports[`pages/welcome Welcome Page shows Explore Page with subpath 1`] = `
             class="Button filled size--large"
             type="button"
           >
+            
             <span>
               Take a tour
             </span>
@@ -107,6 +120,7 @@ exports[`pages/welcome Welcome Page shows Explore Page with subpath 1`] = `
           >
             No thanks, I'll figure it out myself
           </a>
+          
         </div>
       </div>
     </div>

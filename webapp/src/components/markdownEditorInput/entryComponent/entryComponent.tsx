@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {ReactElement} from 'react'
-import {FormattedMessage} from 'react-intl'
+import {Show} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {FormattedMessage} from '../../../intl'
 
 import GuestBadge from '../../../widgets/guestBadge'
 
 import './entryComponent.scss'
-
-const BotBadge = (window as any).Components?.BotBadge
 
 export type MentionUser = {
     user: {id: string} & Record<string, any>
@@ -28,41 +28,42 @@ type Props = {
 
 // A single row in the mentions typeahead popover. Markup mirrors the original
 // draft-js-plugins Entry so the existing entryComponent.scss keeps applying.
-const Entry = (props: Props): ReactElement => {
-    const {mention, isSelected, onClick, onMouseEnter} = props
-
+// The host-injected BotBadge (window.Components, a React component) is gone:
+// a React component cannot be rendered from Solid, and no host injects one
+// into this build.
+const Entry = (props: Props): JSX.Element => {
     return (
         <div
-            className='EntryContainer'
+            class='EntryContainer'
             role='option'
-            aria-selected={isSelected}
+            aria-selected={props.isSelected}
             onMouseDown={(e) => e.preventDefault()}
-            onMouseEnter={onMouseEnter}
-            onClick={onClick}
+            onMouseEnter={() => props.onMouseEnter()}
+            onClick={() => props.onClick()}
         >
-            <div className='EntryComponent'>
-                <div className='EntryComponent__left'>
+            <div class='EntryComponent'>
+                <div class='EntryComponent__left'>
                     <img
-                        src={mention.avatar}
-                        className='mentionSuggestionsEntryAvatar'
+                        src={props.mention.avatar}
+                        class='mentionSuggestionsEntryAvatar'
                         role='presentation'
                     />
-                    <div className='mentionSuggestionsEntryText'>
-                        {mention.name}
-                        {BotBadge && mention.is_bot && <BotBadge/>}
-                        <GuestBadge show={mention.is_guest}/>
+                    <div class='mentionSuggestionsEntryText'>
+                        {props.mention.name}
+                        <GuestBadge show={props.mention.is_guest}/>
                     </div>
-                    <div className='mentionSuggestionsEntryText'>
-                        {mention.displayName}
+                    <div class='mentionSuggestionsEntryText'>
+                        {props.mention.displayName}
                     </div>
                 </div>
-                {!mention.isBoardMember &&
-                    <div className='EntryComponent__hint mentionSuggestionsEntryText'>
+                <Show when={!props.mention.isBoardMember}>
+                    <div class='EntryComponent__hint mentionSuggestionsEntryText'>
                         <FormattedMessage
                             id='MentionSuggestion.is-not-board-member'
                             defaultMessage='(not board member)'
                         />
-                    </div>}
+                    </div>
+                </Show>
             </div>
         </div>
     )

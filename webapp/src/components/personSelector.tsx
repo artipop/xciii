@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, useCallback} from 'react'
-import {useIntl} from 'react-intl'
+import {For, Show} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {useIntl} from '../intl'
 
 import Combobox, {type ComboboxAction} from '../widgets/combobox'
 import type {ComboboxItem, ComboboxOption} from '../combobox'
@@ -40,17 +42,17 @@ type Props = {
 const asOption = (user: IUser): ComboboxOption<IUser> => ({id: user.id, label: user.username, data: user})
 
 const PersonSelector = (props: Props): JSX.Element => {
-    const {readOnly, userIDs, allowAddUsers, isMulti, closeMenuOnSelect = true, emptyDisplayValue, showMe = false, onChange} = props
+    const closeMenuOnSelect = () => props.closeMenuOnSelect ?? true
+    const showMe = () => props.showMe ?? false
 
     const clientConfig = useAppSelector<ClientConfig>(getClientConfig)
     const intl = useIntl()
 
     const boardUsersById = useAppSelector<{[key: string]: IUser}>(getBoardUsers)
     const boardUsers = useAppSelector<IUser[]>(getBoardUsersList)
-    const boardUsersKey = Object.keys(boardUsersById) ? Utils.hashCode(JSON.stringify(Object.keys(boardUsersById))) : 0
     const me = useAppSelector<IUser|null>(getMe)
 
-    const formatOptionLabel = (user: any): JSX.Element => {
+    const formatOptionLabel = (user: IUser): JSX.Element => {
         if (!user) {
             return <div/>
         }
@@ -61,47 +63,49 @@ const PersonSelector = (props: Props): JSX.Element => {
 
         return (
             <div
-                key={user.id}
-                className={isMulti ? 'MultiPerson-item' : 'Person-item'}
+                class={props.isMulti ? 'MultiPerson-item' : 'Person-item'}
             >
-                {profileImg && (
+                <Show when={profileImg}>
                     <img
                         alt='Person-avatar'
                         src={profileImg}
                     />
-                )}
-                {Utils.getUserDisplayName(user, clientConfig.teammateNameDisplay)}
+                </Show>
+                {Utils.getUserDisplayName(user, clientConfig().teammateNameDisplay)}
                 <GuestBadge show={Boolean(user?.is_guest)}/>
             </div>
         )
     }
 
-    let users: IUser[] = []
-    if (Object.keys(boardUsersById).length > 0) {
-        users = userIDs.map((id) => boardUsersById[id])
+    const users = (): IUser[] => {
+        if (Object.keys(boardUsersById()).length > 0) {
+            return props.userIDs.map((id) => boardUsersById()[id])
+        }
+        return []
     }
 
-    const loadOptions = useCallback(async (value: string): Promise<Array<ComboboxItem<IUser>>> => {
-        if (!allowAddUsers) {
+    const loadOptions = async (value: string): Promise<Array<ComboboxItem<IUser>>> => {
+        if (!props.allowAddUsers) {
             const returnUsers: IUser[] = []
-            if (showMe && me) {
+            const currentMe = me()
+            if (showMe() && currentMe) {
                 returnUsers.push({
-                    id: me.id,
+                    id: currentMe.id,
                     username: intl.formatMessage({id: 'PersonProperty.me', defaultMessage: 'Me'}),
                     email: '',
                     nickname: '',
                     firstname: '',
                     lastname: '',
                     props: {},
-                    create_at: me.create_at,
-                    update_at: me.update_at,
+                    create_at: currentMe.create_at,
+                    update_at: currentMe.update_at,
                     is_bot: false,
-                    is_guest: me.is_guest,
-                    roles: me.roles,
+                    is_guest: currentMe.is_guest,
+                    roles: currentMe.roles,
                 })
-                returnUsers.push(...boardUsers.filter((u) => u.id !== me.id))
+                returnUsers.push(...boardUsers().filter((u) => u.id !== currentMe.id))
             } else {
-                returnUsers.push(...boardUsers)
+                returnUsers.push(...boardUsers())
             }
             if (value) {
                 return returnUsers.filter((u) => {
@@ -118,7 +122,7 @@ const PersonSelector = (props: Props): JSX.Element => {
         const usersInsideBoard: IUser[] = []
         const usersOutsideBoard: IUser[] = []
         for (const u of allUsers) {
-            if (boardUsersById[u.id]) {
+            if (boardUsersById()[u.id]) {
                 usersInsideBoard.push(u)
             } else {
                 usersOutsideBoard.push(u)
@@ -128,45 +132,41 @@ const PersonSelector = (props: Props): JSX.Element => {
             {label: intl.formatMessage({id: 'PersonProperty.board-members', defaultMessage: 'Board members'}), options: usersInsideBoard.map(asOption)},
             {label: intl.formatMessage({id: 'PersonProperty.non-board-members', defaultMessage: 'Not board members'}), options: usersOutsideBoard.map(asOption)},
         ].filter((group) => group.options.length > 0)
-    }, [allowAddUsers, showMe, me, boardUsers, boardUsersById, intl])
-
-    let primaryClass = 'Person'
-    if (isMulti) {
-        primaryClass = 'MultiPerson'
-    }
-    let secondaryClass = ''
-    if (props.property) {
-        secondaryClass = ` ${props.property.valueClassName(readOnly)}`
     }
 
-    if (readOnly) {
-        return (
-            <div className={`${primaryClass}${secondaryClass}`}>
-                {users.map((user) => formatOptionLabel(user))}
-            </div>
-        )
-    }
+    const primaryClass = () => (props.isMulti ? 'MultiPerson' : 'Person')
+    const secondaryClass = () => (props.property ? ` ${props.property.valueClassName(props.readOnly)}` : '')
 
     return (
-        <Combobox
-            key={boardUsersKey}
-            loadOptions={loadOptions}
-            isMulti={isMulti}
-            isClearable={true}
-            closeMenuOnSelect={closeMenuOnSelect}
-            className={`${primaryClass}${secondaryClass}`}
-            classNamePrefix={'react-select'}
-            renderOption={(option) => formatOptionLabel(option.data)}
-            placeholder={emptyDisplayValue}
-            value={users.filter(Boolean).map(asOption)}
-            onChange={(value, action) => {
-                if (Array.isArray(value)) {
-                    onChange(value.map((option) => option.data), action)
-                } else {
-                    onChange(value ? value.data : null, action)
-                }
-            }}
-        />
+        <Show
+            when={!props.readOnly}
+            fallback={
+                <div class={`${primaryClass()}${secondaryClass()}`}>
+                    <For each={users()}>
+                        {(user) => formatOptionLabel(user)}
+                    </For>
+                </div>
+            }
+        >
+            <Combobox
+                loadOptions={loadOptions}
+                isMulti={props.isMulti}
+                isClearable={true}
+                closeMenuOnSelect={closeMenuOnSelect()}
+                className={`${primaryClass()}${secondaryClass()}`}
+                classNamePrefix={'react-select'}
+                renderOption={(option) => formatOptionLabel(option.data)}
+                placeholder={props.emptyDisplayValue}
+                value={users().filter(Boolean).map(asOption)}
+                onChange={(value, action) => {
+                    if (Array.isArray(value)) {
+                        props.onChange(value.map((option) => option.data), action)
+                    } else {
+                        props.onChange(value ? value.data : null, action)
+                    }
+                }}
+            />
+        </Show>
     )
 }
 

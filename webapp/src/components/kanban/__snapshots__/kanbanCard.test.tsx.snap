@@ -52,11 +52,14 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on copy li
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Duplicate"
                 class="MenuOption TextOption menu-option"
@@ -81,6 +84,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on copy li
                   >
                     Duplicate
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -112,6 +116,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on copy li
                   >
                     Copy link
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -146,6 +151,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on copy li
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -177,6 +183,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on copy li
         class="octo-propertyvalue octo-propertyvalue--readonly"
       />
     </div>
+    
   </div>
 </div>
 `;
@@ -233,11 +240,14 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on delete 
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Duplicate"
                 class="MenuOption TextOption menu-option"
@@ -262,6 +272,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on delete 
                   >
                     Duplicate
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -293,6 +304,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on delete 
                   >
                     Copy link
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -327,6 +339,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on delete 
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -358,6 +371,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on delete 
         class="octo-propertyvalue octo-propertyvalue--readonly"
       />
     </div>
+    
   </div>
 </div>
 `;
@@ -414,11 +428,14 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on duplica
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
                 />
               </div>
+            </div>
+            <div>
               <div
                 aria-label="Duplicate"
                 class="MenuOption TextOption menu-option"
@@ -443,6 +460,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on duplica
                   >
                     Duplicate
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -474,6 +492,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on duplica
                   >
                     Copy link
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -508,6 +527,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on duplica
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -539,6 +559,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on duplica
         class="octo-propertyvalue octo-propertyvalue--readonly"
       />
     </div>
+    
   </div>
 </div>
 `;
@@ -561,6 +582,7 @@ exports[`src/components/kanban/kanbanCard should match snapshot 1`] = `
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
     <div
       class="octo-icontitle"
@@ -584,6 +606,7 @@ exports[`src/components/kanban/kanbanCard should match snapshot 1`] = `
         class="octo-propertyvalue octo-propertyvalue--readonly"
       />
     </div>
+    
   </div>
 </div>
 `;
@@ -594,6 +617,7 @@ exports[`src/components/kanban/kanbanCard should match snapshot with readonly 1`
     class="KanbanCard"
     style="opacity: 1;"
   >
+    
     <div
       class="octo-icontitle"
     >
@@ -616,6 +640,7 @@ exports[`src/components/kanban/kanbanCard should match snapshot with readonly 1`
         class="octo-propertyvalue octo-propertyvalue--readonly"
       />
     </div>
+    
   </div>
 </div>
 `;

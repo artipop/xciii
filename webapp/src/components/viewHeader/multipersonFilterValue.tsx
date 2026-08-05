@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
-import {useIntl} from 'react-intl'
+import type {JSX} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import {Utils} from '../../utils'
 import mutator from '../../mutator'

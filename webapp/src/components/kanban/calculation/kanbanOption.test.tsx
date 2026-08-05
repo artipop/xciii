@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import {TestBlockFactory} from '../../../test/testBlockFactory'
 
@@ -12,7 +11,7 @@ describe('components/kanban/calculations/Option', () => {
     const board = TestBlockFactory.createBoard()
 
     test('base case', () => {
-        const component = (
+        const component = () => (
             <Option
                 data={{
                     label: 'Count Unique Values',

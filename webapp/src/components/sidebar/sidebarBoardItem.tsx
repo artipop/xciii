@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useRef, useState} from 'react'
-import {useIntl} from 'react-intl'
-import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
-import {useSortable} from '@dnd-kit/react/sortable'
+import {For, Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
+
+import {useNavigate} from '@solidjs/router'
+import {useSortable} from '@dnd-kit/solid/sortable'
 import {SortableKeyboardPlugin} from '@dnd-kit/dom/sortable'
+
+import {useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
 import {BoardView, IViewType} from '../../blocks/boardView'
@@ -17,9 +20,10 @@ import MenuWrapper from '../../widgets/menuWrapper'
 import BoardPermissionGate from '../permissions/boardPermissionGate'
 
 import './sidebarBoardItem.scss'
-import {CategoryBoards, updateBoardCategories} from '../../store/sidebar'
+import {CategoryBoards} from '../../store/sidebar'
 import CreateNewFolder from '../../widgets/icons/newFolder'
-import {useAppDispatch, useAppSelector} from '../../store/hooks'
+import {useAppSelector, useAppStore} from '../../store/hooks'
+import {useRouteMatch} from '../../hooks/routerMatch'
 import {getCurrentBoardViews, getCurrentViewId} from '../../store/views'
 import Folder from '../../widgets/icons/folder'
 import Check from '../../widgets/icons/checkIcon'
@@ -68,46 +72,48 @@ type Props = {
 const SidebarBoardItem = (props: Props) => {
     const intl = useIntl()
 
-    const [boardsMenuOpen, setBoardsMenuOpen] = useState<{[key: string]: boolean}>({})
+    const [boardsMenuOpen, setBoardsMenuOpen] = createSignal<{[key: string]: boolean}>({})
 
     const team = useAppSelector(getCurrentTeam)
     const boardViews = useAppSelector(getCurrentBoardViews)
     const currentViewId = useAppSelector(getCurrentViewId)
-    const teamID = team?.id || ''
+    const teamID = () => team()?.id || ''
     const me = useAppSelector(getMe)
 
-    const match = useRouteMatch<{boardId: string, viewId?: string, cardId?: string, teamId?: string}>()
-    const history = useHistory()
-    const dispatch = useAppDispatch()
+    const match = useRouteMatch()
+    const navigate = useNavigate()
+    const {actions} = useAppStore()
     const currentBoardID = useAppSelector(getCurrentBoardId)
 
     const generateMoveToCategoryOptions = (boardID: string) => {
-        return props.allCategories.map((category) => (
-            <Menu.Text
-                key={category.id}
-                id={category.id}
-                name={category.name}
-                icon={category.id === props.categoryBoards.id ? <Check/> : <Folder/>}
-                onClick={async (toCategoryID) => {
-                    const fromCategoryID = props.categoryBoards.id
-                    if (fromCategoryID !== toCategoryID) {
-                        await mutator.moveBoardToCategory(teamID, boardID, toCategoryID, fromCategoryID)
-                    }
-                }}
-            />
-        ))
+        return (
+            <For each={props.allCategories}>
+                {(category) => (
+                    <Menu.Text
+                        id={category.id}
+                        name={category.name}
+                        icon={category.id === props.categoryBoards.id ? <Check/> : <Folder/>}
+                        onClick={async (toCategoryID) => {
+                            const fromCategoryID = props.categoryBoards.id
+                            if (fromCategoryID !== toCategoryID) {
+                                await mutator.moveBoardToCategory(teamID(), boardID, toCategoryID, fromCategoryID)
+                            }
+                        }}
+                    />
+                )}
+            </For>
+        )
     }
 
-    const board = props.board
-
     const handleDuplicateBoard = async (asTemplate: boolean) => {
+        const board = props.board
         const blocksAndBoards = await mutator.duplicateBoard(
             board.id,
             undefined,
             asTemplate,
             undefined,
             () => {
-                Utils.showBoard(board.id, match, history)
+                Utils.showBoard(board.id, match(), navigate)
                 return Promise.resolve()
             },
         )
@@ -131,41 +137,42 @@ const SidebarBoardItem = (props: Props) => {
         // By not waiting for the board-category WS event and setting the right category for the board,
         // we avoid the jumping behavior.
         if (props.categoryBoards.id !== '') {
-            await dispatch(updateBoardCategories([{
+            actions.sidebar.updateBoardCategories([{
                 boardID: boardId,
                 categoryID: props.categoryBoards.id,
                 hidden: false,
-            }]))
+            }])
         }
 
-        Utils.showBoard(boardId, match, history)
+        Utils.showBoard(boardId, match(), navigate)
     }
 
     const showTemplatePicker = () => {
         // if the same board, reuse the match params
         // otherwise remove viewId and cardId, results in first view being selected
-        const params = {teamId: match.params.teamId}
-        const newPath = generatePath('/team/:teamId?', params)
-        history.push(newPath)
+        const params = {teamId: match().params.teamId}
+        const newPath = Utils.generatePath('/team/:teamId?', params)
+        navigate(newPath)
     }
 
     const handleHideBoard = async () => {
-        if (!me) {
+        if (!me()) {
             return
         }
 
+        const board = props.board
         await octoClient.hideBoard(props.categoryBoards.id, board.id)
-        dispatch(updateBoardCategories([
+        actions.sidebar.updateBoardCategories([
             {
                 boardID: board.id,
                 categoryID: props.categoryBoards.id,
                 hidden: true,
             },
-        ]))
+        ])
 
         // If we're hiding the board we're currently on,
         // we need to switch to a different board once its hidden.
-        if (currentBoardID === props.board.id) {
+        if (currentBoardID() === props.board.id) {
             // There's no special logic on what the next board needs to be.
             // To keep things simple, we just switch to the first unhidden board
 
@@ -183,7 +190,7 @@ const SidebarBoardItem = (props: Props) => {
             }
 
             if (visibleBoardID === null) {
-                UserSettings.setLastBoardID(match.params.teamId!, null)
+                UserSettings.setLastBoardID(match().params.teamId!, null)
                 showTemplatePicker()
             } else {
                 props.showBoard(visibleBoardID)
@@ -191,12 +198,18 @@ const SidebarBoardItem = (props: Props) => {
         }
     }
 
-    const boardItemRef = useRef<HTMLDivElement>(null)
+    let boardItemRef: HTMLDivElement | undefined
 
-    const {ref, isDragging} = useSortable({
-        id: props.board.id,
-        index: props.index,
-        group: props.categoryBoards.id,
+    const {ref, isDragSource: isDragging} = useSortable({
+        get id() {
+            return props.board.id
+        },
+        get index() {
+            return props.index
+        },
+        get group() {
+            return props.categoryBoards.id
+        },
         type: 'board',
         accept: 'board',
 
@@ -204,115 +217,118 @@ const SidebarBoardItem = (props: Props) => {
         plugins: [SortableKeyboardPlugin],
     })
 
-    const title = board.title || intl.formatMessage({id: 'Sidebar.untitled-board', defaultMessage: '(Untitled Board)'})
+    const title = () => props.board.title || intl.formatMessage({id: 'Sidebar.untitled-board', defaultMessage: '(Untitled Board)'})
     return (
         <div
             ref={ref}
         >
             <div
                 ref={boardItemRef}
-                className={`SidebarBoardItem subitem ${props.isActive ? 'active' : ''}`}
-                onClick={() => props.showBoard(board.id)}
+                class={`SidebarBoardItem subitem ${props.isActive ? 'active' : ''}`}
+                onClick={() => props.showBoard(props.board.id)}
             >
-                <div className='octo-sidebar-icon'>
-                    {board.icon || <CompassIcon icon='product-boards'/>}
+                <div class='octo-sidebar-icon'>
+                    {props.board.icon || <CompassIcon icon='product-boards'/>}
                 </div>
                 <div
-                    className='octo-sidebar-title'
-                    title={title}
+                    class='octo-sidebar-title'
+                    title={title()}
                 >
-                    {title}
+                    {title()}
                 </div>
                 <div>
                     <MenuWrapper
-                        className={boardsMenuOpen[board.id] ? 'menuOpen' : 'x'}
+                        className={boardsMenuOpen()[props.board.id] ? 'menuOpen' : 'x'}
                         stopPropagationOnToggle={true}
                         onToggle={(open) => {
                             setBoardsMenuOpen((menuState) => {
                                 const newState = {...menuState}
-                                newState[board.id] = open
+                                newState[props.board.id] = open
                                 return newState
                             })
                         }}
+                        menu={
+                            <Menu
+                                fixed={true}
+                                position='auto'
+                                parentRef={{current: boardItemRef ?? null}}
+                            >
+                                <Menu.SubMenu
+                                    id='moveBlock'
+                                    className='boardMoveToCategorySubmenu'
+                                    name={intl.formatMessage({id: 'SidebarCategories.BlocksMenu.Move', defaultMessage: 'Move To...'})}
+                                    icon={<CreateNewFolder/>}
+                                    position='auto'
+                                >
+                                    {generateMoveToCategoryOptions(props.board.id)}
+                                </Menu.SubMenu>
+                                <Show when={!me()?.is_guest}>
+                                    <Menu.Text
+                                        id='duplicateBoard'
+                                        name={intl.formatMessage({id: 'Sidebar.duplicate-board', defaultMessage: 'Duplicate board'})}
+                                        icon={<DuplicateIcon/>}
+                                        onClick={() => handleDuplicateBoard(props.board.isTemplate)}
+                                    />
+                                    <Menu.Text
+                                        id='templateFromBoard'
+                                        name={intl.formatMessage({id: 'Sidebar.template-from-board', defaultMessage: 'New template from board'})}
+                                        icon={<AddIcon/>}
+                                        onClick={() => handleDuplicateBoard(true)}
+                                    />
+                                </Show>
+                                <Menu.Text
+                                    id='exportBoardArchive'
+                                    name={intl.formatMessage({id: 'ViewHeader.export-board-archive', defaultMessage: 'Export board archive'})}
+                                    icon={<CompassIcon icon='export-variant'/>}
+                                    onClick={() => Archiver.exportBoardArchive(props.board)}
+                                />
+                                <Menu.Text
+                                    id='hideBoard'
+                                    name={intl.formatMessage({id: 'HideBoard.MenuOption', defaultMessage: 'Hide board'})}
+                                    icon={<CloseIcon/>}
+                                    onClick={() => handleHideBoard()}
+                                />
+                                <BoardPermissionGate
+                                    boardId={props.board.id}
+                                    permissions={[Permission.DeleteBoard]}
+                                >
+                                    <Menu.Text
+                                        id='deleteBlock'
+                                        className='text-danger'
+                                        name={intl.formatMessage({id: 'Sidebar.delete-board', defaultMessage: 'Delete board'})}
+                                        icon={<DeleteIcon/>}
+                                        onClick={() => {
+                                            props.onDeleteRequest(props.board)
+                                        }}
+                                    />
+                                </BoardPermissionGate>
+                            </Menu>
+                        }
                     >
                         <IconButton icon={<OptionsIcon/>}/>
-                        <Menu
-                            fixed={true}
-                            position='auto'
-                            parentRef={boardItemRef}
-                        >
-                            <Menu.SubMenu
-                                key={`moveBlock-${board.id}`}
-                                id='moveBlock'
-                                className='boardMoveToCategorySubmenu'
-                                name={intl.formatMessage({id: 'SidebarCategories.BlocksMenu.Move', defaultMessage: 'Move To...'})}
-                                icon={<CreateNewFolder/>}
-                                position='auto'
-                            >
-                                {generateMoveToCategoryOptions(board.id)}
-                            </Menu.SubMenu>
-                            {!me?.is_guest &&
-                                <Menu.Text
-                                    id='duplicateBoard'
-                                    name={intl.formatMessage({id: 'Sidebar.duplicate-board', defaultMessage: 'Duplicate board'})}
-                                    icon={<DuplicateIcon/>}
-                                    onClick={() => handleDuplicateBoard(board.isTemplate)}
-                                />}
-                            {!me?.is_guest &&
-                                <Menu.Text
-                                    id='templateFromBoard'
-                                    name={intl.formatMessage({id: 'Sidebar.template-from-board', defaultMessage: 'New template from board'})}
-                                    icon={<AddIcon/>}
-                                    onClick={() => handleDuplicateBoard(true)}
-                                />}
-                            <Menu.Text
-                                id='exportBoardArchive'
-                                name={intl.formatMessage({id: 'ViewHeader.export-board-archive', defaultMessage: 'Export board archive'})}
-                                icon={<CompassIcon icon='export-variant'/>}
-                                onClick={() => Archiver.exportBoardArchive(board)}
-                            />
-                            <Menu.Text
-                                id='hideBoard'
-                                name={intl.formatMessage({id: 'HideBoard.MenuOption', defaultMessage: 'Hide board'})}
-                                icon={<CloseIcon/>}
-                                onClick={() => handleHideBoard()}
-                            />
-                            <BoardPermissionGate
-                                boardId={board.id}
-                                permissions={[Permission.DeleteBoard]}
-                            >
-                                <Menu.Text
-                                    key={`deleteBlock-${board.id}`}
-                                    id='deleteBlock'
-                                    className='text-danger'
-                                    name={intl.formatMessage({id: 'Sidebar.delete-board', defaultMessage: 'Delete board'})}
-                                    icon={<DeleteIcon/>}
-                                    onClick={() => {
-                                        props.onDeleteRequest(board)
-                                    }}
-                                />
-                            </BoardPermissionGate>
-                        </Menu>
                     </MenuWrapper>
                 </div>
             </div>
-            {props.isActive && !isDragging && !props.hideViews && boardViews.map((view: BoardView) => (
-                <div
-                    key={view.id}
-                    className={`SidebarBoardItem sidebar-view-item ${view.id === currentViewId ? 'active' : ''}`}
-                    onClick={() => props.showView(view.id, board.id)}
-                >
-                    {iconForViewType(view.fields.viewType)}
-                    <div
-                        className='octo-sidebar-title'
-                        title={view.title || intl.formatMessage({id: 'Sidebar.untitled-view', defaultMessage: '(Untitled View)'})}
-                    >
-                        {view.title || intl.formatMessage({id: 'Sidebar.untitled-view', defaultMessage: '(Untitled View)'})}
-                    </div>
-                </div>
-            ))}
+            <Show when={props.isActive && !isDragging() && !props.hideViews}>
+                <For each={boardViews()}>
+                    {(view: BoardView) => (
+                        <div
+                            class={`SidebarBoardItem sidebar-view-item ${view.id === currentViewId() ? 'active' : ''}`}
+                            onClick={() => props.showView(view.id, props.board.id)}
+                        >
+                            {iconForViewType(view.fields.viewType)}
+                            <div
+                                class='octo-sidebar-title'
+                                title={view.title || intl.formatMessage({id: 'Sidebar.untitled-view', defaultMessage: '(Untitled View)'})}
+                            >
+                                {view.title || intl.formatMessage({id: 'Sidebar.untitled-view', defaultMessage: '(Untitled View)'})}
+                            </div>
+                        </div>
+                    )}
+                </For>
+            </Show>
         </div>
     )
 }
 
-export default React.memo(SidebarBoardItem)
+export default SidebarBoardItem

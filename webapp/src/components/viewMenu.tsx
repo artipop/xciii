@@ -1,8 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {useIntl} from 'react-intl'
-import {generatePath, useHistory, useRouteMatch} from 'react-router-dom'
+import {For, Show} from 'solid-js'
+
+import {useNavigate} from '@solidjs/router'
+
+import {useIntl} from '../intl'
+import {useRouteMatch} from '../hooks/routerMatch'
 
 import {Board, IPropertyTemplate} from '../blocks/board'
 import {BoardView, createBoardView, IViewType} from '../blocks/boardView'
@@ -32,15 +35,16 @@ type Props = {
 
 const ViewMenu = (props: Props) => {
     const intl = useIntl()
-    const history = useHistory()
+    const navigate = useNavigate()
     const match = useRouteMatch()
 
     const showView = (viewId: string) => {
-        let newPath = generatePath(Utils.getBoardPagePath(match.path), {...match.params, viewId: viewId || ''})
+        const currentMatch = match()
+        let newPath = Utils.generatePath(Utils.getBoardPagePath(currentMatch.path), {...currentMatch.params, viewId: viewId || ''})
         if (props.readonly) {
             newPath += `?r=${Utils.getReadToken()}`
         }
-        history.push(newPath)
+        navigate(newPath)
     }
 
     const handleDuplicateView = () => {
@@ -210,8 +214,6 @@ const ViewMenu = (props: Props) => {
             })
     }
 
-    const {views} = props
-
     const duplicateViewText = intl.formatMessage({
         id: 'View.DuplicateView',
         defaultMessage: 'Duplicate view',
@@ -248,80 +250,82 @@ const ViewMenu = (props: Props) => {
     }
 
     return (
-        <div className='ViewMenu'>
+        <div class='ViewMenu'>
             <Menu>
-                <div className='view-list'>
-                    {views.map((view: BoardView) => (
-                        <Menu.Text
-                            key={view.id}
-                            id={view.id}
-                            name={view.title}
-                            icon={iconForViewType(view.fields.viewType)}
-                            onClick={handleViewClick}
-                        />))}
+                <div class='view-list'>
+                    <For each={props.views}>
+                        {(view: BoardView) => (
+                            <Menu.Text
+                                id={view.id}
+                                name={view.title}
+                                icon={iconForViewType(view.fields.viewType)}
+                                onClick={handleViewClick}
+                            />
+                        )}
+                    </For>
                 </div>
                 <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
                     <Menu.Separator/>
                 </BoardPermissionGate>
-                {!props.readonly &&
-                <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
-                    <Menu.Text
-                        id='__duplicateView'
-                        name={duplicateViewText}
-                        icon={<DuplicateIcon/>}
-                        onClick={handleDuplicateView}
-                    />
-                </BoardPermissionGate>
-                }
-                {!props.readonly && views.length > 1 &&
-                <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
-                    <Menu.Text
-                        id='__deleteView'
-                        name={deleteViewText}
-                        icon={<DeleteIcon/>}
-                        onClick={handleDeleteView}
-                    />
-                </BoardPermissionGate>
-                }
-                {!props.readonly &&
-                <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
-                    <Menu.SubMenu
-                        id='__addView'
-                        name={addViewText}
-                        icon={<AddIcon/>}
-                    >
-                        <div className='subMenu'>
-                            <Menu.Text
-                                id='board'
-                                name={boardText}
-                                icon={<BoardIcon/>}
-                                onClick={handleAddViewBoard}
-                            />
-                            <Menu.Text
-                                id='table'
-                                name={tableText}
-                                icon={<TableIcon/>}
-                                onClick={handleAddViewTable}
-                            />
-                            <Menu.Text
-                                id='gallery'
-                                name={galleryText}
-                                icon={<GalleryIcon/>}
-                                onClick={handleAddViewGallery}
-                            />
-                            <Menu.Text
-                                id='calendar'
-                                name='Calendar'
-                                icon={<CalendarIcon/>}
-                                onClick={handleAddViewCalendar}
-                            />
-                        </div>
-                    </Menu.SubMenu>
-                </BoardPermissionGate>
-                }
+                <Show when={!props.readonly}>
+                    <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
+                        <Menu.Text
+                            id='__duplicateView'
+                            name={duplicateViewText}
+                            icon={<DuplicateIcon/>}
+                            onClick={handleDuplicateView}
+                        />
+                    </BoardPermissionGate>
+                </Show>
+                <Show when={!props.readonly && props.views.length > 1}>
+                    <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
+                        <Menu.Text
+                            id='__deleteView'
+                            name={deleteViewText}
+                            icon={<DeleteIcon/>}
+                            onClick={handleDeleteView}
+                        />
+                    </BoardPermissionGate>
+                </Show>
+                <Show when={!props.readonly}>
+                    <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
+                        <Menu.SubMenu
+                            id='__addView'
+                            name={addViewText}
+                            icon={<AddIcon/>}
+                        >
+                            <div class='subMenu'>
+                                <Menu.Text
+                                    id='board'
+                                    name={boardText}
+                                    icon={<BoardIcon/>}
+                                    onClick={handleAddViewBoard}
+                                />
+                                <Menu.Text
+                                    id='table'
+                                    name={tableText}
+                                    icon={<TableIcon/>}
+                                    onClick={handleAddViewTable}
+                                />
+                                <Menu.Text
+                                    id='gallery'
+                                    name={galleryText}
+                                    icon={<GalleryIcon/>}
+                                    onClick={handleAddViewGallery}
+                                />
+                                <Menu.Text
+                                    id='calendar'
+                                    name='Calendar'
+                                    icon={<CalendarIcon/>}
+                                    onClick={handleAddViewCalendar}
+                                />
+                            </div>
+                        </Menu.SubMenu>
+                    </BoardPermissionGate>
+                </Show>
             </Menu>
         </div>
     )
 }
 
-export default React.memo(ViewMenu)
+export default ViewMenu

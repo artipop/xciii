@@ -1,22 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import './labelOption.scss'
 
 type LabelOptionProps = {
     icon?: string
-    children: React.ReactNode
+    children: JSX.Element
 }
 
 function LabelOption(props: LabelOptionProps): JSX.Element {
     return (
-        <div className='MenuOption LabelOption menu-option'>
-            {props.icon ?? <div className='noicon'/>}
-            <div className='menu-name'>{props.children}</div>
-            <div className='noicon'/>
+        <div class='MenuOption LabelOption menu-option'>
+            {props.icon ?? <div class='noicon'/>}
+            <div class='menu-name'>{props.children}</div>
+            <div class='noicon'/>
         </div>
     )
 }
 
-export default React.memo(LabelOption)
+export default LabelOption

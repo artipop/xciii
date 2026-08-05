@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, ReactNode} from 'react'
-import {useIntl} from 'react-intl'
+import {Show} from 'solid-js'
+import type {JSX, ParentComponent} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import DeleteIcon from '../../widgets/icons/delete'
 import Menu from '../../widgets/menu'
@@ -22,12 +24,9 @@ type Props = {
     boardId: string
     onClickDelete: () => void
     onClickDuplicate?: () => void
-    children?: ReactNode
 }
 
-export const CardActionsMenu = (props: Props): JSX.Element => {
-    const {cardId} = props
-
+export const CardActionsMenu: ParentComponent<Props> = (props): JSX.Element => {
     const me = useAppSelector<IUser|null>(getMe)
     const intl = useIntl()
 
@@ -52,15 +51,16 @@ export const CardActionsMenu = (props: Props): JSX.Element => {
                     name={intl.formatMessage({id: 'CardActionsMenu.delete', defaultMessage: 'Delete'})}
                     onClick={handleDeleteCard}
                 />
-                {props.onClickDuplicate &&
-                <Menu.Text
-                    icon={<DuplicateIcon/>}
-                    id='duplicate'
-                    name={intl.formatMessage({id: 'CardActionsMenu.duplicate', defaultMessage: 'Duplicate'})}
-                    onClick={handleDuplicateCard}
-                />}
+                <Show when={props.onClickDuplicate}>
+                    <Menu.Text
+                        icon={<DuplicateIcon/>}
+                        id='duplicate'
+                        name={intl.formatMessage({id: 'CardActionsMenu.duplicate', defaultMessage: 'Duplicate'})}
+                        onClick={handleDuplicateCard}
+                    />
+                </Show>
             </BoardPermissionGate>
-            {me?.id !== 'single-user' &&
+            <Show when={me()?.id !== 'single-user'}>
                 <Menu.Text
                     icon={<LinkIcon/>}
                     id='copy'
@@ -68,15 +68,15 @@ export const CardActionsMenu = (props: Props): JSX.Element => {
                     onClick={() => {
                         let cardLink = window.location.href
 
-                        if (!cardLink.includes(cardId)) {
-                            cardLink += `/${cardId}`
+                        if (!cardLink.includes(props.cardId)) {
+                            cardLink += `/${props.cardId}`
                         }
 
                         Utils.copyTextToClipboard(cardLink)
                         sendFlashMessage({content: intl.formatMessage({id: 'CardActionsMenu.copiedLink', defaultMessage: 'Copied!'}), severity: 'high'})
                     }}
                 />
-            }
+            </Show>
             {props.children}
         </Menu>
     )

@@ -1,6 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
 import {BlockIcons} from '../blockIcons'
 import {Card} from '../blocks/card'
@@ -32,7 +31,7 @@ const BlockIconSelector = (props: Props) => {
     if (props.readonly) {
         className += ' readonly'
     }
-    const iconElement = <div className={className}><span>{block.fields.icon}</span></div>
+    const iconElement = <div class={className}><span>{block.fields.icon}</span></div>
 
     return (
         <IconSelector
@@ -45,4 +44,4 @@ const BlockIconSelector = (props: Props) => {
     )
 }
 
-export default React.memo(BlockIconSelector)
+export default BlockIconSelector

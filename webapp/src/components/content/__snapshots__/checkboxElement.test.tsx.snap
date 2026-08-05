@@ -15,7 +15,7 @@ exports[`components/content/checkboxElement should change title 1`] = `
       placeholder="Edit text..."
       spellcheck="true"
       title="new title"
-      value="new title"
+      type="text"
     />
   </div>
 </div>
@@ -36,7 +36,6 @@ exports[`components/content/checkboxElement should match snapshot 1`] = `
       placeholder="Edit text..."
       spellcheck="true"
       title="test-title"
-      value="test-title"
     />
   </div>
 </div>
@@ -59,7 +58,6 @@ exports[`components/content/checkboxElement should match snapshot when read only
       readonly=""
       spellcheck="true"
       title="test-title"
-      value="test-title"
     />
   </div>
 </div>
@@ -80,7 +78,6 @@ exports[`components/content/checkboxElement should toggle value 1`] = `
       placeholder="Edit text..."
       spellcheck="true"
       title="test-title"
-      value="test-title"
     />
   </div>
 </div>

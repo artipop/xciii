@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render} from '@testing-library/react'
-import {Provider as ReduxProvider} from 'react-redux'
+import {render} from '@solidjs/testing-library'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import '@testing-library/jest-dom'
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import {IPropertyTemplate} from '../../blocks/board'
 
 import CalendarView from './fullCalendar'
@@ -46,15 +45,15 @@ describe('components/calendar/toolbar', () => {
             },
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     beforeEach(() => {
         jest.clearAllMocks()
     })
 
     test('return calendar, no date property', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <CalendarView
                         board={board}
                         activeView={view}
@@ -64,7 +63,7 @@ describe('components/calendar/toolbar', () => {
                         addCard={mockAdd}
                         initialDate={new Date(fifth)}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
@@ -73,9 +72,9 @@ describe('components/calendar/toolbar', () => {
     test('return calendar, with date property not set', () => {
         board.cardProperties.push(dateDisplayProperty)
         card.fields.properties['12345'] = JSON.stringify(rObject)
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <CalendarView
                         board={board}
                         activeView={view}
@@ -85,7 +84,7 @@ describe('components/calendar/toolbar', () => {
                         addCard={mockAdd}
                         initialDate={new Date(fifth)}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
@@ -94,9 +93,9 @@ describe('components/calendar/toolbar', () => {
     test('return calendar, with date property set', () => {
         board.cardProperties.push(dateDisplayProperty)
         card.fields.properties['12345'] = JSON.stringify(rObject)
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
                     <CalendarView
                         board={board}
                         activeView={view}
@@ -107,17 +106,17 @@ describe('components/calendar/toolbar', () => {
                         addCard={mockAdd}
                         initialDate={new Date(fifth)}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
     })
 
     test('return calendar, without permissions', () => {
-        const localStore = mockStateStore([], {...state, teams: {current: undefined}})
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={localStore}>
+        const localStore = mockAppStore({...state, teams: {current: undefined}})
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={localStore}>
                     <CalendarView
                         board={board}
                         activeView={view}
@@ -127,7 +126,7 @@ describe('components/calendar/toolbar', () => {
                         addCard={mockAdd}
                         initialDate={new Date(fifth)}
                     />
-                </ReduxProvider>,
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()

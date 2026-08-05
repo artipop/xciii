@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../../intl'
 
 import {useMeasurePunchouts} from '../../tutorial_tour_tip/hooks'
 
@@ -27,7 +27,7 @@ const ShareBoardTourStep = (): JSX.Element | null => {
         />
     )
 
-    const punchout = useMeasurePunchouts(['.ShareBoardButton > button'], [])
+    const punchout = useMeasurePunchouts(['.ShareBoardButton > button'])
 
     if (!BoardTourSteps.SHARE_BOARD) {
         return null
@@ -35,13 +35,12 @@ const ShareBoardTourStep = (): JSX.Element | null => {
 
     return (
         <TourTipRenderer
-            key='ShareBoardTourStep'
             requireCard={false}
             category={TOUR_BOARD}
             step={BoardTourSteps.SHARE_BOARD}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='ShareBoardTourStep'
             telemetryTag='tourPoint2b'
             placement={'bottom-end'}

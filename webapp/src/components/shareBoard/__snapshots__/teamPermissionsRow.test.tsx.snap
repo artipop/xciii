@@ -5,6 +5,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot 1`] 
   <div
     class="user-item"
   >
+    
     <div
       class="user-item__content"
     >
@@ -64,6 +65,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot 1`] 
                     >
                       Editor
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -95,6 +97,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot 1`] 
                     >
                       Commenter
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -126,6 +129,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot 1`] 
                     >
                       Viewer
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -163,6 +167,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot 1`] 
                     >
                       None
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -196,6 +201,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot 1`] 
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -205,6 +211,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot 1`] 
           </div>
         </div>
       </div>
+      
     </div>
   </div>
 </div>
@@ -215,6 +222,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in p
   <div
     class="user-item"
   >
+    
     <div
       class="user-item__content"
     >
@@ -274,6 +282,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in p
                     >
                       Editor
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -305,6 +314,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in p
                     >
                       Commenter
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -336,6 +346,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in p
                     >
                       Viewer
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -373,6 +384,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in p
                     >
                       None
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -406,6 +418,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in p
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -415,6 +428,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in p
           </div>
         </div>
       </div>
+      
     </div>
   </div>
 </div>
@@ -425,6 +439,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in t
   <div
     class="user-item"
   >
+    
     <div
       class="user-item__content"
     >
@@ -460,7 +475,6 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in t
               class="menu-options"
             >
               <div />
-              <div />
               <div>
                 <div
                   aria-label="Viewer"
@@ -486,6 +500,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in t
                     >
                       Viewer
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -523,6 +538,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in t
                     >
                       None
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -556,6 +572,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in t
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -565,6 +582,7 @@ exports[`src/components/shareBoard/teamPermissionsRow should match snapshot in t
           </div>
         </div>
       </div>
+      
     </div>
   </div>
 </div>

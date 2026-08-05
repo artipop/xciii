@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState, useRef, useEffect} from 'react'
+import {createSignal, onMount} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 type TextInputOptionProps = {
     initialValue: string
@@ -9,39 +10,42 @@ type TextInputOptionProps = {
 }
 
 function TextInputOption(props: TextInputOptionProps): JSX.Element {
-    const nameTextbox = useRef<HTMLInputElement>(null)
-    const [value, setValue] = useState(props.initialValue)
+    let nameTextbox: HTMLInputElement | undefined
+    const [value, setValue] = createSignal(props.initialValue)
 
-    useEffect(() => {
-        nameTextbox.current?.focus()
-        nameTextbox.current?.setSelectionRange(0, value.length)
-    }, [])
+    onMount(() => {
+        nameTextbox?.focus()
+        nameTextbox?.setSelectionRange(0, value().length)
+    })
 
     return (
         <input
             ref={nameTextbox}
             type='text'
-            className='PropertyMenu menu-textbox menu-option'
+            class='PropertyMenu menu-textbox menu-option'
             onClick={(e) => e.stopPropagation()}
-            onChange={(e) => {
-                setValue(e.target.value)
-                props.onValueChanged(value)
+            onInput={(e) => {
+                // The React version reported the value captured before this
+                // keystroke — one behind — and something may lean on that.
+                const previous = value()
+                setValue((e.target as HTMLInputElement).value)
+                props.onValueChanged(previous)
             }}
-            value={value}
-            title={value}
-            onBlur={() => props.onConfirmValue(value)}
+            value={value()}
+            title={value()}
+            onBlur={() => props.onConfirmValue(value())}
             onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === 'Escape') {
-                    props.onConfirmValue(value)
+                    props.onConfirmValue(value())
                     e.stopPropagation()
                     if (e.key === 'Enter') {
-                        e.target.dispatchEvent(new Event('menuItemClicked'))
+                        (e.target as HTMLElement).dispatchEvent(new Event('menuItemClicked'))
                     }
                 }
             }}
-            spellCheck={true}
+            spellcheck={true}
         />
     )
 }
 
-export default React.memo(TextInputOption)
+export default TextInputOption

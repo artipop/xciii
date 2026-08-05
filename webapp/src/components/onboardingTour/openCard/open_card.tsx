@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../../intl'
 
 import {useMeasurePunchouts} from '../../tutorial_tour_tip/hooks'
 
@@ -26,17 +26,16 @@ const OpenCardTourStep = (): JSX.Element | null => {
         />
     )
 
-    const punchout = useMeasurePunchouts([`.${OnboardingCardClassName}`], [])
+    const punchout = useMeasurePunchouts([`.${OnboardingCardClassName}`])
 
     return (
         <TourTipRenderer
-            key='OpenCardTourStep'
             requireCard={false}
             category={TOUR_BASE}
             step={BaseTourSteps.OPEN_A_CARD}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='OpenCardTourStep'
             telemetryTag='tourPoint1'
             placement={'bottom'}

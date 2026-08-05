@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 type Props = {
     icon: string
@@ -12,6 +12,6 @@ export default function CompassIcon(props: Props): JSX.Element {
     // All compass icon classes start with icon,
     // so not expecting that prefix in props.
     return (
-        <i className={`CompassIcon icon-${props.icon}${props.className === undefined ? '' : ` ${props.className}`}`}/>
+        <i class={`CompassIcon icon-${props.icon}${props.className === undefined ? '' : ` ${props.className}`}`}/>
     )
 }

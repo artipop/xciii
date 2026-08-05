@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -33,7 +32,7 @@ describe('components/acp/deployTargetsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
         expect(isDeployTargetsAvailable()).toBe(true)
 
-        render(wrapIntl(<DeployTargetsDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <DeployTargetsDialog onClose={jest.fn()}/>))
         await waitFor(() => expect(screen.getByText('staging')).toBeInTheDocument())
         expect(screen.getByText('dokku@dokku.example.com → *.dokku.example.com')).toBeInTheDocument()
 
@@ -77,7 +76,7 @@ describe('components/acp/deployTargetsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(<DeployTargetsDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <DeployTargetsDialog onClose={jest.fn()}/>))
         await waitFor(() => expect(screen.getByText('staging')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Edit'}))
@@ -102,7 +101,7 @@ describe('components/acp/deployTargetsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(<DeployTargetsDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <DeployTargetsDialog onClose={jest.fn()}/>))
         await waitFor(() => expect(screen.getByText('No deploy targets yet.')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Add target…'}))

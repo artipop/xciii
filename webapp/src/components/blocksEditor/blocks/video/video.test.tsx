@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {render, screen, fireEvent} from '@solidjs/testing-library'
 import {mocked} from 'jest-mock'
 
 import octoClient from '../../../../octoClient'
@@ -16,7 +15,7 @@ describe('components/blocksEditor/blocks/video', () => {
         const mockedOcto = mocked(octoClient)
         mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.jpg'})
         const Component = VideoBlock.Display
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{file: 'test', filename: 'test-filename'}}
@@ -30,7 +29,7 @@ describe('components/blocksEditor/blocks/video', () => {
 
     test('should match Display snapshot with empty value', async () => {
         const Component = VideoBlock.Display
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{file: '', filename: ''}}
@@ -44,7 +43,7 @@ describe('components/blocksEditor/blocks/video', () => {
 
     test('should match Input snapshot', async () => {
         const Component = VideoBlock.Input
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{file: 'test', filename: 'test-filename'}}
@@ -57,7 +56,7 @@ describe('components/blocksEditor/blocks/video', () => {
 
     test('should match Input snapshot with empty input', async () => {
         const Component = VideoBlock.Input
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{file: '', filename: ''}}
@@ -71,7 +70,7 @@ describe('components/blocksEditor/blocks/video', () => {
     test('should emit onSave on change', async () => {
         const onSave = jest.fn()
         const Component = VideoBlock.Input
-        render(
+        render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{file: 'test', filename: 'test-filename'}}

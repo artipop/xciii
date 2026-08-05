@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX, useCallback, useState, useRef, useEffect} from 'react'
+import {Show, createSignal, onCleanup} from 'solid-js'
+import type {JSX} from 'solid-js'
 
-import {useIntl} from 'react-intl'
+import {useIntl} from '../intl'
 
 import mutator from '../mutator'
 import Editable from '../widgets/editable'
@@ -11,37 +12,36 @@ import Editable from '../widgets/editable'
 import {PropertyProps} from './types'
 
 const BaseTextEditor = (props: PropertyProps & {validator: () => boolean, spellCheck?: boolean}): JSX.Element => {
-    const [value, setValue] = useState(props.card.fields.properties[props.propertyTemplate.id || ''] || '')
-    const onCancel = useCallback(() => setValue(props.propertyValue || ''), [props.propertyValue])
+    const [value, setValue] = createSignal(props.card.fields.properties[props.propertyTemplate.id || ''] || '')
+    const onCancel = () => setValue(props.propertyValue || '')
 
-    const saveTextProperty = useCallback(() => {
-        if (value !== (props.card.fields.properties[props.propertyTemplate?.id || ''] || '')) {
-            mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate?.id || '', value)
+    const saveTextProperty = () => {
+        if (value() !== (props.card.fields.properties[props.propertyTemplate?.id || ''] || '')) {
+            mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate?.id || '', value())
         }
-    }, [props.board.id, props.card, props.propertyTemplate?.id, value])
+    }
 
-    const saveTextPropertyRef = useRef<() => void>(saveTextProperty)
-    if (props.readOnly) {
-        saveTextPropertyRef.current = () => null
-    } else {
-        saveTextPropertyRef.current = saveTextProperty
+    const saveIfEditable = () => {
+        if (!props.readOnly) {
+            saveTextProperty()
+        }
     }
 
     const intl = useIntl()
-    const emptyDisplayValue = props.showEmptyPlaceholder ? intl.formatMessage({id: 'PropertyValueElement.empty', defaultMessage: 'Empty'}) : ''
+    const emptyDisplayValue = () => (props.showEmptyPlaceholder ? intl.formatMessage({id: 'PropertyValueElement.empty', defaultMessage: 'Empty'}) : '')
 
-    useEffect(() => {
-        return () => {
-            saveTextPropertyRef.current && saveTextPropertyRef.current()
-        }
-    }, [])
+    // The React version flushed an unsaved value on unmount.
+    onCleanup(saveIfEditable)
 
-    if (!props.readOnly) {
-        return (
+    return (
+        <Show
+            when={!props.readOnly}
+            fallback={<div class={props.property.valueClassName(true)}>{props.propertyValue}</div>}
+        >
             <Editable
                 className={props.property.valueClassName(props.readOnly)}
-                placeholderText={emptyDisplayValue}
-                value={value.toString()}
+                placeholderText={emptyDisplayValue()}
+                value={value().toString()}
                 autoExpand={true}
                 onChange={setValue}
                 onSave={saveTextProperty}
@@ -49,9 +49,8 @@ const BaseTextEditor = (props: PropertyProps & {validator: () => boolean, spellC
                 validator={props.validator}
                 spellCheck={props.spellCheck}
             />
-        )
-    }
-    return <div className={props.property.valueClassName(true)}>{props.propertyValue}</div>
+        </Show>
+    )
 }
 
 export default BaseTextEditor

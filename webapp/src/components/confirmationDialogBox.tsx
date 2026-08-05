@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode, useCallback} from 'react'
-import {FormattedMessage} from 'react-intl'
+import type {Component, JSX} from 'solid-js'
+
+import {FormattedMessage} from '../intl'
 
 import Button from '../widgets/buttons/button'
 
@@ -11,7 +12,7 @@ import './confirmationDialogBox.scss'
 
 type ConfirmationDialogBoxProps = {
     heading: string
-    subText?: string | ReactNode
+    subText?: string | JSX.Element
     confirmButtonText?: string
     destructive?: boolean
     onConfirm: () => void
@@ -22,29 +23,26 @@ type Props = {
     dialogBox: ConfirmationDialogBoxProps
 }
 
-export const ConfirmationDialogBox = (props: Props) => {
-    const handleOnClose = useCallback(props.dialogBox.onClose, [])
-    const handleOnConfirm = useCallback(props.dialogBox.onConfirm, [])
-
+export const ConfirmationDialogBox: Component<Props> = (props) => {
     return (
         <Dialog
             size='small'
             className='confirmation-dialog-box'
-            onClose={handleOnClose}
+            onClose={props.dialogBox.onClose}
         >
             <div
-                className='box-area'
+                class='box-area'
                 title='Confirmation Dialog Box'
             >
-                <h3 className='text-heading5'>{props.dialogBox.heading}</h3>
-                <div className='sub-text'>{props.dialogBox.subText}</div>
+                <h3 class='text-heading5'>{props.dialogBox.heading}</h3>
+                <div class='sub-text'>{props.dialogBox.subText}</div>
 
-                <div className='action-buttons'>
+                <div class='action-buttons'>
                     <Button
                         title='Cancel'
                         size='medium'
                         emphasis='tertiary'
-                        onClick={handleOnClose}
+                        onClick={props.dialogBox.onClose}
                     >
                         <FormattedMessage
                             id='ConfirmationDialog.cancel-action'
@@ -56,7 +54,7 @@ export const ConfirmationDialogBox = (props: Props) => {
                         size='medium'
                         submit={true}
                         danger={Boolean(props.dialogBox.destructive)}
-                        onClick={handleOnConfirm}
+                        onClick={props.dialogBox.onConfirm}
                         filled={true}
                     >
                         { props.dialogBox.confirmButtonText ||

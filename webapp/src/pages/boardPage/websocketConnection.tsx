@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect, useState} from 'react'
-import {FormattedMessage} from 'react-intl'
+import {Show, createEffect, createSignal, onCleanup} from 'solid-js'
+
+import {FormattedMessage} from '../../intl'
 
 import wsClient, {WSClient} from '../../wsclient'
 import {useAppSelector} from '../../store/hooks'
@@ -15,10 +16,11 @@ const websocketTimeoutForBanner = 5000
 // state changes and if the connection is closed, shows a banner
 // indicating that there has been a connection error
 const WebsocketConnection = () => {
-    const [websocketClosed, setWebsocketClosed] = useState(false)
+    const [websocketClosed, setWebsocketClosed] = createSignal(false)
     const me = useAppSelector<IUser|null>(getMe)
 
-    useEffect(() => {
+    createEffect(() => {
+        void me()?.id
         let timeout: ReturnType<typeof setTimeout>
         const updateWebsocketState = (_: WSClient, newState: 'init'|'open'|'close'): void => {
             if (timeout) {
@@ -36,17 +38,17 @@ const WebsocketConnection = () => {
 
         wsClient.addOnStateChange(updateWebsocketState)
 
-        return () => {
+        onCleanup(() => {
             if (timeout) {
                 clearTimeout(timeout)
             }
             wsClient.removeOnStateChange(updateWebsocketState)
-        }
-    }, [me?.id])
+        })
+    })
 
-    if (websocketClosed) {
-        return (
-            <div className='WSConnection error'>
+    return (
+        <Show when={websocketClosed()}>
+            <div class='WSConnection error'>
                 <a
                     href='https://www.focalboard.com/fwlink/websocket-connect-error.html'
                     target='_blank'
@@ -58,10 +60,8 @@ const WebsocketConnection = () => {
                     />
                 </a>
             </div>
-        )
-    }
-
-    return null
+        </Show>
+    )
 }
 
 export default WebsocketConnection

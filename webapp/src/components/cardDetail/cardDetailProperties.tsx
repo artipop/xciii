@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect, useState} from 'react'
-import {FormattedMessage, useIntl} from 'react-intl'
+import {For, Show, createEffect, createSignal} from 'solid-js'
+
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {Board, IPropertyTemplate} from '../../blocks/board'
 import {Card} from '../../blocks/card'
@@ -34,23 +35,23 @@ type Props = {
 }
 
 const CardDetailProperties = (props: Props) => {
-    const {board, card, cards, views, activeView} = props
-    const [newTemplateId, setNewTemplateId] = useState('')
+    const [newTemplateId, setNewTemplateId] = createSignal('')
     const canEditBoardProperties = useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
     const canEditBoardCards = useHasCurrentBoardPermissions([Permission.ManageBoardCards])
     const intl = useIntl()
 
-    useEffect(() => {
-        const newProperty = board.cardProperties.find((property) => property.id === newTemplateId)
+    createEffect(() => {
+        const newProperty = props.board.cardProperties.find((property) => property.id === newTemplateId())
         if (newProperty) {
             setNewTemplateId('')
         }
-    }, [newTemplateId, board.cardProperties])
+    })
 
-    const [confirmationDialogBox, setConfirmationDialogBox] = useState<ConfirmationDialogBoxProps>({heading: '', onConfirm: () => {}, onClose: () => {}})
-    const [showConfirmationDialog, setShowConfirmationDialog] = useState<boolean>(false)
+    const [confirmationDialogBox, setConfirmationDialogBox] = createSignal<ConfirmationDialogBoxProps>({heading: '', onConfirm: () => {}, onClose: () => {}})
+    const [showConfirmationDialog, setShowConfirmationDialog] = createSignal<boolean>(false)
 
     function onPropertyChangeSetAndOpenConfirmationDialog(newType: PropertyType, newName: string, propertyTemplate: IPropertyTemplate) {
+        const {board, cards} = props
         const oldType = propRegistry.get(propertyTemplate.type)
 
         // do nothing if no change
@@ -101,6 +102,8 @@ const CardDetailProperties = (props: Props) => {
     }
 
     function onPropertyDeleteSetAndOpenConfirmationDialog(propertyTemplate: IPropertyTemplate) {
+        const {board, views, cards} = props
+
         // set ConfirmationDialogBox Props
         setConfirmationDialogBox({
             heading: intl.formatMessage({id: 'CardDetailProperty.confirm-delete-heading', defaultMessage: 'Confirm delete property'}),
@@ -129,74 +132,82 @@ const CardDetailProperties = (props: Props) => {
     }
 
     return (
-        <div className='octo-propertylist CardDetailProperties'>
-            {board.cardProperties.map((propertyTemplate: IPropertyTemplate) => {
-                return (
+        <div class='octo-propertylist CardDetailProperties'>
+            <For each={props.board.cardProperties}>
+                {(propertyTemplate: IPropertyTemplate) => (
                     <div
-                        key={propertyTemplate.id + '-' + propertyTemplate.type}
-                        className='octo-propertyrow'
+                        class='octo-propertyrow'
                     >
-                        {(props.readonly || !canEditBoardProperties) && <div className='octo-propertyname octo-propertyname--readonly'>{propertyTemplate.name}</div>}
-                        {!props.readonly && canEditBoardProperties &&
-                            <MenuWrapper isOpen={propertyTemplate.id === newTemplateId}>
-                                <div className='octo-propertyname'><Button>{propertyTemplate.name}</Button></div>
-                                <PropertyMenu
-                                    propertyId={propertyTemplate.id}
-                                    propertyName={propertyTemplate.name}
-                                    propertyType={propRegistry.get(propertyTemplate.type)}
-                                    onTypeAndNameChanged={(newType: PropertyType, newName: string) => onPropertyChangeSetAndOpenConfirmationDialog(newType, newName, propertyTemplate)}
-                                    onDelete={() => onPropertyDeleteSetAndOpenConfirmationDialog(propertyTemplate)}
-                                />
+                        <Show
+                            when={!props.readonly && canEditBoardProperties()}
+                            fallback={<div class='octo-propertyname octo-propertyname--readonly'>{propertyTemplate.name}</div>}
+                        >
+                            <MenuWrapper
+                                isOpen={propertyTemplate.id === newTemplateId()}
+                                menu={
+                                    <PropertyMenu
+                                        propertyId={propertyTemplate.id}
+                                        propertyName={propertyTemplate.name}
+                                        propertyType={propRegistry.get(propertyTemplate.type)}
+                                        onTypeAndNameChanged={(newType: PropertyType, newName: string) => onPropertyChangeSetAndOpenConfirmationDialog(newType, newName, propertyTemplate)}
+                                        onDelete={() => onPropertyDeleteSetAndOpenConfirmationDialog(propertyTemplate)}
+                                    />
+                                }
+                            >
+                                <div class='octo-propertyname'><Button>{propertyTemplate.name}</Button></div>
                             </MenuWrapper>
-                        }
+                        </Show>
                         <PropertyValueElement
-                            readOnly={props.readonly || !canEditBoardCards}
-                            card={card}
-                            board={board}
+                            readOnly={props.readonly || !canEditBoardCards()}
+                            card={props.card}
+                            board={props.board}
                             propertyTemplate={propertyTemplate}
                             showEmptyPlaceholder={true}
                         />
                     </div>
-                )
-            })}
+                )}
+            </For>
 
-            {showConfirmationDialog && (
+            <Show when={showConfirmationDialog()}>
                 <ConfirmationDialogBox
-                    dialogBox={confirmationDialogBox}
+                    dialogBox={confirmationDialogBox()}
                 />
-            )}
+            </Show>
 
-            {!props.readonly && canEditBoardProperties &&
-                <div className='octo-propertyname add-property'>
-                    <MenuWrapper>
+            <Show when={!props.readonly && canEditBoardProperties()}>
+                <div class='octo-propertyname add-property'>
+                    <MenuWrapper
+                        menu={
+                            <Menu>
+                                <PropertyTypes
+                                    label={intl.formatMessage({id: 'PropertyMenu.selectType', defaultMessage: 'Select property type'})}
+                                    onTypeSelected={async (type) => {
+                                        const template: IPropertyTemplate = {
+                                            id: Utils.createGuid(IDType.BlockID),
+                                            name: type.displayName(intl),
+                                            type: type.type,
+                                            options: [],
+                                        }
+                                        const templateId = await mutator.insertPropertyTemplate(props.board, props.activeView, -1, template)
+                                        setNewTemplateId(templateId)
+                                    }}
+                                />
+                            </Menu>
+                        }
+                    >
                         <Button>
                             <FormattedMessage
                                 id='CardDetail.add-property'
                                 defaultMessage='+ Add a property'
                             />
                         </Button>
-                        <Menu>
-                            <PropertyTypes
-                                label={intl.formatMessage({id: 'PropertyMenu.selectType', defaultMessage: 'Select property type'})}
-                                onTypeSelected={async (type) => {
-                                    const template: IPropertyTemplate = {
-                                        id: Utils.createGuid(IDType.BlockID),
-                                        name: type.displayName(intl),
-                                        type: type.type,
-                                        options: [],
-                                    }
-                                    const templateId = await mutator.insertPropertyTemplate(board, activeView, -1, template)
-                                    setNewTemplateId(templateId)
-                                }}
-                            />
-                        </Menu>
                     </MenuWrapper>
 
                     <AddPropertiesTourStep/>
                 </div>
-            }
+            </Show>
         </div>
     )
 }
 
-export default React.memo(CardDetailProperties)
+export default CardDetailProperties

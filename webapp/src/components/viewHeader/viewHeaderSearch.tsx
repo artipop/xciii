@@ -1,36 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState, useRef, useEffect} from 'react'
-import {useRouteMatch} from 'react-router-dom'
-import {useIntl} from 'react-intl'
+import {createEffect, createSignal, onCleanup} from 'solid-js'
+import type {JSX} from 'solid-js'
 import debounce from 'lodash/debounce'
 
-import {useHotkeys} from '../../hooks/hotkeys'
-import CompassIcon from '../../widgets/icons/compassIcon'
-import Editable from '../../widgets/editable'
+import {useIntl} from '../../intl'
 
-import {useAppSelector, useAppDispatch} from '../../store/hooks'
-import {getSearchText, setSearchText} from '../../store/searchText'
+import {useHotkeys} from '../../hooks/hotkeys'
+import {useRouteMatch} from '../../hooks/routerMatch'
+import CompassIcon from '../../widgets/icons/compassIcon'
+import Editable, {Focusable} from '../../widgets/editable'
+
+import {useAppSelector, useAppStore} from '../../store/hooks'
+import {getSearchText} from '../../store/searchText'
 
 const ViewHeaderSearch = (): JSX.Element => {
     const searchText = useAppSelector<string>(getSearchText)
-    const dispatch = useAppDispatch()
+    const {actions} = useAppStore()
     const intl = useIntl()
-    const match = useRouteMatch<{viewId?: string}>()
+    const match = useRouteMatch()
 
-    const searchFieldRef = useRef<{focus(selectAll?: boolean): void}>(null)
-    const [searchValue, setSearchValue] = useState(searchText)
-    const [currentView, setCurrentView] = useState(match.params?.viewId)
+    let searchFieldRef: Focusable | undefined
+    const [searchValue, setSearchValue] = createSignal(searchText())
+    const [currentView, setCurrentView] = createSignal(match().params.viewId)
 
     const dispatchSearchText = (value: string) => {
-        dispatch(setSearchText(value))
+        actions.searchText.setSearchText(value)
     }
 
     const debouncedDispatchSearchText = debounce(dispatchSearchText, 200)
 
-    useEffect(() => {
-        const viewId = match.params?.viewId
-        if (viewId !== currentView) {
+    createEffect(() => {
+        const viewId = match().params.viewId
+        if (viewId !== currentView()) {
             setCurrentView(viewId)
             setSearchValue('')
 
@@ -39,27 +41,27 @@ const ViewHeaderSearch = (): JSX.Element => {
             debouncedDispatchSearchText.cancel()
             dispatchSearchText('')
         }
-    }, [match.url])
+    })
 
-    useEffect(() => {
-        return () => {
-            debouncedDispatchSearchText.cancel()
-        }
-    }, [])
+    onCleanup(() => {
+        debouncedDispatchSearchText.cancel()
+    })
 
     useHotkeys('ctrl+shift+f,cmd+shift+f', () => {
-        searchFieldRef.current?.focus(true)
+        searchFieldRef?.focus(true)
     })
 
     return (
-        <div className='board-search-field'>
+        <div class='board-search-field'>
             <CompassIcon
                 icon='magnify'
                 className='board-search-icon'
             />
             <Editable
-                ref={searchFieldRef}
-                value={searchValue}
+                ref={(f) => {
+                    searchFieldRef = f
+                }}
+                value={searchValue()}
                 placeholderText={intl.formatMessage({id: 'ViewHeader.search-text', defaultMessage: 'Search cards'})}
                 onChange={(value) => {
                     setSearchValue(value)
@@ -70,7 +72,7 @@ const ViewHeaderSearch = (): JSX.Element => {
                     debouncedDispatchSearchText('')
                 }}
                 onSave={() => {
-                    debouncedDispatchSearchText(searchValue)
+                    debouncedDispatchSearchText(searchValue())
                 }}
             />
         </div>

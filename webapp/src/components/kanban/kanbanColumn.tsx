@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
+
+import type {ParentComponent} from 'solid-js'
 
 import {useDropZone} from '../../hooks/sortable'
 
@@ -9,24 +10,26 @@ import './kanbanColumn.scss'
 
 type Props = {
     onDrop: (card: Card) => void
-    children: React.ReactNode
 }
 
-const KanbanColumn = (props: Props) => {
-    const [isOver, drop] = useDropZone<Card>('card', true, props.onDrop)
+const KanbanColumn: ParentComponent<Props> = (props) => {
+    const [isOver, drop] = useDropZone<Card>('card', () => true, (card) => props.onDrop(card))
 
-    let className = 'octo-board-column'
-    if (isOver) {
-        className += ' dragover'
+    const className = () => {
+        let name = 'octo-board-column'
+        if (isOver()) {
+            name += ' dragover'
+        }
+        return name
     }
     return (
         <div
             ref={drop}
-            className={className}
+            class={className()}
         >
             {props.children}
         </div>
     )
 }
 
-export default React.memo(KanbanColumn)
+export default KanbanColumn

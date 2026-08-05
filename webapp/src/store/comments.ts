@@ -1,36 +1,56 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction, createSelector} from '@reduxjs/toolkit'
+import {produce} from 'solid-js/store'
 
 import {CommentBlock} from '../blocks/commentBlock'
+import {Block} from '../blocks/block'
 
-import {loadBoardData, initialReadOnlyLoad} from './initialLoad'
+import type {StoreContext} from './context'
 
-import {RootState} from './index'
+import type {RootState} from './index'
 
-type CommentsState = {
+export type CommentsState = {
     comments: {[key: string]: CommentBlock}
     commentsByCard: {[key: string]: CommentBlock[]}
 }
 
-const commentsSlice = createSlice({
-    name: 'comments',
-    initialState: {comments: {}, commentsByCard: {}} as CommentsState,
-    reducers: {
-        updateComments: (state, action: PayloadAction<CommentBlock[]>) => {
-            for (const comment of action.payload) {
+export const initialCommentsState = (): CommentsState => ({comments: {}, commentsByCard: {}})
+
+// Full board (re)loads rebuild both maps from the block list.
+export const commentsFromBlocks = (blocks: Block[]): CommentsState => {
+    const next: CommentsState = {comments: {}, commentsByCard: {}}
+    for (const block of blocks) {
+        if (block.type === 'comment') {
+            next.comments[block.id] = block as CommentBlock
+            next.commentsByCard[block.parentId] = next.commentsByCard[block.parentId] || []
+            next.commentsByCard[block.parentId].push(block as CommentBlock)
+        }
+    }
+    Object.values(next.commentsByCard).forEach((comment) => comment.sort((a, b) => a.createAt - b.createAt))
+    return next
+}
+
+export const createCommentsActions = ({setState}: StoreContext) => ({
+    updateComments(comments: CommentBlock[]) {
+        setState('comments', produce((state) => {
+            for (const comment of comments) {
                 if (comment.deleteAt === 0) {
                     state.comments[comment.id] = comment
                     if (!state.commentsByCard[comment.parentId]) {
                         state.commentsByCard[comment.parentId] = [comment]
                         return
                     }
+                    let updated = false
                     for (let i = 0; i < state.commentsByCard[comment.parentId].length; i++) {
                         if (state.commentsByCard[comment.parentId][i].id === comment.id) {
                             state.commentsByCard[comment.parentId][i] = comment
-                            return
+                            updated = true
+                            break
                         }
+                    }
+                    if (updated) {
+                        return
                     }
                     state.commentsByCard[comment.parentId].push(comment)
                 } else {
@@ -47,38 +67,12 @@ const commentsSlice = createSlice({
                     delete state.comments[comment.id]
                 }
             }
-        },
+        }))
     },
-    extraReducers: (builder) => {
-        builder.addCase(initialReadOnlyLoad.fulfilled, (state, action) => {
-            state.comments = {}
-            state.commentsByCard = {}
-            for (const block of action.payload.blocks) {
-                if (block.type === 'comment') {
-                    state.comments[block.id] = block as CommentBlock
-                    state.commentsByCard[block.parentId] = state.commentsByCard[block.parentId] || []
-                    state.commentsByCard[block.parentId].push(block as CommentBlock)
-                }
-            }
-            Object.values(state.commentsByCard).forEach((comment) => comment.sort((a, b) => a.createAt - b.createAt))
-        })
-        builder.addCase(loadBoardData.fulfilled, (state, action) => {
-            state.comments = {}
-            state.commentsByCard = {}
-            for (const block of action.payload.blocks) {
-                if (block.type === 'comment') {
-                    state.comments[block.id] = block as CommentBlock
-                    state.commentsByCard[block.parentId] = state.commentsByCard[block.parentId] || []
-                    state.commentsByCard[block.parentId].push(block as CommentBlock)
-                }
-            }
-            Object.values(state.commentsByCard).forEach((comment) => comment.sort((a, b) => a.createAt - b.createAt))
-        })
+    setComments(next: CommentsState) {
+        setState('comments', next)
     },
 })
-
-export const {updateComments} = commentsSlice.actions
-export const {reducer} = commentsSlice
 
 export function getCardComments(cardId: string): (state: RootState) => CommentBlock[] {
     return (state: RootState): CommentBlock[] => {
@@ -93,16 +87,14 @@ export function getLastCardComment(cardId: string): (state: RootState) => Commen
     }
 }
 
-export const getLastCommentByCard = createSelector(
-    (state: RootState) => state.comments?.commentsByCard || null,
-    (commentsByCard: {[key: string]: CommentBlock[]}|null): {[key: string]: CommentBlock} => {
-        const lastCommentByCard: {[key: string]: CommentBlock} = {}
-        Object.keys(commentsByCard || {}).forEach((cardId) => {
-            if (commentsByCard && commentsByCard[cardId]) {
-                const comments = commentsByCard[cardId]
-                lastCommentByCard[cardId] = comments?.[comments?.length - 1]
-            }
-        })
-        return lastCommentByCard
-    },
-)
+export const getLastCommentByCard = (state: RootState): {[key: string]: CommentBlock} => {
+    const commentsByCard = state.comments?.commentsByCard || null
+    const lastCommentByCard: {[key: string]: CommentBlock} = {}
+    Object.keys(commentsByCard || {}).forEach((cardId) => {
+        if (commentsByCard && commentsByCard[cardId]) {
+            const comments = commentsByCard[cardId]
+            lastCommentByCard[cardId] = comments?.[comments?.length - 1]
+        }
+    })
+    return lastCommentByCard
+}

@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {createRoot} from 'react-dom/client'
-import {Provider as ReduxProvider} from 'react-redux'
+import {render} from 'solid-js/web'
 import {init as initEmojiMart} from 'emoji-mart'
 import emojiMartData from '@emoji-mart/data'
 
@@ -13,6 +11,8 @@ import {importNativeAppSettings} from './nativeApp'
 import {IUser} from './user'
 import {getMe} from './store/users'
 import {useAppSelector} from './store/hooks'
+import {AppStoreProvider, createAppStore} from './store'
+import mutator from './mutator'
 
 import '@mattermost/compass-icons/css/compass-icons.css'
 
@@ -21,7 +21,6 @@ import './styles/main.scss'
 import './styles/labels.scss'
 import './styles/_markdown.scss'
 
-import store from './store'
 import WithWebSockets from './components/withWebSockets'
 
 // emoji-mart 5 persists skin/frequently-used itself, under the same `emoji-mart.*`
@@ -36,14 +35,20 @@ const MainApp = () => {
     const me = useAppSelector<IUser|null>(getMe)
 
     return (
-        <WithWebSockets userId={me?.id}>
+        <WithWebSockets userId={me()?.id}>
             <App/>
         </WithWebSockets>
     )
 }
 
-createRoot(document.getElementById('focalboard-app')!).render(
-    <ReduxProvider store={store}>
+// The store is created here, not in a module singleton, and everything that
+// writes to it from outside the component tree — the Mutator — gets its
+// actions handed over before the first render.
+const store = createAppStore()
+mutator.setActions(store.actions)
+
+render(() => (
+    <AppStoreProvider store={store}>
         <MainApp/>
-    </ReduxProvider>,
-)
+    </AppStoreProvider>
+), document.getElementById('focalboard-app')!)

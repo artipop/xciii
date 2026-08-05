@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
-import {FormattedMessage} from 'react-intl'
+import {FormattedMessage} from '../../../intl'
 
 import {useMeasurePunchouts} from '../../tutorial_tour_tip/hooks'
 
@@ -28,17 +28,16 @@ const CopyLinkTourStep = (): JSX.Element | null => {
         />
     )
 
-    const punchout = useMeasurePunchouts([`.${OnboardingCardClassName} .optionsMenu`], [])
+    const punchout = useMeasurePunchouts([`.${OnboardingCardClassName} .optionsMenu`])
 
     return (
         <TourTipRenderer
-            key='CopyLinkTourStep'
             requireCard={false}
             category={TOUR_BOARD}
             step={BoardTourSteps.COPY_LINK}
             screen={screen}
             title={title}
-            punchout={punchout}
+            punchout={punchout()}
             classname='CopyLinkTourStep'
             telemetryTag='tourPoint3b'
             placement={'right-start'}

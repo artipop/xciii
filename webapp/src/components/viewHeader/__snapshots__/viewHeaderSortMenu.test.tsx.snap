@@ -11,9 +11,11 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu 1`] = `
       class="Button active"
       type="button"
     >
+      
       <span>
         Sort
       </span>
+      
     </button>
     <div
       class="Menu noselect bottom "
@@ -45,11 +47,14 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu 1`] = `
                 >
                   Manual
                 </div>
+                
               </div>
               <div
                 class="noicon"
               />
             </div>
+          </div>
+          <div>
             <div
               aria-label="Revert"
               class="MenuOption TextOption menu-option"
@@ -70,11 +75,14 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu 1`] = `
                 >
                   Revert
                 </div>
+                
               </div>
               <div
                 class="noicon"
               />
             </div>
+          </div>
+          <div>
             <div
               class="MenuOption MenuSeparator menu-separator"
             />
@@ -100,6 +108,7 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu 1`] = `
                 >
                   Name
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -127,6 +136,7 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu 1`] = `
                 >
                   Status
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -154,6 +164,7 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu 1`] = `
                 >
                   Property 1
                 </div>
+                
               </div>
               <svg
                 class="SortDownIcon Icon"
@@ -190,6 +201,7 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu 1`] = `
                 >
                   Property 2
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -217,6 +229,7 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu 1`] = `
                 >
                   Property 3
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -250,6 +263,7 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu 1`] = `
               >
                 Cancel
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -273,10 +287,13 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu and do Name s
       class="Button active"
       type="button"
     >
+      
       <span>
         Sort
       </span>
+      
     </button>
+    
   </div>
 </div>
 `;
@@ -292,10 +309,13 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu and do manual
       class="Button active"
       type="button"
     >
+      
       <span>
         Sort
       </span>
+      
     </button>
+    
   </div>
 </div>
 `;
@@ -311,10 +331,13 @@ exports[`components/viewHeader/viewHeaderSortMenu return sort menu and do revert
       class="Button active"
       type="button"
     >
+      
       <span>
         Sort
       </span>
+      
     </button>
+    
   </div>
 </div>
 `;

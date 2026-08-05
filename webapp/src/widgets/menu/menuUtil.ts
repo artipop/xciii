@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {CSSProperties} from 'react'
+import type {JSX} from 'solid-js'
+
+// The ref shape the React version took from useRef; callers hand in
+// {current: element} so the calculation stays framework-free.
+export type AnchorRef = {current: HTMLElement | null}
 
 /**
  * Calculates the position where the menu should be open, aligning it with the
@@ -13,10 +17,10 @@ import React, {CSSProperties} from 'react'
  * @param menuMargin a safe margin value to be ensured around the menu in the calculations.
  *  this ensures the menu stick to the edges of the screen ans has some space around for ease of use.
  */
-function openUp(anchorRef: React.RefObject<HTMLElement | null>, forceBottom = false, menuMargin = 40): {openUp: boolean, style: CSSProperties} {
+function openUp(anchorRef: AnchorRef, forceBottom = false, menuMargin = 40): {openUp: boolean, style: JSX.CSSProperties} {
     const ret = {
         openUp: false,
-        style: {} as CSSProperties,
+        style: {} as JSX.CSSProperties,
     }
     if (!anchorRef.current) {
         return ret
@@ -29,15 +33,17 @@ function openUp(anchorRef: React.RefObject<HTMLElement | null>, forceBottom = fa
     const spaceOnTop = y || 0
     const spaceOnBottom = totalSpace - spaceOnTop
     ret.openUp = spaceOnTop > spaceOnBottom
+
+    // Solid does not append px to numeric style values the way React did.
     if (!forceBottom && ret.openUp) {
-        ret.style.bottom = spaceOnBottom + menuMargin
+        ret.style.bottom = `${spaceOnBottom + menuMargin}px`
     } else {
-        ret.style.top = spaceOnTop + menuMargin
+        ret.style.top = `${spaceOnTop + menuMargin}px`
     }
 
     return ret
 }
 
-export default {
-    openUp,
-}
+const MenuUtil = {openUp}
+
+export default MenuUtil

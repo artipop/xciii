@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
-
-import {Provider as ReduxProvider} from 'react-redux'
+import {render, screen, fireEvent} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
 
-import {wrapDNDIntl, mockStateStore, blocksById} from '../../testUtils'
+import {blocksById, mockAppStore, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
@@ -67,13 +65,13 @@ describe('src/components/gallery/Gallery', () => {
             },
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     beforeEach(() => {
         jest.clearAllMocks()
     })
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Gallery
                     board={board}
                     cards={[card, card2]}
@@ -85,16 +83,16 @@ describe('src/components/gallery/Gallery', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
         userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot without permissions', () => {
-        const localStore = mockStateStore([], {...state, teams: {current: undefined}})
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={localStore}>
+        const localStore = mockAppStore({...state, teams: {current: undefined}})
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={localStore}>
                 <Gallery
                     board={board}
                     cards={[card, card2]}
@@ -106,7 +104,7 @@ describe('src/components/gallery/Gallery', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonElement = screen.getAllByRole('button', {name: 'menuwrapper'})[0]
         userEvent.click(buttonElement)
@@ -114,8 +112,8 @@ describe('src/components/gallery/Gallery', () => {
     })
     test('return Gallery and click new', () => {
         const mockAddCard = jest.fn()
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Gallery
                     board={board}
                     cards={[card, card2]}
@@ -127,7 +125,7 @@ describe('src/components/gallery/Gallery', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
 
@@ -138,8 +136,8 @@ describe('src/components/gallery/Gallery', () => {
     })
 
     test('return Gallery readonly', () => {
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Gallery
                     board={board}
                     cards={[card, card2]}
@@ -151,7 +149,7 @@ describe('src/components/gallery/Gallery', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
@@ -159,8 +157,8 @@ describe('src/components/gallery/Gallery', () => {
     // TODO(react-19): see docs/npm-dependency-warnings.md -- drives react-dnd HTML5 drag events, which dnd-kit does not listen to
     // eslint-disable-next-line no-only-tests/no-only-tests
     test.skip('return Gallery and drag and drop card', async () => {
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Gallery
                     board={board}
                     cards={[card, card2]}
@@ -172,7 +170,7 @@ describe('src/components/gallery/Gallery', () => {
                     hiddenCardsCount={0}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const allGalleryCard = container.querySelectorAll('.GalleryCard')
         const drag = allGalleryCard[0]
@@ -228,9 +226,9 @@ describe('src/components/gallery/Gallery', () => {
                 },
             },
         }
-        const storeTest = mockStateStore([], stateTest)
-        const {container, getByTitle} = render(wrapDNDIntl(
-            <ReduxProvider store={storeTest}>
+        const storeTest = mockAppStore(stateTest)
+        const {container, getByTitle} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={storeTest}>
                 <Gallery
                     board={boardTest}
                     cards={[card1, card3]}
@@ -242,7 +240,7 @@ describe('src/components/gallery/Gallery', () => {
                     hiddenCardsCount={2}
                     showHiddenCardCountNotification={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         expect(getByTitle('hidden-card-count').innerHTML).toBe('<span>2</span>')
         expect(container).toMatchSnapshot()

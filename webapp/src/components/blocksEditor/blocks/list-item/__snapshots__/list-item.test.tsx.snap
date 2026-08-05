@@ -17,7 +17,6 @@ exports[`components/blocksEditor/blocks/list-item should match Input snapshot 1`
       <input
         class="ListItem"
         data-testid="list-item"
-        value="test-value"
       />
     </li>
   </ul>

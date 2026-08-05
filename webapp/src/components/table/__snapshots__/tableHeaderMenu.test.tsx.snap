@@ -32,6 +32,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, other column 1`
               >
                 Sort ascending
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -59,6 +60,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, other column 1`
               >
                 Sort descending
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -86,6 +88,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, other column 1`
               >
                 Insert left
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -113,6 +116,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, other column 1`
               >
                 Insert right
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -140,11 +144,14 @@ exports[`components/table/TableHeaderMenu should match snapshot, other column 1`
               >
                 Hide
               </div>
+              
             </div>
             <div
               class="noicon"
             />
           </div>
+        </div>
+        <div>
           <div
             aria-label="Duplicate"
             class="MenuOption TextOption menu-option"
@@ -165,11 +172,14 @@ exports[`components/table/TableHeaderMenu should match snapshot, other column 1`
               >
                 Duplicate
               </div>
+              
             </div>
             <div
               class="noicon"
             />
           </div>
+        </div>
+        <div>
           <div
             aria-label="Delete"
             class="MenuOption TextOption menu-option"
@@ -190,6 +200,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, other column 1`
               >
                 Delete
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -223,6 +234,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, other column 1`
             >
               Cancel
             </div>
+            
           </div>
           <div
             class="noicon"
@@ -266,6 +278,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, title column 1`
               >
                 Sort ascending
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -293,6 +306,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, title column 1`
               >
                 Sort descending
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -320,6 +334,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, title column 1`
               >
                 Insert left
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -347,6 +362,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, title column 1`
               >
                 Insert right
               </div>
+              
             </div>
             <div
               class="noicon"
@@ -381,6 +397,7 @@ exports[`components/table/TableHeaderMenu should match snapshot, title column 1`
             >
               Cancel
             </div>
+            
           </div>
           <div
             class="noicon"

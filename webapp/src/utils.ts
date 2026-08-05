@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {marked} from 'marked'
-import {IntlShape} from 'react-intl'
+
 import moment from 'moment'
 
-import {generatePath, match as routerMatch} from 'react-router-dom'
-
-import {History} from 'history'
+import {IntlShape} from './intl'
 
 import {IUser} from './user'
 
@@ -56,6 +54,11 @@ export const KeyCodes: Record<string, [string, number]> = {
 export const ShowUsername = 'username'
 export const ShowNicknameFullName = 'nickname_full_name'
 export const ShowFullName = 'full_name'
+
+export type RouterMatch = {
+    params: {boardId?: string, viewId?: string, cardId?: string, teamId?: string, workspaceId?: string}
+    path: string
+}
 
 class Utils {
     static createGuid(idType: IDType): string {
@@ -755,6 +758,28 @@ class Utils {
         return (Utils.isMac() && e.metaKey) || (!Utils.isMac() && e.ctrlKey && !e.altKey)
     }
 
+    // The match shape react-router's useRouteMatch used to provide; pages
+    // reconstruct it from @solidjs/router's params and route pattern.
+    // generatePath fills a v5-style pattern (:param, :param?), dropping empty
+    // optional segments — the one thing showBoard ever asked of react-router.
+    static generatePath(pattern: string, params: Record<string, string|undefined>): string {
+        const segments = pattern.split('/').map((segment) => {
+            const m = (/^:([A-Za-z0-9_]+)(\??)$/).exec(segment)
+            if (!m) {
+                return segment
+            }
+            const value = params[m[1]]
+            if (value === undefined || value === '') {
+                if (m[2] === '?') {
+                    return null
+                }
+                throw new Error(`generatePath: missing parameter ${m[1]}`)
+            }
+            return encodeURIComponent(value)
+        })
+        return segments.filter((seg) => seg !== null).join('/') || '/'
+    }
+
     static getBoardPagePath(currentPath: string) {
         if (currentPath === '/team/:teamId/new/:channelId') {
             return '/team/:teamId/:boardId?/:viewId?/:cardId?'
@@ -764,8 +789,8 @@ class Utils {
 
     static showBoard(
         boardId: string,
-        match: routerMatch<{boardId: string, viewId?: string, cardId?: string, teamId?: string}>,
-        history: History,
+        match: RouterMatch,
+        navigate: (to: string) => void,
     ) {
         // if the same board, reuse the match params
         // otherwise remove viewId and cardId, results in first view being selected
@@ -774,8 +799,8 @@ class Utils {
             params.viewId = undefined
             params.cardId = undefined
         }
-        const newPath = generatePath(Utils.getBoardPagePath(match.path), params)
-        history.push(newPath)
+        const newPath = Utils.generatePath(Utils.getBoardPagePath(match.path), params)
+        navigate(newPath)
     }
 
     static humanFileSize(bytesParam: number, si = false, dp = 1): string {

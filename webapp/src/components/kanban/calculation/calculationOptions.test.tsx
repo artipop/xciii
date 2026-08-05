@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
@@ -15,7 +14,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
     const board = TestBlockFactory.createBoard()
 
     test('base case', () => {
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <KanbanCalculationOptions
                 value={'count'}
                 property={board.cardProperties[1]}
@@ -30,7 +29,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
     })
 
     test('with menu open', () => {
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <KanbanCalculationOptions
                 value={'count'}
                 property={board.cardProperties[1]}
@@ -45,7 +44,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
     })
 
     test('with submenu open', () => {
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <KanbanCalculationOptions
                 value={'count'}
                 property={board.cardProperties[1]}
@@ -77,7 +76,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
             options: [],
         })
 
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <KanbanCalculationOptions
                 value={'count'}
                 property={boardWithProps.cardProperties[1]}
@@ -117,7 +116,7 @@ describe('components/kanban/calculations/KanbanCalculationOptions', () => {
             options: [],
         })
 
-        const component = wrapIntl(
+        const component = () => wrapIntl(() =>
             <KanbanCalculationOptions
                 value={'count'}
                 property={boardWithProps.cardProperties[1]}

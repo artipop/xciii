@@ -28,6 +28,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
       >
         title
       </div>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -82,6 +83,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Set as default
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -113,6 +115,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Edit
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -144,6 +147,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -177,6 +181,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -218,6 +223,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
       >
         title
       </div>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -272,6 +278,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Set as default
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -303,6 +310,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Edit
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -334,6 +342,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -367,6 +376,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -408,6 +418,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
       >
         title
       </div>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -422,6 +433,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
   </div>
 </div>
@@ -455,6 +467,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
       >
         title
       </div>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -509,6 +522,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Set as default
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -540,6 +554,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Edit
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -571,6 +586,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -604,6 +620,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -645,6 +662,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
       >
         title
       </div>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -699,6 +717,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Set as default
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -730,6 +749,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Edit
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -761,6 +781,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                   >
                     Delete
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -794,6 +815,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"

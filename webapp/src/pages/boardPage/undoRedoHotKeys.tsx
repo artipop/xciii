@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import {useHotkeys} from '../../hooks/hotkeys'
 import {sendFlashMessage} from '../../components/flashMessages'

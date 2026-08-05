@@ -17,7 +17,6 @@ exports[`components/blocksEditor/blocks/h1 should match Input snapshot 1`] = `
   <input
     class="H1"
     data-testid="h1"
-    value="test-value"
   />
 </div>
 `;

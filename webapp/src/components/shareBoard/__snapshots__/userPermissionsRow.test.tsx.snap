@@ -22,6 +22,8 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot 1`] 
         >
           (You)
         </strong>
+        
+        
       </div>
     </div>
     <div>
@@ -73,6 +75,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot 1`] 
                     >
                       Viewer
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -104,6 +107,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot 1`] 
                     >
                       Commenter
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -135,6 +139,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot 1`] 
                     >
                       Editor
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -172,6 +177,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot 1`] 
                     >
                       Admin
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -204,6 +210,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot 1`] 
                     >
                       Remove member
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -237,6 +244,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot 1`] 
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -246,6 +254,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot 1`] 
           </div>
         </div>
       </div>
+      
     </div>
   </div>
 </div>
@@ -273,6 +282,8 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in p
         >
           (You)
         </strong>
+        
+        
       </div>
     </div>
     <div>
@@ -324,6 +335,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in p
                     >
                       Viewer
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -355,6 +367,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in p
                     >
                       Commenter
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -386,6 +399,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in p
                     >
                       Editor
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -423,6 +437,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in p
                     >
                       Admin
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -455,6 +470,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in p
                     >
                       Remove member
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -488,6 +504,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in p
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -497,6 +514,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in p
           </div>
         </div>
       </div>
+      
     </div>
   </div>
 </div>
@@ -524,6 +542,8 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in t
         >
           (You)
         </strong>
+        
+        
       </div>
     </div>
     <div>
@@ -575,6 +595,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in t
                     >
                       Viewer
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -607,6 +628,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in t
                     >
                       Editor
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -644,6 +666,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in t
                     >
                       Admin
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -676,6 +699,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in t
                     >
                       Remove member
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -709,6 +733,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in t
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -718,6 +743,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in t
           </div>
         </div>
       </div>
+      
     </div>
   </div>
 </div>
@@ -745,6 +771,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot-admi
         >
           (You)
         </strong>
+        
         <div
           class="AdminBadge"
         >
@@ -805,6 +832,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot-admi
                     >
                       Viewer
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -836,6 +864,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot-admi
                     >
                       Commenter
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -867,6 +896,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot-admi
                     >
                       Editor
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -904,6 +934,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot-admi
                     >
                       Admin
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -936,6 +967,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot-admi
                     >
                       Remove member
                     </div>
+                    
                   </div>
                   <div
                     class="noicon"
@@ -969,6 +1001,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot-admi
                   >
                     Cancel
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -978,6 +1011,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot-admi
           </div>
         </div>
       </div>
+      
     </div>
   </div>
 </div>

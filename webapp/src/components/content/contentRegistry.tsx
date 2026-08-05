@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-/* eslint-disable react/require-optimization */
-import {type JSX} from 'react'
-import {IntlShape} from 'react-intl'
+import type {JSX} from 'solid-js'
+
+import {IntlShape} from '../../intl'
 
 import {BlockTypes} from '../../blocks/block'
 import {ContentBlock} from '../../blocks/contentBlock'

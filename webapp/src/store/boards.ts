@@ -1,25 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createSlice, PayloadAction, createAsyncThunk, createSelector} from '@reduxjs/toolkit'
+import {batch} from 'solid-js'
+import {produce} from 'solid-js/store'
 
-import {default as client} from '../octoClient'
 import {Board, BoardMember} from '../blocks/board'
 import {IUser} from '../user'
 
-import {
-    initialLoad,
-    initialReadOnlyLoad,
-    loadBoardData,
-    loadBoards,
-    loadMyBoardsMemberships,
-} from './initialLoad'
+import type {StoreContext} from './context'
 
-import {addBoardUsers, removeBoardUsersById, setBoardUsers} from './users'
+import type {RootState} from './index'
 
-import {RootState} from './index'
-
-type BoardsState = {
+export type BoardsState = {
     current: string
     loadingBoard: boolean
     linkToChannel: string
@@ -29,95 +21,41 @@ type BoardsState = {
     myBoardMemberships: {[key: string]: BoardMember}
 }
 
-export const fetchBoardMembers = createAsyncThunk(
-    'boardMembers/fetch',
-    async ({teamId, boardId}: {teamId: string, boardId: string}, thunkAPI: any) => {
-        const members = await client.getBoardMembers(teamId, boardId)
-        const users = [] as IUser[]
-        const userIDs = members.map((member) => member.userId)
+export const initialBoardsState = (): BoardsState => ({
+    current: '',
+    loadingBoard: false,
+    linkToChannel: '',
+    boards: {},
+    templates: {},
+    membersInBoards: {},
+    myBoardMemberships: {},
+})
 
-        const usersData = await client.getTeamUsersList(userIDs, teamId)
-        users.push(...usersData)
+const isDroppedMembership = (member: BoardMember): boolean =>
+    !member.schemeAdmin && !member.schemeEditor && !member.schemeViewer && !member.schemeCommenter
 
-        thunkAPI.dispatch(setBoardUsers(users))
-        return members
-    },
-)
-
-export const updateMembersEnsuringBoardsAndUsers = createAsyncThunk(
-    'updateMembersEnsuringBoardsAndUsers',
-    async (members: BoardMember[], thunkAPI: any) => {
-        const me = thunkAPI.getState().users.me
-        if (me) {
-            // ensure the boards for the new memberships get loaded or removed
-            const boards = thunkAPI.getState().boards.boards
-            const myMemberships = members.filter((m) => m.userId === me.id)
-            const boardsToUpdate: Board[] = []
-            /* eslint-disable no-await-in-loop */
-            for (const member of myMemberships) {
-                if (!member.schemeAdmin && !member.schemeEditor && !member.schemeViewer && !member.schemeCommenter) {
-                    boardsToUpdate.push({id: member.boardId, deleteAt: 1} as Board)
-                    continue
-                }
-
-                if (boards[member.boardId]) {
-                    continue
-                }
-
-                const board = await client.getBoard(member.boardId)
-                if (board) {
-                    boardsToUpdate.push(board)
-                }
-            }
-            /* eslint-enable no-await-in-loop */
-
-            thunkAPI.dispatch(updateBoards(boardsToUpdate))
-        }
-
-        // ensure the users for the new memberships get loaded
-        const boardUsers = thunkAPI.getState().users.boardUsers
-        members.forEach(async (m) => {
-            const deleted = !m.schemeAdmin && !m.schemeEditor && !m.schemeViewer && !m.schemeCommenter
-            if (deleted) {
-                thunkAPI.dispatch(removeBoardUsersById([m.userId]))
-                return
-            }
-            if (boardUsers[m.userId]) {
-                return
-            }
-
-            const board = await client.getBoard(m.boardId)
-            if (board) {
-                const user = await client.getTeamUsersList([m.userId], board.teamId)
-                if (user) {
-                    thunkAPI.dispatch(addBoardUsers(user))
-                }
-            }
-        })
-
-        return members
-    },
-)
-
-export const updateMembersHandler = (state: BoardsState, action: PayloadAction<BoardMember[]>) => {
-    if (action.payload.length === 0) {
+// Shared by updateMembers and updateMembersEnsuringBoardsAndUsers, as the
+// reducer used to be.
+const applyMembersUpdate = (state: BoardsState, members: BoardMember[]) => {
+    if (members.length === 0) {
         return
     }
 
-    const boardId = action.payload[0].boardId
+    const boardId = members[0].boardId
     const boardMembers = state.membersInBoards[boardId] || {}
+    state.membersInBoards[boardId] = boardMembers
 
-    for (const member of action.payload) {
-        if (!member.schemeAdmin && !member.schemeEditor && !member.schemeViewer && !member.schemeCommenter) {
+    for (const member of members) {
+        if (isDroppedMembership(member)) {
             delete boardMembers[member.userId]
         } else {
             boardMembers[member.userId] = member
         }
     }
 
-    for (const member of action.payload) {
+    for (const member of members) {
         if (state.myBoardMemberships[member.boardId] && state.myBoardMemberships[member.boardId].userId === member.userId) {
-            if (!member.schemeAdmin && !member.schemeEditor && !member.schemeViewer && !member.schemeCommenter) {
+            if (isDroppedMembership(member)) {
                 delete state.myBoardMemberships[member.boardId]
             } else {
                 state.myBoardMemberships[member.boardId] = member
@@ -126,127 +64,157 @@ export const updateMembersHandler = (state: BoardsState, action: PayloadAction<B
     }
 }
 
-const boardsSlice = createSlice({
-    name: 'boards',
-    initialState: {loadingBoard: false, linkToChannel: '', boards: {}, templates: {}, membersInBoards: {}, myBoardMemberships: {}} as BoardsState,
-    reducers: {
-        setCurrent: (state, action: PayloadAction<string>) => {
-            state.current = action.payload
-        },
-        setLinkToChannel: (state, action: PayloadAction<string>) => {
-            state.linkToChannel = action.payload
-        },
-        updateBoards: (state, action: PayloadAction<Board[]>) => {
-            for (const board of action.payload) {
-                if (board.deleteAt !== 0) {
-                    delete state.boards[board.id]
-                    delete state.templates[board.id]
-                } else if (board.isTemplate) {
-                    state.templates[board.id] = board
-                } else {
-                    state.boards[board.id] = board
-                }
-            }
-        },
-        updateMembers: updateMembersHandler,
-        addMyBoardMemberships: (state, action: PayloadAction<BoardMember[]>) => {
-            action.payload.forEach((member) => {
-                if (!member.schemeAdmin && !member.schemeEditor && !member.schemeViewer && !member.schemeCommenter) {
-                    delete state.myBoardMemberships[member.boardId]
-                } else {
-                    state.myBoardMemberships[member.boardId] = member
-                }
-            })
-        },
-    },
+export const createBoardsActions = (ctx: StoreContext) => {
+    const {state, setState, deps} = ctx
 
-    extraReducers: (builder) => {
-        builder.addCase(loadBoardData.pending, (state) => {
-            state.loadingBoard = true
-        })
-        builder.addCase(loadBoardData.fulfilled, (state) => {
-            state.loadingBoard = false
-        })
-        builder.addCase(loadBoardData.rejected, (state) => {
-            state.loadingBoard = false
-        })
-        builder.addCase(initialReadOnlyLoad.fulfilled, (state, action) => {
-            state.boards = {}
-            state.templates = {}
-            if (action.payload.board) {
-                if (action.payload.board.isTemplate) {
-                    state.templates[action.payload.board.id] = action.payload.board
-                } else {
-                    state.boards[action.payload.board.id] = action.payload.board
+    const actions = {
+        setCurrent(boardId: string) {
+            setState('boards', 'current', boardId)
+        },
+        setLinkToChannel(channelId: string) {
+            setState('boards', 'linkToChannel', channelId)
+        },
+        setLoadingBoard(loading: boolean) {
+            setState('boards', 'loadingBoard', loading)
+        },
+        updateBoards(boards: Board[]) {
+            setState('boards', produce((s) => {
+                for (const board of boards) {
+                    if (board.deleteAt !== 0) {
+                        delete s.boards[board.id]
+                        delete s.templates[board.id]
+                    } else if (board.isTemplate) {
+                        s.templates[board.id] = board
+                    } else {
+                        s.boards[board.id] = board
+                    }
                 }
-            }
-        })
-        builder.addCase(initialLoad.fulfilled, (state, action) => {
-            state.boards = {}
-            action.payload.boards.forEach((board) => {
-                state.boards[board.id] = board
+            }))
+        },
+        updateMembers(members: BoardMember[]) {
+            setState('boards', produce((s) => applyMembersUpdate(s, members)))
+        },
+        addMyBoardMemberships(members: BoardMember[]) {
+            setState('boards', 'myBoardMemberships', produce((memberships) => {
+                members.forEach((member) => {
+                    if (isDroppedMembership(member)) {
+                        delete memberships[member.boardId]
+                    } else {
+                        memberships[member.boardId] = member
+                    }
+                })
+            }))
+        },
+
+        // The full-load slices of this domain, called by the cross-domain
+        // loaders in initialLoad.ts.
+        setBoardsAndTemplates(boards: Board[], templates: Board[]) {
+            batch(() => {
+                setState('boards', 'boards', boards.reduce((acc: {[key: string]: Board}, b) => {
+                    acc[b.id] = b
+                    return acc
+                }, {}))
+                setState('boards', 'templates', templates.reduce((acc: {[key: string]: Board}, b) => {
+                    acc[b.id] = b
+                    return acc
+                }, {}))
             })
-            state.templates = {}
-            action.payload.boardTemplates.forEach((board) => {
-                state.templates[board.id] = board
-            })
-            state.myBoardMemberships = {}
-            action.payload.boardsMemberships.forEach((boardMember) => {
-                state.myBoardMemberships[boardMember.boardId] = boardMember
-            })
-        })
-        builder.addCase(loadBoards.fulfilled, (state, action) => {
-            state.boards = {}
-            action.payload.boards.forEach((board) => {
-                state.boards[board.id] = board
-            })
-        })
-        builder.addCase(loadMyBoardsMemberships.fulfilled, (state, action) => {
-            state.myBoardMemberships = {}
-            action.payload.boardsMemberships.forEach((boardMember) => {
-                state.myBoardMemberships[boardMember.boardId] = boardMember
-            })
-        })
-        builder.addCase(fetchBoardMembers.fulfilled, (state, action) => {
-            if (action.payload.length === 0) {
+        },
+        setMyBoardMemberships(members: BoardMember[]) {
+            setState('boards', 'myBoardMemberships', members.reduce((acc: {[key: string]: BoardMember}, m) => {
+                acc[m.boardId] = m
+                return acc
+            }, {}))
+        },
+        async fetchBoardMembers({teamId, boardId}: {teamId: string, boardId: string}, setBoardUsers: (users: IUser[]) => void): Promise<void> {
+            const members = await deps.client.getBoardMembers(teamId, boardId)
+            const userIDs = members.map((member) => member.userId)
+
+            const usersData = await deps.client.getTeamUsersList(userIDs, teamId)
+            setBoardUsers(usersData)
+
+            if (members.length === 0) {
                 return
             }
 
             // all members should belong to the same boardId, so we
             // get it from the first one
-            const boardId = action.payload[0].boardId
-            const boardMembersMap = action.payload.reduce((acc: {[key: string]: BoardMember}, val: BoardMember) => {
+            const membersBoardId = members[0].boardId
+            const boardMembersMap = members.reduce((acc: {[key: string]: BoardMember}, val: BoardMember) => {
                 acc[val.userId] = val
                 return acc
             }, {})
-            state.membersInBoards[boardId] = boardMembersMap
-        })
-        builder.addCase(updateMembersEnsuringBoardsAndUsers.fulfilled, updateMembersHandler)
-    },
-})
+            setState('boards', 'membersInBoards', membersBoardId, boardMembersMap)
+        },
+        async updateMembersEnsuringBoardsAndUsers(
+            members: BoardMember[],
+            userActions: {addBoardUsers: (users: IUser[]) => void, removeBoardUsersById: (ids: string[]) => void},
+        ): Promise<void> {
+            const me = state.users.me
+            if (me) {
+                // ensure the boards for the new memberships get loaded or removed
+                const boards = state.boards.boards
+                const myMemberships = members.filter((m) => m.userId === me.id)
+                const boardsToUpdate: Board[] = []
+                /* eslint-disable no-await-in-loop */
+                for (const member of myMemberships) {
+                    if (isDroppedMembership(member)) {
+                        boardsToUpdate.push({id: member.boardId, deleteAt: 1} as Board)
+                        continue
+                    }
 
-export const {updateBoards, setCurrent, setLinkToChannel, updateMembers, addMyBoardMemberships} = boardsSlice.actions
-export const {reducer} = boardsSlice
+                    if (boards[member.boardId]) {
+                        continue
+                    }
+
+                    const board = await deps.client.getBoard(member.boardId)
+                    if (board) {
+                        boardsToUpdate.push(board)
+                    }
+                }
+                /* eslint-enable no-await-in-loop */
+
+                actions.updateBoards(boardsToUpdate)
+            }
+
+            // ensure the users for the new memberships get loaded
+            const boardUsers = state.users.boardUsers
+            members.forEach(async (m) => {
+                if (isDroppedMembership(m)) {
+                    userActions.removeBoardUsersById([m.userId])
+                    return
+                }
+                if (boardUsers[m.userId]) {
+                    return
+                }
+
+                const board = await deps.client.getBoard(m.boardId)
+                if (board) {
+                    const user = await deps.client.getTeamUsersList([m.userId], board.teamId)
+                    if (user) {
+                        userActions.addBoardUsers(user)
+                    }
+                }
+            })
+
+            actions.updateMembers(members)
+        },
+    }
+    return actions
+}
 
 export const getBoards = (state: RootState): {[key: string]: Board} => state.boards?.boards || {}
 
-export const getMySortedBoards = createSelector(
-    getBoards,
-    (state: RootState): {[key: string]: BoardMember} => state.boards?.myBoardMemberships || {},
-    (boards, myBoardMemberships: {[key: string]: BoardMember}) => {
-        return Object.values(boards).filter((b) => myBoardMemberships[b.id]).
-            sort((a, b) => a.title.localeCompare(b.title))
-    },
-)
+export const getMySortedBoards = (state: RootState): Board[] => {
+    const myBoardMemberships = state.boards?.myBoardMemberships || {}
+    return Object.values(getBoards(state)).filter((b) => myBoardMemberships[b.id]).
+        sort((a, b) => a.title.localeCompare(b.title))
+}
 
 export const getTemplates = (state: RootState): {[key: string]: Board} => state.boards.templates
 
-export const getSortedTemplates = createSelector(
-    getTemplates,
-    (templates) => {
-        return Object.values(templates).sort((a, b) => a.title.localeCompare(b.title))
-    },
-)
+export const getSortedTemplates = (state: RootState): Board[] =>
+    Object.values(getTemplates(state)).sort((a, b) => a.title.localeCompare(b.title))
 
 export function getBoard(boardId: string): (state: RootState) => Board|null {
     return (state: RootState): Board|null => {
@@ -263,22 +231,14 @@ export const isLoadingBoard = (state: RootState): boolean => state.boards.loadin
 
 export const getCurrentBoardId = (state: RootState): string => state.boards.current || ''
 
-export const getCurrentBoard = createSelector(
-    getCurrentBoardId,
-    getBoards,
-    getTemplates,
-    (boardId, boards, templates) => {
-        return boards[boardId] || templates[boardId]
-    },
-)
+export const getCurrentBoard = (state: RootState): Board => {
+    const boardId = getCurrentBoardId(state)
+    return getBoards(state)[boardId] || getTemplates(state)[boardId]
+}
 
-export const getCurrentBoardMembers = createSelector(
-    (state: RootState): string => state.boards.current,
-    (state: RootState): {[key: string]: {[key: string]: BoardMember}} => state.boards.membersInBoards,
-    (boardId: string, membersInBoards: {[key: string]: {[key: string]: BoardMember}}): {[key: string]: BoardMember} => {
-        return membersInBoards[boardId] || {}
-    },
-)
+export const getCurrentBoardMembers = (state: RootState): {[key: string]: BoardMember} => {
+    return state.boards.membersInBoards[state.boards.current] || {}
+}
 
 export function getMyBoardMembership(boardId: string): (state: RootState) => BoardMember|null {
     return (state: RootState): BoardMember|null => {

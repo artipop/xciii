@@ -1,15 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {render, screen, fireEvent} from '@solidjs/testing-library'
 
 import CheckboxBlock from '.'
 
 describe('components/blocksEditor/blocks/checkbox', () => {
     test('should match Display snapshot', async () => {
         const Component = CheckboxBlock.Display
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{value: 'test-value', checked: true}}
@@ -22,7 +21,7 @@ describe('components/blocksEditor/blocks/checkbox', () => {
 
     test('should match Display snapshot not checked', async () => {
         const Component = CheckboxBlock.Display
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{value: 'test-value', checked: false}}
@@ -35,7 +34,7 @@ describe('components/blocksEditor/blocks/checkbox', () => {
 
     test('should match Input snapshot', async () => {
         const Component = CheckboxBlock.Input
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{value: 'test-value', checked: true}}
@@ -48,7 +47,7 @@ describe('components/blocksEditor/blocks/checkbox', () => {
 
     test('should match Input snapshot not checked', async () => {
         const Component = CheckboxBlock.Input
-        const {container} = render(
+        const {container} = render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{value: 'test-value', checked: false}}
@@ -62,7 +61,7 @@ describe('components/blocksEditor/blocks/checkbox', () => {
     test('should emit onSave event on Display checkbox clicked', async () => {
         const onSave = jest.fn()
         const Component = CheckboxBlock.Display
-        render(
+        render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{value: 'test-value', checked: true}}
@@ -80,7 +79,7 @@ describe('components/blocksEditor/blocks/checkbox', () => {
     test('should emit onChange event on input change', async () => {
         const onChange = jest.fn()
         const Component = CheckboxBlock.Input
-        render(
+        render(() =>
             <Component
                 onChange={onChange}
                 value={{value: 'test-value', checked: true}}
@@ -92,14 +91,14 @@ describe('components/blocksEditor/blocks/checkbox', () => {
         expect(onChange).not.toHaveBeenCalled()
 
         const input = screen.getByTestId('checkbox-input')
-        fireEvent.change(input, {target: {value: 'test-value-'}})
+        fireEvent.input(input, {target: {value: 'test-value-'}})
         expect(onChange).toHaveBeenCalledWith({value: 'test-value-', checked: true})
     })
 
     test('should emit onChange event on checkbox click', async () => {
         const onChange = jest.fn()
         const Component = CheckboxBlock.Input
-        render(
+        render(() =>
             <Component
                 onChange={onChange}
                 value={{value: 'test-value', checked: true}}
@@ -118,7 +117,7 @@ describe('components/blocksEditor/blocks/checkbox', () => {
     test('should not emit onCancel event when value is not empty and hit backspace', async () => {
         const onCancel = jest.fn()
         const Component = CheckboxBlock.Input
-        render(
+        render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{value: 'test-value', checked: true}}
@@ -136,7 +135,7 @@ describe('components/blocksEditor/blocks/checkbox', () => {
     test('should emit onCancel event when value is empty and hit backspace', async () => {
         const onCancel = jest.fn()
         const Component = CheckboxBlock.Input
-        render(
+        render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{value: '', checked: false}}
@@ -155,7 +154,7 @@ describe('components/blocksEditor/blocks/checkbox', () => {
     test('should emit onSave event hit enter', async () => {
         const onSave = jest.fn()
         const Component = CheckboxBlock.Input
-        render(
+        render(() =>
             <Component
                 onChange={jest.fn()}
                 value={{value: 'test-value', checked: true}}

@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
 
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
 import {TestBlockFactory} from '../../../test/testBlockFactory'
 
@@ -19,7 +18,7 @@ describe('components/kanban/calculation/KanbanCalculation', () => {
     ]
 
     test('base case', () => {
-        const component = wrapIntl((
+        const component = () => wrapIntl(() => (
             <KanbanCalculation
                 cards={cards}
                 cardProperties={board.cardProperties}
@@ -38,7 +37,7 @@ describe('components/kanban/calculation/KanbanCalculation', () => {
     })
 
     test('calculations menu open', () => {
-        const component = wrapIntl((
+        const component = () => wrapIntl(() => (
             <KanbanCalculation
                 cards={cards}
                 cardProperties={board.cardProperties}
@@ -57,7 +56,7 @@ describe('components/kanban/calculation/KanbanCalculation', () => {
     })
 
     test('no menu should appear in readonly mode', () => {
-        const component = wrapIntl((
+        const component = () => wrapIntl(() => (
             <KanbanCalculation
                 cards={cards}
                 cardProperties={board.cardProperties}

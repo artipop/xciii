@@ -61,6 +61,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                     </div>
                   </div>
                 </div>
+                
               </div>
             </div>
           </div>
@@ -107,54 +108,13 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
             </span>
           </div>
         </div>
+        
+        
+        
       </div>
       <div
         class="octo-sidebar-list"
-      >
-        <div>
-          <div
-            class="SidebarCategory"
-          >
-            <div
-              class="categoryBoardsDroppableArea draggingOver"
-            >
-              <div
-                class="octo-sidebar-item category expanded active"
-              >
-                <div
-                  class="octo-sidebar-title category-title"
-                  title="Category 1"
-                >
-                  <i
-                    class="CompassIcon icon-chevron-right ChevronRightIcon"
-                  />
-                  Category 1
-                  <div
-                    class="sidebarCategoriesTour"
-                  />
-                </div>
-                <div
-                  class=""
-                >
-                  <div
-                    aria-label="menuwrapper"
-                    class="MenuWrapper"
-                    role="button"
-                  >
-                    <button
-                      type="button"
-                    >
-                      <i
-                        class="CompassIcon icon-dots-horizontal OptionsIcon"
-                      />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      />
       <div
         class="octo-spacer"
       />
@@ -176,15 +136,20 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
           >
             Settings
           </div>
+          
         </div>
       </div>
     </div>
     <div
       class="mainFrame"
     >
+      
+      
       <div
         class="BoardComponent"
       >
+        
+        
         <div
           class="top-head"
         >
@@ -218,6 +183,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
               <div
                 class="add-buttons add-visible"
               >
+                
                 <button
                   type="button"
                 >
@@ -227,7 +193,9 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                   <span>
                     hide description
                   </span>
+                  
                 </button>
+                
               </div>
               <div
                 class="title"
@@ -247,6 +215,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                         i
                       </span>
                     </div>
+                    
                   </div>
                 </div>
                 <input
@@ -254,7 +223,6 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                   placeholder="Untitled board"
                   spellcheck="true"
                   title="board title"
-                  value="board title"
                 />
               </div>
               <div
@@ -286,8 +254,12 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                   <span>
                     Share
                   </span>
+                  
                 </button>
+                
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -301,7 +273,6 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                 placeholder="Untitled View"
                 spellcheck="true"
                 title="view title"
-                value="view title"
               />
               <div>
                 <div
@@ -316,7 +287,9 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                       class="CompassIcon icon-chevron-down DropdownIcon"
                     />
                   </button>
+                  
                 </div>
+                
               </div>
             </div>
             <div
@@ -330,10 +303,13 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Properties
                 </span>
+                
               </button>
+              
             </div>
             <div
               aria-label="menuwrapper"
@@ -343,16 +319,19 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Group by: 
                   <span
                     id="groupByLabel"
-                    style="color: rgb(var(--center-channel-color-rgb));"
+                    style="color:rgb(var(--center-channel-color-rgb))"
                   >
                     Property 2
                   </span>
                 </span>
+                
               </button>
+              
             </div>
             <div
               class="ModalWrapper"
@@ -360,9 +339,11 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Filter
                 </span>
+                
               </button>
             </div>
             <div
@@ -373,10 +354,13 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Sort
                 </span>
+                
               </button>
+              
             </div>
             <div
               class="board-search-field"
@@ -387,6 +371,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
               <input
                 class="Editable "
                 placeholder="Search cards"
+                title=""
               />
             </div>
             <div
@@ -404,6 +389,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
             </div>
             <div
@@ -426,6 +412,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                     class="CompassIcon icon-chevron-down DropdownIcon"
                   />
                 </div>
+                
               </div>
             </div>
           </div>
@@ -447,6 +434,8 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
               >
                 No Property 2
               </span>
+              
+              
               <div
                 class="KanbanCalculation"
               >
@@ -454,11 +443,15 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                   title="3"
                   type="button"
                 >
+                  
                   <span>
                     3
                   </span>
+                  
                 </button>
+                
               </div>
+              
               <div
                 class="octo-spacer"
               />
@@ -474,6 +467,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 type="button"
@@ -482,11 +476,14 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                   class="CompassIcon icon-plus AddIcon"
                 />
               </button>
+              
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
               style="opacity: 1;"
             >
+              
+              
               <span
                 class="Label propColorBlue "
               >
@@ -495,7 +492,6 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                   placeholder="New Select"
                   spellcheck="true"
                   title="value 2"
-                  value="value 2"
                 />
               </span>
               <div
@@ -505,11 +501,15 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                   title="0"
                   type="button"
                 >
+                  
                   <span>
                     0
                   </span>
+                  
                 </button>
+                
               </div>
+              
               <div
                 class="octo-spacer"
               />
@@ -525,6 +525,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 type="button"
@@ -533,16 +534,20 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                   class="CompassIcon icon-plus AddIcon"
                 />
               </button>
+              
             </div>
+            
             <div
               class="octo-board-header-cell narrow"
             >
               <button
                 type="button"
               >
+                
                 <span>
                   + Add a group
                 </span>
+                
               </button>
             </div>
           </div>
@@ -569,6 +574,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                       class="CompassIcon icon-dots-horizontal OptionsIcon"
                     />
                   </button>
+                  
                 </div>
                 <div
                   class="octo-icontitle"
@@ -594,6 +600,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
               <div
                 class="KanbanCard"
@@ -611,6 +618,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                       class="CompassIcon icon-dots-horizontal OptionsIcon"
                     />
                   </button>
+                  
                 </div>
                 <div
                   class="octo-icontitle"
@@ -636,6 +644,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
               <div
                 class="KanbanCard"
@@ -653,6 +662,7 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                       class="CompassIcon icon-dots-horizontal OptionsIcon"
                     />
                   </button>
+                  
                 </div>
                 <div
                   class="octo-icontitle"
@@ -678,13 +688,16 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
               <button
                 type="button"
               >
+                
                 <span>
                   + New
                 </span>
+                
               </button>
             </div>
             <div
@@ -693,13 +706,17 @@ exports[`src/components/workspace return workspace and showcard 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   + New
                 </span>
+                
               </button>
             </div>
+            
           </div>
         </div>
+        
       </div>
     </div>
   </div>
@@ -711,12 +728,17 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
   <div
     class="Workspace"
   >
+    
     <div
       class="mainFrame"
     >
+      
+      
       <div
         class="BoardComponent"
       >
+        
+        
         <div
           class="top-head"
         >
@@ -749,7 +771,11 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
             >
               <div
                 class="add-buttons add-visible"
-              />
+              >
+                
+                
+                
+              </div>
               <div
                 class="title"
               >
@@ -770,7 +796,6 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
                   readonly=""
                   spellcheck="true"
                   title="board title"
-                  value="board title"
                 />
               </div>
               <div
@@ -789,6 +814,7 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
             <div
               class="shareButtonWrapper"
             >
+              
               <div
                 class="ShareBoardLoginButton"
               >
@@ -796,11 +822,14 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
                   title="Login"
                   type="button"
                 >
+                  
                   <span>
                     Login
                   </span>
+                  
                 </button>
               </div>
+              
             </div>
           </div>
           <div
@@ -815,12 +844,13 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
                 readonly=""
                 spellcheck="true"
                 title="view title"
-                value="view title"
               />
+              
             </div>
             <div
               class="octo-spacer"
             />
+            
             <div
               class="board-search-field"
             >
@@ -830,8 +860,10 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
               <input
                 class="Editable "
                 placeholder="Search cards"
+                title=""
               />
             </div>
+            
           </div>
         </div>
         <div
@@ -851,6 +883,8 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
               >
                 No Property 2
               </span>
+              
+              
               <div
                 class="KanbanCalculation"
               >
@@ -858,19 +892,27 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
                   title="3"
                   type="button"
                 >
+                  
                   <span>
                     3
                   </span>
+                  
                 </button>
+                
               </div>
+              
               <div
                 class="octo-spacer"
               />
+              
+              
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
               style="opacity: 1;"
             >
+              
+              
               <span
                 class="Label propColorBlue "
               >
@@ -880,7 +922,6 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
                   readonly=""
                   spellcheck="true"
                   title="value 2"
-                  value="value 2"
                 />
               </span>
               <div
@@ -890,15 +931,23 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
                   title="0"
                   type="button"
                 >
+                  
                   <span>
                     0
                   </span>
+                  
                 </button>
+                
               </div>
+              
               <div
                 class="octo-spacer"
               />
+              
+              
             </div>
+            
+            
           </div>
           <div
             class="octo-board-body"
@@ -911,6 +960,7 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   class="octo-icontitle"
                 >
@@ -935,11 +985,13 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
               <div
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   class="octo-icontitle"
                 >
@@ -964,11 +1016,13 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
               <div
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   class="octo-icontitle"
                 >
@@ -993,13 +1047,16 @@ exports[`src/components/workspace return workspace readonly and showcard 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
             </div>
             <div
               class="octo-board-column"
             />
+            
           </div>
         </div>
+        
       </div>
     </div>
   </div>
@@ -1011,9 +1068,14 @@ exports[`src/components/workspace return workspace with BoardTemplateSelector co
   <div
     class="Workspace"
   >
+    
     <div
       class="mainFrame"
-    />
+    >
+      
+      
+      
+    </div>
   </div>
 </div>
 `;
@@ -1079,6 +1141,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
                     </div>
                   </div>
                 </div>
+                
               </div>
             </div>
           </div>
@@ -1125,13 +1188,16 @@ exports[`src/components/workspace should match snapshot 1`] = `
             </span>
           </div>
         </div>
+        
+        
+        
       </div>
       <div
         class="octo-sidebar-list"
       >
         <div>
           <div
-            class="SidebarCategory"
+            class="SidebarCategory draggingOver"
           >
             <div
               class="categoryBoardsDroppableArea draggingOver"
@@ -1154,6 +1220,8 @@ exports[`src/components/workspace should match snapshot 1`] = `
                 <div
                   class=""
                 >
+                  
+                  
                   <div
                     aria-label="menuwrapper"
                     class="MenuWrapper"
@@ -1166,9 +1234,17 @@ exports[`src/components/workspace should match snapshot 1`] = `
                         class="CompassIcon icon-dots-horizontal OptionsIcon"
                       />
                     </button>
+                    
                   </div>
                 </div>
               </div>
+              
+              
+              
+              
+              
+              
+              
             </div>
           </div>
         </div>
@@ -1194,15 +1270,20 @@ exports[`src/components/workspace should match snapshot 1`] = `
           >
             Settings
           </div>
+          
         </div>
       </div>
     </div>
     <div
       class="mainFrame"
     >
+      
+      
       <div
         class="BoardComponent"
       >
+        
+        
         <div
           class="top-head"
         >
@@ -1236,6 +1317,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
               <div
                 class="add-buttons add-visible"
               >
+                
                 <button
                   type="button"
                 >
@@ -1245,7 +1327,9 @@ exports[`src/components/workspace should match snapshot 1`] = `
                   <span>
                     hide description
                   </span>
+                  
                 </button>
+                
               </div>
               <div
                 class="title"
@@ -1265,6 +1349,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
                         i
                       </span>
                     </div>
+                    
                   </div>
                 </div>
                 <input
@@ -1272,7 +1357,6 @@ exports[`src/components/workspace should match snapshot 1`] = `
                   placeholder="Untitled board"
                   spellcheck="true"
                   title="board title"
-                  value="board title"
                 />
               </div>
               <div
@@ -1304,8 +1388,12 @@ exports[`src/components/workspace should match snapshot 1`] = `
                   <span>
                     Share
                   </span>
+                  
                 </button>
+                
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -1319,7 +1407,6 @@ exports[`src/components/workspace should match snapshot 1`] = `
                 placeholder="Untitled View"
                 spellcheck="true"
                 title="view title"
-                value="view title"
               />
               <div>
                 <div
@@ -1334,7 +1421,9 @@ exports[`src/components/workspace should match snapshot 1`] = `
                       class="CompassIcon icon-chevron-down DropdownIcon"
                     />
                   </button>
+                  
                 </div>
+                
               </div>
             </div>
             <div
@@ -1348,10 +1437,13 @@ exports[`src/components/workspace should match snapshot 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Properties
                 </span>
+                
               </button>
+              
             </div>
             <div
               aria-label="menuwrapper"
@@ -1361,16 +1453,19 @@ exports[`src/components/workspace should match snapshot 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Group by: 
                   <span
                     id="groupByLabel"
-                    style="color: rgb(var(--center-channel-color-rgb));"
+                    style="color:rgb(var(--center-channel-color-rgb))"
                   >
                     Property 2
                   </span>
                 </span>
+                
               </button>
+              
             </div>
             <div
               class="ModalWrapper"
@@ -1378,9 +1473,11 @@ exports[`src/components/workspace should match snapshot 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Filter
                 </span>
+                
               </button>
             </div>
             <div
@@ -1391,10 +1488,13 @@ exports[`src/components/workspace should match snapshot 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   Sort
                 </span>
+                
               </button>
+              
             </div>
             <div
               class="board-search-field"
@@ -1405,6 +1505,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
               <input
                 class="Editable "
                 placeholder="Search cards"
+                title=""
               />
             </div>
             <div
@@ -1422,6 +1523,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
             </div>
             <div
@@ -1444,6 +1546,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
                     class="CompassIcon icon-chevron-down DropdownIcon"
                   />
                 </div>
+                
               </div>
             </div>
           </div>
@@ -1465,6 +1568,8 @@ exports[`src/components/workspace should match snapshot 1`] = `
               >
                 No Property 2
               </span>
+              
+              
               <div
                 class="KanbanCalculation"
               >
@@ -1472,11 +1577,15 @@ exports[`src/components/workspace should match snapshot 1`] = `
                   title="3"
                   type="button"
                 >
+                  
                   <span>
                     3
                   </span>
+                  
                 </button>
+                
               </div>
+              
               <div
                 class="octo-spacer"
               />
@@ -1492,6 +1601,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 type="button"
@@ -1500,11 +1610,14 @@ exports[`src/components/workspace should match snapshot 1`] = `
                   class="CompassIcon icon-plus AddIcon"
                 />
               </button>
+              
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
               style="opacity: 1;"
             >
+              
+              
               <span
                 class="Label propColorBlue "
               >
@@ -1513,7 +1626,6 @@ exports[`src/components/workspace should match snapshot 1`] = `
                   placeholder="New Select"
                   spellcheck="true"
                   title="value 2"
-                  value="value 2"
                 />
               </span>
               <div
@@ -1523,11 +1635,15 @@ exports[`src/components/workspace should match snapshot 1`] = `
                   title="0"
                   type="button"
                 >
+                  
                   <span>
                     0
                   </span>
+                  
                 </button>
+                
               </div>
+              
               <div
                 class="octo-spacer"
               />
@@ -1543,6 +1659,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 type="button"
@@ -1551,16 +1668,20 @@ exports[`src/components/workspace should match snapshot 1`] = `
                   class="CompassIcon icon-plus AddIcon"
                 />
               </button>
+              
             </div>
+            
             <div
               class="octo-board-header-cell narrow"
             >
               <button
                 type="button"
               >
+                
                 <span>
                   + Add a group
                 </span>
+                
               </button>
             </div>
           </div>
@@ -1587,6 +1708,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
                       class="CompassIcon icon-dots-horizontal OptionsIcon"
                     />
                   </button>
+                  
                 </div>
                 <div
                   class="octo-icontitle"
@@ -1612,6 +1734,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
               <div
                 class="KanbanCard"
@@ -1629,6 +1752,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
                       class="CompassIcon icon-dots-horizontal OptionsIcon"
                     />
                   </button>
+                  
                 </div>
                 <div
                   class="octo-icontitle"
@@ -1654,6 +1778,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
               <div
                 class="KanbanCard"
@@ -1671,6 +1796,7 @@ exports[`src/components/workspace should match snapshot 1`] = `
                       class="CompassIcon icon-dots-horizontal OptionsIcon"
                     />
                   </button>
+                  
                 </div>
                 <div
                   class="octo-icontitle"
@@ -1696,13 +1822,16 @@ exports[`src/components/workspace should match snapshot 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
               <button
                 type="button"
               >
+                
                 <span>
                   + New
                 </span>
+                
               </button>
             </div>
             <div
@@ -1711,13 +1840,17 @@ exports[`src/components/workspace should match snapshot 1`] = `
               <button
                 type="button"
               >
+                
                 <span>
                   + New
                 </span>
+                
               </button>
             </div>
+            
           </div>
         </div>
+        
       </div>
     </div>
   </div>
@@ -1729,12 +1862,17 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
   <div
     class="Workspace"
   >
+    
     <div
       class="mainFrame"
     >
+      
+      
       <div
         class="BoardComponent"
       >
+        
+        
         <div
           class="top-head"
         >
@@ -1767,7 +1905,11 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
             >
               <div
                 class="add-buttons add-visible"
-              />
+              >
+                
+                
+                
+              </div>
               <div
                 class="title"
               >
@@ -1788,7 +1930,6 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
                   readonly=""
                   spellcheck="true"
                   title="board title"
-                  value="board title"
                 />
               </div>
               <div
@@ -1807,6 +1948,7 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
             <div
               class="shareButtonWrapper"
             >
+              
               <div
                 class="ShareBoardLoginButton"
               >
@@ -1814,11 +1956,14 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
                   title="Login"
                   type="button"
                 >
+                  
                   <span>
                     Login
                   </span>
+                  
                 </button>
               </div>
+              
             </div>
           </div>
           <div
@@ -1833,12 +1978,13 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
                 readonly=""
                 spellcheck="true"
                 title="view title"
-                value="view title"
               />
+              
             </div>
             <div
               class="octo-spacer"
             />
+            
             <div
               class="board-search-field"
             >
@@ -1848,8 +1994,10 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
               <input
                 class="Editable "
                 placeholder="Search cards"
+                title=""
               />
             </div>
+            
           </div>
         </div>
         <div
@@ -1869,6 +2017,8 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
               >
                 No Property 2
               </span>
+              
+              
               <div
                 class="KanbanCalculation"
               >
@@ -1876,19 +2026,27 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
                   title="3"
                   type="button"
                 >
+                  
                   <span>
                     3
                   </span>
+                  
                 </button>
+                
               </div>
+              
               <div
                 class="octo-spacer"
               />
+              
+              
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
               style="opacity: 1;"
             >
+              
+              
               <span
                 class="Label propColorBlue "
               >
@@ -1898,7 +2056,6 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
                   readonly=""
                   spellcheck="true"
                   title="value 2"
-                  value="value 2"
                 />
               </span>
               <div
@@ -1908,15 +2065,23 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
                   title="0"
                   type="button"
                 >
+                  
                   <span>
                     0
                   </span>
+                  
                 </button>
+                
               </div>
+              
               <div
                 class="octo-spacer"
               />
+              
+              
             </div>
+            
+            
           </div>
           <div
             class="octo-board-body"
@@ -1929,6 +2094,7 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   class="octo-icontitle"
                 >
@@ -1953,11 +2119,13 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
               <div
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   class="octo-icontitle"
                 >
@@ -1982,11 +2150,13 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
               <div
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   class="octo-icontitle"
                 >
@@ -2011,13 +2181,16 @@ exports[`src/components/workspace should match snapshot with readonly 1`] = `
                     value1
                   </div>
                 </div>
+                
               </div>
             </div>
             <div
               class="octo-board-column"
             />
+            
           </div>
         </div>
+        
       </div>
     </div>
   </div>

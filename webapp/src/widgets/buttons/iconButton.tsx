@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import './iconButton.scss'
 import {Utils} from '../../utils'
 
 type Props = {
-    onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
+    onClick?: (e: MouseEvent) => void
     title?: string
-    icon?: React.ReactNode
+    icon?: JSX.Element
     className?: string
     size?: string
     inverted?: boolean
-    onMouseDown?: (e: React.MouseEvent<HTMLButtonElement>) => void
+    onMouseDown?: (e: MouseEvent) => void
 }
 
 function IconButton(props: Props): JSX.Element {
@@ -28,7 +28,7 @@ function IconButton(props: Props): JSX.Element {
             type='button'
             onClick={props.onClick}
             onMouseDown={props.onMouseDown}
-            className={Utils.generateClassName(classNames)}
+            class={Utils.generateClassName(classNames)}
             title={props.title}
             aria-label={props.title}
         >
@@ -37,4 +37,4 @@ function IconButton(props: Props): JSX.Element {
     )
 }
 
-export default React.memo(IconButton)
+export default IconButton

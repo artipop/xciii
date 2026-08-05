@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -36,7 +35,7 @@ describe('components/acp/cardAgent', () => {
         const bindings = cardBindings()
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(<CardAgent cardId='card-1'/>))
+        render(() => wrapIntl(() => <CardAgent cardId='card-1'/>))
 
         await userEvent.click(await screen.findByText('Open terminal'))
         await waitFor(() => expect(bindings.OpenCardTerminal).toHaveBeenCalledWith('card-1', '', ''))
@@ -46,12 +45,12 @@ describe('components/acp/cardAgent', () => {
     // one to continue" and neither — it is the only place that says so.
     it('says whether a terminal is running or waiting to be continued', async () => {
         anyWindow.go = {main: {App: cardBindings({running: {id: 'term-1'}})}}
-        const {unmount} = render(wrapIntl(<CardAgent cardId='card-1'/>))
+        const {unmount} = render(() => wrapIntl(() => <CardAgent cardId='card-1'/>))
         expect(await screen.findByText('Show terminal')).toBeInTheDocument()
         unmount()
 
         anyWindow.go = {main: {App: cardBindings({resume: {available: true, cwd: '/wt/card-1'}})}}
-        render(wrapIntl(<CardAgent cardId='card-1'/>))
+        render(() => wrapIntl(() => <CardAgent cardId='card-1'/>))
         expect(await screen.findByText('Resume in terminal')).toBeInTheDocument()
     })
 
@@ -61,7 +60,7 @@ describe('components/acp/cardAgent', () => {
         const bindings = cardBindings({session: {status: 'done', branch: 'acp/fix-login-3f2a'}})
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(<CardAgent cardId='card-1'/>))
+        render(() => wrapIntl(() => <CardAgent cardId='card-1'/>))
 
         expect(await screen.findByText('acp/fix-login-3f2a')).toBeInTheDocument()
         await userEvent.click(screen.getByText('Deploy'))
@@ -72,7 +71,7 @@ describe('components/acp/cardAgent', () => {
         const bindings = cardBindings({session: {sessionId: 's1', status: 'running'}})
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(<CardAgent cardId='card-1'/>))
+        render(() => wrapIntl(() => <CardAgent cardId='card-1'/>))
 
         await userEvent.click(await screen.findByText('Cancel session'))
         await waitFor(() => expect(bindings.CancelSession).toHaveBeenCalledWith('card-1'))
@@ -85,7 +84,7 @@ describe('components/acp/cardAgent', () => {
         bindings.OpenCardTerminal = jest.fn().mockRejectedValue(new Error('карточка не указывает репозиторий'))
         anyWindow.go = {main: {App: bindings}}
 
-        render(wrapIntl(<CardAgent cardId='card-1'/>))
+        render(() => wrapIntl(() => <CardAgent cardId='card-1'/>))
 
         await userEvent.click(await screen.findByText('Open terminal'))
         expect(await screen.findByText(/не указывает репозиторий/)).toBeInTheDocument()

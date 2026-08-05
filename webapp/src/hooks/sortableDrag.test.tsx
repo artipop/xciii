@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useMemo, useState} from 'react'
-import {act, render} from '@testing-library/react'
-import {useDragDropManager, useDragDropMonitor} from '@dnd-kit/react'
+import {Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
+import {render} from '@solidjs/testing-library'
+import {useDragDropManager} from '@dnd-kit/solid'
 
 import {setupDragEnvironment, setRect, drag, flick} from '../test/dragEnvironment'
 
@@ -10,10 +11,14 @@ import {SortableProvider, useSortable, useDropZone} from './sortable'
 
 setupDragEnvironment()
 
+// Solid needs no act(): events propagate synchronously. The helpers still take
+// a wrapper so the same code serves suites that need one; this is it.
+const act = async (fn: () => Promise<void>): Promise<unknown> => fn()
+
 type Item = {id: string}
 
 function Card(props: {item: Item, onDrop: (src: Item, dst: Item) => void}) {
-    const [, , ref] = useSortable('card', props.item, true, props.onDrop)
+    const [, , ref] = useSortable('card', () => props.item, () => true, (src: Item, dst: Item) => props.onDrop(src, dst))
     return (
         <div
             ref={ref}
@@ -23,7 +28,7 @@ function Card(props: {item: Item, onDrop: (src: Item, dst: Item) => void}) {
 }
 
 function Zone(props: {onDrop: (src: Item) => void}) {
-    const [, ref] = useDropZone<Item>('card', true, props.onDrop)
+    const [, ref] = useDropZone<Item>('card', () => true, (src) => props.onDrop(src))
     return (
         <div
             ref={ref}
@@ -39,7 +44,7 @@ describe('hooks/sortable dragging', () => {
     function setup() {
         const onCard = jest.fn()
         const onZone = jest.fn()
-        const {getByTestId} = render(
+        const {getByTestId} = render(() => (
             <SortableProvider>
                 <Card
                     item={a}
@@ -50,8 +55,8 @@ describe('hooks/sortable dragging', () => {
                     onDrop={onCard}
                 />
                 <Zone onDrop={onZone}/>
-            </SortableProvider>,
-        )
+            </SortableProvider>
+        ))
         setRect(getByTestId('a'), {x: 0, y: 0, width: 100, height: 40})
         setRect(getByTestId('b'), {x: 0, y: 100, width: 100, height: 40})
         setRect(getByTestId('zone'), {x: 0, y: 200, width: 100, height: 100})
@@ -100,12 +105,12 @@ describe('hooks/sortable dragging', () => {
         const onCard = jest.fn()
         const onZone = jest.fn()
 
-        function Board(props: {probe: React.ReactNode}) {
-            const [gone, setGone] = useState(false)
+        function Board(props: {probe: JSX.Element}) {
+            const [gone, setGone] = createSignal(false)
             return (
                 <SortableProvider>
                     {props.probe}
-                    {!gone && (
+                    <Show when={!gone()}>
                         <Card
                             item={a}
                             onDrop={(src, dst) => {
@@ -113,7 +118,7 @@ describe('hooks/sortable dragging', () => {
                                 setGone(true)
                             }}
                         />
-                    )}
+                    </Show>
                     <Card
                         item={b}
                         onDrop={onCard}
@@ -130,7 +135,7 @@ describe('hooks/sortable dragging', () => {
             return null
         }
 
-        const {getByTestId} = render(<Board probe={<Probe/>}/>)
+        const {getByTestId} = render(() => <Board probe={<Probe/>}/>)
         setRect(getByTestId('a'), {x: 0, y: 0, width: 100, height: 40})
         setRect(getByTestId('b'), {x: 0, y: 100, width: 100, height: 40})
         setRect(getByTestId('zone'), {x: 0, y: 200, width: 100, height: 100})
@@ -146,69 +151,6 @@ describe('hooks/sortable dragging', () => {
 
         await drag(act, getByTestId('b'), {x: 50, y: 250})
         expect(onZone).toHaveBeenCalledWith(b)
-    })
-
-    // Between beforedragstart and dragstart the manager parks the operation in
-    // 'initializing' and waits on `renderer.rendering` before promoting it to
-    // 'dragging'. Any on* handler passed to DragDropProvider makes that promise
-    // a pending one, resolved only when a startTransition() commits -- so on a
-    // board that re-renders constantly, becoming a drag queues behind
-    // low-priority React work, and a pointerup meanwhile cancels the operation
-    // outright (`canceled = !status.initialized`). That produced a
-    // beforedragstart and a canceled dragend with no dragstart at all, which is
-    // how dragging died intermittently and then for good.
-    //
-    // The starvation itself cannot be staged in jsdom, where act() flushes
-    // everything. What can be asserted is the property whose loss allows it:
-    // when the drag begins, nothing is gating it.
-    it('does not make the start of a drag wait on a React render', async () => {
-        let gated: boolean | undefined
-
-        function Probe() {
-            const manager = useDragDropManager()
-            useDragDropMonitor(useMemo(() => ({
-                onBeforeDragStart: () => {
-                    // Read a turn late, on purpose. Effects run child-first, so
-                    // this listener is registered -- and fires -- before the
-                    // provider's own, which is what would park the promise.
-                    queueMicrotask(() => {
-                        let settled = false
-                        manager?.renderer.rendering.then(() => {
-                            settled = true
-                        })
-
-                        // Two more turns: enough for an already-resolved promise
-                        // to have run its reaction, far too early for a commit.
-                        queueMicrotask(() => queueMicrotask(() => {
-                            gated = !settled
-                        }))
-                    })
-                },
-            }), [manager]))
-            return null
-        }
-
-        const onCard = jest.fn()
-        const {getByTestId} = render(
-            <SortableProvider>
-                <Probe/>
-                <Card
-                    item={a}
-                    onDrop={onCard}
-                />
-                <Card
-                    item={b}
-                    onDrop={onCard}
-                />
-            </SortableProvider>,
-        )
-        setRect(getByTestId('a'), {x: 0, y: 0, width: 100, height: 40})
-        setRect(getByTestId('b'), {x: 0, y: 100, width: 100, height: 40})
-
-        await drag(act, getByTestId('a'), {x: 50, y: 120})
-
-        expect(gated).toBe(false)
-        expect(onCard).toHaveBeenCalledWith(a, b)
     })
 
     // The card being dragged is a drop target too, and it follows the pointer,

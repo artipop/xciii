@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render, screen, act, fireEvent} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import {mocked} from 'jest-mock'
+
 import '@testing-library/jest-dom'
-import {createIntl} from 'react-intl'
+import {createIntl} from '../../intl'
 
-import configureStore from 'redux-mock-store'
-import {Provider as ReduxProvider} from 'react-redux'
-
-import {wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import mutator from '../../mutator'
 import propsRegistry from '../../properties'
@@ -103,17 +101,15 @@ describe('components/cardDetail/CardDetailProperties', () => {
             value: {},
         },
     }
-
-    const mockStore = configureStore([])
-    let store = mockStore(state)
+    let store = mockAppStore(state)
 
     beforeEach(() => {
-        store = mockStore(state)
+        store = mockAppStore(state)
     })
 
     function renderComponent() {
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <CardDetailProperties
                     board={board!}
                     card={card}
@@ -122,7 +118,7 @@ describe('components/cardDetail/CardDetailProperties', () => {
                     views={views}
                     readonly={false}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         return render(component)
@@ -172,7 +168,7 @@ describe('components/cardDetail/CardDetailProperties', () => {
         const typeProperty = screen.getByText(/Type: Select/i)
         expect(typeProperty).toBeInTheDocument()
 
-        fireEvent.mouseOver(typeProperty)
+        userEvent.click(typeProperty)
 
         const newTypeMenu = screen.getByRole('button', {name: 'Text'})
         userEvent.click(newTypeMenu)
@@ -199,10 +195,8 @@ describe('components/cardDetail/CardDetailProperties', () => {
         const menuElement = screen.getByRole('button', {name: /add a property/i})
         userEvent.click(menuElement)
 
-        await act(async () => {
-            const numberType = screen.getByRole('button', {name: /number/i})
-            userEvent.click(numberType)
-        })
+        const numberType = screen.getByRole('button', {name: /number/i})
+        userEvent.click(numberType)
 
         expect(mockedMutator.insertPropertyTemplate).toHaveBeenCalledTimes(1)
 

@@ -1,20 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
+import {render} from '@solidjs/testing-library'
 
-import {render} from '@testing-library/react'
-
-import configureStore from 'redux-mock-store'
-
-import {Provider as ReduxProvider} from 'react-redux'
-
-import {wrapIntl} from '../../../testUtils'
+import {mockAppStore, wrapIntl} from '../../../testUtils'
+import {AppStoreProvider} from '../../../store'
 
 import AddCommentTourStep from './addComments'
 
 describe('components/onboardingTour/addComments/AddCommentTourStep', () => {
-    const mockStore = configureStore([])
     const state = {
         users: {
             me: {
@@ -42,27 +36,27 @@ describe('components/onboardingTour/addComments/AddCommentTourStep', () => {
             value: {},
         },
     }
-    let store = mockStore(state)
+    let store = mockAppStore(state)
 
     beforeEach(() => {
-        store = mockStore(state)
+        store = mockAppStore(state)
     })
 
     test('before hover', () => {
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <AddCommentTourStep/>
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
         const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
 
     test('after hover', () => {
-        const component = wrapIntl(
-            <ReduxProvider store={store}>
+        const component = () => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <AddCommentTourStep/>
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
         render(component)
         const elements = document.querySelectorAll('.AddCommentTourStep')

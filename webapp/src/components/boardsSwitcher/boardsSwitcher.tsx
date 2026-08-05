@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useEffect, useState} from 'react'
+import {Show, createSignal, onCleanup, onMount} from 'solid-js'
+import type {JSX} from 'solid-js'
 
-import {FormattedMessage, useIntl} from 'react-intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import Search from '../../widgets/icons/search'
 import CreateCategory from '../createCategory/createCategory'
@@ -25,16 +26,16 @@ import SearchForBoardsTourStep from '../../components/onboardingTour/searchForBo
 const BoardsSwitcher = (): JSX.Element => {
     const intl = useIntl()
 
-    const [showSwitcher, setShowSwitcher] = useState<boolean>(false)
+    const [showSwitcher, setShowSwitcher] = createSignal<boolean>(false)
     const onboardingTourCategory = useAppSelector(getOnboardingTourCategory)
-    const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false)
+    const [showCreateCategoryModal, setShowCreateCategoryModal] = createSignal(false)
     const onboardingTourStep = useAppSelector(getOnboardingTourStep)
     const currentCard = useAppSelector(getCurrentCard)
-    const noCardOpen = !currentCard
+    const noCardOpen = () => !currentCard()
 
-    const shouldViewSearchForBoardsTour = noCardOpen &&
-                                       onboardingTourCategory === TOUR_SIDEBAR &&
-                                       onboardingTourStep === SidebarTourSteps.SEARCH_FOR_BOARDS.toString()
+    const shouldViewSearchForBoardsTour = () => noCardOpen() &&
+                                       onboardingTourCategory() === TOUR_SIDEBAR &&
+                                       onboardingTourStep() === SidebarTourSteps.SEARCH_FOR_BOARDS.toString()
 
     // We need this keyboard handling (copied from Mattermost webapp) instead of
     // `useHotkeys`, which deliberately leaves a shortcut alone while the user is
@@ -60,21 +61,21 @@ const BoardsSwitcher = (): JSX.Element => {
         }
     }
 
-    useEffect(() => {
+    onMount(() => {
         document.addEventListener('keydown', handleQuickSwitchKeyPress)
         document.addEventListener('keydown', handleEscKeyPress)
 
         // cleanup function
-        return () => {
+        onCleanup(() => {
             document.removeEventListener('keydown', handleQuickSwitchKeyPress)
             document.removeEventListener('keydown', handleEscKeyPress)
-        }
-    }, [])
+        })
+    })
 
     return (
-        <div className='BoardsSwitcherWrapper'>
+        <div class='BoardsSwitcherWrapper'>
             <div
-                className='BoardsSwitcher'
+                class='BoardsSwitcher'
                 onClick={() => setShowSwitcher(true)}
             >
                 <Search/>
@@ -84,25 +85,24 @@ const BoardsSwitcher = (): JSX.Element => {
                     </span>
                 </div>
             </div>
-            {shouldViewSearchForBoardsTour && <div><SearchForBoardsTourStep/></div>}
-            {
-                showSwitcher &&
+            <Show when={shouldViewSearchForBoardsTour()}>
+                <div><SearchForBoardsTourStep/></div>
+            </Show>
+            <Show when={showSwitcher()}>
                 <BoardSwitcherDialog onClose={() => setShowSwitcher(false)}/>
-            }
+            </Show>
 
-            {
-                showCreateCategoryModal && (
-                    <CreateCategory
-                        onClose={() => setShowCreateCategoryModal(false)}
-                        title={(
-                            <FormattedMessage
-                                id='SidebarCategories.CategoryMenu.CreateNew'
-                                defaultMessage='Create New Category'
-                            />
-                        )}
-                    />
-                )
-            }
+            <Show when={showCreateCategoryModal()}>
+                <CreateCategory
+                    onClose={() => setShowCreateCategoryModal(false)}
+                    title={(
+                        <FormattedMessage
+                            id='SidebarCategories.CategoryMenu.CreateNew'
+                            defaultMessage='Create New Category'
+                        />
+                    )}
+                />
+            </Show>
         </div>
     )
 }

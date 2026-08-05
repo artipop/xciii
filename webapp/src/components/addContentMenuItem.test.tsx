@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import type {JSX} from 'solid-js'
 
-import React, {ReactElement, ReactNode} from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 
@@ -26,10 +26,10 @@ import {CardDetailProvider} from './cardDetail/cardDetailContext'
 
 const board = TestBlockFactory.createBoard()
 const card = TestBlockFactory.createCard(board)
-const wrap = (child: ReactNode): ReactElement => (
-    wrapIntl(
+const wrap = (child: () => JSX.Element): JSX.Element => (
+    wrapIntl(() =>
         <CardDetailProvider card={card} >
-            {child}
+            {child()}
         </CardDetailProvider>,
     )
 )
@@ -42,8 +42,8 @@ describe('components/addContentMenuItem', () => {
         jest.clearAllMocks()
     })
     test('return an image menu item', () => {
-        const {container} = render(
-            wrap(
+        const {container} = render(() =>
+            wrap(() =>
                 <AddContentMenuItem
                     type={'image'}
                     card={card}
@@ -55,8 +55,8 @@ describe('components/addContentMenuItem', () => {
     })
 
     test('return a text menu item', async () => {
-        const {container} = render(
-            wrap(
+        const {container} = render(() =>
+            wrap(() =>
                 <AddContentMenuItem
                     type={'text'}
                     card={card}
@@ -71,8 +71,8 @@ describe('components/addContentMenuItem', () => {
     })
 
     test('return a checkbox menu item', async () => {
-        const {container} = render(
-            wrap(
+        const {container} = render(() =>
+            wrap(() =>
                 <AddContentMenuItem
                     type={'checkbox'}
                     card={card}
@@ -87,8 +87,8 @@ describe('components/addContentMenuItem', () => {
     })
 
     test('return a divider menu item', async () => {
-        const {container} = render(
-            wrap(
+        const {container} = render(() =>
+            wrap(() =>
                 <AddContentMenuItem
                     type={'divider'}
                     card={card}
@@ -103,8 +103,8 @@ describe('components/addContentMenuItem', () => {
     })
 
     test('return an error and empty element from unknown type', () => {
-        const {container} = render(
-            wrap(
+        const {container} = render(() =>
+            wrap(() =>
                 <AddContentMenuItem
                     type={'unknown'}
                     card={card}

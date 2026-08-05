@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {useLayoutEffect, useMemo, useState} from 'react'
+import {createMemo, createSignal, onCleanup, onMount} from 'solid-js'
+import type {Accessor} from 'solid-js'
 import throttle from 'lodash/throttle'
 
 import useElementAvailable from './useElementAvailable'
@@ -14,20 +15,25 @@ type PunchoutOffset = {
     height: number
 }
 
-export function useMeasurePunchouts(elementIds: string[], additionalDeps: any[], offset?: PunchoutOffset): TutorialTourTipPunchout | null | undefined {
+export function useMeasurePunchouts(elementIds: string[], offset?: PunchoutOffset): Accessor<TutorialTourTipPunchout | null | undefined> {
     const elementsAvailable = useElementAvailable(elementIds)
-    const [size, setSize] = useState<DOMRect>()
+    const [size, setSize] = createSignal<DOMRect>()
     const updateSize = throttle(() => {
         setSize(document.getElementById('root')?.getBoundingClientRect())
     }, 100)
 
-    useLayoutEffect(() => {
+    onMount(() => {
         window.addEventListener('resize', updateSize)
-        return () =>
-            window.removeEventListener('resize', updateSize)
-    }, [])
+        onCleanup(() =>
+            window.removeEventListener('resize', updateSize))
+    })
 
-    const channelPunchout = useMemo(() => {
+    return createMemo(() => {
+        // Both are how the measurement learns to re-run: the window resized, or
+        // the elements finally appeared.
+        size()
+        elementsAvailable()
+
         let minX = Number.MAX_SAFE_INTEGER
         let minY = Number.MAX_SAFE_INTEGER
         let maxX = Number.MIN_SAFE_INTEGER
@@ -57,6 +63,5 @@ export function useMeasurePunchouts(elementIds: string[], additionalDeps: any[],
             width: `${(maxX - minX) + (offset ? offset.width : 0)}px`,
             height: `${(maxY - minY) + (offset ? offset.height : 0)}px`,
         }
-    }, [...elementIds, ...additionalDeps, size, elementsAvailable])
-    return channelPunchout
+    })
 }

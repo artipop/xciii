@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react'
-import {FormattedMessage} from 'react-intl'
+import {Show, createSignal} from 'solid-js'
+
+import {FormattedMessage} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
@@ -20,26 +21,26 @@ type Props = {
     enableSharedBoards: boolean
 }
 const ShareBoardButton = (props: Props) => {
-    const [showShareDialog, setShowShareDialog] = useState(false)
+    const [showShareDialog, setShowShareDialog] = createSignal(false)
     const board = useAppSelector(getCurrentBoard)
 
     const iconForBoardType = () => {
-        if (board.type === BoardTypeOpen) {
+        if (board().type === BoardTypeOpen) {
             return <Globe/>
         }
         return <LockOutline/>
     }
 
     return (
-        <div className='ShareBoardButton'>
+        <div class='ShareBoardButton'>
             <Button
                 title='Share board'
                 size='medium'
                 emphasis='primary'
                 icon={iconForBoardType()}
                 onClick={() => {
-                    TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ShareBoardOpenModal, {board: board.id})
-                    setShowShareDialog(!showShareDialog)
+                    TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ShareBoardOpenModal, {board: board().id})
+                    setShowShareDialog(!showShareDialog())
                 }}
             >
                 <FormattedMessage
@@ -47,13 +48,14 @@ const ShareBoardButton = (props: Props) => {
                     defaultMessage='Share'
                 />
             </Button>
-            {showShareDialog &&
+            <Show when={showShareDialog()}>
                 <ShareBoardDialog
                     onClose={() => setShowShareDialog(false)}
                     enableSharedBoards={props.enableSharedBoards}
-                />}
+                />
+            </Show>
         </div>
     )
 }
 
-export default React.memo(ShareBoardButton)
+export default ShareBoardButton

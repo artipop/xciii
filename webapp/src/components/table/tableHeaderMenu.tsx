@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 //
-import React, {type JSX, FC} from 'react'
-import {useIntl} from 'react-intl'
+import {Show} from 'solid-js'
+import type {Component, JSX} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import {Constants} from '../../constants'
 import {Board, IPropertyTemplate} from '../../blocks/board'
@@ -19,9 +21,10 @@ type Props = {
     cards: Card[]
 }
 
-const TableHeaderMenu: FC<Props> = (props: Props): JSX.Element => {
+const TableHeaderMenu: Component<Props> = (props: Props): JSX.Element => {
     const {board, activeView, templateId, views, cards} = props
     const intl = useIntl()
+
     return (
         <Menu>
             <Menu.Text
@@ -60,7 +63,7 @@ const TableHeaderMenu: FC<Props> = (props: Props): JSX.Element => {
                     }
                 }}
             />
-            {props.templateId !== Constants.titleColumnId &&
+            <Show when={props.templateId !== Constants.titleColumnId}>
                 <>
                     <Menu.Text
                         id='hide'
@@ -77,7 +80,8 @@ const TableHeaderMenu: FC<Props> = (props: Props): JSX.Element => {
                         name={intl.formatMessage({id: 'TableHeaderMenu.delete', defaultMessage: 'Delete'})}
                         onClick={() => mutator.deleteProperty(board, views, cards, templateId)}
                     />
-                </>}
+                </>
+            </Show>
         </Menu>
     )
 }

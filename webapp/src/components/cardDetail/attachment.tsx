@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
+import {For} from 'solid-js'
+import type {JSX} from 'solid-js'
 
-import {useIntl} from 'react-intl'
+import {useIntl} from '../../intl'
 
 import AttachmentElement from '../../components/content/attachmentElement'
 import {AttachmentBlock} from '../../blocks/attachmentBlock'
@@ -20,17 +21,16 @@ type Props = {
 }
 
 const AttachmentList = (props: Props): JSX.Element => {
-    const {attachments, onDelete, addAttachment} = props
     const intl = useIntl()
 
     return (
-        <div className='Attachment'>
-            <div className='attachment-header'>
-                <div className='attachment-title mb-2'>{intl.formatMessage({id: 'Attachment.Attachment-title', defaultMessage: 'Attachment'})} {`(${attachments.length})`}</div>
+        <div class='Attachment'>
+            <div class='attachment-header'>
+                <div class='attachment-title mb-2'>{intl.formatMessage({id: 'Attachment.Attachment-title', defaultMessage: 'Attachment'})} {`(${props.attachments.length})`}</div>
                 <BoardPermissionGate permissions={[Permission.ManageBoardCards]}>
                     <div
-                        className='attachment-plus-btn'
-                        onClick={addAttachment}
+                        class='attachment-plus-btn'
+                        onClick={props.addAttachment}
                     >
                         <CompassIcon
                             icon='plus'
@@ -39,17 +39,17 @@ const AttachmentList = (props: Props): JSX.Element => {
                     </div>
                 </BoardPermissionGate>
             </div>
-            <div className='attachment-content'>
-                {attachments.map((block: AttachmentBlock) => {
-                    return (
-                        <div key={block.id}>
+            <div class='attachment-content'>
+                <For each={props.attachments}>
+                    {(block: AttachmentBlock) => (
+                        <div>
                             <AttachmentElement
                                 block={block}
-                                onDelete={onDelete}
+                                onDelete={props.onDelete}
                             />
-                        </div>)
-                })
-                }
+                        </div>
+                    )}
+                </For>
             </div>
         </div>
     )

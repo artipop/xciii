@@ -1,103 +1,105 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useState} from 'react'
-import {Link, Redirect, useLocation, useHistory} from 'react-router-dom'
-import {FormattedMessage} from 'react-intl'
+import {Show, createSignal} from 'solid-js'
+import {A, Navigate, useLocation, useNavigate} from '@solidjs/router'
 
-import {useAppDispatch, useAppSelector} from '../store/hooks'
-import {fetchMe, getLoggedIn} from '../store/users'
+import {FormattedMessage} from '../intl'
+
+import {useAppSelector, useAppStore} from '../store/hooks'
+import {getLoggedIn} from '../store/users'
 
 import Button from '../widgets/buttons/button'
 import client from '../octoClient'
 import './loginPage.scss'
 
 const LoginPage = () => {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const [errorMessage, setErrorMessage] = useState('')
-    const dispatch = useAppDispatch()
+    const [username, setUsername] = createSignal('')
+    const [password, setPassword] = createSignal('')
+    const [errorMessage, setErrorMessage] = createSignal('')
+    const {actions} = useAppStore()
     const loggedIn = useAppSelector<boolean|null>(getLoggedIn)
     const queryParams = new URLSearchParams(useLocation().search)
-    const history = useHistory()
+    const navigate = useNavigate()
 
     const handleLogin = async (): Promise<void> => {
-        const logged = await client.login(username, password)
+        const logged = await client.login(username(), password())
         if (logged) {
-            await dispatch(fetchMe())
+            await actions.users.fetchMe()
             if (queryParams) {
-                history.push(queryParams.get('r') || '/')
+                navigate(queryParams.get('r') || '/')
             } else {
-                history.push('/')
+                navigate('/')
             }
         } else {
             setErrorMessage('Login failed')
         }
     }
 
-    if (loggedIn) {
-        return <Redirect to={'/'}/>
-    }
-
     return (
-        <div className='LoginPage'>
-            <form
-                onSubmit={(e: React.FormEvent) => {
-                    e.preventDefault()
-                    handleLogin()
-                }}
-            >
-                <div className='title'>
-                    <FormattedMessage
-                        id='login.log-in-title'
-                        defaultMessage='Log in'
-                    />
-                </div>
-                <div className='username'>
-                    <input
-                        id='login-username'
-                        placeholder={'Enter username'}
-                        value={username}
-                        onChange={(e) => {
-                            setUsername(e.target.value)
-                            setErrorMessage('')
-                        }}
-                    />
-                </div>
-                <div className='password'>
-                    <input
-                        id='login-password'
-                        type='password'
-                        placeholder={'Enter password'}
-                        value={password}
-                        onChange={(e) => {
-                            setPassword(e.target.value)
-                            setErrorMessage('')
-                        }}
-                    />
-                </div>
-                <Button
-                    filled={true}
-                    submit={true}
+        <Show
+            when={!loggedIn()}
+            fallback={<Navigate href={'/'}/>}
+        >
+            <div class='LoginPage'>
+                <form
+                    onSubmit={(e: Event) => {
+                        e.preventDefault()
+                        handleLogin()
+                    }}
                 >
+                    <div class='title'>
+                        <FormattedMessage
+                            id='login.log-in-title'
+                            defaultMessage='Log in'
+                        />
+                    </div>
+                    <div class='username'>
+                        <input
+                            id='login-username'
+                            placeholder={'Enter username'}
+                            value={username()}
+                            onInput={(e) => {
+                                setUsername(e.target.value)
+                                setErrorMessage('')
+                            }}
+                        />
+                    </div>
+                    <div class='password'>
+                        <input
+                            id='login-password'
+                            type='password'
+                            placeholder={'Enter password'}
+                            value={password()}
+                            onInput={(e) => {
+                                setPassword(e.target.value)
+                                setErrorMessage('')
+                            }}
+                        />
+                    </div>
+                    <Button
+                        filled={true}
+                        submit={true}
+                    >
+                        <FormattedMessage
+                            id='login.log-in-button'
+                            defaultMessage='Log in'
+                        />
+                    </Button>
+                </form>
+                <A href='/register'>
                     <FormattedMessage
-                        id='login.log-in-button'
-                        defaultMessage='Log in'
+                        id='login.register-button'
+                        defaultMessage={'or create an account if you don\'t have one'}
                     />
-                </Button>
-            </form>
-            <Link to='/register'>
-                <FormattedMessage
-                    id='login.register-button'
-                    defaultMessage={'or create an account if you don\'t have one'}
-                />
-            </Link>
-            {errorMessage &&
-                <div className='error'>
-                    {errorMessage}
-                </div>
-            }
-        </div>
+                </A>
+                <Show when={errorMessage()}>
+                    <div class='error'>
+                        {errorMessage()}
+                    </div>
+                </Show>
+            </div>
+        </Show>
     )
 }
 
-export default React.memo(LoginPage)
+export default LoginPage

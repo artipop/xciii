@@ -1,18 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {act, render, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import {Provider as ReduxProvider} from 'react-redux'
 
-import React from 'react'
-import {MemoryRouter} from 'react-router'
 import {mocked} from 'jest-mock'
 
 import {IUser} from '../../user'
 import {ISharing} from '../../blocks/sharing'
 import {Channel} from '../../store/channels'
 import {TestBlockFactory} from '../../test/testBlockFactory'
-import {mockStateStore, wrapDNDIntl, mockThunk as thunk} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 import client from '../../octoClient'
 import {Utils} from '../../utils'
 
@@ -30,22 +28,13 @@ jest.mock('../../utils')
 const mockedOctoClient = mocked(client)
 const mockedUtils = mocked(Utils)
 
-let params = {}
-jest.mock('react-router', () => {
-    const originalModule = jest.requireActual('react-router')
-
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {
-                url: 'http://localhost/',
-                path: '/',
-                params,
-                isExact: true,
-            }
-        }),
-    }
-})
+let mockRouteParams: Record<string, string> = {}
+jest.mock('../../hooks/routerMatch', () => ({
+    useRouteMatch: () => () => ({
+        path: '/',
+        params: mockRouteParams,
+    }),
+}))
 
 const board = TestBlockFactory.createBoard()
 board.id = boardId
@@ -182,12 +171,12 @@ describe('src/components/shareBoard/shareBoard', () => {
         },
     }
 
-    const store = mockStateStore([thunk], state)
+    const store = mockAppStore(state)
     beforeEach(() => {
         jest.clearAllMocks()
         mockedUtils.buildURL.mockImplementation((path) => (w.baseURL || '') + path)
 
-        params = {
+        mockRouteParams = {
             boardId,
             viewId,
             workspaceId,
@@ -207,20 +196,16 @@ describe('src/components/shareBoard/shareBoard', () => {
             token: '',
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
-        let container
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={store}>
-                        <ShareBoard
-                            onClose={jest.fn()}
-                            enableSharedBoards={true}
-                        />
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-        })
+        const {container} = render(() =>
+            wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <ShareBoard
+                        onClose={jest.fn()}
+                        enableSharedBoards={true}
+                    />
+                </AppStoreProvider>),
+        {wrapper: TestRouter},
+        )
 
         expect(container).toMatchSnapshot()
         const shareButton = screen.getByRole('button', {name: 'Share'})
@@ -237,20 +222,16 @@ describe('src/components/shareBoard/shareBoard', () => {
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
 
-        let container
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={store}>
-                        <ShareBoard
-                            onClose={jest.fn()}
-                            enableSharedBoards={true}
-                        />
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-        })
+        const {container} = render(() =>
+            wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <ShareBoard
+                        onClose={jest.fn()}
+                        enableSharedBoards={true}
+                    />
+                </AppStoreProvider>),
+        {wrapper: TestRouter},
+        )
         const copyLinkElement = screen.getByTitle('Copy link')
         expect(copyLinkElement).toBeDefined()
 
@@ -265,29 +246,23 @@ describe('src/components/shareBoard/shareBoard', () => {
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
 
-        let container
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={store}>
-                        <ShareBoard
-                            onClose={jest.fn()}
-                            enableSharedBoards={true}
-                        />
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-        })
+        const {container} = render(() =>
+            wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <ShareBoard
+                        onClose={jest.fn()}
+                        enableSharedBoards={true}
+                    />
+                </AppStoreProvider>),
+        {wrapper: TestRouter},
+        )
 
         expect(container).toMatchSnapshot()
 
         const copyLinkElement = screen.getByTitle('Copy link')
         expect(copyLinkElement).toBeDefined()
 
-        act(() => {
-            userEvent.click(copyLinkElement!)
-        })
+        userEvent.click(copyLinkElement!)
 
         expect(mockedUtils.copyTextToClipboard).toHaveBeenCalledTimes(1)
         expect(container).toMatchSnapshot()
@@ -307,20 +282,16 @@ describe('src/components/shareBoard/shareBoard', () => {
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
 
-        let container
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={store}>
-                        <ShareBoard
-                            onClose={jest.fn()}
-                            enableSharedBoards={true}
-                        />
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-        })
+        const {container} = render(() =>
+            wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <ShareBoard
+                        onClose={jest.fn()}
+                        enableSharedBoards={true}
+                    />
+                </AppStoreProvider>),
+        {wrapper: TestRouter},
+        )
 
         sharing.token = 'anotherToken'
         mockedUtils.createGuid.mockReturnValue('anotherToken')
@@ -330,16 +301,12 @@ describe('src/components/shareBoard/shareBoard', () => {
         const publishButton = screen.getByRole('button', {name: 'Publish'})
         expect(publishButton).toBeDefined()
         userEvent.click(publishButton)
-        await act(async () => {
-            jest.runOnlyPendingTimers()
-        })
+        jest.runOnlyPendingTimers()
 
-        const regenerateTokenElement = screen.getByRole('button', {name: 'Regenerate token'})
+        const regenerateTokenElement = await screen.findByRole('button', {name: 'Regenerate token'})
         expect(regenerateTokenElement).toBeDefined()
         userEvent.click(regenerateTokenElement)
-        await act(async () => {
-            jest.runOnlyPendingTimers()
-        })
+        jest.runOnlyPendingTimers()
         expect(mockedOctoClient.setSharing).toHaveBeenCalledTimes(1)
         expect(container).toMatchSnapshot()
     })
@@ -351,37 +318,31 @@ describe('src/components/shareBoard/shareBoard', () => {
             token: 'oneToken',
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
-        let container: Element | undefined
-        let result: {container: Element, rerender: (ui: React.ReactElement) => void} | undefined
-        await act(async () => {
-            result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={store}>
-                        <ShareBoard
-                            onClose={jest.fn()}
-                            enableSharedBoards={true}
-                        />
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-        })
+        const result = render(() =>
+            wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <ShareBoard
+                        onClose={jest.fn()}
+                        enableSharedBoards={true}
+                    />
+                </AppStoreProvider>),
+        {wrapper: TestRouter},
+        )
+        const container = result.container
 
         const publishButton = screen.getByRole('button', {name: 'Publish'})
         expect(publishButton).toBeDefined()
         userEvent.click(publishButton)
-        await act(async () => {
-            jest.runOnlyPendingTimers()
-        })
+        jest.runOnlyPendingTimers()
 
         const switchElement = container?.querySelector('.Switch')
         expect(switchElement).toBeDefined()
-        await act(async () => {
-            userEvent.click(switchElement!)
-        })
+        userEvent.click(switchElement!)
 
         expect(mockedOctoClient.setSharing).toHaveBeenCalledTimes(1)
-        expect(mockedOctoClient.getSharing).toHaveBeenCalledTimes(2)
+
+        // the re-read after the toggle sits behind the awaited setSharing
+        await waitFor(() => expect(mockedOctoClient.getSharing).toHaveBeenCalledTimes(2))
         expect(container).toMatchSnapshot()
     })
 
@@ -395,54 +356,48 @@ describe('src/components/shareBoard/shareBoard', () => {
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
         mockedUtils.createGuid.mockReturnValue('aToken')
-        let container: Element | undefined
-        let result: {container: Element, rerender: (ui: React.ReactElement) => void} | undefined
-        await act(async () => {
-            result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={store}>
-                        <ShareBoard
-                            onClose={jest.fn()}
-                            enableSharedBoards={true}
-                        />
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-            mockedOctoClient.getSharing.mockResolvedValue({
-                id: boardId,
-                enabled: true,
-                token: 'aToken',
-            })
+        const result = render(() =>
+            wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <ShareBoard
+                        onClose={jest.fn()}
+                        enableSharedBoards={true}
+                    />
+                </AppStoreProvider>),
+        {wrapper: TestRouter},
+        )
+        const container = result.container
+        mockedOctoClient.getSharing.mockResolvedValue({
+            id: boardId,
+            enabled: true,
+            token: 'aToken',
         })
 
         // React 19 commits when the act callback returns, so the rendered tree
         // is only queryable from a second one.
-        await act(async () => {
-            const publishButton = screen.getByRole('button', {name: 'Publish'})
-            expect(publishButton).toBeDefined()
-            userEvent.click(publishButton)
-            jest.runOnlyPendingTimers()
-        })
+        const publishButton = screen.getByRole('button', {name: 'Publish'})
+        expect(publishButton).toBeDefined()
+        userEvent.click(publishButton)
+        jest.runOnlyPendingTimers()
 
         // The switch only exists once publishing has committed.
-        await act(async () => {
-            const switchElement = container?.querySelector('.Switch')
-            expect(switchElement).toBeDefined()
-            userEvent.click(switchElement!)
-            jest.runOnlyPendingTimers()
-            result?.rerender(
-                wrapDNDIntl(
-                    <ReduxProvider store={store}>
-                        <ShareBoard
-                            onClose={jest.fn()}
-                            enableSharedBoards={true}
-                        />
-                    </ReduxProvider>))
-        })
+        const switchElement = container?.querySelector('.Switch')
+        expect(switchElement).toBeDefined()
+        userEvent.click(switchElement!)
+        jest.runOnlyPendingTimers()
+        result?.rerender(() =>
+            wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <ShareBoard
+                        onClose={jest.fn()}
+                        enableSharedBoards={true}
+                    />
+                </AppStoreProvider>))
 
         expect(mockedOctoClient.setSharing).toHaveBeenCalledTimes(1)
-        expect(mockedOctoClient.getSharing).toHaveBeenCalledTimes(2)
+
+        // the re-read after the toggle sits behind the awaited setSharing
+        await waitFor(() => expect(mockedOctoClient.getSharing).toHaveBeenCalledTimes(2))
         expect(mockedUtils.createGuid).toHaveBeenCalledTimes(1)
         expect(container).toMatchSnapshot()
     })
@@ -454,23 +409,19 @@ describe('src/components/shareBoard/shareBoard', () => {
             enabled: true,
             token: 'oneToken',
         }
-        params = {
+        mockRouteParams = {
             boardId,
             viewId,
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <ShareBoard
-                        onClose={jest.fn()}
-                        enableSharedBoards={true}
-                    />
-                </ReduxProvider>),
-            {wrapper: MemoryRouter})
-            container = result.container
-        })
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <ShareBoard
+                    onClose={jest.fn()}
+                    enableSharedBoards={true}
+                />
+            </AppStoreProvider>),
+        {wrapper: TestRouter})
         expect(container).toMatchSnapshot()
     })
 
@@ -482,18 +433,14 @@ describe('src/components/shareBoard/shareBoard', () => {
             token: 'oneToken',
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
-        let container
-        await act(async () => {
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <ShareBoard
-                        onClose={jest.fn()}
-                        enableSharedBoards={true}
-                    />
-                </ReduxProvider>),
-            {wrapper: MemoryRouter})
-            container = result.container
-        })
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <ShareBoard
+                    onClose={jest.fn()}
+                    enableSharedBoards={true}
+                />
+            </AppStoreProvider>),
+        {wrapper: TestRouter})
         expect(container).toMatchSnapshot()
     })
 
@@ -522,28 +469,22 @@ describe('src/components/shareBoard/shareBoard', () => {
         mockedOctoClient.searchTeamUsers.mockResolvedValue(users)
         mockedOctoClient.searchUserChannels.mockResolvedValue(channels)
 
-        let container
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={store}>
-                        <ShareBoard
-                            onClose={jest.fn()}
-                            enableSharedBoards={false}
-                        />
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-        })
+        const {container} = render(() =>
+            wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <ShareBoard
+                        onClose={jest.fn()}
+                        enableSharedBoards={false}
+                    />
+                </AppStoreProvider>),
+        {wrapper: TestRouter},
+        )
 
         expect(container).toMatchSnapshot()
-        const selectElement = screen.getByText('Search for people and channels')
+        const selectElement = await screen.findByText('Search for people and channels')
         expect(selectElement).toBeDefined()
 
-        await act(async () => {
-            userEvent.click(selectElement!)
-        })
+        userEvent.click(selectElement!)
 
         expect(container).toMatchSnapshot()
     })
@@ -571,28 +512,22 @@ describe('src/components/shareBoard/shareBoard', () => {
         mockedOctoClient.searchTeamUsers.mockResolvedValue(users)
         mockedOctoClient.searchUserChannels.mockResolvedValue(channels)
 
-        let container
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={store}>
-                        <ShareBoard
-                            onClose={jest.fn()}
-                            enableSharedBoards={false}
-                        />
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-        })
+        const {container} = render(() =>
+            wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <ShareBoard
+                        onClose={jest.fn()}
+                        enableSharedBoards={false}
+                    />
+                </AppStoreProvider>),
+        {wrapper: TestRouter},
+        )
 
         expect(container).toMatchSnapshot()
-        const selectElement = screen.getByText('Search for people and channels')
+        const selectElement = await screen.findByText('Search for people and channels')
         expect(selectElement).toBeDefined()
 
-        await act(async () => {
-            userEvent.click(selectElement!)
-        })
+        userEvent.click(selectElement!)
 
         expect(container).toMatchSnapshot()
     })
@@ -605,23 +540,25 @@ describe('src/components/shareBoard/shareBoard', () => {
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
 
-        board.isTemplate = true
-        const myStore = mockStateStore([thunk], state)
+        const templateBoard = {...board, isTemplate: true}
+        const myStore = mockAppStore({
+            ...state,
+            boards: {
+                ...state.boards,
+                boards: {[board.id]: templateBoard},
+            },
+        } as any)
 
-        let container
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={myStore}>
-                        <ShareBoard
-                            onClose={jest.fn()}
-                            enableSharedBoards={true}
-                        />
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-        })
+        const {container} = render(() =>
+            wrapDNDIntl(() =>
+                <AppStoreProvider store={myStore}>
+                    <ShareBoard
+                        onClose={jest.fn()}
+                        enableSharedBoards={true}
+                    />
+                </AppStoreProvider>),
+        {wrapper: TestRouter},
+        )
 
         expect(container).toMatchSnapshot()
         const closeButton = screen.getByRole('button', {name: 'Close dialog'})
@@ -653,31 +590,31 @@ describe('src/components/shareBoard/shareBoard', () => {
         mockedOctoClient.searchTeamUsers.mockResolvedValue(users)
         mockedOctoClient.searchUserChannels.mockResolvedValue(channels)
 
-        board.isTemplate = true
-        const myStore = mockStateStore([thunk], state)
+        const templateBoard = {...board, isTemplate: true}
+        const myStore = mockAppStore({
+            ...state,
+            boards: {
+                ...state.boards,
+                boards: {[board.id]: templateBoard},
+            },
+        } as any)
 
-        let container
-        await act(async () => {
-            const result = render(
-                wrapDNDIntl(
-                    <ReduxProvider store={myStore}>
-                        <ShareBoard
-                            onClose={jest.fn()}
-                            enableSharedBoards={false}
-                        />
-                    </ReduxProvider>),
-                {wrapper: MemoryRouter},
-            )
-            container = result.container
-        })
+        const {container} = render(() =>
+            wrapDNDIntl(() =>
+                <AppStoreProvider store={myStore}>
+                    <ShareBoard
+                        onClose={jest.fn()}
+                        enableSharedBoards={false}
+                    />
+                </AppStoreProvider>),
+        {wrapper: TestRouter},
+        )
 
         expect(container).toMatchSnapshot()
-        const selectElement = screen.getByText('Search for people')
+        const selectElement = await screen.findByText('Search for people')
         expect(selectElement).toBeDefined()
 
-        await act(async () => {
-            userEvent.click(selectElement!)
-        })
+        userEvent.click(selectElement!)
 
         expect(mockedOctoClient.searchUserChannels).not.toHaveBeenCalled()
         expect(container).toMatchSnapshot()

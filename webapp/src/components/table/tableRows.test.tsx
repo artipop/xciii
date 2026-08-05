@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
-import {fireEvent, render} from '@testing-library/react'
-import configureStore from 'redux-mock-store'
+import {fireEvent, render} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
 import 'isomorphic-fetch'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {FetchMock} from '../../test/fetchMock'
-import {wrapDNDIntl} from '../../testUtils'
+import {mockAppStore, wrapDNDIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {ColumnResizeProvider} from './tableColumnResizeContext'
 import TableRows from './tableRows'
@@ -32,8 +30,6 @@ describe('components/table/TableRows', () => {
     const card = TestBlockFactory.createCard(board)
     const cardTemplate = TestBlockFactory.createCard(board)
     cardTemplate.fields.isTemplate = true
-
-    const mockStore = configureStore([])
     const state = {
         users: {},
         comments: {
@@ -56,9 +52,9 @@ describe('components/table/TableRows', () => {
         const callback = jest.fn()
         const addCard = jest.fn()
 
-        const store = mockStore(state)
-        const component = wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const store = mockAppStore(state)
+        const component = () => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <ColumnResizeProvider
                     columnWidths={{}}
                     onResizeColumn={() => {}}
@@ -76,7 +72,7 @@ describe('components/table/TableRows', () => {
                         onDrop={jest.fn()}
                     />
                 </ColumnResizeProvider>
-            </ReduxProvider>,
+            </AppStoreProvider>,
         )
 
         const {container, getByText} = render(component)

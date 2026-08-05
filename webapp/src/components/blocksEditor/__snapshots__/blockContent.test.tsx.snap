@@ -52,10 +52,10 @@ exports[`components/blocksEditor/blockContent should match snapshot editing 1`] 
   <div
     class="Editor"
   >
+    
     <input
       class="H1"
       data-testid="h1"
-      value="Title"
     />
   </div>
 </div>

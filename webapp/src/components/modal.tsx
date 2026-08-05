@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useRef, useEffect, useCallback} from 'react'
+import {onCleanup, onMount} from 'solid-js'
+import type {ParentComponent} from 'solid-js'
 
 import IconButton from '../widgets/buttons/iconButton'
 import CloseIcon from '../widgets/icons/close'
@@ -9,43 +10,40 @@ import './modal.scss'
 type Props = {
     onClose: () => void
     position?: 'top'|'bottom'|'bottom-right'
-    children: React.ReactNode
 }
 
-const Modal = (props: Props): JSX.Element => {
-    const node = useRef<HTMLDivElement>(null)
+const Modal: ParentComponent<Props> = (props) => {
+    let node: HTMLDivElement | undefined
 
-    const {position, onClose, children} = props
-
-    const closeOnBlur = useCallback((e: Event) => {
-        if (e.target && node.current?.contains(e.target as Node)) {
+    const closeOnBlur = (e: Event) => {
+        if (e.target && node?.contains(e.target as Node)) {
             return
         }
-        onClose()
-    }, [onClose])
+        props.onClose()
+    }
 
-    useEffect(() => {
+    onMount(() => {
         document.addEventListener('click', closeOnBlur, true)
-        return () => {
+        onCleanup(() => {
             document.removeEventListener('click', closeOnBlur, true)
-        }
-    }, [closeOnBlur])
+        })
+    })
 
     return (
         <div
-            className={'Modal ' + (position || 'bottom')}
+            class={'Modal ' + (props.position || 'bottom')}
             ref={node}
         >
-            <div className='toolbar hideOnWidescreen'>
+            <div class='toolbar hideOnWidescreen'>
                 <IconButton
-                    onClick={() => onClose()}
+                    onClick={() => props.onClose()}
                     icon={<CloseIcon/>}
                     title={'Close'}
                 />
             </div>
-            {children}
+            {props.children}
         </div>
     )
 }
 
-export default React.memo(Modal)
+export default Modal

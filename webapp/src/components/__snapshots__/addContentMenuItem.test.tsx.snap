@@ -32,6 +32,7 @@ exports[`components/addContentMenuItem return a checkbox menu item 1`] = `
       >
         checkbox
       </div>
+      
     </div>
     <div
       class="noicon"
@@ -72,6 +73,7 @@ exports[`components/addContentMenuItem return a divider menu item 1`] = `
       >
         divider
       </div>
+      
     </div>
     <div
       class="noicon"
@@ -112,6 +114,7 @@ exports[`components/addContentMenuItem return a text menu item 1`] = `
       >
         text
       </div>
+      
     </div>
     <div
       class="noicon"
@@ -154,6 +157,7 @@ exports[`components/addContentMenuItem return an image menu item 1`] = `
       >
         image
       </div>
+      
     </div>
     <div
       class="noicon"

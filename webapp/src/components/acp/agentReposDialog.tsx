@@ -3,8 +3,9 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {For, Show, createSignal, onMount} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import {Board, IPropertyTemplate, IPropertyOption} from '../../blocks/board'
 import mutator from '../../mutator'
@@ -41,24 +42,24 @@ type Props = {
 }
 
 const AgentReposDialog = (props: Props) => {
-    const {board, onClose} = props
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [repos, setRepos] = useState<AgentRepo[]>([])
-    const [pendingPath, setPendingPath] = useState('')
-    const [pendingName, setPendingName] = useState('')
-    const [error, setError] = useState('')
+    const [repos, setRepos] = createSignal<AgentRepo[]>([])
+    const [pendingPath, setPendingPath] = createSignal('')
+    const [pendingName, setPendingName] = createSignal('')
+    const [error, setError] = createSignal('')
 
     // syncToBoard mirrors the registry into the board's "Repositories" property,
     // creating that multiSelect property when the board has none. Add-only:
     // existing options (which cards may reference) are never removed, and a
     // board that already lists every repository is left untouched — this runs
     // on its own, so it must not churn the board or the undo history.
-    const syncToBoard = useCallback(async (registry: AgentRepo[]) => {
+    const syncToBoard = async (registry: AgentRepo[]) => {
         if (registry.length === 0) {
             return
         }
+        const board = props.board
         const property = board.cardProperties.find((p: IPropertyTemplate) =>
             p.name.trim().toLowerCase() === REPO_PROPERTY_NAME.toLowerCase() &&
             (p.type === 'select' || p.type === 'multiSelect'))
@@ -106,9 +107,9 @@ const AgentReposDialog = (props: Props) => {
         } catch (e) {
             setError(String(e))
         }
-    }, [board, intl])
+    }
 
-    const refresh = useCallback(async () => {
+    const refresh = async () => {
         if (!bindings) {
             return
         }
@@ -124,13 +125,13 @@ const AgentReposDialog = (props: Props) => {
         // The board's "Repositories" field is kept in step on its own, so a
         // registered repository is selectable on a card without a second step.
         await syncToBoard(registry)
-    }, [bindings, syncToBoard])
+    }
 
-    useEffect(() => {
+    onMount(() => {
         refresh()
-    }, [refresh])
+    })
 
-    const pickDirectory = useCallback(async () => {
+    const pickDirectory = async () => {
         if (!bindings) {
             return
         }
@@ -144,24 +145,24 @@ const AgentReposDialog = (props: Props) => {
         } catch (e) {
             setError(String(e))
         }
-    }, [bindings, intl])
+    }
 
-    const confirmAdd = useCallback(async () => {
-        if (!bindings || !pendingPath) {
+    const confirmAdd = async () => {
+        if (!bindings || !pendingPath()) {
             return
         }
         setError('')
         try {
-            await bindings.AddAgentRepo(pendingName.trim(), pendingPath)
+            await bindings.AddAgentRepo(pendingName().trim(), pendingPath())
             setPendingPath('')
             setPendingName('')
             await refresh()
         } catch (e) {
             setError(String(e))
         }
-    }, [bindings, pendingName, pendingPath, refresh])
+    }
 
-    const removeRepo = useCallback(async (name: string) => {
+    const removeRepo = async (name: string) => {
         if (!bindings) {
             return
         }
@@ -172,46 +173,48 @@ const AgentReposDialog = (props: Props) => {
         } catch (e) {
             setError(String(e))
         }
-    }, [bindings, refresh])
+    }
 
     return (
         <Dialog
             className='AgentReposDialog'
             title={<span>{intl.formatMessage({id: 'AgentRepos.title', defaultMessage: 'Repositories'})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'AgentRepos.subtitle', defaultMessage: 'Local git repositories an agent can work in. A card is matched to one by its "Repositories" field.'})}</span>}
-            onClose={onClose}
+            onClose={props.onClose}
         >
-            <div className='AgentReposDialog__content'>
-                {repos.length === 0 && !pendingPath &&
-                    <div className='AgentReposDialog__empty'>
+            <div class='AgentReposDialog__content'>
+                <Show when={repos().length === 0 && !pendingPath()}>
+                    <div class='AgentReposDialog__empty'>
                         {intl.formatMessage({id: 'AgentRepos.empty', defaultMessage: 'No repositories registered yet.'})}
-                    </div>}
-
-                {repos.map((repo) => (
-                    <div
-                        className='AgentReposDialog__row'
-                        key={repo.name}
-                    >
-                        <span className='AgentReposDialog__name'>{repo.name}</span>
-                        <span className='AgentReposDialog__path'>{repo.path}</span>
-                        <Button
-                            onClick={() => removeRepo(repo.name)}
-                            title={intl.formatMessage({id: 'AgentRepos.remove', defaultMessage: 'Remove'})}
-                        >
-                            {intl.formatMessage({id: 'AgentRepos.remove', defaultMessage: 'Remove'})}
-                        </Button>
                     </div>
-                ))}
+                </Show>
 
-                {pendingPath &&
-                    <div className='AgentReposDialog__row AgentReposDialog__row--pending'>
+                <For each={repos()}>
+                    {(repo) => (
+                        <div
+                            class='AgentReposDialog__row'
+                        >
+                            <span class='AgentReposDialog__name'>{repo.name}</span>
+                            <span class='AgentReposDialog__path'>{repo.path}</span>
+                            <Button
+                                onClick={() => removeRepo(repo.name)}
+                                title={intl.formatMessage({id: 'AgentRepos.remove', defaultMessage: 'Remove'})}
+                            >
+                                {intl.formatMessage({id: 'AgentRepos.remove', defaultMessage: 'Remove'})}
+                            </Button>
+                        </div>
+                    )}
+                </For>
+
+                <Show when={pendingPath()}>
+                    <div class='AgentReposDialog__row AgentReposDialog__row--pending'>
                         <input
-                            className='AgentReposDialog__nameInput'
-                            value={pendingName}
+                            class='AgentReposDialog__nameInput'
+                            value={pendingName()}
                             placeholder={intl.formatMessage({id: 'AgentRepos.name-placeholder', defaultMessage: 'Name (matches the "Repositories" option)'})}
-                            onChange={(e) => setPendingName(e.target.value)}
+                            onInput={(e) => setPendingName(e.currentTarget.value)}
                         />
-                        <span className='AgentReposDialog__path'>{pendingPath}</span>
+                        <span class='AgentReposDialog__path'>{pendingPath()}</span>
                         <Button
                             emphasis='primary'
                             onClick={confirmAdd}
@@ -221,30 +224,34 @@ const AgentReposDialog = (props: Props) => {
                         <Button onClick={() => setPendingPath('')}>
                             {intl.formatMessage({id: 'AgentRepos.cancel', defaultMessage: 'Cancel'})}
                         </Button>
-                    </div>}
+                    </div>
+                </Show>
 
-                {!pendingPath &&
-                    <div className='AgentReposDialog__actions'>
+                <Show when={!pendingPath()}>
+                    <div class='AgentReposDialog__actions'>
                         <Button
                             emphasis='primary'
                             onClick={pickDirectory}
                         >
                             {intl.formatMessage({id: 'AgentRepos.add-repository', defaultMessage: 'Add repository…'})}
                         </Button>
-                    </div>}
+                    </div>
+                </Show>
 
-                {repos.length > 0 &&
-                    <div className='AgentReposDialog__sync'>
+                <Show when={repos().length > 0}>
+                    <div class='AgentReposDialog__sync'>
                         <span>
                             {intl.formatMessage({id: 'AgentRepos.sync-hint', defaultMessage: 'Every repository above is an option of the board’s "Repositories" field, so a card picks one there.'})}
                         </span>
-                    </div>}
+                    </div>
+                </Show>
 
-                {error &&
-                    <div className='AgentReposDialog__error'>{error}</div>}
+                <Show when={error()}>
+                    <div class='AgentReposDialog__error'>{error()}</div>
+                </Show>
             </div>
         </Dialog>
     )
 }
 
-export default React.memo(AgentReposDialog)
+export default AgentReposDialog

@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
-import {render, act} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 
-import {mockDOM, wrapDNDIntl, mockStateStore} from '../../../../testUtils'
+import {mockAppStore, mockDOM, wrapDNDIntl} from '../../../../testUtils'
+import {AppStoreProvider} from '../../../../store'
 import {TestBlockFactory} from '../../../../test/testBlockFactory'
 
 import TextBlock from '.'
@@ -36,39 +35,35 @@ describe('components/blocksEditor/blocks/text', () => {
             value: {},
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
 
     test('should match Display snapshot', async () => {
         const Component = TextBlock.Display
-        const {container} = render(wrapDNDIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
                 <Component
                     onChange={jest.fn()}
                     value='test-value'
                     onCancel={jest.fn()}
                     onSave={jest.fn()}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
 
     test('should match Input snapshot', async () => {
-        let container
-        await act(async () => {
-            const Component = TextBlock.Input
-            const result = render(wrapDNDIntl(
-                <ReduxProvider store={store}>
-                    <Component
-                        onChange={jest.fn()}
-                        value='test-value'
-                        onCancel={jest.fn()}
-                        onSave={jest.fn()}
-                    />
-                </ReduxProvider>,
-            ))
-            container = result.container
-        })
+        const Component = TextBlock.Input
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <Component
+                    onChange={jest.fn()}
+                    value='test-value'
+                    onCancel={jest.fn()}
+                    onSave={jest.fn()}
+                />
+            </AppStoreProvider>,
+        ))
         expect(container).toMatchSnapshot()
     })
 })

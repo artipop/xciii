@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen, within} from '@testing-library/react'
+import {render, screen, within} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
-import {createIntl} from 'react-intl'
+
 import {mocked} from 'jest-mock'
+
+import {createIntl} from '../../intl'
 
 import {wrapDNDIntl} from '../../testUtils'
 import Mutator from '../../mutator'
@@ -32,7 +33,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         console.error = jest.fn()
     })
     test('should match snapshot', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(() => wrapDNDIntl(() =>
             <KanbanHiddenColumnItem
                 activeView={activeView}
                 group={{
@@ -47,7 +48,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot readonly', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(() => wrapDNDIntl(() =>
             <KanbanHiddenColumnItem
                 activeView={activeView}
                 group={{
@@ -62,7 +63,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         expect(container).toMatchSnapshot()
     })
     test('return kanbanHiddenColumnItem and click menuwrapper', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(() => wrapDNDIntl(() =>
             <KanbanHiddenColumnItem
                 activeView={activeView}
                 group={{
@@ -80,7 +81,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         expect(container).toMatchSnapshot()
     })
     test('return kanbanHiddenColumnItem, click menuwrapper and click show', () => {
-        const {container} = render(wrapDNDIntl(
+        const {container} = render(() => wrapDNDIntl(() =>
             <KanbanHiddenColumnItem
                 activeView={activeView}
                 group={{
@@ -105,7 +106,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         card.limited = true
         card2.limited = true
         option.id = 'hidden-card-group-id'
-        const {container, getByTitle} = render(wrapDNDIntl(
+        const {container, getByTitle} = render(() => wrapDNDIntl(() =>
             <KanbanHiddenColumnItem
                 activeView={activeView}
                 group={{

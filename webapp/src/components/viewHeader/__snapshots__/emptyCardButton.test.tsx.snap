@@ -37,6 +37,7 @@ exports[`components/viewHeader/emptyCardButton return EmptyCardButton 1`] = `
       >
         Empty card
       </div>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -51,6 +52,7 @@ exports[`components/viewHeader/emptyCardButton return EmptyCardButton 1`] = `
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
   </div>
 </div>
@@ -93,6 +95,7 @@ exports[`components/viewHeader/emptyCardButton return EmptyCardButton and Set Te
       >
         Empty card
       </div>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -147,6 +150,7 @@ exports[`components/viewHeader/emptyCardButton return EmptyCardButton and Set Te
                   >
                     Set as default
                   </div>
+                  
                 </div>
                 <div
                   class="noicon"
@@ -180,6 +184,7 @@ exports[`components/viewHeader/emptyCardButton return EmptyCardButton and Set Te
                 >
                   Cancel
                 </div>
+                
               </div>
               <div
                 class="noicon"
@@ -230,6 +235,7 @@ exports[`components/viewHeader/emptyCardButton return EmptyCardButton and addCar
       >
         Empty card
       </div>
+      
     </div>
     <div
       aria-label="menuwrapper"
@@ -244,6 +250,7 @@ exports[`components/viewHeader/emptyCardButton return EmptyCardButton and addCar
           class="CompassIcon icon-dots-horizontal OptionsIcon"
         />
       </button>
+      
     </div>
   </div>
 </div>

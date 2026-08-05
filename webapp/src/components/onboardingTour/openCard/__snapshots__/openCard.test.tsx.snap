@@ -2,7 +2,7 @@
 
 exports[`components/onboardingTour/addComments/OpenCardTourStep after hover 1`] = `
 <div
-  aria-labelledby="_r_1_"
+  aria-labelledby="cl-1"
   class="tutorial-tour-tip__box OpenCardTourStep"
   role="dialog"
   style="max-width: 320px;"
@@ -17,7 +17,7 @@ exports[`components/onboardingTour/addComments/OpenCardTourStep after hover 1`] 
     >
       <h4
         class="tutorial-tour-tip__header__title"
-        id="_r_1_"
+        id="cl-1"
       >
         Open a card
       </h4>
@@ -35,6 +35,7 @@ exports[`components/onboardingTour/addComments/OpenCardTourStep after hover 1`] 
     >
       Open a card to explore the powerful ways that Boards can help you organize your work.
     </div>
+    
     <div
       class="tutorial-tour-tip__footer"
     >
@@ -46,8 +47,12 @@ exports[`components/onboardingTour/addComments/OpenCardTourStep after hover 1`] 
         />
         <div
           class="tutorial-tour-tip__btn-ctr"
-        />
+        >
+          
+          
+        </div>
       </div>
+      
     </div>
   </div>
 </div>
@@ -63,5 +68,7 @@ exports[`components/onboardingTour/addComments/OpenCardTourStep before hover 1`]
       class="pulsating_dot"
     />
   </div>
+  
+  
 </div>
 `;

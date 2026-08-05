@@ -1,30 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react'
-
-import {useDispatch} from 'react-redux'
+import {createEffect, createSignal, onCleanup, onMount} from 'solid-js'
+import type {Accessor} from 'solid-js'
 
 import {FINISHED, TourCategoriesMapToSteps, TOUR_ORDER} from '../onboardingTour'
-import {useAppSelector} from '../../store/hooks'
-import {getMe, getOnboardingTourStep, patchProps} from '../../store/users'
+import {useAppSelector, useAppStore} from '../../store/hooks'
+import {getMe, getOnboardingTourStep} from '../../store/users'
 import {UserConfigPatch} from '../../user'
 import octoClient from '../../octoClient'
 import {Utils, KeyCodes} from '../../utils'
 import TelemetryClient, {TelemetryCategory, type IEventProps} from '../../telemetry/telemetryClient'
 
 export interface TutorialTourTipManager {
-    show: boolean
+    show: Accessor<boolean>
     tourSteps: Record<string, number>
     getLastStep: () => number
-    handleOpen: (e: React.MouseEvent) => void
-    handleHide: (e: React.MouseEvent) => void
-    handleSkipTutorial: (e: React.MouseEvent) => void
-    handleDismiss: (e: React.MouseEvent) => void
+    handleOpen: (e: MouseEvent) => void
+    handleHide: (e?: MouseEvent) => void
+    handleSkipTutorial: (e: MouseEvent) => void
+    handleDismiss: (e: MouseEvent) => void
     handleSavePreferences: (step: number) => void
-    handlePrevious: (e: React.MouseEvent) => void
-    handleNext: (e?: React.MouseEvent) => void
-    handleEventPropagationAndDefault: (e: React.MouseEvent | KeyboardEvent) => void
+    handlePrevious: (e: MouseEvent) => void
+    handleNext: (e?: MouseEvent) => void
+    handleEventPropagationAndDefault: (e: MouseEvent | KeyboardEvent) => void
     handleSendToNextTour: (currentTourCategory: string) => Promise<void>
 }
 
@@ -48,43 +47,35 @@ const useTutorialTourTipManager = ({
     stopPropagation,
     preventDefault,
 }: TutorialTourTipManagerProps): TutorialTourTipManager => {
-    const [show, setShow] = useState(false)
+    const [show, setShow] = createSignal(false)
     const tourSteps = TourCategoriesMapToSteps[tutorialCategory]
 
-    // Function to save the tutorial step in redux store start here which needs to be modified
-    const dispatch = useDispatch()
+    const {actions} = useAppStore()
     const me = useAppSelector(getMe)
-    const currentUserId = me?.id
-    const currentStep = parseInt(useAppSelector(getOnboardingTourStep), 10)
-    const savePreferences = useCallback(
-        async (useID: string, stepValue: string, tourCategory?: string) => {
-            if (!currentUserId) {
-                return
-            }
+    const onboardingStep = useAppSelector(getOnboardingTourStep)
+    const currentStep = () => parseInt(onboardingStep(), 10)
+    const savePreferences = async (userID: string, stepValue: string, tourCategory?: string) => {
+        const patch: UserConfigPatch = {
+            updatedFields: {
+                onboardingTourStep: stepValue,
+            },
+        }
 
-            const patch: UserConfigPatch = {
-                updatedFields: {
-                    onboardingTourStep: stepValue,
-                },
-            }
+        if (tourCategory) {
+            patch.updatedFields!.tourCategory = tourCategory
+        }
 
-            if (tourCategory) {
-                patch.updatedFields!.tourCategory = tourCategory
-            }
+        const patchedProps = await octoClient.patchUserConfig(userID, patch)
+        if (patchedProps) {
+            actions.users.patchProps(patchedProps)
+        }
+    }
 
-            const patchedProps = await octoClient.patchUserConfig(currentUserId, patch)
-            if (patchedProps) {
-                await dispatch(patchProps(patchedProps))
-            }
-        },
-        [dispatch],
-    )
-
-    const trackEvent = useCallback((category: string, event: string, props?: IEventProps) => {
+    const trackEvent = (category: string, event: string, props?: IEventProps) => {
         TelemetryClient.trackEvent(category, event, props)
-    }, [])
+    }
 
-    const handleEventPropagationAndDefault = (e: React.MouseEvent | KeyboardEvent) => {
+    const handleEventPropagationAndDefault = (e: MouseEvent | KeyboardEvent) => {
         if (stopPropagation) {
             e.stopPropagation()
         }
@@ -93,34 +84,34 @@ const useTutorialTourTipManager = ({
         }
     }
 
-    const handleKeyDown = useCallback((e: KeyboardEvent): void => {
-        if (Utils.isKeyPressed(e, KeyCodes.ENTER) && show) {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+        if (Utils.isKeyPressed(e, KeyCodes.ENTER) && show()) {
             handleNext()
         }
-    }, [show])
+    }
 
-    useEffect(() => {
+    createEffect(() => {
         if (autoTour) {
             setShow(true)
         }
-    }, [autoTour])
+    })
 
-    useEffect(() => {
+    onMount(() => {
         window.addEventListener('keydown', handleKeyDown)
-        return () =>
-            window.removeEventListener('keydown', handleKeyDown)
-    }, [])
+        onCleanup(() =>
+            window.removeEventListener('keydown', handleKeyDown))
+    })
 
     const handleHide = (): void => {
         setShow(false)
     }
 
-    const handleOpen = (e: React.MouseEvent): void => {
+    const handleOpen = (e: MouseEvent): void => {
         handleEventPropagationAndDefault(e)
         setShow(true)
     }
 
-    const handleDismiss = (e: React.MouseEvent): void => {
+    const handleDismiss = (e: MouseEvent): void => {
         handleEventPropagationAndDefault(e)
         handleHide()
         const tag = telemetryTag + '_skip'
@@ -128,11 +119,12 @@ const useTutorialTourTipManager = ({
     }
 
     const handleSavePreferences = async (nextStep: boolean | number): Promise<void> => {
+        const currentUserId = me()?.id
         if (!currentUserId) {
             return
         }
 
-        let stepValue = currentStep
+        let stepValue = currentStep()
         if (nextStep === true) {
             stepValue += 1
         } else if (nextStep === false) {
@@ -149,7 +141,7 @@ const useTutorialTourTipManager = ({
         }
     }
 
-    const handlePrevious = (e: React.MouseEvent): void => {
+    const handlePrevious = (e: MouseEvent): void => {
         handleEventPropagationAndDefault(e)
 
         if (telemetryTag) {
@@ -160,7 +152,7 @@ const useTutorialTourTipManager = ({
         handleSavePreferences(false)
     }
 
-    const handleNext = (e?: React.MouseEvent): void => {
+    const handleNext = (e?: MouseEvent): void => {
         if (e) {
             handleEventPropagationAndDefault(e)
         }
@@ -168,14 +160,14 @@ const useTutorialTourTipManager = ({
             const tag = telemetryTag + '_next'
             trackEvent(TelemetryCategory, tag)
         }
-        if (getLastStep() === currentStep) {
+        if (getLastStep() === currentStep()) {
             handleSavePreferences(FINISHED)
         } else {
             handleSavePreferences(true)
         }
     }
 
-    const handleSkipTutorial = (e: React.MouseEvent): void => {
+    const handleSkipTutorial = (e: MouseEvent): void => {
         handleEventPropagationAndDefault(e)
 
         if (telemetryTag) {
@@ -183,6 +175,7 @@ const useTutorialTourTipManager = ({
             trackEvent(TelemetryCategory, tag)
         }
 
+        const currentUserId = me()?.id
         if (currentUserId) {
             savePreferences(currentUserId, FINISHED.toString())
         }
@@ -199,6 +192,7 @@ const useTutorialTourTipManager = ({
     }
 
     const handleSendToNextTour = (currentTourCategory: string): Promise<void> => {
+        const currentUserId = me()?.id
         if (!currentUserId) {
             return Promise.resolve()
         }

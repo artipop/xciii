@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react'
-import {render} from '@testing-library/react'
+import {render} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
 import 'isomorphic-fetch'
@@ -22,7 +21,7 @@ describe('components/table/TableHeaderMenu', () => {
 
     test('should match snapshot, title column', async () => {
         const onAutoSizeColumn = jest.fn()
-        const component = wrapDNDIntl(
+        const component = () => wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
                 onResizeColumn={jest.fn()}

@@ -1,26 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import {render, screen} from '@testing-library/react'
-import {Provider as ReduxProvider} from 'react-redux'
+import {render, screen} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
-import {mockStateStore, wrapIntl} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import ViewHeaderSearch from './viewHeaderSearch'
-
-jest.mock('react-router-dom', () => {
-    const originalModule = jest.requireActual('react-router-dom')
-
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {url: '/board/view'}
-        }),
-    }
-})
 
 describe('components/viewHeader/ViewHeaderSearch', () => {
     const state = {
@@ -33,26 +21,30 @@ describe('components/viewHeader/ViewHeaderSearch', () => {
         },
     }
 
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
     beforeEach(() => {
         jest.clearAllMocks()
     })
     test('return search menu', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
-                    <ViewHeaderSearch/>
-                </ReduxProvider>,
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
+                        <ViewHeaderSearch/>
+                    </TestRouter>
+                </AppStoreProvider>,
             ),
         )
         expect(container).toMatchSnapshot()
     })
     test('search text after input', () => {
-        const {container} = render(
-            wrapIntl(
-                <ReduxProvider store={store}>
-                    <ViewHeaderSearch/>
-                </ReduxProvider>,
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
+                        <ViewHeaderSearch/>
+                    </TestRouter>
+                </AppStoreProvider>,
             ),
         )
         const elementSearchText = screen.getByPlaceholderText('Search cards')

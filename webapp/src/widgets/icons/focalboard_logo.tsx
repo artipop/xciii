@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react'
+import type {JSX} from 'solid-js'
 
 import './focalboard_logo.scss'
 
 export default function FocalboardLogoIcon(): JSX.Element {
     return (
         <svg
-            className='FocalboardLogoIcon Icon'
+            class='FocalboardLogoIcon Icon'
             version='1.1'
             x='0px'
             y='0px'

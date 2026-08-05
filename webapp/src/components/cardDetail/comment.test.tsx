@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render, screen} from '@testing-library/react'
+import {render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
-import {Provider as ReduxProvider} from 'react-redux'
 import moment from 'moment'
 
 import {mocked} from 'jest-mock'
 
-import {wrapIntl, mockStateStore} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
@@ -35,7 +34,7 @@ describe('components/cardDetail/comment', () => {
             boardUsers: {[comment.modifiedBy]: {username: 'username_1'}},
         },
     }
-    const store = mockStateStore([], state)
+    const store = mockAppStore(state)
 
     beforeEach(() => {
         jest.clearAllMocks()
@@ -51,15 +50,15 @@ describe('components/cardDetail/comment', () => {
     })
 
     test('return comment', () => {
-        const {container} = render(wrapIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <Comment
                     comment={comment}
                     userId={comment.modifiedBy}
                     userImageUrl={userImageUrl}
                     readonly={false}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
         userEvent.click(buttonElement)
@@ -67,29 +66,29 @@ describe('components/cardDetail/comment', () => {
     })
 
     test('return comment readonly', () => {
-        const {container} = render(wrapIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <Comment
                     comment={comment}
                     userId={comment.modifiedBy}
                     userImageUrl={userImageUrl}
                     readonly={true}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
 
     test('return comment and delete comment', () => {
-        const {container} = render(wrapIntl(
-            <ReduxProvider store={store}>
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
                 <Comment
                     comment={comment}
                     userId={comment.modifiedBy}
                     userImageUrl={userImageUrl}
                     readonly={false}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
         userEvent.click(buttonElement)
@@ -101,16 +100,16 @@ describe('components/cardDetail/comment', () => {
     })
 
     test('return guest comment', () => {
-        const localStore = mockStateStore([], {users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
-        const {container} = render(wrapIntl(
-            <ReduxProvider store={localStore}>
+        const localStore = mockAppStore({users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={localStore}>
                 <Comment
                     comment={comment}
                     userId={comment.modifiedBy}
                     userImageUrl={userImageUrl}
                     readonly={false}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
         userEvent.click(buttonElement)
@@ -118,31 +117,31 @@ describe('components/cardDetail/comment', () => {
     })
 
     test('return guest comment readonly', () => {
-        const localStore = mockStateStore([], {users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
-        const {container} = render(wrapIntl(
-            <ReduxProvider store={localStore}>
+        const localStore = mockAppStore({users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={localStore}>
                 <Comment
                     comment={comment}
                     userId={comment.modifiedBy}
                     userImageUrl={userImageUrl}
                     readonly={true}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
 
     test('return guest comment and delete comment', () => {
-        const localStore = mockStateStore([], {users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
-        const {container} = render(wrapIntl(
-            <ReduxProvider store={localStore}>
+        const localStore = mockAppStore({users: {boardUsers: {[comment.modifiedBy]: {username: 'username_1', is_guest: true}}}})
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={localStore}>
                 <Comment
                     comment={comment}
                     userId={comment.modifiedBy}
                     userImageUrl={userImageUrl}
                     readonly={false}
                 />
-            </ReduxProvider>,
+            </AppStoreProvider>,
         ))
         const buttonElement = screen.getByRole('button', {name: 'menuwrapper'})
         userEvent.click(buttonElement)

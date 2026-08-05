@@ -3,8 +3,9 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import React, {useCallback, useEffect, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {For, Show, createSignal, onCleanup, onMount} from 'solid-js'
+
+import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 
@@ -45,51 +46,50 @@ type Props = {
 }
 
 const CardAgent = (props: Props) => {
-    const {cardId} = props
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [state, setState] = useState<CardAgentState>({})
-    const [repos, setRepos] = useState<Array<{name: string}>>([])
-    const [repoName, setRepoName] = useState('')
-    const [busy, setBusy] = useState(false)
-    const [error, setError] = useState('')
-    const [deployStatus, setDeployStatus] = useState('')
+    const [state, setState] = createSignal<CardAgentState>({})
+    const [repos, setRepos] = createSignal<Array<{name: string}>>([])
+    const [repoName, setRepoName] = createSignal('')
+    const [busy, setBusy] = createSignal(false)
+    const [error, setError] = createSignal('')
+    const [deployStatus, setDeployStatus] = createSignal('')
 
-    const refresh = useCallback(async () => {
+    const refresh = async () => {
         if (!bindings?.GetCardAgent) {
             return
         }
         try {
-            setState(JSON.parse(await bindings.GetCardAgent(cardId)))
+            setState(JSON.parse(await bindings.GetCardAgent(props.cardId)))
         } catch (e: any) {
             setError(String(e?.message || e))
         }
-    }, [bindings, cardId])
+    }
 
-    useEffect(() => {
+    onMount(() => {
         refresh()
         const runtime = (window as unknown as import('../../types').IAppWindow).runtime
         const offSession = runtime?.EventsOn?.('acp:session', (payload: any) => {
-            if (!payload?.cardId || payload.cardId === cardId) {
+            if (!payload?.cardId || payload.cardId === props.cardId) {
                 refresh()
             }
         })
         const offTerminal = runtime?.EventsOn?.('acp:terminal', (payload: any) => {
-            if (!payload?.cardId || payload.cardId === cardId) {
+            if (!payload?.cardId || payload.cardId === props.cardId) {
                 refresh()
             }
         })
-        return () => {
+        onCleanup(() => {
             offSession?.()
             offTerminal?.()
-        }
-    }, [cardId, refresh])
+        })
+    })
 
     // A card that does not say which repository it is about cannot open a
     // terminal until somebody picks one; the list is only fetched then.
-    const offerRepos = useCallback(async () => {
-        if (!bindings?.ListAgentRepos || repos.length > 0) {
+    const offerRepos = async () => {
+        if (!bindings?.ListAgentRepos || repos().length > 0) {
             return
         }
         try {
@@ -97,16 +97,16 @@ const CardAgent = (props: Props) => {
         } catch (e) {
             // An empty registry is not an error to report here.
         }
-    }, [bindings, repos.length])
+    }
 
-    const openTerminal = useCallback(async () => {
+    const openTerminal = async () => {
         if (!bindings?.OpenCardTerminal) {
             return
         }
         setBusy(true)
         setError('')
         try {
-            const handle = JSON.parse(await bindings.OpenCardTerminal(cardId, repoName, ''))
+            const handle = JSON.parse(await bindings.OpenCardTerminal(props.cardId, repoName(), ''))
 
             // The desktop app has already opened the window by now; a server
             // build has no windows, so the browser opens a tab instead.
@@ -120,9 +120,9 @@ const CardAgent = (props: Props) => {
         } finally {
             setBusy(false)
         }
-    }, [bindings, cardId, offerRepos, refresh, repoName])
+    }
 
-    const deploy = useCallback(async () => {
+    const deploy = async () => {
         if (!bindings?.StartCardDeploy) {
             return
         }
@@ -130,103 +130,115 @@ const CardAgent = (props: Props) => {
         setError('')
         setDeployStatus(intl.formatMessage({id: 'CardAgent.deploy-started', defaultMessage: 'started'}))
         try {
-            await bindings.StartCardDeploy(cardId, state.session?.branch || '')
+            await bindings.StartCardDeploy(props.cardId, state().session?.branch || '')
         } catch (e: any) {
             setDeployStatus('')
             setError(String(e?.message || e))
         } finally {
             setBusy(false)
         }
-    }, [bindings, cardId, intl, state.session])
+    }
 
-    const cancel = useCallback(async () => {
+    const cancel = async () => {
         if (!bindings?.CancelSession) {
             return
         }
-        await bindings.CancelSession(cardId)
+        await bindings.CancelSession(props.cardId)
         await refresh()
-    }, [bindings, cardId, refresh])
+    }
 
-    const status = state.session?.status || ''
-    const working = status === 'running' || status === 'queued'
+    const status = () => state().session?.status || ''
+    const working = () => status() === 'running' || status() === 'queued'
 
-    let terminalLabel = intl.formatMessage({id: 'CardAgent.terminal-open', defaultMessage: 'Open terminal'})
-    if (state.running) {
-        terminalLabel = intl.formatMessage({id: 'CardAgent.terminal-focus', defaultMessage: 'Show terminal'})
-    } else if (state.resume?.available) {
-        terminalLabel = intl.formatMessage({id: 'CardAgent.terminal-resume', defaultMessage: 'Resume in terminal'})
+    const terminalLabel = () => {
+        if (state().running) {
+            return intl.formatMessage({id: 'CardAgent.terminal-focus', defaultMessage: 'Show terminal'})
+        }
+        if (state().resume?.available) {
+            return intl.formatMessage({id: 'CardAgent.terminal-resume', defaultMessage: 'Resume in terminal'})
+        }
+        return intl.formatMessage({id: 'CardAgent.terminal-open', defaultMessage: 'Open terminal'})
     }
 
     return (
-        <div className='CardAgent'>
-            <div className='CardAgent__row'>
-                <span className='CardAgent__title'>
+        <div class='CardAgent'>
+            <div class='CardAgent__row'>
+                <span class='CardAgent__title'>
                     {intl.formatMessage({id: 'CardAgent.title', defaultMessage: 'Agent'})}
                 </span>
-                {status &&
-                    <span className={`CardAgent__status CardAgent__status--${status}`}>{status}</span>}
-                <div className='CardAgent__actions'>
+                <Show when={status()}>
+                    <span class={`CardAgent__status CardAgent__status--${status()}`}>{status()}</span>
+                </Show>
+                <div class='CardAgent__actions'>
                     <Button
                         onClick={openTerminal}
-                        disabled={busy}
-                        title={state.resume?.cwd}
+                        disabled={busy()}
+                        title={state().resume?.cwd}
                     >
-                        {terminalLabel}
+                        {terminalLabel()}
                     </Button>
-                    {working &&
+                    <Show when={working()}>
                         <Button onClick={cancel}>
                             {intl.formatMessage({id: 'CardAgent.cancel', defaultMessage: 'Cancel session'})}
-                        </Button>}
+                        </Button>
+                    </Show>
                 </div>
             </div>
 
-            {state.session?.branch &&
-                <div className='CardAgent__branch'>
+            <Show when={state().session?.branch}>
+                <div class='CardAgent__branch'>
                     <span
-                        className='CardAgent__branchName'
-                        title={state.session.worktree || undefined}
+                        class='CardAgent__branchName'
+                        title={state().session?.worktree || undefined}
                     >
-                        {state.session.branch}
+                        {state().session?.branch}
                     </span>
-                    {deployStatus &&
-                        <span className='CardAgent__deployStatus'>
-                            {intl.formatMessage({id: 'CardAgent.deploy-status', defaultMessage: 'deploy: {status}'}, {status: deployStatus})}
-                        </span>}
+                    <Show when={deployStatus()}>
+                        <span class='CardAgent__deployStatus'>
+                            {intl.formatMessage({id: 'CardAgent.deploy-status', defaultMessage: 'deploy: {status}'}, {status: deployStatus()})}
+                        </span>
+                    </Show>
                     <Button
                         onClick={deploy}
-                        disabled={busy || !bindings?.StartCardDeploy}
+                        disabled={busy() || !bindings?.StartCardDeploy}
                     >
                         {intl.formatMessage({id: 'CardAgent.deploy', defaultMessage: 'Deploy'})}
                     </Button>
-                </div>}
+                </div>
+            </Show>
 
-            {state.session?.error &&
-                <div className='CardAgent__error'>{state.session.error}</div>}
-            {error && <div className='CardAgent__error'>{error}</div>}
+            <Show when={state().session?.error}>
+                <div class='CardAgent__error'>{state().session?.error}</div>
+            </Show>
+            <Show when={error()}>
+                <div class='CardAgent__error'>{error()}</div>
+            </Show>
 
-            {repos.length > 0 &&
-                <div className='CardAgent__repoPicker'>
+            <Show when={repos().length > 0}>
+                <div class='CardAgent__repoPicker'>
                     <select
-                        value={repoName}
-                        onChange={(e) => setRepoName(e.target.value)}
+                        value={repoName()}
+                        onChange={(e) => setRepoName(e.currentTarget.value)}
                     >
                         <option value=''>
                             {intl.formatMessage({id: 'CardAgent.choose-repo', defaultMessage: 'Choose a repository…'})}
                         </option>
-                        {repos.map((r) => (
-                            <option
-                                key={r.name}
-                                value={r.name}
-                            >{r.name}</option>
-                        ))}
+                        <For each={repos()}>
+                            {(r) => (
+                                <option
+                                    value={r.name}
+                                >{r.name}</option>
+                            )}
+                        </For>
                     </select>
                     <Button
                         onClick={openTerminal}
-                        disabled={busy || !repoName}
+                        disabled={busy() || !repoName()}
                     >
                         {intl.formatMessage({id: 'CardAgent.terminal-open', defaultMessage: 'Open terminal'})}
                     </Button>
-                </div>}
+                </div>
+            </Show>
         </div>
     )
 }

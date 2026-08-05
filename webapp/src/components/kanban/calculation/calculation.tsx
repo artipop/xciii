@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX} from 'react'
-import {useIntl} from 'react-intl'
+import type {JSX} from 'solid-js'
+
+import {useIntl} from '../../../intl'
 
 import {Card} from '../../../blocks/card'
 import Button from '../../../widgets/buttons/button'
@@ -28,7 +29,7 @@ function KanbanCalculation(props: Props): JSX.Element {
     const intl = useIntl()
 
     return (
-        <div className='KanbanCalculation'>
+        <div class='KanbanCalculation'>
             <Button
                 onClick={() => (props.menuOpen ? props.onMenuClose : props.onMenuOpen)()}
                 onBlur={props.onMenuClose}

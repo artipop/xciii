@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {type JSX, useState} from 'react'
-import {useIntl} from 'react-intl'
+import {Show, createSignal} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import cx from 'classnames'
+
+import {useIntl} from '../../intl'
 
 import {ContentBlock} from '../../blocks/contentBlock'
 import {createTextBlock} from '../../blocks/textBlock'
@@ -23,11 +25,11 @@ type Props = {
 const BlockTitleMaxBytes = 65535 // Maximum size of a TEXT column in MySQL
 const BlockTitleMaxRunes = BlockTitleMaxBytes / 4 // Assume a worst-case representation
 
-const TextElement = ({block, readonly}: Props): JSX.Element => {
+const TextElement = (props: Props): JSX.Element => {
     const intl = useIntl()
 
-    const [isError, setIsError] = useState<boolean>(false)
-    const [blockTitle, setBlockTitle] = useState(block.title)
+    const [isError, setIsError] = createSignal<boolean>(false)
+    const [blockTitle, setBlockTitle] = createSignal(props.block.title)
 
     const textChangedHandler = (text: string): void => {
         setBlockTitle(text)
@@ -36,10 +38,10 @@ const TextElement = ({block, readonly}: Props): JSX.Element => {
     }
 
     const handleBlur = (text: string): void => {
-        if (text !== block.title || blockTitle !== block.title) {
+        if (text !== props.block.title || blockTitle() !== props.block.title) {
             const textSize = new Blob([text]).size
             if (textSize <= BlockTitleMaxRunes) {
-                mutator.changeBlockTitle(block.boardId, block.id, block.title, text, intl.formatMessage({id: 'ContentBlock.editCardText', defaultMessage: 'edit card text'})).
+                mutator.changeBlockTitle(props.block.boardId, props.block.id, props.block.title, text, intl.formatMessage({id: 'ContentBlock.editCardText', defaultMessage: 'edit card text'})).
                     finally(() => {
                         setIsError(false)
                     })
@@ -48,16 +50,18 @@ const TextElement = ({block, readonly}: Props): JSX.Element => {
     }
 
     return (
-        <div className='TextElement'>
+        <div class='TextElement'>
             <MarkdownEditor
-                className={cx({'markdown-editor-error': isError})}
-                text={blockTitle}
+                className={cx({'markdown-editor-error': isError()})}
+                text={blockTitle()}
                 placeholderText={intl.formatMessage({id: 'ContentBlock.editText', defaultMessage: 'Edit text...'})}
                 onChange={textChangedHandler}
                 onBlur={handleBlur}
-                readonly={readonly}
+                readonly={props.readonly}
             />
-            {isError && <div className='error-message'>{intl.formatMessage({id: 'ContentBlock.errorText', defaultMessage: 'You\'ve exceeded the size limit for this content. Please shorten it to avoid losing data.'})}</div>}
+            <Show when={isError()}>
+                <div class='error-message'>{intl.formatMessage({id: 'ContentBlock.errorText', defaultMessage: 'You\'ve exceeded the size limit for this content. Please shorten it to avoid losing data.'})}</div>
+            </Show>
         </div>
     )
 }
@@ -79,4 +83,4 @@ contentRegistry.registerContentType({
     },
 })
 
-export default React.memo(TextElement)
+export default TextElement

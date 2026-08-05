@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useCallback, useEffect, useState} from 'react'
-import {FormattedMessage} from 'react-intl'
-import {useDragDropMonitor} from '@dnd-kit/react'
-import {isSortable} from '@dnd-kit/react/sortable'
+import {For, Show, createEffect, createSignal, onCleanup, onMount} from 'solid-js'
+
+import {useDragDropMonitor} from '@dnd-kit/solid'
+import {isSortable} from '@dnd-kit/dom/sortable'
+
+import {FormattedMessage} from '../../intl'
 
 import {getActiveThemeName, loadTheme} from '../../theme'
 import IconButton from '../../widgets/buttons/iconButton'
@@ -11,7 +13,7 @@ import HamburgerIcon from '../../widgets/icons/hamburger'
 import HideSidebarIcon from '../../widgets/icons/hideSidebar'
 import ShowSidebarIcon from '../../widgets/icons/showSidebar'
 import {getCurrentBoard, getMySortedBoards} from '../../store/boards'
-import {useAppDispatch, useAppSelector} from '../../store/hooks'
+import {useAppSelector, useAppStore} from '../../store/hooks'
 import {Utils} from '../../utils'
 import {IUser} from '../../user'
 
@@ -21,12 +23,7 @@ import {
     BoardCategoryWebsocketData,
     Category,
     CategoryBoards,
-    fetchSidebarCategories,
     getSidebarCategories,
-    updateBoardCategories,
-    updateCategories,
-    updateCategoryBoardsOrder,
-    updateCategoryOrder,
 } from '../../store/sidebar'
 
 import BoardsSwitcher from '../boardsSwitcher/boardsSwitcher'
@@ -76,59 +73,60 @@ type DropResult = {
 }
 
 const Sidebar = (props: Props) => {
-    const [isHidden, setHidden] = useState(false)
-    const [userHidden, setUserHidden] = useState(false)
-    const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions())
+    const [isHidden, setHidden] = createSignal(false)
+    const [userHidden, setUserHidden] = createSignal(false)
+    const [windowDimensions, setWindowDimensions] = createSignal(getWindowDimensions())
     const boards = useAppSelector(getMySortedBoards)
-    const dispatch = useAppDispatch()
+    const {actions} = useAppStore()
     const sidebarCategories = useAppSelector<CategoryBoards[]>(getSidebarCategories)
     const me = useAppSelector<IUser|null>(getMe)
     const activeViewID = useAppSelector(getCurrentViewId)
     const currentBoard = useAppSelector(getCurrentBoard)
 
-    useEffect(() => {
+    onMount(() => {
         const categoryOnChangeHandler = (_: WSClient, categories: Category[]) => {
-            dispatch(updateCategories(categories))
+            actions.sidebar.updateCategories(categories)
         }
 
         const blockCategoryOnChangeHandler = (_: WSClient, blockCategories: BoardCategoryWebsocketData[]) => {
-            dispatch(updateBoardCategories(blockCategories))
+            actions.sidebar.updateBoardCategories(blockCategories)
         }
 
         wsClient.addOnChange(categoryOnChangeHandler, 'category')
         wsClient.addOnChange(blockCategoryOnChangeHandler, 'blockCategories')
 
-        return function cleanup() {
+        onCleanup(() => {
             wsClient.removeOnChange(categoryOnChangeHandler, 'category')
             wsClient.removeOnChange(blockCategoryOnChangeHandler, 'blockCategories')
-        }
-    }, [])
+        })
+    })
 
     const teamId = useAppSelector(getCurrentTeamId)
     const team = useAppSelector(getCurrentTeam)
 
-    useEffect(() => {
-        if (team) {
-            dispatch(fetchSidebarCategories(team!.id))
+    createEffect(() => {
+        if (team()) {
+            actions.sidebar.fetchSidebarCategories(team()!.id)
         }
-    }, [team?.id])
+    })
 
-    useEffect(() => {
+    onMount(() => {
         loadTheme()
-    }, [])
+    })
 
-    useEffect(() => {
+    onMount(() => {
         function handleResize() {
             setWindowDimensions(getWindowDimensions())
         }
 
         window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
+        onCleanup(() => window.removeEventListener('resize', handleResize))
+    })
 
-    useEffect(() => {
+    createEffect(() => {
+        windowDimensions()
         hideSidebar()
-    }, [windowDimensions])
+    })
 
     // This handles the case when a user opens a linked board from Channels RHS
     // and thats the first time that user is opening that board.
@@ -137,14 +135,16 @@ const Sidebar = (props: Props) => {
     // We do this on the client side rather than the server side like for all other cases
     // because there is no good, explicit API call to add this logic to when opening
     // a board that you have implicit access to.
-    useEffect(() => {
-        if (!sidebarCategories || sidebarCategories.length === 0 || !currentBoard || !team || currentBoard.isTemplate) {
+    createEffect(() => {
+        const categories = sidebarCategories()
+        const board = currentBoard()
+        const currentTeam = team()
+        if (!categories || categories.length === 0 || !board || !currentTeam || board.isTemplate) {
             return
         }
 
         // find the category the current board belongs to
-        // const category = sidebarCategories.find((c) => c.boardIDs.indexOf(currentBoard.id) >= 0)
-        const category = sidebarCategories.find((c) => c.boardMetadata.find((boardMetadata) => boardMetadata.boardID === currentBoard.id))
+        const category = categories.find((c) => c.boardMetadata.find((boardMetadata) => boardMetadata.boardID === board.id))
         if (category) {
             // Boards does belong to a category.
             // All good here. Nothing to do
@@ -153,29 +153,29 @@ const Sidebar = (props: Props) => {
 
         // if the board doesn't belong to a category
         // we need to move it to the default "Boards" category
-        const boardsCategory = sidebarCategories.find((c) => c.name === 'Boards')
+        const boardsCategory = categories.find((c) => c.name === 'Boards')
         if (!boardsCategory) {
             Utils.logError('Boards category not found for user')
             return
         }
 
-        octoClient.moveBoardToCategory(team.id, currentBoard.id, boardsCategory.id, '')
-    }, [sidebarCategories, currentBoard, team])
+        octoClient.moveBoardToCategory(currentTeam.id, board.id, boardsCategory.id, '')
+    })
 
     useWebsockets(teamId, (websocketClient: WSClient) => {
         const onCategoryReorderHandler = (_: WSClient, newCategoryOrder: string[]): void => {
-            dispatch(updateCategoryOrder(newCategoryOrder))
+            actions.sidebar.updateCategoryOrder(newCategoryOrder)
         }
 
         websocketClient.addOnChange(onCategoryReorderHandler, 'categoryOrder')
         return () => {
             websocketClient.removeOnChange(onCategoryReorderHandler, 'categoryOrder')
         }
-    }, [teamId])
+    })
 
     const hideSidebar = () => {
-        if (!userHidden) {
-            if (windowDimensions.width < 768) {
+        if (!userHidden()) {
+            if (windowDimensions().width < 768) {
                 setHidden(true)
             } else {
                 setHidden(false)
@@ -183,13 +183,14 @@ const Sidebar = (props: Props) => {
         }
     }
 
-    const handleCategoryDND = useCallback(async (result: DropResult) => {
+    const handleCategoryDND = async (result: DropResult) => {
         const {destination, source} = result
-        if (!team || !destination) {
+        const currentTeam = team()
+        if (!currentTeam || !destination) {
             return
         }
 
-        const categories = sidebarCategories
+        const categories = sidebarCategories()
 
         // creating a mutable copy
         const newCategories = Array.from(categories)
@@ -203,14 +204,15 @@ const Sidebar = (props: Props) => {
         const newCategoryOrder = newCategories.map((category) => category.id)
 
         // optimistically updating the store to produce a lag-free UI
-        await dispatch(updateCategoryOrder(newCategoryOrder))
-        await octoClient.reorderSidebarCategories(team.id, newCategoryOrder)
-    }, [team, sidebarCategories])
+        actions.sidebar.updateCategoryOrder(newCategoryOrder)
+        await octoClient.reorderSidebarCategories(currentTeam.id, newCategoryOrder)
+    }
 
-    const handleCategoryBoardDND = useCallback(async (result: DropResult) => {
+    const handleCategoryBoardDND = async (result: DropResult) => {
         const {source, destination, draggableId} = result
+        const currentTeam = team()
 
-        if (!team || !destination) {
+        if (!currentTeam || !destination) {
             return
         }
 
@@ -220,7 +222,7 @@ const Sidebar = (props: Props) => {
 
         if (fromCategoryID === toCategoryID) {
             // board re-arranged withing the same category
-            const toSidebarCategory = sidebarCategories.find((category) => category.id === toCategoryID)
+            const toSidebarCategory = sidebarCategories().find((category) => category.id === toCategoryID)
             if (!toSidebarCategory) {
                 Utils.logError(`toCategoryID not found in list of sidebar categories. toCategoryID: ${toCategoryID}`)
                 return
@@ -230,14 +232,14 @@ const Sidebar = (props: Props) => {
             categoryBoardMetadata.splice(source.index, 1)
             categoryBoardMetadata.splice(destination.index, 0, toSidebarCategory.boardMetadata[source.index])
 
-            dispatch(updateCategoryBoardsOrder({categoryID: toCategoryID, boardsMetadata: categoryBoardMetadata}))
+            actions.sidebar.updateCategoryBoardsOrder({categoryID: toCategoryID, boardsMetadata: categoryBoardMetadata})
 
             const reorderedBoardIDs = categoryBoardMetadata.map((m) => m.boardID)
-            await octoClient.reorderSidebarCategoryBoards(team.id, toCategoryID, reorderedBoardIDs)
+            await octoClient.reorderSidebarCategoryBoards(currentTeam.id, toCategoryID, reorderedBoardIDs)
         } else {
             // board moved to a different category
-            const toSidebarCategory = sidebarCategories.find((category) => category.id === toCategoryID)
-            const fromSidebarCategory = sidebarCategories.find((category) => category.id === fromCategoryID)
+            const toSidebarCategory = sidebarCategories().find((category) => category.id === toCategoryID)
+            const fromSidebarCategory = sidebarCategories().find((category) => category.id === fromCategoryID)
 
             if (!toSidebarCategory) {
                 Utils.logError(`toCategoryID not found in list of sidebar categories. toCategoryID: ${toCategoryID}`)
@@ -254,20 +256,20 @@ const Sidebar = (props: Props) => {
             categoryBoardMetadata.splice(destination.index, 0, fromCategoryBoardMetadata)
 
             // optimistically updating the store to create a lag-free UI.
-            await dispatch(updateCategoryBoardsOrder({categoryID: toCategoryID, boardsMetadata: categoryBoardMetadata}))
-            dispatch(updateBoardCategories([{...fromCategoryBoardMetadata, categoryID: toCategoryID}]))
+            actions.sidebar.updateCategoryBoardsOrder({categoryID: toCategoryID, boardsMetadata: categoryBoardMetadata})
+            actions.sidebar.updateBoardCategories([{...fromCategoryBoardMetadata, categoryID: toCategoryID}])
 
-            await mutator.moveBoardToCategory(team.id, boardID, toCategoryID, fromCategoryID)
+            await mutator.moveBoardToCategory(currentTeam.id, boardID, toCategoryID, fromCategoryID)
 
             const reorderedBoardIDs = categoryBoardMetadata.map((m) => m.boardID)
-            await octoClient.reorderSidebarCategoryBoards(team.id, toCategoryID, reorderedBoardIDs)
+            await octoClient.reorderSidebarCategoryBoards(currentTeam.id, toCategoryID, reorderedBoardIDs)
         }
-    }, [team, sidebarCategories])
+    }
 
-    const onDragEnd = useCallback(async (result: DropResult) => {
+    const onDragEnd = async (result: DropResult) => {
         const {destination, source, type} = result
 
-        if (!team || !destination) {
+        if (!team() || !destination) {
             setDraggedItemID('')
             setIsCategoryBeingDragged(false)
             return
@@ -289,7 +291,7 @@ const Sidebar = (props: Props) => {
 
         setDraggedItemID('')
         setIsCategoryBeingDragged(false)
-    }, [team, sidebarCategories])
+    }
 
     useDragDropMonitor({
         onDragEnd(event) {
@@ -331,47 +333,12 @@ const Sidebar = (props: Props) => {
         },
     })
 
-    const [draggedItemID, setDraggedItemID] = useState<string>('')
-    const [isCategoryBeingDragged, setIsCategoryBeingDragged] = useState<boolean>(false)
-
-    if (!boards) {
-        return <div/>
-    }
-
-    if (!me) {
-        return <div/>
-    }
-
-    if (isHidden) {
-        return (
-            <div className='Sidebar octo-sidebar hidden'>
-                <div className='octo-sidebar-header show-button'>
-                    <div className='hamburger-icon'>
-                        <IconButton
-                            icon={<HamburgerIcon/>}
-                            onClick={() => {
-                                setUserHidden(false)
-                                setHidden(false)
-                            }}
-                        />
-                    </div>
-                    <div className='show-icon'>
-                        <IconButton
-                            icon={<ShowSidebarIcon/>}
-                            onClick={() => {
-                                setUserHidden(false)
-                                setHidden(false)
-                            }}
-                        />
-                    </div>
-                </div>
-            </div>
-        )
-    }
+    const [draggedItemID, setDraggedItemID] = createSignal<string>('')
+    const [isCategoryBeingDragged, setIsCategoryBeingDragged] = createSignal<boolean>(false)
 
     const getSortedCategoryBoards = (category: CategoryBoards): Board[] => {
         const categoryBoardsByID = new Map<string, Board>()
-        boards.forEach((board) => {
+        boards().forEach((board) => {
             if (!category.boardMetadata.find((m) => m.boardID === board.id)) {
                 return
             }
@@ -390,65 +357,94 @@ const Sidebar = (props: Props) => {
     }
 
     return (
-        <div className='Sidebar octo-sidebar'>
-            <div className='octo-sidebar-header'>
-                <div className='heading'>
-                    <SidebarUserMenu/>
-                </div>
-
-                <div className='octo-spacer'/>
-                <div className='sidebarSwitcher'>
-                    <IconButton
-                        onClick={() => {
-                            setUserHidden(true)
-                            setHidden(true)
-                        }}
-                        icon={<HideSidebarIcon/>}
-                    />
-                </div>
-            </div>
-
-            {team && team.id !== Constants.globalTeamId &&
-                <div className='WorkspaceTitle'/>
-            }
-
-            <BoardsSwitcher/>
-
-            <div className='octo-sidebar-list'>
-                {
-                    sidebarCategories.map((category, index) => (
-                        <SidebarCategory
-                            hideSidebar={hideSidebar}
-                            key={category.id}
-                            activeBoardID={props.activeBoardId}
-                            activeViewID={activeViewID}
-                            categoryBoards={category}
-                            boards={getSortedCategoryBoards(category)}
-                            allCategories={sidebarCategories}
-                            index={index}
-                            onBoardTemplateSelectorClose={props.onBoardTemplateSelectorClose}
-                            draggedItemID={draggedItemID}
-                            forceCollapse={isCategoryBeingDragged}
-                        />
-                    ))
+        <Show when={boards() && me()}>
+            <Show
+                when={!isHidden()}
+                fallback={
+                    <div class='Sidebar octo-sidebar hidden'>
+                        <div class='octo-sidebar-header show-button'>
+                            <div class='hamburger-icon'>
+                                <IconButton
+                                    icon={<HamburgerIcon/>}
+                                    onClick={() => {
+                                        setUserHidden(false)
+                                        setHidden(false)
+                                    }}
+                                />
+                            </div>
+                            <div class='show-icon'>
+                                <IconButton
+                                    icon={<ShowSidebarIcon/>}
+                                    onClick={() => {
+                                        setUserHidden(false)
+                                        setHidden(false)
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 }
-            </div>
-
-            <div className='octo-spacer'/>
-
-            <div
-                className='add-board'
-                onClick={props.onBoardTemplateSelectorOpen}
             >
-                <FormattedMessage
-                    id='Sidebar.add-board'
-                    defaultMessage='+ Add board'
-                />
-            </div>
+                <div class='Sidebar octo-sidebar'>
+                    <div class='octo-sidebar-header'>
+                        <div class='heading'>
+                            <SidebarUserMenu/>
+                        </div>
 
-            <SidebarSettingsMenu activeTheme={getActiveThemeName()}/>
-        </div>
+                        <div class='octo-spacer'/>
+                        <div class='sidebarSwitcher'>
+                            <IconButton
+                                onClick={() => {
+                                    setUserHidden(true)
+                                    setHidden(true)
+                                }}
+                                icon={<HideSidebarIcon/>}
+                            />
+                        </div>
+                    </div>
+
+                    <Show when={team() && team()!.id !== Constants.globalTeamId}>
+                        <div class='WorkspaceTitle'/>
+                    </Show>
+
+                    <BoardsSwitcher/>
+
+                    <div class='octo-sidebar-list'>
+                        <For each={sidebarCategories()}>
+                            {(category, index) => (
+                                <SidebarCategory
+                                    hideSidebar={hideSidebar}
+                                    activeBoardID={props.activeBoardId}
+                                    activeViewID={activeViewID()}
+                                    categoryBoards={category}
+                                    boards={getSortedCategoryBoards(category)}
+                                    allCategories={sidebarCategories()}
+                                    index={index()}
+                                    onBoardTemplateSelectorClose={props.onBoardTemplateSelectorClose}
+                                    draggedItemID={draggedItemID()}
+                                    forceCollapse={isCategoryBeingDragged()}
+                                />
+                            )}
+                        </For>
+                    </div>
+
+                    <div class='octo-spacer'/>
+
+                    <div
+                        class='add-board'
+                        onClick={props.onBoardTemplateSelectorOpen}
+                    >
+                        <FormattedMessage
+                            id='Sidebar.add-board'
+                            defaultMessage='+ Add board'
+                        />
+                    </div>
+
+                    <SidebarSettingsMenu activeTheme={getActiveThemeName()}/>
+                </div>
+            </Show>
+        </Show>
     )
 }
 
-export default React.memo(Sidebar)
+export default Sidebar
