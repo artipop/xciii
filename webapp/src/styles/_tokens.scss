@@ -21,7 +21,10 @@
     --canvas-rgb: 240, 237, 229;
     --surface-rgb: 250, 248, 244;
     --ink-rgb: 20, 22, 26;
-    --sidebar-rgb: 20, 24, 30;
+    // A black mixed from the paper rather than borrowed from the dark theme:
+    // it was a blue-black left over from when the whole system was navy, and
+    // against a warm off-white a hue that opposes it reads as cold.
+    --sidebar-rgb: 28, 26, 22;
     --sidebar-ink-rgb: 240, 237, 229;
 
     // The accent and the stamp are the two lines a colour experiment touches.
