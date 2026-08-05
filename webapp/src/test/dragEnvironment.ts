@@ -193,6 +193,11 @@ export async function drag(
     act: (fn: () => Promise<void>) => Promise<unknown>,
     source: Element,
     to: Point,
+
+    // Where the press lands, when that is not the middle of the dragged thing:
+    // a sidebar category is dragged by its title row, and its middle is a board
+    // inside it, which would be dragged instead.
+    grip?: Element,
 ): Promise<void> {
     const rect = source.getBoundingClientRect()
     const origin = {x: rect.left, y: rect.top, width: rect.width, height: rect.height}
@@ -200,7 +205,8 @@ export async function drag(
     // Grabbed at the centre, which is both what people do and the case that
     // matters: a pointer intersection scores 1/distance-to-centre, so a card
     // held by its middle keeps its own zone permanently at distance zero.
-    const from = {x: rect.left + (rect.width / 2), y: rect.top + (rect.height / 2)}
+    const grabbed = (grip ?? source).getBoundingClientRect()
+    const from = {x: grabbed.left + (grabbed.width / 2), y: grabbed.top + (grabbed.height / 2)}
     const settle = () => new Promise((resolve) => setTimeout(resolve, 20))
 
     // A browser transforms the dragged element so it follows the pointer, and
@@ -212,7 +218,7 @@ export async function drag(
     }
 
     await act(async () => {
-        source.dispatchEvent(pointerEvent('pointerdown', from.x, from.y))
+        (grip ?? source).dispatchEvent(pointerEvent('pointerdown', from.x, from.y))
     })
     await act(async () => {
         follow(from.x + 20, from.y + 20)

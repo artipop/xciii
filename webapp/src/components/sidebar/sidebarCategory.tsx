@@ -66,6 +66,12 @@ type Props = {
 
 export const ClassForManageCategoriesTourStep = 'manageCategoriesTourStep'
 
+// What the boards drop zone tells the sidebar's dragend about itself. Its own id
+// cannot say it (see below), and a board released over it names no board.
+export type CategoryBoardsDroppableData = {
+    categoryID: string
+}
+
 const SidebarCategory = (props: Props) => {
     const [collapsed, setCollapsed] = createSignal(props.categoryBoards.collapsed)
     const intl = useIntl()
@@ -89,8 +95,9 @@ const SidebarCategory = (props: Props) => {
     let menuWrapperRef: HTMLDivElement | undefined
 
     // A category is sortable among categories and, at the same time, the place
-    // boards get dropped into -- including an empty one, which is why the boards
-    // area is its own droppable keyed by the category id.
+    // boards get dropped into -- including an empty one, which has no board
+    // sortable to collide with, which is why the boards area is a droppable of
+    // its own.
     const {ref, isDragSource: isDragging} = useSortable({
         get id() {
             return props.categoryBoards.id
@@ -105,12 +112,18 @@ const SidebarCategory = (props: Props) => {
         plugins: [SortableKeyboardPlugin],
     })
 
-    const {ref: boardsRef, isDropTarget: isBoardOver} = useDroppable({
+    // Not keyed by the category id: dnd-kit's registry is a map keyed by id and
+    // the category is already registered under that one by its own sortable, so
+    // a second entry would evict the first and the category would stop being a
+    // drop target for whichever of the two registered first.
+    const {ref: boardsRef, isDropTarget: isBoardOver} = useDroppable<CategoryBoardsDroppableData>({
         get id() {
-            return props.categoryBoards.id
+            return `category-boards-${props.categoryBoards.id}`
         },
-        type: 'board',
         accept: 'board',
+        get data() {
+            return {categoryID: props.categoryBoards.id}
+        },
     })
 
     const [boardDraggingOver, setBoardDraggingOver] = createSignal<boolean>(false)

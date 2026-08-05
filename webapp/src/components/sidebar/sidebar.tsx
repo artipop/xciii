@@ -45,7 +45,7 @@ import mutator from '../../mutator'
 
 import {Board} from '../../blocks/board'
 
-import SidebarCategory from './sidebarCategory'
+import SidebarCategory, {CategoryBoardsDroppableData} from './sidebarCategory'
 import SidebarSettingsMenu from './sidebarSettingsMenu'
 import SidebarUserMenu from './sidebarUserMenu'
 
@@ -70,6 +70,99 @@ type DropResult = {
     type: string
     source: {index: number, droppableId: string}
     destination?: {index: number, droppableId: string}
+}
+
+// Categories are sortables in one list and carry no group of their own; the name
+// is the droppable id react-beautiful-dnd gave that list, which the handlers
+// below still compare against.
+const CategoriesDroppableID = 'lhs-categories'
+
+// As much of a finished dnd-kit operation as the mapping below reads. Written as
+// plain data rather than taken as dnd-kit entities so the mapping can be tested
+// without a pointer, an element and a live drag.
+export type SidebarDragSource = {
+    id: string
+    type: string
+
+    // Its position among its peers as rendered: the index of a category in the
+    // sidebar, of a board in the visible boards of `group`.
+    index: number
+    group?: string
+}
+
+export type SidebarDropTarget = {
+    id: string
+    index?: number
+    group?: string
+
+    // Set by a category's boards drop zone, which is not a sortable and so has
+    // no group to name the category by.
+    categoryID?: string
+}
+
+// Where a board sits as handleCategoryBoardDND wants it: its index in its
+// category's boardMetadata, which is not the index dnd-kit knows, because the
+// rendered list of a category leaves out its hidden boards and its templates.
+function boardMetadataIndex(categories: CategoryBoards[], categoryID: string, boardID: string): number {
+    const category = categories.find((c) => c.id === categoryID)
+    return category ? category.boardMetadata.findIndex((metadata) => metadata.boardID === boardID) : -1
+}
+
+function boardDropDestination(categories: CategoryBoards[], target: SidebarDropTarget): {index: number, droppableId: string} | undefined {
+    // Released over another board: it takes that board's place.
+    if (target.group !== undefined) {
+        const index = boardMetadataIndex(categories, target.group, target.id)
+        return index < 0 ? undefined : {index, droppableId: target.group}
+    }
+
+    // Released over a category but not over any board in it -- all an empty
+    // category can offer, and the way one gets filled. Append.
+    if (target.categoryID === undefined) {
+        return undefined
+    }
+    const category = categories.find((c) => c.id === target.categoryID)
+    return category ? {index: category.boardMetadata.length, droppableId: category.id} : undefined
+}
+
+// The drop as react-beautiful-dnd would have reported it, which is the shape the
+// handlers are written against.
+//
+// Where the drop landed is read off the target rather than off the source.
+// OptimisticSortingPlugin is the only thing that moves a sortable's index and
+// group as it is dragged, and it is left out everywhere (see hooks/sortable.tsx)
+// -- so at dragend both still say where the drag began. Asking the source where
+// it ended answered "where it started" every time, and every sidebar drag
+// cancelled itself on the equality check in onDragEnd.
+export function sidebarDropResult(categories: CategoryBoards[], source: SidebarDragSource, target: SidebarDropTarget): DropResult | undefined {
+    if (source.type === 'category') {
+        if (target.index === undefined) {
+            return undefined
+        }
+        return {
+            draggableId: source.id,
+            type: source.type,
+            source: {index: source.index, droppableId: CategoriesDroppableID},
+            destination: {index: target.index, droppableId: CategoriesDroppableID},
+        }
+    }
+
+    if (source.type !== 'board') {
+        return undefined
+    }
+
+    const fromCategoryID = source.group ?? ''
+    const sourceIndex = boardMetadataIndex(categories, fromCategoryID, source.id)
+    const destination = boardDropDestination(categories, target)
+    if (sourceIndex < 0 || !destination) {
+        return undefined
+    }
+
+    return {
+        draggableId: source.id,
+        type: source.type,
+        source: {index: sourceIndex, droppableId: fromCategoryID},
+        destination,
+    }
 }
 
 const Sidebar = (props: Props) => {
@@ -294,42 +387,55 @@ const Sidebar = (props: Props) => {
     }
 
     useDragDropMonitor({
-        onDragEnd(event) {
-            if (event.canceled) {
-                return
-            }
+        onDragStart(event) {
             const source = event.operation.source
             if (!source || !isSortable(source)) {
                 return
             }
-
-            // This monitor sees every drop in the application, not only the
-            // sidebar's. Cards used to be raw draggables and were filtered out
-            // by isSortable above; now that they are sortables of their own,
-            // their drops arrive here too and would fall through onDragEnd to
-            // its "unknown drag type" warning, resetting sidebar state on the
-            // way. The sidebar owns two types, and nothing else is its business.
             const draggedType = String(source.type ?? '')
             if (draggedType !== 'category' && draggedType !== 'board') {
                 return
             }
+            setDraggedItemID(String(source.id))
+            setIsCategoryBeingDragged(draggedType === 'category')
+        },
+        onDragEnd(event) {
+            if (event.canceled) {
+                setDraggedItemID('')
+                setIsCategoryBeingDragged(false)
+                return
+            }
+            const {source, target} = event.operation
 
-            // dnd-kit moves index/group as you drag, so by dragend they hold the
-            // final position and initialIndex/initialGroup the starting one --
-            // exactly the two halves of react-beautiful-dnd's DropResult, which
-            // is what the handlers below are still written against.
-            onDragEnd({
-                draggableId: String(source.id),
-                type: draggedType,
-                source: {
-                    index: source.initialIndex,
-                    droppableId: String(source.initialGroup ?? 'lhs-categories'),
-                },
-                destination: {
+            // This monitor sees every drop in the application, not only the
+            // sidebar's. Cards used to be raw draggables and were filtered out
+            // by isSortable here; now that they are sortables of their own,
+            // their drops arrive too, and sidebarDropResult declines them by
+            // type rather than letting them reach onDragEnd's "unknown drag
+            // type" warning and reset sidebar state on the way.
+            if (!source || !isSortable(source) || !target) {
+                return
+            }
+
+            const result = sidebarDropResult(
+                sidebarCategories(),
+                {
+                    id: String(source.id),
+                    type: String(source.type ?? ''),
                     index: source.index,
-                    droppableId: String(source.group ?? 'lhs-categories'),
+                    group: source.group === undefined ? undefined : String(source.group),
                 },
-            } as DropResult)
+                {
+                    id: String(target.id),
+                    index: isSortable(target) ? target.index : undefined,
+                    group: isSortable(target) && target.group !== undefined ? String(target.group) : undefined,
+                    categoryID: (target.data as CategoryBoardsDroppableData | undefined)?.categoryID,
+                },
+            )
+
+            if (result) {
+                onDragEnd(result)
+            }
         },
     })
 
