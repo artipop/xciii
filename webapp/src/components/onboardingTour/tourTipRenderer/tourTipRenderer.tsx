@@ -55,7 +55,6 @@ const TourTipRenderer = (props: Props): JSX.Element | null => {
     }
 
     const currentStep = () => parseInt(onboardingTourStep(), 10)
-
     return (
         <Show when={showTourTip()}>
             <TourTip

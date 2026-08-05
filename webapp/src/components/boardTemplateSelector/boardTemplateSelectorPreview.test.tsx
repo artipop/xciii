@@ -4,23 +4,13 @@ import {render, waitFor} from '@solidjs/testing-library'
 
 
 import {IPropertyTemplate} from '../../blocks/board'
-import {mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
+import {TestRouter, mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import BoardTemplateSelectorPreview from './boardTemplateSelectorPreview'
 
-jest.mock('react-router-dom', () => {
-    const originalModule = jest.requireActual('react-router-dom')
-
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {url: '/'}
-        }),
-    }
-})
 
 const groupProperty: IPropertyTemplate = {
     id: 'group-prop-id',
@@ -177,7 +167,9 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
     test('should match snapshot', async () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
+                <TestRouter>
                 <BoardTemplateSelectorPreview activeTemplate={(store.state as any).boards.templates[0]}/>
+                </TestRouter>
             </AppStoreProvider>
             ,
         ))
@@ -187,7 +179,9 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
     test('should be null without activeTemplate', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
+                <TestRouter>
                 <BoardTemplateSelectorPreview activeTemplate={null}/>
+                </TestRouter>
             </AppStoreProvider>
             ,
         ))

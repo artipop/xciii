@@ -105,7 +105,7 @@ describe('components/blockIconSelector', () => {
         const menuPicker = container.querySelector('div#pick')
         expect(menuPicker).not.toBeNull()
 
-        fireEvent.mouseEnter(menuPicker!)
+        userEvent.click(menuPicker!)
 
         const allButtonThumbUp = getAllByRole('button', {name: /thumbsup/i})
         userEvent.click(allButtonThumbUp[0])

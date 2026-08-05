@@ -6034,6 +6034,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -6067,6 +6069,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -6077,7 +6080,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -6097,6 +6102,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -6104,7 +6110,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -6137,8 +6142,12 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -6152,7 +6161,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -6168,7 +6176,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -6183,10 +6193,13 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -6197,16 +6210,19 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -6215,9 +6231,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -6229,10 +6247,13 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -6243,6 +6264,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -6261,6 +6283,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -6283,6 +6306,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -6311,6 +6335,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -6319,6 +6344,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -6348,14 +6374,18 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -6370,6 +6400,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -6380,6 +6411,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -6400,6 +6432,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -6408,7 +6442,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -6416,9 +6449,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -6433,6 +6468,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -6477,7 +6513,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -6500,6 +6535,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -6508,12 +6544,16 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row selected"
@@ -6549,7 +6589,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
                 <div
@@ -6572,6 +6611,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -6580,12 +6620,16 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -6607,6 +6651,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -6615,7 +6661,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -6623,9 +6668,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -6640,6 +6687,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -6650,7 +6698,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -6660,14 +6710,15 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -6676,7 +6727,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;
@@ -6686,6 +6739,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
   <div
     class="BoardComponent"
   >
+    
+    
     <div
       class="top-head"
     >
@@ -6719,6 +6774,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
           <div
             class="add-buttons add-visible"
           >
+            
             <button
               class="Button emphasis--default size--xsmall"
               type="button"
@@ -6729,7 +6785,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               <span>
                 hide description
               </span>
+              
             </button>
+            
           </div>
           <div
             class="title"
@@ -6749,6 +6807,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     i
                   </span>
                 </div>
+                
               </div>
             </div>
             <input
@@ -6756,7 +6815,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               placeholder="Untitled board"
               spellcheck="true"
               title="board title"
-              value="board title"
             />
           </div>
           <div
@@ -6789,8 +6847,12 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               <span>
                 Share
               </span>
+              
             </button>
+            
           </div>
+          
+          
         </div>
       </div>
       <div
@@ -6804,7 +6866,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             placeholder="Untitled View"
             spellcheck="true"
             title="view title"
-            value="view title"
           />
           <div>
             <div
@@ -6820,7 +6881,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -6835,10 +6898,13 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button"
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -6849,16 +6915,19 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button"
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -6867,9 +6936,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button active"
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -6881,10 +6952,13 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
             class="Button active"
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -6895,6 +6969,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
           <input
             class="Editable "
             placeholder="Search cards"
+            title=""
           />
         </div>
         <div
@@ -6913,6 +6988,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -6935,6 +7011,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -6963,6 +7040,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               >
                 Name
               </span>
+              
             </div>
             <div
               class="octo-spacer"
@@ -6971,6 +7049,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
               class="HorizontalGrip"
             />
           </div>
+          
         </div>
         <div
           class="table-row-container"
@@ -7000,14 +7079,18 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 >
                   No name
                 </span>
+                
+                
               </div>
               <button
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -7022,6 +7105,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -7032,6 +7116,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 />
               </button>
             </div>
+            
           </div>
           <div
             class="octo-table-group"
@@ -7052,6 +7137,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorOrange "
                 >
@@ -7060,7 +7147,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q1"
-                    value="Q1"
                   />
                 </span>
               </div>
@@ -7068,9 +7154,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   2
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -7085,6 +7173,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -7129,7 +7218,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card1"
-                    value="card1"
                   />
                 </div>
                 <div
@@ -7152,6 +7240,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -7160,12 +7249,16 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
             <div
               class="TableRow octo-table-row"
@@ -7201,7 +7294,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="Untitled"
                     spellcheck="true"
                     title="card2"
-                    value="card2"
                   />
                 </div>
                 <div
@@ -7224,6 +7316,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                       />
                     </button>
                   </div>
+                  
                 </div>
                 <div
                   class="open-button"
@@ -7232,12 +7325,16 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="Button"
                     type="button"
                   >
+                    
                     <span>
                       Open
                     </span>
+                    
                   </button>
                 </div>
               </div>
+              
+              
             </div>
           </div>
           <div
@@ -7259,6 +7356,8 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-menu-right"
                   />
                 </button>
+                
+                
                 <span
                   class="Label propColorBlue "
                 >
@@ -7267,7 +7366,6 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     placeholder="New Select"
                     spellcheck="true"
                     title="Q2"
-                    value="Q2"
                   />
                 </span>
               </div>
@@ -7275,9 +7373,11 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 class="Button"
                 type="button"
               >
+                
                 <span>
                   0
                 </span>
+                
               </button>
               <div
                 aria-label="menuwrapper"
@@ -7292,6 +7392,7 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               <button
                 class="IconButton"
@@ -7302,7 +7403,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
                 />
               </button>
             </div>
+            
           </div>
+          
         </div>
         <div
           class="octo-table-footer"
@@ -7312,14 +7415,15 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
         >
           <div
             class="Calculation count octo-table-cell   "
-            style="width: 100px;"
             tabindex="0"
           >
+            
             <span
               class="calculationLabel"
             >
               Count
             </span>
+            
             <span
               class="calculationValue"
             >
@@ -7328,7 +7432,9 @@ exports[`components/centerPanel return centerPanel and press touch esc for two c
           </div>
         </div>
       </div>
+      
     </div>
+    
   </div>
 </div>
 `;

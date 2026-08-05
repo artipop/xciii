@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render, screen} from '@solidjs/testing-library'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
@@ -303,7 +303,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         userEvent.click(publishButton)
         jest.runOnlyPendingTimers()
 
-        const regenerateTokenElement = screen.getByRole('button', {name: 'Regenerate token'})
+        const regenerateTokenElement = await screen.findByRole('button', {name: 'Regenerate token'})
         expect(regenerateTokenElement).toBeDefined()
         userEvent.click(regenerateTokenElement)
         jest.runOnlyPendingTimers()
@@ -342,7 +342,9 @@ describe('src/components/shareBoard/shareBoard', () => {
         userEvent.click(switchElement!)
 
         expect(mockedOctoClient.setSharing).toHaveBeenCalledTimes(1)
-        expect(mockedOctoClient.getSharing).toHaveBeenCalledTimes(2)
+
+        // the re-read after the toggle sits behind the awaited setSharing
+        await waitFor(() => expect(mockedOctoClient.getSharing).toHaveBeenCalledTimes(2))
         expect(container).toMatchSnapshot()
     })
 
@@ -397,7 +399,9 @@ describe('src/components/shareBoard/shareBoard', () => {
                 </AppStoreProvider>))
 
         expect(mockedOctoClient.setSharing).toHaveBeenCalledTimes(1)
-        expect(mockedOctoClient.getSharing).toHaveBeenCalledTimes(2)
+
+        // the re-read after the toggle sits behind the awaited setSharing
+        await waitFor(() => expect(mockedOctoClient.getSharing).toHaveBeenCalledTimes(2))
         expect(mockedUtils.createGuid).toHaveBeenCalledTimes(1)
         expect(container).toMatchSnapshot()
     })
@@ -481,7 +485,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         )
 
         expect(container).toMatchSnapshot()
-        const selectElement = screen.getByText('Search for people and channels')
+        const selectElement = await screen.findByText('Search for people and channels')
         expect(selectElement).toBeDefined()
 
         userEvent.click(selectElement!)
@@ -524,7 +528,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         )
 
         expect(container).toMatchSnapshot()
-        const selectElement = screen.getByText('Search for people and channels')
+        const selectElement = await screen.findByText('Search for people and channels')
         expect(selectElement).toBeDefined()
 
         userEvent.click(selectElement!)
@@ -540,8 +544,14 @@ describe('src/components/shareBoard/shareBoard', () => {
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
 
-        board.isTemplate = true
-        const myStore = mockAppStore(state)
+        const templateBoard = {...board, isTemplate: true}
+        const myStore = mockAppStore({
+            ...state,
+            boards: {
+                ...state.boards,
+                boards: {[board.id]: templateBoard},
+            },
+        } as any)
 
         const {container} = render(() =>
             wrapDNDIntl(() =>
@@ -584,8 +594,14 @@ describe('src/components/shareBoard/shareBoard', () => {
         mockedOctoClient.searchTeamUsers.mockResolvedValue(users)
         mockedOctoClient.searchUserChannels.mockResolvedValue(channels)
 
-        board.isTemplate = true
-        const myStore = mockAppStore(state)
+        const templateBoard = {...board, isTemplate: true}
+        const myStore = mockAppStore({
+            ...state,
+            boards: {
+                ...state.boards,
+                boards: {[board.id]: templateBoard},
+            },
+        } as any)
 
         const {container} = render(() =>
             wrapDNDIntl(() =>
@@ -599,7 +615,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         )
 
         expect(container).toMatchSnapshot()
-        const selectElement = screen.getByText('Search for people')
+        const selectElement = await screen.findByText('Search for people')
         expect(selectElement).toBeDefined()
 
         userEvent.click(selectElement!)

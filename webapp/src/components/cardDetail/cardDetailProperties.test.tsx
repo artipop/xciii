@@ -168,7 +168,7 @@ describe('components/cardDetail/CardDetailProperties', () => {
         const typeProperty = screen.getByText(/Type: Select/i)
         expect(typeProperty).toBeInTheDocument()
 
-        fireEvent.mouseOver(typeProperty)
+        userEvent.click(typeProperty)
 
         const newTypeMenu = screen.getByRole('button', {name: 'Text'})
         userEvent.click(newTypeMenu)

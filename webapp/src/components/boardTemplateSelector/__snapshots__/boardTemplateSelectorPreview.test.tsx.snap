@@ -15,7 +15,11 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
       >
         <div
           class="add-buttons add-visible"
-        />
+        >
+          
+          
+          
+        </div>
         <div
           class="title"
         >
@@ -36,9 +40,9 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
             readonly=""
             spellcheck="true"
             title="Template 1"
-            value="Template 1"
           />
         </div>
+        
       </div>
       <div
         class="ViewHeader"
@@ -51,7 +55,6 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
             placeholder="Untitled View"
             spellcheck="true"
             title="View"
-            value="View"
           />
           <div>
             <div
@@ -66,7 +69,9 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
                   class="CompassIcon icon-chevron-down DropdownIcon"
                 />
               </button>
+              
             </div>
+            
           </div>
         </div>
         <div
@@ -80,10 +85,13 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
           <button
             type="button"
           >
+            
             <span>
               Properties
             </span>
+            
           </button>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -93,16 +101,19 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
           <button
             type="button"
           >
+            
             <span>
               Group by: 
               <span
                 id="groupByLabel"
-                style="color: rgb(var(--center-channel-color-rgb));"
+                style="color:rgb(var(--center-channel-color-rgb))"
               >
                 name
               </span>
             </span>
+            
           </button>
+          
         </div>
         <div
           class="ModalWrapper"
@@ -110,9 +121,11 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
           <button
             type="button"
           >
+            
             <span>
               Filter
             </span>
+            
           </button>
         </div>
         <div
@@ -123,10 +136,13 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
           <button
             type="button"
           >
+            
             <span>
               Sort
             </span>
+            
           </button>
+          
         </div>
         <div
           class="board-search-field"
@@ -138,7 +154,6 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
             class="Editable "
             placeholder="Search cards"
             title=""
-            value=""
           />
         </div>
         <div
@@ -156,6 +171,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
         </div>
         <div
@@ -178,6 +194,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
                 class="CompassIcon icon-chevron-down DropdownIcon"
               />
             </div>
+            
           </div>
         </div>
       </div>
@@ -199,6 +216,8 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
           >
             No name
           </span>
+          
+          
           <div
             class="KanbanCalculation"
           >
@@ -206,11 +225,15 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
               title="1"
               type="button"
             >
+              
               <span>
                 1
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -226,6 +249,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             type="button"
@@ -234,11 +258,14 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
           style="opacity: 1;"
         >
+          
+          
           <span
             class="Label propColorOrange "
           >
@@ -247,7 +274,6 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
               placeholder="New Select"
               spellcheck="true"
               title="Q1"
-              value="Q1"
             />
           </span>
           <div
@@ -257,11 +283,15 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
               title="0"
               type="button"
             >
+              
               <span>
                 0
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -277,6 +307,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             type="button"
@@ -285,11 +316,14 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
           style="opacity: 1;"
         >
+          
+          
           <span
             class="Label propColorBlue "
           >
@@ -298,7 +332,6 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
               placeholder="New Select"
               spellcheck="true"
               title="Q2"
-              value="Q2"
             />
           </span>
           <div
@@ -308,11 +341,15 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
               title="0"
               type="button"
             >
+              
               <span>
                 0
               </span>
+              
             </button>
+            
           </div>
+          
           <div
             class="octo-spacer"
           />
@@ -328,6 +365,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
                 class="CompassIcon icon-dots-horizontal OptionsIcon"
               />
             </button>
+            
           </div>
           <button
             type="button"
@@ -336,16 +374,20 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
+          
         </div>
+        
         <div
           class="octo-board-header-cell narrow"
         >
           <button
             type="button"
           >
+            
             <span>
               + Add a group
             </span>
+            
           </button>
         </div>
       </div>
@@ -372,6 +414,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
                   class="CompassIcon icon-dots-horizontal OptionsIcon"
                 />
               </button>
+              
             </div>
             <div
               class="octo-icontitle"
@@ -397,13 +440,16 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
                 test
               </div>
             </div>
+            
           </div>
           <button
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
         <div
@@ -412,9 +458,11 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
           <button
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
         <div
@@ -423,11 +471,14 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should ma
           <button
             type="button"
           >
+            
             <span>
               + New
             </span>
+            
           </button>
         </div>
+        
       </div>
     </div>
   </div>

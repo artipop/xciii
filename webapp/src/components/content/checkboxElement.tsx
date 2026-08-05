@@ -65,22 +65,26 @@ const CheckboxElement = (props: Props) => {
                 onChange={setTitle}
                 saveOnEsc={true}
                 onSave={async (saveType) => {
+                    // The title as it was at save time: the signal keeps
+                    // moving while the mutation is awaited, and the React
+                    // version's closure never saw those later keystrokes.
+                    const savedTitle = title()
                     const {lastAddedBlock} = cardDetail
-                    if (title() === '' && props.block.id === lastAddedBlock.id && lastAddedBlock.autoAdded && props.onDeleteElement) {
+                    if (savedTitle === '' && props.block.id === lastAddedBlock.id && lastAddedBlock.autoAdded && props.onDeleteElement) {
                         props.onDeleteElement()
                         return
                     }
 
-                    if (props.block.title !== title()) {
-                        await mutator.changeBlockTitle(props.block.boardId, props.block.id, props.block.title, title(), intl.formatMessage({id: 'ContentBlock.editCardCheckboxText', defaultMessage: 'edit card text'}))
-                        if (saveType === 'onEnter' && title() !== '' && props.onAddElement) {
+                    if (props.block.title !== savedTitle) {
+                        await mutator.changeBlockTitle(props.block.boardId, props.block.id, props.block.title, savedTitle, intl.formatMessage({id: 'ContentBlock.editCardCheckboxText', defaultMessage: 'edit card text'}))
+                        if (saveType === 'onEnter' && savedTitle !== '' && props.onAddElement) {
                             // Wait for the change to happen
                             setTimeout(props.onAddElement, 100)
                         }
                         return
                     }
 
-                    if (saveType === 'onEnter' && title() !== '' && props.onAddElement) {
+                    if (saveType === 'onEnter' && savedTitle !== '' && props.onAddElement) {
                         props.onAddElement()
                     }
                 }}

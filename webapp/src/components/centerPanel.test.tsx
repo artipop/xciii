@@ -101,15 +101,21 @@ describe('components/centerPanel', () => {
             },
         },
         cards: {
-            templates: [card1, card2],
-            cards: [card1, card2],
+            templates: {
+                [card1.id]: card1,
+                [card2.id]: card2,
+            },
+            cards: {
+                [card1.id]: card1,
+                [card2.id]: card2,
+            },
             current: card1.id,
         },
         views: {
             views: {
-                boardView: activeView,
+                [activeView.id]: activeView,
             },
-            current: 'boardView',
+            current: activeView.id,
         },
         contents: {
             contents: [],
@@ -216,6 +222,8 @@ describe('components/centerPanel', () => {
         expect(container).toMatchSnapshot()
     })
     describe('return centerPanel and', () => {
+    const rowTitle = (name: string) => screen.getAllByRole('textbox', {name}).find((el) => el.tagName === 'INPUT')!
+
         test('select one card and click background', () => {
             activeView.fields.viewType = 'table'
             const {container} = render(() => wrapDNDIntl(() =>
@@ -237,7 +245,7 @@ describe('components/centerPanel', () => {
             ))
 
             //select card
-            const cardElement = screen.getByRole('textbox', {name: 'card1'})
+            const cardElement = rowTitle('card1')
             expect(cardElement).not.toBeNull()
             userEvent.click(cardElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
@@ -294,7 +302,7 @@ describe('components/centerPanel', () => {
                 </AppStoreProvider>,
             ))
 
-            const cardElement = screen.getByRole('textbox', {name: 'card1'})
+            const cardElement = rowTitle('card1')
             expect(cardElement.parentNode).not.toBeNull()
             userEvent.click(cardElement as HTMLElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
@@ -324,13 +332,13 @@ describe('components/centerPanel', () => {
             ))
 
             //select card1
-            const card1Element = screen.getByRole('textbox', {name: 'card1'})
+            const card1Element = rowTitle('card1')
             expect(card1Element).not.toBeNull()
             userEvent.click(card1Element, {shiftKey: true})
             expect(container).toMatchSnapshot()
 
             //select card2
-            const card2Element = screen.getByRole('textbox', {name: 'card2'})
+            const card2Element = rowTitle('card2')
             expect(card2Element).not.toBeNull()
             userEvent.click(card2Element, {shiftKey: true, ctrlKey: true})
             expect(container).toMatchSnapshot()
@@ -358,7 +366,7 @@ describe('components/centerPanel', () => {
                     </TestRouter>
                 </AppStoreProvider>,
             ))
-            const cardElement = screen.getByRole('textbox', {name: 'card1'})
+            const cardElement = rowTitle('card1')
             expect(cardElement).not.toBeNull()
             userEvent.click(cardElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
@@ -386,7 +394,7 @@ describe('components/centerPanel', () => {
                     </TestRouter>
                 </AppStoreProvider>,
             ))
-            const cardElement = screen.getByRole('textbox', {name: 'card1'})
+            const cardElement = rowTitle('card1')
             expect(cardElement).not.toBeNull()
             userEvent.click(cardElement, {shiftKey: true})
             expect(container).toMatchSnapshot()
@@ -609,15 +617,21 @@ describe('components/centerPanel', () => {
             },
         },
         cards: {
-            templates: [card1, card2],
-            cards: [card1, card2],
+            templates: {
+                [card1.id]: card1,
+                [card2.id]: card2,
+            },
+            cards: {
+                [card1.id]: card1,
+                [card2.id]: card2,
+            },
             current: card1.id,
         },
         views: {
             views: {
-                boardView: activeView,
+                [activeView.id]: activeView,
             },
-            current: 'boardView',
+            current: activeView.id,
         },
         contents: {},
         comments: {
