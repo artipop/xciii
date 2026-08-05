@@ -14,9 +14,12 @@ a browser instead of a webview.
 
 The frontend is here: `webapp/` is the Focalboard webapp, its own npm project
 built with Vite, copied in from the `experiments` branch of the Focalboard
-checkout. The **server** is still not — `go.mod` `replace`s that module to
+checkout — and since rewritten from React to **SolidJS**, so upstream Focalboard
+and this repository's early history are both React and neither is a recipe any
+more. The **server** is still not — `go.mod` `replace`s that module to
 `../focalboard/server`, so a checkout beside this one is what a build still
-needs. See `docs/plan.md` for how that should end up.
+needs. See `docs/plan.md` for how that should end up, and
+`docs/solidjs-migration-plan.md` for what the rewrite promised.
 
 What the page needs from the Go side is described in README.md, "What this app
 requires of the frontend": the output layout `go:embed` expects, and three
@@ -40,13 +43,18 @@ in a browser and as a Mattermost plugin.
   cosmetic, and a nested `go.mod` would not fix it — `go:embed` cannot cross a
   module boundary, and `webapp/pack` is what it embeds.
 
+`webapp/pack` must never stop existing, even for a moment: `go mod tidy` resolves
+the `go:embed all:` pattern under every build tag and runs in parallel with the
+frontend build, so a committed `.gitkeep` holds the directory open and both the
+build task and Vite clear around it rather than removing it.
+
 Builds are native per platform; cgo SQLite does not cross-compile with the host
 toolchain. `wails3 task setup:docker` builds the image that can, for binaries — the
 installers are native-tool jobs (AppImage shells out to `ldd`, NSIS is `makensis`).
 
 ## Architecture
 
-Four ideas hold this together. Read them before changing anything structural.
+Five ideas hold this together. Read them before changing anything structural.
 
 ### The front door owns the origin
 
@@ -77,6 +85,34 @@ read into `Call.ByName('main.App.<name>', …)` — the fully qualified name of 
 on the bound `App` service — and `window.runtime.EventsOn` wraps `Events.On`,
 unwrapping the event object v3 passes. No bindings are generated; adding a method to
 `App` is all it takes to make it callable.
+
+### The page is Solid, and its state is a store rather than Redux
+
+A Solid component is a function that runs once and wires reactive reads, not a
+render function that re-runs. The price of that is a bug class the whole page
+shares: a value read outside a tracked scope is a value frozen at first run, and
+every migration bug found so far has been one — `useAppSelector` returns an
+**accessor**, so `foo()` is the value and bare `foo` is a function and therefore
+always truthy; props are getters, so destructuring one takes a snapshot.
+
+State lives in `src/store`: `createAppStore(deps, initialState)` builds one
+`solid-js/store` tree with per-domain actions, passed down by `AppStoreProvider`
+and read with `useAppSelector(selector)`, which memoizes on the fields the
+selector touched. There is no dispatch and no thunk — an action is a method that
+writes the store, and the client it calls arrives through `deps` rather than a
+module import, which is what lets a test hand it a mock.
+
+React-only libraries were replaced rather than wrapped: `@dnd-kit/solid`,
+`@dschz/solid-flow` for the workflow canvas, `@solidjs/router`, `@formatjs/intl`
+behind our own `src/intl.tsx` (same `IntlShape`, same message ids), and headless
+Lexical with a typeahead menu of our own under `markdownEditorInput/plugins/`.
+Several widgets survived the rewrite untouched because their logic already sat
+in a plain module under a thin wrapper — `hotkeys.ts`, `calendar.ts`,
+`combobox.ts` beside `widgets/calendar.tsx` and `widgets/combobox.tsx`; keep new
+ones that shape. Nothing may import React or Redux again: `no-restricted-imports`
+in `eslint.config.mjs` fails the lint, which is cheaper than finding a React
+component rendered from Solid at runtime — which is exactly how that guard
+earned its place.
 
 ### A session is one turn, and nobody watches it
 
@@ -120,6 +156,14 @@ same worktree with `claude --continue`.
   recording a decision, a constraint, or a trap somebody already fell into.
 - **Tests describe behaviour, not implementation.** The test name is a sentence
   about the product; the comment above it says why that behaviour matters.
+- **The webapp's testing library is Solid's, and it is not React's.** `render`
+  takes a thunk — `render(() => wrapIntl(() => <X/>))` — because JSX built
+  outside it is built before the reactive root and its providers exist, and a
+  component created there sees neither. There is no `act` (updates are
+  synchronous) and no `rerender` (render again, or drive a signal). A store comes
+  from `mockAppStore(state)` under `AppStoreProvider` and a router from
+  `TestRouter`, both in `testUtils`; `fireEvent.input`, not `change`, is what a
+  per-keystroke handler hears.
 - Russian in user-facing strings and product docs, English in code, comments and
   commit messages. `webapp/i18n/ru.json` carries the
   translations; defaults in components stay English.
