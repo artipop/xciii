@@ -53,6 +53,21 @@ Cypress.Commands.add('apiInitServer', () => {
     return cy.apiRegisterUser(data, '', false).apiLoginUser(data)
 })
 
+// What apiInitServer is instead, on this application's server. It runs the
+// board in single-user mode, where /api/v2/register and /api/v2/login are
+// closed and there is nobody to register: the front door hands the page a
+// session token in the bootstrap script it injects (proxy.go), which the page
+// puts in localStorage. Reading it back out of the app's window is what lets
+// cy.request speak to the API as the same user the page is.
+Cypress.Commands.add('apiUseSingleUserSession', () => {
+    cy.visit('/')
+    return cy.window().then((win) => {
+        const token = win.localStorage.getItem('focalboardSessionId')
+        expect(token, 'session token seeded by the front door').to.be.a('string')
+        localStorage.setItem('focalboardSessionId', token as string)
+    })
+})
+
 Cypress.Commands.add('apiDeleteBoard', (id: string) => {
     return cy.request({
         method: 'DELETE',

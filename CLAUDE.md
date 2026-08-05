@@ -110,6 +110,17 @@ React-only libraries were replaced rather than wrapped: `@dnd-kit/solid`,
 `@dschz/solid-flow` for the workflow canvas, `@solidjs/router`, `@formatjs/intl`
 behind our own `src/intl.tsx` (same `IntlShape`, same message ids), and headless
 Lexical with a typeahead menu of our own under `markdownEditorInput/plugins/`.
+
+Two rules the drag-and-drop earned the hard way, both silent when broken.
+`OptimisticSortingPlugin` is left out of every sortable, because it reorders
+nodes the framework owns — and the price is that a sortable's `index` and
+`group` no longer move during a drag, so **where a drop landed can only be read
+off `event.operation.target`**, never off the source. And **two entities may not
+share an id**: dnd-kit's registry is a map keyed by id, so a category that
+registered its sortable and its boards drop zone both under the category id had
+no drop target of its own. `hooks/sortable.tsx` carries the rest of the
+reasoning; `sortableDrag.test.tsx` and `sidebarDrag.test.tsx` drive real drags
+in jsdom and are the guards.
 Several widgets survived the rewrite untouched because their logic already sat
 in a plain module under a thin wrapper — `hotkeys.ts`, `calendar.ts`,
 `combobox.ts` beside `widgets/calendar.tsx` and `widgets/combobox.tsx`; keep new

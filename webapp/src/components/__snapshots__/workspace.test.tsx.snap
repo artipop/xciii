@@ -1197,10 +1197,10 @@ exports[`src/components/workspace > should match snapshot 1`] = `
       >
         <div>
           <div
-            class="SidebarCategory draggingOver"
+            class="SidebarCategory"
           >
             <div
-              class="categoryBoardsDroppableArea draggingOver"
+              class="categoryBoardsDroppableArea"
             >
               <div
                 class="octo-sidebar-item category expanded active"
