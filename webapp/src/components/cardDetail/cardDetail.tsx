@@ -106,6 +106,12 @@ const CardDetail = (props: Props): JSX.Element => {
     const [title, setTitle] = createSignal(props.card.title)
     const [serverTitle, setServerTitle] = createSignal(props.card.title)
     let titleRef: Focusable | undefined
+
+    // The card these local signals were read from. Switching cards does not
+    // unmount this component — both cards are truthy, so the dialog is reused —
+    // and the title signal would still hold the previous card's text.
+    const editedCardId = props.card.id
+
     const saveTitle = () => {
         // Also runs from onCleanup, and closing a card disposes this in the
         // same tick the store stops knowing about the card — see
@@ -113,6 +119,13 @@ const CardDetail = (props: Props): JSX.Element => {
         // disposal aborts it, and the dialog stays on screen for good.
         const card = props.card
         if (!card) {
+            return
+        }
+
+        // Flushing onto a card these edits did not come from renames the wrong
+        // card. Losing an unsaved title when you switch cards is a fair price;
+        // renaming somebody else's card is not.
+        if (card.id !== editedCardId) {
             return
         }
         if (title() !== card.title) {
