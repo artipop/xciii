@@ -107,8 +107,16 @@ const CardDetail = (props: Props): JSX.Element => {
     const [serverTitle, setServerTitle] = createSignal(props.card.title)
     let titleRef: Focusable | undefined
     const saveTitle = () => {
-        if (title() !== props.card.title) {
-            mutator.changeBlockTitle(props.board.id, props.card.id, props.card.title, title())
+        // Also runs from onCleanup, and closing a card disposes this in the
+        // same tick the store stops knowing about the card — see
+        // properties/baseTextEditor for the same trap. Throwing from inside
+        // disposal aborts it, and the dialog stays on screen for good.
+        const card = props.card
+        if (!card) {
+            return
+        }
+        if (title() !== card.title) {
+            mutator.changeBlockTitle(props.board.id, card.id, card.title, title())
         }
     }
     const canEditBoardCards = useHasCurrentBoardPermissions([Permission.ManageBoardCards])

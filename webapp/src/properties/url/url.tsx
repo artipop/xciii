@@ -30,8 +30,14 @@ const URLProperty = (props: PropertyProps): JSX.Element => {
     const emptyDisplayValue = () => (props.showEmptyPlaceholder ? intl.formatMessage({id: 'PropertyValueElement.empty', defaultMessage: 'Empty'}) : '')
 
     const saveTextProperty = () => {
-        if (value() !== (props.card.fields.properties[props.propertyTemplate?.id || ''] || '')) {
-            mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate?.id || '', value())
+        // See baseTextEditor: this also runs from onCleanup, by which time the
+        // card may be gone, and throwing inside disposal wedges the dialog open.
+        const card = props.card
+        if (!card) {
+            return
+        }
+        if (value() !== (card.fields.properties[props.propertyTemplate?.id || ''] || '')) {
+            mutator.changePropertyValue(props.board.id, card, props.propertyTemplate?.id || '', value())
         }
     }
 
