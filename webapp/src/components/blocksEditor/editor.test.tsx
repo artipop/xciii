@@ -45,7 +45,7 @@ describe('components/blocksEditor/editor', () => {
                     boardId='fake-board-id'
                     initialValue='test-value'
                     initialContentType='text'
-                    onSave={jest.fn()}
+                    onSave={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -57,7 +57,7 @@ describe('components/blocksEditor/editor', () => {
             <AppStoreProvider store={store}>
                 <Editor
                     boardId='fake-board-id'
-                    onSave={jest.fn()}
+                    onSave={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -65,7 +65,7 @@ describe('components/blocksEditor/editor', () => {
     })
 
     test('should call onSave after introduce text and hit enter', async () => {
-        const onSave = jest.fn()
+        const onSave = vi.fn()
         render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Editor

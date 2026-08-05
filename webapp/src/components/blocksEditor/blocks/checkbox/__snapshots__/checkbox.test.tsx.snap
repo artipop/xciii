@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/blocksEditor/blocks/checkbox should match Display snapshot 1`] = `
+exports[`components/blocksEditor/blocks/checkbox > should match Display snapshot 1`] = `
 <div>
   <div
     class="CheckboxView"
@@ -18,7 +18,7 @@ exports[`components/blocksEditor/blocks/checkbox should match Display snapshot 1
 </div>
 `;
 
-exports[`components/blocksEditor/blocks/checkbox should match Display snapshot not checked 1`] = `
+exports[`components/blocksEditor/blocks/checkbox > should match Display snapshot not checked 1`] = `
 <div>
   <div
     class="CheckboxView"
@@ -36,7 +36,7 @@ exports[`components/blocksEditor/blocks/checkbox should match Display snapshot n
 </div>
 `;
 
-exports[`components/blocksEditor/blocks/checkbox should match Input snapshot 1`] = `
+exports[`components/blocksEditor/blocks/checkbox > should match Input snapshot 1`] = `
 <div>
   <div
     class="Checkbox"
@@ -54,7 +54,7 @@ exports[`components/blocksEditor/blocks/checkbox should match Input snapshot 1`]
 </div>
 `;
 
-exports[`components/blocksEditor/blocks/checkbox should match Input snapshot not checked 1`] = `
+exports[`components/blocksEditor/blocks/checkbox > should match Input snapshot not checked 1`] = `
 <div>
   <div
     class="Checkbox"

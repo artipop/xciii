@@ -3,7 +3,6 @@
 
 import {render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import {mocked} from 'jest-mock'
 
 import '@testing-library/jest-dom'
 import {createIntl} from '../../intl'
@@ -17,8 +16,8 @@ import {PropertyType} from '../../properties/types'
 
 import CardDetailProperties from './cardDetailProperties'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 describe('components/cardDetail/CardDetailProperties', () => {
     const board = TestBlockFactory.createBoard()

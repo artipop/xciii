@@ -32,7 +32,7 @@ describe('components/calculations/Calculation', () => {
         return wrapIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
-                onResizeColumn={jest.fn()}
+                onResizeColumn={vi.fn()}
             >
                 {props.children}
             </ColumnResizeProvider>,
@@ -144,9 +144,9 @@ describe('components/calculations/Calculation', () => {
     })
 
     test('should match snapshot - option change', () => {
-        const onMenuOpen = jest.fn()
-        const onMenuClose = jest.fn()
-        const onChange = jest.fn()
+        const onMenuOpen = vi.fn()
+        const onMenuClose = vi.fn()
+        const onChange = vi.fn()
 
         const {container} = render(() =>
             <Wrapper>

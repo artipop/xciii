@@ -6,8 +6,6 @@ import {render, screen, waitFor} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 
-import {mocked} from 'jest-mock'
-
 import userEvent from '@testing-library/user-event'
 
 import mutator from '../mutator'
@@ -34,12 +32,12 @@ const wrap = (child: () => JSX.Element): JSX.Element => (
     )
 )
 
-jest.mock('../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 describe('components/addContentMenuItem', () => {
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
     test('return an image menu item', () => {
         const {container} = render(() =>

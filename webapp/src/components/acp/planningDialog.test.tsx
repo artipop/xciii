@@ -12,19 +12,19 @@ const anyWindow = window as any
 
 function planningBindings() {
     return {
-        ListAgentRepos: jest.fn().mockResolvedValue(JSON.stringify([{name: 'app', path: '/src/app'}])),
-        ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'planner', kind: 'claude'}])),
-        OpenPlanningTerminal: jest.fn().mockResolvedValue(JSON.stringify({
+        ListAgentRepos: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app', path: '/src/app'}])),
+        ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'planner', kind: 'claude'}])),
+        OpenPlanningTerminal: vi.fn().mockResolvedValue(JSON.stringify({
             id: 'term-1', url: 'http://127.0.0.1:1234/acp/terminal/term-1', windowed: true,
         })),
-        ListTerminals: jest.fn().mockResolvedValue('[]'),
-        ShowTerminal: jest.fn().mockResolvedValue(JSON.stringify({id: 'term-9', windowed: true})),
+        ListTerminals: vi.fn().mockResolvedValue('[]'),
+        ShowTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-9', windowed: true})),
     }
 }
 
 describe('components/acp/planningDialog', () => {
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         delete anyWindow.go
     })
 
@@ -36,7 +36,7 @@ describe('components/acp/planningDialog', () => {
         const bindings = planningBindings()
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <PlanningDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <PlanningDialog onClose={vi.fn()}/>))
 
         // One of a kind needs no choosing, so the button is live at once.
         const open = await screen.findByText('Open a terminal')
@@ -53,12 +53,12 @@ describe('components/acp/planningDialog', () => {
     // the dialog is the only place it can be found again.
     it('offers back a terminal that is still running', async () => {
         const bindings = planningBindings()
-        bindings.ListTerminals = jest.fn().mockResolvedValue(JSON.stringify([
+        bindings.ListTerminals = vi.fn().mockResolvedValue(JSON.stringify([
             {id: 'term-9', agent: 'planner', cwd: '/src/app', running: true},
         ]))
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <PlanningDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <PlanningDialog onClose={vi.fn()}/>))
 
         const running = await screen.findByText('planner · app')
         await userEvent.click(running)
@@ -67,10 +67,10 @@ describe('components/acp/planningDialog', () => {
 
     it('says what went wrong instead of failing silently', async () => {
         const bindings = planningBindings()
-        bindings.OpenPlanningTerminal = jest.fn().mockRejectedValue(new Error('CLI агента не установлен'))
+        bindings.OpenPlanningTerminal = vi.fn().mockRejectedValue(new Error('CLI агента не установлен'))
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <PlanningDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <PlanningDialog onClose={vi.fn()}/>))
 
         const open = await screen.findByText('Open a terminal')
         await waitFor(() => expect(open.closest('button')).not.toBeDisabled())

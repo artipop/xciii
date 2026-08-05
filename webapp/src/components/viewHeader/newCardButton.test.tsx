@@ -38,20 +38,20 @@ describe('components/viewHeader/newCardButton', () => {
     }
 
     const store = mockAppStore(state)
-    const mockFunction = jest.fn()
+    const mockFunction = vi.fn()
 
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
     test('return NewCardButton', () => {
         const {container} = render(() =>
             wrapIntl(() =>
                 <AppStoreProvider store={store}>
                     <NewCardButton
-                        addCard={jest.fn()}
-                        addCardTemplate={jest.fn()}
-                        addCardFromTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
+                        addCard={vi.fn()}
+                        addCardTemplate={vi.fn()}
+                        addCardFromTemplate={vi.fn()}
+                        editCardTemplate={vi.fn()}
                     />
                 </AppStoreProvider>,
             ),
@@ -66,9 +66,9 @@ describe('components/viewHeader/newCardButton', () => {
                 <AppStoreProvider store={store}>
                     <NewCardButton
                         addCard={mockFunction}
-                        addCardTemplate={jest.fn()}
-                        addCardFromTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
+                        addCardTemplate={vi.fn()}
+                        addCardFromTemplate={vi.fn()}
+                        editCardTemplate={vi.fn()}
                     />
                 </AppStoreProvider>,
             ),
@@ -85,10 +85,10 @@ describe('components/viewHeader/newCardButton', () => {
             wrapIntl(() =>
                 <AppStoreProvider store={store}>
                     <NewCardButton
-                        addCard={jest.fn()}
+                        addCard={vi.fn()}
                         addCardTemplate={mockFunction}
-                        addCardFromTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
+                        addCardFromTemplate={vi.fn()}
+                        editCardTemplate={vi.fn()}
                     />
                 </AppStoreProvider>,
             ),

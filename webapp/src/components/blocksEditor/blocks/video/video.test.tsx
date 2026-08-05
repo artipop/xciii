@@ -2,25 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {render, screen, fireEvent} from '@solidjs/testing-library'
-import {mocked} from 'jest-mock'
 
 import octoClient from '../../../../octoClient'
 
 import VideoBlock from '.'
 
-jest.mock('../../../../octoClient')
+vi.mock('../../../../octoClient')
 
 describe('components/blocksEditor/blocks/video', () => {
     test('should match Display snapshot', async () => {
-        const mockedOcto = mocked(octoClient)
+        const mockedOcto = vi.mocked(octoClient)
         mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.jpg'})
         const Component = VideoBlock.Display
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{file: 'test', filename: 'test-filename'}}
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         await screen.findByTestId('video')
@@ -31,10 +30,10 @@ describe('components/blocksEditor/blocks/video', () => {
         const Component = VideoBlock.Display
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{file: '', filename: ''}}
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
                 currentBoardId=''
             />,
         )
@@ -45,10 +44,10 @@ describe('components/blocksEditor/blocks/video', () => {
         const Component = VideoBlock.Input
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{file: 'test', filename: 'test-filename'}}
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
@@ -58,23 +57,23 @@ describe('components/blocksEditor/blocks/video', () => {
         const Component = VideoBlock.Input
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{file: '', filename: ''}}
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
     })
 
     test('should emit onSave on change', async () => {
-        const onSave = jest.fn()
+        const onSave = vi.fn()
         const Component = VideoBlock.Input
         render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{file: 'test', filename: 'test-filename'}}
-                onCancel={jest.fn()}
+                onCancel={vi.fn()}
                 onSave={onSave}
             />,
         )

@@ -6,8 +6,6 @@ import {render, screen} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import {mockAppStore, wrapIntl} from '../../testUtils'
@@ -19,11 +17,11 @@ import {CsvExporter} from '../../csvExporter'
 
 import ViewHeaderActionsMenu from './viewHeaderActionsMenu'
 
-jest.mock('../../archiver')
-jest.mock('../../csvExporter')
-jest.mock('../../mutator')
-const mockedArchiver = mocked(Archiver)
-const mockedCsvExporter = mocked(CsvExporter)
+vi.mock('../../archiver')
+vi.mock('../../csvExporter')
+vi.mock('../../mutator')
+const mockedArchiver = vi.mocked(Archiver)
+const mockedCsvExporter = vi.mocked(CsvExporter)
 
 const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
@@ -40,7 +38,7 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
     }
     const store = mockAppStore(state)
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('return menu', () => {

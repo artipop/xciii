@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/cardDetail/CardDetail should render hidden view if limited 1`] = `
+exports[`components/cardDetail/CardDetail > should render hidden view if limited 1`] = `
 <div>
   <div
     class="CardDetail  CardDetail--is-limited"
@@ -196,7 +196,7 @@ exports[`components/cardDetail/CardDetail should render hidden view if limited 1
 </div>
 `;
 
-exports[`components/cardDetail/CardDetail should show add comments tour tip 1`] = `
+exports[`components/cardDetail/CardDetail > should show add comments tour tip 1`] = `
 <div
   aria-labelledby="cl-1"
   class="tutorial-tour-tip__box AddCommentTourStep"
@@ -312,7 +312,7 @@ exports[`components/cardDetail/CardDetail should show add comments tour tip 1`] 
 </div>
 `;
 
-exports[`components/cardDetail/CardDetail should show add description tour tip 1`] = `
+exports[`components/cardDetail/CardDetail > should show add description tour tip 1`] = `
 <div
   aria-labelledby="cl-7"
   class="tutorial-tour-tip__box AddDescriptionTourStep"
@@ -426,7 +426,7 @@ exports[`components/cardDetail/CardDetail should show add description tour tip 1
 </div>
 `;
 
-exports[`components/cardDetail/CardDetail should show add properties tour tip 1`] = `
+exports[`components/cardDetail/CardDetail > should show add properties tour tip 1`] = `
 <div
   aria-labelledby="cl-0"
   class="tutorial-tour-tip__box AddPropertiesTourStep"

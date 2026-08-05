@@ -72,10 +72,10 @@ describe('components/viewHeader/viewHeader', () => {
                             views={[activeView]}
                             cards={[card]}
                             groupByProperty={board.cardProperties[0]}
-                            addCard={jest.fn()}
-                            addCardFromTemplate={jest.fn()}
-                            addCardTemplate={jest.fn()}
-                            editCardTemplate={jest.fn()}
+                            addCard={vi.fn()}
+                            addCardFromTemplate={vi.fn()}
+                            addCardTemplate={vi.fn()}
+                            editCardTemplate={vi.fn()}
                             readonly={false}
                         />
                     </TestRouter>
@@ -96,10 +96,10 @@ describe('components/viewHeader/viewHeader', () => {
                             views={[activeView]}
                             cards={[card]}
                             groupByProperty={board.cardProperties[0]}
-                            addCard={jest.fn()}
-                            addCardFromTemplate={jest.fn()}
-                            addCardTemplate={jest.fn()}
-                            editCardTemplate={jest.fn()}
+                            addCard={vi.fn()}
+                            addCardFromTemplate={vi.fn()}
+                            addCardTemplate={vi.fn()}
+                            editCardTemplate={vi.fn()}
                             readonly={false}
                         />
                     </TestRouter>
@@ -119,10 +119,10 @@ describe('components/viewHeader/viewHeader', () => {
                             views={[activeView]}
                             cards={[card]}
                             groupByProperty={board.cardProperties[0]}
-                            addCard={jest.fn()}
-                            addCardFromTemplate={jest.fn()}
-                            addCardTemplate={jest.fn()}
-                            editCardTemplate={jest.fn()}
+                            addCard={vi.fn()}
+                            addCardFromTemplate={vi.fn()}
+                            addCardTemplate={vi.fn()}
+                            editCardTemplate={vi.fn()}
                             readonly={true}
                         />
                     </TestRouter>

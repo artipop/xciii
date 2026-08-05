@@ -66,10 +66,10 @@ const shippedFlows = [
 
 function stubBindings(overrides: Record<string, unknown> = {}) {
     const bindings = {
-        ListFlows: jest.fn().mockResolvedValue(JSON.stringify([featureFlow])),
-        ListFlowTriggers: jest.fn().mockResolvedValue(JSON.stringify(triggers)),
-        ListFlowTemplates: jest.fn().mockResolvedValue(JSON.stringify(shippedFlows)),
-        GetBoardFlowOverview: jest.fn().mockResolvedValue(JSON.stringify([{
+        ListFlows: vi.fn().mockResolvedValue(JSON.stringify([featureFlow])),
+        ListFlowTriggers: vi.fn().mockResolvedValue(JSON.stringify(triggers)),
+        ListFlowTemplates: vi.fn().mockResolvedValue(JSON.stringify(shippedFlows)),
+        GetBoardFlowOverview: vi.fn().mockResolvedValue(JSON.stringify([{
             flow: 'feature',
             cards: 2,
             stages: [
@@ -77,9 +77,9 @@ function stubBindings(overrides: Record<string, unknown> = {}) {
                 {nodeId: 'n2', cards: 0, running: 0, queued: 0},
             ],
         }])),
-        AddFlow: jest.fn().mockResolvedValue('{}'),
-        UpdateFlow: jest.fn().mockResolvedValue('{}'),
-        RemoveFlow: jest.fn().mockResolvedValue(undefined),
+        AddFlow: vi.fn().mockResolvedValue('{}'),
+        UpdateFlow: vi.fn().mockResolvedValue('{}'),
+        RemoveFlow: vi.fn().mockResolvedValue(undefined),
         ...overrides,
     }
     anyWindow.go = {main: {App: bindings}}
@@ -89,7 +89,7 @@ function stubBindings(overrides: Record<string, unknown> = {}) {
 describe('components/acp/workflowsDialog', () => {
     afterEach(() => {
         delete anyWindow.go
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('isWorkflowsAvailable is false without desktop bindings', () => {
@@ -103,7 +103,7 @@ describe('components/acp/workflowsDialog', () => {
         render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
 
@@ -126,7 +126,7 @@ describe('components/acp/workflowsDialog', () => {
         render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('feature')).toBeInTheDocument())
@@ -158,11 +158,11 @@ describe('components/acp/workflowsDialog', () => {
     })
 
     test('a validation error from Go is shown, not swallowed', async () => {
-        stubBindings({UpdateFlow: jest.fn().mockRejectedValue('у стадии "n1" два перехода по событию')})
+        stubBindings({UpdateFlow: vi.fn().mockRejectedValue('у стадии "n1" два перехода по событию')})
         render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('feature')).toBeInTheDocument())
@@ -180,7 +180,7 @@ describe('components/acp/workflowsDialog', () => {
         render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(bindings.ListFlows).toHaveBeenCalledWith(board.id))
@@ -198,7 +198,7 @@ describe('components/acp/workflowsDialog', () => {
         render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('feature')).toBeInTheDocument())
@@ -220,7 +220,7 @@ describe('components/acp/workflowsDialog', () => {
         render(() => wrapIntl(() =>
             <WorkflowsDialog
                 board={boardWithColumns()}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('feature')).toBeInTheDocument())

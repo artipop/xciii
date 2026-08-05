@@ -6,8 +6,6 @@ import {render, screen} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {FilterClause} from '../../blocks/filterClause'
 import {IPropertyTemplate} from '../../blocks/board'
 
@@ -21,8 +19,8 @@ import propsRegistry from '../../properties'
 
 import FilterValue from './filterValue'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
@@ -43,7 +41,7 @@ const filter: FilterClause = {
 
 describe('components/viewHeader/filterValue', () => {
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         board.cardProperties[0].options = [{id: 'Status', value: 'Status', color: ''}]
         activeView.fields.filter.filters = [filter]
     })

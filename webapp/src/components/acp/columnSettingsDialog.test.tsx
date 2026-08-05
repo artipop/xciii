@@ -33,12 +33,12 @@ const savedSpec = {
 
 function stubBindings(overrides: Record<string, unknown> = {}) {
     const bindings = {
-        ListBoardColumns: jest.fn().mockResolvedValue(JSON.stringify([savedSpec])),
-        SaveBoardColumn: jest.fn().mockResolvedValue('{}'),
-        RemoveBoardColumn: jest.fn().mockResolvedValue(undefined),
-        ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'dev-1'}, {name: 'dev-2'}])),
-        ListDeployTargets: jest.fn().mockResolvedValue('[]'),
-        GetWorktreeMode: jest.fn().mockResolvedValue('always'),
+        ListBoardColumns: vi.fn().mockResolvedValue(JSON.stringify([savedSpec])),
+        SaveBoardColumn: vi.fn().mockResolvedValue('{}'),
+        RemoveBoardColumn: vi.fn().mockResolvedValue(undefined),
+        ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'dev-1'}, {name: 'dev-2'}])),
+        ListDeployTargets: vi.fn().mockResolvedValue('[]'),
+        GetWorktreeMode: vi.fn().mockResolvedValue('always'),
         ...overrides,
     }
     anyWindow.go = {main: {App: bindings}}
@@ -49,7 +49,7 @@ describe('components/acp/columnSettingsDialog', () => {
     afterEach(() => {
         delete anyWindow.go
         invalidateBoardColumns()
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('is unavailable without desktop bindings', () => {
@@ -70,7 +70,7 @@ describe('components/acp/columnSettingsDialog', () => {
                 boardId='board1'
                 property={property}
                 option={option}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
 
@@ -90,13 +90,13 @@ describe('components/acp/columnSettingsDialog', () => {
     })
 
     test('a validation error from Go is shown, not swallowed', async () => {
-        stubBindings({SaveBoardColumn: jest.fn().mockRejectedValue('агент "ghost" не найден в реестре')})
+        stubBindings({SaveBoardColumn: vi.fn().mockRejectedValue('агент "ghost" не найден в реестре')})
         render(() => wrapIntl(() =>
             <ColumnSettingsDialog
                 boardId='board1'
                 property={property}
                 option={option}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByLabelText('dev-1')).toBeChecked())
@@ -110,7 +110,7 @@ describe('components/acp/columnBadge', () => {
     afterEach(() => {
         delete anyWindow.go
         invalidateBoardColumns()
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('says on the column what happens in it', async () => {
@@ -129,7 +129,7 @@ describe('components/acp/columnBadge', () => {
     })
 
     test('a column that does nothing says nothing', async () => {
-        stubBindings({ListBoardColumns: jest.fn().mockResolvedValue(JSON.stringify([{...savedSpec, action: 'none'}]))})
+        stubBindings({ListBoardColumns: vi.fn().mockResolvedValue(JSON.stringify([{...savedSpec, action: 'none'}]))})
         const {container} = render(() => wrapIntl(() =>
             <ColumnBadge
                 boardId='board1'

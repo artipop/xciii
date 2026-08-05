@@ -5,8 +5,6 @@ import {render} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {TestRouter, mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
@@ -16,10 +14,10 @@ import client from '../../octoClient'
 
 import GlobalHeaderSettingsMenu from './globalHeaderSettingsMenu'
 
-jest.mock('../../telemetry/telemetryClient')
-jest.mock('../../octoClient')
-const mockedTelemetry = mocked(TelemetryClient)
-const mockedOctoClient = mocked(client)
+vi.mock('../../telemetry/telemetryClient')
+vi.mock('../../octoClient')
+const mockedTelemetry = vi.mocked(TelemetryClient)
+const mockedOctoClient = vi.mocked(client)
 
 describe('components/sidebar/GlobalHeaderSettingsMenu', () => {
     let store = mockAppStore({})
@@ -87,7 +85,7 @@ describe('components/sidebar/GlobalHeaderSettingsMenu', () => {
     })
 
     test('imports menu open should match snapshot', () => {
-        window.open = jest.fn()
+        window.open = vi.fn()
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>

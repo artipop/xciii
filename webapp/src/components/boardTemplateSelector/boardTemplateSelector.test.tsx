@@ -3,8 +3,6 @@
 import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import Mutator from '../../mutator'
 import {Team} from '../../store/teams'
 import {createBoard, Board} from '../../blocks/board'
@@ -16,20 +14,24 @@ import TelemetryClient from '../../telemetry/telemetryClient'
 
 import BoardTemplateSelector from './boardTemplateSelector'
 
-jest.mock('../../octoClient', () => {
+// The client is a default export, and a factory has to say so: babel's CJS
+// interop used to hand the whole object back as the default, ESM does not.
+vi.mock('../../octoClient', () => {
     return {
-        getAllBlocks: jest.fn(() => Promise.resolve([])),
-        patchUserConfig: jest.fn(() => Promise.resolve({})),
+        default: {
+            getAllBlocks: vi.fn(() => Promise.resolve([])),
+            patchUserConfig: vi.fn(() => Promise.resolve({})),
+        },
     }
 })
-jest.mock('../../utils')
-jest.mock('../../mutator')
+vi.mock('../../utils')
+vi.mock('../../mutator')
 
-jest.mock('../../telemetry/telemetryClient')
-const mockedTelemetry = mocked(TelemetryClient)
+vi.mock('../../telemetry/telemetryClient')
+const mockedTelemetry = vi.mocked(TelemetryClient)
 
 describe('components/boardTemplateSelector/boardTemplateSelector', () => {
-    const mockedMutator = mocked(Mutator)
+    const mockedMutator = vi.mocked(Mutator)
     const team1: Team = {
         id: 'team-1',
         title: 'Team 1',
@@ -61,7 +63,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
     let store: ReturnType<typeof mockAppStore>
     beforeAll(mockDOM)
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         const state = {
             teams: {
                 current: team1,
@@ -140,13 +142,13 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             },
         }
         store = mockAppStore(state)
-        jest.useRealTimers()
+        vi.useRealTimers()
     })
     describe('not a focalboard Plugin', () => {
         test('should match snapshot', () => {
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
-                    <BoardTemplateSelector onClose={jest.fn()}/>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
                 </AppStoreProvider>
                 ,
             ), {wrapper: TestRouter})
@@ -157,7 +159,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
         test('should match snapshot', () => {
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
-                    <BoardTemplateSelector onClose={jest.fn()}/>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
                 </AppStoreProvider>
                 ,
             ), {wrapper: TestRouter})
@@ -185,7 +187,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(container).toMatchSnapshot()
         })
         test('return BoardTemplateSelector and click close call the onClose callback', () => {
-            const onClose = jest.fn()
+            const onClose = vi.fn()
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <BoardTemplateSelector onClose={onClose}/>
@@ -200,7 +202,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
         test('return BoardTemplateSelector and click new template', () => {
             render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
-                    <BoardTemplateSelector onClose={jest.fn()}/>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
                 </AppStoreProvider>
                 ,
             ), {wrapper: TestRouter})
@@ -215,7 +217,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
 
             render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
-                    <BoardTemplateSelector onClose={jest.fn()}/>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
                 </AppStoreProvider>
                 ,
             ), {wrapper: TestRouter})
@@ -229,7 +231,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
         test('shows only the My Project Tasks template and hides the rest', () => {
             render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
-                    <BoardTemplateSelector onClose={jest.fn()}/>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
                 </AppStoreProvider>
                 ,
             ), {wrapper: TestRouter})
@@ -247,7 +249,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
 
             render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
-                    <BoardTemplateSelector onClose={jest.fn()}/>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
                 </AppStoreProvider>
                 ,
             ), {wrapper: TestRouter})
@@ -272,7 +274,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <BoardTemplateSelector
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         channelId='test-channel'
                     />
                 </AppStoreProvider>
@@ -298,7 +300,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
 
             render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
-                    <BoardTemplateSelector onClose={jest.fn()}/>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
                 </AppStoreProvider>
                 ,
             ), {wrapper: TestRouter})

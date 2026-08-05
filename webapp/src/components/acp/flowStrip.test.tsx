@@ -23,7 +23,7 @@ const cardFlow = {
 }
 
 function stubBindings(flow: unknown) {
-    const bindings = {GetCardFlow: jest.fn().mockResolvedValue(JSON.stringify(flow))}
+    const bindings = {GetCardFlow: vi.fn().mockResolvedValue(JSON.stringify(flow))}
     anyWindow.go = {main: {App: bindings}}
     return bindings
 }
@@ -31,7 +31,7 @@ function stubBindings(flow: unknown) {
 describe('components/acp/flowStrip', () => {
     afterEach(() => {
         delete anyWindow.go
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('is unavailable without desktop bindings', () => {

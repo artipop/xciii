@@ -16,7 +16,7 @@ import TerminalPage from './terminalPage'
 const written: Uint8Array[] = []
 const onDataHandlers: Array<(data: string) => void> = []
 
-jest.mock('@xterm/xterm', () => ({
+vi.mock('@xterm/xterm', () => ({
     Terminal: class {
         cols = 100
         rows = 30
@@ -32,12 +32,12 @@ jest.mock('@xterm/xterm', () => ({
         }
     },
 }))
-jest.mock('@xterm/addon-fit', () => ({
+vi.mock('@xterm/addon-fit', () => ({
     FitAddon: class {
         fit() {}
     },
 }))
-jest.mock('@xterm/xterm/css/xterm.css', () => ({}), {virtual: true})
+vi.mock('@xterm/xterm/css/xterm.css', () => ({}), {virtual: true})
 
 class FakeSocket {
     static last: FakeSocket | null = null
@@ -100,7 +100,7 @@ describe('components/acp/terminalPage', () => {
         ;(window as any).go = {
             main: {
                 App: {
-                    GetTerminalInfo: jest.fn().mockResolvedValue(JSON.stringify({
+                    GetTerminalInfo: vi.fn().mockResolvedValue(JSON.stringify({
                         id: 'term-1',
                         title: 'Фикс логина',
                         task: 'Почини логин',

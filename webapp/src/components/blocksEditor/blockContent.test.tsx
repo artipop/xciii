@@ -47,10 +47,10 @@ describe('components/blocksEditor/blockContent', () => {
                     block={block}
                     contentOrder={[block.id]}
                     editing={null}
-                    setEditing={jest.fn()}
-                    setAfterBlock={jest.fn()}
-                    onSave={jest.fn()}
-                    onMove={jest.fn()}
+                    setEditing={vi.fn()}
+                    setAfterBlock={vi.fn()}
+                    onSave={vi.fn()}
+                    onMove={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -65,10 +65,10 @@ describe('components/blocksEditor/blockContent', () => {
                     block={block}
                     contentOrder={[block.id]}
                     editing={block}
-                    setEditing={jest.fn()}
-                    setAfterBlock={jest.fn()}
-                    onSave={jest.fn()}
-                    onMove={jest.fn()}
+                    setEditing={vi.fn()}
+                    setAfterBlock={vi.fn()}
+                    onSave={vi.fn()}
+                    onMove={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -76,7 +76,7 @@ describe('components/blocksEditor/blockContent', () => {
     })
 
     test('should call setEditing on click the content', async () => {
-        const setEditing = jest.fn()
+        const setEditing = vi.fn()
         render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlockContent
@@ -85,9 +85,9 @@ describe('components/blocksEditor/blockContent', () => {
                     contentOrder={[block.id]}
                     editing={null}
                     setEditing={setEditing}
-                    setAfterBlock={jest.fn()}
-                    onSave={jest.fn()}
-                    onMove={jest.fn()}
+                    setAfterBlock={vi.fn()}
+                    onSave={vi.fn()}
+                    onMove={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -98,7 +98,7 @@ describe('components/blocksEditor/blockContent', () => {
     })
 
     test('should call setEditing on click the content', async () => {
-        const setAfterBlock = jest.fn()
+        const setAfterBlock = vi.fn()
         render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlockContent
@@ -106,10 +106,10 @@ describe('components/blocksEditor/blockContent', () => {
                     block={block}
                     contentOrder={[block.id]}
                     editing={null}
-                    setEditing={jest.fn()}
+                    setEditing={vi.fn()}
                     setAfterBlock={setAfterBlock}
-                    onSave={jest.fn()}
-                    onMove={jest.fn()}
+                    onSave={vi.fn()}
+                    onMove={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -120,7 +120,7 @@ describe('components/blocksEditor/blockContent', () => {
     })
 
     test('should call onSave on hit enter in the input', async () => {
-        const onSave = jest.fn()
+        const onSave = vi.fn()
         render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlockContent
@@ -128,10 +128,10 @@ describe('components/blocksEditor/blockContent', () => {
                     block={block}
                     contentOrder={[block.id]}
                     editing={block}
-                    setEditing={jest.fn()}
-                    setAfterBlock={jest.fn()}
+                    setEditing={vi.fn()}
+                    setAfterBlock={vi.fn()}
                     onSave={onSave}
-                    onMove={jest.fn()}
+                    onMove={vi.fn()}
                 />
             </AppStoreProvider>,
         ))

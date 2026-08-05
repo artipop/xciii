@@ -80,15 +80,15 @@ export const wrapStore = (store: AppStore, children?: () => JSX.Element): JSX.El
 )
 
 export function mockDOM(): void {
-    window.focus = jest.fn()
+    window.focus = vi.fn()
     document.createRange = () => {
         const range = new Range()
-        range.getBoundingClientRect = jest.fn()
+        range.getBoundingClientRect = vi.fn()
         range.getClientRects = () => {
             return {
                 item: () => null,
                 length: 0,
-                [Symbol.iterator]: jest.fn(),
+                [Symbol.iterator]: vi.fn(),
             }
         }
         return range
@@ -100,7 +100,7 @@ export function mockMatchMedia(result: {matches: boolean}): void {
     // window.matchMedia doesn't exist in Jest.
     Object.defineProperty(window, 'matchMedia', {
         writable: true,
-        value: jest.fn().mockImplementation(() => {
+        value: vi.fn().mockImplementation(() => {
             return result
         }),
     })

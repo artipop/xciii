@@ -3,8 +3,6 @@
 
 import {render, waitFor} from '@solidjs/testing-library'
 
-import {mocked} from 'jest-mock'
-
 import {ImageBlock} from '../../blocks/imageBlock'
 
 import {wrapIntl} from '../../testUtils'
@@ -13,8 +11,8 @@ import octoClient from '../../octoClient'
 
 import ImageElement from './imageElement'
 
-jest.mock('../../octoClient')
-const mockedOcto = mocked(octoClient)
+vi.mock('../../octoClient')
+const mockedOcto = vi.mocked(octoClient)
 mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.jpg'})
 
 describe('components/content/ImageElement', () => {

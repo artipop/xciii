@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/viewHeader/dateFilter handle clear 1`] = `
+exports[`components/viewHeader/dateFilter > handle clear 1`] = `
 <div>
   <div
     class="DateFilter  "
@@ -20,7 +20,7 @@ exports[`components/viewHeader/dateFilter handle clear 1`] = `
 </div>
 `;
 
-exports[`components/viewHeader/dateFilter handles \`Today\` button click event 1`] = `
+exports[`components/viewHeader/dateFilter > handles \`Today\` button click event 1`] = `
 <div>
   <div
     class="DateFilter empty "
@@ -40,9 +40,9 @@ exports[`components/viewHeader/dateFilter handles \`Today\` button click event 1
 </div>
 `;
 
-exports[`components/viewHeader/dateFilter handles calendar click event 1`] = `[Function]`;
+exports[`components/viewHeader/dateFilter > handles calendar click event 1`] = `[Function]`;
 
-exports[`components/viewHeader/dateFilter return dateFilter default value 1`] = `
+exports[`components/viewHeader/dateFilter > return dateFilter default value 1`] = `
 <div>
   <div
     class="DateFilter empty "
@@ -62,7 +62,7 @@ exports[`components/viewHeader/dateFilter return dateFilter default value 1`] = 
 </div>
 `;
 
-exports[`components/viewHeader/dateFilter return dateFilter invalid value 1`] = `
+exports[`components/viewHeader/dateFilter > return dateFilter invalid value 1`] = `
 <div>
   <div
     class="DateFilter  "
@@ -82,7 +82,7 @@ exports[`components/viewHeader/dateFilter return dateFilter invalid value 1`] = 
 </div>
 `;
 
-exports[`components/viewHeader/dateFilter return dateFilter valid value 1`] = `
+exports[`components/viewHeader/dateFilter > return dateFilter valid value 1`] = `
 <div>
   <div
     class="DateFilter  "
@@ -102,7 +102,7 @@ exports[`components/viewHeader/dateFilter return dateFilter valid value 1`] = `
 </div>
 `;
 
-exports[`components/viewHeader/dateFilter returns local correctly - es local 1`] = `
+exports[`components/viewHeader/dateFilter > returns local correctly - es local 1`] = `
 <div>
   <div
     class="DateFilter  "
@@ -122,7 +122,7 @@ exports[`components/viewHeader/dateFilter returns local correctly - es local 1`]
 </div>
 `;
 
-exports[`components/viewHeader/dateFilter set via text input 1`] = `
+exports[`components/viewHeader/dateFilter > set via text input 1`] = `
 <div>
   <div
     class="DateFilter empty "

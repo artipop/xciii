@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/cardDetail/cardDetailContents should match snapshot 1`] = `
+exports[`components/cardDetail/cardDetailContents > should match snapshot 1`] = `
 <div>
   <div
     class="octo-content CardDetailContents"
@@ -28,7 +28,7 @@ exports[`components/cardDetail/cardDetailContents should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/cardDetail/cardDetailContents should match snapshot after drag and drop event 1`] = `
+exports[`components/cardDetail/cardDetailContents > should match snapshot after drag and drop event 1`] = `
 <div>
   <div
     class="octo-content"
@@ -219,7 +219,7 @@ exports[`components/cardDetail/cardDetailContents should match snapshot after dr
 </div>
 `;
 
-exports[`components/cardDetail/cardDetailContents should match snapshot after drag and drop event 2 1`] = `
+exports[`components/cardDetail/cardDetailContents > should match snapshot after drag and drop event 2 1`] = `
 <div>
   <div
     class="octo-content"
@@ -353,7 +353,7 @@ exports[`components/cardDetail/cardDetailContents should match snapshot after dr
 </div>
 `;
 
-exports[`components/cardDetail/cardDetailContents should match snapshot after drag and drop event 3 1`] = `
+exports[`components/cardDetail/cardDetailContents > should match snapshot after drag and drop event 3 1`] = `
 <div>
   <div
     class="octo-content"
@@ -487,7 +487,7 @@ exports[`components/cardDetail/cardDetailContents should match snapshot after dr
 </div>
 `;
 
-exports[`components/cardDetail/cardDetailContents should match snapshot with contents array 1`] = `
+exports[`components/cardDetail/cardDetailContents > should match snapshot with contents array 1`] = `
 <div>
   <div
     class="octo-content"
@@ -560,7 +560,7 @@ exports[`components/cardDetail/cardDetailContents should match snapshot with con
 </div>
 `;
 
-exports[`components/cardDetail/cardDetailContents should match snapshot with contents array that has array inside it 1`] = `
+exports[`components/cardDetail/cardDetailContents > should match snapshot with contents array that has array inside it 1`] = `
 <div>
   <div
     class="octo-content"

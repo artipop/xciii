@@ -9,11 +9,11 @@ import Modal from './modal'
 
 describe('components/modal', () => {
     beforeAll(mockDOM)
-    beforeEach(jest.clearAllMocks)
+    beforeEach(vi.clearAllMocks)
     test('should match snapshot', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <Modal
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             >
                 <div id='test'/>
             </Modal>,
@@ -21,7 +21,7 @@ describe('components/modal', () => {
         expect(container).toMatchSnapshot()
     })
     test('return Modal and close', () => {
-        const onMockedClose = jest.fn()
+        const onMockedClose = vi.fn()
         render(() => wrapDNDIntl(() =>
             <Modal
                 onClose={onMockedClose}
@@ -37,7 +37,7 @@ describe('components/modal', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <Modal
                 position={'top'}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             >
                 <div id='test'/>
             </Modal>,
@@ -49,7 +49,7 @@ describe('components/modal', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <Modal
                 position={'bottom'}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             >
                 <div id='test'/>
             </Modal>,
@@ -61,7 +61,7 @@ describe('components/modal', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <Modal
                 position={'bottom-right'}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             >
                 <div id='test'/>
             </Modal>,

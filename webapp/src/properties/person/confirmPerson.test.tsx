@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mocked} from 'jest-mock'
-
 import {render, screen, waitFor, within} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
@@ -22,11 +20,11 @@ import PersonProperty from './property'
 // import {IPropertyTemplate, Board} from '../blocks/board'
 
 import ConfirmPerson from './confirmPerson'
-jest.mock('../../mutator')
-jest.mock('../../octoClient')
+vi.mock('../../mutator')
+vi.mock('../../octoClient')
 
-const mockedMutator = mocked(mutator)
-const mockedOctoClient = mocked(client)
+const mockedMutator = vi.mocked(mutator)
+const mockedOctoClient = vi.mocked(client)
 
 const board = TestBlockFactory.createBoard()
 board.teamId = 'team-id-1'

@@ -10,8 +10,8 @@ import mutator from '../../mutator'
 
 import AgentsDialog, {isAgentsAvailable, textToServers, keptOptions, remoteControlOf, withRemoteControl} from './agentsDialog'
 
-jest.mock('../../mutator')
-const mockedMutator = jest.mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 const anyWindow = window as any
 
@@ -20,7 +20,7 @@ describe('components/acp/agentsDialog', () => {
 
     afterEach(() => {
         delete anyWindow.go
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('isAgentsAvailable is false without desktop bindings', () => {
@@ -29,12 +29,12 @@ describe('components/acp/agentsDialog', () => {
 
     test('lists agents and adds a codex agent with env', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'default-agent', kind: 'claude'}])),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn().mockResolvedValue(undefined),
-            AddAgent: jest.fn().mockResolvedValue(JSON.stringify({name: 'codex-a', kind: 'codex'})),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn(),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'default-agent', kind: 'claude'}])),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn().mockResolvedValue(undefined),
+            AddAgent: vi.fn().mockResolvedValue(JSON.stringify({name: 'codex-a', kind: 'codex'})),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
         expect(isAgentsAvailable()).toBe(true)
@@ -42,7 +42,7 @@ describe('components/acp/agentsDialog', () => {
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('default-agent')).toBeInTheDocument())
@@ -64,22 +64,22 @@ describe('components/acp/agentsDialog', () => {
 
     test('saves a wrapped launch command and picks a registered proxy configuration', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([])),
-            ListProxies: jest.fn().mockResolvedValue(JSON.stringify([
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([])),
+            ListProxies: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'office', proxy: 'http://proxy.example.com:8080'},
             ])),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AddAgent: jest.fn().mockResolvedValue(JSON.stringify({name: 'proxied', kind: 'claude'})),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn(),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AddAgent: vi.fn().mockResolvedValue(JSON.stringify({name: 'proxied', kind: 'claude'})),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByRole('button', {name: 'Add agent…'})).toBeInTheDocument())
@@ -113,24 +113,24 @@ describe('components/acp/agentsDialog', () => {
     // hour later with nobody watching.
     test('says when the kind cannot be started and offers to install it', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([])),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            ListAgentAdapters: jest.fn().mockResolvedValue(JSON.stringify([
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([])),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            ListAgentAdapters: vi.fn().mockResolvedValue(JSON.stringify([
                 {kind: 'claude', package: '@agentclientprotocol/claude-agent-acp', ready: false, detail: 'не найден claude-agent-acp'},
                 {kind: 'codex', package: '@agentclientprotocol/codex-acp', ready: true, path: '/usr/local/bin/codex-acp'},
             ])),
-            InstallAgentAdapter: jest.fn().mockResolvedValue('added 1 package'),
-            AddAgent: jest.fn(),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn(),
+            InstallAgentAdapter: vi.fn().mockResolvedValue('added 1 package'),
+            AddAgent: vi.fn(),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(bindings.ListAgentAdapters).toHaveBeenCalled())
@@ -150,19 +150,19 @@ describe('components/acp/agentsDialog', () => {
 
     test('offers the ACP-native kinds and saves one without a launch command', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([])),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AddAgent: jest.fn().mockResolvedValue(JSON.stringify({name: 'junie-a', kind: 'junie'})),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn(),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([])),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AddAgent: vi.fn().mockResolvedValue(JSON.stringify({name: 'junie-a', kind: 'junie'})),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByRole('button', {name: 'Add agent…'})).toBeInTheDocument())
@@ -189,13 +189,13 @@ describe('components/acp/agentsDialog', () => {
 
     test('keeps every agent assignable without being asked', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'Codex Acct1', kind: 'codex'}])),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AddAgent: jest.fn().mockResolvedValue(JSON.stringify({name: 'claude', kind: 'claude'})),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn().mockResolvedValue(undefined),
-            SyncAgentUsers: jest.fn().mockResolvedValue(JSON.stringify([
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'Codex Acct1', kind: 'codex'}])),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AddAgent: vi.fn().mockResolvedValue(JSON.stringify({name: 'claude', kind: 'claude'})),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn().mockResolvedValue(undefined),
+            SyncAgentUsers: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'Codex Acct1', username: 'codex-acct1', userId: 'uid-1', created: true},
             ])),
         }
@@ -204,7 +204,7 @@ describe('components/acp/agentsDialog', () => {
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
 
@@ -225,23 +225,23 @@ describe('components/acp/agentsDialog', () => {
 
     test('carries the proxy registry in a folded-away section', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'codex-a', kind: 'codex'}])),
-            ListProxies: jest.fn().mockResolvedValue(JSON.stringify([{name: 'office', proxy: 'http://proxy.example.com:8080'}])),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AddAgent: jest.fn(),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn(),
-            AddProxy: jest.fn(),
-            UpdateProxy: jest.fn(),
-            RemoveProxy: jest.fn(),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'codex-a', kind: 'codex'}])),
+            ListProxies: vi.fn().mockResolvedValue(JSON.stringify([{name: 'office', proxy: 'http://proxy.example.com:8080'}])),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AddAgent: vi.fn(),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn(),
+            AddProxy: vi.fn(),
+            UpdateProxy: vi.fn(),
+            RemoveProxy: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('codex-a')).toBeInTheDocument())
@@ -255,20 +255,20 @@ describe('components/acp/agentsDialog', () => {
 
     test('shows the registry even when provisioning fails', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'codex-a', kind: 'codex'}])),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AddAgent: jest.fn(),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn(),
-            SyncAgentUsers: jest.fn().mockRejectedValue('board app is not ready'),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'codex-a', kind: 'codex'}])),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AddAgent: vi.fn(),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn(),
+            SyncAgentUsers: vi.fn().mockRejectedValue('board app is not ready'),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
 
@@ -278,15 +278,15 @@ describe('components/acp/agentsDialog', () => {
 
     test('creates an Agent select field and adds missing options', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'claude', kind: 'claude'},
                 {name: 'codex-a', kind: 'codex'},
             ])),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AddAgent: jest.fn(),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn(),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AddAgent: vi.fn(),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
@@ -294,7 +294,7 @@ describe('components/acp/agentsDialog', () => {
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('codex-a')).toBeInTheDocument())
@@ -311,20 +311,20 @@ describe('components/acp/agentsDialog', () => {
 
     test('wires an MCP server of the agent\'s own and reloads it for editing', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([])),
-            ListProxies: jest.fn().mockResolvedValue('[]'),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AddAgent: jest.fn().mockResolvedValue(JSON.stringify({name: 'jojo', kind: 'junie'})),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn(),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([])),
+            ListProxies: vi.fn().mockResolvedValue('[]'),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AddAgent: vi.fn().mockResolvedValue(JSON.stringify({name: 'jojo', kind: 'junie'})),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByRole('button', {name: 'Add agent…'})).toBeInTheDocument())
@@ -356,20 +356,20 @@ describe('components/acp/agentsDialog', () => {
 
     test('refuses to save MCP servers that are not JSON', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([])),
-            ListProxies: jest.fn().mockResolvedValue('[]'),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AddAgent: jest.fn(),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn(),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([])),
+            ListProxies: vi.fn().mockResolvedValue('[]'),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AddAgent: vi.fn(),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByRole('button', {name: 'Add agent…'})).toBeInTheDocument())
@@ -387,22 +387,22 @@ describe('components/acp/agentsDialog', () => {
 
     test('round-trips the MCP server list through the form', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'jojo', kind: 'junie', mcpServers: {playwright: {command: 'npx', args: ['-y', '@playwright/mcp@latest']}}},
             ])),
-            ListProxies: jest.fn().mockResolvedValue('[]'),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AddAgent: jest.fn(),
-            UpdateAgent: jest.fn().mockResolvedValue('{}'),
-            RemoveAgent: jest.fn(),
+            ListProxies: vi.fn().mockResolvedValue('[]'),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AddAgent: vi.fn(),
+            UpdateAgent: vi.fn().mockResolvedValue('{}'),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('jojo')).toBeInTheDocument())
@@ -425,24 +425,24 @@ describe('components/acp/agentsDialog', () => {
     // over ACP, so the form offers exactly those and nothing else.
     test('offers the settings the agent declares, and saves the chosen value', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'clyde', kind: 'claude'}])),
-            ListProxies: jest.fn().mockResolvedValue('[]'),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AgentOptions: jest.fn().mockResolvedValue(JSON.stringify([
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'clyde', kind: 'claude'}])),
+            ListProxies: vi.fn().mockResolvedValue('[]'),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AgentOptions: vi.fn().mockResolvedValue(JSON.stringify([
                 {id: 'model', name: 'Model', type: 'select', current: 'opus', values: [{value: 'opus', name: 'Opus'}]},
                 {id: 'fast', name: 'Fast mode', description: 'Faster responses on supported models', type: 'select', current: 'off', values: [{value: 'on', name: 'On'}, {value: 'off', name: 'Off'}]},
             ])),
-            AddAgent: jest.fn(),
-            UpdateAgent: jest.fn().mockResolvedValue('{}'),
-            RemoveAgent: jest.fn(),
+            AddAgent: vi.fn(),
+            UpdateAgent: vi.fn().mockResolvedValue('{}'),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('clyde')).toBeInTheDocument())
@@ -463,21 +463,21 @@ describe('components/acp/agentsDialog', () => {
 
     test('offers nothing for an agent that declares nothing', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'plain', kind: 'junie'}])),
-            ListProxies: jest.fn().mockResolvedValue('[]'),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AgentOptions: jest.fn().mockResolvedValue('[]'),
-            AddAgent: jest.fn(),
-            UpdateAgent: jest.fn().mockResolvedValue('{}'),
-            RemoveAgent: jest.fn(),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'plain', kind: 'junie'}])),
+            ListProxies: vi.fn().mockResolvedValue('[]'),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AgentOptions: vi.fn().mockResolvedValue('[]'),
+            AddAgent: vi.fn(),
+            UpdateAgent: vi.fn().mockResolvedValue('{}'),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('plain')).toBeInTheDocument())
@@ -493,21 +493,21 @@ describe('components/acp/agentsDialog', () => {
     // its account or adapter changed.
     test('rechecks what the agent supports on demand', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'clyde', kind: 'claude'}])),
-            ListProxies: jest.fn().mockResolvedValue('[]'),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AgentOptions: jest.fn().mockResolvedValue('[]'),
-            AddAgent: jest.fn(),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn(),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'clyde', kind: 'claude'}])),
+            ListProxies: vi.fn().mockResolvedValue('[]'),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AgentOptions: vi.fn().mockResolvedValue('[]'),
+            AddAgent: vi.fn(),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('clyde')).toBeInTheDocument())
@@ -533,21 +533,21 @@ describe('components/acp/agentsDialog', () => {
     // session/new's _meta. Only for the kinds whose adapter passes arguments on.
     test('turns remote control on for claude and saves it as a CLI argument', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'clyde', kind: 'claude'}])),
-            ListProxies: jest.fn().mockResolvedValue('[]'),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AgentOptions: jest.fn().mockResolvedValue('[]'),
-            AddAgent: jest.fn(),
-            UpdateAgent: jest.fn().mockResolvedValue('{}'),
-            RemoveAgent: jest.fn(),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'clyde', kind: 'claude'}])),
+            ListProxies: vi.fn().mockResolvedValue('[]'),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AgentOptions: vi.fn().mockResolvedValue('[]'),
+            AddAgent: vi.fn(),
+            UpdateAgent: vi.fn().mockResolvedValue('{}'),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('clyde')).toBeInTheDocument())
@@ -571,21 +571,21 @@ describe('components/acp/agentsDialog', () => {
 
     test('offers no remote control for a kind whose adapter cannot pass it on', async () => {
         const bindings = {
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'cx', kind: 'codex'}])),
-            ListProxies: jest.fn().mockResolvedValue('[]'),
-            GetAgentSystemPrompt: jest.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: jest.fn(),
-            AgentOptions: jest.fn().mockResolvedValue('[]'),
-            AddAgent: jest.fn(),
-            UpdateAgent: jest.fn(),
-            RemoveAgent: jest.fn(),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'cx', kind: 'codex'}])),
+            ListProxies: vi.fn().mockResolvedValue('[]'),
+            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
+            SetAgentSystemPrompt: vi.fn(),
+            AgentOptions: vi.fn().mockResolvedValue('[]'),
+            AddAgent: vi.fn(),
+            UpdateAgent: vi.fn(),
+            RemoveAgent: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentsDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('cx')).toBeInTheDocument())

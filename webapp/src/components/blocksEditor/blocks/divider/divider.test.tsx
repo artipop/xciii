@@ -10,10 +10,10 @@ describe('components/blocksEditor/blocks/divider', () => {
         const Component = DividerBlock.Display
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value='test-value'
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
@@ -23,23 +23,23 @@ describe('components/blocksEditor/blocks/divider', () => {
         const Component = DividerBlock.Input
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value='test-value'
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
     })
 
     test('should emit onSave event on mount', async () => {
-        const onSave = jest.fn()
+        const onSave = vi.fn()
         const Component = DividerBlock.Input
         render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value='test-value'
-                onCancel={jest.fn()}
+                onCancel={vi.fn()}
                 onSave={onSave}
             />,
         )

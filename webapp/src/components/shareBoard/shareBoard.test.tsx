@@ -3,8 +3,6 @@
 import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {IUser} from '../../user'
 import {ISharing} from '../../blocks/sharing'
 import {Channel} from '../../store/channels'
@@ -16,20 +14,20 @@ import {Utils} from '../../utils'
 
 import ShareBoard from './shareBoard'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 const boardId = '1'
 const workspaceId: string|undefined = boardId
 const viewId = boardId
 
-jest.mock('../../octoClient')
-jest.mock('../../utils')
+vi.mock('../../octoClient')
+vi.mock('../../utils')
 
-const mockedOctoClient = mocked(client)
-const mockedUtils = mocked(Utils)
+const mockedOctoClient = vi.mocked(client)
+const mockedUtils = vi.mocked(Utils)
 
 let mockRouteParams: Record<string, string> = {}
-jest.mock('../../hooks/routerMatch', () => ({
+vi.mock('../../hooks/routerMatch', () => ({
     useRouteMatch: () => () => ({
         path: '/',
         params: mockRouteParams,
@@ -173,7 +171,7 @@ describe('src/components/shareBoard/shareBoard', () => {
 
     const store = mockAppStore(state)
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         mockedUtils.buildURL.mockImplementation((path) => (w.baseURL || '') + path)
 
         mockRouteParams = {
@@ -200,7 +198,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <ShareBoard
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
@@ -226,7 +224,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <ShareBoard
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
@@ -250,7 +248,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <ShareBoard
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
@@ -272,7 +270,7 @@ describe('src/components/shareBoard/shareBoard', () => {
     })
 
     test('return shareBoard and click Regenerate token', async () => {
-        window.confirm = jest.fn(() => {
+        window.confirm = vi.fn(() => {
             return true
         })
         const sharing: ISharing = {
@@ -286,7 +284,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <ShareBoard
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
@@ -301,12 +299,12 @@ describe('src/components/shareBoard/shareBoard', () => {
         const publishButton = screen.getByRole('button', {name: 'Publish'})
         expect(publishButton).toBeDefined()
         userEvent.click(publishButton)
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
 
         const regenerateTokenElement = await screen.findByRole('button', {name: 'Regenerate token'})
         expect(regenerateTokenElement).toBeDefined()
         userEvent.click(regenerateTokenElement)
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
         expect(mockedOctoClient.setSharing).toHaveBeenCalledTimes(1)
         expect(container).toMatchSnapshot()
     })
@@ -322,7 +320,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <ShareBoard
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
@@ -333,7 +331,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         const publishButton = screen.getByRole('button', {name: 'Publish'})
         expect(publishButton).toBeDefined()
         userEvent.click(publishButton)
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
 
         const switchElement = container?.querySelector('.Switch')
         expect(switchElement).toBeDefined()
@@ -360,7 +358,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <ShareBoard
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
@@ -378,18 +376,18 @@ describe('src/components/shareBoard/shareBoard', () => {
         const publishButton = screen.getByRole('button', {name: 'Publish'})
         expect(publishButton).toBeDefined()
         userEvent.click(publishButton)
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
 
         // The switch only exists once publishing has committed.
         const switchElement = container?.querySelector('.Switch')
         expect(switchElement).toBeDefined()
         userEvent.click(switchElement!)
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
         result?.rerender(() =>
             wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <ShareBoard
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>))
@@ -417,7 +415,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <ShareBoard
-                    onClose={jest.fn()}
+                    onClose={vi.fn()}
                     enableSharedBoards={true}
                 />
             </AppStoreProvider>),
@@ -436,7 +434,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <ShareBoard
-                    onClose={jest.fn()}
+                    onClose={vi.fn()}
                     enableSharedBoards={true}
                 />
             </AppStoreProvider>),
@@ -473,7 +471,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <ShareBoard
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         enableSharedBoards={false}
                     />
                 </AppStoreProvider>),
@@ -516,7 +514,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <ShareBoard
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         enableSharedBoards={false}
                     />
                 </AppStoreProvider>),
@@ -553,7 +551,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             wrapDNDIntl(() =>
                 <AppStoreProvider store={myStore}>
                     <ShareBoard
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
@@ -603,7 +601,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             wrapDNDIntl(() =>
                 <AppStoreProvider store={myStore}>
                     <ShareBoard
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                         enableSharedBoards={false}
                     />
                 </AppStoreProvider>),

@@ -49,8 +49,8 @@ describe('components/table/TableRows', () => {
     }
 
     test('should match snapshot, fire events', async () => {
-        const callback = jest.fn()
-        const addCard = jest.fn()
+        const callback = vi.fn()
+        const addCard = vi.fn()
 
         const store = mockAppStore(state)
         const component = () => wrapDNDIntl(() =>
@@ -68,8 +68,8 @@ describe('components/table/TableRows', () => {
                         cardIdToFocusOnRender=''
                         showCard={callback}
                         addCard={addCard}
-                        onCardClicked={jest.fn()}
-                        onDrop={jest.fn()}
+                        onCardClicked={vi.fn()}
+                        onDrop={vi.fn()}
                     />
                 </ColumnResizeProvider>
             </AppStoreProvider>,

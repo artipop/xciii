@@ -10,10 +10,10 @@ describe('components/blocksEditor/blocks/checkbox', () => {
         const Component = CheckboxBlock.Display
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{value: 'test-value', checked: true}}
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
@@ -23,10 +23,10 @@ describe('components/blocksEditor/blocks/checkbox', () => {
         const Component = CheckboxBlock.Display
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{value: 'test-value', checked: false}}
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
@@ -36,10 +36,10 @@ describe('components/blocksEditor/blocks/checkbox', () => {
         const Component = CheckboxBlock.Input
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{value: 'test-value', checked: true}}
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
@@ -49,23 +49,23 @@ describe('components/blocksEditor/blocks/checkbox', () => {
         const Component = CheckboxBlock.Input
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{value: 'test-value', checked: false}}
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
     })
 
     test('should emit onSave event on Display checkbox clicked', async () => {
-        const onSave = jest.fn()
+        const onSave = vi.fn()
         const Component = CheckboxBlock.Display
         render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{value: 'test-value', checked: true}}
-                onCancel={jest.fn()}
+                onCancel={vi.fn()}
                 onSave={onSave}
             />,
         )
@@ -77,14 +77,14 @@ describe('components/blocksEditor/blocks/checkbox', () => {
     })
 
     test('should emit onChange event on input change', async () => {
-        const onChange = jest.fn()
+        const onChange = vi.fn()
         const Component = CheckboxBlock.Input
         render(() =>
             <Component
                 onChange={onChange}
                 value={{value: 'test-value', checked: true}}
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
 
@@ -96,14 +96,14 @@ describe('components/blocksEditor/blocks/checkbox', () => {
     })
 
     test('should emit onChange event on checkbox click', async () => {
-        const onChange = jest.fn()
+        const onChange = vi.fn()
         const Component = CheckboxBlock.Input
         render(() =>
             <Component
                 onChange={onChange}
                 value={{value: 'test-value', checked: true}}
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
 
@@ -115,14 +115,14 @@ describe('components/blocksEditor/blocks/checkbox', () => {
     })
 
     test('should not emit onCancel event when value is not empty and hit backspace', async () => {
-        const onCancel = jest.fn()
+        const onCancel = vi.fn()
         const Component = CheckboxBlock.Input
         render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{value: 'test-value', checked: true}}
                 onCancel={onCancel}
-                onSave={jest.fn()}
+                onSave={vi.fn()}
             />,
         )
 
@@ -133,14 +133,14 @@ describe('components/blocksEditor/blocks/checkbox', () => {
     })
 
     test('should emit onCancel event when value is empty and hit backspace', async () => {
-        const onCancel = jest.fn()
+        const onCancel = vi.fn()
         const Component = CheckboxBlock.Input
         render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{value: '', checked: false}}
                 onCancel={onCancel}
-                onSave={jest.fn()}
+                onSave={vi.fn()}
             />,
         )
 
@@ -152,13 +152,13 @@ describe('components/blocksEditor/blocks/checkbox', () => {
     })
 
     test('should emit onSave event hit enter', async () => {
-        const onSave = jest.fn()
+        const onSave = vi.fn()
         const Component = CheckboxBlock.Input
         render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value={{value: 'test-value', checked: true}}
-                onCancel={jest.fn()}
+                onCancel={vi.fn()}
                 onSave={onSave}
             />,
         )

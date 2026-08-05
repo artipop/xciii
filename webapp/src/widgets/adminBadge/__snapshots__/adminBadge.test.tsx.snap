@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`widgets/adminBadge should match the snapshot for Admin 1`] = `
+exports[`widgets/adminBadge > should match the snapshot for Admin 1`] = `
 <div>
   <div
     class="AdminBadge"
@@ -14,7 +14,7 @@ exports[`widgets/adminBadge should match the snapshot for Admin 1`] = `
 </div>
 `;
 
-exports[`widgets/adminBadge should match the snapshot for TeamAdmin 1`] = `
+exports[`widgets/adminBadge > should match the snapshot for TeamAdmin 1`] = `
 <div>
   <div
     class="AdminBadge"

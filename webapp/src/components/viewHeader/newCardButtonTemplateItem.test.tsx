@@ -6,8 +6,6 @@ import {render, screen} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
@@ -17,8 +15,8 @@ import mutator from '../../mutator'
 
 import NewCardButtonTemplateItem from './newCardButtonTemplateItem'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
@@ -44,10 +42,10 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
     }
 
     const store = mockAppStore(state)
-    const mockFunction = jest.fn()
+    const mockFunction = vi.fn()
 
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
     test('return NewCardButtonTemplateItem', () => {
         const {container} = render(() =>
@@ -55,8 +53,8 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
                 <AppStoreProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
-                        addCardFromTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
+                        addCardFromTemplate={vi.fn()}
+                        editCardTemplate={vi.fn()}
                     />
                 </AppStoreProvider>,
             ),
@@ -71,7 +69,7 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
                 <AppStoreProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
-                        addCardFromTemplate={jest.fn()}
+                        addCardFromTemplate={vi.fn()}
                         editCardTemplate={mockFunction}
                     />
                 </AppStoreProvider>,
@@ -93,7 +91,7 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
                         addCardFromTemplate={mockFunction}
-                        editCardTemplate={jest.fn()}
+                        editCardTemplate={vi.fn()}
                     />
                 </AppStoreProvider>,
             ),
@@ -109,8 +107,8 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
                 <AppStoreProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
-                        addCardFromTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
+                        addCardFromTemplate={vi.fn()}
+                        editCardTemplate={vi.fn()}
                     />
                 </AppStoreProvider>,
             ),
@@ -128,8 +126,8 @@ describe('components/viewHeader/newCardButtonTemplateItem', () => {
                 <AppStoreProvider store={store}>
                     <NewCardButtonTemplateItem
                         cardTemplate={card}
-                        addCardFromTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
+                        addCardFromTemplate={vi.fn()}
+                        editCardTemplate={vi.fn()}
                     />
                 </AppStoreProvider>,
             ),

@@ -4,8 +4,6 @@
 import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {IntlProvider} from '../../intl'
 
 import '@testing-library/jest-dom'
@@ -18,8 +16,8 @@ import mutator from '../../mutator'
 import DateProperty from './property'
 import DateProp from './date'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 // create Dates for specific days for this year.
 const June15 = new Date(Date.UTC(new Date().getFullYear(), 5, 15, 12))
@@ -38,9 +36,9 @@ describe('properties/dateRange', () => {
 
     beforeEach(() => {
         // Quick fix to disregard console error when unmounting a component
-        console.error = jest.fn()
-        document.execCommand = jest.fn()
-        jest.resetAllMocks()
+        console.error = vi.fn()
+        document.execCommand = vi.fn()
+        vi.resetAllMocks()
     })
 
     test('returns default correctly', () => {

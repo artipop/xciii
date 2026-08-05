@@ -4,7 +4,6 @@ import {render, screen} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
-import {mocked} from 'jest-mock'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
@@ -16,8 +15,8 @@ import {IPropertyOption} from '../../blocks/board'
 
 import ViewHeaderGroupByMenu from './viewHeaderGroupByMenu'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
@@ -89,7 +88,7 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
     }
 
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         setDefaultOptions()
     })
     test('return groupBy menu', () => {

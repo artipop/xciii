@@ -52,9 +52,9 @@ describe('components/blocksEditor/blocksEditor', () => {
             <AppStoreProvider store={store}>
                 <BlocksEditor
                     boardId='test-board'
-                    onBlockCreated={jest.fn()}
-                    onBlockModified={jest.fn()}
-                    onBlockMoved={jest.fn()}
+                    onBlockCreated={vi.fn()}
+                    onBlockModified={vi.fn()}
+                    onBlockMoved={vi.fn()}
                     blocks={[]}
                 />
             </AppStoreProvider>,
@@ -67,9 +67,9 @@ describe('components/blocksEditor/blocksEditor', () => {
             <AppStoreProvider store={store}>
                 <BlocksEditor
                     boardId='test-board'
-                    onBlockCreated={jest.fn()}
-                    onBlockModified={jest.fn()}
-                    onBlockMoved={jest.fn()}
+                    onBlockCreated={vi.fn()}
+                    onBlockModified={vi.fn()}
+                    onBlockMoved={vi.fn()}
                     blocks={blocks}
                 />
             </AppStoreProvider>,
@@ -78,14 +78,14 @@ describe('components/blocksEditor/blocksEditor', () => {
     })
 
     test('should call onBlockCreate after introduce text and hit enter', async () => {
-        const onBlockCreated = jest.fn()
+        const onBlockCreated = vi.fn()
         render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlocksEditor
                     boardId='test-board'
                     onBlockCreated={onBlockCreated}
-                    onBlockModified={jest.fn()}
-                    onBlockMoved={jest.fn()}
+                    onBlockModified={vi.fn()}
+                    onBlockMoved={vi.fn()}
                     blocks={[]}
                 />
             </AppStoreProvider>,
@@ -104,14 +104,14 @@ describe('components/blocksEditor/blocksEditor', () => {
     })
 
     test('should call onBlockModified after introduce text and hit enter', async () => {
-        const onBlockModified = jest.fn()
+        const onBlockModified = vi.fn()
         render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlocksEditor
                     boardId='test-board'
-                    onBlockCreated={jest.fn()}
+                    onBlockCreated={vi.fn()}
                     onBlockModified={onBlockModified}
-                    onBlockMoved={jest.fn()}
+                    onBlockMoved={vi.fn()}
                     blocks={blocks}
                 />
             </AppStoreProvider>,

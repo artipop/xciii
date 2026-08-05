@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`src/components/kanban/kanbanHiddenColumnItem limited card check 1`] = `
+exports[`src/components/kanban/kanbanHiddenColumnItem > limited card check 1`] = `
 <div>
   <div
     class="octo-board-hidden-item"
@@ -32,7 +32,7 @@ exports[`src/components/kanban/kanbanHiddenColumnItem limited card check 1`] = `
 </div>
 `;
 
-exports[`src/components/kanban/kanbanHiddenColumnItem return kanbanHiddenColumnItem and click menuwrapper 1`] = `
+exports[`src/components/kanban/kanbanHiddenColumnItem > return kanbanHiddenColumnItem and click menuwrapper 1`] = `
 <div>
   <div
     class="octo-board-hidden-item"
@@ -145,7 +145,7 @@ exports[`src/components/kanban/kanbanHiddenColumnItem return kanbanHiddenColumnI
 </div>
 `;
 
-exports[`src/components/kanban/kanbanHiddenColumnItem return kanbanHiddenColumnItem, click menuwrapper and click show 1`] = `
+exports[`src/components/kanban/kanbanHiddenColumnItem > return kanbanHiddenColumnItem, click menuwrapper and click show 1`] = `
 <div>
   <div
     class="octo-board-hidden-item"
@@ -258,7 +258,7 @@ exports[`src/components/kanban/kanbanHiddenColumnItem return kanbanHiddenColumnI
 </div>
 `;
 
-exports[`src/components/kanban/kanbanHiddenColumnItem should match snapshot 1`] = `
+exports[`src/components/kanban/kanbanHiddenColumnItem > should match snapshot 1`] = `
 <div>
   <div
     class="octo-board-hidden-item"
@@ -289,7 +289,7 @@ exports[`src/components/kanban/kanbanHiddenColumnItem should match snapshot 1`] 
 </div>
 `;
 
-exports[`src/components/kanban/kanbanHiddenColumnItem should match snapshot readonly 1`] = `
+exports[`src/components/kanban/kanbanHiddenColumnItem > should match snapshot readonly 1`] = `
 <div>
   <div
     class="octo-board-hidden-item"

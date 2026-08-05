@@ -29,7 +29,7 @@ describe('Card badges', () => {
 
         // LEXICAL FALLOUT: the draft-js editor exposed role=combobox, Lexical's
         // ContentEditable exposes role=textbox. The migration (96cd8494) updated the
-        // jest snapshots but left the Cypress specs on the old contract.
+        // unit snapshots but left the Cypress specs on the old contract.
         // The query also has to be scoped now -- with comments already added, the
         // comment editor is a role=textbox as well, so an unscoped find matches several.
         cy.get('.CardDetailContents').findByRole('textbox').type('## Header\n- [ ] one\n- [x] two{esc}')

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/calculations/Options should match snapshot 1`] = `
+exports[`components/calculations/Options > should match snapshot 1`] = `
 <div>
   <div
     class="Combobox CalculationOptions"
@@ -42,7 +42,7 @@ exports[`components/calculations/Options should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/calculations/Options should match snapshot menu open 1`] = `
+exports[`components/calculations/Options > should match snapshot menu open 1`] = `
 <div>
   <div
     class="Combobox CalculationOptions"

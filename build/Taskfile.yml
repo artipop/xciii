@@ -32,7 +32,7 @@ tasks:
       - webapp/index.html
       - webapp/package.json
       - webapp/package-lock.json
-      - webapp/vite.config.mjs
+      - webapp/vite.config.ts
     generates:
       - webapp/pack/**/*
     preconditions:

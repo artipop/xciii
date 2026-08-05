@@ -5,8 +5,6 @@ import {render} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 
-import {mocked} from 'jest-mock'
-
 import {TextBlock} from '../../blocks/textBlock'
 
 import {mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
@@ -18,9 +16,9 @@ import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import TextElement from './textElement'
 
-jest.mock('../../utils')
-jest.mock('../../mutator')
-const mockedUtils = mocked(Utils)
+vi.mock('../../utils')
+vi.mock('../../mutator')
+const mockedUtils = vi.mocked(Utils)
 mockedUtils.createGuid.mockReturnValue('test-id')
 const defaultBlock: TextBlock = {
     id: 'test-id',

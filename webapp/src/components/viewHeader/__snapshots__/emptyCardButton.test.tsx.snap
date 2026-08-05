@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/viewHeader/emptyCardButton return EmptyCardButton 1`] = `
+exports[`components/viewHeader/emptyCardButton > return EmptyCardButton 1`] = `
 <div>
   <div
     aria-label="Empty card"
@@ -58,7 +58,7 @@ exports[`components/viewHeader/emptyCardButton return EmptyCardButton 1`] = `
 </div>
 `;
 
-exports[`components/viewHeader/emptyCardButton return EmptyCardButton and Set Template 1`] = `
+exports[`components/viewHeader/emptyCardButton > return EmptyCardButton and Set Template 1`] = `
 <div>
   <div
     aria-label="Empty card"
@@ -198,7 +198,7 @@ exports[`components/viewHeader/emptyCardButton return EmptyCardButton and Set Te
 </div>
 `;
 
-exports[`components/viewHeader/emptyCardButton return EmptyCardButton and addCard 1`] = `
+exports[`components/viewHeader/emptyCardButton > return EmptyCardButton and addCard 1`] = `
 <div>
   <div
     aria-label="Empty card"

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 import {render, screen} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
-import {mocked} from 'jest-mock'
 
 import userEvent from '@testing-library/user-event'
 
@@ -15,8 +14,8 @@ import mutator from '../../mutator'
 import SelectProperty from './property'
 import Select from './select'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 function selectPropertyTemplate(): IPropertyTemplate {
     return {

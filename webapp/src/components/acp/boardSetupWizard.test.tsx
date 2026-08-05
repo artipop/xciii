@@ -21,15 +21,15 @@ function templateBoard(): Board {
 
 function stubBindings(overrides: Record<string, unknown> = {}) {
     const bindings = {
-        ListAgentRepos: jest.fn().mockResolvedValue('[]'),
-        ListAgents: jest.fn().mockResolvedValue('[]'),
-        PickDirectory: jest.fn().mockResolvedValue('/Users/me/src/webapp'),
-        AddAgentRepo: jest.fn().mockResolvedValue('{}'),
-        AddAgent: jest.fn().mockResolvedValue('{}'),
-        UpdateAgent: jest.fn().mockResolvedValue('{}'),
-        SyncAgentUsers: jest.fn().mockResolvedValue('[]'),
-        AddDeployTarget: jest.fn().mockResolvedValue('{}'),
-        SeedBoardAutomation: jest.fn().mockResolvedValue(undefined),
+        ListAgentRepos: vi.fn().mockResolvedValue('[]'),
+        ListAgents: vi.fn().mockResolvedValue('[]'),
+        PickDirectory: vi.fn().mockResolvedValue('/Users/me/src/webapp'),
+        AddAgentRepo: vi.fn().mockResolvedValue('{}'),
+        AddAgent: vi.fn().mockResolvedValue('{}'),
+        UpdateAgent: vi.fn().mockResolvedValue('{}'),
+        SyncAgentUsers: vi.fn().mockResolvedValue('[]'),
+        AddDeployTarget: vi.fn().mockResolvedValue('{}'),
+        SeedBoardAutomation: vi.fn().mockResolvedValue(undefined),
         ...overrides,
     }
     anyWindow.go = {main: {App: bindings}}
@@ -40,7 +40,7 @@ describe('components/acp/boardSetupWizard when it offers itself', () => {
     afterEach(() => {
         delete anyWindow.go
         localStorage.clear()
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('never outside the desktop app', async () => {
@@ -80,10 +80,10 @@ describe('components/acp/boardSetupWizard steps', () => {
     afterEach(() => {
         delete anyWindow.go
         localStorage.clear()
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
-    const renderWizard = (onClose = jest.fn()) => render(() => wrapIntl(() =>
+    const renderWizard = (onClose = vi.fn()) => render(() => wrapIntl(() =>
         <BoardSetupWizard
             board={templateBoard()}
             onClose={onClose}
@@ -108,7 +108,7 @@ describe('components/acp/boardSetupWizard steps', () => {
     })
 
     test('a refusal from Go is shown rather than swallowed', async () => {
-        const bindings = stubBindings({AddAgentRepo: jest.fn().mockRejectedValue('/Users/me/src не является git-репозиторием')})
+        const bindings = stubBindings({AddAgentRepo: vi.fn().mockRejectedValue('/Users/me/src не является git-репозиторием')})
         renderWizard()
         await waitFor(() => expect(bindings.ListAgentRepos).toHaveBeenCalled())
 
@@ -123,7 +123,7 @@ describe('components/acp/boardSetupWizard steps', () => {
     })
 
     test('an agent is registered and made assignable', async () => {
-        const bindings = stubBindings({ListAgentRepos: jest.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}]))})
+        const bindings = stubBindings({ListAgentRepos: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}]))})
         renderWizard()
         await waitFor(() => expect(screen.getByRole('button', {name: 'Next'})).toBeEnabled())
 
@@ -139,10 +139,10 @@ describe('components/acp/boardSetupWizard steps', () => {
 
     test('deploy and testing are skippable, and the end takes the board’s automation', async () => {
         const bindings = stubBindings({
-            ListAgentRepos: jest.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
+            ListAgentRepos: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
         })
-        const onClose = jest.fn()
+        const onClose = vi.fn()
         renderWizard(onClose)
         await waitFor(() => expect(screen.getByRole('button', {name: 'Next'})).toBeEnabled())
 
@@ -166,8 +166,8 @@ describe('components/acp/boardSetupWizard steps', () => {
 
     test('the browser server is offered ready to accept', async () => {
         const bindings = stubBindings({
-            ListAgentRepos: jest.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
-            ListAgents: jest.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
+            ListAgentRepos: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
         })
         renderWizard()
         await waitFor(() => expect(screen.getByRole('button', {name: 'Next'})).toBeEnabled())

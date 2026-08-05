@@ -15,8 +15,8 @@ import {FetchMock} from '../../test/fetchMock'
 import CommentsList from './commentsList'
 
 global.fetch = FetchMock.fn
-jest.spyOn(Utils, 'displayDateTime').mockReturnValue('a long time ago')
-jest.spyOn(Utils, 'relativeDisplayDateTime').mockReturnValue('a long time ago')
+vi.spyOn(Utils, 'displayDateTime').mockReturnValue('a long time ago')
+vi.spyOn(Utils, 'relativeDisplayDateTime').mockReturnValue('a long time ago')
 
 beforeEach(() => {
     FetchMock.fn.mockReset()

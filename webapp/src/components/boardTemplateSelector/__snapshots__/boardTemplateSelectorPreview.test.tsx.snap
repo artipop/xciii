@@ -1,8 +1,8 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should be null without activeTemplate 1`] = `<div />`;
+exports[`components/boardTemplateSelector/boardTemplateSelectorPreview > should be null without activeTemplate 1`] = `<div />`;
 
-exports[`components/boardTemplateSelector/boardTemplateSelectorPreview should match snapshot 1`] = `
+exports[`components/boardTemplateSelector/boardTemplateSelectorPreview > should match snapshot 1`] = `
 <div>
   <div
     class="BoardTemplateSelectorPreview"

@@ -12,7 +12,7 @@ import {AppStoreProvider} from '../../store'
 import CardDetailContents from './cardDetailContents'
 import {CardDetailProvider} from './cardDetailContext'
 
-global.fetch = jest.fn()
+global.fetch = vi.fn()
 
 beforeAll(() => {
     mockDOM()

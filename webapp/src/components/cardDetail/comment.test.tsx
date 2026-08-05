@@ -4,8 +4,6 @@ import {render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import moment from 'moment'
 
-import {mocked} from 'jest-mock'
-
 import {mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
@@ -15,8 +13,8 @@ import mutator from '../../mutator'
 
 import Comment from './comment'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const card = TestBlockFactory.createCard(board)
@@ -37,7 +35,7 @@ describe('components/cardDetail/comment', () => {
     const store = mockAppStore(state)
 
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         moment.now = () => {
             return dateFixed + (24 * 60 * 60 * 1000)
         }

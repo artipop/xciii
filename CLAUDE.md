@@ -37,6 +37,10 @@ in a browser and as a Mattermost plugin.
   rest. `wails3 task build:server` — the headless build.
 - Build tags travel as `EXTRA_TAGS`, defaulting to `json1,sqlite3,frontend`
   (cgo SQLite plus the `go:embed` of `webapp/pack`). Linux adds `gtk3`.
+- `npm test` in `webapp/` — the page's suite, **vitest** under jsdom, sharing
+  `vite-plugin-solid` with the build through `vitest.config.ts`. Coverage is on by
+  default (v8); `--coverage.enabled=false` while iterating, `npm run updatesnapshot`
+  to rewrite snapshots.
 - `go test ./...` — the whole suite. `go vet -tags "server json1 sqlite3" .` checks
   the headless build, which has its own files. `./...` also walks
   `webapp/node_modules`, where an npm package happens to ship Go sources; that is
@@ -164,6 +168,12 @@ same worktree with `claude --continue`.
   from `mockAppStore(state)` under `AppStoreProvider` and a router from
   `TestRouter`, both in `testUtils`; `fireEvent.input`, not `change`, is what a
   per-keystroke handler hears.
+- **Mocking is vitest's, and it is ESM.** `vi.*` is a global, as `describe` and
+  `expect` are. A `vi.mock` factory for a module with a default export has to
+  return `{default: …}` — babel's CJS interop used to hand the whole object back
+  and no longer does. `vi.resetAllMocks` restores what `vi.spyOn` wrapped rather
+  than leaving a no-op behind, so a spy that must not call through says so with
+  `mockResolvedValue`, and the hook around it clears rather than resets.
 - Russian in user-facing strings and product docs, English in code, comments and
   commit messages. `webapp/i18n/ru.json` carries the
   translations; defaults in components stay English.

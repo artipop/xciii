@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`src/components/kanban/kanbanCard return kanbanCard and click on copy link menu  1`] = `
+exports[`src/components/kanban/kanbanCard > return kanbanCard and click on copy link menu  1`] = `
 <div>
   <div
     class="KanbanCard"
@@ -188,7 +188,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on copy li
 </div>
 `;
 
-exports[`src/components/kanban/kanbanCard return kanbanCard and click on delete menu  1`] = `
+exports[`src/components/kanban/kanbanCard > return kanbanCard and click on delete menu  1`] = `
 <div>
   <div
     class="KanbanCard"
@@ -376,7 +376,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on delete 
 </div>
 `;
 
-exports[`src/components/kanban/kanbanCard return kanbanCard and click on duplicate menu  1`] = `
+exports[`src/components/kanban/kanbanCard > return kanbanCard and click on duplicate menu  1`] = `
 <div>
   <div
     class="KanbanCard"
@@ -564,7 +564,7 @@ exports[`src/components/kanban/kanbanCard return kanbanCard and click on duplica
 </div>
 `;
 
-exports[`src/components/kanban/kanbanCard should match snapshot 1`] = `
+exports[`src/components/kanban/kanbanCard > should match snapshot 1`] = `
 <div>
   <div
     class="KanbanCard"
@@ -611,7 +611,7 @@ exports[`src/components/kanban/kanbanCard should match snapshot 1`] = `
 </div>
 `;
 
-exports[`src/components/kanban/kanbanCard should match snapshot with readonly 1`] = `
+exports[`src/components/kanban/kanbanCard > should match snapshot with readonly 1`] = `
 <div>
   <div
     class="KanbanCard"

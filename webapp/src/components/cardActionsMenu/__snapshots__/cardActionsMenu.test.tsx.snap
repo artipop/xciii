@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/cardActionsMenu should match snapshot 1`] = `
+exports[`components/cardActionsMenu > should match snapshot 1`] = `
 <div>
   <div
     class="Menu noselect left "
@@ -116,7 +116,7 @@ exports[`components/cardActionsMenu should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/cardActionsMenu should match snapshot w/ children prop 1`] = `
+exports[`components/cardActionsMenu > should match snapshot w/ children prop 1`] = `
 <div>
   <div
     class="Menu noselect left "
@@ -234,7 +234,7 @@ exports[`components/cardActionsMenu should match snapshot w/ children prop 1`] =
 </div>
 `;
 
-exports[`components/cardActionsMenu should match snapshot w/ onClickDuplicate prop 1`] = `
+exports[`components/cardActionsMenu > should match snapshot w/ onClickDuplicate prop 1`] = `
 <div>
   <div
     class="Menu noselect left "

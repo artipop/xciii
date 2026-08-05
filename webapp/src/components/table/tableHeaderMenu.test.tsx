@@ -20,16 +20,20 @@ global.fetch = FetchMock.fn
 
 // import mutator from '../../mutator'
 
-jest.mock('../../mutator', () => ({
-    changeViewSortOptions: jest.fn(),
-    insertPropertyTemplate: jest.fn(),
-    changeViewVisibleProperties: jest.fn(),
-    duplicatePropertyTemplate: jest.fn(),
-    deleteProperty: jest.fn(),
+// The mutator is a default export, and a factory has to say so: babel's CJS
+// interop used to hand the whole object back as the default, ESM does not.
+vi.mock('../../mutator', () => ({
+    default: {
+        changeViewSortOptions: vi.fn(),
+        insertPropertyTemplate: vi.fn(),
+        changeViewVisibleProperties: vi.fn(),
+        duplicatePropertyTemplate: vi.fn(),
+        deleteProperty: vi.fn(),
+    },
 }))
 
 beforeEach(() => {
-    jest.resetAllMocks()
+    vi.resetAllMocks()
     FetchMock.fn.mockReset()
 })
 

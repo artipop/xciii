@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`block tests correctly generate patches from two blocks should add fields on the new fields added and remove it in the undo 1`] = `
+exports[`block tests > correctly generate patches from two blocks > should add fields on the new fields added and remove it in the undo 1`] = `
 [
   {
     "deletedFields": [],
@@ -17,7 +17,7 @@ exports[`block tests correctly generate patches from two blocks should add field
 ]
 `;
 
-exports[`block tests correctly generate patches from two blocks should generate two empty patches for the same block 1`] = `
+exports[`block tests > correctly generate patches from two blocks > should generate two empty patches for the same block 1`] = `
 [
   {
     "deletedFields": [],
@@ -30,7 +30,7 @@ exports[`block tests correctly generate patches from two blocks should generate 
 ]
 `;
 
-exports[`block tests correctly generate patches from two blocks should remove field on the new block added and add it again in the undo 1`] = `
+exports[`block tests > correctly generate patches from two blocks > should remove field on the new block added and add it again in the undo 1`] = `
 [
   {
     "deletedFields": [
@@ -47,7 +47,7 @@ exports[`block tests correctly generate patches from two blocks should remove fi
 ]
 `;
 
-exports[`block tests correctly generate patches from two blocks should update propertie on the main object and revert it back on the undo 1`] = `
+exports[`block tests > correctly generate patches from two blocks > should update propertie on the main object and revert it back on the undo 1`] = `
 [
   {
     "deletedFields": [],

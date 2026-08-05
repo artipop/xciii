@@ -5,8 +5,6 @@ import {render} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
@@ -16,8 +14,8 @@ import mutator from '../../mutator'
 
 import CreateCategory from './createCategory'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 describe('components/createCategory/CreateCategory', () => {
     const me: IUser = {
@@ -49,7 +47,7 @@ describe('components/createCategory/CreateCategory', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
                 <CreateCategory
-                    onClose={jest.fn()}
+                    onClose={vi.fn()}
                     title={
                         <span>{'title'}</span>
                     }
@@ -62,7 +60,7 @@ describe('components/createCategory/CreateCategory', () => {
     })
 
     it('should call onClose on being closed', () => {
-        const onCloseHandler = jest.fn()
+        const onCloseHandler = vi.fn()
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
                 <CreateCategory
@@ -90,7 +88,7 @@ describe('components/createCategory/CreateCategory', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
                 <CreateCategory
-                    onClose={jest.fn()}
+                    onClose={vi.fn()}
                     title={
                         <span>{'title'}</span>
                     }
@@ -114,7 +112,7 @@ describe('components/createCategory/CreateCategory', () => {
             <AppStoreProvider store={store}>
                 <CreateCategory
                     initialValue='Dwight prank ideas'
-                    onClose={jest.fn()}
+                    onClose={vi.fn()}
                     title={
                         <span>{'title'}</span>
                     }
@@ -133,7 +131,7 @@ describe('components/createCategory/CreateCategory', () => {
             <AppStoreProvider store={store}>
                 <CreateCategory
                     initialValue='Dunder Mifflin'
-                    onClose={jest.fn()}
+                    onClose={vi.fn()}
                     title={
                         <span>{'title'}</span>
                     }

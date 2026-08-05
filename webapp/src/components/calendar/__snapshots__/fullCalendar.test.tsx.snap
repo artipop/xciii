@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/calendar/toolbar return calendar, no date property 1`] = `
+exports[`components/calendar/toolbar > return calendar, no date property 1`] = `
 <div>
   <div
     class="CalendarContainer"
@@ -2366,7 +2366,7 @@ exports[`components/calendar/toolbar return calendar, no date property 1`] = `
 </div>
 `;
 
-exports[`components/calendar/toolbar return calendar, with date property not set 1`] = `
+exports[`components/calendar/toolbar > return calendar, with date property not set 1`] = `
 <div>
   <div
     class="CalendarContainer"
@@ -4732,7 +4732,7 @@ exports[`components/calendar/toolbar return calendar, with date property not set
 </div>
 `;
 
-exports[`components/calendar/toolbar return calendar, with date property set 1`] = `
+exports[`components/calendar/toolbar > return calendar, with date property set 1`] = `
 <div>
   <div
     class="CalendarContainer"
@@ -7104,7 +7104,7 @@ exports[`components/calendar/toolbar return calendar, with date property set 1`]
 </div>
 `;
 
-exports[`components/calendar/toolbar return calendar, without permissions 1`] = `
+exports[`components/calendar/toolbar > return calendar, without permissions 1`] = `
 <div>
   <div
     class="CalendarContainer"

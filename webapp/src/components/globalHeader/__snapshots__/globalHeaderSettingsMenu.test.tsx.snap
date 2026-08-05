@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should match snapshot 1`] = `
+exports[`components/sidebar/GlobalHeaderSettingsMenu > imports menu open should match snapshot 1`] = `
 <div>
   <div
     class="GlobalHeaderSettingsMenu"
@@ -356,7 +356,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu imports menu open should ma
 </div>
 `;
 
-exports[`components/sidebar/GlobalHeaderSettingsMenu languages menu open should match snapshot 1`] = `
+exports[`components/sidebar/GlobalHeaderSettingsMenu > languages menu open should match snapshot 1`] = `
 <div>
   <div
     class="GlobalHeaderSettingsMenu"
@@ -512,7 +512,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu languages menu open should 
 </div>
 `;
 
-exports[`components/sidebar/GlobalHeaderSettingsMenu settings menu closed should match snapshot 1`] = `
+exports[`components/sidebar/GlobalHeaderSettingsMenu > settings menu closed should match snapshot 1`] = `
 <div>
   <div
     class="GlobalHeaderSettingsMenu"
@@ -535,7 +535,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu settings menu closed should
 </div>
 `;
 
-exports[`components/sidebar/GlobalHeaderSettingsMenu settings menu open should match snapshot 1`] = `
+exports[`components/sidebar/GlobalHeaderSettingsMenu > settings menu open should match snapshot 1`] = `
 <div>
   <div
     class="GlobalHeaderSettingsMenu"

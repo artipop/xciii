@@ -4,7 +4,7 @@
 // Dragging a card has repeatedly worked for a handful of drags and then stopped
 // dead -- no drag starts, the board looks untouched, and nothing is logged. None
 // of it reproduces in jsdom: the failure lives in real layout, real pointer
-// events and real timing, and jest has none of the three.
+// events and real timing, and the unit suite has none of the three.
 //
 // So it is reproduced here, as a hand would do it. cypress-real-events sends
 // CDP-level pointer events, which is also the only kind dnd-kit's sensor looks

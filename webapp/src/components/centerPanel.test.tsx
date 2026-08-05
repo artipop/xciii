@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 import {fireEvent, render, screen, within} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import {mocked} from 'jest-mock'
 
 import {TestRouter, mockAppStore, mockDOM, wrapDNDIntl} from '../testUtils'
 import {AppStoreProvider} from '../store'
@@ -17,15 +16,15 @@ import {Constants} from '../constants'
 import CenterPanel from './centerPanel'
 Object.defineProperty(Constants, 'versionString', {value: '1.0.0'})
 
-jest.mock('../utils')
-jest.mock('../octoClient')
-jest.mock('../mutator')
-jest.mock('../telemetry/telemetryClient')
-const mockedUtils = mocked(Utils)
-const mockedMutator = mocked(Mutator)
-const mockedOctoClient = mocked(octoClient)
+vi.mock('../utils')
+vi.mock('../octoClient')
+vi.mock('../mutator')
+vi.mock('../telemetry/telemetryClient')
+const mockedUtils = vi.mocked(Utils)
+const mockedMutator = vi.mocked(Mutator)
+const mockedOctoClient = vi.mocked(octoClient)
 mockedUtils.createGuid.mockReturnValue('test-id')
-mockedUtils.generateClassName = jest.requireActual('../utils').Utils.generateClassName
+mockedUtils.generateClassName = (await vi.importActual<typeof import('../utils')>('../utils')).Utils.generateClassName
 describe('components/centerPanel', () => {
     const board = TestBlockFactory.createBoard()
     board.id = '1'
@@ -133,11 +132,11 @@ describe('components/centerPanel', () => {
     const store = mockAppStore(state)
     beforeAll(() => {
         mockDOM()
-        console.error = jest.fn()
+        console.error = vi.fn()
     })
     beforeEach(() => {
         activeView.fields.viewType = 'board'
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
     test('should match snapshot for Kanban, not shared', () => {
         const {container} = render(() => wrapDNDIntl(() =>
@@ -149,7 +148,7 @@ describe('components/centerPanel', () => {
                         board={board}
                         activeView={activeView}
                         readonly={false}
-                        showCard={jest.fn()}
+                        showCard={vi.fn()}
                         groupByProperty={groupProperty}
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
@@ -169,7 +168,7 @@ describe('components/centerPanel', () => {
                         board={board}
                         activeView={activeView}
                         readonly={false}
-                        showCard={jest.fn()}
+                        showCard={vi.fn()}
                         groupByProperty={groupProperty}
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
@@ -190,7 +189,7 @@ describe('components/centerPanel', () => {
                         board={board}
                         activeView={activeView}
                         readonly={false}
-                        showCard={jest.fn()}
+                        showCard={vi.fn()}
                         groupByProperty={groupProperty}
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
@@ -211,7 +210,7 @@ describe('components/centerPanel', () => {
                         board={board}
                         activeView={activeView}
                         readonly={false}
-                        showCard={jest.fn()}
+                        showCard={vi.fn()}
                         groupByProperty={groupProperty}
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
@@ -235,7 +234,7 @@ describe('components/centerPanel', () => {
                             board={board}
                             activeView={activeView}
                             readonly={false}
-                            showCard={jest.fn()}
+                            showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
                             hiddenCardsCount={0}
@@ -268,7 +267,7 @@ describe('components/centerPanel', () => {
                             board={board}
                             activeView={activeView}
                             readonly={true}
-                            showCard={jest.fn()}
+                            showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
                             hiddenCardsCount={0}
@@ -293,7 +292,7 @@ describe('components/centerPanel', () => {
                             board={board}
                             activeView={activeView}
                             readonly={false}
-                            showCard={jest.fn()}
+                            showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
                             hiddenCardsCount={0}
@@ -322,7 +321,7 @@ describe('components/centerPanel', () => {
                             board={board}
                             activeView={activeView}
                             readonly={false}
-                            showCard={jest.fn()}
+                            showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
                             hiddenCardsCount={0}
@@ -358,7 +357,7 @@ describe('components/centerPanel', () => {
                             board={board}
                             activeView={activeView}
                             readonly={false}
-                            showCard={jest.fn()}
+                            showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
                             hiddenCardsCount={0}
@@ -386,7 +385,7 @@ describe('components/centerPanel', () => {
                             board={board}
                             activeView={activeView}
                             readonly={false}
-                            showCard={jest.fn()}
+                            showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
                             hiddenCardsCount={0}
@@ -405,7 +404,7 @@ describe('components/centerPanel', () => {
         })
         test('click on card to show card', () => {
             activeView.fields.viewType = 'board'
-            const mockedShowCard = jest.fn()
+            const mockedShowCard = vi.fn()
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
@@ -442,7 +441,7 @@ describe('components/centerPanel', () => {
                             board={board}
                             activeView={activeView}
                             readonly={false}
-                            showCard={jest.fn()}
+                            showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
                             hiddenCardsCount={0}
@@ -466,7 +465,7 @@ describe('components/centerPanel', () => {
                             board={board}
                             activeView={activeView}
                             readonly={false}
-                            showCard={jest.fn()}
+                            showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
                             hiddenCardsCount={0}
@@ -494,7 +493,7 @@ describe('components/centerPanel', () => {
                             board={board}
                             activeView={activeView}
                             readonly={false}
-                            showCard={jest.fn()}
+                            showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
                             hiddenCardsCount={0}
@@ -523,7 +522,7 @@ describe('components/centerPanel', () => {
                             board={board}
                             activeView={activeView}
                             readonly={false}
-                            showCard={jest.fn()}
+                            showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
                             hiddenCardsCount={0}
@@ -646,11 +645,11 @@ describe('components/centerPanel', () => {
     const store = mockAppStore(state)
     beforeAll(() => {
         mockDOM()
-        console.error = jest.fn()
+        console.error = vi.fn()
     })
     beforeEach(() => {
         activeView.fields.viewType = 'board'
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('Clicking on the Hidden card count should open a dailog', () => {
@@ -665,7 +664,7 @@ describe('components/centerPanel', () => {
                         board={board}
                         activeView={activeView}
                         readonly={false}
-                        showCard={jest.fn()}
+                        showCard={vi.fn()}
                         groupByProperty={groupProperty}
                         shownCardId={card1.id}
                         hiddenCardsCount={2}

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/blockIconSelector return an icon correctly 1`] = `
+exports[`components/blockIconSelector > return an icon correctly 1`] = `
 <div>
   <div
     class="IconSelector"
@@ -23,7 +23,7 @@ exports[`components/blockIconSelector return an icon correctly 1`] = `
 </div>
 `;
 
-exports[`components/blockIconSelector return menu on click 1`] = `
+exports[`components/blockIconSelector > return menu on click 1`] = `
 <div>
   <div
     class="IconSelector"
@@ -183,11 +183,11 @@ exports[`components/blockIconSelector return menu on click 1`] = `
 </div>
 `;
 
-exports[`components/blockIconSelector return no element with no icon 1`] = `<div />`;
+exports[`components/blockIconSelector > return no element with no icon 1`] = `<div />`;
 
-exports[`components/blockIconSelector return no icon after click on remove menu 1`] = `<div />`;
+exports[`components/blockIconSelector > return no icon after click on remove menu 1`] = `<div />`;
 
-exports[`components/blockIconSelector return no menu in readonly 1`] = `
+exports[`components/blockIconSelector > return no menu in readonly 1`] = `
 <div>
   <div
     class="IconSelector"

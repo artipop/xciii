@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/content/checkboxElement should change title 1`] = `
+exports[`components/content/checkboxElement > should change title 1`] = `
 <div>
   <div
     class="CheckboxElement"
@@ -21,7 +21,7 @@ exports[`components/content/checkboxElement should change title 1`] = `
 </div>
 `;
 
-exports[`components/content/checkboxElement should match snapshot 1`] = `
+exports[`components/content/checkboxElement > should match snapshot 1`] = `
 <div>
   <div
     class="CheckboxElement"
@@ -41,7 +41,7 @@ exports[`components/content/checkboxElement should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/content/checkboxElement should match snapshot when read only 1`] = `
+exports[`components/content/checkboxElement > should match snapshot when read only 1`] = `
 <div>
   <div
     class="CheckboxElement"
@@ -63,7 +63,7 @@ exports[`components/content/checkboxElement should match snapshot when read only
 </div>
 `;
 
-exports[`components/content/checkboxElement should toggle value 1`] = `
+exports[`components/content/checkboxElement > should toggle value 1`] = `
 <div>
   <div
     class="CheckboxElement"

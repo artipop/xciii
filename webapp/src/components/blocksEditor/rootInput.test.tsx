@@ -9,10 +9,10 @@ describe('components/blocksEditor/rootInput', () => {
     test('should match Display snapshot', async () => {
         const {container} = render(() =>
             <RootInput
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value='test-value'
-                onChangeType={jest.fn()}
-                onSave={jest.fn()}
+                onChangeType={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
@@ -21,10 +21,10 @@ describe('components/blocksEditor/rootInput', () => {
     test('should match Input snapshot', async () => {
         const {container} = render(() =>
             <RootInput
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value='test-value'
-                onChangeType={jest.fn()}
-                onSave={jest.fn()}
+                onChangeType={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
@@ -33,10 +33,10 @@ describe('components/blocksEditor/rootInput', () => {
     test('should match Input snapshot with menu open', async () => {
         const {container} = render(() =>
             <RootInput
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value=''
-                onChangeType={jest.fn()}
-                onSave={jest.fn()}
+                onChangeType={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         const input = screen.getByDisplayValue('')
@@ -45,13 +45,13 @@ describe('components/blocksEditor/rootInput', () => {
     })
 
     test('should emit onChange event', async () => {
-        const onChange = jest.fn()
+        const onChange = vi.fn()
         render(() =>
             <RootInput
                 onChange={onChange}
                 value='test-value'
-                onChangeType={jest.fn()}
-                onSave={jest.fn()}
+                onChangeType={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
 
@@ -63,13 +63,13 @@ describe('components/blocksEditor/rootInput', () => {
     })
 
     test('should not emit onChangeType event when value is not empty and hit backspace', async () => {
-        const onChangeType = jest.fn()
+        const onChangeType = vi.fn()
         render(() =>
             <RootInput
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value='test-value'
                 onChangeType={onChangeType}
-                onSave={jest.fn()}
+                onSave={vi.fn()}
             />,
         )
 
@@ -80,12 +80,12 @@ describe('components/blocksEditor/rootInput', () => {
     })
 
     test('should emit onSave event hit enter', async () => {
-        const onSave = jest.fn()
+        const onSave = vi.fn()
         render(() =>
             <RootInput
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value='test-value'
-                onChangeType={jest.fn()}
+                onChangeType={vi.fn()}
                 onSave={onSave}
             />,
         )
@@ -97,13 +97,13 @@ describe('components/blocksEditor/rootInput', () => {
     })
 
     test('should emit onChangeType event on menu option selected', async () => {
-        const onChangeType = jest.fn()
+        const onChangeType = vi.fn()
         render(() =>
             <RootInput
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value=''
                 onChangeType={onChangeType}
-                onSave={jest.fn()}
+                onSave={vi.fn()}
             />,
         )
 

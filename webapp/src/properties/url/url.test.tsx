@@ -3,8 +3,6 @@
 
 import {render, screen} from '@solidjs/testing-library'
 
-import {mocked} from 'jest-mock'
-
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
@@ -17,15 +15,15 @@ import mutator from '../../mutator'
 import UrlProperty from './property'
 import Url from './url'
 
-jest.mock('../../components/flashMessages')
-jest.mock('../../mutator')
+vi.mock('../../components/flashMessages')
+vi.mock('../../mutator')
 
-const mockedCopy = jest.spyOn(Utils, 'copyTextToClipboard').mockImplementation(() => true)
-const mockedSendFlashMessage = mocked(sendFlashMessage)
-const mockedMutator = mocked(mutator)
+const mockedCopy = vi.spyOn(Utils, 'copyTextToClipboard').mockImplementation(() => true)
+const mockedSendFlashMessage = vi.mocked(sendFlashMessage)
+const mockedMutator = vi.mocked(mutator)
 
 describe('properties/link', () => {
-    beforeEach(jest.clearAllMocks)
+    beforeEach(vi.clearAllMocks)
 
     const board = TestBlockFactory.createBoard()
     const card = TestBlockFactory.createCard()

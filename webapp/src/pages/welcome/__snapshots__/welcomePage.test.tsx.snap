@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`pages/welcome Welcome Page shows Explore Page 1`] = `
+exports[`pages/welcome > Welcome Page shows Explore Page 1`] = `
 <div>
   <div
     data-testid="location"
@@ -64,7 +64,7 @@ exports[`pages/welcome Welcome Page shows Explore Page 1`] = `
 </div>
 `;
 
-exports[`pages/welcome Welcome Page shows Explore Page with subpath 1`] = `
+exports[`pages/welcome > Welcome Page shows Explore Page with subpath 1`] = `
 <div>
   <div
     data-testid="location"

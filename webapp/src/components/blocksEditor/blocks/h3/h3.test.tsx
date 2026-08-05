@@ -10,10 +10,10 @@ describe('components/blocksEditor/blocks/h3', () => {
         const Component = H3Block.Display
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value='test-value'
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
@@ -23,24 +23,24 @@ describe('components/blocksEditor/blocks/h3', () => {
         const Component = H3Block.Input
         const {container} = render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value='test-value'
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
         expect(container).toMatchSnapshot()
     })
 
     test('should emit onChange event', async () => {
-        const onChange = jest.fn()
+        const onChange = vi.fn()
         const Component = H3Block.Input
         render(() =>
             <Component
                 onChange={onChange}
                 value='test-value'
-                onCancel={jest.fn()}
-                onSave={jest.fn()}
+                onCancel={vi.fn()}
+                onSave={vi.fn()}
             />,
         )
 
@@ -52,14 +52,14 @@ describe('components/blocksEditor/blocks/h3', () => {
     })
 
     test('should not emit onCancel event when value is not empty and hit backspace', async () => {
-        const onCancel = jest.fn()
+        const onCancel = vi.fn()
         const Component = H3Block.Input
         render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value='test-value'
                 onCancel={onCancel}
-                onSave={jest.fn()}
+                onSave={vi.fn()}
             />,
         )
 
@@ -70,14 +70,14 @@ describe('components/blocksEditor/blocks/h3', () => {
     })
 
     test('should emit onCancel event when value is empty and hit backspace', async () => {
-        const onCancel = jest.fn()
+        const onCancel = vi.fn()
         const Component = H3Block.Input
         render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value=''
                 onCancel={onCancel}
-                onSave={jest.fn()}
+                onSave={vi.fn()}
             />,
         )
 
@@ -89,13 +89,13 @@ describe('components/blocksEditor/blocks/h3', () => {
     })
 
     test('should emit onSave event hit enter', async () => {
-        const onSave = jest.fn()
+        const onSave = vi.fn()
         const Component = H3Block.Input
         render(() =>
             <Component
-                onChange={jest.fn()}
+                onChange={vi.fn()}
                 value='test-value'
-                onCancel={jest.fn()}
+                onCancel={vi.fn()}
                 onSave={onSave}
             />,
         )

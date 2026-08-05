@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/viewHeader/viewHeaderActionsMenu return menu 1`] = `
+exports[`components/viewHeader/viewHeaderActionsMenu > return menu 1`] = `
 <div>
   <div
     class="ModalWrapper"
@@ -130,7 +130,7 @@ exports[`components/viewHeader/viewHeaderActionsMenu return menu 1`] = `
 </div>
 `;
 
-exports[`components/viewHeader/viewHeaderActionsMenu return menu and verify call to board archive 1`] = `
+exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify call to board archive 1`] = `
 <div>
   <div
     class="ModalWrapper"
@@ -260,7 +260,7 @@ exports[`components/viewHeader/viewHeaderActionsMenu return menu and verify call
 </div>
 `;
 
-exports[`components/viewHeader/viewHeaderActionsMenu return menu and verify call to csv exporter 1`] = `
+exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify call to csv exporter 1`] = `
 <div>
   <div
     class="ModalWrapper"

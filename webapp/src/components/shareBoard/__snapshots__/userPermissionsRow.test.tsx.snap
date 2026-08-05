@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`src/components/shareBoard/userPermissionsRow should match snapshot 1`] = `
+exports[`src/components/shareBoard/userPermissionsRow > should match snapshot 1`] = `
 <div>
   <div
     class="user-item"
@@ -260,7 +260,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot 1`] 
 </div>
 `;
 
-exports[`src/components/shareBoard/userPermissionsRow should match snapshot in plugin mode 1`] = `
+exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in plugin mode 1`] = `
 <div>
   <div
     class="user-item"
@@ -520,7 +520,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in p
 </div>
 `;
 
-exports[`src/components/shareBoard/userPermissionsRow should match snapshot in template 1`] = `
+exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in template 1`] = `
 <div>
   <div
     class="user-item"
@@ -749,7 +749,7 @@ exports[`src/components/shareBoard/userPermissionsRow should match snapshot in t
 </div>
 `;
 
-exports[`src/components/shareBoard/userPermissionsRow should match snapshot-admin 1`] = `
+exports[`src/components/shareBoard/userPermissionsRow > should match snapshot-admin 1`] = `
 <div>
   <div
     class="user-item"

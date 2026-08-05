@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// The migration rides on three toolchain facts: babel-jest compiles Solid JSX,
-// jsdom resolves solid-js to its browser development build (customExportConditions
-// in the jest config — the node build would render once and never react), and
-// Portal escapes into document.body the way dialogs and menus expect. This suite
-// fails on the config regression, before any component test gets to be confusing.
+// The migration rides on three toolchain facts: vite-plugin-solid compiles Solid
+// JSX, it resolves solid-js to its browser development build (the node build
+// would render once and never react), and Portal escapes into document.body the
+// way dialogs and menus expect. This suite fails on the config regression,
+// before any component test gets to be confusing.
 
 import {createSignal} from 'solid-js'
 import {Portal} from 'solid-js/web'

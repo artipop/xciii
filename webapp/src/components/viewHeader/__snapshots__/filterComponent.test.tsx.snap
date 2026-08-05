@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/viewHeader/filterComponent return filterComponent 1`] = `
+exports[`components/viewHeader/filterComponent > return filterComponent 1`] = `
 <div>
   <div
     class="Modal bottom"
@@ -290,7 +290,7 @@ exports[`components/viewHeader/filterComponent return filterComponent 1`] = `
 </div>
 `;
 
-exports[`components/viewHeader/filterComponent return filterComponent and add Filter 1`] = `
+exports[`components/viewHeader/filterComponent > return filterComponent and add Filter 1`] = `
 <div>
   <div
     class="Modal bottom"
@@ -580,7 +580,7 @@ exports[`components/viewHeader/filterComponent return filterComponent and add Fi
 </div>
 `;
 
-exports[`components/viewHeader/filterComponent return filterComponent and click is empty 1`] = `
+exports[`components/viewHeader/filterComponent > return filterComponent and click is empty 1`] = `
 <div>
   <div
     class="Modal bottom"
@@ -848,7 +848,7 @@ exports[`components/viewHeader/filterComponent return filterComponent and click 
 </div>
 `;
 
-exports[`components/viewHeader/filterComponent return filterComponent and filter by status 1`] = `
+exports[`components/viewHeader/filterComponent > return filterComponent and filter by status 1`] = `
 <div>
   <div
     class="Modal bottom"

@@ -9,7 +9,7 @@ import RootPortal from './rootPortal'
 describe('components/RootPortal', () => {
     beforeEach(() => {
         // Quick fix to disregard console error when unmounting a component
-        console.error = jest.fn()
+        console.error = vi.fn()
     })
 
     test('should match snapshot', () => {

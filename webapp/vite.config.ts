@@ -1,78 +1,76 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Plain .mjs rather than .ts: the config predates TypeScript 5 in this project,
-// and nothing here has needed types since.
+import {createReadStream, existsSync} from 'fs'
+import {cp} from 'fs/promises'
+import path from 'path'
+import {fileURLToPath} from 'url'
 
-import {createReadStream, existsSync} from 'fs';
-import {cp} from 'fs/promises';
-import path from 'path';
-import {fileURLToPath} from 'url';
+import formatjs from '@formatjs/unplugin/vite'
+import {defineConfig} from 'vite'
+import type {Connect, Plugin, ViteDevServer} from 'vite'
+import solid from 'vite-plugin-solid'
 
-import formatjs from '@formatjs/unplugin/vite';
-import {defineConfig} from 'vite';
-import solid from 'vite-plugin-solid';
-
-const root = path.dirname(fileURLToPath(import.meta.url));
-const staticDir = path.join(root, 'static');
-const outDir = path.join(root, 'pack');
+const root = path.dirname(fileURLToPath(import.meta.url))
+const staticDir = path.join(root, 'static')
+const outDir = path.join(root, 'pack')
 
 // Where `npm run dev` proxies the API: the standalone server's default port
 // from config.json, i.e. whatever `make watch` is running in another terminal.
-const devServerURL = 'http://localhost:8000';
+const devServerURL = 'http://localhost:8000'
 
-const mimeTypes = {
+const mimeTypes: Record<string, string> = {
     '.gif': 'image/gif',
     '.jpg': 'image/jpeg',
     '.jpeg': 'image/jpeg',
     '.png': 'image/png',
     '.svg': 'image/svg+xml',
-};
+}
 
 // In a build the Go server resolves {{.BaseURL}} when it templates index.html;
 // the dev server serves the file as-is, so the placeholder is dropped here.
-function focalboardHtml() {
+function focalboardHtml(): Plugin {
     return {
         name: 'focalboard-html',
         apply: 'serve',
         transformIndexHtml: {
             order: 'pre',
-            handler(html) {
-                return html.replace(/\{\{\.BaseURL\}\}/g, '');
+            handler(html: string) {
+                return html.replace(/\{\{\.BaseURL\}\}/g, '')
             },
         },
-    };
+    }
 }
 
 // `static/` is served from `/static` in dev and copied to `pack/static` on build
 // — the same contract the Go server expects (it mounts pack/static at /static).
 // Assets imported from TypeScript are emitted into pack/static by Vite itself.
-function focalboardStatic() {
+function focalboardStatic(): Plugin {
     return {
         name: 'focalboard-static',
-        configureServer(server) {
-            server.middlewares.use('/static', (req, res, next) => {
-                const rel = decodeURIComponent((req.url || '').split('?')[0]);
-                const file = path.join(staticDir, rel);
+        configureServer(server: ViteDevServer) {
+            server.middlewares.use('/static', ((req, res, next) => {
+                const rel = decodeURIComponent((req.url || '').split('?')[0])
+                const file = path.join(staticDir, rel)
                 if (!file.startsWith(staticDir) || !existsSync(file)) {
-                    next();
-                    return;
+                    next()
+                    return
                 }
-                const type = mimeTypes[path.extname(file).toLowerCase()];
+                const type = mimeTypes[path.extname(file).toLowerCase()]
                 if (type) {
-                    res.setHeader('Content-Type', type);
+                    res.setHeader('Content-Type', type)
                 }
-                createReadStream(file).pipe(res);
-            });
+                createReadStream(file).pipe(res)
+            }) as Connect.NextHandleFunction)
         },
         async closeBundle() {
-            await cp(staticDir, path.join(outDir, 'static'), {recursive: true});
+            await cp(staticDir, path.join(outDir, 'static'), {recursive: true})
         },
-    };
+    }
 }
 
 export default defineConfig(({mode}) => {
-    const isProduction = mode === 'production';
+    const isProduction = mode === 'production'
 
     return {
         root,
@@ -83,6 +81,7 @@ export default defineConfig(({mode}) => {
         publicDir: false,
 
         plugins: [
+
             // formatjs's own universal build plugin, standing in for the
             // @formatjs/ts-transformer that ran under ts-loader: pre-compile
             // messages to an ICU AST, and hash-generate an id only where the
@@ -112,14 +111,15 @@ export default defineConfig(({mode}) => {
         },
 
         experimental: {
+
             // The server rewrites {{.BaseURL}} in index.html, so HTML references
             // carry the placeholder while asset references inside JS/CSS stay
             // relative to the emitting chunk (webpack's `publicPath: 'auto'`).
             renderBuiltUrl(filename, {hostType}) {
                 if (hostType === 'html') {
-                    return `{{.BaseURL}}/${filename}`;
+                    return `{{.BaseURL}}/${filename}`
                 }
-                return {relative: true};
+                return {relative: true}
             },
         },
 
@@ -143,5 +143,5 @@ export default defineConfig(({mode}) => {
                     map((route) => [route, {target: devServerURL, changeOrigin: true}]),
             ),
         },
-    };
-});
+    }
+})

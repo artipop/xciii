@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/viewHeader/filterValue return date filter value 1`] = `
+exports[`components/viewHeader/filterValue > return date filter value 1`] = `
 <div>
   <div
     class="DateFilter empty "
@@ -20,7 +20,7 @@ exports[`components/viewHeader/filterValue return date filter value 1`] = `
 </div>
 `;
 
-exports[`components/viewHeader/filterValue return filterValue 1`] = `
+exports[`components/viewHeader/filterValue > return filterValue 1`] = `
 <div>
   <div
     aria-label="menuwrapper"
@@ -109,7 +109,7 @@ exports[`components/viewHeader/filterValue return filterValue 1`] = `
 </div>
 `;
 
-exports[`components/viewHeader/filterValue return filterValue and click Status 1`] = `
+exports[`components/viewHeader/filterValue > return filterValue and click Status 1`] = `
 <div>
   <div
     aria-label="menuwrapper"
@@ -198,7 +198,7 @@ exports[`components/viewHeader/filterValue return filterValue and click Status 1
 </div>
 `;
 
-exports[`components/viewHeader/filterValue return filterValue and click Status with Status not in filter 1`] = `
+exports[`components/viewHeader/filterValue > return filterValue and click Status with Status not in filter 1`] = `
 <div>
   <div
     aria-label="menuwrapper"

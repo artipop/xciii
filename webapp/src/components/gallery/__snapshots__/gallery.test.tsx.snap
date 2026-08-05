@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`src/components/gallery/Gallery limited card count check 1`] = `
+exports[`src/components/gallery/Gallery > limited card count check 1`] = `
 <div>
   <div
     class="Gallery"
@@ -90,7 +90,7 @@ exports[`src/components/gallery/Gallery limited card count check 1`] = `
 </div>
 `;
 
-exports[`src/components/gallery/Gallery return Gallery and click new 1`] = `
+exports[`src/components/gallery/Gallery > return Gallery and click new 1`] = `
 <div>
   <div
     class="Gallery"
@@ -164,7 +164,7 @@ exports[`src/components/gallery/Gallery return Gallery and click new 1`] = `
 </div>
 `;
 
-exports[`src/components/gallery/Gallery return Gallery readonly 1`] = `
+exports[`src/components/gallery/Gallery > return Gallery readonly 1`] = `
 <div>
   <div
     class="Gallery"
@@ -206,7 +206,7 @@ exports[`src/components/gallery/Gallery return Gallery readonly 1`] = `
 </div>
 `;
 
-exports[`src/components/gallery/Gallery should match snapshot 1`] = `
+exports[`src/components/gallery/Gallery > should match snapshot 1`] = `
 <div>
   <div
     class="Gallery"
@@ -416,6 +416,154 @@ exports[`src/components/gallery/Gallery should match snapshot 1`] = `
     >
       + New
     </div>
+    
+  </div>
+</div>
+`;
+
+exports[`src/components/gallery/Gallery > should match snapshot without permissions 1`] = `
+<div>
+  <div
+    class="Gallery"
+  >
+    <div
+      class="GalleryCard selected"
+      style="opacity: 1;"
+    >
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper override menuOpened optionsMenu"
+        role="button"
+      >
+        <button
+          class="IconButton CardActionsMenuIcon"
+          type="button"
+        >
+          <i
+            class="CompassIcon icon-dots-horizontal OptionsIcon"
+          />
+        </button>
+        <div
+          class="Menu noselect left "
+        >
+          <div
+            class="menu-contents"
+          >
+            <div
+              class="menu-options"
+            >
+              <div />
+              <div>
+                <div
+                  aria-label="Copy link"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <i
+                        class="CompassIcon icon-link-variant LinkIcon"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Copy link
+                    </div>
+                    
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+              </div>
+              <div />
+            </div>
+            <div
+              class="menu-spacer hideOnWidescreen"
+            />
+            <div
+              class="menu-options hideOnWidescreen"
+            >
+              <div
+                aria-label="Cancel"
+                class="MenuOption TextOption menu-option menu-cancel"
+                role="button"
+              >
+                <div
+                  class="d-flex"
+                >
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Cancel
+                  </div>
+                  
+                </div>
+                <div
+                  class="noicon"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="gallery-item"
+      >
+        <div
+          class="DividerElement"
+        />
+        <div
+          class="DividerElement"
+        />
+      </div>
+      
+      
+      
+    </div>
+    <div
+      class="GalleryCard"
+      style="opacity: 1;"
+    >
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper optionsMenu"
+        role="button"
+      >
+        <button
+          class="IconButton CardActionsMenuIcon"
+          type="button"
+        >
+          <i
+            class="CompassIcon icon-dots-horizontal OptionsIcon"
+          />
+        </button>
+        
+      </div>
+      <div
+        class="gallery-item"
+      />
+      
+      
+      
+    </div>
+    
     
   </div>
 </div>

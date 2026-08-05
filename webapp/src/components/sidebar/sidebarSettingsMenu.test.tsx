@@ -5,8 +5,6 @@ import {render} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
@@ -16,8 +14,8 @@ import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../../teleme
 
 import SidebarSettingsMenu from './sidebarSettingsMenu'
 
-jest.mock('../../telemetry/telemetryClient')
-const mockedTelemetry = mocked(TelemetryClient)
+vi.mock('../../telemetry/telemetryClient')
+const mockedTelemetry = vi.mocked(TelemetryClient)
 
 describe('components/sidebar/SidebarSettingsMenu', () => {
     let store = mockAppStore({})
@@ -88,7 +86,7 @@ describe('components/sidebar/SidebarSettingsMenu', () => {
     })
 
     test('imports menu open should match snapshot', () => {
-        window.open = jest.fn()
+        window.open = vi.fn()
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
                 <SidebarSettingsMenu activeTheme={defaultThemeName}/>

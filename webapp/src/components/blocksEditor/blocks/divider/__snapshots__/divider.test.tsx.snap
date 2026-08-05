@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/blocksEditor/blocks/divider should match Display snapshot 1`] = `
+exports[`components/blocksEditor/blocks/divider > should match Display snapshot 1`] = `
 <div>
   <hr
     class="Divider"
@@ -8,4 +8,4 @@ exports[`components/blocksEditor/blocks/divider should match Display snapshot 1`
 </div>
 `;
 
-exports[`components/blocksEditor/blocks/divider should match Input snapshot 1`] = `<div />`;
+exports[`components/blocksEditor/blocks/divider > should match Input snapshot 1`] = `<div />`;

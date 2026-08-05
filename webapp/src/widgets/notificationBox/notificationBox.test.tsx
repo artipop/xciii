@@ -11,8 +11,8 @@ import NotificationBox from './notificationBox'
 describe('widgets/NotificationBox', () => {
     beforeEach(() => {
         // Quick fix to disregard console error when unmounting a component
-        console.error = jest.fn()
-        document.execCommand = jest.fn()
+        console.error = vi.fn()
+        document.execCommand = vi.fn()
     })
 
     test('should match snapshot without icon and close', () => {

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`properties/number should match snapshot for number with empty value 1`] = `
+exports[`properties/number > should match snapshot for number with empty value 1`] = `
 <div>
   <input
     class="Editable octo-propertyvalue"

@@ -47,7 +47,7 @@ describe('component/BoardSwitcherDialog', () => {
     })
 
     test('base case', () => {
-        const onCloseHandler = jest.fn()
+        const onCloseHandler = vi.fn()
         const component = () => wrapDNDIntl(() =>
             <TestRouter>
                 <AppStoreProvider store={store}>

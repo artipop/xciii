@@ -20,11 +20,11 @@ describe('components/table/TableHeaderMenu', () => {
     view2.fields.sortOptions = []
 
     test('should match snapshot, title column', async () => {
-        const onAutoSizeColumn = jest.fn()
+        const onAutoSizeColumn = vi.fn()
         const component = () => wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
-                onResizeColumn={jest.fn()}
+                onResizeColumn={vi.fn()}
             >
                 <TableHeader
                     readonly={false}
@@ -35,7 +35,7 @@ describe('components/table/TableHeaderMenu', () => {
                     cards={[]}
                     views={[view, view2]}
                     template={board.cardProperties[0]}
-                    onDrop={jest.fn()}
+                    onDrop={vi.fn()}
                     onAutoSizeColumn={onAutoSizeColumn}
                 />
             </ColumnResizeProvider>,

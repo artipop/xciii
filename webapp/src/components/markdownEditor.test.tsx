@@ -9,11 +9,11 @@ import {TestBlockFactory} from '../test/testBlockFactory'
 
 import {MarkdownEditor} from './markdownEditor'
 
-jest.mock('../utils')
+vi.mock('../utils')
 
 describe('components/markdownEditor', () => {
     beforeAll(mockDOM)
-    beforeEach(jest.clearAllMocks)
+    beforeEach(vi.clearAllMocks)
 
     const board1 = TestBlockFactory.createBoard()
     board1.id = 'board-id-1'
@@ -49,9 +49,9 @@ describe('components/markdownEditor', () => {
                     placeholderText={'placeholder'}
                     class={'classname-test'}
                     readonly={false}
-                    onChange={jest.fn()}
-                    onFocus={jest.fn()}
-                    onBlur={jest.fn()}
+                    onChange={vi.fn()}
+                    onFocus={vi.fn()}
+                    onBlur={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -67,9 +67,9 @@ describe('components/markdownEditor', () => {
                     placeholderText={'placeholder'}
                     class={'classname-test'}
                     readonly={false}
-                    onChange={jest.fn()}
-                    onFocus={jest.fn()}
-                    onBlur={jest.fn()}
+                    onChange={vi.fn()}
+                    onFocus={vi.fn()}
+                    onBlur={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -85,9 +85,9 @@ describe('components/markdownEditor', () => {
                     placeholderText={'placeholder'}
                     class={'classname-test'}
                     readonly={false}
-                    onChange={jest.fn()}
-                    onFocus={jest.fn()}
-                    onBlur={jest.fn()}
+                    onChange={vi.fn()}
+                    onFocus={vi.fn()}
+                    onBlur={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -107,9 +107,9 @@ describe('components/markdownEditor', () => {
                     placeholderText={'placeholder'}
                     class={'classname-test'}
                     readonly={false}
-                    onChange={jest.fn()}
-                    onFocus={jest.fn()}
-                    onBlur={jest.fn()}
+                    onChange={vi.fn()}
+                    onFocus={vi.fn()}
+                    onBlur={vi.fn()}
                 />
             </AppStoreProvider>,
         ))

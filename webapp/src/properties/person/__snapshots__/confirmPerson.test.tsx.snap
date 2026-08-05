@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`properties/person select user - cancel 1`] = `
+exports[`properties/person > select user - cancel 1`] = `
 <div>
   <div
     class="Combobox Person octo-propertyvalue"
@@ -53,7 +53,7 @@ exports[`properties/person select user - cancel 1`] = `
 </div>
 `;
 
-exports[`properties/person select user - cancel 2`] = `
+exports[`properties/person > select user - cancel 2`] = `
 <div>
   <div
     class="Combobox Person octo-propertyvalue"
@@ -150,7 +150,7 @@ exports[`properties/person select user - cancel 2`] = `
 </div>
 `;
 
-exports[`properties/person select user - confirm 1`] = `
+exports[`properties/person > select user - confirm 1`] = `
 <div>
   <div
     class="Combobox Person octo-propertyvalue"
@@ -203,7 +203,7 @@ exports[`properties/person select user - confirm 1`] = `
 </div>
 `;
 
-exports[`properties/person select user - confirm 2`] = `
+exports[`properties/person > select user - confirm 2`] = `
 <div>
   <div
     class="Combobox Person octo-propertyvalue"

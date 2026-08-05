@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`src/components/topBar should match snapshot for focalboardPlugin 1`] = `
+exports[`src/components/topBar > should match snapshot for focalboardPlugin 1`] = `
 <div>
   <div
     class="TopBar"
@@ -26,7 +26,7 @@ exports[`src/components/topBar should match snapshot for focalboardPlugin 1`] = 
 </div>
 `;
 
-exports[`src/components/topBar should match snapshot for none focalboardPlugin 1`] = `
+exports[`src/components/topBar > should match snapshot for none focalboardPlugin 1`] = `
 <div>
   <div
     class="TopBar"

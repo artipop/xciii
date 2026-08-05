@@ -15,11 +15,11 @@ import OptionsIcon from '../widgets/icons/options'
 import Dialog from './dialog'
 
 describe('components/dialog', () => {
-    beforeEach(jest.clearAllMocks)
+    beforeEach(vi.clearAllMocks)
     test('should match snapshot', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <Dialog
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             >
                 <div id='test'/>
             </Dialog>,
@@ -27,7 +27,7 @@ describe('components/dialog', () => {
         expect(container).toMatchSnapshot()
     })
     test('should return dialog and click onClose button', () => {
-        const onCloseMethod = jest.fn()
+        const onCloseMethod = vi.fn()
         render(() => wrapDNDIntl(() =>
             <Dialog
                 onClose={onCloseMethod}
@@ -40,7 +40,7 @@ describe('components/dialog', () => {
         expect(onCloseMethod).toHaveBeenCalledTimes(1)
     })
     test('should return dialog and click to close on wrapper', () => {
-        const onCloseMethod = jest.fn()
+        const onCloseMethod = vi.fn()
         const {container} = render(() => wrapDNDIntl(() =>
             <Dialog
                 onClose={onCloseMethod}
@@ -51,7 +51,7 @@ describe('components/dialog', () => {
                         icon={<OptionsIcon/>}
                         name='Test'
                         onClick={async () => {
-                            jest.fn()
+                            vi.fn()
                         }}
                     />
                 </Menu>
@@ -63,10 +63,10 @@ describe('components/dialog', () => {
     })
 
     test('should return dialog and click on test button', () => {
-        const onTest = jest.fn()
+        const onTest = vi.fn()
         render(() => wrapDNDIntl(() =>
             <Dialog
-                onClose={jest.fn()}
+                onClose={vi.fn()}
                 toolsMenu={<Menu position='left'>
                     <Menu.Text
                         id='test'
@@ -90,14 +90,14 @@ describe('components/dialog', () => {
     test('should return dialog and click on cancel button', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <Dialog
-                onClose={jest.fn()}
+                onClose={vi.fn()}
                 toolsMenu={<Menu position='left'>
                     <Menu.Text
                         id='test'
                         icon={<OptionsIcon/>}
                         name='Test'
                         onClick={async () => {
-                            jest.fn()
+                            vi.fn()
                         }}
                     />
                 </Menu>}
