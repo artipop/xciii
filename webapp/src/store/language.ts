@@ -4,6 +4,7 @@
 import {getCurrentLanguage, storeLanguage as i18nStoreLanguage} from '../i18n'
 
 import type {StoreContext} from './context'
+
 import type {RootState} from './index'
 
 export type LanguageState = {value: string}

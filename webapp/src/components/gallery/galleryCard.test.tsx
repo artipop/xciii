@@ -3,12 +3,9 @@
 
 import {render, screen} from '@solidjs/testing-library'
 
-
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
-
-import {MockStoreEnhanced} from 'redux-mock-store'
 
 import {mockAppStore, wrapDNDIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
@@ -49,7 +46,7 @@ describe('src/components/gallery/GalleryCard', () => {
     const contentComment = TestBlockFactory.createComment(card)
     contentComment.id = 'contentId-Comment'
 
-    let store: MockStoreEnhanced<unknown, unknown>
+    let store: ReturnType<typeof mockAppStore>
 
     beforeEach(() => {
         jest.clearAllMocks()

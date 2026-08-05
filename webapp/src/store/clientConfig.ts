@@ -6,6 +6,7 @@ import {ClientConfig} from '../config/clientConfig'
 import {ShowUsername} from '../utils'
 
 import type {StoreContext} from './context'
+
 import type {RootState} from './index'
 
 export type ClientConfigState = {value: ClientConfig}

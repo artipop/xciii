@@ -5,6 +5,7 @@ import {Board} from '../blocks/board'
 import {Constants} from '../constants'
 
 import type {StoreContext} from './context'
+
 import type {RootState} from './index'
 
 export type GlobalTemplatesState = {value: Board[]}

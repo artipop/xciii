@@ -143,17 +143,17 @@ describe('components/centerPanel', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <CenterPanel
-                    cards={[card1]}
-                    views={[activeView]}
-                    board={board}
-                    activeView={activeView}
-                    readonly={false}
-                    showCard={jest.fn()}
-                    groupByProperty={groupProperty}
-                    shownCardId={card1.id}
-                    hiddenCardsCount={0}
-                />
+                    <CenterPanel
+                        cards={[card1]}
+                        views={[activeView]}
+                        board={board}
+                        activeView={activeView}
+                        readonly={false}
+                        showCard={jest.fn()}
+                        groupByProperty={groupProperty}
+                        shownCardId={card1.id}
+                        hiddenCardsCount={0}
+                    />
                 </TestRouter>
             </AppStoreProvider>,
         ))
@@ -163,17 +163,17 @@ describe('components/centerPanel', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <CenterPanel
-                    cards={[card1]}
-                    views={[activeView]}
-                    board={board}
-                    activeView={activeView}
-                    readonly={false}
-                    showCard={jest.fn()}
-                    groupByProperty={groupProperty}
-                    shownCardId={card1.id}
-                    hiddenCardsCount={0}
-                />
+                    <CenterPanel
+                        cards={[card1]}
+                        views={[activeView]}
+                        board={board}
+                        activeView={activeView}
+                        readonly={false}
+                        showCard={jest.fn()}
+                        groupByProperty={groupProperty}
+                        shownCardId={card1.id}
+                        hiddenCardsCount={0}
+                    />
                 </TestRouter>
             </AppStoreProvider>,
         ))
@@ -184,17 +184,17 @@ describe('components/centerPanel', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <CenterPanel
-                    cards={[card1]}
-                    views={[activeView]}
-                    board={board}
-                    activeView={activeView}
-                    readonly={false}
-                    showCard={jest.fn()}
-                    groupByProperty={groupProperty}
-                    shownCardId={card1.id}
-                    hiddenCardsCount={0}
-                />
+                    <CenterPanel
+                        cards={[card1]}
+                        views={[activeView]}
+                        board={board}
+                        activeView={activeView}
+                        readonly={false}
+                        showCard={jest.fn()}
+                        groupByProperty={groupProperty}
+                        shownCardId={card1.id}
+                        hiddenCardsCount={0}
+                    />
                 </TestRouter>
             </AppStoreProvider>,
         ))
@@ -205,32 +205,8 @@ describe('components/centerPanel', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <CenterPanel
-                    cards={[card1]}
-                    views={[activeView]}
-                    board={board}
-                    activeView={activeView}
-                    readonly={false}
-                    showCard={jest.fn()}
-                    groupByProperty={groupProperty}
-                    shownCardId={card1.id}
-                    hiddenCardsCount={0}
-                />
-                </TestRouter>
-            </AppStoreProvider>,
-        ))
-        expect(container).toMatchSnapshot()
-    })
-    describe('return centerPanel and', () => {
-    const rowTitle = (name: string) => screen.getAllByRole('textbox', {name}).find((el) => el.tagName === 'INPUT')!
-
-        test('select one card and click background', () => {
-            activeView.fields.viewType = 'table'
-            const {container} = render(() => wrapDNDIntl(() =>
-                <AppStoreProvider store={store}>
-                    <TestRouter>
                     <CenterPanel
-                        cards={[card1, card2]}
+                        cards={[card1]}
                         views={[activeView]}
                         board={board}
                         activeView={activeView}
@@ -240,6 +216,30 @@ describe('components/centerPanel', () => {
                         shownCardId={card1.id}
                         hiddenCardsCount={0}
                     />
+                </TestRouter>
+            </AppStoreProvider>,
+        ))
+        expect(container).toMatchSnapshot()
+    })
+    describe('return centerPanel and', () => {
+        const rowTitle = (name: string) => screen.getAllByRole('textbox', {name}).find((el) => el.tagName === 'INPUT')!
+
+        test('select one card and click background', () => {
+            activeView.fields.viewType = 'table'
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
+                        <CenterPanel
+                            cards={[card1, card2]}
+                            views={[activeView]}
+                            board={board}
+                            activeView={activeView}
+                            readonly={false}
+                            showCard={jest.fn()}
+                            groupByProperty={groupProperty}
+                            shownCardId={card1.id}
+                            hiddenCardsCount={0}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -262,17 +262,17 @@ describe('components/centerPanel', () => {
             const {container, baseElement} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <CenterPanel
-                        cards={[card1, card2]}
-                        views={[activeView]}
-                        board={board}
-                        activeView={activeView}
-                        readonly={true}
-                        showCard={jest.fn()}
-                        groupByProperty={groupProperty}
-                        shownCardId={card1.id}
-                        hiddenCardsCount={0}
-                    />
+                        <CenterPanel
+                            cards={[card1, card2]}
+                            views={[activeView]}
+                            board={board}
+                            activeView={activeView}
+                            readonly={true}
+                            showCard={jest.fn()}
+                            groupByProperty={groupProperty}
+                            shownCardId={card1.id}
+                            hiddenCardsCount={0}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -287,17 +287,17 @@ describe('components/centerPanel', () => {
             const {container, baseElement} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <CenterPanel
-                        cards={[card1, card2]}
-                        views={[activeView]}
-                        board={board}
-                        activeView={activeView}
-                        readonly={false}
-                        showCard={jest.fn()}
-                        groupByProperty={groupProperty}
-                        shownCardId={card1.id}
-                        hiddenCardsCount={0}
-                    />
+                        <CenterPanel
+                            cards={[card1, card2]}
+                            views={[activeView]}
+                            board={board}
+                            activeView={activeView}
+                            readonly={false}
+                            showCard={jest.fn()}
+                            groupByProperty={groupProperty}
+                            shownCardId={card1.id}
+                            hiddenCardsCount={0}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -316,17 +316,17 @@ describe('components/centerPanel', () => {
             const {container, baseElement} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <CenterPanel
-                        cards={[card1, card2]}
-                        views={[activeView]}
-                        board={board}
-                        activeView={activeView}
-                        readonly={false}
-                        showCard={jest.fn()}
-                        groupByProperty={groupProperty}
-                        shownCardId={card1.id}
-                        hiddenCardsCount={0}
-                    />
+                        <CenterPanel
+                            cards={[card1, card2]}
+                            views={[activeView]}
+                            board={board}
+                            activeView={activeView}
+                            readonly={false}
+                            showCard={jest.fn()}
+                            groupByProperty={groupProperty}
+                            shownCardId={card1.id}
+                            hiddenCardsCount={0}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -352,17 +352,17 @@ describe('components/centerPanel', () => {
             const {container, baseElement} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <CenterPanel
-                        cards={[card1, card2]}
-                        views={[activeView]}
-                        board={board}
-                        activeView={activeView}
-                        readonly={false}
-                        showCard={jest.fn()}
-                        groupByProperty={groupProperty}
-                        shownCardId={card1.id}
-                        hiddenCardsCount={0}
-                    />
+                        <CenterPanel
+                            cards={[card1, card2]}
+                            views={[activeView]}
+                            board={board}
+                            activeView={activeView}
+                            readonly={false}
+                            showCard={jest.fn()}
+                            groupByProperty={groupProperty}
+                            shownCardId={card1.id}
+                            hiddenCardsCount={0}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -380,17 +380,17 @@ describe('components/centerPanel', () => {
             const {container, baseElement} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <CenterPanel
-                        cards={[card1, card2]}
-                        views={[activeView]}
-                        board={board}
-                        activeView={activeView}
-                        readonly={false}
-                        showCard={jest.fn()}
-                        groupByProperty={groupProperty}
-                        shownCardId={card1.id}
-                        hiddenCardsCount={0}
-                    />
+                        <CenterPanel
+                            cards={[card1, card2]}
+                            views={[activeView]}
+                            board={board}
+                            activeView={activeView}
+                            readonly={false}
+                            showCard={jest.fn()}
+                            groupByProperty={groupProperty}
+                            shownCardId={card1.id}
+                            hiddenCardsCount={0}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -409,17 +409,17 @@ describe('components/centerPanel', () => {
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <CenterPanel
-                        cards={[card1, card2]}
-                        views={[activeView]}
-                        board={board}
-                        activeView={activeView}
-                        readonly={false}
-                        showCard={mockedShowCard}
-                        groupByProperty={groupProperty}
-                        shownCardId={card1.id}
-                        hiddenCardsCount={0}
-                    />
+                        <CenterPanel
+                            cards={[card1, card2]}
+                            views={[activeView]}
+                            board={board}
+                            activeView={activeView}
+                            readonly={false}
+                            showCard={mockedShowCard}
+                            groupByProperty={groupProperty}
+                            shownCardId={card1.id}
+                            hiddenCardsCount={0}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -436,17 +436,17 @@ describe('components/centerPanel', () => {
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <CenterPanel
-                        cards={[card1, card2]}
-                        views={[activeView]}
-                        board={board}
-                        activeView={activeView}
-                        readonly={false}
-                        showCard={jest.fn()}
-                        groupByProperty={groupProperty}
-                        shownCardId={card1.id}
-                        hiddenCardsCount={0}
-                    />
+                        <CenterPanel
+                            cards={[card1, card2]}
+                            views={[activeView]}
+                            board={board}
+                            activeView={activeView}
+                            readonly={false}
+                            showCard={jest.fn()}
+                            groupByProperty={groupProperty}
+                            shownCardId={card1.id}
+                            hiddenCardsCount={0}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -460,17 +460,17 @@ describe('components/centerPanel', () => {
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <CenterPanel
-                        cards={[card1, card2]}
-                        views={[activeView]}
-                        board={board}
-                        activeView={activeView}
-                        readonly={false}
-                        showCard={jest.fn()}
-                        groupByProperty={groupProperty}
-                        shownCardId={card1.id}
-                        hiddenCardsCount={0}
-                    />
+                        <CenterPanel
+                            cards={[card1, card2]}
+                            views={[activeView]}
+                            board={board}
+                            activeView={activeView}
+                            readonly={false}
+                            showCard={jest.fn()}
+                            groupByProperty={groupProperty}
+                            shownCardId={card1.id}
+                            hiddenCardsCount={0}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -488,17 +488,17 @@ describe('components/centerPanel', () => {
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <CenterPanel
-                        cards={[card1, card2]}
-                        views={[activeView]}
-                        board={board}
-                        activeView={activeView}
-                        readonly={false}
-                        showCard={jest.fn()}
-                        groupByProperty={groupProperty}
-                        shownCardId={card1.id}
-                        hiddenCardsCount={0}
-                    />
+                        <CenterPanel
+                            cards={[card1, card2]}
+                            views={[activeView]}
+                            board={board}
+                            activeView={activeView}
+                            readonly={false}
+                            showCard={jest.fn()}
+                            groupByProperty={groupProperty}
+                            shownCardId={card1.id}
+                            hiddenCardsCount={0}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -517,17 +517,17 @@ describe('components/centerPanel', () => {
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <CenterPanel
-                        cards={[card1, card2]}
-                        views={[activeView]}
-                        board={board}
-                        activeView={activeView}
-                        readonly={false}
-                        showCard={jest.fn()}
-                        groupByProperty={groupProperty}
-                        shownCardId={card1.id}
-                        hiddenCardsCount={0}
-                    />
+                        <CenterPanel
+                            cards={[card1, card2]}
+                            views={[activeView]}
+                            board={board}
+                            activeView={activeView}
+                            readonly={false}
+                            showCard={jest.fn()}
+                            groupByProperty={groupProperty}
+                            shownCardId={card1.id}
+                            hiddenCardsCount={0}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -659,17 +659,17 @@ describe('components/centerPanel', () => {
         const {container, getByTitle, getByText} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <CenterPanel
-                    cards={[card1, card2]}
-                    views={[activeView]}
-                    board={board}
-                    activeView={activeView}
-                    readonly={false}
-                    showCard={jest.fn()}
-                    groupByProperty={groupProperty}
-                    shownCardId={card1.id}
-                    hiddenCardsCount={2}
-                />
+                    <CenterPanel
+                        cards={[card1, card2]}
+                        views={[activeView]}
+                        board={board}
+                        activeView={activeView}
+                        readonly={false}
+                        showCard={jest.fn()}
+                        groupByProperty={groupProperty}
+                        shownCardId={card1.id}
+                        hiddenCardsCount={2}
+                    />
                 </TestRouter>
             </AppStoreProvider>,
         ))

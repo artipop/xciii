@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
 import {render} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
-
 
 import {mocked} from 'jest-mock'
 

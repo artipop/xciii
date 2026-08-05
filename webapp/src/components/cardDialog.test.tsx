@@ -105,7 +105,6 @@ describe('components/cardDialog', () => {
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot without permissions', async () => {
-        let container
         const localStore = mockAppStore({...state, teams: {current: undefined}})
         const result = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={localStore}>
@@ -121,7 +120,7 @@ describe('components/cardDialog', () => {
                 />
             </AppStoreProvider>,
         ))
-        container = result.container
+        const container = result.container
         expect(container).toMatchSnapshot()
     })
     test('return a cardDialog readonly', async () => {

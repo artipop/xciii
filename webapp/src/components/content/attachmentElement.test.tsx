@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {render} from '@solidjs/testing-library'
-import {act} from 'react-dom/test-utils'
 import {mocked} from 'jest-mock'
 
 import {AttachmentBlock} from '../../blocks/attachmentBlock'
@@ -106,9 +105,8 @@ describe('component/content/FileBlock', () => {
                 />
             </AppStoreProvider>,
         )
-        let fileContainer: Element | undefined
         const {container} = render(component)
-        fileContainer = container
+        const fileContainer = container
         expect(fileContainer).toMatchSnapshot()
     })
 
@@ -127,9 +125,8 @@ describe('component/content/FileBlock', () => {
                 />
             </AppStoreProvider>,
         )
-        let fileContainer: Element | undefined
         const {container} = render(component)
-        fileContainer = container
+        const fileContainer = container
         expect(fileContainer).toMatchSnapshot()
     })
 })

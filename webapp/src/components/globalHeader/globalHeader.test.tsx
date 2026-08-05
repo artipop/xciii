@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
 import {render} from '@solidjs/testing-library'
-
 
 import {TestRouter, mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
@@ -11,7 +9,6 @@ import {AppStoreProvider} from '../../store'
 import GlobalHeader from './globalHeader'
 
 describe('components/sidebar/GlobalHeader', () => {
-
     let store = mockAppStore({})
     beforeEach(() => {
         store = mockAppStore({})
@@ -20,7 +17,7 @@ describe('components/sidebar/GlobalHeader', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <GlobalHeader history={history}/>
+                    <GlobalHeader history={history}/>
                 </TestRouter>
             </AppStoreProvider>,
         )

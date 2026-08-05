@@ -28,7 +28,7 @@ type Props = {
 const BoardSwitcherDialog = (props: Props): JSX.Element => {
     const [selected, setSelected] = createSignal<number>(-1)
     const elements: Array<HTMLDivElement | undefined> = []
-    const [IDs, setIDs] = createSignal<Record<number, [string, string]>>({})
+    const [ids, setIds] = createSignal<Record<number, [string, string]>>({})
     const intl = useIntl()
     const team = useAppSelector(getCurrentTeam)
     const me = useAppSelector(getMe)
@@ -77,7 +77,7 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
         return items.map((item, i) => {
             const resultTitle = item.title || untitledBoardTitle
             const teamTitle = byId[item.teamId].title
-            setIDs((prevIDs) => ({
+            setIds((prevIDs) => ({
                 ...prevIDs,
                 [i]: [item.teamId, item.id],
             }))
@@ -85,7 +85,9 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
                 <div
                     class='blockSearchResult'
                     onClick={() => selectBoard(item.teamId, item.id)}
-                    ref={(el) => (elements[i] = el)}
+                    ref={(el) => {
+                        elements[i] = el
+                    }}
                 >
                     <Show when={item.type === BoardTypeOpen}><Globe/></Show>
                     <Show when={item.type === BoardTypePrivate}><LockOutline/></Show>
@@ -99,7 +101,7 @@ const BoardSwitcherDialog = (props: Props): JSX.Element => {
     const handleEnterKeyPress = (e: KeyboardEvent) => {
         if (Utils.isKeyPressed(e, Constants.keyCodes.ENTER) && selected() > -1) {
             e.preventDefault()
-            const [teamId, id] = IDs()[selected()]
+            const [teamId, id] = ids()[selected()]
             selectBoard(teamId, id)
         }
     }

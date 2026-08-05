@@ -59,7 +59,9 @@ const CheckboxElement = (props: Props) => {
                 }}
             />
             <Editable
-                ref={(f) => (titleRef = f)}
+                ref={(f) => {
+                    titleRef = f
+                }}
                 value={title()}
                 placeholderText={intl.formatMessage({id: 'ContentBlock.editText', defaultMessage: 'Edit text...'})}
                 onChange={setTitle}

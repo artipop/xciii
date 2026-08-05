@@ -181,36 +181,33 @@ describe('src/components/workspace', () => {
         mockedUtils.getBoardPagePath = jest.requireActual('../utils').Utils.getBoardPagePath
     })
     test('should match snapshot', async () => {
-        let container
         const result = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Workspace readonly={false}/>
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
-        container = result.container
+        const container = result.container
         jest.runOnlyPendingTimers()
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot with readonly', async () => {
-        let container
         const result = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Workspace readonly={true}/>
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
-        container = result.container
+        const container = result.container
         jest.runOnlyPendingTimers()
         expect(container).toMatchSnapshot()
     })
 
     test('return workspace and showcard', async () => {
-        let container: Element | undefined
         const result = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Workspace readonly={false}/>
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
-        container = result.container
+        const container = result.container
         jest.runOnlyPendingTimers()
 
         // React 19 commits when the act callback returns, so the cards only
@@ -222,13 +219,12 @@ describe('src/components/workspace', () => {
     })
 
     test('return workspace readonly and showcard', async () => {
-        let container: Element | undefined
         const result = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Workspace readonly={true}/>
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
-        container = result.container
+        const container = result.container
         jest.runOnlyPendingTimers()
 
         // React 19 commits when the act callback returns, so the cards only
@@ -284,13 +280,12 @@ describe('src/components/workspace', () => {
                 hiddenBoardIDs: [],
             },
         })
-        let container: Element | undefined
         const result = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={emptyStore}>
                 <Workspace readonly={true}/>
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
-        container = result.container
+        const container = result.container
         jest.runOnlyPendingTimers()
 
         expect(container).toMatchSnapshot()

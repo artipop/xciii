@@ -171,7 +171,9 @@ const TableRow = (props: Props) => {
                 <div class='octo-icontitle'>
                     <div class='octo-icon'>{props.card.fields.icon}</div>
                     <Editable
-                        ref={(f) => (titleRef = f)}
+                        ref={(f) => {
+                            titleRef = f
+                        }}
                         value={title()}
                         placeholderText='Untitled'
                         onChange={onTitleChange}

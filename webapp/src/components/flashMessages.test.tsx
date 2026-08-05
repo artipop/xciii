@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
 import {render, screen} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
@@ -25,7 +24,7 @@ afterEach(() => {
 describe('components/flashMessages', () => {
     test('renders a flash message with high severity', () => {
         const {container} = render(() =>
-            wrapIntl(() =><FlashMessages milliseconds={200}/>),
+            wrapIntl(() => <FlashMessages milliseconds={200}/>),
         )
 
         /**
@@ -43,7 +42,7 @@ describe('components/flashMessages', () => {
 
     test('renders a flash message with normal severity', () => {
         const {container} = render(() =>
-            wrapIntl(() =><FlashMessages milliseconds={200}/>),
+            wrapIntl(() => <FlashMessages milliseconds={200}/>),
         )
 
         sendFlashMessage({content: 'Mock Content', severity: 'normal'})
@@ -59,7 +58,7 @@ describe('components/flashMessages', () => {
 
     test('renders a flash message with low severity', () => {
         const {container} = render(() =>
-            wrapIntl(() =><FlashMessages milliseconds={200}/>),
+            wrapIntl(() => <FlashMessages milliseconds={200}/>),
         )
 
         sendFlashMessage({content: 'Mock Content', severity: 'low'})
@@ -75,7 +74,7 @@ describe('components/flashMessages', () => {
 
     test('renders a flash message with low severity and custom HTML in flash message', () => {
         const {container} = render(() =>
-            wrapIntl(() =><FlashMessages milliseconds={200}/>),
+            wrapIntl(() => <FlashMessages milliseconds={200}/>),
         )
 
         sendFlashMessage({content: <div data-testid='mock-test-id'>{'Mock Content'}</div>, severity: 'low'})
@@ -91,7 +90,7 @@ describe('components/flashMessages', () => {
 
     test('renders a flash message with low severity and check onClick on flash works', () => {
         const {container} = render(() =>
-            wrapIntl(() =><FlashMessages milliseconds={200}/>),
+            wrapIntl(() => <FlashMessages milliseconds={200}/>),
         )
 
         sendFlashMessage({content: 'Mock Content', severity: 'low'})

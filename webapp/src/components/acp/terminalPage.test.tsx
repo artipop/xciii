@@ -4,6 +4,7 @@ import {TextDecoder as NodeTextDecoder, TextEncoder as NodeTextEncoder} from 'ut
 
 import {render, screen, waitFor} from '@solidjs/testing-library'
 import {MemoryRouter, Route, createMemoryHistory} from '@solidjs/router'
+
 import {IntlProvider} from '../../intl'
 import '@testing-library/jest-dom'
 

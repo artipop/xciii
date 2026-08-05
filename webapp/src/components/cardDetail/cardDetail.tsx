@@ -217,7 +217,9 @@ const CardDetail = (props: Props): JSX.Element => {
                 </Show>
 
                 <EditableArea
-                    ref={(f) => (titleRef = f)}
+                    ref={(f) => {
+                        titleRef = f
+                    }}
                     className='title'
                     value={title()}
                     placeholderText='Untitled'

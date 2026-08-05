@@ -3,7 +3,6 @@
 import {render, screen, within} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
-
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'

@@ -17,17 +17,6 @@ const activeView = TestBlockFactory.createBoardView(board)
 const card = TestBlockFactory.createCard(board)
 const card2 = TestBlockFactory.createCard(board)
 
-jest.mock('react-router-dom', () => {
-    const originalModule = jest.requireActual('react-router-dom')
-
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {url: '/board/view'}
-        }),
-    }
-})
-
 describe('components/viewHeader/viewHeader', () => {
     const state = {
         users: {
@@ -77,18 +66,18 @@ describe('components/viewHeader/viewHeader', () => {
             wrapIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <ViewHeader
-                        board={board}
-                        activeView={activeView}
-                        views={[activeView]}
-                        cards={[card]}
-                        groupByProperty={board.cardProperties[0]}
-                        addCard={jest.fn()}
-                        addCardFromTemplate={jest.fn()}
-                        addCardTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
-                        readonly={false}
-                    />
+                        <ViewHeader
+                            board={board}
+                            activeView={activeView}
+                            views={[activeView]}
+                            cards={[card]}
+                            groupByProperty={board.cardProperties[0]}
+                            addCard={jest.fn()}
+                            addCardFromTemplate={jest.fn()}
+                            addCardTemplate={jest.fn()}
+                            editCardTemplate={jest.fn()}
+                            readonly={false}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ),
@@ -101,18 +90,18 @@ describe('components/viewHeader/viewHeader', () => {
             wrapIntl(() =>
                 <AppStoreProvider store={localStore}>
                     <TestRouter>
-                    <ViewHeader
-                        board={board}
-                        activeView={activeView}
-                        views={[activeView]}
-                        cards={[card]}
-                        groupByProperty={board.cardProperties[0]}
-                        addCard={jest.fn()}
-                        addCardFromTemplate={jest.fn()}
-                        addCardTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
-                        readonly={false}
-                    />
+                        <ViewHeader
+                            board={board}
+                            activeView={activeView}
+                            views={[activeView]}
+                            cards={[card]}
+                            groupByProperty={board.cardProperties[0]}
+                            addCard={jest.fn()}
+                            addCardFromTemplate={jest.fn()}
+                            addCardTemplate={jest.fn()}
+                            editCardTemplate={jest.fn()}
+                            readonly={false}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ),
@@ -124,18 +113,18 @@ describe('components/viewHeader/viewHeader', () => {
             wrapIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <ViewHeader
-                        board={board}
-                        activeView={activeView}
-                        views={[activeView]}
-                        cards={[card]}
-                        groupByProperty={board.cardProperties[0]}
-                        addCard={jest.fn()}
-                        addCardFromTemplate={jest.fn()}
-                        addCardTemplate={jest.fn()}
-                        editCardTemplate={jest.fn()}
-                        readonly={true}
-                    />
+                        <ViewHeader
+                            board={board}
+                            activeView={activeView}
+                            views={[activeView]}
+                            cards={[card]}
+                            groupByProperty={board.cardProperties[0]}
+                            addCard={jest.fn()}
+                            addCardFromTemplate={jest.fn()}
+                            addCardTemplate={jest.fn()}
+                            editCardTemplate={jest.fn()}
+                            readonly={true}
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ),

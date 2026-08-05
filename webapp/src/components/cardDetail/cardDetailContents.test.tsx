@@ -4,8 +4,6 @@ import type {JSX} from 'solid-js'
 
 import {fireEvent, render} from '@solidjs/testing-library'
 
-import {act} from 'react-dom/test-utils'
-
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import {mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'

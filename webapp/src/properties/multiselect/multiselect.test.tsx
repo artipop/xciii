@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 import {render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
+
 import '@testing-library/jest-dom'
-import {IntlProvider} from '../../intl'
 import {mocked} from 'jest-mock'
+
+import {IntlProvider} from '../../intl'
 
 import {IPropertyOption, IPropertyTemplate, createBoard} from '../../blocks/board'
 import {createCard} from '../../blocks/card'
@@ -87,7 +89,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         const multiSelectParent = screen.getByTestId(nonEditableMultiSelectTestId)
@@ -110,7 +112,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -132,7 +134,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -157,7 +159,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -182,7 +184,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -207,7 +209,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -233,7 +235,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         mockedMutator.insertPropertyOption.mockResolvedValue()
@@ -259,7 +261,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
@@ -289,7 +291,7 @@ describe('properties/multiSelect', () => {
                 board={{...board}}
                 card={{...card}}
             />,
-            {wrapper: Wrapper},
+        {wrapper: Wrapper},
         )
 
         userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))

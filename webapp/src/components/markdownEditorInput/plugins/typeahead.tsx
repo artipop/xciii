@@ -83,8 +83,8 @@ function getTextUpToAnchor(selection: RangeSelection): string | null {
 
 // How much of the text before the caret the match actually covers, so a query
 // typed over an earlier partial insertion is replaced whole.
-function getFullMatchOffset(documentText: string, entryText: string, offset_: number): number {
-    let triggerOffset = offset_
+function getFullMatchOffset(documentText: string, entryText: string, startOffset: number): number {
+    let triggerOffset = startOffset
     for (let i = triggerOffset; i <= entryText.length; i++) {
         if (documentText.slice(-i) === entryText.substring(0, i)) {
             triggerOffset = i
@@ -127,8 +127,8 @@ function $splitNodeContainingQuery(match: MenuTextMatch): TextNode | null {
 
 // The caret does not begin a query when it sits right after a text entity
 // (a finished mention), which is what typing "@a" directly after "@b" is.
-function $isSelectionOnEntityBoundary(offset_: number): boolean {
-    if (offset_ !== 0) {
+function $isSelectionOnEntityBoundary(startOffset: number): boolean {
+    if (startOffset !== 0) {
         return false
     }
     const selection = $getSelection()
@@ -151,6 +151,7 @@ type Props<T> = {
     class: string
     onQueryChange: (query: string | null) => void
     onSelectOption: (option: T, nodeToReplace: TextNode | null, closeMenu: () => void) => void
+
     // selected is an accessor so a row's highlight updates in place inside <For>.
     itemRender: (option: T, selected: () => boolean, select: () => void, highlight: () => void) => JSX.Element
 }

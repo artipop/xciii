@@ -2,11 +2,8 @@
 // See LICENSE.txt for license information.
 import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import {MockStoreEnhanced} from 'redux-mock-store'
 
 import {mocked} from 'jest-mock'
-
-
 
 import Mutator from '../../mutator'
 import {Team} from '../../store/teams'
@@ -19,16 +16,6 @@ import TelemetryClient from '../../telemetry/telemetryClient'
 
 import BoardTemplateSelector from './boardTemplateSelector'
 
-jest.mock('react-router-dom', () => {
-    const originalModule = jest.requireActual('react-router-dom')
-
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {url: '/'}
-        }),
-    }
-})
 jest.mock('../../octoClient', () => {
     return {
         getAllBlocks: jest.fn(() => Promise.resolve([])),
@@ -71,7 +58,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
     // below carries that title, so it stands in for the visible copy.
     const globalTemplateTitle = 'My Project Tasks'
     const boardTitle = 'Board 1'
-    let store: MockStoreEnhanced<unknown, unknown>
+    let store: ReturnType<typeof mockAppStore>
     beforeAll(mockDOM)
     beforeEach(() => {
         jest.clearAllMocks()

@@ -3,8 +3,6 @@
 import 'isomorphic-fetch'
 
 import {render} from '@solidjs/testing-library'
-import {act} from 'react-dom/test-utils'
-
 
 import {CommentBlock} from '../../blocks/commentBlock'
 

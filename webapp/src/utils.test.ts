@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createIntl} from 'react-intl'
+import {createIntl} from './intl'
 
-
-import {match as routerMatch} from 'react-router-dom'
+import type {RouterMatch} from './utils'
 
 import {Utils, IDType, ShowFullName, ShowNicknameFullName, ShowUsername} from './utils'
 import {IUser} from './user'
@@ -187,7 +186,7 @@ describe('utils', () => {
                     teamId: 'team_id_1',
                 },
                 path: '/team/:teamId/:boardId?/:viewId?/:cardId?',
-            } as unknown as routerMatch<{boardId: string, viewId?: string, cardId?: string, teamId?: string}>
+            } as unknown as RouterMatch
             const navigate = jest.fn()
 
             Utils.showBoard('board_id_2', match, navigate)

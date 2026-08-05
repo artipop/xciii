@@ -3,10 +3,10 @@
 
 import {Show, createSignal} from 'solid-js'
 
-import {IntlProvider} from '../../intl'
-
 import userEvent from '@testing-library/user-event'
 import {render} from '@solidjs/testing-library'
+
+import {IntlProvider} from '../../intl'
 
 import DeleteBoardDialog from './deleteBoardDialog'
 
@@ -37,7 +37,7 @@ describe('components/sidebar/DeleteBoardDialog', () => {
         const rootPortalDiv = document.createElement('div')
         rootPortalDiv.id = 'focalboard-root-portal'
 
-        const {container} = render(() =><TestComponent/>, {container: document.body.appendChild(rootPortalDiv)})
+        const {container} = render(() => <TestComponent/>, {container: document.body.appendChild(rootPortalDiv)})
         return container
     }
 

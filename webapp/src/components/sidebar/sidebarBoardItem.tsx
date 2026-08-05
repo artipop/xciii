@@ -3,11 +3,11 @@
 import {For, Show, createSignal} from 'solid-js'
 import type {JSX} from 'solid-js'
 
-import {useIntl} from '../../intl'
-
 import {useNavigate} from '@solidjs/router'
 import {useSortable} from '@dnd-kit/solid/sortable'
 import {SortableKeyboardPlugin} from '@dnd-kit/dom/sortable'
+
+import {useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
 import {BoardView, IViewType} from '../../blocks/boardView'

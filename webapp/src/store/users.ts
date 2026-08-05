@@ -8,6 +8,7 @@ import {IUser, parseUserProps, UserPreference} from '../user'
 import {Subscription} from '../wsclient'
 
 import type {StoreContext} from './context'
+
 import type {RootState} from './index'
 
 export const versionProperty = 'version72MessageCanceled'

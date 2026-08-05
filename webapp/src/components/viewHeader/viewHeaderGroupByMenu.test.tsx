@@ -6,8 +6,6 @@ import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 import {mocked} from 'jest-mock'
 
-import {MockStoreEnhanced} from 'redux-mock-store'
-
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import mutator from '../../mutator'
@@ -53,7 +51,7 @@ card3.fields.properties = {[property.id]: 'property_value_id_3'}
 
 describe('components/viewHeader/viewHeaderGroupByMenu', () => {
     let state: any
-    let store: MockStoreEnhanced<unknown, unknown>
+    let store: ReturnType<typeof mockAppStore>
 
     const setDefaultOptions = () => {
         activeView.fields.hiddenOptionIds = [optionQ3.id]

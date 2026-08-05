@@ -3,8 +3,10 @@
 import {render, screen, within} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
-import {createIntl} from '../../intl'
+
 import {mocked} from 'jest-mock'
+
+import {createIntl} from '../../intl'
 
 import {wrapDNDIntl} from '../../testUtils'
 import Mutator from '../../mutator'

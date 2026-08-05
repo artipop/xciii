@@ -3,9 +3,9 @@
 import {Show, batch, createEffect, createSignal} from 'solid-js'
 import type {JSX} from 'solid-js'
 
-import {FormattedMessage, useIntl} from '../../intl'
-
 import {useNavigate} from '@solidjs/router'
+
+import {FormattedMessage, useIntl} from '../../intl'
 
 import Workspace from '../../components/workspace'
 import VersionMessage from '../../components/messages/versionMessage'

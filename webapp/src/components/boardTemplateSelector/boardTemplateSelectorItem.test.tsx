@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 import {render, within, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import {MockStoreEnhanced} from 'redux-mock-store'
 
 import {Board, MemberRole, IPropertyTemplate} from '../../blocks/board'
 import {mockAppStore, wrapDNDIntl} from '../../testUtils'
@@ -12,17 +11,6 @@ import {IUser} from '../../user'
 import {Team} from '../../store/teams'
 
 import BoardTemplateSelectorItem from './boardTemplateSelectorItem'
-
-jest.mock('react-router-dom', () => {
-    const originalModule = jest.requireActual('react-router-dom')
-
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {url: '/'}
-        }),
-    }
-})
 
 const groupProperty: IPropertyTemplate = {
     id: 'group-prop-id',
@@ -109,7 +97,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
         roles: 'system_user',
     }
 
-    let store: MockStoreEnhanced<unknown, unknown>
+    let store: ReturnType<typeof mockAppStore>
     beforeEach(() => {
         jest.clearAllMocks()
         const state = {

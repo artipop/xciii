@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {StoreContext} from './context'
+
 import type {RootState} from './index'
 
 export const ChannelTypeOpen = 'O'

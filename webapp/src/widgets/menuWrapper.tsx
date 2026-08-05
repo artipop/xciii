@@ -7,6 +7,7 @@ import type {JSX, ParentComponent} from 'solid-js'
 import './menuWrapper.scss'
 
 type Props = {
+
     // Under React the wrapper took exactly two children and rendered the
     // second only while open. In Solid resolving children builds them, so the
     // menu is its own prop: JSX in prop position compiles to a getter, and a

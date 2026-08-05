@@ -13,12 +13,13 @@ import {Card} from '../blocks/card'
 import {Board} from '../blocks/board'
 import {OctoClient} from '../octoClient'
 
-import {createAppStore} from './index'
 import {getCurrentBoard, getMySortedBoards} from './boards'
 import {getCards, getCurrentCard} from './cards'
 import {getCurrentTeam} from './teams'
 import {getGlobalError} from './globalError'
 import {getMyConfig} from './users'
+
+import {createAppStore} from './index'
 
 const board = (id: string, title: string, extra: Partial<Board> = {}): Board => ({
     id,

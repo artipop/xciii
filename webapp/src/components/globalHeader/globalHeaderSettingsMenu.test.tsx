@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
 import {render} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
@@ -49,7 +48,7 @@ describe('components/sidebar/GlobalHeaderSettingsMenu', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <GlobalHeaderSettingsMenu history={history}/>
+                    <GlobalHeaderSettingsMenu history={history}/>
                 </TestRouter>
             </AppStoreProvider>,
         )
@@ -62,7 +61,7 @@ describe('components/sidebar/GlobalHeaderSettingsMenu', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <GlobalHeaderSettingsMenu history={history}/>
+                    <GlobalHeaderSettingsMenu history={history}/>
                 </TestRouter>
             </AppStoreProvider>,
         )
@@ -76,7 +75,7 @@ describe('components/sidebar/GlobalHeaderSettingsMenu', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <GlobalHeaderSettingsMenu history={history}/>
+                    <GlobalHeaderSettingsMenu history={history}/>
                 </TestRouter>
             </AppStoreProvider>,
         )
@@ -92,7 +91,7 @@ describe('components/sidebar/GlobalHeaderSettingsMenu', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <GlobalHeaderSettingsMenu history={history}/>
+                    <GlobalHeaderSettingsMenu history={history}/>
                 </TestRouter>
             </AppStoreProvider>,
         )
@@ -110,7 +109,7 @@ describe('components/sidebar/GlobalHeaderSettingsMenu', () => {
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <GlobalHeaderSettingsMenu history={history}/>
+                    <GlobalHeaderSettingsMenu history={history}/>
                 </TestRouter>
             </AppStoreProvider>,
         )

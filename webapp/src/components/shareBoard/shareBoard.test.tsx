@@ -204,7 +204,7 @@ describe('src/components/shareBoard/shareBoard', () => {
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
 
         expect(container).toMatchSnapshot()
@@ -230,7 +230,7 @@ describe('src/components/shareBoard/shareBoard', () => {
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
         const copyLinkElement = screen.getByTitle('Copy link')
         expect(copyLinkElement).toBeDefined()
@@ -254,7 +254,7 @@ describe('src/components/shareBoard/shareBoard', () => {
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
 
         expect(container).toMatchSnapshot()
@@ -290,7 +290,7 @@ describe('src/components/shareBoard/shareBoard', () => {
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
 
         sharing.token = 'anotherToken'
@@ -318,9 +318,7 @@ describe('src/components/shareBoard/shareBoard', () => {
             token: 'oneToken',
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
-        let container: Element | undefined
-        let result: {container: Element, rerender: (ui: JSX.Element) => void} | undefined
-        result = render(() =>
+        const result = render(() =>
             wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <ShareBoard
@@ -328,9 +326,9 @@ describe('src/components/shareBoard/shareBoard', () => {
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
-        container = result.container
+        const container = result.container
 
         const publishButton = screen.getByRole('button', {name: 'Publish'})
         expect(publishButton).toBeDefined()
@@ -358,9 +356,7 @@ describe('src/components/shareBoard/shareBoard', () => {
         }
         mockedOctoClient.getSharing.mockResolvedValue(sharing)
         mockedUtils.createGuid.mockReturnValue('aToken')
-        let container: Element | undefined
-        let result: {container: Element, rerender: (ui: JSX.Element) => void} | undefined
-        result = render(() =>
+        const result = render(() =>
             wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <ShareBoard
@@ -368,9 +364,9 @@ describe('src/components/shareBoard/shareBoard', () => {
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
-        container = result.container
+        const container = result.container
         mockedOctoClient.getSharing.mockResolvedValue({
             id: boardId,
             enabled: true,
@@ -481,7 +477,7 @@ describe('src/components/shareBoard/shareBoard', () => {
                         enableSharedBoards={false}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
 
         expect(container).toMatchSnapshot()
@@ -524,7 +520,7 @@ describe('src/components/shareBoard/shareBoard', () => {
                         enableSharedBoards={false}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
 
         expect(container).toMatchSnapshot()
@@ -561,7 +557,7 @@ describe('src/components/shareBoard/shareBoard', () => {
                         enableSharedBoards={true}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
 
         expect(container).toMatchSnapshot()
@@ -611,7 +607,7 @@ describe('src/components/shareBoard/shareBoard', () => {
                         enableSharedBoards={false}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
 
         expect(container).toMatchSnapshot()

@@ -3,7 +3,6 @@
 import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
-
 import {BoardMember} from '../../blocks/board'
 
 import {IUser} from '../../user'
@@ -69,7 +68,6 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
     })
 
     test('should match snapshot', async () => {
-        let container: Element | undefined
         const store = mockAppStore(state)
         const result = render(() =>
             wrapDNDIntl(() =>
@@ -83,9 +81,9 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
                         onUpdateBoardMember={() => {}}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
-        container = result.container
+        const container = result.container
 
         const buttonElement = container?.querySelector('.user-item__button')
         expect(buttonElement).toBeDefined()
@@ -95,7 +93,6 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
     })
 
     test('should match snapshot-admin', async () => {
-        let container: Element | undefined
         const store = mockAppStore(state)
 
         const newMe = Object.assign({}, me)
@@ -112,9 +109,9 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
                         onUpdateBoardMember={() => {}}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
-        container = result.container
+        const container = result.container
 
         const buttonElement = container?.querySelector('.user-item__button')
         expect(buttonElement).toBeDefined()
@@ -124,7 +121,6 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
     })
 
     test('should match snapshot in plugin mode', async () => {
-        let container: Element | undefined
         const store = mockAppStore(state)
         const result = render(() =>
             wrapDNDIntl(() =>
@@ -138,9 +134,9 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
                         onUpdateBoardMember={() => {}}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
-        container = result.container
+        const container = result.container
 
         const buttonElement = container?.querySelector('.user-item__button')
         expect(buttonElement).toBeDefined()
@@ -150,7 +146,6 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
     })
 
     test('should match snapshot in template', async () => {
-        let container: Element | undefined
         const testState = {
             ...state,
             boards: {
@@ -174,9 +169,9 @@ describe('src/components/shareBoard/userPermissionsRow', () => {
                         onUpdateBoardMember={() => {}}
                     />
                 </AppStoreProvider>),
-            {wrapper: TestRouter},
+        {wrapper: TestRouter},
         )
-        container = result.container
+        const container = result.container
 
         const buttonElement = container?.querySelector('.user-item__button')
         expect(buttonElement).toBeDefined()

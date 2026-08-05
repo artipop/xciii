@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 import {render, waitFor} from '@solidjs/testing-library'
 
-
 import {IPropertyTemplate} from '../../blocks/board'
 import {TestRouter, mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
@@ -10,7 +9,6 @@ import {AppStoreProvider} from '../../store'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import BoardTemplateSelectorPreview from './boardTemplateSelectorPreview'
-
 
 const groupProperty: IPropertyTemplate = {
     id: 'group-prop-id',
@@ -168,7 +166,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <BoardTemplateSelectorPreview activeTemplate={(store.state as any).boards.templates[0]}/>
+                    <BoardTemplateSelectorPreview activeTemplate={(store.state as any).boards.templates[0]}/>
                 </TestRouter>
             </AppStoreProvider>
             ,
@@ -180,7 +178,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <TestRouter>
-                <BoardTemplateSelectorPreview activeTemplate={null}/>
+                    <BoardTemplateSelectorPreview activeTemplate={null}/>
                 </TestRouter>
             </AppStoreProvider>
             ,

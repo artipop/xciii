@@ -1,13 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
-import {MockStoreEnhanced} from 'redux-mock-store'
-
-
 import {render} from '@solidjs/testing-library'
-
-
 
 import {Team} from '../../store/teams'
 import {TestBlockFactory} from '../../test/testBlockFactory'
@@ -46,8 +40,7 @@ describe('component/BoardSwitcherDialog', () => {
         },
     }
 
-    let store: MockStoreEnhanced<unknown, unknown>
-    let history: History
+    let store: ReturnType<typeof mockAppStore>
 
     beforeEach(() => {
         store = mockAppStore(state)

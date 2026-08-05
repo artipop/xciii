@@ -21,6 +21,7 @@ import {getCurrentView} from './views'
 import {getSearchText} from './searchText'
 
 import type {StoreContext} from './context'
+
 import type {RootState} from './index'
 
 export type CardsState = {

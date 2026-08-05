@@ -84,6 +84,7 @@ const createActions = (ctx: StoreContext) => {
         channels: createChannelsActions(ctx),
         language: createLanguageActions(ctx),
         globalTemplates: createGlobalTemplatesActions(ctx),
+
         // The two boards actions that used to dispatch into the users slice
         // get the users actions closed over here, so callers see one argument.
         boards: {

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, render, screen} from '@solidjs/testing-library'
+import {render, screen} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
@@ -27,10 +27,10 @@ jest.mock('../mutator')
 // the picker draws itself, so the picker is reduced to a button that reports one.
 jest.mock('../widgets/emojiPicker', () => ({
     __esModule: true,
-    default: ({onSelect}: {onSelect: (emoji: string) => void}) => (
+    default: (props: {onSelect: (emoji: string) => void}) => (
         <button
             aria-label='thumbsup'
-            onClick={() => onSelect('\u{1F44D}')}
+            onClick={() => props.onSelect('\u{1F44D}')}
         />
     ),
 }))

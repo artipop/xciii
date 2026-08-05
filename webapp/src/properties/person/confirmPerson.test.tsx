@@ -5,9 +5,6 @@ import {mocked} from 'jest-mock'
 
 import {render, screen, waitFor, within} from '@solidjs/testing-library'
 
-
-import {act} from 'react-dom/test-utils'
-
 import userEvent from '@testing-library/user-event'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'

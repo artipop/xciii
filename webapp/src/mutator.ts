@@ -3,8 +3,9 @@
 
 import {batch} from 'solid-js'
 
-import {IntlShape} from './intl'
 import cloneDeep from 'lodash/cloneDeep'
+
+import {IntlShape} from './intl'
 
 import {BlockIcons} from './blockIcons'
 import {Block, BlockPatch, createPatchesFromBlocks} from './blocks/block'

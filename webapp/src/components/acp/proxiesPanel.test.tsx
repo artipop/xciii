@@ -32,7 +32,7 @@ describe('components/acp/proxiesPanel', () => {
         anyWindow.go = {main: {App: bindings}}
         expect(isProxiesAvailable()).toBe(true)
 
-        render(() => wrapIntl(() =><ProxiesPanel/>))
+        render(() => wrapIntl(() => <ProxiesPanel/>))
         await waitFor(() => expect(screen.getByText('office')).toBeInTheDocument())
         expect(screen.getByText('http://proxy.example.com:8080')).toBeInTheDocument()
 
@@ -63,7 +63,7 @@ describe('components/acp/proxiesPanel', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() =><ProxiesPanel/>))
+        render(() => wrapIntl(() => <ProxiesPanel/>))
         await waitFor(() => expect(screen.getByText('office')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Remove'}))

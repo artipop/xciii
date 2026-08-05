@@ -268,60 +268,60 @@ const ViewMenu = (props: Props) => {
                     <Menu.Separator/>
                 </BoardPermissionGate>
                 <Show when={!props.readonly}>
-                <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
-                    <Menu.Text
-                        id='__duplicateView'
-                        name={duplicateViewText}
-                        icon={<DuplicateIcon/>}
-                        onClick={handleDuplicateView}
-                    />
-                </BoardPermissionGate>
+                    <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
+                        <Menu.Text
+                            id='__duplicateView'
+                            name={duplicateViewText}
+                            icon={<DuplicateIcon/>}
+                            onClick={handleDuplicateView}
+                        />
+                    </BoardPermissionGate>
                 </Show>
                 <Show when={!props.readonly && props.views.length > 1}>
-                <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
-                    <Menu.Text
-                        id='__deleteView'
-                        name={deleteViewText}
-                        icon={<DeleteIcon/>}
-                        onClick={handleDeleteView}
-                    />
-                </BoardPermissionGate>
+                    <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
+                        <Menu.Text
+                            id='__deleteView'
+                            name={deleteViewText}
+                            icon={<DeleteIcon/>}
+                            onClick={handleDeleteView}
+                        />
+                    </BoardPermissionGate>
                 </Show>
                 <Show when={!props.readonly}>
-                <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
-                    <Menu.SubMenu
-                        id='__addView'
-                        name={addViewText}
-                        icon={<AddIcon/>}
-                    >
-                        <div class='subMenu'>
-                            <Menu.Text
-                                id='board'
-                                name={boardText}
-                                icon={<BoardIcon/>}
-                                onClick={handleAddViewBoard}
-                            />
-                            <Menu.Text
-                                id='table'
-                                name={tableText}
-                                icon={<TableIcon/>}
-                                onClick={handleAddViewTable}
-                            />
-                            <Menu.Text
-                                id='gallery'
-                                name={galleryText}
-                                icon={<GalleryIcon/>}
-                                onClick={handleAddViewGallery}
-                            />
-                            <Menu.Text
-                                id='calendar'
-                                name='Calendar'
-                                icon={<CalendarIcon/>}
-                                onClick={handleAddViewCalendar}
-                            />
-                        </div>
-                    </Menu.SubMenu>
-                </BoardPermissionGate>
+                    <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
+                        <Menu.SubMenu
+                            id='__addView'
+                            name={addViewText}
+                            icon={<AddIcon/>}
+                        >
+                            <div class='subMenu'>
+                                <Menu.Text
+                                    id='board'
+                                    name={boardText}
+                                    icon={<BoardIcon/>}
+                                    onClick={handleAddViewBoard}
+                                />
+                                <Menu.Text
+                                    id='table'
+                                    name={tableText}
+                                    icon={<TableIcon/>}
+                                    onClick={handleAddViewTable}
+                                />
+                                <Menu.Text
+                                    id='gallery'
+                                    name={galleryText}
+                                    icon={<GalleryIcon/>}
+                                    onClick={handleAddViewGallery}
+                                />
+                                <Menu.Text
+                                    id='calendar'
+                                    name='Calendar'
+                                    icon={<CalendarIcon/>}
+                                    onClick={handleAddViewCalendar}
+                                />
+                            </div>
+                        </Menu.SubMenu>
+                    </BoardPermissionGate>
                 </Show>
             </Menu>
         </div>

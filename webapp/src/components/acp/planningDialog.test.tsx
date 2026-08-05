@@ -36,7 +36,7 @@ describe('components/acp/planningDialog', () => {
         const bindings = planningBindings()
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() =><PlanningDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <PlanningDialog onClose={jest.fn()}/>))
 
         // One of a kind needs no choosing, so the button is live at once.
         const open = await screen.findByText('Open a terminal')
@@ -58,7 +58,7 @@ describe('components/acp/planningDialog', () => {
         ]))
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() =><PlanningDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <PlanningDialog onClose={jest.fn()}/>))
 
         const running = await screen.findByText('planner · app')
         await userEvent.click(running)
@@ -70,7 +70,7 @@ describe('components/acp/planningDialog', () => {
         bindings.OpenPlanningTerminal = jest.fn().mockRejectedValue(new Error('CLI агента не установлен'))
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() =><PlanningDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <PlanningDialog onClose={jest.fn()}/>))
 
         const open = await screen.findByText('Open a terminal')
         await waitFor(() => expect(open.closest('button')).not.toBeDisabled())

@@ -10,17 +10,6 @@ import {AppStoreProvider} from '../../store'
 
 import ViewHeaderSearch from './viewHeaderSearch'
 
-jest.mock('react-router-dom', () => {
-    const originalModule = jest.requireActual('react-router-dom')
-
-    return {
-        ...originalModule,
-        useRouteMatch: jest.fn(() => {
-            return {url: '/board/view'}
-        }),
-    }
-})
-
 describe('components/viewHeader/ViewHeaderSearch', () => {
     const state = {
         users: {
@@ -41,7 +30,7 @@ describe('components/viewHeader/ViewHeaderSearch', () => {
             wrapIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <ViewHeaderSearch/>
+                        <ViewHeaderSearch/>
                     </TestRouter>
                 </AppStoreProvider>,
             ),
@@ -53,7 +42,7 @@ describe('components/viewHeader/ViewHeaderSearch', () => {
             wrapIntl(() =>
                 <AppStoreProvider store={store}>
                     <TestRouter>
-                    <ViewHeaderSearch/>
+                        <ViewHeaderSearch/>
                     </TestRouter>
                 </AppStoreProvider>,
             ),

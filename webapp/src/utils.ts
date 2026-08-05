@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {marked} from 'marked'
-import {IntlShape} from './intl'
+
 import moment from 'moment'
 
-
+import {IntlShape} from './intl'
 
 import {IUser} from './user'
 
@@ -764,7 +764,7 @@ class Utils {
     // optional segments — the one thing showBoard ever asked of react-router.
     static generatePath(pattern: string, params: Record<string, string|undefined>): string {
         const segments = pattern.split('/').map((segment) => {
-            const m = /^:([A-Za-z0-9_]+)(\??)$/.exec(segment)
+            const m = (/^:([A-Za-z0-9_]+)(\??)$/).exec(segment)
             if (!m) {
                 return segment
             }

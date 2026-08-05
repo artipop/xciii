@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {fireEvent, render, screen, within} from '@solidjs/testing-library'
-import {createIntl} from '../../intl'
+
 import userEvent from '@testing-library/user-event'
 import {mocked} from 'jest-mock'
+
+import {createIntl} from '../../intl'
 
 import Mutator from '../../mutator'
 import {mockAppStore, wrapDNDIntl} from '../../testUtils'

@@ -96,7 +96,7 @@ function DateRange(props: PropertyProps): JSX.Element {
     const locale = () => intl.locale.toLowerCase()
     const momentRevision = useMomentLocale(locale)
     const firstDayOfWeek = () => {
-        void momentRevision()
+        momentRevision()
         return moment.localeData(locale()).firstDayOfWeek()
     }
 

@@ -1,15 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
 import {render, screen} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 
 import {TestBlockFactory} from '../test/testBlockFactory'
 import {blocksById, mockAppStore, wrapDNDIntl} from '../testUtils'
-import {AppStoreProvider} from '../store'
-
-import {RootState} from '../store'
+import {AppStoreProvider, RootState} from '../store'
 
 import {CommentBlock} from '../blocks/commentBlock'
 

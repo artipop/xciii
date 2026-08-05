@@ -58,7 +58,9 @@ const ViewHeaderSearch = (): JSX.Element => {
                 className='board-search-icon'
             />
             <Editable
-                ref={(f) => (searchFieldRef = f)}
+                ref={(f) => {
+                    searchFieldRef = f
+                }}
                 value={searchValue()}
                 placeholderText={intl.formatMessage({id: 'ViewHeader.search-text', defaultMessage: 'Search cards'})}
                 onChange={(value) => {

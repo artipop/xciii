@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {Match, Show, Switch, createEffect, createSignal, onCleanup, onMount} from 'solid-js'
+import {Match, Show, Switch, createEffect, createSignal, onCleanup} from 'solid-js'
 import type {JSX} from 'solid-js'
 
 import {useNavigate} from '@solidjs/router'
@@ -187,8 +187,8 @@ const Workspace = (props: Props): JSX.Element => {
         }
     }
     createEffect(() => {
-        void board()
-        void viewId()
+        board()
+        viewId()
         setBoardTemplateSelectorOpen(false)
     })
 

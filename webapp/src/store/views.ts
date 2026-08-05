@@ -12,6 +12,7 @@ import {Utils} from '../utils'
 import {getCurrentBoard} from './boards'
 
 import type {StoreContext} from './context'
+
 import type {RootState} from './index'
 
 export type ViewsState = {

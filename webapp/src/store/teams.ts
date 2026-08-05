@@ -6,6 +6,7 @@ import {batch} from 'solid-js'
 import {Utils} from '../utils'
 
 import type {StoreContext} from './context'
+
 import type {RootState} from './index'
 
 export interface Team {
@@ -54,6 +55,7 @@ export const createTeamsActions = ({state, setState, deps}: StoreContext) => ({
         const team = await deps.client.getTeam()
         setState('teams', 'current', team)
     },
+
     // The initialLoad slice of this domain: the current team and the sorted
     // team list arrive together.
     applyInitialLoad(team: Team, teams: Team[]) {

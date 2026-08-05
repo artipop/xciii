@@ -4,7 +4,6 @@
 import '@testing-library/jest-dom'
 import {render, screen} from '@solidjs/testing-library'
 
-
 import userEvent from '@testing-library/user-event'
 
 import {wrapDNDIntl} from '../testUtils'

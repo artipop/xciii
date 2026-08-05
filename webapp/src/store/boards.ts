@@ -8,6 +8,7 @@ import {Board, BoardMember} from '../blocks/board'
 import {IUser} from '../user'
 
 import type {StoreContext} from './context'
+
 import type {RootState} from './index'
 
 export type BoardsState = {
@@ -104,6 +105,7 @@ export const createBoardsActions = (ctx: StoreContext) => {
                 })
             }))
         },
+
         // The full-load slices of this domain, called by the cross-domain
         // loaders in initialLoad.ts.
         setBoardsAndTemplates(boards: Board[], templates: Board[]) {
@@ -134,6 +136,7 @@ export const createBoardsActions = (ctx: StoreContext) => {
             if (members.length === 0) {
                 return
             }
+
             // all members should belong to the same boardId, so we
             // get it from the first one
             const membersBoardId = members[0].boardId

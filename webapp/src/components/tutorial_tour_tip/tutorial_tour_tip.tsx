@@ -5,9 +5,9 @@ import {For, Show, createEffect, createSignal, createUniqueId, onCleanup} from '
 import {Portal} from 'solid-js/web'
 import type {JSX, ParentComponent} from 'solid-js'
 
-import {FormattedMessage} from '../../intl'
-
 import {arrow, autoUpdate, computePosition, flip, offset, shift, type Placement} from '@floating-ui/dom'
+
+import {FormattedMessage} from '../../intl'
 
 import './tutorial_tour_tip.scss'
 

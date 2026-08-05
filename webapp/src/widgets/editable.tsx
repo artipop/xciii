@@ -90,7 +90,7 @@ export function useEditable(
     }
 
     return {
-        get 'class'() {
+        get class() {
             const error = props.validator ? !props.validator(props.value || '') : false
             return 'Editable ' + (error ? 'error ' : '') + (props.readonly ? 'readonly ' : '') + (props.className || '')
         },

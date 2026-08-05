@@ -24,8 +24,6 @@ describe('/components/confirmationDialogBox', () => {
     }
 
     it('confirmDialog should match snapshot', async () => {
-        let container
-
         const result = render(() =>
             wrapDNDIntl(() =>
                 <ConfirmationDialogBox
@@ -33,12 +31,11 @@ describe('/components/confirmationDialogBox', () => {
                 />,
             ),
         )
-        container = result.container
+        const container = result.container
         expect(container).toMatchSnapshot()
     })
 
     it('confirmDialog with Confirm Button Text should match snapshot', async () => {
-        let containerWithCnfrmBtnText
         const result = render(() =>
             wrapDNDIntl(() =>
                 <ConfirmationDialogBox
@@ -46,13 +43,13 @@ describe('/components/confirmationDialogBox', () => {
                 />,
             ),
         )
-        containerWithCnfrmBtnText = result.container
+        const containerWithCnfrmBtnText = result.container
         expect(containerWithCnfrmBtnText).toMatchSnapshot()
     })
 
     it('confirm button click, run onConfirm Function once', () => {
         const result = render(() =>
-            wrapDNDIntl(() =><ConfirmationDialogBox dialogBox={dialogProps}/>),
+            wrapDNDIntl(() => <ConfirmationDialogBox dialogBox={dialogProps}/>),
         )
 
         userEvent.click(result.getByTitle('Confirm'))

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {JSX} from 'solid-js'
+
 import {useIntl} from '../intl'
 
 import {BlockTypes, Block} from '../blocks/block'

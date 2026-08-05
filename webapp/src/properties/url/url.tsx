@@ -87,7 +87,9 @@ const URLProperty = (props: PropertyProps): JSX.Element => {
                 <div class='URLProperty'>
                     <Editable
                         className={props.property.valueClassName(props.readOnly)}
-                        ref={(f) => (editableRef = f)}
+                        ref={(f) => {
+                            editableRef = f
+                        }}
                         placeholderText={emptyDisplayValue()}
                         value={value() as string}
                         autoExpand={true}

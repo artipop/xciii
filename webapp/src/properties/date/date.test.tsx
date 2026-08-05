@@ -3,8 +3,10 @@
 
 import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import {IntlProvider} from '../../intl'
+
 import {mocked} from 'jest-mock'
+
+import {IntlProvider} from '../../intl'
 
 import '@testing-library/jest-dom'
 

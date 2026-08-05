@@ -5,7 +5,6 @@ import type {JSX} from 'solid-js'
 import '@testing-library/jest-dom'
 import {render, screen} from '@solidjs/testing-library'
 
-import React, {ReactNode, ReactElement} from 'react'
 import {mocked} from 'jest-mock'
 
 import userEvent from '@testing-library/user-event'

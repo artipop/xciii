@@ -4,7 +4,6 @@
 import 'isomorphic-fetch'
 import {render} from '@solidjs/testing-library'
 
-
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'
@@ -194,7 +193,6 @@ describe('components/cardDetail/CardDetail', () => {
     })
 
     test('should show add properties tour tip', async () => {
-
         const welcomeBoard = TestBlockFactory.createBoard()
         welcomeBoard.title = 'Welcome to Boards!'
 
@@ -241,7 +239,6 @@ describe('components/cardDetail/CardDetail', () => {
                 value: {},
             },
         })
-
 
         const component = () => (
             <AppStoreProvider store={store}>
@@ -293,7 +290,6 @@ describe('components/cardDetail/CardDetail', () => {
     })
 
     test('should show add comments tour tip', async () => {
-
         const welcomeBoard = TestBlockFactory.createBoard()
         welcomeBoard.title = 'Welcome to Boards!'
 
@@ -340,7 +336,6 @@ describe('components/cardDetail/CardDetail', () => {
                 value: {},
             },
         })
-
 
         const component = () => (
             <AppStoreProvider store={store}>
@@ -436,7 +431,6 @@ describe('components/cardDetail/CardDetail', () => {
             },
         }
         const store = mockAppStore(state)
-
 
         const text = createTextBlock()
         text.title = 'description'

@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 import {For, Show, createEffect, createSignal, onCleanup, onMount} from 'solid-js'
 
-import {FormattedMessage} from '../../intl'
-
 import {useDragDropMonitor} from '@dnd-kit/solid'
 import {isSortable} from '@dnd-kit/dom/sortable'
+
+import {FormattedMessage} from '../../intl'
 
 import {getActiveThemeName, loadTheme} from '../../theme'
 import IconButton from '../../widgets/buttons/iconButton'
@@ -95,7 +95,7 @@ const Sidebar = (props: Props) => {
         wsClient.addOnChange(categoryOnChangeHandler, 'category')
         wsClient.addOnChange(blockCategoryOnChangeHandler, 'blockCategories')
 
-        onCleanup(function cleanup() {
+        onCleanup(() => {
             wsClient.removeOnChange(categoryOnChangeHandler, 'category')
             wsClient.removeOnChange(blockCategoryOnChangeHandler, 'blockCategories')
         })
@@ -124,7 +124,7 @@ const Sidebar = (props: Props) => {
     })
 
     createEffect(() => {
-        void windowDimensions()
+        windowDimensions()
         hideSidebar()
     })
 

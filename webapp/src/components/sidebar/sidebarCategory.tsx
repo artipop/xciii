@@ -2,8 +2,6 @@
 // See LICENSE.txt for license information.
 import {For, Show, createEffect, createSignal, onCleanup} from 'solid-js'
 
-import {FormattedMessage, useIntl} from '../../intl'
-
 import {useNavigate} from '@solidjs/router'
 
 import debounce from 'lodash/debounce'
@@ -12,7 +10,7 @@ import {useSortable} from '@dnd-kit/solid/sortable'
 import {SortableKeyboardPlugin} from '@dnd-kit/dom/sortable'
 import {useDroppable} from '@dnd-kit/solid'
 
-import HandRightIcon from '@mattermost/compass-icons/components/hand-right'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
 import mutator from '../../mutator'
@@ -270,7 +268,7 @@ const SidebarCategory = (props: Props) => {
 
     const newCategoryDragArea = () => (
         <div class='newCategoryDragArea'>
-            <HandRightIcon/>
+            <CompassIcon icon='hand-right'/>
             <span>
                 {
                     intl.formatMessage({

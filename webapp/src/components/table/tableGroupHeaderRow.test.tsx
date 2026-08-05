@@ -7,8 +7,6 @@ import '@testing-library/jest-dom'
 
 import 'isomorphic-fetch'
 
-import {act} from 'react-dom/test-utils'
-
 import userEvent from '@testing-library/user-event'
 
 import {wrapDNDIntl} from '../../testUtils'

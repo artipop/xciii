@@ -31,8 +31,8 @@ export function useMeasurePunchouts(elementIds: string[], offset?: PunchoutOffse
     return createMemo(() => {
         // Both are how the measurement learns to re-run: the window resized, or
         // the elements finally appeared.
-        void size()
-        void elementsAvailable()
+        size()
+        elementsAvailable()
 
         let minX = Number.MAX_SAFE_INTEGER
         let minY = Number.MAX_SAFE_INTEGER

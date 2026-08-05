@@ -9,6 +9,7 @@ import {Block} from '../blocks/block'
 import {getCards, getTemplates} from './cards'
 
 import type {StoreContext} from './context'
+
 import type {RootState} from './index'
 
 export type ContentsState = {

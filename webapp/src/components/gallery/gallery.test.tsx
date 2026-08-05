@@ -3,7 +3,6 @@
 
 import {render, screen, fireEvent} from '@solidjs/testing-library'
 
-
 import userEvent from '@testing-library/user-event'
 
 import {mocked} from 'jest-mock'

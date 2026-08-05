@@ -1,10 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-
 import {render} from '@solidjs/testing-library'
-
-
 
 import {mockAppStore, wrapIntl} from '../../../testUtils'
 import {AppStoreProvider} from '../../../store'

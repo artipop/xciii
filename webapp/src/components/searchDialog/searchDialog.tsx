@@ -4,9 +4,9 @@ import {For, Match, Switch, createEffect, createSignal, onCleanup} from 'solid-j
 import type {JSX} from 'solid-js'
 
 import './searchDialog.scss'
-import {FormattedMessage} from '../../intl'
-
 import debounce from 'lodash/debounce'
+
+import {FormattedMessage} from '../../intl'
 
 import Dialog from '../dialog'
 import {Utils} from '../../utils'

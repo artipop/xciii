@@ -3,9 +3,9 @@
 import {For, Show, createEffect, createMemo, createSignal, onMount} from 'solid-js'
 import type {JSX} from 'solid-js'
 
-import {FormattedMessage, useIntl} from '../../intl'
-
 import {useNavigate} from '@solidjs/router'
+
+import {FormattedMessage, useIntl} from '../../intl'
 
 import {useHotkeys} from '../../hooks/hotkeys'
 import {useRouteMatch} from '../../hooks/routerMatch'

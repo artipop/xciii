@@ -7,6 +7,7 @@ import {produce} from 'solid-js/store'
 import {Utils} from '../utils'
 
 import type {StoreContext} from './context'
+
 import type {RootState} from './index'
 
 export type CategoryType = 'system' | 'custom'
