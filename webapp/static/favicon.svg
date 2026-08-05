@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The app icon, tile and all: a bare mark would disappear against a dark
+     browser tab, and this is the same shape build/appicon.png draws. -->
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="300px"
 	 height="300px" viewBox="0 0 300 300" xml:space="preserve">
-<g id="Layer_1" fill="#0058CC">
-	<rect x="31" y="50" width="63" height="200" rx="19"/>
-	<rect x="119" y="50" width="63" height="138" rx="19"/>
-	<rect x="206" y="50" width="63" height="75" rx="19"/>
+<rect width="300" height="300" rx="67" fill="#1B2A4A"/>
+<g fill="#FFFFFF">
+	<rect x="82" y="81" width="43" height="137" rx="13"/>
+	<rect x="142" y="81" width="43" height="94" rx="13"/>
+	<rect x="202" y="81" width="43" height="51" rx="13"/>
 </g>
 </svg>
