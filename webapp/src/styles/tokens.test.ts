@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {readFileSync} from 'fs'
+import {readdirSync, readFileSync} from 'fs'
 import {join} from 'path'
 
 // The palette is one file, and this is what keeps it honest. Every pair below
@@ -99,6 +99,16 @@ function over(fg: [number, number, number], bg: [number, number, number], alpha:
     return [0, 1, 2].map((i) => (alpha * fg[i]) + ((1 - alpha) * bg[i])) as [number, number, number]
 }
 
+function stylesheets(dir: string): string[] {
+    return readdirSync(dir, {withFileTypes: true}).flatMap((entry) => {
+        const path = join(dir, entry.name)
+        if (entry.isDirectory()) {
+            return stylesheets(path)
+        }
+        return entry.name.endsWith('.scss') ? [path] : []
+    })
+}
+
 const AA = 4.5
 
 const labels = [
@@ -120,6 +130,37 @@ describe('styles/tokens', () => {
         }
     })
 
+    // And so does every stylesheet. This is the guard the first pass was
+    // missing: it found the ten dead variables by hand and left two more —
+    // `--error-text-color-rgb` and `--error-color`, names that never existed —
+    // which meant eight rules across the agent dialogs drew error text in
+    // whatever colour they happened to inherit.
+    it('is asked for nothing that does not exist', () => {
+        const light = themeVars(false)
+        const dark = themeVars(true)
+        const undefinedTokens = new Map<string, string[]>()
+
+        for (const file of stylesheets(__dirname.replace(/\/styles$/, ''))) {
+            const body = readFileSync(file, 'utf8').replace(/\/\/.*$/gm, '')
+            if (file.endsWith('_tokens.scss')) {
+                continue
+            }
+
+            // A file may declare tokens of its own — the terminal redeclares the
+            // raw ones to make itself a dark island — and those are fine.
+            const own = new Set(body.match(/(--[\w-]+)\s*:/g)?.map((d) => d.replace(/\s*:$/, '')) ?? [])
+            for (const use of body.match(/var\((--[\w-]+)/g) ?? []) {
+                const name = use.slice(4)
+                if (own.has(name) || name in light || name in dark) {
+                    continue
+                }
+                undefinedTokens.set(name, [...(undefinedTokens.get(name) ?? []), file])
+            }
+        }
+
+        expect(Object.fromEntries(undefinedTokens)).toEqual({})
+    })
+
     describe.each([['light', false], ['dark', true]] as const)('%s theme', (_name, dark) => {
         const vars = () => themeVars(dark)
 
@@ -130,7 +171,7 @@ describe('styles/tokens', () => {
         })
 
         // The dark theme puts near-black text on a bright accent on purpose:
-        // white on that cyan is 1.5:1. This is the assertion that catches
+        // white on that amber is 1.9:1. This is the assertion that catches
         // somebody "fixing" it back to white.
         it('reads on a button', () => {
             expect(contrast(

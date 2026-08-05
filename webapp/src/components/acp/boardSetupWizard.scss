@@ -85,8 +85,8 @@
         font-size: 12px;
         padding: 6px 10px;
         border-radius: var(--radius-sm);
-        color: rgb(var(--error-text-color-rgb, 210, 75, 78));
-        background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
+        color: rgb(var(--error-text-rgb, 210, 75, 78));
+        background: rgba(var(--error-text-rgb, 210, 75, 78), 0.08);
     }
 
     .BoardSetupWizard__hint {
@@ -101,7 +101,7 @@
     }
 
     .BoardSetupWizard__error {
-        color: rgba(var(--error-text-color-rgb), 1);
+        color: rgba(var(--error-text-rgb), 1);
         font-size: 12px;
     }
 }

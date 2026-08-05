@@ -58,29 +58,33 @@
 
 :root[data-theme='dark'] {
     // ---------------------------------------------------------------------
-    // Dark — the screen, and the screen is a tube. Black with a green cast and
-    // an amber accent: the two phosphors a CRT actually came in.
+    // Dark — the screen. Black and grey with no cast at all, and one amber.
     //
-    // It was navy first, and that was the mistake — a tinted neutral made the
-    // sidebar and the canvas argue, one going black while everything else went
-    // blue. The cast here is deliberate and uniform, and the only colour with a
-    // job in this theme is the accent.
+    // Two tints were tried and both were wrong for the same reason. Navy put
+    // the sidebar and the canvas in an argument, one reading as black while
+    // everything else went blue. A green cast was truer to a tube but tinted
+    // ten label colours it had no business touching. A neutral ground makes
+    // the accent the only thing on screen carrying a hue, which is what an
+    // accent is for.
     //
-    // Amber rather than green for that accent, though green would be the more
-    // literal tube: green already means "done" in the columns and the flows,
-    // and an accent that also reads as a status is a collision nobody wins.
+    // Amber rather than green for it, though green would be the more literal
+    // tube: green already means "done" in the columns and the flows, and an
+    // accent that also reads as a status is a collision nobody wins.
+    //
+    // The surface is the terminal's own black, so a card and the console the
+    // agent runs in are the same material.
     // ---------------------------------------------------------------------
-    --canvas-rgb: 8, 11, 9;
-    --surface-rgb: 18, 23, 19;
-    --ink-rgb: 214, 232, 216;
-    --sidebar-rgb: 5, 7, 6;
-    --sidebar-ink-rgb: 214, 232, 216;
+    --canvas-rgb: 12, 12, 14;
+    --surface-rgb: 24, 24, 27;
+    --ink-rgb: 233, 233, 236;
+    --sidebar-rgb: 8, 8, 10;
+    --sidebar-ink-rgb: 233, 233, 236;
 
     --accent-rgb: 255, 180, 76;
     // Dark text on the bright accent is deliberate: white on this amber is
     // 1.9:1 and unreadable, the near-black is 12:1. Dimming the accent far
     // enough for white to work would lose the glow against the canvas.
-    --accent-ink-rgb: 5, 7, 6;
+    --accent-ink-rgb: 8, 8, 10;
     --stamp-rgb: 255, 180, 76;
 
     --danger-rgb: 255, 122, 122;
@@ -91,22 +95,22 @@
     --success-rgb: 61, 184, 135;
     --visited-rgb: 176, 156, 255;
 
-    --prop-default: #161c17;
-    --prop-gray: #242c25;
-    --prop-brown: #312a1c;
-    --prop-orange: #3c2d18;
-    --prop-yellow: #383417;
-    --prop-green: #14331e;
-    --prop-blue: #152a38;
-    --prop-purple: #272146;
-    --prop-pink: #3a1f31;
-    --prop-red: #3c2021;
+    --prop-default: #1c1c20;
+    --prop-gray: #2a2a2e;
+    --prop-brown: #37291d;
+    --prop-orange: #432c19;
+    --prop-yellow: #3e3618;
+    --prop-green: #16321f;
+    --prop-blue: #16293f;
+    --prop-purple: #292148;
+    --prop-pink: #3d1e33;
+    --prop-red: #401f22;
 
     --shadow-rgb: 0, 0, 0;
     --shadow-1: none;
     --shadow-2: 0 2px 8px -2px rgba(var(--shadow-rgb), 0.5);
     --shadow-3: 0 24px 64px -16px rgba(var(--shadow-rgb), 0.7);
-    --backdrop: rgba(4, 7, 13, 0.66);
+    --backdrop: rgba(0, 0, 0, 0.66);
 }
 
 :root {

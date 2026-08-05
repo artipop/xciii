@@ -11,9 +11,9 @@
     // derived token in `_tokens.scss` is written in terms of these and is
     // inherited, so danger, warning and success all re-resolve against the dark
     // values here without this file naming a single colour.
-    --canvas-rgb: 8, 11, 9;
-    --surface-rgb: 18, 23, 19;
-    --ink-rgb: 214, 232, 216;
+    --canvas-rgb: 12, 12, 14;
+    --surface-rgb: 24, 24, 27;
+    --ink-rgb: 233, 233, 236;
     --danger-rgb: 255, 122, 122;
     --warning-rgb: 255, 180, 76;
     --success-rgb: 61, 184, 135;

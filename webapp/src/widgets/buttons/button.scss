@@ -1,6 +1,5 @@
 .Button {
-    --danger-button-bg-rgb: 247, 67, 67;
-    font-family: var(--font-mono);
+    font-family: var(--font-label);
     display: flex;
     flex: 0 0 auto;
     align-items: center;
@@ -51,14 +50,14 @@
         }
 
         &.danger {
-            background: linear-gradient(rgb(var(--danger-button-bg-rgb)), rgb(var(--danger-button-bg-rgb)));
+            background: linear-gradient(rgb(var(--button-danger-bg-rgb)), rgb(var(--button-danger-bg-rgb)));
 
             &:hover {
-                background: linear-gradient(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), linear-gradient(rgb(var(--danger-button-bg-rgb)), rgb(var(--danger-button-bg-rgb)));
+                background: linear-gradient(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), linear-gradient(rgb(var(--button-danger-bg-rgb)), rgb(var(--button-danger-bg-rgb)));
             }
 
             &:active {
-                background: linear-gradient(rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), linear-gradient(rgb(var(--danger-button-bg-rgb)), rgb(var(--danger-button-bg-rgb)));
+                background: linear-gradient(rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16)), linear-gradient(rgb(var(--button-danger-bg-rgb)), rgb(var(--button-danger-bg-rgb)));
             }
         }
     }
@@ -206,5 +205,49 @@
                 margin-left: 10px;
             }
         }
+    }
+}
+
+// A plain <Button/> is transparent with `color: inherit`, which is right in a
+// toolbar — the affordance there is the row it sits in, and a box around every
+// item would turn the view header into a fence.
+//
+// Inside a dialog it is wrong, and badly: an action reads as a sentence.
+// "Выбрать каталог…" in the setup wizard was indistinguishable from the text
+// above it. There a button has to look pressable before it is hovered.
+.Dialog .Button,
+.Modal .Button {
+    &:not(.filled):not([class*='emphasis--']) {
+        background: rgba(var(--center-channel-color-rgb), 0.06);
+        border: 1px solid var(--border-subtle);
+        color: rgb(var(--center-channel-color-rgb));
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.12);
+            border-color: var(--border-strong);
+        }
+
+        &:active {
+            background: rgba(var(--center-channel-color-rgb), 0.18);
+        }
+    }
+}
+
+// Not everything a dialog renders as a <Button/> is an action. A property's
+// name and its value are buttons only because clicking them opens a menu —
+// they are a label and a field, and boxing them turned the card's property
+// list into a grid of empty controls. The card's own toolbar is a toolbar for
+// the same reason the view header is one.
+.Dialog .octo-propertyname .Button,
+.Dialog .octo-propertyvalue .Button,
+.Dialog .octo-propertyname,
+.Dialog .toolbar .Button,
+.Dialog .octo-block .Button,
+.Dialog .add-buttons .Button,
+.Dialog .MenuWrapper > .Button {
+    &:not(.filled) {
+        background: transparent;
+        border: 0;
+        padding-left: 0;
     }
 }

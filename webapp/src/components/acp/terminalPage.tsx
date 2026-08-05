@@ -103,8 +103,8 @@ const TerminalPage = (): JSX.Element => {
                 cursorBlink: true,
                 convertEol: false,
                 theme: {
-                    background: colour('--canvas-rgb', '#080b09'),
-                    foreground: colour('--ink-rgb', '#d6e8d8'),
+                    background: colour('--canvas-rgb', '#0c0c0e'),
+                    foreground: colour('--ink-rgb', '#e9e9ec'),
                 },
             })
             fit = new FitAddon()
