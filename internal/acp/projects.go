@@ -152,7 +152,7 @@ func (m *Manager) resolveProject(ev CardMoved) (string, error) {
 		}
 	}
 	if len(projects) == 0 {
-		return "", fmt.Errorf("не задан ни repo_path на карточке, ни проекты в реестре (меню доски → Agent projects)")
+		return "", fmt.Errorf("у карточки не заполнено поле «Проекты» и в реестре нет ни одного проекта (меню доски → «Проекты…»)")
 	}
 	return "", fmt.Errorf("ни тег карточки, ни исходная колонка не совпали с проектом из реестра (%s)", projectNames(projects))
 }

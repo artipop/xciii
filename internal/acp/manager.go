@@ -265,7 +265,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	// without a browser MCP server on the agent there is nothing to test with,
 	// and finding that out mid-turn costs a whole session.
 	if test != nil && len(agent.MCPServers) == 0 {
-		return nil, fmt.Errorf("агенту %q не задан MCP-сервер браузера — тестировать нечем (меню доски → Агенты → «MCP-серверы»)", agent.Name)
+		return nil, fmt.Errorf("агенту %q не задан MCP-сервер браузера — тестировать нечем (меню доски → «Агенты…» → «MCP-серверы»)", agent.Name)
 	}
 	// Without worktrees, two agents must never share one working tree
 	// (spec §7): reject while another live session uses the same project. A deploy
@@ -433,7 +433,7 @@ func (m *Manager) planningRepo(name string) (ProjectEntry, error) {
 func (m *Manager) planningAgent(name string) (AgentEntry, error) {
 	agents := m.Agents()
 	if len(agents) == 0 {
-		return AgentEntry{}, fmt.Errorf("не зарегистрировано ни одного агента (меню доски → Agents)")
+		return AgentEntry{}, fmt.Errorf("не зарегистрировано ни одного агента (меню доски → «Агенты…»)")
 	}
 	if name == "" {
 		if len(agents) > 1 {

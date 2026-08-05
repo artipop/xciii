@@ -101,7 +101,7 @@ func (m *Manager) resolveDeployTarget(ev CardMoved) (DeployEntry, error) {
 	m.cfgMu.RUnlock()
 
 	if len(deploys) == 0 {
-		return DeployEntry{}, fmt.Errorf("не настроено ни одной цели деплоя (меню доски → Deploy targets)")
+		return DeployEntry{}, fmt.Errorf("не настроено ни одной цели деплоя (меню доски → «Цели деплоя…»)")
 	}
 	for _, opt := range ev.OptionNames {
 		for _, d := range deploys {

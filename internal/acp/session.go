@@ -779,7 +779,7 @@ func failComment(s *Session, reason string) string {
 	// 407 arrives as a bare status code from the CLI, with no hint that the
 	// proxy — not the model API — refused the request.
 	if s.Net.Proxy != "" && strings.Contains(reason, "407") {
-		b.WriteString("\n\nПрокси требует аутентификацию (407): задай логин и пароль в конфигурации прокси (меню доски → Proxy configurations).")
+		b.WriteString("\n\nПрокси требует аутентификацию (407): задай логин и пароль в конфигурации прокси (меню доски → «Агенты…» → «Настройки прокси»).")
 	}
 	if s.usedWorktree && s.Worktree.Path != "" {
 		fmt.Fprintf(&b, "\nWorktree (если остался): `%s`", s.Worktree.Path)

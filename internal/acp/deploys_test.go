@@ -413,7 +413,7 @@ func TestDeployWithoutTargetsCommentsOnTheCard(t *testing.T) {
 		return len(writer.cardComments("cardNoTarget")) > 0
 	})
 	comment := writer.cardComments("cardNoTarget")[0]
-	if !strings.Contains(comment, "Деплой не запущен") || !strings.Contains(comment, "Deploy targets") {
+	if !strings.Contains(comment, "Деплой не запущен") || !strings.Contains(comment, "Цели деплоя") {
 		t.Errorf("comment should say what to configure: %q", comment)
 	}
 	if sessions, _, _ := m.store.SessionsForCard("cardNoTarget"); len(sessions) != 0 {
