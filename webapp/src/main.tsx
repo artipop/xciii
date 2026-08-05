@@ -51,4 +51,4 @@ render(() => (
     <AppStoreProvider store={store}>
         <MainApp/>
     </AppStoreProvider>
-), document.getElementById('focalboard-app')!)
+), document.getElementById('xciii-app')!)

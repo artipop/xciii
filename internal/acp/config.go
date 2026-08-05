@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/artipop/trixi/internal/dokku"
+	"github.com/artipop/xciii/internal/dokku"
 )
 
 // RepoEntry is one named local repository in the registry.
@@ -623,7 +623,7 @@ type Config struct {
 	PlanningTools            []string `json:"planningTools,omitempty"`
 	ShowThoughts             bool     `json:"showThoughts"`
 	// DebugLog records every ACP message to DebugLogPath (default
-	// <dataDir>/acp-debug.jsonl). Also switched on by TRIXI_ACP_DEBUG.
+	// <dataDir>/acp-debug.jsonl). Also switched on by XCIII_ACP_DEBUG.
 	DebugLog            bool   `json:"debugLog,omitempty"`
 	DebugLogPath        string `json:"debugLogPath,omitempty"`
 	WorktreeDir         string `json:"worktreeDir"`

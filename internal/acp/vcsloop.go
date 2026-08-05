@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/artipop/trixi/internal/vcs"
+	"github.com/artipop/xciii/internal/vcs"
 )
 
 // The second input of the flow engine: what happens in the repository. The app

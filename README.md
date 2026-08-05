@@ -1,22 +1,22 @@
-# Trixi
+# XCIII
 
-A desktop Focalboard that runs coding agents from the board itself. Moving a card
+A desktop board that runs coding agents from the board itself. Moving a card
 into a column starts an agent on it; opening a terminal on a card puts you in that
 agent's own CLI, in the card's worktree, with the branch and environment already
-set up. One binary, built with [Wails v3](https://v3.wails.io), with the Focalboard
-server running **in-process** — no spawned `focalboard-server`, no Node.js of our
+set up. One binary, built with [Wails v3](https://v3.wails.io), with the board
+server running **in-process** — no spawned server process, no Node.js of our
 own — and the same code builds a **headless server** (`-tags server`) that serves
 the whole thing to a browser.
 
-The frontend lives here, in `webapp/` — the Focalboard webapp, its own npm
-project built with Vite. The **server module does not**: `go.mod` points at
-`../focalboard/server` with a `replace`, so a Focalboard checkout beside this one
+The frontend lives here, in `webapp/` — its own npm project built with Vite. The
+**server module does not**: it is a fork of Mattermost's Focalboard server, and
+`go.mod` `replace`s it to `../focalboard/server`, so that checkout beside this one
 is still what a build needs:
 
 ```
 sources/
   focalboard/   # github.com/artipop/focalboard — the server module
-  trixi/        # this repository, webapp included
+  xciii/        # this repository, webapp included
 ```
 
 **That checkout has to be on a branch carrying the fork's server patches** —
@@ -28,10 +28,10 @@ open question: see [docs/plan.md](docs/plan.md), "Открытые решени�
 
 The Go code is platform-agnostic — the same files build for every OS:
 
-- `server.go` — starts the Focalboard server in-process in single-user mode on a
+- `server.go` — starts the board server in-process in single-user mode on a
   free port. The SQLite database and uploaded files live under the OS user config
-  dir (`os.UserConfigDir()` → `~/Library/Application Support/Trixi` on macOS,
-  `%AppData%\Trixi` on Windows, `~/.config/Trixi` on Linux), **not** next
+  dir (`os.UserConfigDir()` → `~/Library/Application Support/XCIII` on macOS,
+  `%AppData%\XCIII` on Windows, `~/.config/XCIII` on Linux), **not** next
   to the binary, because a signed/packaged app dir is read-only.
 - `frontend_embed.go` / `frontend_disk.go` — the webapp `pack` is compiled into the
   binary with `go:embed` (release builds, `-tags frontend`) straight from
@@ -257,7 +257,7 @@ The server build is the fastest way to look at the UI in a real browser with
 devtools:
 
 ```
-wails3 task build:server && TRIXI_SERVER_PORT=8099 bin/Trixi-server
+wails3 task build:server && XCIII_SERVER_PORT=8099 bin/XCIII-server
 ```
 
 For pure webapp/CSS iteration the browser loop is still faster than the webview:
@@ -270,11 +270,11 @@ From the repo root, per platform. The build produces `webapp/pack` itself and
 embeds it, so the artifacts are single-binary:
 
 ```
-wails3 task package            # macOS   → bin/Trixi.app
-wails3 task darwin:package:dmg # macOS   → bin/Trixi.dmg
-wails3 task windows:package    # Windows → bin/Trixi.exe + NSIS installer
+wails3 task package            # macOS   → bin/XCIII.app
+wails3 task darwin:package:dmg # macOS   → bin/XCIII.dmg
+wails3 task windows:package    # Windows → bin/XCIII.exe + NSIS installer
 wails3 task linux:package      # Linux   → AppImage + .deb (+ .rpm)
-wails3 task build:server       # any     → bin/Trixi-server (headless)
+wails3 task build:server       # any     → bin/XCIII-server (headless)
 ```
 
 `wails3 task build` / `linux-app-wails3` build just the `.app` / bare binary.
@@ -283,7 +283,7 @@ Installer configs live in `build/` (`darwin/`, `windows/nsis/`,
 build-assets` from `build/config.yml` — edit the config, not the assets.
 
 The server binary has no window: it publishes the board at
-`TRIXI_SERVER_HOST`/`TRIXI_SERVER_PORT` (default `localhost:8080`) and
+`XCIII_SERVER_HOST`/`XCIII_SERVER_PORT` (default `localhost:8080`) and
 is opened in a browser. Keep it on localhost unless something in front of it
 authenticates: the bound methods start agents and read the filesystem, and the
 runtime endpoint has no credential of its own — the front door's cross-origin
@@ -306,12 +306,12 @@ by hand still works and is one pass, since the app is one binary:
 ```
 codesign --deep --force --options runtime \
   --sign "Developer ID Application: <TEAM>" \
-  bin/Trixi.app
+  bin/XCIII.app
 
-xcrun notarytool submit bin/Trixi.app \
+xcrun notarytool submit bin/XCIII.app \
   --apple-id <id> --team-id <team> --password <app-specific-pw> --wait
 
-xcrun stapler staple bin/Trixi.app
+xcrun stapler staple bin/XCIII.app
 ```
 
 ## Out of scope (MVP)

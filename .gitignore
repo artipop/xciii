@@ -6,7 +6,7 @@ bin
 **/pack/*
 !**/pack/.gitkeep
 # `go build .` with no -o leaves a binary named after this directory.
-trixi
+xciii
 # The webapp is its own npm project.
 node_modules
 coverage

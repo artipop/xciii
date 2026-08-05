@@ -8,10 +8,10 @@ import (
 
 	"github.com/mattermost/focalboard/server/model"
 
-	"github.com/artipop/trixi/internal/acp"
+	"github.com/artipop/xciii/internal/acp"
 )
 
-// Agents as board users: a registered agent gets a Focalboard account named
+// Agents as board users: a registered agent gets a board account named
 // after it, so a card is handed to an agent by assigning it in a person
 // property ("Assignee") exactly like a teammate. The desktop app runs the
 // server in-process, which is what makes this possible at all — the /register

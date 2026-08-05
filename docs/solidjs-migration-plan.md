@@ -1,4 +1,4 @@
-# Переход Focalboard с React на SolidJS
+# Переход вебаппа с React на SolidJS
 
 ## Кратко
 

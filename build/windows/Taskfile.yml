@@ -27,7 +27,7 @@ tasks:
           OBFUSCATED: '{{.OBFUSCATED}}'
           GARBLE_ARGS: '{{.GARBLE_ARGS}}'
     vars:
-      # cgo, not the Wails default of 0: the in-process Focalboard server runs
+      # cgo, not the Wails default of 0: the in-process board server runs
       # on mattn/go-sqlite3, which is a cgo package. A CGO_ENABLED=0 build fails
       # to link rather than silently producing a binary without SQLite, but the
       # failure reads as a Wails problem, so it is set here rather than left to

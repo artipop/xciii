@@ -29,9 +29,9 @@ const mimeTypes: Record<string, string> = {
 
 // In a build the Go server resolves {{.BaseURL}} when it templates index.html;
 // the dev server serves the file as-is, so the placeholder is dropped here.
-function focalboardHtml(): Plugin {
+function appHtml(): Plugin {
     return {
-        name: 'focalboard-html',
+        name: 'xciii-html',
         apply: 'serve',
         transformIndexHtml: {
             order: 'pre',
@@ -45,9 +45,9 @@ function focalboardHtml(): Plugin {
 // `static/` is served from `/static` in dev and copied to `pack/static` on build
 // — the same contract the Go server expects (it mounts pack/static at /static).
 // Assets imported from TypeScript are emitted into pack/static by Vite itself.
-function focalboardStatic(): Plugin {
+function appStatic(): Plugin {
     return {
-        name: 'focalboard-static',
+        name: 'xciii-static',
         configureServer(server: ViteDevServer) {
             server.middlewares.use('/static', ((req, res, next) => {
                 const rel = decodeURIComponent((req.url || '').split('?')[0])
@@ -76,7 +76,7 @@ export default defineConfig(({mode}) => {
         root,
         base: '/',
 
-        // Handled by focalboardStatic: Vite would copy publicDir to the output
+        // Handled by appStatic: Vite would copy publicDir to the output
         // root, but these files have to land in pack/static.
         publicDir: false,
 
@@ -92,8 +92,8 @@ export default defineConfig(({mode}) => {
                 idInterpolationPattern: '[sha512:contenthash:base64:6]',
             }),
             solid(),
-            focalboardHtml(),
-            focalboardStatic(),
+            appHtml(),
+            appStatic(),
         ],
 
         build: {

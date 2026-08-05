@@ -13,7 +13,6 @@ export interface IAppWindow extends Window {
     // whose webview origin differs from the server, so the socket reaches the
     // real server directly. Unused in browser/plugin deployments.
     webSocketBaseURL?: string
-    isFocalboardPlugin?: boolean
     getCurrentTeamId?: () => string
     msCrypto: Crypto
     openInNewBrowser?: ((href: string) => void) | null
@@ -91,6 +90,5 @@ export type SuiteWindow = Window & {
     getCurrentTeamId?: () => string
     baseURL?: string
     frontendBaseURL?: string
-    isFocalboardPlugin?: boolean
     WebappUtils?: any
 }

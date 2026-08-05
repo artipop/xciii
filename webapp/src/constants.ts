@@ -40,6 +40,11 @@ class Constants {
     static readonly versionString = '8.0.0'
     static readonly versionDisplayString = 'June 2024'
 
+    // The app has no marketing or documentation site: the repository is the
+    // only page the UI can point somebody at.
+    static readonly homeUrl = 'https://github.com/artipop/xciii'
+    static readonly issuesUrl = Constants.homeUrl + '/issues'
+
     static readonly archiveHelpPage = 'https://docs.mattermost.com/boards/migrate-to-boards.html'
     static readonly imports = [
         {

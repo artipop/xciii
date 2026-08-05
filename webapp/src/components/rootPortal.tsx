@@ -4,10 +4,10 @@
 import {Portal} from 'solid-js/web'
 import type {ParentComponent} from 'solid-js'
 
-// Renders into #focalboard-root-portal — the node index.html provides above
+// Renders into #xciii-root-portal — the node index.html provides above
 // the app root, which is what keeps dialogs over everything else.
 const RootPortal: ParentComponent = (props) => {
-    const rootPortal = document.getElementById('focalboard-root-portal')
+    const rootPortal = document.getElementById('xciii-root-portal')
 
     return (
         <Portal mount={rootPortal || document.body}>

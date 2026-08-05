@@ -11,7 +11,7 @@ import (
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 
-	"github.com/artipop/trixi/internal/acp"
+	"github.com/artipop/xciii/internal/acp"
 )
 
 // errACPDisabled is returned by bindings when the integration is off.

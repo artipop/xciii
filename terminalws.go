@@ -13,7 +13,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/artipop/trixi/internal/acp"
+	"github.com/artipop/xciii/internal/acp"
 )
 
 // The terminal window talks to its pty over a WebSocket on the front door:

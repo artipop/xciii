@@ -13,8 +13,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/artipop/trixi/internal/dokku"
-	"github.com/artipop/trixi/internal/vcs"
+	"github.com/artipop/xciii/internal/dokku"
+	"github.com/artipop/xciii/internal/vcs"
 )
 
 // Manager owns all agent sessions: it consumes board events, enforces limits

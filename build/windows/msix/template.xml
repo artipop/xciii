@@ -8,7 +8,7 @@
         AllowPromptForPassword="false">
     </Settings>
     <Installer
-        Path="focalboard"
+        Path="xciii"
         Arguments=""
         InstallLocation="C:\Program Files\Mattermost, Inc.\My Product">
     </Installer>
@@ -18,17 +18,17 @@
         PublisherName="CN=Mattermost, Inc."
         PublisherDisplayName="Mattermost, Inc."
         Version="0.1.0.0"
-        PackageDescription="Focalboard personal desktop">
+        PackageDescription="Boards with coding agents">
         <Capabilities>
             <Capability Name="runFullTrust" />
             
         </Capabilities>
         <Applications>
             <Application
-                Id="com.mattermost.focalboard"
-                Description="Focalboard personal desktop"
+                Id="io.deffun.xciii"
+                Description="Boards with coding agents"
                 DisplayName="My Product"
-                ExecutableName="focalboard"
+                ExecutableName="xciii"
                 EntryPoint="Windows.FullTrustApplication">
                 
             </Application>
@@ -43,11 +43,11 @@
             <Framework>false</Framework>
             <DisplayName>My Product</DisplayName>
             <PublisherDisplayName>Mattermost, Inc.</PublisherDisplayName>
-            <Description>Focalboard personal desktop</Description>
+            <Description>Boards with coding agents</Description>
             <Logo>Assets\AppIcon.png</Logo>
         </Properties>
     </PackageInformation>
-    <SaveLocation PackagePath="focalboard.msix" />
+    <SaveLocation PackagePath="xciii.msix" />
     <PackageIntegrity>
         <CertificatePath></CertificatePath>
     </PackageIntegrity>

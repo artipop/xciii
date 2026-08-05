@@ -7,19 +7,23 @@ whole-line diff.
 
 ## What this is
 
-**Trixi** is a desktop Focalboard that runs coding agents from the board. It is one
-Go module built with **Wails v3**, with the Focalboard server running **in-process**,
+**XCIII** is a desktop board that runs coding agents from the board. It is one
+Go module built with **Wails v3**, with the board server running **in-process**,
 and the same code builds a headless server (`-tags server`) that serves the board to
 a browser instead of a webview.
 
-The frontend is here: `webapp/` is the Focalboard webapp, its own npm project
-built with Vite, copied in from the `experiments` branch of the Focalboard
-checkout — and since rewritten from React to **SolidJS**, so upstream Focalboard
-and this repository's early history are both React and neither is a recipe any
-more. The **server** is still not — `go.mod` `replace`s that module to
-`../focalboard/server`, so a checkout beside this one is what a build still
-needs. See `docs/plan.md` for how that should end up, and
-`docs/solidjs-migration-plan.md` for what the rewrite promised.
+The board server and the webapp are both forks of Mattermost's Focalboard, and
+the product no longer carries that name anywhere a person can see it — the only
+places it survives are the upstream Go import path and the checkout it is
+replaced with.
+
+The frontend is here: `webapp/` is its own npm project built with Vite, copied in
+from the `experiments` branch of the server checkout — and since rewritten from
+React to **SolidJS**, so upstream and this repository's early history are both
+React and neither is a recipe any more. The **server** is still not here —
+`go.mod` `replace`s that module to `../focalboard/server`, so a checkout beside
+this one is what a build still needs. See `docs/plan.md` for how that should end
+up, and `docs/solidjs-migration-plan.md` for what the rewrite promised.
 
 What the page needs from the Go side is described in README.md, "What this app
 requires of the frontend": the output layout `go:embed` expects, and three
@@ -132,7 +136,7 @@ earned its place.
 ### A session is one turn, and nobody watches it
 
 `internal/acp` is the agent integration, and it is board-agnostic: `internal/
-boardadapter` is the only package importing both it and the Focalboard server.
+boardadapter` is the only package importing both it and the board server.
 
 A session runs the task a card asked for, comments the result and ends. There is no
 console: what a person wants to say goes to the terminal instead (below). Two

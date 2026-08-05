@@ -8,7 +8,7 @@ import (
 	"github.com/mattermost/focalboard/server/services/notify"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
-	"github.com/artipop/trixi/internal/acp"
+	"github.com/artipop/xciii/internal/acp"
 )
 
 func testBoard() *model.Board {

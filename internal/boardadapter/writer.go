@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/utils"
 
-	"github.com/artipop/trixi/internal/acp"
+	"github.com/artipop/xciii/internal/acp"
 )
 
 // Writer implements acp.BoardWriter over the server's app layer. All writes

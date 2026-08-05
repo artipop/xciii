@@ -49,16 +49,12 @@ const WebsocketConnection = () => {
     return (
         <Show when={websocketClosed()}>
             <div class='WSConnection error'>
-                <a
-                    href='https://www.focalboard.com/fwlink/websocket-connect-error.html'
-                    target='_blank'
-                    rel='noreferrer'
-                >
-                    <FormattedMessage
-                        id='Error.websocket-closed'
-                        defaultMessage='Websocket connection closed, connection interrupted. If this persists, check your server or web proxy configuration.'
-                    />
-                </a>
+                {/* The message used to link a troubleshooting page upstream
+                    hosted; this app has none, so it stands on its own. */}
+                <FormattedMessage
+                    id='Error.websocket-closed'
+                    defaultMessage='Websocket connection closed, connection interrupted. If this persists, check your server or web proxy configuration.'
+                />
             </div>
         </Show>
     )

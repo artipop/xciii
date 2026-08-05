@@ -73,7 +73,7 @@ const rootLayout = (props: {children?: JSX.Element}) => (
     </>
 )
 
-const FocalboardRouter: Component = () => {
+const AppRouter: Component = () => {
     return (
         <Router
             base={Utils.getFrontendBaseURL()}
@@ -156,4 +156,4 @@ const FocalboardRouter: Component = () => {
     )
 }
 
-export default FocalboardRouter
+export default AppRouter

@@ -32,7 +32,7 @@ beforeEach(() => {
     mockedMutator.patchUserConfig.mockImplementation(() => Promise.resolve([
         {
             user_id: '',
-            category: 'focalboard',
+            category: 'xciii',
             name: 'welcomePageViewed',
             value: '1',
         },

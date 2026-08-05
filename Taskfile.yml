@@ -1,14 +1,14 @@
 version: '3'
 
 vars:
-  APP_NAME: "Trixi"
+  APP_NAME: "XCIII"
   BIN_DIR: "bin"
   # Target OS for build/package/run. Defaults to the host OS, and is overridden
   # by `wails3 build GOOS=...` (or the GOOS env var) for cross-compilation. The
   # tasks below dispatch to the matching platform Taskfile via this variable.
   GOOS: '{{.GOOS | default OS}}'
   # Tags every build of this module needs: json1/sqlite3 for the cgo SQLite
-  # driver the in-process Focalboard server runs on, frontend for the go:embed
+  # driver the in-process board server runs on, frontend for the go:embed
   # of the staged webapp pack. Wails' own tasks append `production` (and
   # `server` for the server build) to whatever stands here.
   # BASE_TAGS exists so the Linux Taskfile can add its GTK tag without a var

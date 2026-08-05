@@ -3,26 +3,26 @@
 #
 # The lines below are called `modelines`. See `:help modeline`
 
-name: "Trixi"
+name: "XCIII"
 arch: ${GOARCH}
 platform: "linux"
 version: "0.0.0"
 section: "default"
 priority: "extra"
 maintainer: ${GIT_COMMITTER_NAME} <${GIT_COMMITTER_EMAIL}>
-description: "Focalboard boards with coding agents"
+description: "Boards with coding agents"
 vendor: "artipop"
 homepage: "https://wails.io"
 license: "MIT"
 release: "1"
 
 contents:
-  - src: "./bin/Trixi"
-    dst: "/usr/local/bin/Trixi"
+  - src: "./bin/XCIII"
+    dst: "/usr/local/bin/XCIII"
   - src: "./build/appicon.png"
-    dst: "/usr/share/icons/hicolor/128x128/apps/Trixi.png"
-  - src: "./build/linux/Trixi.desktop"
-    dst: "/usr/share/applications/Trixi.desktop"
+    dst: "/usr/share/icons/hicolor/128x128/apps/XCIII.png"
+  - src: "./build/linux/XCIII.desktop"
+    dst: "/usr/share/applications/XCIII.desktop"
 
 # Default dependencies for the GTK4 + WebKitGTK 6.0 stack (Ubuntu 24.04+ / Debian 13+)
 depends:

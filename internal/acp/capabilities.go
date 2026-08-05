@@ -13,7 +13,7 @@ import (
 
 	acpsdk "github.com/coder/acp-go-sdk"
 
-	"github.com/artipop/trixi/internal/procgroup"
+	"github.com/artipop/xciii/internal/procgroup"
 )
 
 // What an agent can be told to do beyond "here is the task" differs from agent

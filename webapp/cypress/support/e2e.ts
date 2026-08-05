@@ -20,8 +20,8 @@ Cypress.on('window:before:load', (win) => {
     win.localStorage.setItem('welcomePageViewed', 'true')
     win.localStorage.setItem('language', 'en')
 
-    const sessionId = localStorage.getItem('focalboardSessionId')
+    const sessionId = localStorage.getItem('xciiiSessionId')
     if (sessionId) {
-        win.localStorage.setItem('focalboardSessionId', sessionId)
+        win.localStorage.setItem('xciiiSessionId', sessionId)
     }
 })

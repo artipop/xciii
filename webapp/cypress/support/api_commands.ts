@@ -33,14 +33,14 @@ Cypress.Commands.add('apiLoginUser', (data: Cypress.LoginData) => {
         },
     }).then((response) => {
         expect(response.body).to.have.property('token')
-        localStorage.setItem('focalboardSessionId', response.body.token)
+        localStorage.setItem('xciiiSessionId', response.body.token)
     })
 })
 
 const headers = () => ({
     headers: {
         'X-Requested-With': 'XMLHttpRequest',
-        Authorization: `Bearer ${localStorage.getItem('focalboardSessionId')}`,
+        Authorization: `Bearer ${localStorage.getItem('xciiiSessionId')}`,
     },
 })
 
@@ -62,9 +62,9 @@ Cypress.Commands.add('apiInitServer', () => {
 Cypress.Commands.add('apiUseSingleUserSession', () => {
     cy.visit('/')
     return cy.window().then((win) => {
-        const token = win.localStorage.getItem('focalboardSessionId')
+        const token = win.localStorage.getItem('xciiiSessionId')
         expect(token, 'session token seeded by the front door').to.be.a('string')
-        localStorage.setItem('focalboardSessionId', token as string)
+        localStorage.setItem('xciiiSessionId', token as string)
     })
 })
 

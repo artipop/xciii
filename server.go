@@ -45,14 +45,14 @@ func dataDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	dir := filepath.Join(base, "Trixi", "server")
+	dir := filepath.Join(base, "XCIII", "server")
 	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return "", err
 	}
 	return dir, nil
 }
 
-// resolveWebPath returns a real on-disk directory the Focalboard server can
+// resolveWebPath returns a real on-disk directory the board server can
 // serve the webapp from (it templates index.html on read, so it needs files on
 // disk, not an fs.FS). Release builds (`-tags frontend`) compile the webapp
 // `pack` into the binary; it is extracted once per launch under the data dir.
@@ -143,7 +143,7 @@ func newServerLogger() mlog.LoggerIFace {
 	return logger
 }
 
-// runServerWithLogger starts the Focalboard server in-process (single-user
+// runServerWithLogger starts the board server in-process (single-user
 // mode) on the given port, returning the running server so the caller can
 // Shutdown() it. notifyBackends are registered with the server's notification
 // service (used by the ACP agent integration to observe card moves).
@@ -157,7 +157,7 @@ func runServerWithLogger(logger mlog.LoggerIFace, port int, sessionToken string,
 		ServerRoot:              fmt.Sprintf("http://localhost:%d", port),
 		Port:                    port,
 		DBType:                  "sqlite3",
-		DBConfigString:          path.Join(data, "focalboard.db"),
+		DBConfigString:          path.Join(data, "xciii.db"),
 		UseSSL:                  false,
 		SecureCookie:            true,
 		WebPath:                 resolveWebPath(logger),

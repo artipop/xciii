@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/artipop/trixi/internal/vcs"
+	"github.com/artipop/xciii/internal/vcs"
 )
 
 // fakeWatcher reports the same state on every poll, the way a real watcher does:

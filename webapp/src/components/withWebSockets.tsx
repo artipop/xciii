@@ -3,7 +3,6 @@
 import {ParentComponent, createEffect, onMount} from 'solid-js'
 
 import wsClient, {MMWebSocketClient} from '../wsclient'
-import {Utils} from '../utils'
 
 type Props = {
     userId?: string
@@ -25,14 +24,7 @@ const WithWebSockets: ParentComponent<Props> = (props) => {
             return
         }
 
-        // this is a temporary solution to disable websocket
-        // connections on legacy routes, as there is no such thing as
-        // an anonymous websocket connection
-        if (Utils.isFocalboardLegacy()) {
-            return
-        }
-
-        const token = localStorage.getItem('focalboardSessionId') || queryString.get('r') || ''
+        const token = localStorage.getItem('xciiiSessionId') || queryString.get('r') || ''
         if (token) {
             wsClient.authenticate(token)
         }
@@ -44,7 +36,7 @@ const WithWebSockets: ParentComponent<Props> = (props) => {
             return
         }
 
-        const token = localStorage.getItem('focalboardSessionId') || queryString.get('r') || ''
+        const token = localStorage.getItem('xciiiSessionId') || queryString.get('r') || ''
         if (wsClient.token !== token) {
             wsClient.authenticate(token)
         }

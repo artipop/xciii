@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/artipop/trixi/internal/dokku"
+	"github.com/artipop/xciii/internal/dokku"
 )
 
 // What a finished deploy session tells its route. "The agent stopped talking"

@@ -106,4 +106,4 @@ function App() {
     )
 }
 
-render(() => <App/>, document.getElementById('focalboard-app')!)
+render(() => <App/>, document.getElementById('xciii-app')!)

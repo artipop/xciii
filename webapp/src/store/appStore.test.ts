@@ -123,7 +123,7 @@ describe('createAppStore', () => {
     test('user preferences parse into myConfig', () => {
         const {state, actions} = createAppStore({client: fakeClient()})
 
-        actions.users.patchProps([{user_id: 'user-1', category: 'focalboard', name: 'onboardingTourStep', value: '3'}])
+        actions.users.patchProps([{user_id: 'user-1', category: 'xciii', name: 'onboardingTourStep', value: '3'}])
         expect(getMyConfig(state).onboardingTourStep?.value).toBe('3')
     })
 

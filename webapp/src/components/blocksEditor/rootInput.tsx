@@ -33,7 +33,7 @@ export default function RootInput(props: Props) {
             placeholder={'Introduce your text or your slash command'}
             autoFocus={true}
             menuIsOpen={showMenu()}
-            portalTarget={document.getElementById('focalboard-root-portal')}
+            portalTarget={document.getElementById('xciii-root-portal')}
             options={options}
 
             // A slash command matches from either end, so `/i` finds `/image`

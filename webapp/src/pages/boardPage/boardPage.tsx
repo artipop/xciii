@@ -69,12 +69,6 @@ const BoardPage = (props: Props): JSX.Element => {
     const [showJoinBoardDialog, setShowJoinBoardDialog] = createSignal<boolean>(false)
     const navigate = useNavigate()
 
-    // if we're in a legacy route and not showing a shared board,
-    // redirect to the new URL schema equivalent
-    if (Utils.isFocalboardLegacy() && !props.readonly) {
-        window.location.href = window.location.href.replace('/plugins/focalboard', '/boards')
-    }
-
     // TODO: Make this less brittle. This only works because this is the root render function
     createEffect(() => {
         UserSettings.lastTeamId = teamId()

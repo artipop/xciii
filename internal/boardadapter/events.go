@@ -1,4 +1,4 @@
-// Package boardadapter bridges the Focalboard server to the agnostic
+// Package boardadapter bridges the board server to the agnostic
 // internal/acp package. It is the only package allowed to import both sides:
 // replacing the board backend later means replacing only this package.
 package boardadapter
@@ -18,7 +18,7 @@ import (
 	"github.com/mattermost/focalboard/server/services/notify"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
-	"github.com/artipop/trixi/internal/acp"
+	"github.com/artipop/xciii/internal/acp"
 )
 
 // EventsBackend is a notify.Backend that normalizes card select-property

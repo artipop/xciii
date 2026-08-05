@@ -107,7 +107,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorItem > should mat
 
 exports[`components/boardTemplateSelector/boardTemplateSelectorItem > should trigger the onDelete (and not any other) when click the delete icon and confirm 1`] = `
 <div
-  id="focalboard-root-portal"
+  id="xciii-root-portal"
 >
   <div
     class="BoardTemplateSelectorItem"

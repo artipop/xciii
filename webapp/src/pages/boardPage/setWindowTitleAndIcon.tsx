@@ -24,7 +24,7 @@ const SetWindowTitleAndIcon = (): null => {
             }
             document.title = title
         } else {
-            document.title = 'Trixi'
+            document.title = 'XCIII'
         }
     })
 

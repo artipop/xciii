@@ -14,7 +14,7 @@ import (
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 
-	"github.com/artipop/trixi/internal/acp"
+	"github.com/artipop/xciii/internal/acp"
 )
 
 // origin is the front door of a desktop build. A Wails desktop app has no HTTP
@@ -89,7 +89,7 @@ func (o *origin) start() {}
 // address rather than the wails:// origin.
 func newMainWindow(wapp *application.App, url string) {
 	wapp.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:  "Trixi",
+		Title:  "XCIII",
 		Width:  1024,
 		Height: 768,
 		URL:    url,

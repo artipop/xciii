@@ -17,20 +17,13 @@ const ShareBoardLoginButton = () => {
     const navigate = useNavigate()
 
     const loginPath = () => {
-        let redirectQueryParam = 'r=' + encodeURIComponent(Utils.generatePath('/:boardId?/:viewId?/:cardId?', match().params))
-        if (Utils.isFocalboardLegacy()) {
-            redirectQueryParam = 'redirect_to=' + encodeURIComponent(Utils.generatePath('/boards/team/:teamId/:boardId?/:viewId?/:cardId?', match().params))
-        }
+        const redirectQueryParam = 'r=' + encodeURIComponent(Utils.generatePath('/:boardId?/:viewId?/:cardId?', match().params))
         return '/login?' + redirectQueryParam
     }
 
     const onLoginClick = () => {
         TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ShareBoardLogin)
-        if (Utils.isFocalboardLegacy()) {
-            location.assign(loginPath())
-        } else {
-            navigate(loginPath())
-        }
+        navigate(loginPath())
     }
 
     return (

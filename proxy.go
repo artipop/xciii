@@ -48,7 +48,7 @@ import (
 func bootstrapScript(sessionToken string) string {
 	return fmt.Sprintf(`<script>
 (function () {
-  try { localStorage.setItem('focalboardSessionId', %q); } catch (e) {}
+  try { localStorage.setItem('xciiiSessionId', %q); } catch (e) {}
 
   // One import of the v3 runtime, started now so the module is ready by the
   // time the app's first binding call is made.
@@ -115,7 +115,7 @@ func bootstrapScript(sessionToken string) string {
 </script>`, sessionToken)
 }
 
-// newServerProxy builds a reverse proxy to the in-process Focalboard server.
+// newServerProxy builds a reverse proxy to the in-process board server.
 // It sits behind the front door on everything except /wails/, so HTML, /api,
 // /files and the /ws upgrade all reach localhost:port — the upgrade included,
 // which is the one thing Wails' own asset server cannot forward. The bootstrap

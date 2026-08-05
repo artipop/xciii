@@ -13,12 +13,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/artipop/trixi/internal/dokku"
+	"github.com/artipop/xciii/internal/dokku"
 )
 
 // maybeRunMCP handles `<binary> mcp <server>`: the same executable doubles as
 // the MCP servers an agent session spawns, which keeps the desktop app a single
-// binary with nothing extra to install. It must run before the Focalboard
+// binary with nothing extra to install. It must run before the board
 // server and Wails are touched, and it never returns — stdout belongs to the
 // JSON-RPC stream from here on.
 func maybeRunMCP(args []string) {
@@ -26,7 +26,7 @@ func maybeRunMCP(args []string) {
 		return
 	}
 	if len(args) < 2 {
-		fmt.Fprintf(os.Stderr, "usage: trixi mcp %s\n", dokku.ServerName)
+		fmt.Fprintf(os.Stderr, "usage: xciii mcp %s\n", dokku.ServerName)
 		os.Exit(2)
 	}
 	var err error

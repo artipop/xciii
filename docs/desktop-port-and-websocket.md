@@ -9,7 +9,7 @@
 ## Что происходит сейчас
 
 `desktop/main.go:46` берёт случайный свободный порт (`getFreePort()`), поднимает на нём
-Focalboard-сервер **внутри того же процесса**, а `desktop/proxy.go:67` строит
+сервер досок **внутри того же процесса**, а `desktop/proxy.go:67` строит
 `httputil.NewSingleHostReverseProxy` на `http://localhost:<порт>` и отдаёт его в
 `assetserver.Options.Handler`.
 

@@ -2,7 +2,7 @@
 // TZ_ACP_wails_v0.2.md: moving a card into a trigger column starts an ACP
 // session in a dedicated git worktree and reports progress back to the card.
 //
-// The package deliberately knows nothing about the Focalboard server. It talks
+// The package deliberately knows nothing about the board server. It talks
 // to the board only through the BoardEvents/BoardWriter interfaces below, whose
 // implementations live in internal/boardadapter.
 package acp

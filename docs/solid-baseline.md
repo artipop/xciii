@@ -3,7 +3,7 @@
 Точка отсчёта, которую требует шаг 1 плана
 ([solidjs-migration-plan.md](solidjs-migration-plan.md)): против этих цифр
 проверяются performance-gates после cutover. Снято на ветке `solid-migration`
-в момент её создания (webapp — копия ветки `experiments` Focalboard, Vite,
+в момент её создания (webapp — копия ветки `experiments` серверного форка, Vite,
 React 19.2.8).
 
 ## Тесты
@@ -16,7 +16,7 @@ React 19.2.8).
 - 13.8 s на M-серии (для сравнения порядка, не как gate).
 
 Cypress-бинаря в devDependencies на этой точке нет (апгрейд на Cypress 14 жил
-на ветке `dev` Focalboard и в `experiments` не попал); спеки в `cypress/`
+на ветке `dev` апстрима и в `experiments` не попал); спеки в `cypress/`
 лежат, обвязка (`@testing-library/cypress`, `cypress-real-events`) в
 package.json есть. E2E-baseline снимается после возвращения бинаря.
 

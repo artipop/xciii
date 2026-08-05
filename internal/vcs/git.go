@@ -130,9 +130,9 @@ func (g *Git) merged(ctx context.Context, t Target, remote string) (bool, string
 // usually deletes the branch, and then neither the local nor the remote ref is
 // left to test for ancestry — but the commit itself is still in the default
 // branch's history, so remembering the tip while the branch existed is what
-// makes "merged" answerable afterwards. It lives under refs/focalboard/, so it
+// makes "merged" answerable afterwards. It lives under refs/xciii/, so it
 // is invisible to `git branch`, never pushed, and keeps the object alive.
-func seenRef(branch string) string { return "refs/focalboard/seen/" + branch }
+func seenRef(branch string) string { return "refs/xciii/seen/" + branch }
 
 // rememberTip records where the branch stood, so a later poll can still answer
 // "was it merged" once the branch itself is gone.

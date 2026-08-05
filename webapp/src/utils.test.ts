@@ -15,18 +15,18 @@ declare let window: IAppWindow
 describe('utils', () => {
     describe('assureProtocol', () => {
         test('should passthrough on valid short protocol', () => {
-            expect(Utils.ensureProtocol('https://focalboard.com')).toBe('https://focalboard.com')
+            expect(Utils.ensureProtocol('https://example.com')).toBe('https://example.com')
         })
         test('should passthrough on valid long protocol', () => {
-            expect(Utils.ensureProtocol('somecustomprotocol://focalboard.com')).toBe('somecustomprotocol://focalboard.com')
+            expect(Utils.ensureProtocol('somecustomprotocol://example.com')).toBe('somecustomprotocol://example.com')
         })
 
         test('should passthrough on valid short protocol', () => {
-            expect(Utils.ensureProtocol('x://focalboard.com')).toBe('x://focalboard.com')
+            expect(Utils.ensureProtocol('x://example.com')).toBe('x://example.com')
         })
 
         test('should add a https for empty protocol', () => {
-            expect(Utils.ensureProtocol('focalboard.com')).toBe('https://focalboard.com')
+            expect(Utils.ensureProtocol('example.com')).toBe('https://example.com')
         })
     })
 
@@ -84,7 +84,6 @@ describe('utils', () => {
 
     describe('test - buildURL', () => {
         test('buildURL, no base', () => {
-            (global as any).isFocalboardPlugin = true
             expect(Utils.buildURL('test', true)).toBe('http://localhost/test')
             expect(Utils.buildURL('/test', true)).toBe('http://localhost/test')
 

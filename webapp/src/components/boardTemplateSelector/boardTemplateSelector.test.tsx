@@ -144,7 +144,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
         store = mockAppStore(state)
         vi.useRealTimers()
     })
-    describe('not a focalboard Plugin', () => {
+    describe('not a plugin deployment', () => {
         test('should match snapshot', () => {
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
@@ -155,7 +155,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(container).toMatchSnapshot()
         })
     })
-    describe('a focalboard Plugin', () => {
+    describe('a plugin deployment', () => {
         test('should match snapshot', () => {
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>

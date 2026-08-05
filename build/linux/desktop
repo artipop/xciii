@@ -1,13 +1,13 @@
 [Desktop Entry]
 Version=1.0
-Name=Trixi
-Comment=Focalboard boards with coding agents
+Name=XCIII
+Comment=Boards with coding agents
 # The Exec line includes %u to pass the URL to the application
-Exec=/usr/local/bin/Trixi %u
+Exec=/usr/local/bin/XCIII %u
 Terminal=false
 Type=Application
-Icon=Trixi
+Icon=XCIII
 Categories=Utility;
-StartupWMClass=Trixi
+StartupWMClass=XCIII
 
  

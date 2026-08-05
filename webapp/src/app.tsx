@@ -12,7 +12,7 @@ import NewVersionBanner from './components/newVersionBanner'
 import {getMe} from './store/users'
 import {getLanguage} from './store/language'
 import {useAppSelector, useAppStore} from './store/hooks'
-import FocalboardRouter from './router'
+import AppRouter from './router'
 
 import {IUser} from './user'
 
@@ -44,7 +44,7 @@ const App: Component = () => {
                 <div id='frame'>
                     <div id='main'>
                         <NewVersionBanner/>
-                        <FocalboardRouter/>
+                        <AppRouter/>
                     </div>
                 </div>
             </SortableProvider>

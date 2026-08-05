@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/boardTemplateSelector/boardTemplateSelector > a focalboard Plugin > should match snapshot 1`] = `
+exports[`components/boardTemplateSelector/boardTemplateSelector > a plugin deployment > should match snapshot 1`] = `
 <div>
   <div
     class="BoardTemplateSelector__container "
@@ -124,7 +124,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector > a focalboard P
 </div>
 `;
 
-exports[`components/boardTemplateSelector/boardTemplateSelector > a focalboard Plugin > should match snapshot with custom title and description 1`] = `
+exports[`components/boardTemplateSelector/boardTemplateSelector > a plugin deployment > should match snapshot with custom title and description 1`] = `
 <div>
   <div
     class="BoardTemplateSelector__container BoardTemplateSelector__container--page"
@@ -236,7 +236,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector > a focalboard P
 </div>
 `;
 
-exports[`components/boardTemplateSelector/boardTemplateSelector > a focalboard Plugin > should match snapshot without close 1`] = `
+exports[`components/boardTemplateSelector/boardTemplateSelector > a plugin deployment > should match snapshot without close 1`] = `
 <div>
   <div
     class="BoardTemplateSelector__container BoardTemplateSelector__container--page"
@@ -348,7 +348,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelector > a focalboard P
 </div>
 `;
 
-exports[`components/boardTemplateSelector/boardTemplateSelector > not a focalboard Plugin > should match snapshot 1`] = `
+exports[`components/boardTemplateSelector/boardTemplateSelector > not a plugin deployment > should match snapshot 1`] = `
 <div>
   <div
     class="BoardTemplateSelector__container "

@@ -54,7 +54,7 @@ nothing. And a card dragged out of a column while its session runs cancels it.
 With `worktreeMode: "always"` (the default) every card-triggered coding session
 gets its own git worktree:
 
-- **created** when the session starts, under `~/Library/Application Support/Focalboard/acp/worktrees`, on a new
+- **created** when the session starts, under `~/Library/Application Support/XCIII/acp/worktrees`, on a new
   branch named `acp/<card title>-<session id>` — so the branch reads like the
   task and the preview address built from it does too;
 - **based on** the card's `branch` property if it has one, otherwise on `HEAD`;
@@ -219,7 +219,7 @@ its route, the stage it is on and what that stage is waiting for.
 
 ## The knobs
 
-`~/Library/Application Support/Focalboard/acp/config.json`, all of it editable
+`~/Library/Application Support/XCIII/acp/config.json`, all of it editable
 by hand:
 
 | | |

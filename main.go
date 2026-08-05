@@ -15,18 +15,18 @@ import (
 
 	"github.com/mattermost/focalboard/server/services/notify"
 
-	"github.com/artipop/trixi/internal/acp"
-	"github.com/artipop/trixi/internal/boardadapter"
+	"github.com/artipop/xciii/internal/acp"
+	"github.com/artipop/xciii/internal/boardadapter"
 )
 
 // acpDataDir returns the ACP integration's own state directory
-// (~/Library/Application Support/Trixi/acp).
+// (~/Library/Application Support/XCIII/acp).
 func acpDataDir() (string, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	dir := filepath.Join(base, "Trixi", "acp")
+	dir := filepath.Join(base, "XCIII", "acp")
 	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return "", err
 	}
@@ -34,7 +34,7 @@ func acpDataDir() (string, error) {
 }
 
 // ignoreViteDevServer removes the variable `wails3 dev` sets to point the app at
-// a Vite dev server. This app never has one: the page is the Focalboard webapp,
+// a Vite dev server. This app never has one: the page is the board webapp,
 // served by the in-process board server behind the front door, in a dev build
 // exactly as in a release build. Left set, Wails' own preRun waits ten times for
 // a server that will never answer and then kills the app with "unable to connect
@@ -44,7 +44,7 @@ func ignoreViteDevServer() {
 }
 
 func main() {
-	// `trixi mcp dokku` runs this same binary as an MCP server for an agent
+	// `xciii mcp dokku` runs this same binary as an MCP server for an agent
 	// session; it must come first, before the board server or a window exists.
 	maybeRunMCP(os.Args[1:])
 
@@ -145,8 +145,8 @@ func main() {
 	// qualified names (main.App.<Method>) rather than through generated
 	// bindings — exactly what the v2 build's -skipbindings meant.
 	wapp := application.New(application.Options{
-		Name:        "Trixi",
-		Description: "Focalboard boards with coding agents",
+		Name:        "XCIII",
+		Description: "Boards with coding agents",
 		Services: []application.Service{
 			application.NewService(app),
 		},

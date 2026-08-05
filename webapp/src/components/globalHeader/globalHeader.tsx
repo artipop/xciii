@@ -18,7 +18,6 @@ import './globalHeader.scss'
 
 const HeaderItems = () => {
     const language = useAppSelector<string>(getLanguage)
-    const helpUrl = 'https://www.focalboard.com/fwlink/doc-boards.html?v=' + Constants.versionString
 
     return (
         <IntlProvider
@@ -28,7 +27,7 @@ const HeaderItems = () => {
             <div class='GlobalHeaderComponent'>
                 <span class='spacer'/>
                 <a
-                    href={helpUrl}
+                    href={Constants.homeUrl}
                     target='_blank'
                     rel='noreferrer'
                     class='GlobalHeaderComponent__button help-button'

@@ -9,7 +9,7 @@ import {useIntl} from '../../intl'
 import {Constants} from '../../constants'
 import octoClient from '../../octoClient'
 import {IUser} from '../../user'
-import FocalboardLogoIcon from '../../widgets/icons/focalboard_logo'
+import AppLogoIcon from '../../widgets/icons/appLogo'
 import Menu from '../../widgets/menu'
 import MenuWrapper from '../../widgets/menuWrapper'
 import {getMe} from '../../store/users'
@@ -69,13 +69,13 @@ const SidebarUserMenu = () => {
 
                             <Menu.Text
                                 id='about'
-                                name={intl.formatMessage({id: 'Sidebar.about', defaultMessage: 'About Focalboard'})}
+                                name={intl.formatMessage({id: 'Sidebar.about', defaultMessage: 'About XCIII'})}
                                 onClick={async () => {
-                                    window.open('https://www.focalboard.com?utm_source=webapp', '_blank')
+                                    window.open(Constants.homeUrl, '_blank')
 
                                     // TODO: Review if this is needed in the future, this is to fix the problem with linux webview links
                                     if (window.openInNewBrowser) {
-                                        window.openInNewBrowser('https://www.focalboard.com?utm_source=webapp')
+                                        window.openInNewBrowser(Constants.homeUrl)
                                     }
                                 }}
                             />
@@ -84,8 +84,8 @@ const SidebarUserMenu = () => {
                 >
                     <div class='logo'>
                         <div class='logo-title'>
-                            <FocalboardLogoIcon/>
-                            <span>{'Focalboard'}</span>
+                            <AppLogoIcon/>
+                            <span>{'XCIII'}</span>
                             <div class='versionFrame'>
                                 <div
                                     class='version'

@@ -9,7 +9,7 @@
 // apps:exists → apps:create → domains:set → git push — so nothing has to be
 // installed on the host beyond a normal Dokku with our ssh key.
 //
-// The package knows nothing about Focalboard: it is handed a Target, a local
+// The package knows nothing about the board: it is handed a Target, a local
 // repository path and a branch, which is exactly what the MCP process receives
 // through its environment.
 package dokku

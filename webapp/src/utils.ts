@@ -598,13 +598,6 @@ class Utils {
         return Math.round(num * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces)
     }
 
-    // this is a temporary solution while we're using legacy routes
-    // for shared boards as a way to check if we're accessing the
-    // legacy routes inside the plugin
-    static isFocalboardLegacy(): boolean {
-        return window.location.pathname.includes('/plugins/focalboard')
-    }
-
     static fixWSData(message: WSMessage): [WSMessagePayloads, ChangeHandlerType] {
         if (message.block) {
             return [this.fixBlock(message.block), 'block']

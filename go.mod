@@ -1,4 +1,4 @@
-module github.com/artipop/trixi
+module github.com/artipop/xciii
 
 go 1.25.0
 
