@@ -117,8 +117,8 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             </div>
             
             <input
-              aria-activedescendant="cl-4-option-1"
-              aria-controls="cl-4"
+              aria-activedescendant="cl-0-option-1"
+              aria-controls="cl-0"
               aria-expanded="true"
               autocomplete="off"
               class="CalculationOptions__input"
@@ -134,14 +134,14 @@ exports[`components/calculations/Calculation should match snapshot - option chan
         >
           <div
             class="CalculationOptions__menu-list"
-            id="cl-4"
+            id="cl-0"
             role="listbox"
           >
             
             <div
               aria-selected="true"
               class="CalculationOptions__option CalculationOptions__option--is-selected"
-              id="cl-4-option-0"
+              id="cl-0-option-0"
               role="option"
             >
               None
@@ -149,7 +149,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option CalculationOptions__option--is-focused"
-              id="cl-4-option-1"
+              id="cl-0-option-1"
               role="option"
             >
               Count
@@ -157,7 +157,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="cl-4-option-2"
+              id="cl-0-option-2"
               role="option"
             >
               Count Empty
@@ -165,7 +165,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="cl-4-option-3"
+              id="cl-0-option-3"
               role="option"
             >
               Count Not Empty
@@ -173,7 +173,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="cl-4-option-4"
+              id="cl-0-option-4"
               role="option"
             >
               Percent Empty
@@ -181,7 +181,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="cl-4-option-5"
+              id="cl-0-option-5"
               role="option"
             >
               Percent Not Empty
@@ -189,7 +189,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="cl-4-option-6"
+              id="cl-0-option-6"
               role="option"
             >
               Count value
@@ -197,7 +197,7 @@ exports[`components/calculations/Calculation should match snapshot - option chan
             <div
               aria-selected="false"
               class="CalculationOptions__option"
-              id="cl-4-option-7"
+              id="cl-0-option-7"
               role="option"
             >
               Count unique values

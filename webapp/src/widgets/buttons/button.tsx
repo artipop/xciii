@@ -25,15 +25,18 @@ type Props = {
 }
 
 function Button(props: Props): JSX.Element {
-    const classNames: Record<string, boolean> = {
+    // A function, not an object: the class of a button that becomes active or
+    // changes emphasis has to be recomputed, and only a call inside the JSX
+    // re-runs when those props change.
+    const classNames = (): Record<string, boolean> => ({
         Button: true,
         active: Boolean(props.active),
         filled: Boolean(props.filled),
         danger: Boolean(props.danger),
-    }
-    classNames[`emphasis--${props.emphasis}`] = Boolean(props.emphasis)
-    classNames[`size--${props.size}`] = Boolean(props.size)
-    classNames[`${props.className}`] = Boolean(props.className)
+        [`emphasis--${props.emphasis}`]: Boolean(props.emphasis),
+        [`size--${props.size}`]: Boolean(props.size),
+        [`${props.className}`]: Boolean(props.className),
+    })
 
     return (
         <button
@@ -41,7 +44,7 @@ function Button(props: Props): JSX.Element {
             onClick={props.onClick}
             onMouseOver={props.onMouseOver}
             onMouseLeave={props.onMouseLeave}
-            class={Utils.generateClassName(classNames)}
+            class={Utils.generateClassName(classNames())}
             title={props.title}
             onBlur={props.onBlur}
             disabled={props?.disabled}

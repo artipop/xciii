@@ -14,11 +14,10 @@ type Props = {
 // be positioned based on the specified placement
 // Default position is 'top'
 function Tooltip(props: Props): JSX.Element {
-    const placement = props.placement || 'top'
-    const className = `octo-tooltip tooltip-${placement}`
+    const className = () => `octo-tooltip tooltip-${props.placement || 'top'}`
     return (
         <div
-            class={className}
+            class={className()}
             data-tooltip={props.title}
         >
             {props.children}

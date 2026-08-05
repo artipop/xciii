@@ -34,14 +34,16 @@ type Props = {
 }
 
 const Calculation = (props: Props): JSX.Element => {
-    const value = props.value || Options.none.value
-    const valueOption = Options[value]
+    // Accessors: picking another calculation from the menu changes props.value,
+    // and the label and the class both have to follow it.
+    const value = () => props.value || Options.none.value
+    const valueOption = () => Options[value()]
     const intl = useIntl()
     const columnResize = useColumnResize()
 
-    const option = (
+    const option = () => (
         <props.optionsComponent
-            value={value}
+            value={value()}
             menuOpen={props.menuOpen}
             onClose={props.onMenuClose}
             onChange={props.onChange}
@@ -55,7 +57,7 @@ const Calculation = (props: Props): JSX.Element => {
         // See this for more details-
         // https://stackoverflow.com/questions/47308081/onblur-event-is-not-firing
         <div
-            class={`Calculation ${value} ${props.class} ${props.menuOpen ? 'menuOpen' : ''} ${props.hovered ? 'hovered' : ''}`}
+            class={`Calculation ${value()} ${props.class} ${props.menuOpen ? 'menuOpen' : ''} ${props.hovered ? 'hovered' : ''}`}
             onClick={() => (props.menuOpen ? props.onMenuClose() : props.onMenuOpen())}
             tabIndex={0}
             onBlur={props.onMenuClose}
@@ -65,24 +67,24 @@ const Calculation = (props: Props): JSX.Element => {
             {
                 props.menuOpen && (
                     <div>
-                        {option}
+                        {option()}
                     </div>
                 )
             }
 
             <span class='calculationLabel'>
-                {optionDisplayNameString(valueOption!, intl)}
+                {optionDisplayNameString(valueOption()!, intl)}
             </span>
 
             {
-                value === Options.none.value &&
+                value() === Options.none.value &&
                 <ChevronUp/>
             }
 
             {
-                value !== Options.none.value &&
+                value() !== Options.none.value &&
                 <span class='calculationValue'>
-                    {Calculations[value] ? Calculations[value](props.cards, props.property, intl) : ''}
+                    {Calculations[value()] ? Calculations[value()](props.cards, props.property, intl) : ''}
                 </span>
             }
 

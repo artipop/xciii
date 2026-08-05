@@ -15,13 +15,10 @@ type Props = {
 
 // Switch is an on-off style switch / checkbox
 function Label(props: Props): JSX.Element {
-    let color = 'empty'
-    if (props.color && props.color in Constants.menuColors) {
-        color = props.color
-    }
+    const color = () => (props.color && props.color in Constants.menuColors ? props.color : 'empty')
     return (
         <span
-            class={`Label ${color} ${props.className ? props.className : ''}`}
+            class={`Label ${color()} ${props.className ? props.className : ''}`}
             title={props.title}
         >
             {props.children}

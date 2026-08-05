@@ -565,7 +565,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard and click Regene
               </div>
               <div>
                 <div
-                  class="Switch override-main size--medium"
+                  class="Switch override-main size--medium on"
                 >
                   <div
                     class="octo-switch-inner"
@@ -1839,7 +1839,7 @@ exports[`src/components/shareBoard/shareBoard return shareBoard, and click switc
               </div>
               <div>
                 <div
-                  class="Switch override-main size--medium"
+                  class="Switch override-main size--medium on"
                 >
                   <div
                     class="octo-switch-inner"

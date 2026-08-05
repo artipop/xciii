@@ -16,19 +16,20 @@ type Props = {
 }
 
 function IconButton(props: Props): JSX.Element {
-    const classNames: Record<string, boolean> = {
+    // See Button: computed inside the JSX so a changing className lands.
+    const classNames = (): Record<string, boolean> => ({
         IconButton: true,
         'style--inverted': Boolean(props.inverted),
-    }
-    classNames[`${props.className}`] = Boolean(props.className)
-    classNames[`size--${props.size}`] = Boolean(props.size)
+        [`${props.className}`]: Boolean(props.className),
+        [`size--${props.size}`]: Boolean(props.size),
+    })
 
     return (
         <button
             type='button'
             onClick={props.onClick}
             onMouseDown={props.onMouseDown}
-            class={Utils.generateClassName(classNames)}
+            class={Utils.generateClassName(classNames())}
             title={props.title}
             aria-label={props.title}
         >
