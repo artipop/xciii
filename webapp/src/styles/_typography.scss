@@ -1,21 +1,26 @@
-// The rule the whole product is drawn around:
+// The rule the whole product is drawn around. A dossier has three voices, and
+// so does this:
 //
-//   the machine speaks in tracked-out caps — column names, property names,
-//   statuses, counts, timestamps, branches, buttons, menus;
-//   a person speaks in prose — a card's title, its description, comments.
+//   label — how the system NAMES things: column names, property names,
+//           statuses, buttons, menus. Caps, spread right out.
+//   data  — what the system MEASURED: branches, paths, timestamps, counts,
+//           code, the terminal. Monospace, no tracking, tabular figures.
+//   prose — a person: a card's title, its description, comments.
 //
-// Every piece of text on screen now answers "who wrote this", and the answer is
-// visible. One typeface carries both: the split is case and tracking, not a
-// second family. `--font-prose` in `_tokens.scss` is the switch if that ever
-// needs to become a real second family.
+// Every piece of text on screen now answers "who wrote this, and is it a name
+// or a measurement", and the answer is visible.
+//
+// The label voice is proportional on purpose. The even, official rhythm of a
+// case file comes from tracking, not from every glyph being the same width —
+// monospace under wide tracking is the same effect applied twice, and in
+// Russian it eats a third of the line.
 
-@mixin machine {
-    font-family: var(--font-mono);
-    font-size: var(--text-micro);
-    font-weight: 500;
+@mixin label {
+    font-family: var(--font-label);
+    font-size: var(--text-small);
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: var(--track-machine);
-    font-feature-settings: 'tnum' 1, 'zero' 1;
+    letter-spacing: var(--track-label);
 }
 
 // Deliberately no font-size: prose inherits the body size, and the few places
@@ -28,29 +33,32 @@
     letter-spacing: var(--track-prose);
 }
 
-// Numbers the machine reports are read, not scanned as labels: monospace and
-// tabular, but never shouted.
-@mixin figures {
+@mixin data {
     font-family: var(--font-mono);
+    font-size: var(--text-small);
     text-transform: none;
-    letter-spacing: 0.02em;
+    letter-spacing: 0;
     font-feature-settings: 'tnum' 1, 'zero' 1;
 }
 
-.t-machine {
-    @include machine;
+.t-label {
+    @include label;
 }
 
 .t-prose {
     @include prose;
 }
 
+.t-data {
+    @include data;
+}
+
 // ---------------------------------------------------------------------------
 // Where the rule applies to what is already on screen. New components should
-// reach for `.t-machine` / `.t-prose` instead of being added to these lists.
+// reach for `.t-label` / `.t-data` / `.t-prose` instead of being added here.
 // ---------------------------------------------------------------------------
 
-// The machine: navigation, controls, and everything that names a thing.
+// The label voice: navigation, controls, and everything that names a thing.
 .ViewHeader,
 .ViewHeader .Button,
 .octo-propertyname,
@@ -64,19 +72,21 @@
 .add-board,
 .TableHeaders,
 .octo-table-footer,
-.comment-date,
 .Calendar__weekday {
-    @include machine;
+    @include label;
 }
 
-// Counts, calculations and table values: the same family, without the shout.
+// The data voice: counts, calculations, table values, timestamps, code.
 .KanbanCalculation,
-.octo-table-cell .octo-propertyvalue {
-    @include figures;
+.octo-table-cell .octo-propertyvalue,
+.comment-date,
+.version,
+code,
+kbd {
+    @include data;
 }
 
-// A person: the title they typed, the description they wrote, the comment they
-// left. This block comes after the machine block on purpose — a card title
+// A person. This block comes after the label block on purpose — a card title
 // lives inside chrome, and prose has to win.
 .KanbanCard .octo-icontitle,
 .CardDetail .octo-icontitle,
@@ -91,9 +101,9 @@
 // the one place the type is allowed to be large.
 .ViewTitle .Editable.title,
 .ViewTitle .title {
-    font-family: var(--font-mono);
+    font-family: var(--font-label);
     font-size: var(--text-h2);
-    font-weight: 300;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: var(--track-title);
 }
@@ -102,7 +112,7 @@ h1,
 h2,
 h3,
 .title {
-    font-family: var(--font-mono);
+    font-family: var(--font-prose);
     font-weight: 600;
     letter-spacing: var(--track-prose);
 }

@@ -42,11 +42,11 @@
         }
 
         .comment-username {
-            font-family: var(--font-mono);
+            font-family: var(--font-label);
             font-size: var(--text-micro);
-            font-weight: 500;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: var(--track-machine);
+            letter-spacing: var(--track-label);
             color: rgba(var(--center-channel-color-rgb), 0.5);
             margin-left: 0;
         }

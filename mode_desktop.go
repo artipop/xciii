@@ -93,6 +93,10 @@ func newMainWindow(wapp *application.App, url string) {
 		Width:  1024,
 		Height: 768,
 		URL:    url,
+		// What shows between the window appearing and the page painting. Wails
+		// cannot know which theme the page will choose, and of the two seams a
+		// dark one is the quieter mistake.
+		BackgroundColour: application.NewRGB(8, 11, 9),
 	})
 }
 
@@ -118,11 +122,9 @@ func openTerminalWindow(wapp *application.App, info acp.TerminalInfo, url string
 		Height: 640,
 		URL:    url,
 		// A terminal is dark by default and a white flash on open is what
-		// everyone remembers about a terminal in a webview.
-		// The canvas of the dark theme: this is what shows between the window
-		// appearing and the page painting, and Wails cannot know which theme
-		// the page will pick. A dark seam is the quieter mistake of the two.
-		BackgroundColour: application.NewRGB(7, 11, 20),
+		// everyone remembers about a terminal in a webview. This is the same
+		// black the page paints, so there is no seam at all.
+		BackgroundColour: application.NewRGB(8, 11, 9),
 	})
 	return true
 }

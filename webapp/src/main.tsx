@@ -16,11 +16,15 @@ import mutator from './mutator'
 
 import '@mattermost/compass-icons/css/compass-icons.css'
 
-// The product's one typeface, self-hosted: the desktop build has no network,
-// and the page must look the same on every platform. The variable font carries
-// every weight the design uses in a single file per subset, and the browser
-// fetches only the subsets the page actually needs — Cyrillic among them, which
-// is why this family and not another.
+// The product's two typefaces, self-hosted: the desktop build has no network,
+// and the page must look the same on every platform. Both are variable, so each
+// carries every weight the design uses in one file per subset, and the browser
+// fetches only the subsets the page needs.
+//
+// Cyrillic is what narrowed the field to these two. The interface is Russian,
+// and most condensed grotesques on offer — IBM Plex Sans Condensed among them —
+// ship only `cyrillic-ext`, which does not cover А–Я.
+import '@fontsource-variable/roboto-condensed'
 import '@fontsource-variable/jetbrains-mono'
 
 import './styles/variables.scss'

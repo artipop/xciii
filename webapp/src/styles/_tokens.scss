@@ -58,37 +58,49 @@
 
 :root[data-theme='dark'] {
     // ---------------------------------------------------------------------
-    // Dark — the screen. The blue-black of a 1993 title sequence, and the
-    // ice-cyan glow that goes with it.
+    // Dark — the screen, and the screen is a tube. Black with a green cast and
+    // an amber accent: the two phosphors a CRT actually came in.
+    //
+    // It was navy first, and that was the mistake — a tinted neutral made the
+    // sidebar and the canvas argue, one going black while everything else went
+    // blue. The cast here is deliberate and uniform, and the only colour with a
+    // job in this theme is the accent.
+    //
+    // Amber rather than green for that accent, though green would be the more
+    // literal tube: green already means "done" in the columns and the flows,
+    // and an accent that also reads as a status is a collision nobody wins.
     // ---------------------------------------------------------------------
-    --canvas-rgb: 7, 11, 20;
-    --surface-rgb: 13, 19, 32;
-    --ink-rgb: 222, 232, 242;
-    --sidebar-rgb: 4, 7, 13;
-    --sidebar-ink-rgb: 222, 232, 242;
+    --canvas-rgb: 8, 11, 9;
+    --surface-rgb: 18, 23, 19;
+    --ink-rgb: 214, 232, 216;
+    --sidebar-rgb: 5, 7, 6;
+    --sidebar-ink-rgb: 214, 232, 216;
 
-    --accent-rgb: 125, 227, 255;
-    // Dark text on the bright accent is deliberate: white on #7DE3FF is 1.5:1
-    // and unreadable, the near-black is 13:1. Dimming the accent far enough for
-    // white to work would lose the glow against the canvas.
-    --accent-ink-rgb: 4, 7, 13;
-    --stamp-rgb: 125, 227, 255;
+    --accent-rgb: 255, 180, 76;
+    // Dark text on the bright accent is deliberate: white on this amber is
+    // 1.9:1 and unreadable, the near-black is 12:1. Dimming the accent far
+    // enough for white to work would lose the glow against the canvas.
+    --accent-ink-rgb: 5, 7, 6;
+    --stamp-rgb: 255, 180, 76;
 
     --danger-rgb: 255, 122, 122;
-    --warning-rgb: 240, 189, 92;
+    // Attention has one colour on this screen. Splitting "warning" off from the
+    // accent gave two ambers a few degrees apart, which reads as a mistake
+    // rather than as a distinction.
+    --warning-rgb: 255, 180, 76;
     --success-rgb: 61, 184, 135;
     --visited-rgb: 176, 156, 255;
 
-    --prop-default: #111a2b;
-    --prop-gray: #1b2434;
-    --prop-brown: #33271d;
-    --prop-orange: #3d2a19;
-    --prop-yellow: #3b3419;
-    --prop-green: #12301f;
-    --prop-blue: #0e2b40;
-    --prop-purple: #241f45;
-    --prop-pink: #391c31;
-    --prop-red: #3b1e23;
+    --prop-default: #161c17;
+    --prop-gray: #242c25;
+    --prop-brown: #312a1c;
+    --prop-orange: #3c2d18;
+    --prop-yellow: #383417;
+    --prop-green: #14331e;
+    --prop-blue: #152a38;
+    --prop-purple: #272146;
+    --prop-pink: #3a1f31;
+    --prop-red: #3c2021;
 
     --shadow-rgb: 0, 0, 0;
     --shadow-1: none;
@@ -151,18 +163,25 @@
     --dnd-indicator: rgb(var(--dnd-indicator-rgb));
 
     // ---------------------------------------------------------------------
-    // Type. One family; the split between what the machine says and what a
-    // person wrote is carried by case and tracking, not by a second typeface.
+    // Type. Three voices, because a dossier has three.
     //
-    // --font-prose is that second typeface, kept as a switch: set it to a
-    // grotesque and every piece of human writing changes together.
+    //   label — how the system NAMES a thing: caps, spread right out. This is
+    //           the title-card voice, and it is proportional: the even rhythm
+    //           comes from the tracking, not from a fixed advance width.
+    //           Monospace here would be the same rhythm twice over, and it
+    //           costs a third of the line in Russian.
+    //   data  — what the system MEASURED: branches, paths, times, counts,
+    //           code, and the terminal, which is a real tty and has no choice.
+    //           This is where a fixed advance actually buys something.
+    //   prose — a person: a card's title, its description, comments.
     // ---------------------------------------------------------------------
+    --font-label: 'Roboto Condensed Variable', sans-serif;
+    --font-prose: var(--font-label);
     --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
-    --font-prose: var(--font-mono);
 
-    --track-machine: 0.14em;   // the machine speaks spread out
-    --track-prose: -0.02em;    // a person does not
-    --track-title: 0.28em;     // a board name is a case name
+    --track-label: 0.16em;   // a label is spread out
+    --track-prose: 0;        // a person is not
+    --track-title: 0.3em;    // a board name is a case name
 
     --text-micro: 11px;
     --text-small: 12px;

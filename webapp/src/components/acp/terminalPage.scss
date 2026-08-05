@@ -11,11 +11,11 @@
     // derived token in `_tokens.scss` is written in terms of these and is
     // inherited, so danger, warning and success all re-resolve against the dark
     // values here without this file naming a single colour.
-    --canvas-rgb: 7, 11, 20;
-    --surface-rgb: 13, 19, 32;
-    --ink-rgb: 222, 232, 242;
+    --canvas-rgb: 8, 11, 9;
+    --surface-rgb: 18, 23, 19;
+    --ink-rgb: 214, 232, 216;
     --danger-rgb: 255, 122, 122;
-    --warning-rgb: 240, 189, 92;
+    --warning-rgb: 255, 180, 76;
     --success-rgb: 61, 184, 135;
 
     background: rgb(var(--canvas-rgb));

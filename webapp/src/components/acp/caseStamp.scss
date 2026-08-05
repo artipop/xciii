@@ -5,14 +5,7 @@
     gap: 4px 16px;
     margin: 4px 0 12px;
 
-    // The machine's voice: this whole line is written by the system, and it is
-    // the one place on the card where where-and-when outranks what.
-    font-family: var(--font-mono);
     font-size: var(--text-micro);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: var(--track-machine);
-    font-feature-settings: 'tnum' 1, 'zero' 1;
 
     &__field {
         display: inline-flex;
@@ -21,11 +14,20 @@
         min-width: 0;
     }
 
+    // The stamp is where the three voices sit side by side and the rule is
+    // easiest to see: `BRANCH` is what the system calls the thing, and
+    // `xciii/card-1` is what it measured.
     &__label {
+        font-family: var(--font-label);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: var(--track-label);
         color: rgba(var(--center-channel-color-rgb), 0.4);
     }
 
     &__value {
+        font-family: var(--font-mono);
+        font-feature-settings: 'tnum' 1, 'zero' 1;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         overflow: hidden;
         text-overflow: ellipsis;
