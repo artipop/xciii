@@ -15,3 +15,12 @@ webapp/cypress/videos
 webapp/cypress/screenshots
 build/linux/appimage/build
 build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
+# The macOS icon catalog `common:generate:icons` compiles from appicon.icon.
+# actool writes a fresh uuid into it every run, so a tracked copy is a binary
+# diff after every packaging job and nothing in it is worth reviewing. The
+# darwin package task copies it into the .app when it is there and carries on
+# without it, falling back to the icons.icns beside it — so if the Icon Composer
+# icon is missing from a build, `wails3 task --force common:generate:icons`
+# writes it back (plain `task` can consider itself up to date: Assets.car is not
+# among the task's `generates`).
+build/darwin/Assets.car
