@@ -9,7 +9,7 @@ type TextOptionProps = MenuOptionProps & {
     check?: boolean
     icon?: JSX.Element
     rightIcon?: JSX.Element
-    classes?: string
+    class?: string
     subText?: string
     disabled?: boolean
 }

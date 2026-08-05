@@ -16,7 +16,7 @@ type Props = {
     children?: JSX.Element
     onClose?: () => void
     closeTooltip?: string
-    classes?: string
+    class?: string
 }
 
 function renderClose(onClose?: () => void, closeTooltip?: string) {

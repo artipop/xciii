@@ -14,7 +14,7 @@ type Props = {
     // getter read behind Show is a menu built on open and torn down on close.
     menu: JSX.Element
     stopPropagationOnToggle?: boolean
-    classes?: string
+    class?: string
     disabled?: boolean
     isOpen?: boolean
     onToggle?: (open: boolean) => void
