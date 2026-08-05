@@ -99,6 +99,7 @@
   "BoardSetup.done-how": "Перетащите карточку в «In Progress» — созданная прямо в колонке ничего не запустит, триггер именно перенос. Выберите маршрут в поле «Workflow», иначе карточку обработают там, где она стоит, и дальше она не поедет.",
   "BoardSetup.finish": "Готово",
   "BoardSetup.next": "Дальше",
+  "BoardSetup.pending": "Доска настроена не до конца",
   "BoardSetup.pick-project": "Выберите папку проекта",
   "BoardSetup.project-known": "Уже добавлены: {names}",
   "BoardSetup.project-name": "Название",

@@ -59,7 +59,7 @@ import CardLimitNotification from './cardLimitNotification'
 import Gallery from './gallery/gallery'
 import {BoardTourSteps, FINISHED, TOUR_BOARD, TOUR_CARD} from './onboardingTour'
 import ShareBoardTourStep from './onboardingTour/shareBoard/shareBoard'
-import BoardSetupWizard, {readRegistry, rememberDismissed, setupNeeded} from './acp/boardSetupWizard'
+import BoardSetupWizard, {readRegistry, rememberOffered, setupNeeded, shouldOfferSetup} from './acp/boardSetupWizard'
 
 type Props = {
     clientConfig?: ClientConfig
@@ -79,17 +79,31 @@ const CenterPanel = (props: Props) => {
     const intl = useIntl()
     const [selectedCardIds, setSelectedCardIds] = createSignal<string[]>([])
 
-    // A board that runs something on a machine that cannot run it yet: ask for
-    // the missing half once, rather than let a dragged card explain it later.
+    // A board that runs something on a machine that cannot run it yet. The
+    // wizard opens by itself once per board — after that the header says so
+    // quietly and waits to be asked, because a modal on every launch is how a
+    // thing you meant to get round to becomes a thing you dismiss on reflex.
     const [showSetup, setShowSetup] = createSignal(false)
+    const [setupPending, setSetupPending] = createSignal(false)
     createEffect(() => {
         const board = props.board
         let cancelled = false
         readRegistry().then((registry) => {
-            if (!cancelled) {
-                setShowSetup(setupNeeded(board, registry))
+            if (cancelled) {
+                return
             }
-        }).catch(() => setShowSetup(false))
+            setSetupPending(setupNeeded(board, registry))
+            if (shouldOfferSetup(board, registry)) {
+                // Marked as offered when it opens, not when it closes: closing
+                // the window, quitting mid-way or never touching it again all
+                // mean the same thing — it has had its turn.
+                rememberOffered(board.id)
+                setShowSetup(true)
+            }
+        }).catch(() => {
+            setShowSetup(false)
+            setSetupPending(false)
+        })
         onCleanup(() => {
             cancelled = true
         })
@@ -419,8 +433,10 @@ const CenterPanel = (props: Props) => {
                     <BoardSetupWizard
                         board={props.board}
                         onClose={() => {
-                            rememberDismissed(props.board.id)
                             setShowSetup(false)
+                            readRegistry().
+                                then((registry) => setSetupPending(setupNeeded(props.board, registry))).
+                                catch(() => undefined)
                         }}
                     />
                 </RootPortal>
@@ -447,6 +463,19 @@ const CenterPanel = (props: Props) => {
                         board={props.board}
                         readonly={props.readonly}
                     />
+                    <Show when={setupPending()}>
+                        {/* The board says it runs agents and the machine cannot
+                            yet. Quiet, and always the way back into the wizard. */}
+                        <button
+                            class='CenterPanel__setupPending'
+                            onClick={() => setShowSetup(true)}
+                        >
+                            {intl.formatMessage({
+                                id: 'BoardSetup.pending',
+                                defaultMessage: 'This board is not set up yet',
+                            })}
+                        </button>
+                    </Show>
                     <div class='shareButtonWrapper'>
                         <Show when={showShareButton()}>
                             <ShareBoardButton

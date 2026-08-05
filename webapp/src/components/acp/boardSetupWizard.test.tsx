@@ -8,7 +8,7 @@ import {Board} from '../../blocks/board'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {wrapIntl} from '../../testUtils'
 
-import BoardSetupWizard, {isBoardSetupAvailable, readRegistry, rememberDismissed, setupNeeded} from './boardSetupWizard'
+import BoardSetupWizard, {isBoardSetupAvailable, readRegistry, rememberOffered, setupNeeded, shouldOfferSetup} from './boardSetupWizard'
 
 const anyWindow = window as any
 
@@ -64,15 +64,35 @@ describe('components/acp/boardSetupWizard when it offers itself', () => {
         expect(setupNeeded(templateBoard(), {agents: [{name: 'claude'}], projects: []})).toBe(true)
     })
 
-    test('closing it is remembered for that board alone', () => {
+    // Being offered the wizard is remembered per board, so making a second
+    // board still gets its own offer.
+    test('it is offered once per board', () => {
         stubBindings()
         const board = templateBoard()
         const other = templateBoard()
         other.id = 'board-two'
+        const empty = {agents: [], projects: []}
 
-        rememberDismissed(board.id)
-        expect(setupNeeded(board, {agents: [], projects: []})).toBe(false)
-        expect(setupNeeded(other, {agents: [], projects: []})).toBe(true)
+        expect(shouldOfferSetup(board, empty)).toBe(true)
+
+        rememberOffered(board.id)
+        expect(shouldOfferSetup(board, empty)).toBe(false)
+        expect(shouldOfferSetup(other, empty)).toBe(true)
+    })
+
+    // The offer is spent, the need is not: that is what the header reminder
+    // reads, and it is the whole reason the two are separate questions.
+    test('a board that has had its turn still reports that it needs setting up', () => {
+        stubBindings()
+        const board = templateBoard()
+        const empty = {agents: [], projects: []}
+
+        rememberOffered(board.id)
+        expect(shouldOfferSetup(board, empty)).toBe(false)
+        expect(setupNeeded(board, empty)).toBe(true)
+
+        // And once the machine is configured, the reminder goes too.
+        expect(setupNeeded(board, {agents: [{name: 'claude'}], projects: [{name: 'webapp', path: '/src'}]})).toBe(false)
     })
 })
 

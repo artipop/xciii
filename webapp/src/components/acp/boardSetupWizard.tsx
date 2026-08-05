@@ -50,25 +50,34 @@ export function boardCarriesAutomation(board?: Board): boolean {
     return Boolean(board?.properties && board.properties.acpFlows !== undefined)
 }
 
-// setupNeeded is the whole rule for showing the wizard by itself: a board that
-// runs something, a machine that cannot run it yet, and nobody having said no.
+// setupNeeded says the board runs something this machine cannot run yet. It is
+// true for as long as that is the case, which is what the reminder in the
+// header is for — it is not, on its own, a reason to open anything.
 export function setupNeeded(board: Board | undefined, registry: Registry | null): boolean {
     if (!board || !isBoardSetupAvailable() || !boardCarriesAutomation(board)) {
-        return false
-    }
-    if (dismissedFor(board.id)) {
         return false
     }
     return Boolean(registry) && (registry!.agents.length === 0 || registry!.projects.length === 0)
 }
 
-// The refusal is remembered per board, so closing it once is not an answer for
-// every board that follows.
-export function dismissedFor(boardId: string): boolean {
+// shouldOfferSetup is the rule for opening the wizard by itself, and it fires
+// once per board — on the first board you open after making it. It used to fire
+// on every launch until the setup was finished or refused, which meant the app
+// greeted you with a modal every morning for as long as you had not got round
+// to it. A thing you have already seen and closed is a reminder, not a dialog.
+export function shouldOfferSetup(board: Board | undefined, registry: Registry | null): boolean {
+    return setupNeeded(board, registry) && !offeredFor(board!.id)
+}
+
+// Remembered per board, so a board you have seen the wizard for is not the
+// answer for the next one you make. The stored value predates this and meant
+// "dismissed"; having dismissed it is having been offered it, so old settings
+// carry over without a migration.
+export function offeredFor(boardId: string): boolean {
     return Boolean(UserSettings.acpSetupDismissed[boardId])
 }
 
-export function rememberDismissed(boardId: string): void {
+export function rememberOffered(boardId: string): void {
     UserSettings.setAcpSetupDismissed(boardId)
 }
 
