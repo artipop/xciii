@@ -14,7 +14,7 @@ type Props = {
     // getter read behind Show is a menu built on open and torn down on close.
     menu: JSX.Element
     stopPropagationOnToggle?: boolean
-    className?: string
+    class?: string
     disabled?: boolean
     isOpen?: boolean
     onToggle?: (open: boolean) => void
@@ -83,7 +83,7 @@ const MenuWrapper: ParentComponent<Props> = (props) => {
         }
     })
 
-    const className = () => {
+    const classes = () => {
         let name = 'MenuWrapper'
         if (props.disabled) {
             name += ' disabled'
@@ -91,8 +91,8 @@ const MenuWrapper: ParentComponent<Props> = (props) => {
         if (open()) {
             name += ' override menuOpened'
         }
-        if (props.className) {
-            name += ' ' + props.className
+        if (props.class) {
+            name += ' ' + props.class
         }
         return name
     }
@@ -101,7 +101,7 @@ const MenuWrapper: ParentComponent<Props> = (props) => {
         <div
             role='button'
             aria-label={props.label || 'menuwrapper'}
-            class={className()}
+            class={classes()}
             onClick={toggle}
             ref={node}
         >

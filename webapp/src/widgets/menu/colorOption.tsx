@@ -13,12 +13,11 @@ type ColorOptionProps = MenuOptionProps & {
 }
 
 function ColorOption(props: ColorOptionProps): JSX.Element {
-    const {id, name, icon} = props
     const intl = useIntl()
     return (
         <div
             role='button'
-            aria-label={intl.formatMessage({id: 'ColorOption.selectColor', defaultMessage: 'Select {color} Color'}, {color: name})}
+            aria-label={intl.formatMessage({id: 'ColorOption.selectColor', defaultMessage: 'Select {color} Color'}, {color: props.name})}
             class='MenuOption ColorOption menu-option'
             onClick={(e: MouseEvent): void => {
                 (e.target as HTMLElement).dispatchEvent(new Event('menuItemClicked'))
@@ -26,9 +25,9 @@ function ColorOption(props: ColorOptionProps): JSX.Element {
                 e.stopPropagation()
             }}
         >
-            {icon ?? <div class='noicon'/>}
-            <div class='menu-name'>{name}</div>
-            <div class={`menu-colorbox ${id}`}/>
+            {props.icon ?? <div class='noicon'/>}
+            <div class='menu-name'>{props.name}</div>
+            <div class={`menu-colorbox ${props.id}`}/>
         </div>
     )
 }

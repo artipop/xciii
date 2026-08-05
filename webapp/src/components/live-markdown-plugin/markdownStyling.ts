@@ -31,7 +31,7 @@ export interface StyledSegment {
 export interface StyledLine {
     text: string
     blockType: string
-    className: string
+    class: string
     segments: StyledSegment[]
 }
 
@@ -57,14 +57,14 @@ const blockStrategies: BlockStrategy[] = [
     createHeadingBlockStrategy(),
 ]
 
-const classifyLine = (text: string, lineIndex: number, lines: string[]): {blockType: string, className: string} => {
+const classifyLine = (text: string, lineIndex: number, lines: string[]): {blockType: string, class: string} => {
     for (const strategy of blockStrategies) {
         const blockType = strategy.mapLineType(text, lineIndex, lines)
         if (blockType) {
-            return {blockType, className: strategy.className}
+            return {blockType, class: strategy.class}
         }
     }
-    return {blockType: '', className: ''}
+    return {blockType: '', class: ''}
 }
 
 const applyRanges = (
@@ -139,11 +139,11 @@ const styleLine = (text: string, blockType: string): StyledSegment[] => {
 export const computeStyledLines = (fullText: string): StyledLine[] => {
     const lines = fullText.split('\n')
     return lines.map((text, i) => {
-        const {blockType, className} = classifyLine(text, i, lines)
+        const {blockType, class: blockClass} = classifyLine(text, i, lines)
         return {
             text,
             blockType,
-            className,
+            class: blockClass,
             segments: styleLine(text, blockType),
         }
     })

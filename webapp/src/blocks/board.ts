@@ -53,7 +53,7 @@ type BoardPatch = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updatedProperties?: Record<string, any>
     deletedProperties?: string[]
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     updatedCardProperties?: IPropertyTemplate[]
     deletedCardProperties?: string[]
 }

@@ -93,7 +93,7 @@ const GlobalHeaderSettingsMenu = () => {
                         <Show when={me()?.is_guest !== true}>
                             <Menu.Text
                                 id='product-tour'
-                                className='product-tour'
+                                class='product-tour'
                                 name={intl.formatMessage({id: 'Sidebar.product-tour', defaultMessage: 'Product tour'})}
                                 onClick={async () => {
                                     TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.StartTour)

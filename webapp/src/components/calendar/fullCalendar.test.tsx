@@ -10,11 +10,11 @@ import {IPropertyTemplate} from '../../blocks/board'
 
 import CalendarView from './fullCalendar'
 
-jest.mock('../../mutator')
+vi.mock('../../mutator')
 
 describe('components/calendar/toolbar', () => {
-    const mockShow = jest.fn()
-    const mockAdd = jest.fn()
+    const mockShow = vi.fn()
+    const mockAdd = vi.fn()
     const dateDisplayProperty = {
         id: '12345',
         name: 'DateProperty',
@@ -47,7 +47,7 @@ describe('components/calendar/toolbar', () => {
     }
     const store = mockAppStore(state)
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('return calendar, no date property', () => {

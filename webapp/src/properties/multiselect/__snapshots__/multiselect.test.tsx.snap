@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`properties/multiSelect shows only the selected options when menu is not opened 1`] = `
+exports[`properties/multiSelect > shows only the selected options when menu is not opened 1`] = `
 <div>
   <div
     class="octo-propertyvalue octo-propertyvalue--readonly"

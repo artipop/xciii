@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/createCategory/CreateCategory base case should match snapshot 1`] = `
+exports[`components/createCategory/CreateCategory > base case should match snapshot 1`] = `
 <div>
   <div
     class="Dialog dialog-back CreateCategoryModal size--medium"

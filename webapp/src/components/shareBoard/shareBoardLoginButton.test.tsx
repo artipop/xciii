@@ -7,7 +7,7 @@ import {TestBlockFactory} from '../../test/testBlockFactory'
 import {wrapDNDIntl} from '../../testUtils'
 
 import ShareBoardLoginButton from './shareBoardLoginButton'
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 const boardId = '1'
 

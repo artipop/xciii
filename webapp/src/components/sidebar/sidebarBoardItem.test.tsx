@@ -74,9 +74,9 @@ describe('components/sidebarBoardItem', () => {
                         board={board}
                         allCategories={allCategoryBoards}
                         isActive={true}
-                        showBoard={jest.fn()}
-                        showView={jest.fn()}
-                        onDeleteRequest={jest.fn()}
+                        showBoard={vi.fn()}
+                        showView={vi.fn()}
+                        onDeleteRequest={vi.fn()}
                     />
                 </TestRouter>
             </AppStoreProvider>,
@@ -101,9 +101,9 @@ describe('components/sidebarBoardItem', () => {
                         board={noIconBoard}
                         allCategories={allCategoryBoards}
                         isActive={true}
-                        showBoard={jest.fn()}
-                        showView={jest.fn()}
-                        onDeleteRequest={jest.fn()}
+                        showBoard={vi.fn()}
+                        showView={vi.fn()}
+                        onDeleteRequest={vi.fn()}
                     />
                 </TestRouter>
             </AppStoreProvider>,
@@ -124,9 +124,9 @@ describe('components/sidebarBoardItem', () => {
                         board={board}
                         allCategories={allCategoryBoards}
                         isActive={true}
-                        showBoard={jest.fn()}
-                        showView={jest.fn()}
-                        onDeleteRequest={jest.fn()}
+                        showBoard={vi.fn()}
+                        showView={vi.fn()}
+                        onDeleteRequest={vi.fn()}
                     />
                 </TestRouter>
             </AppStoreProvider>,

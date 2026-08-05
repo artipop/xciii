@@ -9,13 +9,12 @@ import Switch from '../../widgets/switch'
 import {PropertyProps} from '../types'
 
 const Checkbox = (props: PropertyProps): JSX.Element => {
-    const {card, board, propertyTemplate, propertyValue} = props
     return (
         <Switch
-            isOn={Boolean(propertyValue)}
+            isOn={Boolean(props.propertyValue)}
             onChanged={(newBool: boolean) => {
                 const newValue = newBool ? 'true' : ''
-                mutator.changePropertyValue(board.id, card, propertyTemplate?.id || '', newValue)
+                mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate?.id || '', newValue)
             }}
             readOnly={props.readOnly}
         />

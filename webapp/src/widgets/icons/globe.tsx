@@ -9,7 +9,7 @@ export default function Globe(): JSX.Element {
     return (
         <CompassIcon
             icon='globe'
-            className='GlobeIcon'
+            class='GlobeIcon'
         />
     )
 }

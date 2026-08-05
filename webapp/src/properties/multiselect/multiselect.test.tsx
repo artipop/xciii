@@ -4,7 +4,6 @@ import {render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
 import '@testing-library/jest-dom'
-import {mocked} from 'jest-mock'
 
 import {IntlProvider} from '../../intl'
 
@@ -15,8 +14,8 @@ import mutator from '../../mutator'
 import MultiSelectProperty from './property'
 import MultiSelect from './multiselect'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 function buildMultiSelectPropertyTemplate(options: IPropertyOption[] = []): IPropertyTemplate {
     return {
@@ -72,7 +71,7 @@ describe('properties/multiSelect', () => {
     }
 
     beforeEach(() => {
-        jest.resetAllMocks()
+        vi.resetAllMocks()
     })
 
     it('shows only the selected options when menu is not opened', () => {

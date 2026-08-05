@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/viewHeader/viewHeaderPropertiesMenu return properties menu 1`] = `
+exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu 1`] = `
 <div>
   <div
     aria-label="Properties menu"
@@ -182,7 +182,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu return properties menu 1
 </div>
 `;
 
-exports[`components/viewHeader/viewHeaderPropertiesMenu return properties menu with gallery typeview 1`] = `
+exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu with gallery typeview 1`] = `
 <div>
   <div
     aria-label="Properties menu"

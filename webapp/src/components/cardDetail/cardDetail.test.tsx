@@ -6,8 +6,6 @@ import {render} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {FetchMock} from '../../test/fetchMock'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
@@ -21,9 +19,9 @@ import {createTextBlock} from '../../blocks/textBlock'
 import CardDetail from './cardDetail'
 
 global.fetch = FetchMock.fn
-jest.mock('../../octoClient')
+vi.mock('../../octoClient')
 
-const mockedOctoClient = mocked(octoClient)
+const mockedOctoClient = vi.mocked(octoClient)
 
 beforeEach(() => {
     FetchMock.fn.mockReset()
@@ -63,9 +61,6 @@ describe('components/cardDetail/CardDetail', () => {
 
     test('should show comments', async () => {
         const store = mockAppStore({
-            teams: {
-                current: {id: 'team-id'} as any,
-            },
             users: {
                 boardUsers: {
                     'user-id-1': {username: 'username_1'},
@@ -107,9 +102,9 @@ describe('components/cardDetail/CardDetail', () => {
                         contents={[]}
                         attachments={[]}
                         readonly={false}
-                        onClose={jest.fn()}
-                        onDelete={jest.fn()}
-                        addAttachment={jest.fn()}
+                        onClose={vi.fn()}
+                        onDelete={vi.fn()}
+                        addAttachment={vi.fn()}
                     />,
                 )}
             </AppStoreProvider>
@@ -168,9 +163,9 @@ describe('components/cardDetail/CardDetail', () => {
                         contents={[]}
                         attachments={[]}
                         readonly={true}
-                        onClose={jest.fn()}
-                        onDelete={jest.fn()}
-                        addAttachment={jest.fn()}
+                        onClose={vi.fn()}
+                        onDelete={vi.fn()}
+                        addAttachment={vi.fn()}
                     />,
                 )}
             </AppStoreProvider>
@@ -200,9 +195,6 @@ describe('components/cardDetail/CardDetail', () => {
         welcomeCard.title = 'Create a new card'
 
         const store = mockAppStore({
-            teams: {
-                current: {id: 'team-id'} as any,
-            },
             users: {
                 me: {
                     id: 'user_id_1',
@@ -253,9 +245,9 @@ describe('components/cardDetail/CardDetail', () => {
                         contents={[]}
                         attachments={[]}
                         readonly={false}
-                        onClose={jest.fn()}
-                        onDelete={jest.fn()}
-                        addAttachment={jest.fn()}
+                        onClose={vi.fn()}
+                        onDelete={vi.fn()}
+                        addAttachment={vi.fn()}
                     />,
                 )}
             </AppStoreProvider>
@@ -297,9 +289,6 @@ describe('components/cardDetail/CardDetail', () => {
         welcomeCard.title = 'Create a new card'
 
         const store = mockAppStore({
-            teams: {
-                current: {id: 'team-id'} as any,
-            },
             users: {
                 me: {
                     id: 'user_id_1',
@@ -350,9 +339,9 @@ describe('components/cardDetail/CardDetail', () => {
                         contents={[]}
                         attachments={[]}
                         readonly={false}
-                        onClose={jest.fn()}
-                        onDelete={jest.fn()}
-                        addAttachment={jest.fn()}
+                        onClose={vi.fn()}
+                        onDelete={vi.fn()}
+                        addAttachment={vi.fn()}
                     />,
                 )}
             </AppStoreProvider>
@@ -450,9 +439,9 @@ describe('components/cardDetail/CardDetail', () => {
                         contents={[text]}
                         attachments={[]}
                         readonly={false}
-                        onClose={jest.fn()}
-                        onDelete={jest.fn()}
-                        addAttachment={jest.fn()}
+                        onClose={vi.fn()}
+                        onDelete={vi.fn()}
+                        addAttachment={vi.fn()}
                     />,
                 )}
             </AppStoreProvider>
@@ -490,9 +479,6 @@ describe('components/cardDetail/CardDetail', () => {
     test('should render hidden view if limited', async () => {
         const limitedCard = {...card, limited: true}
         const store = mockAppStore({
-            teams: {
-                current: {id: 'team-id'} as any,
-            },
             users: {
                 workspaceUsers: [
                     {username: 'username_1'},
@@ -534,9 +520,9 @@ describe('components/cardDetail/CardDetail', () => {
                         contents={[]}
                         attachments={[]}
                         readonly={false}
-                        onClose={jest.fn()}
-                        onDelete={jest.fn()}
-                        addAttachment={jest.fn()}
+                        onClose={vi.fn()}
+                        onDelete={vi.fn()}
+                        addAttachment={vi.fn()}
                     />,
                 )}
             </AppStoreProvider>

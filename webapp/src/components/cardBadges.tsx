@@ -19,7 +19,7 @@ import './cardBadges.scss'
 
 type Props = {
     card: Card
-    className?: string
+    class?: string
 }
 
 type Checkboxes = {
@@ -83,7 +83,7 @@ const CardBadges = (props: Props) => {
 
     return (
         <Show when={hasBadges(badges())}>
-            <div class={`CardBadges ${props.className || ''}`}>
+            <div class={`CardBadges ${props.class || ''}`}>
                 <Show when={badges().description}>
                     <span title={intl.formatMessage({id: 'CardBadges.title-description', defaultMessage: 'This card has a description'})}>
                         <TextIcon/>

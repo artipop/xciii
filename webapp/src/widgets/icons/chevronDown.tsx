@@ -9,7 +9,7 @@ export default function ChevronDown(): JSX.Element {
     return (
         <CompassIcon
             icon='chevron-down'
-            className='ChevronDownIcon'
+            class='ChevronDownIcon'
         />
     )
 }

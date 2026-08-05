@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/cardDetail/comment return comment 1`] = `
+exports[`components/cardDetail/comment > return comment 1`] = `
 <div>
   <div
     class="Comment comment"
@@ -131,7 +131,7 @@ exports[`components/cardDetail/comment return comment 1`] = `
 </div>
 `;
 
-exports[`components/cardDetail/comment return comment and delete comment 1`] = `
+exports[`components/cardDetail/comment > return comment and delete comment 1`] = `
 <div>
   <div
     class="Comment comment"
@@ -262,7 +262,7 @@ exports[`components/cardDetail/comment return comment and delete comment 1`] = `
 </div>
 `;
 
-exports[`components/cardDetail/comment return comment readonly 1`] = `
+exports[`components/cardDetail/comment > return comment readonly 1`] = `
 <div>
   <div
     class="Comment comment"
@@ -303,7 +303,7 @@ exports[`components/cardDetail/comment return comment readonly 1`] = `
 </div>
 `;
 
-exports[`components/cardDetail/comment return guest comment 1`] = `
+exports[`components/cardDetail/comment > return guest comment 1`] = `
 <div>
   <div
     class="Comment comment"
@@ -442,7 +442,7 @@ exports[`components/cardDetail/comment return guest comment 1`] = `
 </div>
 `;
 
-exports[`components/cardDetail/comment return guest comment and delete comment 1`] = `
+exports[`components/cardDetail/comment > return guest comment and delete comment 1`] = `
 <div>
   <div
     class="Comment comment"
@@ -581,7 +581,7 @@ exports[`components/cardDetail/comment return guest comment and delete comment 1
 </div>
 `;
 
-exports[`components/cardDetail/comment return guest comment readonly 1`] = `
+exports[`components/cardDetail/comment > return guest comment readonly 1`] = `
 <div>
   <div
     class="Comment comment"

@@ -3,7 +3,6 @@
 
 import {render, screen} from '@solidjs/testing-library'
 
-import {mocked} from 'jest-mock'
 import '@testing-library/jest-dom'
 
 import userEvent from '@testing-library/user-event'
@@ -18,8 +17,8 @@ import {AppStoreProvider} from '../../store'
 
 import FilterComponenet from './filterComponent'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
@@ -46,7 +45,7 @@ const state = {
 const store = mockAppStore(state)
 describe('components/viewHeader/filterComponent', () => {
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         board.cardProperties[0].options = [{id: 'Status', value: 'Status', color: ''}]
         activeView.fields.filter.filters = [filter]
     })
@@ -57,7 +56,7 @@ describe('components/viewHeader/filterComponent', () => {
                     <FilterComponenet
                         board={board}
                         activeView={activeView}
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                     />
                 </AppStoreProvider>,
             ),
@@ -73,7 +72,7 @@ describe('components/viewHeader/filterComponent', () => {
                     <FilterComponenet
                         board={board}
                         activeView={activeView}
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                     />
                 </AppStoreProvider>,
             ),
@@ -94,7 +93,7 @@ describe('components/viewHeader/filterComponent', () => {
                     <FilterComponenet
                         board={board}
                         activeView={activeView}
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                     />
                 </AppStoreProvider>,
             ),
@@ -114,7 +113,7 @@ describe('components/viewHeader/filterComponent', () => {
                     <FilterComponenet
                         board={board}
                         activeView={activeView}
-                        onClose={jest.fn()}
+                        onClose={vi.fn()}
                     />
                 </AppStoreProvider>,
             ),

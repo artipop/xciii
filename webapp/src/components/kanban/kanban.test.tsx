@@ -3,7 +3,6 @@
 
 import {fireEvent, render, screen, waitFor} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
-import {mocked} from 'jest-mock'
 import userEvent from '@testing-library/user-event'
 
 import {IPropertyOption, IPropertyTemplate} from '../../blocks/board'
@@ -15,12 +14,18 @@ import {mutator} from '../../mutator'
 
 import Kanban from './kanban'
 
-global.fetch = jest.fn()
-jest.mock('../../utils')
-const mockedUtils = mocked(Utils)
-const mockedchangePropertyOptionValue = jest.spyOn(mutator, 'changePropertyOptionValue')
-const mockedChangeViewCardOrder = jest.spyOn(mutator, 'changeViewCardOrder')
-const mockedinsertPropertyOption = jest.spyOn(mutator, 'insertPropertyOption')
+global.fetch = vi.fn()
+vi.mock('../../utils')
+const mockedUtils = vi.mocked(Utils)
+
+// The spies stand in for the mutator rather than watching it: what these tests
+// check is that the board was asked to change, and the real mutator would go on
+// to rewrite card properties this fixture does not have. jest left a spy no-op
+// after resetAllMocks, vitest restores the original implementation, which is why
+// the stubs are written out here and the hooks below only clear call records.
+const mockedchangePropertyOptionValue = vi.spyOn(mutator, 'changePropertyOptionValue').mockResolvedValue(undefined)
+const mockedChangeViewCardOrder = vi.spyOn(mutator, 'changeViewCardOrder').mockResolvedValue(undefined)
+const mockedinsertPropertyOption = vi.spyOn(mutator, 'insertPropertyOption').mockResolvedValue(undefined)
 
 describe('src/component/kanban/kanban', () => {
     const board = TestBlockFactory.createBoard()
@@ -100,10 +105,10 @@ describe('src/component/kanban/kanban', () => {
     }
     const store = mockAppStore(state)
     beforeAll(() => {
-        console.error = jest.fn()
+        console.error = vi.fn()
         mockDOM()
     })
-    beforeEach(jest.resetAllMocks)
+    beforeEach(vi.clearAllMocks)
     test('should match snapshot', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
@@ -129,12 +134,12 @@ describe('src/component/kanban/kanban', () => {
                     ]}
                     selectedCardIds={[]}
                     readonly={false}
-                    onCardClicked={jest.fn()}
-                    addCard={jest.fn()}
-                    addCardFromTemplate={jest.fn()}
-                    showCard={jest.fn()}
+                    onCardClicked={vi.fn()}
+                    addCard={vi.fn()}
+                    addCardFromTemplate={vi.fn()}
+                    showCard={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -166,12 +171,12 @@ describe('src/component/kanban/kanban', () => {
                     ]}
                     selectedCardIds={[]}
                     readonly={false}
-                    onCardClicked={jest.fn()}
-                    addCard={jest.fn()}
-                    addCardFromTemplate={jest.fn()}
-                    showCard={jest.fn()}
+                    onCardClicked={vi.fn()}
+                    addCard={vi.fn()}
+                    addCardFromTemplate={vi.fn()}
+                    showCard={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -202,12 +207,12 @@ describe('src/component/kanban/kanban', () => {
                     ]}
                     selectedCardIds={[]}
                     readonly={false}
-                    onCardClicked={jest.fn()}
-                    addCard={jest.fn()}
-                    addCardFromTemplate={jest.fn()}
-                    showCard={jest.fn()}
+                    onCardClicked={vi.fn()}
+                    addCard={vi.fn()}
+                    addCardFromTemplate={vi.fn()}
+                    showCard={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -243,12 +248,12 @@ describe('src/component/kanban/kanban', () => {
                     ]}
                     selectedCardIds={[]}
                     readonly={false}
-                    onCardClicked={jest.fn()}
-                    addCard={jest.fn()}
-                    addCardFromTemplate={jest.fn()}
-                    showCard={jest.fn()}
+                    onCardClicked={vi.fn()}
+                    addCard={vi.fn()}
+                    addCardFromTemplate={vi.fn()}
+                    showCard={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -294,12 +299,12 @@ describe('src/component/kanban/kanban', () => {
                     ]}
                     selectedCardIds={[]}
                     readonly={false}
-                    onCardClicked={jest.fn()}
-                    addCard={jest.fn()}
-                    addCardFromTemplate={jest.fn()}
-                    showCard={jest.fn()}
+                    onCardClicked={vi.fn()}
+                    addCard={vi.fn()}
+                    addCardFromTemplate={vi.fn()}
+                    showCard={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -345,12 +350,12 @@ describe('src/component/kanban/kanban', () => {
                     ]}
                     selectedCardIds={[]}
                     readonly={false}
-                    onCardClicked={jest.fn()}
-                    addCard={jest.fn()}
-                    addCardFromTemplate={jest.fn()}
-                    showCard={jest.fn()}
+                    onCardClicked={vi.fn()}
+                    addCard={vi.fn()}
+                    addCardFromTemplate={vi.fn()}
+                    showCard={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -369,7 +374,7 @@ describe('src/component/kanban/kanban', () => {
         })
     })
     test('return kanban and click on New', () => {
-        const mockedAddCard = jest.fn()
+        const mockedAddCard = vi.fn()
         render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Kanban
@@ -394,12 +399,12 @@ describe('src/component/kanban/kanban', () => {
                     ]}
                     selectedCardIds={[]}
                     readonly={false}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     addCard={mockedAddCard}
-                    addCardFromTemplate={jest.fn()}
-                    showCard={jest.fn()}
+                    addCardFromTemplate={vi.fn()}
+                    showCard={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -434,12 +439,12 @@ describe('src/component/kanban/kanban', () => {
                     ]}
                     selectedCardIds={[]}
                     readonly={false}
-                    onCardClicked={jest.fn()}
-                    addCard={jest.fn()}
-                    addCardFromTemplate={jest.fn()}
-                    showCard={jest.fn()}
+                    onCardClicked={vi.fn()}
+                    addCard={vi.fn()}
+                    addCardFromTemplate={vi.fn()}
+                    showCard={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -474,12 +479,12 @@ describe('src/component/kanban/kanban', () => {
                     ]}
                     selectedCardIds={[]}
                     readonly={false}
-                    onCardClicked={jest.fn()}
-                    addCard={jest.fn()}
-                    addCardFromTemplate={jest.fn()}
-                    showCard={jest.fn()}
+                    onCardClicked={vi.fn()}
+                    addCard={vi.fn()}
+                    addCardFromTemplate={vi.fn()}
+                    showCard={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -521,12 +526,12 @@ describe('src/component/kanban/kanban', () => {
                     ]}
                     selectedCardIds={[]}
                     readonly={false}
-                    onCardClicked={jest.fn()}
-                    addCard={jest.fn()}
-                    addCardFromTemplate={jest.fn()}
-                    showCard={jest.fn()}
+                    onCardClicked={vi.fn()}
+                    addCard={vi.fn()}
+                    addCardFromTemplate={vi.fn()}
+                    showCard={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
@@ -619,12 +624,12 @@ describe('src/component/kanban/kanban', () => {
     }
     const store = mockAppStore(state)
     beforeAll(() => {
-        console.error = jest.fn()
+        console.error = vi.fn()
         mockDOM()
     })
-    beforeEach(jest.resetAllMocks)
+    beforeEach(vi.clearAllMocks)
     test('return kanban and click on New if view have already have defaultTemplateId', () => {
-        const mockedAddCard = jest.fn()
+        const mockedAddCard = vi.fn()
         render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Kanban
@@ -649,12 +654,12 @@ describe('src/component/kanban/kanban', () => {
                     ]}
                     selectedCardIds={[]}
                     readonly={false}
-                    onCardClicked={jest.fn()}
-                    addCard={jest.fn()}
+                    onCardClicked={vi.fn()}
+                    addCard={vi.fn()}
                     addCardFromTemplate={mockedAddCard}
-                    showCard={jest.fn()}
+                    showCard={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ), {wrapper: TestRouter})

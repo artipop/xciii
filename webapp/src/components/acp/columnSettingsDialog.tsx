@@ -120,7 +120,7 @@ const ColumnSettingsDialog = (props: Props) => {
 
     return (
         <Dialog
-            className='ColumnSettingsDialog'
+            class='ColumnSettingsDialog'
             title={<span>{intl.formatMessage({id: 'ColumnSettings.title', defaultMessage: 'Column: {name}'}, {name: props.option.value})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'ColumnSettings.subtitle', defaultMessage: 'What happens when a card lands here, and who does it. A flow only says where the card goes next.'})}</span>}
             onClose={props.onClose}

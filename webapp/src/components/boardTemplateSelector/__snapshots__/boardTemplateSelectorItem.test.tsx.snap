@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match snapshot 1`] = `
+exports[`components/boardTemplateSelector/boardTemplateSelectorItem > should match snapshot 1`] = `
 <div>
   <div
     class="BoardTemplateSelectorItem"
@@ -42,7 +42,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match
 </div>
 `;
 
-exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match snapshot when active 1`] = `
+exports[`components/boardTemplateSelector/boardTemplateSelectorItem > should match snapshot when active 1`] = `
 <div>
   <div
     class="BoardTemplateSelectorItem active"
@@ -84,7 +84,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match
 </div>
 `;
 
-exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match snapshot with global template 1`] = `
+exports[`components/boardTemplateSelector/boardTemplateSelectorItem > should match snapshot with global template 1`] = `
 <div>
   <div
     class="BoardTemplateSelectorItem"
@@ -105,7 +105,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorItem should match
 </div>
 `;
 
-exports[`components/boardTemplateSelector/boardTemplateSelectorItem should trigger the onDelete (and not any other) when click the delete icon and confirm 1`] = `
+exports[`components/boardTemplateSelector/boardTemplateSelectorItem > should trigger the onDelete (and not any other) when click the delete icon and confirm 1`] = `
 <div
   id="focalboard-root-portal"
 >

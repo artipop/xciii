@@ -48,7 +48,7 @@ const TableHeader = (props: Props): JSX.Element => {
         props.onAutoSizeColumn(templateId, width)
     }
 
-    const className = () => {
+    const classes = () => {
         let name = 'octo-table-cell header-cell'
         if (isOver()) {
             name += ' dragover'
@@ -60,7 +60,7 @@ const TableHeader = (props: Props): JSX.Element => {
 
     return (
         <div
-            class={className()}
+            class={classes()}
             style={{
                 overflow: 'unset',
                 opacity: isDragging() ? 0.5 : 1,

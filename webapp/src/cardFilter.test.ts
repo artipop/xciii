@@ -1,6 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {mocked} from 'jest-mock'
 
 import {createFilterClause} from './blocks/filterClause'
 
@@ -11,8 +10,8 @@ import {Utils} from './utils'
 
 import {IPropertyTemplate} from './blocks/board'
 
-jest.mock('./utils')
-const mockedUtils = mocked(Utils)
+vi.mock('./utils')
+const mockedUtils = vi.mocked(Utils)
 
 const dayMillis = 24 * 60 * 60 * 1000
 

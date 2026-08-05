@@ -59,7 +59,7 @@ describe('components/table/calculation/CalculationRow', () => {
         const component = () => wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
-                onResizeColumn={jest.fn()}
+                onResizeColumn={vi.fn()}
             >
                 <CalculationRow
                     board={board}
@@ -84,7 +84,7 @@ describe('components/table/calculation/CalculationRow', () => {
         const component = () => wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
-                onResizeColumn={jest.fn()}
+                onResizeColumn={vi.fn()}
             >
                 <CalculationRow
                     board={board}

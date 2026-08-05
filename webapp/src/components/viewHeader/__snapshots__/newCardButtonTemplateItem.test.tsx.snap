@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTemplateItem 1`] = `
+exports[`components/viewHeader/newCardButtonTemplateItem > return NewCardButtonTemplateItem 1`] = `
 <div>
   <div
     aria-label="title"
@@ -195,7 +195,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
 </div>
 `;
 
-exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTemplateItem and Set as default 1`] = `
+exports[`components/viewHeader/newCardButtonTemplateItem > return NewCardButtonTemplateItem and Set as default 1`] = `
 <div>
   <div
     aria-label="title"
@@ -390,7 +390,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
 </div>
 `;
 
-exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTemplateItem and add Card from template 1`] = `
+exports[`components/viewHeader/newCardButtonTemplateItem > return NewCardButtonTemplateItem and add Card from template 1`] = `
 <div>
   <div
     aria-label="title"
@@ -439,7 +439,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
 </div>
 `;
 
-exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTemplateItem and delete 1`] = `
+exports[`components/viewHeader/newCardButtonTemplateItem > return NewCardButtonTemplateItem and delete 1`] = `
 <div>
   <div
     aria-label="title"
@@ -634,7 +634,7 @@ exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTem
 </div>
 `;
 
-exports[`components/viewHeader/newCardButtonTemplateItem return NewCardButtonTemplateItem and edit 1`] = `
+exports[`components/viewHeader/newCardButtonTemplateItem > return NewCardButtonTemplateItem and edit 1`] = `
 <div>
   <div
     aria-label="title"

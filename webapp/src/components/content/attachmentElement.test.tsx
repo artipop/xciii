@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {render} from '@solidjs/testing-library'
-import {mocked} from 'jest-mock'
 
 import {AttachmentBlock} from '../../blocks/attachmentBlock'
 import {mockAppStore, wrapIntl} from '../../testUtils'
@@ -13,8 +12,8 @@ import {IUser} from '../../user'
 
 import AttachmentElement from './attachmentElement'
 
-jest.mock('../../octoClient')
-const mockedOcto = mocked(octoClient)
+vi.mock('../../octoClient')
+const mockedOcto = vi.mocked(octoClient)
 mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.txt'})
 mockedOcto.getFileInfo.mockResolvedValue({
     name: 'test.txt',

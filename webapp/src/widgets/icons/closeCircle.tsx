@@ -11,7 +11,7 @@ export default function CloseCircle(): JSX.Element {
     return (
         <CompassIcon
             icon='close-circle'
-            className='CloseCircle'
+            class='CloseCircle'
         />
     )
 }

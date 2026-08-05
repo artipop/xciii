@@ -5,8 +5,8 @@ import '@testing-library/jest-dom'
 import TelemetryClient from './telemetryClient'
 
 describe('trackEvent', () => {
-    const track = jest.fn()
-    const page = jest.fn()
+    const track = vi.fn()
+    const page = vi.fn()
     test('should call Rudder\'s track when a RudderTelemetryHandler is attached to TelemetryClient', () => {
         TelemetryClient.setTelemetryHandler()
         TelemetryClient.trackEvent('test', 'onClick')

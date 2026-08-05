@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/sidebarBoardItem renders default icon if no custom icon set 1`] = `
+exports[`components/sidebarBoardItem > renders default icon if no custom icon set 1`] = `
 <div>
   <div>
     <div
@@ -70,7 +70,7 @@ exports[`components/sidebarBoardItem renders default icon if no custom icon set 
 </div>
 `;
 
-exports[`components/sidebarBoardItem sidebar board item 1`] = `
+exports[`components/sidebarBoardItem > sidebar board item 1`] = `
 <div>
   <div>
     <div
@@ -366,7 +366,7 @@ exports[`components/sidebarBoardItem sidebar board item 1`] = `
 </div>
 `;
 
-exports[`components/sidebarBoardItem sidebar board item for guest 1`] = `
+exports[`components/sidebarBoardItem > sidebar board item for guest 1`] = `
 <div>
   <div>
     <div

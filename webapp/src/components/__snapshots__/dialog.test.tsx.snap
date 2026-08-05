@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/dialog should match snapshot 1`] = `
+exports[`components/dialog > should match snapshot 1`] = `
 <div>
   <div
     class="Dialog dialog-back undefined size--medium"
@@ -50,7 +50,7 @@ exports[`components/dialog should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/dialog should return dialog and click on cancel button 1`] = `
+exports[`components/dialog > should return dialog and click on cancel button 1`] = `
 <div>
   <div
     class="Dialog dialog-back undefined size--medium"

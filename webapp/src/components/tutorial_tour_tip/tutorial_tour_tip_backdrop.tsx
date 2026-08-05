@@ -1,5 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+import {Show} from 'solid-js'
 
 export type Coords = {
     x?: string
@@ -12,42 +13,22 @@ export type TutorialTourTipPunchout = Coords & {
 }
 
 const TutorialTourTipBackdrop = (props: TutorialTourTipPunchout) => {
-    const {x, y, width, height} = props
-    if (!x || !y || !width || !height) {
-        return null
-    }
-
-    const vertices = []
-
-    // draw to top left of punch out
-    vertices.push('0% 0%')
-    vertices.push('0% 100%')
-    vertices.push('100% 100%')
-    vertices.push('100% 0%')
-    vertices.push(`${x} 0%`)
-    vertices.push(`${x} ${y}`)
-
-    // draw punch out
-    vertices.push(`calc(${x} + ${width}) ${y}`)
-    vertices.push(`calc(${x} + ${width}) calc(${y} + ${height})`)
-    vertices.push(`${x} calc(${y} + ${height})`)
-    vertices.push(`${x} ${y}`)
-
-    // close off punch out
-    vertices.push(`${x} 0%`)
-    vertices.push('0% 0%')
-
+    // The box moves with the element it highlights, so it is read on every
+    // change rather than measured once. (A clip-path polygon used to be built
+    // here from the same numbers and never reached the DOM; it is gone.)
     return (
-        <div
-            class={'tip-backdrop'}
-            style={{
-                left: x,
-                top: y,
-                width,
-                height,
-            }}
-            onClick={props.handleClick}
-        />
+        <Show when={props.x && props.y && props.width && props.height}>
+            <div
+                class={'tip-backdrop'}
+                style={{
+                    left: props.x,
+                    top: props.y,
+                    width: props.width,
+                    height: props.height,
+                }}
+                onClick={props.handleClick}
+            />
+        </Show>
     )
 }
 

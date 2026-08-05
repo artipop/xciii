@@ -328,7 +328,7 @@ const SidebarCategory = (props: Props) => {
                             </Show>
 
                             <MenuWrapper
-                                className={categoryMenuOpen() ? 'menuOpen' : ''}
+                                class={categoryMenuOpen() ? 'menuOpen' : ''}
                                 stopPropagationOnToggle={true}
                                 onToggle={(open) => setCategoryMenuOpen(open)}
                                 menu={
@@ -346,7 +346,7 @@ const SidebarCategory = (props: Props) => {
                                             />
                                             <Menu.Text
                                                 id='deleteCategory'
-                                                className='text-danger'
+                                                class='text-danger'
                                                 name={intl.formatMessage({id: 'SidebarCategories.CategoryMenu.Delete', defaultMessage: 'Delete Category'})}
                                                 icon={<DeleteIcon/>}
                                                 onClick={() => setShowDeleteCategoryDialog(true)}

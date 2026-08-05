@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/cardDialog already following card 1`] = `
+exports[`components/cardDialog > already following card 1`] = `
 <div>
   <div
     class="Dialog dialog-back cardDialog size--medium"
@@ -220,7 +220,7 @@ exports[`components/cardDialog already following card 1`] = `
 </div>
 `;
 
-exports[`components/cardDialog limited card shows hidden view (no toolbar) 1`] = `
+exports[`components/cardDialog > limited card shows hidden view (no toolbar) 1`] = `
 <div>
   <div
     class="Dialog dialog-back cardDialog size--medium"
@@ -472,7 +472,7 @@ exports[`components/cardDialog limited card shows hidden view (no toolbar) 1`] =
 </div>
 `;
 
-exports[`components/cardDialog return a cardDialog readonly 1`] = `
+exports[`components/cardDialog > return a cardDialog readonly 1`] = `
 <div>
   <div
     class="Dialog dialog-back cardDialog size--medium"
@@ -608,7 +608,7 @@ exports[`components/cardDialog return a cardDialog readonly 1`] = `
 </div>
 `;
 
-exports[`components/cardDialog return cardDialog menu content 1`] = `
+exports[`components/cardDialog > return cardDialog menu content 1`] = `
 <div>
   <div
     class="Dialog dialog-back cardDialog size--medium"
@@ -969,7 +969,7 @@ exports[`components/cardDialog return cardDialog menu content 1`] = `
 </div>
 `;
 
-exports[`components/cardDialog return cardDialog menu content and cancel delete confirmation do nothing 1`] = `
+exports[`components/cardDialog > return cardDialog menu content and cancel delete confirmation do nothing 1`] = `
 <div>
   <div
     class="Dialog dialog-back cardDialog size--medium"
@@ -1189,7 +1189,7 @@ exports[`components/cardDialog return cardDialog menu content and cancel delete 
 </div>
 `;
 
-exports[`components/cardDialog should match snapshot 1`] = `
+exports[`components/cardDialog > should match snapshot 1`] = `
 <div>
   <div
     class="Dialog dialog-back cardDialog size--medium"
@@ -1409,7 +1409,7 @@ exports[`components/cardDialog should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/cardDialog should match snapshot without permissions 1`] = `
+exports[`components/cardDialog > should match snapshot without permissions 1`] = `
 <div>
   <div
     class="Dialog dialog-back cardDialog size--medium"

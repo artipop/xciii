@@ -9,7 +9,7 @@ export default function HandRight(): JSX.Element {
     return (
         <CompassIcon
             icon='hand-right'
-            className='HandRightIcon'
+            class='HandRightIcon'
         />
     )
 }

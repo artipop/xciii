@@ -12,11 +12,11 @@ import {MemberRole} from '../../blocks/board'
 
 import TeamPermissionsRow from './teamPermissionsRow'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 const boardId = '1'
 
-jest.mock('../../utils')
+vi.mock('../../utils')
 
 const board = TestBlockFactory.createBoard()
 board.id = boardId
@@ -65,7 +65,7 @@ describe('src/components/shareBoard/teamPermissionsRow', () => {
     }
 
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('should match snapshot', async () => {

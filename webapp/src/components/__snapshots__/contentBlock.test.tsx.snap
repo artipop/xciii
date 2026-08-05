@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/contentBlock return commentBlock and click on menuwrapper 1`] = `
+exports[`components/contentBlock > return commentBlock and click on menuwrapper 1`] = `
 <div>
   <div
     class="rowContents"
@@ -237,7 +237,7 @@ exports[`components/contentBlock return commentBlock and click on menuwrapper 1`
 </div>
 `;
 
-exports[`components/contentBlock should match snapshot with commentBlock 1`] = `
+exports[`components/contentBlock > should match snapshot with commentBlock 1`] = `
 <div>
   <div
     class="rowContents"
@@ -293,7 +293,7 @@ exports[`components/contentBlock should match snapshot with commentBlock 1`] = `
 </div>
 `;
 
-exports[`components/contentBlock should match snapshot with commentBlock readonly 1`] = `
+exports[`components/contentBlock > should match snapshot with commentBlock readonly 1`] = `
 <div>
   <div
     class="rowContents"
@@ -317,7 +317,7 @@ exports[`components/contentBlock should match snapshot with commentBlock readonl
 </div>
 `;
 
-exports[`components/contentBlock should match snapshot with dividerBlock 1`] = `
+exports[`components/contentBlock > should match snapshot with dividerBlock 1`] = `
 <div>
   <div
     class="rowContents"
@@ -375,7 +375,7 @@ exports[`components/contentBlock should match snapshot with dividerBlock 1`] = `
 </div>
 `;
 
-exports[`components/contentBlock should match snapshot with imageBlock 1`] = `
+exports[`components/contentBlock > should match snapshot with imageBlock 1`] = `
 <div>
   <div
     class="rowContents"
@@ -431,7 +431,7 @@ exports[`components/contentBlock should match snapshot with imageBlock 1`] = `
 </div>
 `;
 
-exports[`components/contentBlock should match snapshot with textBlock 1`] = `
+exports[`components/contentBlock > should match snapshot with textBlock 1`] = `
 <div>
   <div
     class="rowContents"

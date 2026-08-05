@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and click on menuwrapper 1`] = `
+exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader and click on menuwrapper 1`] = `
 <div>
   <div
     class="octo-board-header-cell KanbanColumnHeader"
@@ -376,7 +376,7 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
 </div>
 `;
 
-exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and edit title 1`] = `
+exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader and edit title 1`] = `
 <div>
   <div
     class="octo-board-header-cell KanbanColumnHeader"
@@ -442,7 +442,7 @@ exports[`src/components/kanban/kanbanColumnHeader return kanbanColumnHeader and 
 </div>
 `;
 
-exports[`src/components/kanban/kanbanColumnHeader should match snapshot 1`] = `
+exports[`src/components/kanban/kanbanColumnHeader > should match snapshot 1`] = `
 <div>
   <div
     class="octo-board-header-cell KanbanColumnHeader"
@@ -508,7 +508,7 @@ exports[`src/components/kanban/kanbanColumnHeader should match snapshot 1`] = `
 </div>
 `;
 
-exports[`src/components/kanban/kanbanColumnHeader should match snapshot readonly 1`] = `
+exports[`src/components/kanban/kanbanColumnHeader > should match snapshot readonly 1`] = `
 <div>
   <div
     class="octo-board-header-cell KanbanColumnHeader"

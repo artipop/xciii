@@ -3,7 +3,6 @@
 import {fireEvent, render, screen, within} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
-import {mocked} from 'jest-mock'
 
 import {createIntl} from '../../intl'
 
@@ -14,8 +13,8 @@ import {TestBlockFactory} from '../../test/testBlockFactory'
 import {IPropertyOption} from '../../blocks/board'
 
 import KanbanColumnHeader from './kanbanColumnHeader'
-jest.mock('../../mutator')
-const mockedMutator = mocked(Mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(Mutator)
 describe('src/components/kanban/kanbanColumnHeader', () => {
     const intl = createIntl({locale: 'en-us'})
     const board = TestBlockFactory.createBoard()
@@ -50,9 +49,9 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
     }
     const store = mockAppStore(state)
     beforeAll(() => {
-        console.error = jest.fn()
+        console.error = vi.fn()
     })
-    beforeEach(jest.resetAllMocks)
+    beforeEach(vi.resetAllMocks)
     test('should match snapshot', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
@@ -65,12 +64,12 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     }}
                     intl={intl}
                     readonly={false}
-                    addCard={jest.fn()}
-                    propertyNameChanged={jest.fn()}
-                    onDropToColumn={jest.fn()}
+                    addCard={vi.fn()}
+                    propertyNameChanged={vi.fn()}
+                    onDropToColumn={vi.fn()}
                     calculationMenuOpen={false}
-                    onCalculationMenuOpen={jest.fn()}
-                    onCalculationMenuClose={jest.fn()}
+                    onCalculationMenuOpen={vi.fn()}
+                    onCalculationMenuClose={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -88,19 +87,19 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     }}
                     intl={intl}
                     readonly={true}
-                    addCard={jest.fn()}
-                    propertyNameChanged={jest.fn()}
-                    onDropToColumn={jest.fn()}
+                    addCard={vi.fn()}
+                    propertyNameChanged={vi.fn()}
+                    onDropToColumn={vi.fn()}
                     calculationMenuOpen={false}
-                    onCalculationMenuOpen={jest.fn()}
-                    onCalculationMenuClose={jest.fn()}
+                    onCalculationMenuOpen={vi.fn()}
+                    onCalculationMenuClose={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
     })
     test('return kanbanColumnHeader and edit title', () => {
-        const mockedPropertyNameChanged = jest.fn()
+        const mockedPropertyNameChanged = vi.fn()
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <KanbanColumnHeader
@@ -112,12 +111,12 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     }}
                     intl={intl}
                     readonly={false}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     propertyNameChanged={mockedPropertyNameChanged}
-                    onDropToColumn={jest.fn()}
+                    onDropToColumn={vi.fn()}
                     calculationMenuOpen={false}
-                    onCalculationMenuOpen={jest.fn()}
-                    onCalculationMenuClose={jest.fn()}
+                    onCalculationMenuOpen={vi.fn()}
+                    onCalculationMenuClose={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -141,12 +140,12 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     }}
                     intl={intl}
                     readonly={false}
-                    addCard={jest.fn()}
-                    propertyNameChanged={jest.fn()}
-                    onDropToColumn={jest.fn()}
+                    addCard={vi.fn()}
+                    propertyNameChanged={vi.fn()}
+                    onDropToColumn={vi.fn()}
                     calculationMenuOpen={false}
-                    onCalculationMenuOpen={jest.fn()}
-                    onCalculationMenuClose={jest.fn()}
+                    onCalculationMenuOpen={vi.fn()}
+                    onCalculationMenuClose={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -167,12 +166,12 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     }}
                     intl={intl}
                     readonly={false}
-                    addCard={jest.fn()}
-                    propertyNameChanged={jest.fn()}
-                    onDropToColumn={jest.fn()}
+                    addCard={vi.fn()}
+                    propertyNameChanged={vi.fn()}
+                    onDropToColumn={vi.fn()}
                     calculationMenuOpen={false}
-                    onCalculationMenuOpen={jest.fn()}
-                    onCalculationMenuClose={jest.fn()}
+                    onCalculationMenuOpen={vi.fn()}
+                    onCalculationMenuClose={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -196,12 +195,12 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     }}
                     intl={intl}
                     readonly={false}
-                    addCard={jest.fn()}
-                    propertyNameChanged={jest.fn()}
-                    onDropToColumn={jest.fn()}
+                    addCard={vi.fn()}
+                    propertyNameChanged={vi.fn()}
+                    onDropToColumn={vi.fn()}
                     calculationMenuOpen={false}
-                    onCalculationMenuOpen={jest.fn()}
-                    onCalculationMenuClose={jest.fn()}
+                    onCalculationMenuOpen={vi.fn()}
+                    onCalculationMenuClose={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -225,12 +224,12 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     }}
                     intl={intl}
                     readonly={false}
-                    addCard={jest.fn()}
-                    propertyNameChanged={jest.fn()}
-                    onDropToColumn={jest.fn()}
+                    addCard={vi.fn()}
+                    propertyNameChanged={vi.fn()}
+                    onDropToColumn={vi.fn()}
                     calculationMenuOpen={false}
-                    onCalculationMenuOpen={jest.fn()}
-                    onCalculationMenuClose={jest.fn()}
+                    onCalculationMenuOpen={vi.fn()}
+                    onCalculationMenuClose={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -244,7 +243,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
     })
 
     test('return kanbanColumnHeader and click to add card', () => {
-        const mockedAddCard = jest.fn()
+        const mockedAddCard = vi.fn()
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <KanbanColumnHeader
@@ -257,11 +256,11 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     intl={intl}
                     readonly={false}
                     addCard={mockedAddCard}
-                    propertyNameChanged={jest.fn()}
-                    onDropToColumn={jest.fn()}
+                    propertyNameChanged={vi.fn()}
+                    onDropToColumn={vi.fn()}
                     calculationMenuOpen={false}
-                    onCalculationMenuOpen={jest.fn()}
-                    onCalculationMenuClose={jest.fn()}
+                    onCalculationMenuOpen={vi.fn()}
+                    onCalculationMenuClose={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -271,7 +270,7 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(mockedAddCard).toHaveBeenCalledTimes(1)
     })
     test('return kanbanColumnHeader and click KanbanCalculationMenu', () => {
-        const mockedCalculationMenuOpen = jest.fn()
+        const mockedCalculationMenuOpen = vi.fn()
         render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <KanbanColumnHeader
@@ -283,12 +282,12 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     }}
                     intl={intl}
                     readonly={false}
-                    addCard={jest.fn()}
-                    propertyNameChanged={jest.fn()}
-                    onDropToColumn={jest.fn()}
+                    addCard={vi.fn()}
+                    propertyNameChanged={vi.fn()}
+                    onDropToColumn={vi.fn()}
                     calculationMenuOpen={false}
                     onCalculationMenuOpen={mockedCalculationMenuOpen}
-                    onCalculationMenuClose={jest.fn()}
+                    onCalculationMenuClose={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -309,12 +308,12 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
                     }}
                     intl={intl}
                     readonly={false}
-                    addCard={jest.fn()}
-                    propertyNameChanged={jest.fn()}
-                    onDropToColumn={jest.fn()}
+                    addCard={vi.fn()}
+                    propertyNameChanged={vi.fn()}
+                    onDropToColumn={vi.fn()}
                     calculationMenuOpen={true}
-                    onCalculationMenuOpen={jest.fn()}
-                    onCalculationMenuClose={jest.fn()}
+                    onCalculationMenuOpen={vi.fn()}
+                    onCalculationMenuClose={vi.fn()}
                 />
             </AppStoreProvider>,
         ))

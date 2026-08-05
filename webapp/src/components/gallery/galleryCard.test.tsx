@@ -5,8 +5,6 @@ import {render, screen} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {mockAppStore, wrapDNDIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
@@ -20,14 +18,14 @@ import octoClient from '../../octoClient'
 
 import GalleryCard from './galleryCard'
 
-jest.mock('../../mutator')
-jest.mock('../../utils')
-jest.mock('../../octoClient')
+vi.mock('../../mutator')
+vi.mock('../../utils')
+vi.mock('../../octoClient')
 
 describe('src/components/gallery/GalleryCard', () => {
-    const mockedMutator = mocked(mutator)
-    const mockedUtils = mocked(Utils)
-    const mockedOcto = mocked(octoClient)
+    const mockedMutator = vi.mocked(mutator)
+    const mockedUtils = vi.mocked(Utils)
+    const mockedOcto = vi.mocked(octoClient)
     mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.jpg'})
 
     const board = TestBlockFactory.createBoard()
@@ -49,7 +47,7 @@ describe('src/components/gallery/GalleryCard', () => {
     let store: ReturnType<typeof mockAppStore>
 
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     describe('without block content', () => {
@@ -96,14 +94,14 @@ describe('src/components/gallery/GalleryCard', () => {
                     <GalleryCard
                         board={board}
                         card={card}
-                        onClick={jest.fn()}
+                        onClick={vi.fn()}
                         visiblePropertyTemplates={[{id: card.id, name: 'testTemplateProperty', type: 'text', options: [{id: '1', value: 'testValue', color: 'blue'}]}]}
                         visibleTitle={true}
                         isSelected={true}
                         visibleBadges={false}
                         readonly={false}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))
@@ -112,7 +110,7 @@ describe('src/components/gallery/GalleryCard', () => {
             expect(container).toMatchSnapshot()
         })
         test('return GalleryCard and click on it', () => {
-            const mockedOnClick = jest.fn()
+            const mockedOnClick = vi.fn()
             const {container} = render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <GalleryCard
@@ -125,7 +123,7 @@ describe('src/components/gallery/GalleryCard', () => {
                         visibleBadges={false}
                         readonly={false}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))
@@ -139,14 +137,14 @@ describe('src/components/gallery/GalleryCard', () => {
                     <GalleryCard
                         board={board}
                         card={card}
-                        onClick={jest.fn()}
+                        onClick={vi.fn()}
                         visiblePropertyTemplates={[]}
                         visibleTitle={true}
                         isSelected={true}
                         visibleBadges={false}
                         readonly={false}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))
@@ -163,14 +161,14 @@ describe('src/components/gallery/GalleryCard', () => {
                     <GalleryCard
                         board={board}
                         card={card}
-                        onClick={jest.fn()}
+                        onClick={vi.fn()}
                         visiblePropertyTemplates={[]}
                         visibleTitle={true}
                         isSelected={true}
                         visibleBadges={false}
                         readonly={false}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))
@@ -188,14 +186,14 @@ describe('src/components/gallery/GalleryCard', () => {
                     <GalleryCard
                         board={board}
                         card={card}
-                        onClick={jest.fn()}
+                        onClick={vi.fn()}
                         visiblePropertyTemplates={[]}
                         visibleTitle={true}
                         isSelected={true}
                         visibleBadges={false}
                         readonly={false}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))
@@ -212,14 +210,14 @@ describe('src/components/gallery/GalleryCard', () => {
                     <GalleryCard
                         board={board}
                         card={card}
-                        onClick={jest.fn()}
+                        onClick={vi.fn()}
                         visiblePropertyTemplates={[]}
                         visibleTitle={true}
                         isSelected={true}
                         visibleBadges={false}
                         readonly={false}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))
@@ -279,14 +277,14 @@ describe('src/components/gallery/GalleryCard', () => {
                     <GalleryCard
                         board={board}
                         card={card}
-                        onClick={jest.fn()}
+                        onClick={vi.fn()}
                         visiblePropertyTemplates={[]}
                         visibleTitle={true}
                         isSelected={true}
                         visibleBadges={false}
                         readonly={false}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))
@@ -349,14 +347,14 @@ describe('src/components/gallery/GalleryCard', () => {
                     <GalleryCard
                         board={board}
                         card={card}
-                        onClick={jest.fn()}
+                        onClick={vi.fn()}
                         visiblePropertyTemplates={[]}
                         visibleTitle={true}
                         isSelected={true}
                         visibleBadges={false}
                         readonly={false}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))
@@ -414,14 +412,14 @@ describe('src/components/gallery/GalleryCard', () => {
                     <GalleryCard
                         board={board}
                         card={card}
-                        onClick={jest.fn()}
+                        onClick={vi.fn()}
                         visiblePropertyTemplates={[]}
                         visibleTitle={true}
                         isSelected={true}
                         visibleBadges={false}
                         readonly={false}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))
@@ -435,14 +433,14 @@ describe('src/components/gallery/GalleryCard', () => {
                     <GalleryCard
                         board={board}
                         card={card}
-                        onClick={jest.fn()}
+                        onClick={vi.fn()}
                         visiblePropertyTemplates={[]}
                         visibleTitle={true}
                         isSelected={true}
                         visibleBadges={false}
                         readonly={true}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))
@@ -500,14 +498,14 @@ describe('src/components/gallery/GalleryCard', () => {
                     <GalleryCard
                         board={board}
                         card={card}
-                        onClick={jest.fn()}
+                        onClick={vi.fn()}
                         visiblePropertyTemplates={[]}
                         visibleTitle={true}
                         isSelected={true}
                         visibleBadges={false}
                         readonly={false}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))
@@ -521,14 +519,14 @@ describe('src/components/gallery/GalleryCard', () => {
                     <GalleryCard
                         board={board}
                         card={card}
-                        onClick={jest.fn()}
+                        onClick={vi.fn()}
                         visiblePropertyTemplates={[]}
                         visibleTitle={true}
                         isSelected={true}
                         visibleBadges={false}
                         readonly={true}
                         isManualSort={true}
-                        onDrop={jest.fn()}
+                        onDrop={vi.fn()}
                     />
                 </AppStoreProvider>,
             ))

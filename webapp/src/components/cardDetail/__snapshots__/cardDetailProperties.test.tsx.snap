@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/cardDetail/CardDetailProperties cancel on delete dialog should do nothing 1`] = `
+exports[`components/cardDetail/CardDetailProperties > cancel on delete dialog should do nothing 1`] = `
 <div>
   <div
     class="octo-propertylist CardDetailProperties"
@@ -103,7 +103,7 @@ exports[`components/cardDetail/CardDetailProperties cancel on delete dialog shou
 </div>
 `;
 
-exports[`components/cardDetail/CardDetailProperties should match snapshot 1`] = `
+exports[`components/cardDetail/CardDetailProperties > should match snapshot 1`] = `
 <div>
   <div
     class="octo-propertylist CardDetailProperties"
@@ -206,7 +206,7 @@ exports[`components/cardDetail/CardDetailProperties should match snapshot 1`] = 
 </div>
 `;
 
-exports[`components/cardDetail/CardDetailProperties should show property types menu 1`] = `
+exports[`components/cardDetail/CardDetailProperties > should show property types menu 1`] = `
 <div>
   <div
     class="octo-propertylist CardDetailProperties"

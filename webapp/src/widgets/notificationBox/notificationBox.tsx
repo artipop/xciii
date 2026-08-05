@@ -16,7 +16,7 @@ type Props = {
     children?: JSX.Element
     onClose?: () => void
     closeTooltip?: string
-    className?: string
+    class?: string
 }
 
 function renderClose(onClose?: () => void, closeTooltip?: string) {
@@ -44,13 +44,13 @@ function renderClose(onClose?: () => void, closeTooltip?: string) {
 }
 
 function NotificationBox(props: Props): JSX.Element {
-    const className = Utils.generateClassName({
+    const classes = Utils.generateClassName({
         NotificationBox: true,
-        [props.className || '']: Boolean(props.className),
+        [props.class || '']: Boolean(props.class),
     })
 
     return (
-        <div class={className}>
+        <div class={classes}>
             {props.icon &&
                 <div class='NotificationBox__icon'>
                     {props.icon}

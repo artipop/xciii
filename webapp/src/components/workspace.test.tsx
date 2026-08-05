@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 import {render, waitFor} from '@solidjs/testing-library'
-import {mocked} from 'jest-mock'
 
 import userEvent from '@testing-library/user-event'
 
@@ -16,11 +15,15 @@ import {Utils} from '../utils'
 import Workspace from './workspace'
 
 Object.defineProperty(Constants, 'versionString', {value: '1.0.0'})
-jest.useFakeTimers()
-jest.mock('../utils')
-jest.mock('../octoClient')
-const mockedUtils = mocked(Utils)
-const mockedOctoClient = mocked(octoClient)
+vi.useFakeTimers()
+vi.mock('../utils')
+vi.mock('../octoClient')
+const mockedUtils = vi.mocked(Utils)
+const mockedOctoClient = vi.mocked(octoClient)
+
+// vi.importActual is a promise where jest.requireActual was a require, so the
+// real module is fetched once here rather than from inside beforeEach.
+const {Utils: actualUtils} = await vi.importActual<typeof import('../utils')>('../utils')
 const board = TestBlockFactory.createBoard()
 board.id = 'board1'
 board.teamId = 'team-id'
@@ -90,7 +93,7 @@ categoryAttribute1.name = 'Category 1'
 categoryAttribute1.boardMetadata = [{boardID: board.id, hidden: false}]
 
 const mockRouteParams: Record<string, string> = {}
-jest.mock('../hooks/routerMatch', () => ({
+vi.mock('../hooks/routerMatch', () => ({
     useRouteMatch: () => () => ({
         path: '/',
         params: mockRouteParams,
@@ -172,13 +175,13 @@ describe('src/components/workspace', () => {
         mockMatchMedia({matches: true})
     })
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         mockedUtils.createGuid.mockReturnValue('test-id')
 
         // Navigation builds a real path even under the Utils auto-mock:
         // navigate(undefined) would crash inside the router instead.
-        mockedUtils.generatePath = jest.requireActual('../utils').Utils.generatePath
-        mockedUtils.getBoardPagePath = jest.requireActual('../utils').Utils.getBoardPagePath
+        mockedUtils.generatePath = actualUtils.generatePath
+        mockedUtils.getBoardPagePath = actualUtils.getBoardPagePath
     })
     test('should match snapshot', async () => {
         const result = render(() => wrapDNDIntl(() =>
@@ -187,7 +190,7 @@ describe('src/components/workspace', () => {
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
         const container = result.container
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
         expect(container).toMatchSnapshot()
     })
     test('should match snapshot with readonly', async () => {
@@ -197,7 +200,7 @@ describe('src/components/workspace', () => {
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
         const container = result.container
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
         expect(container).toMatchSnapshot()
     })
 
@@ -208,7 +211,7 @@ describe('src/components/workspace', () => {
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
         const container = result.container
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
 
         // React 19 commits when the act callback returns, so the cards only
         // exist to be clicked from a second act.
@@ -225,7 +228,7 @@ describe('src/components/workspace', () => {
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
         const container = result.container
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
 
         // React 19 commits when the act callback returns, so the cards only
         // exist to be clicked from a second act.
@@ -286,7 +289,7 @@ describe('src/components/workspace', () => {
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
         const container = result.container
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
 
         expect(container).toMatchSnapshot()
     })
@@ -389,7 +392,7 @@ describe('src/components/workspace', () => {
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
 
-        jest.runOnlyPendingTimers()
+        vi.runOnlyPendingTimers()
 
         await waitFor(() => expect(document.querySelectorAll('.AddViewTourStep')).toBeDefined(), {timeout: 5000})
 

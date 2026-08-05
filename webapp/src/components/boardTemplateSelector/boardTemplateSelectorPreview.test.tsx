@@ -28,9 +28,11 @@ const groupProperty: IPropertyTemplate = {
     ],
 }
 
-jest.mock('../../octoClient', () => {
-    return {
-        getAllBlocks: jest.fn(() => Promise.resolve([
+// The client is a default export, and a factory has to say so: babel's CJS
+// interop used to hand the whole object back as the default, ESM does not.
+vi.mock('../../octoClient', () => {
+    const octoClient = {
+        getAllBlocks: vi.fn(() => Promise.resolve([
             {
                 id: '1',
                 teamId: 'team',
@@ -70,9 +72,10 @@ jest.mock('../../octoClient', () => {
             },
         ])),
     }
+    return {default: octoClient}
 })
-jest.mock('../../utils')
-jest.mock('../../mutator')
+vi.mock('../../utils')
+vi.mock('../../mutator')
 
 describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => {
     const template1Title = 'Template 1'
@@ -81,7 +84,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
     let store: ReturnType<typeof mockAppStore>
     beforeAll(mockDOM)
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
 
         const board = TestBlockFactory.createBoard()
         board.id = '2'

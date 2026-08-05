@@ -70,7 +70,7 @@ const GalleryCard = (props: Props) => {
         return undefined
     }
 
-    const className = () => {
+    const classes = () => {
         let name = props.isSelected ? 'GalleryCard selected' : 'GalleryCard'
         if (isOver()) {
             name += ' dragover'
@@ -81,14 +81,14 @@ const GalleryCard = (props: Props) => {
     return (
         <>
             <div
-                class={className()}
+                class={classes()}
                 onClick={(e: MouseEvent) => props.onClick(e, props.card)}
                 style={{opacity: isDragging() ? 0.5 : 1}}
                 ref={cardRef}
             >
                 <Show when={!props.readonly}>
                     <MenuWrapper
-                        className='optionsMenu'
+                        class='optionsMenu'
                         stopPropagationOnToggle={true}
                         menu={
                             <CardActionsMenu
@@ -183,7 +183,7 @@ const GalleryCard = (props: Props) => {
                 <Show when={props.visibleBadges}>
                     <CardBadges
                         card={props.card}
-                        className='gallery-badges'
+                        class='gallery-badges'
                     />
                 </Show>
             </div>

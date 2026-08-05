@@ -13,7 +13,7 @@ const anyWindow = window as any
 describe('components/acp/proxiesPanel', () => {
     afterEach(() => {
         delete anyWindow.go
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('isProxiesAvailable is false without desktop bindings', () => {
@@ -22,12 +22,12 @@ describe('components/acp/proxiesPanel', () => {
 
     test('lists configurations and adds one', async () => {
         const bindings = {
-            ListProxies: jest.fn().mockResolvedValue(JSON.stringify([
+            ListProxies: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'office', proxy: 'http://proxy.example.com:8080'},
             ])),
-            AddProxy: jest.fn().mockResolvedValue(JSON.stringify({name: 'lab'})),
-            UpdateProxy: jest.fn(),
-            RemoveProxy: jest.fn(),
+            AddProxy: vi.fn().mockResolvedValue(JSON.stringify({name: 'lab'})),
+            UpdateProxy: vi.fn(),
+            RemoveProxy: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
         expect(isProxiesAvailable()).toBe(true)
@@ -56,10 +56,10 @@ describe('components/acp/proxiesPanel', () => {
 
     test('shows the backend error when a configuration is still in use', async () => {
         const bindings = {
-            ListProxies: jest.fn().mockResolvedValue(JSON.stringify([{name: 'office', proxy: 'http://p:8080'}])),
-            AddProxy: jest.fn(),
-            UpdateProxy: jest.fn(),
-            RemoveProxy: jest.fn().mockRejectedValue(new Error('используют агенты: claude-a')),
+            ListProxies: vi.fn().mockResolvedValue(JSON.stringify([{name: 'office', proxy: 'http://p:8080'}])),
+            AddProxy: vi.fn(),
+            UpdateProxy: vi.fn(),
+            RemoveProxy: vi.fn().mockRejectedValue(new Error('используют агенты: claude-a')),
         }
         anyWindow.go = {main: {App: bindings}}
 

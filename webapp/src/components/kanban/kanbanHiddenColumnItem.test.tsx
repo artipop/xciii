@@ -4,8 +4,6 @@ import {render, screen, within} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {createIntl} from '../../intl'
 
 import {wrapDNDIntl} from '../../testUtils'
@@ -15,8 +13,8 @@ import {IPropertyOption} from '../../blocks/board'
 
 import KanbanHiddenColumnItem from './kanbanHiddenColumnItem'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(Mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(Mutator)
 
 describe('src/components/kanban/kanbanHiddenColumnItem', () => {
     const intl = createIntl({locale: 'en-us'})
@@ -30,7 +28,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         color: 'propColorDefault',
     }
     beforeAll(() => {
-        console.error = jest.fn()
+        console.error = vi.fn()
     })
     test('should match snapshot', () => {
         const {container} = render(() => wrapDNDIntl(() =>
@@ -41,7 +39,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
                     cards: [card],
                 }}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 intl={intl}
             />,
         ))
@@ -56,7 +54,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
                     cards: [card],
                 }}
                 readonly={true}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 intl={intl}
             />,
         ))
@@ -71,7 +69,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
                     cards: [card],
                 }}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 intl={intl}
             />,
         ))
@@ -89,7 +87,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
                     cards: [card],
                 }}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 intl={intl}
             />,
         ))
@@ -114,7 +112,7 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
                     cards: [card, card2],
                 }}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 intl={intl}
             />,
         ))

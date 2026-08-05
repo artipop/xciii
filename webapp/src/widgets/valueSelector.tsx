@@ -46,11 +46,11 @@ const ValueSelectorLabel = (props: LabelProps): JSX.Element => {
     const intl = useIntl()
 
     const valueClassName = () => {
-        let className = props.onDeleteValue ? 'Label-no-padding' : 'Label-single-select'
+        let classes = props.onDeleteValue ? 'Label-no-padding' : 'Label-single-select'
         if (!props.isMulti) {
-            className += ' Label-no-margin'
+            classes += ' Label-no-margin'
         }
-        return className
+        return classes
     }
 
     return (
@@ -97,7 +97,7 @@ const ValueSelectorLabel = (props: LabelProps): JSX.Element => {
         >
             <Label
                 color={props.option.color}
-                className={valueClassName()}
+                class={valueClassName()}
             >
                 <span class='Label-text'>{props.option.value}</span>
                 <Show when={props.onDeleteValue}>
@@ -105,7 +105,7 @@ const ValueSelectorLabel = (props: LabelProps): JSX.Element => {
                         onClick={() => props.onDeleteValue!(props.option)}
                         icon={<CloseIcon/>}
                         title='Clear'
-                        className='margin-left delete-value'
+                        class='margin-left delete-value'
                     />
                 </Show>
             </Label>
@@ -131,7 +131,7 @@ function ValueSelector(props: Props): JSX.Element {
 
     return (
         <Combobox
-            className='ValueSelector'
+            class='ValueSelector'
             classNamePrefix='ValueSelector'
             ariaLabel={intl.formatMessage({id: 'ValueSelector.valueSelector', defaultMessage: 'Value selector'})}
             noOptionsMessage={intl.formatMessage({id: 'ValueSelector.noOptions', defaultMessage: 'No options. Start typing to add the first one!'})}

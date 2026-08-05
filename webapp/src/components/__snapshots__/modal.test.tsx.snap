@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/modal return Modal on position bottom 1`] = `
+exports[`components/modal > return Modal on position bottom 1`] = `
 <div>
   <div
     class="Modal bottom"
@@ -26,7 +26,7 @@ exports[`components/modal return Modal on position bottom 1`] = `
 </div>
 `;
 
-exports[`components/modal return Modal on position bottom-right 1`] = `
+exports[`components/modal > return Modal on position bottom-right 1`] = `
 <div>
   <div
     class="Modal bottom-right"
@@ -52,7 +52,7 @@ exports[`components/modal return Modal on position bottom-right 1`] = `
 </div>
 `;
 
-exports[`components/modal return Modal on position top 1`] = `
+exports[`components/modal > return Modal on position top 1`] = `
 <div>
   <div
     class="Modal top"
@@ -78,7 +78,7 @@ exports[`components/modal return Modal on position top 1`] = `
 </div>
 `;
 
-exports[`components/modal should match snapshot 1`] = `
+exports[`components/modal > should match snapshot 1`] = `
 <div>
   <div
     class="Modal bottom"

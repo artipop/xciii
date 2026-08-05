@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/markdownEditor should match snapshot 1`] = `
+exports[`components/markdownEditor > should match snapshot 1`] = `
 <div>
   <div
     class="MarkdownEditor octo-editor classname-test "
@@ -13,7 +13,7 @@ exports[`components/markdownEditor should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/markdownEditor should match snapshot with initial text 1`] = `
+exports[`components/markdownEditor > should match snapshot with initial text 1`] = `
 <div>
   <div
     class="MarkdownEditor octo-editor classname-test "
@@ -26,7 +26,7 @@ exports[`components/markdownEditor should match snapshot with initial text 1`] =
 </div>
 `;
 
-exports[`components/markdownEditor should match snapshot with on click on preview element 1`] = `
+exports[`components/markdownEditor > should match snapshot with on click on preview element 1`] = `
 <div>
   <div
     class="MarkdownEditor octo-editor classname-test active"
@@ -59,7 +59,7 @@ exports[`components/markdownEditor should match snapshot with on click on previe
 </div>
 `;
 
-exports[`components/markdownEditor should match snapshot with on click on preview element and then click out of it 1`] = `
+exports[`components/markdownEditor > should match snapshot with on click on preview element and then click out of it 1`] = `
 <div>
   <div
     class="MarkdownEditor octo-editor classname-test active"

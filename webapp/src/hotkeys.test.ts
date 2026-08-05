@@ -68,7 +68,7 @@ describe('hotkeys', () => {
 
     describe('bindHotkey', () => {
         it('calls the handler and unbinds', () => {
-            const handler = jest.fn()
+            const handler = vi.fn()
             const unbind = bindHotkey('esc', handler)
 
             document.dispatchEvent(press({key: 'Escape'}))
@@ -80,7 +80,7 @@ describe('hotkeys', () => {
         })
 
         it('leaves the shortcut to the field being typed in', () => {
-            const handler = jest.fn()
+            const handler = vi.fn()
             const input = document.createElement('input')
             document.body.appendChild(input)
 
@@ -94,7 +94,7 @@ describe('hotkeys', () => {
         })
 
         it('ignores a shortcut it cannot parse', () => {
-            const handler = jest.fn()
+            const handler = vi.fn()
             const unbind = bindHotkey('', handler)
 
             document.dispatchEvent(press({key: 'Escape'}))

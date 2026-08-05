@@ -9,7 +9,7 @@ export default function BrokenFile(): JSX.Element {
     return (
         <CompassIcon
             icon='file-image-broken-outline'
-            className='BrokenFile'
+            class='BrokenFile'
         />
     )
 }

@@ -13,8 +13,8 @@
         "watchdev": "vite build --mode development --watch",
         "dev": "vite",
         "deveditor": "vite --open /editor.html",
-        "test": "jest",
-        "updatesnapshot": "jest --updateSnapshot",
+        "test": "vitest run",
+        "updatesnapshot": "vitest run --update",
         "check": "eslint . --quiet --cache && stylelint **/*.scss",
         "fix": "eslint . --quiet --fix --cache && stylelint --fix **/*.scss",
         "fix:scss": "prettier --write './src/**/*.scss'",
@@ -59,66 +59,22 @@
         "nanoevents": "^5.1.13",
         "solid-js": "^1.9.14"
     },
-    "overrides": {
-        "babel-plugin-istanbul": "^8.0.0"
-    },
-    "jest": {
-        "setupFiles": [
-            "<rootDir>/src/test/jsdomPolyfills.ts"
-        ],
-        "moduleNameMapper": {
-            "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
-            "\\.(scss|css)$": "<rootDir>/__mocks__/styleMock.js",
-            "^@solid-primitives/(.*)$": "<rootDir>/node_modules/@solid-primitives/$1/dist/index.js"
-        },
-        "transform": {
-            "^.+\\.[jt]sx?$": "babel-jest"
-        },
-        "transformIgnorePatterns": [
-            "/node_modules/(?!(solid-js|@solidjs|@dschz|@solid-primitives|@formatjs|intl-messageformat|intl-messageformat-parser|@dnd-kit|preact|@preact|emoji-mart)/)",
-            "/nanoevents/"
-        ],
-        "maxWorkers": "50%",
-        "testEnvironment": "jsdom",
-        "collectCoverage": true,
-        "collectCoverageFrom": [
-            "src/**/*.{ts,tsx,js,jsx}",
-            "!src/test/**"
-        ],
-        "setupFilesAfterEnv": [
-            "<rootDir>/src/test/dndKitSnapshotSerializer.ts"
-        ],
-        "testEnvironmentOptions": {
-            "customExportConditions": [
-                "browser",
-                "development",
-                "solid"
-            ]
-        }
-    },
     "devDependencies": {
-        "@babel/core": "^7.29.7",
-        "@babel/preset-env": "^7.29.7",
-        "@babel/preset-typescript": "^7.29.7",
         "@eslint/js": "^9.39.5",
         "@formatjs/cli": "^6.16.15",
         "@formatjs/unplugin": "^1.2.3",
         "@solidjs/testing-library": "^0.8.10",
         "@stylistic/eslint-plugin": "^5.10.0",
-        "@swc/core": "^1.2.210",
-        "@swc/jest": "^0.2.20",
         "@testing-library/cypress": "^10.0.3",
         "@testing-library/dom": "^10.4.1",
         "@testing-library/jest-dom": "^7.0.0",
         "@testing-library/user-event": "^13.5.0",
         "@types/color": "^3.0.3",
-        "@types/jest": "^30.0.0",
         "@types/lodash": "4.14.182",
         "@types/marked": "^4.0.3",
         "@typescript-eslint/eslint-plugin": "^8.65.0",
         "@typescript-eslint/parser": "^8.65.0",
-        "babel-jest": "^30.4.1",
-        "babel-preset-solid": "^1.9.12",
+        "@vitest/coverage-v8": "^4.1.10",
         "cypress": "^15.19.0",
         "cypress-failed-log": "^2.9.5",
         "cypress-real-events": "^1.7.0",
@@ -130,9 +86,8 @@
         "eslint-plugin-solid": "^0.14.5",
         "globals": "^17.8.0",
         "isomorphic-fetch": "^3.0.0",
-        "jest": "^30.4.2",
-        "jest-environment-jsdom": "^30.4.1",
-        "jest-mock": "^30.4.1",
+        "jiti": "^2.7.0",
+        "jsdom": "^30.0.1",
         "prettier": "^2.6.1",
         "sass": "^1.102.0",
         "start-server-and-test": "^3.0.11",
@@ -140,14 +95,14 @@
         "stylelint-config-sass-guidelines": "^13.0.0",
         "typescript": "^5.9.3",
         "vite": "^7.3.6",
-        "vite-plugin-solid": "^2.11.14"
+        "vite-plugin-solid": "^2.11.14",
+        "vitest": "^4.1.10"
     },
     "optionalDependencies": {
         "cypress": "^15.4.0"
     },
     "allowScripts": {
         "@parcel/watcher": false,
-        "@swc/core": false,
         "cypress": true,
         "esbuild": false,
         "fsevents": false,

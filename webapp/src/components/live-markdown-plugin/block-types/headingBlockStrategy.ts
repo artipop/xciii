@@ -15,7 +15,7 @@ const createHeadingBlockStrategy = (): BlockStrategy => {
 
     return {
         type: 'heading',
-        className: 'heading-block',
+        class: 'heading-block',
 
         // Classify a single line: if it starts with 1-6 '#' followed by whitespace,
         // it is a heading of the corresponding level; otherwise it is a plain line.

@@ -65,14 +65,14 @@ const URLProperty = (props: PropertyProps): JSX.Element => {
                         </a>
                         <Show when={!props.readOnly}>
                             <IconButton
-                                className='Button_Edit'
+                                class='Button_Edit'
                                 title={intl.formatMessage({id: 'URLProperty.edit', defaultMessage: 'Edit'})}
                                 icon={<EditIcon/>}
                                 onClick={() => setIsEditing(true)}
                             />
                         </Show>
                         <IconButton
-                            className='Button_Copy'
+                            class='Button_Copy'
                             title={intl.formatMessage({id: 'URLProperty.copy', defaultMessage: 'Copy'})}
                             icon={<DuplicateIcon/>}
                             onClick={(e: MouseEvent) => {
@@ -86,7 +86,7 @@ const URLProperty = (props: PropertyProps): JSX.Element => {
             >
                 <div class='URLProperty'>
                     <Editable
-                        className={props.property.valueClassName(props.readOnly)}
+                        class={props.property.valueClassName(props.readOnly)}
                         ref={(f) => {
                             editableRef = f
                         }}

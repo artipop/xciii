@@ -9,26 +9,27 @@ type Props = {
     onClick?: (e: MouseEvent) => void
     title?: string
     icon?: JSX.Element
-    className?: string
+    class?: string
     size?: string
     inverted?: boolean
     onMouseDown?: (e: MouseEvent) => void
 }
 
 function IconButton(props: Props): JSX.Element {
-    const classNames: Record<string, boolean> = {
+    // See Button: computed inside the JSX so a changing class lands.
+    const classNames = (): Record<string, boolean> => ({
         IconButton: true,
         'style--inverted': Boolean(props.inverted),
-    }
-    classNames[`${props.className}`] = Boolean(props.className)
-    classNames[`size--${props.size}`] = Boolean(props.size)
+        [`${props.class}`]: Boolean(props.class),
+        [`size--${props.size}`]: Boolean(props.size),
+    })
 
     return (
         <button
             type='button'
             onClick={props.onClick}
             onMouseDown={props.onMouseDown}
-            class={Utils.generateClassName(classNames)}
+            class={Utils.generateClassName(classNames())}
             title={props.title}
             aria-label={props.title}
         >

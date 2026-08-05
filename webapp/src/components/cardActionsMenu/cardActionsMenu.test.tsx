@@ -46,7 +46,7 @@ describe('components/cardActionsMenu', () => {
                 <CardActionsMenu
                     cardId='123'
                     boardId='345'
-                    onClickDelete={jest.fn()}
+                    onClickDelete={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -59,8 +59,8 @@ describe('components/cardActionsMenu', () => {
                 <CardActionsMenu
                     cardId='123'
                     boardId='345'
-                    onClickDelete={jest.fn()}
-                    onClickDuplicate={jest.fn()}
+                    onClickDelete={vi.fn()}
+                    onClickDuplicate={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -73,7 +73,7 @@ describe('components/cardActionsMenu', () => {
                 <CardActionsMenu
                     cardId='123'
                     boardId='345'
-                    onClickDelete={jest.fn()}
+                    onClickDelete={vi.fn()}
                 >
                     {'Test.'}
                 </CardActionsMenu>

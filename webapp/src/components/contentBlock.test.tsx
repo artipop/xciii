@@ -5,8 +5,6 @@ import type {JSX} from 'solid-js'
 import '@testing-library/jest-dom'
 import {render, screen} from '@solidjs/testing-library'
 
-import {mocked} from 'jest-mock'
-
 import userEvent from '@testing-library/user-event'
 
 import {Utils} from '../utils'
@@ -21,16 +19,16 @@ import octoClient from '../octoClient'
 import ContentBlock from './contentBlock'
 import {CardDetailContext, CardDetailContextType} from './cardDetail/cardDetailContext'
 
-jest.mock('../mutator')
-jest.mock('../utils')
-jest.mock('../octoClient')
+vi.mock('../mutator')
+vi.mock('../utils')
+vi.mock('../octoClient')
 
 beforeAll(mockDOM)
 
 describe('components/contentBlock', () => {
-    const mockedMutator = mocked(mutator)
-    const mockedUtils = mocked(Utils)
-    const mockedOcto = mocked(octoClient)
+    const mockedMutator = vi.mocked(mutator)
+    const mockedUtils = vi.mocked(Utils)
+    const mockedOcto = vi.mocked(octoClient)
 
     mockedUtils.createGuid.mockReturnValue('test-id')
     mockedOcto.getFileAsDataUrl.mockResolvedValue({url: 'test.jpg'})
@@ -60,8 +58,8 @@ describe('components/contentBlock', () => {
             id: textBlock.id,
             autoAdded,
         },
-        deleteBlock: jest.fn(),
-        addBlock: jest.fn(),
+        deleteBlock: vi.fn(),
+        addBlock: vi.fn(),
     })
 
     const board1 = TestBlockFactory.createBoard()
@@ -99,7 +97,7 @@ describe('components/contentBlock', () => {
         )
     )
 
-    beforeEach(jest.clearAllMocks)
+    beforeEach(vi.clearAllMocks)
 
     test('should match snapshot with textBlock', async () => {
         const {container} = render(() => wrap(() =>
@@ -107,7 +105,7 @@ describe('components/contentBlock', () => {
                 block={textBlock}
                 card={card}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 width={undefined}
                 cords={{x: 1, y: 0, z: 0}}
             />,
@@ -121,7 +119,7 @@ describe('components/contentBlock', () => {
                 block={dividerBlock}
                 card={card}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 width={undefined}
                 cords={{x: 1, y: 0, z: 0}}
             />,
@@ -135,7 +133,7 @@ describe('components/contentBlock', () => {
                 block={commentBlock}
                 card={card}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 width={undefined}
                 cords={{x: 1, y: 0, z: 0}}
             />,
@@ -149,7 +147,7 @@ describe('components/contentBlock', () => {
                 block={imageBlock}
                 card={card}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 width={undefined}
                 cords={{x: 1, y: 0, z: 0}}
             />,
@@ -163,7 +161,7 @@ describe('components/contentBlock', () => {
                 block={commentBlock}
                 card={card}
                 readonly={true}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 width={undefined}
                 cords={{x: 1, y: 0, z: 0}}
             />,
@@ -177,7 +175,7 @@ describe('components/contentBlock', () => {
                 block={commentBlock}
                 card={card}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 width={undefined}
                 cords={{x: 1, y: 0, z: 0}}
             />,
@@ -194,7 +192,7 @@ describe('components/contentBlock', () => {
                 block={commentBlock}
                 card={card}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 width={undefined}
                 cords={{x: 1, y: 0, z: 0}}
             />,
@@ -213,7 +211,7 @@ describe('components/contentBlock', () => {
                 block={commentBlock}
                 card={card}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 width={undefined}
                 cords={{x: 1, y: 0, z: 0}}
             />,
@@ -232,7 +230,7 @@ describe('components/contentBlock', () => {
                 block={commentBlock}
                 card={card}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 width={undefined}
                 cords={{x: 1, y: -1, z: 0}}
             />,
@@ -251,7 +249,7 @@ describe('components/contentBlock', () => {
                 block={commentBlock}
                 card={card}
                 readonly={false}
-                onDrop={jest.fn()}
+                onDrop={vi.fn()}
                 width={undefined}
                 cords={{x: 1, y: 0, z: 0}}
             />,

@@ -11,7 +11,7 @@ export default function OptionsIcon(): JSX.Element {
     return (
         <CompassIcon
             icon='dots-horizontal'
-            className='OptionsIcon'
+            class='OptionsIcon'
         />
     )
 }

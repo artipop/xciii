@@ -3,7 +3,6 @@
 
 import type {ComponentProps} from 'solid-js'
 import {render, screen} from '@solidjs/testing-library'
-import {mocked} from 'jest-mock'
 
 import userEvent from '@testing-library/user-event'
 
@@ -17,10 +16,10 @@ import {Card} from '../../blocks/card'
 import NumberProperty from './property'
 import NumberEditor from './number'
 
-jest.mock('../../components/flashMessages')
-jest.mock('../../mutator')
+vi.mock('../../components/flashMessages')
+vi.mock('../../mutator')
 
-const mockedMutator = mocked(mutator)
+const mockedMutator = vi.mocked(mutator)
 
 describe('properties/number', () => {
     let board: Board

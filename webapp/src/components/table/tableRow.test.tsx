@@ -46,7 +46,7 @@ describe('components/table/TableRow', () => {
         return wrapDNDIntl(() =>
             <ColumnResizeProvider
                 columnWidths={{}}
-                onResizeColumn={jest.fn()}
+                onResizeColumn={vi.fn()}
             >
                 <AppStoreProvider store={store}>
                     {props.children}
@@ -61,7 +61,7 @@ describe('components/table/TableRow', () => {
                 <TableRow
                     board={board}
                     columnWidths={view.fields.columnWidths}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     visiblePropertyIds={view.fields.visiblePropertyIds}
                     isManualSort={view.fields.sortOptions.length === 0}
                     groupById={view.fields.groupById}
@@ -70,9 +70,9 @@ describe('components/table/TableRow', () => {
                     card={card}
                     isSelected={false}
                     focusOnMount={false}
-                    showCard={jest.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
-                    onDrop={jest.fn()}
+                    onDrop={vi.fn()}
                 />
             </Wrapper>,
         )
@@ -86,7 +86,7 @@ describe('components/table/TableRow', () => {
                     board={board}
                     card={card}
                     columnWidths={view.fields.columnWidths}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     visiblePropertyIds={view.fields.visiblePropertyIds}
                     isManualSort={view.fields.sortOptions.length === 0}
                     groupById={view.fields.groupById}
@@ -94,9 +94,9 @@ describe('components/table/TableRow', () => {
                     collapsedOptionIds={view.fields.collapsedOptionIds}
                     isSelected={false}
                     focusOnMount={false}
-                    showCard={jest.fn()}
+                    showCard={vi.fn()}
                     readonly={true}
-                    onDrop={jest.fn()}
+                    onDrop={vi.fn()}
                 />
             </Wrapper>,
         )
@@ -110,7 +110,7 @@ describe('components/table/TableRow', () => {
                     board={board}
                     card={card}
                     columnWidths={view.fields.columnWidths}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     visiblePropertyIds={view.fields.visiblePropertyIds}
                     isManualSort={view.fields.sortOptions.length === 0}
                     groupById={view.fields.groupById}
@@ -118,9 +118,9 @@ describe('components/table/TableRow', () => {
                     collapsedOptionIds={view.fields.collapsedOptionIds}
                     isSelected={true}
                     focusOnMount={false}
-                    showCard={jest.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
-                    onDrop={jest.fn()}
+                    onDrop={vi.fn()}
                 />
             </Wrapper>,
         )
@@ -134,7 +134,7 @@ describe('components/table/TableRow', () => {
                     board={board}
                     card={card}
                     columnWidths={view.fields.columnWidths}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     visiblePropertyIds={view.fields.visiblePropertyIds}
                     isManualSort={view.fields.sortOptions.length === 0}
                     groupById={view.fields.groupById}
@@ -142,9 +142,9 @@ describe('components/table/TableRow', () => {
                     collapsedOptionIds={['value1']}
                     isSelected={false}
                     focusOnMount={false}
-                    showCard={jest.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
-                    onDrop={jest.fn()}
+                    onDrop={vi.fn()}
                 />
             </Wrapper>,
         )
@@ -159,16 +159,16 @@ describe('components/table/TableRow', () => {
                     card={card}
                     visiblePropertyIds={['property1', 'property2']}
                     columnWidths={view.fields.columnWidths}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     isManualSort={view.fields.sortOptions.length === 0}
                     groupById={view.fields.groupById}
                     collapsedOptionIds={view.fields.collapsedOptionIds}
                     isLastCard={false}
                     isSelected={false}
                     focusOnMount={false}
-                    showCard={jest.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
-                    onDrop={jest.fn()}
+                    onDrop={vi.fn()}
                 />
             </Wrapper>,
         )
@@ -183,16 +183,16 @@ describe('components/table/TableRow', () => {
                     card={card}
                     visiblePropertyIds={['property1', 'property2']}
                     columnWidths={view.fields.columnWidths}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     isManualSort={view.fields.sortOptions.length === 0}
                     groupById={view.fields.groupById}
                     isLastCard={false}
                     collapsedOptionIds={view.fields.collapsedOptionIds}
                     isSelected={false}
                     focusOnMount={false}
-                    showCard={jest.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
-                    onDrop={jest.fn()}
+                    onDrop={vi.fn()}
                 />
             </Wrapper>,
         )

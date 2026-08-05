@@ -5,8 +5,6 @@ import '@testing-library/jest-dom'
 import {render, screen, fireEvent} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import mutator from '../mutator'
 import {Utils} from '../utils'
 import {TestBlockFactory} from '../test/testBlockFactory'
@@ -15,11 +13,11 @@ import {AppStoreProvider} from '../store'
 
 import ViewTitle from './viewTitle'
 
-jest.mock('../mutator')
-jest.mock('../utils')
+vi.mock('../mutator')
+vi.mock('../utils')
 
-const mockedMutator = mocked(mutator)
-const mockedUtils = mocked(Utils)
+const mockedMutator = vi.mocked(mutator)
+const mockedUtils = vi.mocked(Utils)
 mockedUtils.createGuid.mockReturnValue('test-id')
 
 beforeAll(() => {
@@ -58,7 +56,7 @@ describe('components/viewTitle', () => {
     const store = mockAppStore(state)
 
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('should match snapshot', async () => {

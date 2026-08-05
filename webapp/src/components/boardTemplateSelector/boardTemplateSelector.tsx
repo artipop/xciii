@@ -182,7 +182,7 @@ const BoardTemplateSelector = (props: Props) => {
                                     emphasis='link'
                                     size='medium'
                                     icon={<CompassIcon icon='plus'/>}
-                                    className='new-template'
+                                    class='new-template'
                                     onClick={() => mutator.addEmptyBoardTemplate(currentTeam()?.id || '', intl, showBoard, () => showBoard(currentBoardId()))}
                                 >
                                     <FormattedMessage

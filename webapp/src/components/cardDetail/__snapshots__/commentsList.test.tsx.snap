@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/cardDetail/CommentsList comments show up 1`] = `
+exports[`components/cardDetail/CommentsList > comments show up 1`] = `
 <div>
   <div
     class="CommentsList"
@@ -130,7 +130,7 @@ exports[`components/cardDetail/CommentsList comments show up 1`] = `
 </div>
 `;
 
-exports[`components/cardDetail/CommentsList comments show up in readonly mode 1`] = `
+exports[`components/cardDetail/CommentsList > comments show up in readonly mode 1`] = `
 <div>
   <div
     class="CommentsList"

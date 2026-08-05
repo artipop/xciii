@@ -18,7 +18,7 @@ import '../content/dividerElement'
 import '../content/checkboxElement'
 import {CardDetailProvider} from './cardDetailContext'
 
-jest.mock('../../mutator')
+vi.mock('../../mutator')
 
 const board = TestBlockFactory.createBoard()
 const card = TestBlockFactory.createCard(board)
@@ -34,7 +34,7 @@ describe('components/cardDetail/cardDetailContentsMenu', () => {
         )
     )
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
     test('return cardDetailContentsMenu', () => {
         const {container} = render(() => wrap(() => <CardDetailContentsMenu/>))

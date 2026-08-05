@@ -9,7 +9,7 @@ import './cardActionsMenuIcon.scss'
 const CardActionsMenuIcon = () => {
     return (
         <IconButton
-            className='CardActionsMenuIcon'
+            class='CardActionsMenuIcon'
             icon={<OptionsIcon/>}
         />
     )

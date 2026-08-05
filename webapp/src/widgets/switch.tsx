@@ -13,13 +13,17 @@ type Props = {
 
 // Switch is an on-off style switch / checkbox
 function Switch(props: Props): JSX.Element {
-    const switchSize = `size--${props.size === 'medium' ? 'medium' : 'small'}`
-    const switchIsOn = props.isOn ? ' on' : ''
-    const switchIsReadonly = props.readOnly ? ' readonly' : ''
-    const className = `Switch override-main ${switchSize}${switchIsOn}${switchIsReadonly}`
+    // Computed on read: a switch that never restyles when isOn flips is not a
+    // switch.
+    const classes = () => {
+        const switchSize = `size--${props.size === 'medium' ? 'medium' : 'small'}`
+        const switchIsOn = props.isOn ? ' on' : ''
+        const switchIsReadonly = props.readOnly ? ' readonly' : ''
+        return `Switch override-main ${switchSize}${switchIsOn}${switchIsReadonly}`
+    }
     return (
         <div
-            class={className}
+            class={classes()}
             onClick={() => {
                 if (!props.readOnly) {
                     props.onChanged(!props.isOn)

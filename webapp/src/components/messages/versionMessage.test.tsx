@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {render, screen} from '@solidjs/testing-library'
-import {mocked} from 'jest-mock'
 import userEvent from '@testing-library/user-event'
 
 import {IUser} from '../../user'
@@ -16,12 +15,12 @@ import {versionProperty} from '../../store/users'
 
 import VersionMessage from './versionMessage'
 
-jest.mock('../../octoClient')
-const mockedOctoClient = mocked(client)
+vi.mock('../../octoClient')
+const mockedOctoClient = vi.mocked(client)
 
 describe('components/messages/VersionMessage', () => {
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     const renderMessage = (store: AppStore) => render(() => wrapIntl(() =>

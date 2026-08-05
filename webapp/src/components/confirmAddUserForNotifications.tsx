@@ -100,7 +100,7 @@ const ConfirmAddUserForNotifications = (props: Props): JSX.Element => {
                 </label>
             </div>
             <Combobox
-                className='select'
+                class='select'
                 classNamePrefix='select'
                 portalTarget={document.body}
                 isDisabled={!props.allowManageBoardRoles}

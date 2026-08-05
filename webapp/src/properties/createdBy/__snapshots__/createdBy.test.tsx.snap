@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`properties/createdBy should match snapshot 1`] = `
+exports[`properties/createdBy > should match snapshot 1`] = `
 <div>
   <div
     class="Person octo-propertyvalue octo-propertyvalue--readonly"
@@ -16,7 +16,7 @@ exports[`properties/createdBy should match snapshot 1`] = `
 </div>
 `;
 
-exports[`properties/createdBy should match snapshot as guest 1`] = `
+exports[`properties/createdBy > should match snapshot as guest 1`] = `
 <div>
   <div
     class="Person octo-propertyvalue octo-propertyvalue--readonly"

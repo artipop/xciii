@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/viewHeader/viewHeader return viewHeader 1`] = `
+exports[`components/viewHeader/viewHeader > return viewHeader 1`] = `
 <div>
   <div
     class="ViewHeader"
@@ -165,7 +165,7 @@ exports[`components/viewHeader/viewHeader return viewHeader 1`] = `
 </div>
 `;
 
-exports[`components/viewHeader/viewHeader return viewHeader readonly 1`] = `
+exports[`components/viewHeader/viewHeader > return viewHeader readonly 1`] = `
 <div>
   <div
     class="ViewHeader"
@@ -203,7 +203,7 @@ exports[`components/viewHeader/viewHeader return viewHeader readonly 1`] = `
 </div>
 `;
 
-exports[`components/viewHeader/viewHeader return viewHeader without permissions 1`] = `
+exports[`components/viewHeader/viewHeader > return viewHeader without permissions 1`] = `
 <div>
   <div
     class="ViewHeader"

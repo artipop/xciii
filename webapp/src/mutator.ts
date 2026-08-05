@@ -23,7 +23,6 @@ import {UserSettings} from './userSettings'
 import TelemetryClient, {TelemetryCategory, TelemetryActions} from './telemetry/telemetryClient'
 import {Category} from './store/sidebar'
 
-/* eslint-disable max-lines */
 import {UserConfigPatch, UserPreference} from './user'
 import type {AppStore} from './store'
 
@@ -132,7 +131,6 @@ class Mutator {
         )
     }
 
-    //eslint-disable-next-line no-shadow
     async insertBlock(boardId: string, block: Block, description = 'add', afterRedo?: (block: Block) => Promise<void>, beforeUndo?: (block: Block) => Promise<void>): Promise<Block> {
         return undoManager.perform(
             async () => {
@@ -151,7 +149,6 @@ class Mutator {
         )
     }
 
-    //eslint-disable-next-line no-shadow
     async insertBlocks(boardId: string, blocks: Block[], description = 'add', afterRedo?: (blocks: Block[]) => Promise<void>, beforeUndo?: () => Promise<void>, sourceBoardID?: string) {
         return undoManager.perform(
             async () => {

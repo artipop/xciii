@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -257,7 +257,7 @@ exports[`components/viewHeader/filterEntry return filterEntry 1`] = `
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry and click on delete 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry and click on delete 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -492,7 +492,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on delet
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry and click on different property type 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry and click on different property type 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -749,7 +749,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry and click on different property type, but same filterOperation 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry and click on different property type, but same filterOperation 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -990,7 +990,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on diffe
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry and click on doesn't include 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry and click on doesn't include 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -1225,7 +1225,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on doesn
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry and click on includes 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry and click on includes 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -1460,7 +1460,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on inclu
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry and click on is empty 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry and click on is empty 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -1695,7 +1695,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is em
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry and click on is not empty 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry and click on is not empty 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -1930,7 +1930,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on is no
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry and click on status 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry and click on status 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -2171,7 +2171,7 @@ exports[`components/viewHeader/filterEntry return filterEntry and click on statu
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry for boolean field 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry for boolean field 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -2228,7 +2228,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry for boolean field 2`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry for boolean field 2`] = `
 <div>
   <div
     class="FilterEntry"
@@ -2391,7 +2391,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for boolean field 
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry for date field 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry for date field 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -2462,7 +2462,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 1`]
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry for date field 2`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry for date field 2`] = `
 <div>
   <div
     class="FilterEntry"
@@ -2722,7 +2722,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for date field 2`]
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry for text field 1`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry for text field 1`] = `
 <div>
   <div
     class="FilterEntry"
@@ -2783,7 +2783,7 @@ exports[`components/viewHeader/filterEntry return filterEntry for text field 1`]
 </div>
 `;
 
-exports[`components/viewHeader/filterEntry return filterEntry for text field 2`] = `
+exports[`components/viewHeader/filterEntry > return filterEntry for text field 2`] = `
 <div>
   <div
     class="FilterEntry"

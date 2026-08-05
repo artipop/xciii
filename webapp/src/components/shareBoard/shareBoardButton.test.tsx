@@ -10,7 +10,7 @@ import {AppStoreProvider} from '../../store'
 
 import ShareBoardButton from './shareBoardButton'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 const boardId = '1'
 

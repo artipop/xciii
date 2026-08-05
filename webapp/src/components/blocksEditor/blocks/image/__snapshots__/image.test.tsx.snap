@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/blocksEditor/blocks/image should match Display snapshot 1`] = `
+exports[`components/blocksEditor/blocks/image > should match Display snapshot 1`] = `
 <div>
   <img
     class="ImageView"
@@ -10,9 +10,9 @@ exports[`components/blocksEditor/blocks/image should match Display snapshot 1`] 
 </div>
 `;
 
-exports[`components/blocksEditor/blocks/image should match Display snapshot with empty value 1`] = `<div />`;
+exports[`components/blocksEditor/blocks/image > should match Display snapshot with empty value 1`] = `<div />`;
 
-exports[`components/blocksEditor/blocks/image should match Input snapshot 1`] = `
+exports[`components/blocksEditor/blocks/image > should match Input snapshot 1`] = `
 <div>
   <div>
     <img
@@ -29,7 +29,7 @@ exports[`components/blocksEditor/blocks/image should match Input snapshot 1`] = 
 </div>
 `;
 
-exports[`components/blocksEditor/blocks/image should match Input snapshot with empty input 1`] = `
+exports[`components/blocksEditor/blocks/image > should match Input snapshot with empty input 1`] = `
 <div>
   <div>
     

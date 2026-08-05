@@ -154,7 +154,7 @@ describe('components/sidebarCategory', () => {
     test('sidebar template close self', () => {
         const store = mockAppStore(state)
 
-        const mockTemplateClose = jest.fn()
+        const mockTemplateClose = vi.fn()
 
         const component = wrapRBDNDDroppable(wrapIntl(() =>
             <AppStoreProvider store={store}>
@@ -184,7 +184,7 @@ describe('components/sidebarCategory', () => {
     test('sidebar template close other', () => {
         const store = mockAppStore(state)
 
-        const mockTemplateClose = jest.fn()
+        const mockTemplateClose = vi.fn()
 
         const component = wrapRBDNDDroppable(wrapIntl(() =>
             <AppStoreProvider store={store}>

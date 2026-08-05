@@ -32,7 +32,7 @@ tasks:
       - webapp/index.html
       - webapp/package.json
       - webapp/package-lock.json
-      - webapp/vite.config.mjs
+      - webapp/vite.config.ts
     generates:
       - webapp/pack/**/*
     preconditions:
@@ -40,8 +40,13 @@ tasks:
         msg: "webapp dependencies are missing. Run `npm ci` in webapp/ first."
     cmds:
       # Removing first keeps a renamed asset from surviving a rebuild; the
-      # bundle is embedded from where Vite writes it, no staging copy.
-      - rm -rf webapp/pack
+      # bundle is embedded from where Vite writes it, no staging copy. The
+      # directory itself and its .gitkeep survive: `go mod tidy` runs as a
+      # parallel dep of the same builds and resolves `//go:embed all:` under
+      # every build tag, so webapp/pack must hold an embeddable file at all
+      # times or the build dies with "pattern all: ... no such file or
+      # directory" whenever tidy wins the race.
+      - rm -rf webapp/pack && mkdir -p webapp/pack && touch webapp/pack/.gitkeep
       - cd webapp && npm run pack
 
   generate:icons:

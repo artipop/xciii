@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/onboardingTour/addComments/AddPropertiesTourStep after hover 1`] = `
+exports[`components/onboardingTour/addComments/AddPropertiesTourStep > after hover 1`] = `
 <div
   aria-labelledby="cl-1"
   class="tutorial-tour-tip__box AddPropertiesTourStep"
@@ -104,7 +104,7 @@ exports[`components/onboardingTour/addComments/AddPropertiesTourStep after hover
 </div>
 `;
 
-exports[`components/onboardingTour/addComments/AddPropertiesTourStep before hover 1`] = `
+exports[`components/onboardingTour/addComments/AddPropertiesTourStep > before hover 1`] = `
 <div>
   <div
     aria-expanded="true"

@@ -5,8 +5,6 @@ import {render, screen} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
@@ -19,8 +17,8 @@ import EmptyCardButton from './emptyCardButton'
 const board = TestBlockFactory.createBoard()
 const activeView = TestBlockFactory.createBoardView(board)
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 describe('components/viewHeader/emptyCardButton', () => {
     const state = {
         users: {
@@ -41,10 +39,10 @@ describe('components/viewHeader/emptyCardButton', () => {
     }
 
     const store = mockAppStore(state)
-    const mockFunction = jest.fn()
+    const mockFunction = vi.fn()
 
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
     test('return EmptyCardButton', () => {
         const {container} = render(() =>

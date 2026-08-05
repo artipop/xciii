@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Show} from 'solid-js'
+
 import {useIntl} from '../../intl'
 
 import './adminBadge.scss'
@@ -12,23 +14,30 @@ type Props = {
 const AdminBadge = (props: Props) => {
     const intl = useIntl()
 
-    if (!props.permissions) {
-        return null
+    // Empty when this user holds neither role, which is also what hides the
+    // badge: a permission arriving over the WebSocket has to reach the DOM.
+    const text = () => {
+        const permissions = props.permissions
+        if (!permissions) {
+            return ''
+        }
+        if (permissions.find((s) => s === 'manage_system')) {
+            return intl.formatMessage({id: 'AdminBadge.SystemAdmin', defaultMessage: 'Admin'})
+        }
+        if (permissions.find((s) => s === 'manage_team')) {
+            return intl.formatMessage({id: 'AdminBadge.TeamAdmin', defaultMessage: 'Team Admin'})
+        }
+        return ''
     }
-    let text = ''
-    if (props.permissions?.find((s) => s === 'manage_system')) {
-        text = intl.formatMessage({id: 'AdminBadge.SystemAdmin', defaultMessage: 'Admin'})
-    } else if (props.permissions?.find((s) => s === 'manage_team')) {
-        text = intl.formatMessage({id: 'AdminBadge.TeamAdmin', defaultMessage: 'Team Admin'})
-    } else {
-        return null
-    }
+
     return (
-        <div class='AdminBadge'>
-            <div class='AdminBadge__box'>
-                {text}
+        <Show when={text()}>
+            <div class='AdminBadge'>
+                <div class='AdminBadge__box'>
+                    {text()}
+                </div>
             </div>
-        </div>
+        </Show>
     )
 }
 

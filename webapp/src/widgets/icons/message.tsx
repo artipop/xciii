@@ -9,7 +9,7 @@ export default function MessageIcon(): JSX.Element {
     return (
         <CompassIcon
             icon='message-text-outline'
-            className='MessageIcon'
+            class='MessageIcon'
         />
     )
 }

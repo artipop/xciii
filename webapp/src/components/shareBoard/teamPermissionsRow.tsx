@@ -141,7 +141,7 @@ const TeamPermissionsRow = (): JSX.Element => {
                             {currentRoleName()}
                             <CompassIcon
                                 icon='chevron-down'
-                                className='CompassIcon'
+                                class='CompassIcon'
                             />
                         </button>
                     </MenuWrapper>

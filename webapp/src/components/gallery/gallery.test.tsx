@@ -5,8 +5,6 @@ import {render, screen, fireEvent} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {blocksById, mockAppStore, wrapDNDIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
@@ -16,8 +14,8 @@ import mutator from '../../mutator'
 
 import Gallery from './gallery'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 describe('src/components/gallery/Gallery', () => {
     const board = TestBlockFactory.createBoard()
@@ -67,7 +65,7 @@ describe('src/components/gallery/Gallery', () => {
     }
     const store = mockAppStore(state)
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
     test('should match snapshot', () => {
         const {container} = render(() => wrapDNDIntl(() =>
@@ -77,11 +75,11 @@ describe('src/components/gallery/Gallery', () => {
                     cards={[card, card2]}
                     activeView={activeView}
                     readonly={false}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     selectedCardIds={[card.id]}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -98,11 +96,11 @@ describe('src/components/gallery/Gallery', () => {
                     cards={[card, card2]}
                     activeView={activeView}
                     readonly={false}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     selectedCardIds={[card.id]}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -111,7 +109,7 @@ describe('src/components/gallery/Gallery', () => {
         expect(container).toMatchSnapshot()
     })
     test('return Gallery and click new', () => {
-        const mockAddCard = jest.fn()
+        const mockAddCard = vi.fn()
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Gallery
@@ -121,9 +119,9 @@ describe('src/components/gallery/Gallery', () => {
                     readonly={false}
                     addCard={mockAddCard}
                     selectedCardIds={[card.id]}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -143,11 +141,11 @@ describe('src/components/gallery/Gallery', () => {
                     cards={[card, card2]}
                     activeView={activeView}
                     readonly={true}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     selectedCardIds={[card.id]}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -164,11 +162,11 @@ describe('src/components/gallery/Gallery', () => {
                     cards={[card, card2]}
                     activeView={activeView}
                     readonly={false}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     selectedCardIds={[]}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -234,11 +232,11 @@ describe('src/components/gallery/Gallery', () => {
                     cards={[card1, card3]}
                     activeView={activeView}
                     readonly={false}
-                    addCard={jest.fn()}
+                    addCard={vi.fn()}
                     selectedCardIds={[card1.id]}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={2}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         ))

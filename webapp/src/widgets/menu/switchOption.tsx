@@ -13,25 +13,23 @@ type SwitchOptionProps = MenuOptionProps & {
 }
 
 function SwitchOption(props: SwitchOptionProps): JSX.Element {
-    const {name, icon, isOn, suppressItemClicked} = props
-
     return (
         <div
             class='MenuOption SwitchOption menu-option'
             role='button'
-            aria-label={name}
+            aria-label={props.name}
             onClick={(e: MouseEvent) => {
-                if (!suppressItemClicked) {
+                if (!props.suppressItemClicked) {
                     (e.target as HTMLElement).dispatchEvent(new Event('menuItemClicked'))
                 }
                 props.onClick(props.id)
                 e.stopPropagation()
             }}
         >
-            {icon ? <div class='menu-option__icon'>{icon}</div> : <div class='noicon'/>}
-            <div class='menu-name'>{name}</div>
+            {props.icon ? <div class='menu-option__icon'>{props.icon}</div> : <div class='noicon'/>}
+            <div class='menu-name'>{props.name}</div>
             <Switch
-                isOn={isOn}
+                isOn={props.isOn}
                 onChanged={() => {}}
             />
         </div>

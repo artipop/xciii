@@ -34,6 +34,7 @@ const mattermostBaseTestOverride = mattermostBase.overrides.
 
 export default [
     {
+
         // Flat config replaces .eslintignore. `pack` and `coverage` are build output
         // that the eslintrc setup never reached because it only ran with --ext ts,tsx.
         ignores: ['node_modules/', 'wailsjs/', 'pack/', 'coverage/'],
@@ -51,15 +52,15 @@ export default [
             globals: {
                 ...globals.browser,
                 ...globals.node,
-                ...globals.jest,
+                ...globals.vitest,
             },
         },
 
         plugins: {
             '@stylistic': stylistic,
             '@typescript-eslint': tsPlugin,
-            'header': header,
-            'import': importPlugin,
+            header,
+            import: importPlugin,
             'no-only-tests': noOnlyTests,
             solid,
         },
@@ -209,7 +210,7 @@ export default [
     },
     {
         files: ['**/tests/**', '**/*.test.*'],
-        languageOptions: {globals: globals.jest},
+        languageOptions: {globals: globals.vitest},
         rules: {
             ...mattermostBaseTestOverride.rules,
 

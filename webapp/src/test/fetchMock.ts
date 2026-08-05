@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 class FetchMock {
-    static fn = jest.fn(async () => {
+    static fn = vi.fn(async () => {
         const response = new Response()
         return response
     })

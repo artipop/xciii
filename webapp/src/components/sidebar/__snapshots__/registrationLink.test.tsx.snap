@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/sidebar/RegistrationLink renders with signupToken in URL query param 1`] = `
+exports[`components/sidebar/RegistrationLink > renders with signupToken in URL query param 1`] = `
 <div>
   <div
     class="Modal bottom-right"

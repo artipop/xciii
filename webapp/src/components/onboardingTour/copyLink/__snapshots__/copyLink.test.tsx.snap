@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/onboardingTour/addComments/CopyLinkTourStep after hover 1`] = `
+exports[`components/onboardingTour/addComments/CopyLinkTourStep > after hover 1`] = `
 <div
   aria-labelledby="cl-1"
   class="tutorial-tour-tip__box CopyLinkTourStep"
@@ -116,7 +116,7 @@ exports[`components/onboardingTour/addComments/CopyLinkTourStep after hover 1`] 
 </div>
 `;
 
-exports[`components/onboardingTour/addComments/CopyLinkTourStep before hover 1`] = `
+exports[`components/onboardingTour/addComments/CopyLinkTourStep > before hover 1`] = `
 <div>
   <div
     aria-expanded="true"

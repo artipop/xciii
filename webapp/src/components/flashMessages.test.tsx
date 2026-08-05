@@ -11,14 +11,14 @@ import {wrapIntl} from '../testUtils'
 
 import {FlashMessages, sendFlashMessage} from './flashMessages'
 
-jest.mock('../mutator')
+vi.mock('../mutator')
 
 beforeEach(() => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
 })
 
 afterEach(() => {
-    jest.clearAllTimers()
+    vi.clearAllTimers()
 })
 
 describe('components/flashMessages', () => {
@@ -35,7 +35,7 @@ describe('components/flashMessages', () => {
 
         expect(container).toMatchSnapshot()
 
-        jest.advanceTimersByTime(200)
+        vi.advanceTimersByTime(200)
 
         expect(screen.queryByText('Mock Content')).toBeNull()
     })
@@ -51,7 +51,7 @@ describe('components/flashMessages', () => {
 
         expect(container).toMatchSnapshot()
 
-        jest.advanceTimersByTime(200)
+        vi.advanceTimersByTime(200)
 
         expect(screen.queryByText('Mock Content')).toBeNull()
     })
@@ -67,7 +67,7 @@ describe('components/flashMessages', () => {
 
         expect(container).toMatchSnapshot()
 
-        jest.advanceTimersByTime(200)
+        vi.advanceTimersByTime(200)
 
         expect(screen.queryByText('Mock Content')).toBeNull()
     })
@@ -83,7 +83,7 @@ describe('components/flashMessages', () => {
 
         expect(container).toMatchSnapshot()
 
-        jest.advanceTimersByTime(200)
+        vi.advanceTimersByTime(200)
 
         expect(screen.queryByText('Mock Content')).toBeNull()
     })
@@ -99,7 +99,7 @@ describe('components/flashMessages', () => {
 
         expect(container).toMatchSnapshot()
 
-        jest.advanceTimersByTime(200)
+        vi.advanceTimersByTime(200)
 
         expect(screen.queryByText('Mock Content')).toBeNull()
     })

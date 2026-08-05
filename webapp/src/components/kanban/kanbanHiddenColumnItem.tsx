@@ -31,7 +31,7 @@ export default function KanbanHiddenColumnItem(props: Props): JSX.Element {
 
     const [isOver, drop] = useDropZone<Card>('card', () => true, (card) => props.onDrop(card))
 
-    const className = () => {
+    const classes = () => {
         let name = 'octo-board-hidden-item'
         if (isOver()) {
             name += ' dragover'
@@ -42,7 +42,7 @@ export default function KanbanHiddenColumnItem(props: Props): JSX.Element {
     return (
         <div
             ref={drop}
-            class={className()}
+            class={classes()}
         >
             <MenuWrapper
                 disabled={props.readonly}

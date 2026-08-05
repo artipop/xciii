@@ -165,7 +165,7 @@ describe('components/acp/flowDiagram builder', () => {
                 nodes={nodes}
                 edges={edges}
                 triggers={triggers}
-                onChange={jest.fn()}
+                onChange={vi.fn()}
             />,
         ))
         expect(editable.container.querySelector('.FlowDiagram--editable')).not.toBeNull()

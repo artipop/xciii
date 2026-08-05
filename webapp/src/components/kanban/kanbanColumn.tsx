@@ -15,7 +15,7 @@ type Props = {
 const KanbanColumn: ParentComponent<Props> = (props) => {
     const [isOver, drop] = useDropZone<Card>('card', () => true, (card) => props.onDrop(card))
 
-    const className = () => {
+    const classes = () => {
         let name = 'octo-board-column'
         if (isOver()) {
             name += ' dragover'
@@ -25,7 +25,7 @@ const KanbanColumn: ParentComponent<Props> = (props) => {
     return (
         <div
             ref={drop}
-            class={className()}
+            class={classes()}
         >
             {props.children}
         </div>

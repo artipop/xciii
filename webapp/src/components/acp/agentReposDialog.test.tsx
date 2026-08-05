@@ -10,8 +10,8 @@ import mutator from '../../mutator'
 
 import AgentReposDialog, {isAgentReposAvailable} from './agentReposDialog'
 
-jest.mock('../../mutator')
-const mockedMutator = jest.mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 const anyWindow = window as any
 
@@ -20,7 +20,7 @@ describe('components/acp/agentReposDialog', () => {
 
     afterEach(() => {
         delete anyWindow.go
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('isAgentReposAvailable is false without desktop bindings', () => {
@@ -29,10 +29,10 @@ describe('components/acp/agentReposDialog', () => {
 
     test('lists repos and adds a picked directory', async () => {
         const bindings = {
-            ListAgentRepos: jest.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
-            PickDirectory: jest.fn().mockResolvedValue('/tmp/beta'),
-            AddAgentRepo: jest.fn().mockResolvedValue(JSON.stringify({name: 'beta', path: '/tmp/beta'})),
-            RemoveAgentRepo: jest.fn().mockResolvedValue(undefined),
+            ListAgentRepos: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
+            PickDirectory: vi.fn().mockResolvedValue('/tmp/beta'),
+            AddAgentRepo: vi.fn().mockResolvedValue(JSON.stringify({name: 'beta', path: '/tmp/beta'})),
+            RemoveAgentRepo: vi.fn().mockResolvedValue(undefined),
         }
         anyWindow.go = {main: {App: bindings}}
         expect(isAgentReposAvailable()).toBe(true)
@@ -40,7 +40,7 @@ describe('components/acp/agentReposDialog', () => {
         render(() => wrapIntl(() =>
             <AgentReposDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('alpha')).toBeInTheDocument())
@@ -55,13 +55,13 @@ describe('components/acp/agentReposDialog', () => {
 
     test('creates a Repositories field and adds missing repo options', async () => {
         const bindings = {
-            ListAgentRepos: jest.fn().mockResolvedValue(JSON.stringify([
+            ListAgentRepos: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'alpha', path: '/tmp/alpha'},
                 {name: 'beta', path: '/tmp/beta'},
             ])),
-            PickDirectory: jest.fn(),
-            AddAgentRepo: jest.fn(),
-            RemoveAgentRepo: jest.fn(),
+            PickDirectory: vi.fn(),
+            AddAgentRepo: vi.fn(),
+            RemoveAgentRepo: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
@@ -69,7 +69,7 @@ describe('components/acp/agentReposDialog', () => {
         render(() => wrapIntl(() =>
             <AgentReposDialog
                 board={board}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('alpha')).toBeInTheDocument())
@@ -94,13 +94,13 @@ describe('components/acp/agentReposDialog', () => {
             options: [{id: 'o1', value: 'alpha', color: 'propColorDefault'}],
         })
         const bindings = {
-            ListAgentRepos: jest.fn().mockResolvedValue(JSON.stringify([
+            ListAgentRepos: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'alpha', path: '/tmp/alpha'}, // already an option
                 {name: 'beta', path: '/tmp/beta'},
             ])),
-            PickDirectory: jest.fn(),
-            AddAgentRepo: jest.fn(),
-            RemoveAgentRepo: jest.fn(),
+            PickDirectory: vi.fn(),
+            AddAgentRepo: vi.fn(),
+            RemoveAgentRepo: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
@@ -108,7 +108,7 @@ describe('components/acp/agentReposDialog', () => {
         render(() => wrapIntl(() =>
             <AgentReposDialog
                 board={boardWithRepos}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('beta')).toBeInTheDocument())
@@ -129,17 +129,17 @@ describe('components/acp/agentReposDialog', () => {
             options: [{id: 'o1', value: 'alpha', color: 'propColorDefault'}],
         })
         const bindings = {
-            ListAgentRepos: jest.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
-            PickDirectory: jest.fn(),
-            AddAgentRepo: jest.fn(),
-            RemoveAgentRepo: jest.fn(),
+            ListAgentRepos: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
+            PickDirectory: vi.fn(),
+            AddAgentRepo: vi.fn(),
+            RemoveAgentRepo: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
             <AgentReposDialog
                 board={boardWithRepos}
-                onClose={jest.fn()}
+                onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('alpha')).toBeInTheDocument())

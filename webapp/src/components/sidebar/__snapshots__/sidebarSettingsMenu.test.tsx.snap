@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/sidebar/SidebarSettingsMenu imports menu open should match snapshot 1`] = `
+exports[`components/sidebar/SidebarSettingsMenu > imports menu open should match snapshot 1`] = `
 <div>
   <div
     class="SidebarSettingsMenu"
@@ -373,7 +373,7 @@ exports[`components/sidebar/SidebarSettingsMenu imports menu open should match s
 </div>
 `;
 
-exports[`components/sidebar/SidebarSettingsMenu languages menu open should match snapshot 1`] = `
+exports[`components/sidebar/SidebarSettingsMenu > languages menu open should match snapshot 1`] = `
 <div>
   <div
     class="SidebarSettingsMenu"
@@ -546,7 +546,7 @@ exports[`components/sidebar/SidebarSettingsMenu languages menu open should match
 </div>
 `;
 
-exports[`components/sidebar/SidebarSettingsMenu settings menu closed should match snapshot 1`] = `
+exports[`components/sidebar/SidebarSettingsMenu > settings menu closed should match snapshot 1`] = `
 <div>
   <div
     class="SidebarSettingsMenu"
@@ -567,7 +567,7 @@ exports[`components/sidebar/SidebarSettingsMenu settings menu closed should matc
 </div>
 `;
 
-exports[`components/sidebar/SidebarSettingsMenu settings menu open should match snapshot 1`] = `
+exports[`components/sidebar/SidebarSettingsMenu > settings menu open should match snapshot 1`] = `
 <div>
   <div
     class="SidebarSettingsMenu"
@@ -740,7 +740,7 @@ exports[`components/sidebar/SidebarSettingsMenu settings menu open should match 
 </div>
 `;
 
-exports[`components/sidebar/SidebarSettingsMenu theme menu open should match snapshot 1`] = `
+exports[`components/sidebar/SidebarSettingsMenu > theme menu open should match snapshot 1`] = `
 <div>
   <div
     class="SidebarSettingsMenu"

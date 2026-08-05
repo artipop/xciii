@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/blocksEditor/blocks/h3 should match Display snapshot 1`] = `
+exports[`components/blocksEditor/blocks/h3 > should match Display snapshot 1`] = `
 <div>
   <div>
     <h3
@@ -12,7 +12,7 @@ exports[`components/blocksEditor/blocks/h3 should match Display snapshot 1`] = `
 </div>
 `;
 
-exports[`components/blocksEditor/blocks/h3 should match Input snapshot 1`] = `
+exports[`components/blocksEditor/blocks/h3 > should match Input snapshot 1`] = `
 <div>
   <input
     class="H3"

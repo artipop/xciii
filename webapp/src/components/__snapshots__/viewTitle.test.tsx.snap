@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/viewTitle add random icon 1`] = `
+exports[`components/viewTitle > add random icon 1`] = `
 <div>
   <div
     class="ViewTitle"
@@ -48,7 +48,7 @@ exports[`components/viewTitle add random icon 1`] = `
 </div>
 `;
 
-exports[`components/viewTitle hide description 1`] = `
+exports[`components/viewTitle > hide description 1`] = `
 <div>
   <div
     class="ViewTitle"
@@ -103,7 +103,7 @@ exports[`components/viewTitle hide description 1`] = `
 </div>
 `;
 
-exports[`components/viewTitle should match snapshot 1`] = `
+exports[`components/viewTitle > should match snapshot 1`] = `
 <div>
   <div
     class="ViewTitle"
@@ -169,7 +169,7 @@ exports[`components/viewTitle should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/viewTitle should match snapshot readonly 1`] = `
+exports[`components/viewTitle > should match snapshot readonly 1`] = `
 <div>
   <div
     class="ViewTitle"
@@ -219,7 +219,7 @@ exports[`components/viewTitle should match snapshot readonly 1`] = `
 </div>
 `;
 
-exports[`components/viewTitle show description 1`] = `
+exports[`components/viewTitle > show description 1`] = `
 <div>
   <div
     class="ViewTitle"

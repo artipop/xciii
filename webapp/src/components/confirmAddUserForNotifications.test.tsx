@@ -19,8 +19,8 @@ describe('/components/confirmAddUserForNotifications', () => {
                     allowManageBoardRoles={true}
                     minimumRole={MemberRole.Editor}
                     user={{id: 'fake-user-id', username: 'fake-username'} as IUser}
-                    onConfirm={jest.fn()}
-                    onClose={jest.fn()}
+                    onConfirm={vi.fn()}
+                    onClose={vi.fn()}
                 />,
             ),
         )
@@ -28,7 +28,7 @@ describe('/components/confirmAddUserForNotifications', () => {
     })
 
     it('confirm button click, run onConfirm Function once', () => {
-        const onConfirm = jest.fn()
+        const onConfirm = vi.fn()
 
         const result = render(() =>
             wrapDNDIntl(() =>
@@ -37,7 +37,7 @@ describe('/components/confirmAddUserForNotifications', () => {
                     minimumRole={MemberRole.Editor}
                     user={{id: 'fake-user-id', username: 'fake-username'} as IUser}
                     onConfirm={onConfirm}
-                    onClose={jest.fn()}
+                    onClose={vi.fn()}
                 />,
             ),
         )
@@ -46,7 +46,7 @@ describe('/components/confirmAddUserForNotifications', () => {
     })
 
     it('cancel button click runs onClose function', () => {
-        const onClose = jest.fn()
+        const onClose = vi.fn()
 
         const result = render(() =>
             wrapDNDIntl(() =>
@@ -54,7 +54,7 @@ describe('/components/confirmAddUserForNotifications', () => {
                     allowManageBoardRoles={true}
                     minimumRole={MemberRole.Editor}
                     user={{id: 'fake-user-id', username: 'fake-username'} as IUser}
-                    onConfirm={jest.fn()}
+                    onConfirm={vi.fn()}
                     onClose={onClose}
                 />,
             ),

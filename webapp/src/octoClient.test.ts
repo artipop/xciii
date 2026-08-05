@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 // Disable console log
-console.log = jest.fn()
+console.log = vi.fn()
 
 import {Block} from './blocks/block'
 import {createCard} from './blocks/card'

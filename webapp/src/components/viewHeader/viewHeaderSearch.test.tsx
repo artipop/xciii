@@ -23,7 +23,7 @@ describe('components/viewHeader/ViewHeaderSearch', () => {
 
     const store = mockAppStore(state)
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
     test('return search menu', () => {
         const {container} = render(() =>

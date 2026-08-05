@@ -9,7 +9,7 @@ export default function CreateNewFolder(): JSX.Element {
     return (
         <CompassIcon
             icon='folder-plus-outline'
-            className='CreateNewFolderIcon'
+            class='CreateNewFolderIcon'
         />
     )
 }

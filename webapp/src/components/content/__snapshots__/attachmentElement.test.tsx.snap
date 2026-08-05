@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`component/content/FileBlock archived file 1`] = `
+exports[`component/content/FileBlock > archived file 1`] = `
 <div>
   <div
     class="FileElement mr-4"
@@ -68,7 +68,7 @@ exports[`component/content/FileBlock archived file 1`] = `
 </div>
 `;
 
-exports[`component/content/FileBlock should match snapshot 1`] = `
+exports[`component/content/FileBlock > should match snapshot 1`] = `
 <div>
   <div
     class="FileElement mr-4"

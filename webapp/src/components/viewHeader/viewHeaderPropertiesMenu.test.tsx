@@ -5,8 +5,6 @@ import {render, screen} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {BoardView} from '../../blocks/boardView'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
@@ -20,8 +18,8 @@ import {Constants} from '../../constants'
 
 import ViewHeaderPropertiesMenu from './viewHeaderPropertiesMenu'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 let activeView: BoardView
@@ -36,7 +34,7 @@ describe('components/viewHeader/viewHeaderPropertiesMenu', () => {
     }
     const store = mockAppStore(state)
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         activeView = TestBlockFactory.createBoardView(board)
     })
     test('return properties menu', () => {

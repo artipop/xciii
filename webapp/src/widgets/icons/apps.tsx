@@ -9,7 +9,7 @@ export default function Apps(): JSX.Element {
     return (
         <CompassIcon
             icon='apps'
-            className='AppsIcon'
+            class='AppsIcon'
         />
     )
 }

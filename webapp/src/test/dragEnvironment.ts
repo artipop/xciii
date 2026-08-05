@@ -79,9 +79,9 @@ export function setupDragEnvironment(): void {
         observe(element: Element) {
             report(this.callback, element, this.seen)
         }
-        unobserve() {} // eslint-disable-line class-methods-use-this
-        disconnect() {} // eslint-disable-line class-methods-use-this
-        takeRecords() { // eslint-disable-line class-methods-use-this
+        unobserve() {}
+        disconnect() {}
+        takeRecords() {
             return []
         }
     }

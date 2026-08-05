@@ -61,7 +61,7 @@ const ContentBlock = (props: Props): JSX.Element => {
         return order
     }
 
-    const className = () => {
+    const classes = () => {
         let name = 'ContentBlock octo-block'
         if (menuOpened()) {
             name += ' menuOpened'
@@ -76,7 +76,7 @@ const ContentBlock = (props: Props): JSX.Element => {
         >
             <div
                 ref={itemRef}
-                class={className()}
+                class={classes()}
             >
                 <div class='octo-block-margin'>
                     <Show when={!props.readonly}>

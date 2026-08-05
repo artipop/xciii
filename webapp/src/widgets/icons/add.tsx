@@ -11,7 +11,7 @@ export default function AddIcon(): JSX.Element {
     return (
         <CompassIcon
             icon='plus'
-            className='AddIcon'
+            class='AddIcon'
         />
     )
 }

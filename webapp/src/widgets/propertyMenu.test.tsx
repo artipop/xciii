@@ -12,12 +12,12 @@ import PropertyMenu from './propertyMenu'
 describe('widgets/PropertyMenu', () => {
     beforeEach(() => {
         // Quick fix to disregard console error when unmounting a component
-        console.error = jest.fn()
-        document.execCommand = jest.fn()
+        console.error = vi.fn()
+        document.execCommand = vi.fn()
     })
 
     test('should display the type of property', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const component = () => wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}
@@ -32,7 +32,7 @@ describe('widgets/PropertyMenu', () => {
     })
 
     test('handles delete event', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const component = () => wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}
@@ -48,7 +48,7 @@ describe('widgets/PropertyMenu', () => {
     })
 
     test('handles name change event', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const component = () => wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}
@@ -66,7 +66,7 @@ describe('widgets/PropertyMenu', () => {
     })
 
     test('handles type change event', async () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const component = () => wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}
@@ -84,7 +84,7 @@ describe('widgets/PropertyMenu', () => {
     })
 
     test('handles name and type change event', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const component = () => wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}
@@ -105,7 +105,7 @@ describe('widgets/PropertyMenu', () => {
     })
 
     test('should match snapshot', () => {
-        const callback = jest.fn()
+        const callback = vi.fn()
         const component = () => wrapIntl(() =>
             <PropertyMenu
                 propertyId={'id'}

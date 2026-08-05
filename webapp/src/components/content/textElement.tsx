@@ -52,7 +52,7 @@ const TextElement = (props: Props): JSX.Element => {
     return (
         <div class='TextElement'>
             <MarkdownEditor
-                className={cx({'markdown-editor-error': isError()})}
+                class={cx({'markdown-editor-error': isError()})}
                 text={blockTitle()}
                 placeholderText={intl.formatMessage({id: 'ContentBlock.editText', defaultMessage: 'Edit text...'})}
                 onChange={textChangedHandler}

@@ -107,7 +107,7 @@ const SearchDialog = (props: Props): JSX.Element => {
         <Dialog
             title={<div>{props.title}</div>}
             subtitle={<div>{props.subTitle}</div>}
-            className='BoardSwitcherDialog'
+            class='BoardSwitcherDialog'
             onClose={props.onClose}
         >
             <div class='BoardSwitcherDialogBody'>

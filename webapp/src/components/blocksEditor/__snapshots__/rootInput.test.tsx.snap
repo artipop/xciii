@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/blocksEditor/rootInput should match Display snapshot 1`] = `
+exports[`components/blocksEditor/rootInput > should match Display snapshot 1`] = `
 <div>
   <div
     class="Combobox RootInput"
@@ -38,7 +38,7 @@ exports[`components/blocksEditor/rootInput should match Display snapshot 1`] = `
 </div>
 `;
 
-exports[`components/blocksEditor/rootInput should match Input snapshot 1`] = `
+exports[`components/blocksEditor/rootInput > should match Input snapshot 1`] = `
 <div>
   <div
     class="Combobox RootInput"
@@ -76,7 +76,7 @@ exports[`components/blocksEditor/rootInput should match Input snapshot 1`] = `
 </div>
 `;
 
-exports[`components/blocksEditor/rootInput should match Input snapshot with menu open 1`] = `
+exports[`components/blocksEditor/rootInput > should match Input snapshot with menu open 1`] = `
 <div>
   <div
     class="Combobox RootInput"

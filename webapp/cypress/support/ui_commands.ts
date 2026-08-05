@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable cypress/no-unnecessary-waiting */
-
 Cypress.Commands.add('uiCreateBoard', (item: string) => {
     cy.log(`Create new board: ${item}`)
 

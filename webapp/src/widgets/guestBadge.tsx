@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Show} from 'solid-js'
+
 import {FormattedMessage} from '../intl'
 
 import './guestBadge.scss'
@@ -10,18 +12,17 @@ type Props = {
 }
 
 const GuestBadge = (props: Props) => {
-    if (!props.show) {
-        return null
-    }
     return (
-        <div class='GuestBadge'>
-            <div class='GuestBadge__box'>
-                <FormattedMessage
-                    id='badge.guest'
-                    defaultMessage='Guest'
-                />
+        <Show when={props.show}>
+            <div class='GuestBadge'>
+                <div class='GuestBadge__box'>
+                    <FormattedMessage
+                        id='badge.guest'
+                        defaultMessage='Guest'
+                    />
+                </div>
             </div>
-        </div>
+        </Show>
     )
 }
 

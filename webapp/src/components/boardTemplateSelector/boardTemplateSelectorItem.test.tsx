@@ -30,8 +30,8 @@ const groupProperty: IPropertyTemplate = {
     ],
 }
 
-jest.mock('../../utils')
-jest.mock('../../mutator')
+vi.mock('../../utils')
+vi.mock('../../mutator')
 
 describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
     const team1: Team = {
@@ -99,7 +99,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
 
     let store: ReturnType<typeof mockAppStore>
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         const state = {
             teams: {
                 current: team1,
@@ -123,9 +123,9 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
                 <BoardTemplateSelectorItem
                     isActive={false}
                     template={template}
-                    onSelect={jest.fn()}
-                    onDelete={jest.fn()}
-                    onEdit={jest.fn()}
+                    onSelect={vi.fn()}
+                    onDelete={vi.fn()}
+                    onEdit={vi.fn()}
                 />
             </AppStoreProvider>
             ,
@@ -139,9 +139,9 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
                 <BoardTemplateSelectorItem
                     isActive={true}
                     template={template}
-                    onSelect={jest.fn()}
-                    onDelete={jest.fn()}
-                    onEdit={jest.fn()}
+                    onSelect={vi.fn()}
+                    onDelete={vi.fn()}
+                    onEdit={vi.fn()}
                 />
             </AppStoreProvider>
             ,
@@ -155,9 +155,9 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
                 <BoardTemplateSelectorItem
                     isActive={false}
                     template={globalTemplate}
-                    onSelect={jest.fn()}
-                    onDelete={jest.fn()}
-                    onEdit={jest.fn()}
+                    onSelect={vi.fn()}
+                    onDelete={vi.fn()}
+                    onEdit={vi.fn()}
                 />
             </AppStoreProvider>
             ,
@@ -166,9 +166,9 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
     })
 
     test('should trigger the onSelect (and not any other) when click the element', async () => {
-        const onSelect = jest.fn()
-        const onDelete = jest.fn()
-        const onEdit = jest.fn()
+        const onSelect = vi.fn()
+        const onDelete = vi.fn()
+        const onEdit = vi.fn()
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BoardTemplateSelectorItem
@@ -189,9 +189,9 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
     })
 
     test('should trigger the onDelete (and not any other) when click the delete icon', async () => {
-        const onSelect = jest.fn()
-        const onDelete = jest.fn()
-        const onEdit = jest.fn()
+        const onSelect = vi.fn()
+        const onDelete = vi.fn()
+        const onEdit = vi.fn()
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BoardTemplateSelectorItem
@@ -212,9 +212,9 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
     })
 
     test('should trigger the onDelete (and not any other) when click the delete icon and confirm', async () => {
-        const onSelect = jest.fn()
-        const onDelete = jest.fn()
-        const onEdit = jest.fn()
+        const onSelect = vi.fn()
+        const onDelete = vi.fn()
+        const onEdit = vi.fn()
 
         const root = document.createElement('div')
         root.setAttribute('id', 'focalboard-root-portal')

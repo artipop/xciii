@@ -50,7 +50,7 @@ const KanbanCard = (props: Props) => {
         () => ({id: props.card.id, index: props.index, group: props.groupId}),
     )
     const visiblePropertyTemplates = () => props.visiblePropertyTemplates || []
-    const className = () => {
+    const classes = () => {
         let name = props.isSelected ? 'KanbanCard selected' : 'KanbanCard'
         if (props.isManualSort && isOver()) {
             name += ' dragover'
@@ -99,13 +99,13 @@ const KanbanCard = (props: Props) => {
         <>
             <div
                 ref={props.readonly ? undefined : cardRef}
-                class={className()}
+                class={classes()}
                 style={{opacity: isDragging() ? 0.5 : 1}}
                 onClick={handleOnClick}
             >
                 <Show when={!props.readonly}>
                     <MenuWrapper
-                        className={'optionsMenu'}
+                        class={'optionsMenu'}
                         stopPropagationOnToggle={true}
                         menu={
                             <CardActionsMenu

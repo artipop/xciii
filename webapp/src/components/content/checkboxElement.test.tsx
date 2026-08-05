@@ -4,7 +4,6 @@ import type {JSX} from 'solid-js'
 
 import {fireEvent, render, screen, waitFor} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'
-import {mocked} from 'jest-mock'
 import userEvent from '@testing-library/user-event'
 
 import {wrapIntl} from '../../testUtils'
@@ -15,8 +14,8 @@ import mutator from '../../mutator'
 
 import CheckboxElement from './checkboxElement'
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 const board = TestBlockFactory.createBoard()
 const card = TestBlockFactory.createCard(board)
@@ -42,8 +41,8 @@ const cardDetailContextValue = (autoAdded: boolean): CardDetailContextType => ({
         id: checkboxBlock.id,
         autoAdded,
     },
-    deleteBlock: jest.fn(),
-    addBlock: jest.fn(),
+    deleteBlock: vi.fn(),
+    addBlock: vi.fn(),
 })
 
 const wrap = (child: () => JSX.Element): JSX.Element => (
@@ -55,7 +54,7 @@ const wrap = (child: () => JSX.Element): JSX.Element => (
 )
 
 describe('components/content/checkboxElement', () => {
-    beforeEach(jest.clearAllMocks)
+    beforeEach(vi.clearAllMocks)
 
     it('should match snapshot', () => {
         const component = () => wrap(() =>
@@ -133,7 +132,7 @@ describe('components/content/checkboxElement', () => {
     })
 
     it('should add new checkbox when enter pressed', async () => {
-        const addElement = jest.fn()
+        const addElement = vi.fn()
         render(() => wrap(() =>
             <CheckboxElement
                 block={checkboxBlock}
@@ -157,7 +156,7 @@ describe('components/content/checkboxElement', () => {
     it('should delete automatically added checkbox with empty title on esc/enter pressed', () => {
         const addedBlock = createContentBlock(checkboxBlock)
         addedBlock.title = ''
-        const deleteElement = jest.fn()
+        const deleteElement = vi.fn()
 
         render(() => wrapIntl(() =>
             <CardDetailContext.Provider value={cardDetailContextValue(true)}>

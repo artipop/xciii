@@ -76,7 +76,7 @@ const Menu: Component<Props> & {
                     <TextOption
                         id='menu-cancel'
                         name={'Cancel'}
-                        className='menu-cancel'
+                        class='menu-cancel'
                         onClick={onCancel}
                     />
                 </div>

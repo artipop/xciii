@@ -5,8 +5,6 @@ import '@testing-library/jest-dom'
 
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import Mutator from '../../mutator'
 import {Utils} from '../../utils'
 
@@ -17,11 +15,11 @@ import {AppStoreProvider} from '../../store'
 
 import KanbanCard from './kanbanCard'
 
-jest.mock('../../mutator')
-jest.mock('../../utils')
-jest.mock('../../telemetry/telemetryClient')
-const mockedUtils = mocked(Utils)
-const mockedMutator = mocked(Mutator)
+vi.mock('../../mutator')
+vi.mock('../../utils')
+vi.mock('../../telemetry/telemetryClient')
+const mockedUtils = vi.mocked(Utils)
+const mockedMutator = vi.mocked(Mutator)
 
 describe('src/components/kanban/kanbanCard', () => {
     const board = TestBlockFactory.createBoard()
@@ -76,7 +74,7 @@ describe('src/components/kanban/kanbanCard', () => {
         },
     }
     const store = mockAppStore(state)
-    beforeEach(jest.clearAllMocks)
+    beforeEach(vi.clearAllMocks)
 
     // The native HTML5 attribute, left over from react-dnd's HTML5 backend.
     // dnd-kit drags on pointer events, and when it finds a natively draggable
@@ -96,8 +94,8 @@ describe('src/components/kanban/kanbanCard', () => {
                     visibleBadges={false}
                     isSelected={false}
                     readonly={false}
-                    onDrop={jest.fn()}
-                    showCard={jest.fn()}
+                    onDrop={vi.fn()}
+                    showCard={vi.fn()}
                     isManualSort={false}
                     index={0}
                     groupId='group-1'
@@ -118,8 +116,8 @@ describe('src/components/kanban/kanbanCard', () => {
                     visibleBadges={false}
                     isSelected={false}
                     readonly={false}
-                    onDrop={jest.fn()}
-                    showCard={jest.fn()}
+                    onDrop={vi.fn()}
+                    showCard={vi.fn()}
                     isManualSort={false}
                     index={0}
                     groupId='group-1'
@@ -138,8 +136,8 @@ describe('src/components/kanban/kanbanCard', () => {
                     visibleBadges={false}
                     isSelected={false}
                     readonly={true}
-                    onDrop={jest.fn()}
-                    showCard={jest.fn()}
+                    onDrop={vi.fn()}
+                    showCard={vi.fn()}
                     isManualSort={false}
                     index={0}
                     groupId='group-1'
@@ -158,8 +156,8 @@ describe('src/components/kanban/kanbanCard', () => {
                     visibleBadges={false}
                     isSelected={false}
                     readonly={false}
-                    onDrop={jest.fn()}
-                    showCard={jest.fn()}
+                    onDrop={vi.fn()}
+                    showCard={vi.fn()}
                     isManualSort={false}
                     index={0}
                     groupId='group-1'
@@ -196,8 +194,8 @@ describe('src/components/kanban/kanbanCard', () => {
                     visibleBadges={false}
                     isSelected={false}
                     readonly={false}
-                    onDrop={jest.fn()}
-                    showCard={jest.fn()}
+                    onDrop={vi.fn()}
+                    showCard={vi.fn()}
                     isManualSort={false}
                     index={0}
                     groupId='group-1'
@@ -224,8 +222,8 @@ describe('src/components/kanban/kanbanCard', () => {
                     visibleBadges={false}
                     isSelected={false}
                     readonly={false}
-                    onDrop={jest.fn()}
-                    showCard={jest.fn()}
+                    onDrop={vi.fn()}
+                    showCard={vi.fn()}
                     isManualSort={false}
                     index={0}
                     groupId='group-1'

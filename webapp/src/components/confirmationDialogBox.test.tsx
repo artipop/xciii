@@ -13,14 +13,14 @@ describe('/components/confirmationDialogBox', () => {
         heading: 'test-heading',
         subText: 'test-sub-text',
         confirmButtonText: 'test-btn-text',
-        onConfirm: jest.fn(),
-        onClose: jest.fn(),
+        onConfirm: vi.fn(),
+        onClose: vi.fn(),
     }
 
     const dialogProps = {
         heading: 'test-heading',
-        onConfirm: jest.fn(),
-        onClose: jest.fn(),
+        onConfirm: vi.fn(),
+        onClose: vi.fn(),
     }
 
     it('confirmDialog should match snapshot', async () => {

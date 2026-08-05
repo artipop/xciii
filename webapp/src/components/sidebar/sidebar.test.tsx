@@ -4,8 +4,6 @@
 import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {TestRouter, mockAppStore, mockMatchMedia, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
@@ -14,8 +12,8 @@ import octoClient from '../../../../webapp/src/octoClient'
 
 import Sidebar from './sidebar'
 
-jest.mock('../../octoClient')
-const mockedOctoClient = mocked(octoClient)
+vi.mock('../../octoClient')
+const mockedOctoClient = vi.mocked(octoClient)
 
 beforeAll(() => {
     mockMatchMedia({matches: true})
@@ -23,7 +21,7 @@ beforeAll(() => {
 
 describe('components/sidebarSidebar', () => {
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     const board = TestBlockFactory.createBoard()
@@ -75,7 +73,7 @@ describe('components/sidebarSidebar', () => {
                 hiddenBoardIDs: [],
             },
         }, {client: mockedOctoClient as any})
-        const onBoardTemplateSelectorOpen = jest.fn()
+        const onBoardTemplateSelectorOpen = vi.fn()
 
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
@@ -142,7 +140,7 @@ describe('components/sidebarSidebar', () => {
                 hiddenBoardIDs: [],
             },
         }, {client: mockedOctoClient as any})
-        const onBoardTemplateSelectorOpen = jest.fn()
+        const onBoardTemplateSelectorOpen = vi.fn()
 
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
@@ -208,7 +206,7 @@ describe('components/sidebarSidebar', () => {
                 hiddenBoardIDs: [board.id],
             },
         })
-        const onBoardTemplateSelectorOpen = jest.fn()
+        const onBoardTemplateSelectorOpen = vi.fn()
 
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
@@ -273,7 +271,7 @@ describe('components/sidebarSidebar', () => {
                 hiddenBoardIDs: [],
             },
         }, {client: mockedOctoClient as any})
-        const onBoardTemplateSelectorOpen = jest.fn()
+        const onBoardTemplateSelectorOpen = vi.fn()
 
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>
@@ -329,7 +327,7 @@ describe('components/sidebarSidebar', () => {
                 hiddenBoardIDs: [],
             },
         }, {client: mockedOctoClient as any})
-        const onBoardTemplateSelectorOpen = jest.fn()
+        const onBoardTemplateSelectorOpen = vi.fn()
 
         mockedOctoClient.moveBoardToCategory.mockResolvedValueOnce({} as Response)
 
@@ -391,7 +389,7 @@ describe('components/sidebarSidebar', () => {
                 ],
             },
         }, {client: mockedOctoClient as any})
-        const onBoardTemplateSelectorOpen = jest.fn()
+        const onBoardTemplateSelectorOpen = vi.fn()
 
         const component = () => wrapIntl(() =>
             <AppStoreProvider store={store}>

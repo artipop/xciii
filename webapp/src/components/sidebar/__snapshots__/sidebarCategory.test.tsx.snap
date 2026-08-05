@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/sidebarCategory sidebar call hideSidebar 1`] = `
+exports[`components/sidebarCategory > sidebar call hideSidebar 1`] = `
 <div>
   <div>
     <div
@@ -128,7 +128,7 @@ exports[`components/sidebarCategory sidebar call hideSidebar 1`] = `
 </div>
 `;
 
-exports[`components/sidebarCategory sidebar call hideSidebar 2`] = `
+exports[`components/sidebarCategory > sidebar call hideSidebar 2`] = `
 <div>
   <div>
     <div
@@ -256,7 +256,7 @@ exports[`components/sidebarCategory sidebar call hideSidebar 2`] = `
 </div>
 `;
 
-exports[`components/sidebarCategory sidebar collapsed with active board in it 1`] = `
+exports[`components/sidebarCategory > sidebar collapsed with active board in it 1`] = `
 <div>
   <div>
     <div
@@ -377,7 +377,7 @@ exports[`components/sidebarCategory sidebar collapsed with active board in it 1`
 </div>
 `;
 
-exports[`components/sidebarCategory sidebar collapsed without active board 1`] = `
+exports[`components/sidebarCategory > sidebar collapsed without active board 1`] = `
 <div>
   <div>
     <div
@@ -436,7 +436,7 @@ exports[`components/sidebarCategory sidebar collapsed without active board 1`] =
 </div>
 `;
 
-exports[`components/sidebarCategory sidebar template close other 1`] = `
+exports[`components/sidebarCategory > sidebar template close other 1`] = `
 <div>
   <div>
     <div
@@ -592,7 +592,7 @@ exports[`components/sidebarCategory sidebar template close other 1`] = `
 </div>
 `;
 
-exports[`components/sidebarCategory sidebar template close self 1`] = `
+exports[`components/sidebarCategory > sidebar template close self 1`] = `
 <div>
   <div>
     <div

@@ -12,17 +12,17 @@ const anyWindow = window as any
 
 function cardBindings(state: any = {}) {
     return {
-        GetCardAgent: jest.fn().mockResolvedValue(JSON.stringify(state)),
-        OpenCardTerminal: jest.fn().mockResolvedValue(JSON.stringify({id: 'term-1', windowed: true})),
-        StartCardDeploy: jest.fn().mockResolvedValue('deploy-1'),
-        CancelSession: jest.fn().mockResolvedValue(true),
-        ListAgentRepos: jest.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
+        GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify(state)),
+        OpenCardTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-1', windowed: true})),
+        StartCardDeploy: vi.fn().mockResolvedValue('deploy-1'),
+        CancelSession: vi.fn().mockResolvedValue(true),
+        ListAgentRepos: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
     }
 }
 
 describe('components/acp/cardAgent', () => {
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
         delete anyWindow.go
         delete anyWindow.runtime
     })
@@ -81,7 +81,7 @@ describe('components/acp/cardAgent', () => {
     // is chosen, and the refusal has to offer the choice rather than just fail.
     it('offers the repositories when the card names none', async () => {
         const bindings = cardBindings()
-        bindings.OpenCardTerminal = jest.fn().mockRejectedValue(new Error('карточка не указывает репозиторий'))
+        bindings.OpenCardTerminal = vi.fn().mockRejectedValue(new Error('карточка не указывает репозиторий'))
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() => <CardAgent cardId='card-1'/>))

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/onboardingTour/addComments/OpenCardTourStep after hover 1`] = `
+exports[`components/onboardingTour/addComments/OpenCardTourStep > after hover 1`] = `
 <div
   aria-labelledby="cl-1"
   class="tutorial-tour-tip__box OpenCardTourStep"
@@ -58,7 +58,7 @@ exports[`components/onboardingTour/addComments/OpenCardTourStep after hover 1`] 
 </div>
 `;
 
-exports[`components/onboardingTour/addComments/OpenCardTourStep before hover 1`] = `
+exports[`components/onboardingTour/addComments/OpenCardTourStep > before hover 1`] = `
 <div>
   <div
     aria-expanded="true"

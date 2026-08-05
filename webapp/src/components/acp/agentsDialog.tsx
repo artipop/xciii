@@ -639,7 +639,7 @@ const AgentsDialog = (props: Props) => {
 
     return (
         <Dialog
-            className='AgentsDialog'
+            class='AgentsDialog'
             title={<span>{intl.formatMessage({id: 'Agents.title', defaultMessage: 'Agents'})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'Agents.subtitle', defaultMessage: 'Register coding agents (Claude, Codex, Antigravity, GitHub Copilot, JetBrains Junie or any other ACP agent) with their own prompt, model, launch command, environment and proxy. Cards route to an agent by their assignee or the "Agent" field.'})}</span>}
             onClose={props.onClose}
@@ -703,9 +703,7 @@ const AgentsDialog = (props: Props) => {
                                         onClick={installAdapter}
                                         disabled={Boolean(installing())}
                                     >
-                                        {installing() === adapter()!.kind ?
-                                            intl.formatMessage({id: 'Agents.adapter-installing', defaultMessage: 'Installing…'}) :
-                                            intl.formatMessage({id: 'Agents.adapter-install', defaultMessage: 'Install adapter'})}
+                                        {installing() === adapter()!.kind ? intl.formatMessage({id: 'Agents.adapter-installing', defaultMessage: 'Installing…'}) : intl.formatMessage({id: 'Agents.adapter-install', defaultMessage: 'Install adapter'})}
                                     </Button>
                                 </Show>
                             </div>
@@ -759,9 +757,7 @@ const AgentsDialog = (props: Props) => {
                                         onClick={() => probeAgent(formEntry(), true)}
                                         disabled={probing()}
                                     >
-                                        {probing() ?
-                                            intl.formatMessage({id: 'Agents.options-probing', defaultMessage: 'Asking the agent…'}) :
-                                            intl.formatMessage({id: 'Agents.options-recheck', defaultMessage: 'Recheck'})}
+                                        {probing() ? intl.formatMessage({id: 'Agents.options-probing', defaultMessage: 'Asking the agent…'}) : intl.formatMessage({id: 'Agents.options-recheck', defaultMessage: 'Recheck'})}
                                     </Button>
                                 </Show>
                             </div>

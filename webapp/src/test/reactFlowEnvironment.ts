@@ -5,7 +5,7 @@
 // transform matrix off it, and asks whether the pointer is coarse. jsdom has
 // none of ResizeObserver, DOMMatrix or matchMedia, and every element it lays
 // out is 0×0, so without these the canvas throws instead of rendering. Kept
-// here rather than in a global jest setup because faking element sizes for the
+// here rather than in a global setup file because faking element sizes for the
 // whole suite would change what other tests see.
 export function setupReactFlowEnvironment(): void {
     const anyGlobal = global as any
@@ -33,9 +33,9 @@ export function setupReactFlowEnvironment(): void {
 
     if (!anyGlobal.ResizeObserver) {
         anyGlobal.ResizeObserver = class {
-            observe() {} // eslint-disable-line class-methods-use-this
-            unobserve() {} // eslint-disable-line class-methods-use-this
-            disconnect() {} // eslint-disable-line class-methods-use-this
+            observe() {}
+            unobserve() {}
+            disconnect() {}
         }
     }
 

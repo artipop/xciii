@@ -42,10 +42,10 @@ describe('components/blocksEditor/blocks/text', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Component
-                    onChange={jest.fn()}
+                    onChange={vi.fn()}
                     value='test-value'
-                    onCancel={jest.fn()}
-                    onSave={jest.fn()}
+                    onCancel={vi.fn()}
+                    onSave={vi.fn()}
                 />
             </AppStoreProvider>,
         ))
@@ -57,10 +57,10 @@ describe('components/blocksEditor/blocks/text', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Component
-                    onChange={jest.fn()}
+                    onChange={vi.fn()}
                     value='test-value'
-                    onCancel={jest.fn()}
-                    onSave={jest.fn()}
+                    onCancel={vi.fn()}
+                    onSave={vi.fn()}
                 />
             </AppStoreProvider>,
         ))

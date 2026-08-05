@@ -5,8 +5,6 @@ import '@testing-library/jest-dom'
 import {render, screen} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import mutator from '../mutator'
 import {IUser} from '../user'
 import {Utils} from '../utils'
@@ -17,13 +15,13 @@ import {AppStoreProvider} from '../store'
 
 import CardDialog from './cardDialog'
 
-jest.mock('../mutator')
-jest.mock('../octoClient')
-jest.mock('../utils')
+vi.mock('../mutator')
+vi.mock('../octoClient')
+vi.mock('../utils')
 
-const mockedUtils = mocked(Utils)
-const mockedMutator = mocked(mutator)
-const mockedOctoClient = mocked(octoClient)
+const mockedUtils = vi.mocked(Utils)
+const mockedMutator = vi.mocked(mutator)
+const mockedOctoClient = vi.mocked(octoClient)
 mockedUtils.createGuid.mockReturnValue('test-id')
 
 beforeAll(() => {
@@ -85,7 +83,7 @@ describe('components/cardDialog', () => {
     mockedOctoClient.searchTeamUsers.mockResolvedValue(Object.values(state.users.boardUsers) as IUser[])
     const store = mockAppStore(state)
     beforeEach(() => {
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
     test('should match snapshot', async () => {
         const {container} = render(() => wrapDNDIntl(() =>
@@ -96,8 +94,8 @@ describe('components/cardDialog', () => {
                     views={[boardView]}
                     cards={[card]}
                     cardId={card.id}
-                    onClose={jest.fn()}
-                    showCard={jest.fn()}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
                 />
             </AppStoreProvider>,
@@ -114,8 +112,8 @@ describe('components/cardDialog', () => {
                     views={[boardView]}
                     cards={[card]}
                     cardId={card.id}
-                    onClose={jest.fn()}
-                    showCard={jest.fn()}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
                 />
             </AppStoreProvider>,
@@ -132,8 +130,8 @@ describe('components/cardDialog', () => {
                     views={[boardView]}
                     cards={[card]}
                     cardId={card.id}
-                    onClose={jest.fn()}
-                    showCard={jest.fn()}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
                     readonly={true}
                 />
             </AppStoreProvider>,
@@ -141,7 +139,7 @@ describe('components/cardDialog', () => {
         expect(container).toMatchSnapshot()
     })
     test('return cardDialog and do a close action', async () => {
-        const closeFn = jest.fn()
+        const closeFn = vi.fn()
         render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <CardDialog
@@ -151,7 +149,7 @@ describe('components/cardDialog', () => {
                     cards={[card]}
                     cardId={card.id}
                     onClose={closeFn}
-                    showCard={jest.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
                 />
             </AppStoreProvider>,
@@ -169,8 +167,8 @@ describe('components/cardDialog', () => {
                     views={[boardView]}
                     cards={[card]}
                     cardId={card.id}
-                    onClose={jest.fn()}
-                    showCard={jest.fn()}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
                 />
             </AppStoreProvider>,
@@ -188,8 +186,8 @@ describe('components/cardDialog', () => {
                     views={[boardView]}
                     cards={[card]}
                     cardId={card.id}
-                    onClose={jest.fn()}
-                    showCard={jest.fn()}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
                 />
             </AppStoreProvider>,
@@ -221,8 +219,8 @@ describe('components/cardDialog', () => {
                     views={[boardView]}
                     cards={[card]}
                     cardId={card.id}
-                    onClose={jest.fn()}
-                    showCard={jest.fn()}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
                 />
             </AppStoreProvider>,
@@ -255,8 +253,8 @@ describe('components/cardDialog', () => {
                     views={[boardView]}
                     cards={[card]}
                     cardId={card.id}
-                    onClose={jest.fn()}
-                    showCard={jest.fn()}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
                 />
             </AppStoreProvider>,
@@ -277,8 +275,8 @@ describe('components/cardDialog', () => {
                     views={[boardView]}
                     cards={[card]}
                     cardId={card.id}
-                    onClose={jest.fn()}
-                    showCard={jest.fn()}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
                 />
             </AppStoreProvider>,
@@ -309,8 +307,8 @@ describe('components/cardDialog', () => {
                     views={[boardView]}
                     cards={[card]}
                     cardId={card.id}
-                    onClose={jest.fn()}
-                    showCard={jest.fn()}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
                 />
             </AppStoreProvider>,
@@ -340,8 +338,8 @@ describe('components/cardDialog', () => {
                     views={[boardView]}
                     cards={[limitedCard]}
                     cardId={limitedCard.id}
-                    onClose={jest.fn()}
-                    showCard={jest.fn()}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
                     readonly={false}
                 />
             </AppStoreProvider>,

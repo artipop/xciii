@@ -44,7 +44,7 @@ const Wrapper = (props: {children?: JSX.Element}) => {
     return wrapDNDIntl(() =>
         <ColumnResizeProvider
             columnWidths={{}}
-            onResizeColumn={jest.fn()}
+            onResizeColumn={vi.fn()}
         >
             {props.children}
         </ColumnResizeProvider>,
@@ -59,10 +59,10 @@ test('should match snapshot, no groups', async () => {
                 activeView={view}
                 group={boardTreeNoGroup}
                 readonly={false}
-                hideGroup={jest.fn()}
-                addCard={jest.fn()}
-                propertyNameChanged={jest.fn()}
-                onDrop={jest.fn()}
+                hideGroup={vi.fn()}
+                addCard={vi.fn()}
+                propertyNameChanged={vi.fn()}
+                onDrop={vi.fn()}
                 groupByProperty={{
                     id: '',
                     name: 'Property 1',
@@ -83,10 +83,10 @@ test('should match snapshot with Group', async () => {
                 activeView={view}
                 group={boardTreeGroup}
                 readonly={false}
-                hideGroup={jest.fn()}
-                addCard={jest.fn()}
-                propertyNameChanged={jest.fn()}
-                onDrop={jest.fn()}
+                hideGroup={vi.fn()}
+                addCard={vi.fn()}
+                propertyNameChanged={vi.fn()}
+                onDrop={vi.fn()}
             />
         </Wrapper>,
     )
@@ -101,10 +101,10 @@ test('should match snapshot on read only', async () => {
                 activeView={view}
                 group={boardTreeGroup}
                 readonly={true}
-                hideGroup={jest.fn()}
-                addCard={jest.fn()}
-                propertyNameChanged={jest.fn()}
-                onDrop={jest.fn()}
+                hideGroup={vi.fn()}
+                addCard={vi.fn()}
+                propertyNameChanged={vi.fn()}
+                onDrop={vi.fn()}
             />
         </Wrapper>,
     )
@@ -112,7 +112,7 @@ test('should match snapshot on read only', async () => {
 })
 
 test('should match snapshot, hide group', async () => {
-    const hideGroup = jest.fn()
+    const hideGroup = vi.fn()
 
     const collapsedOptionsView = TestBlockFactory.createBoardView(board)
     collapsedOptionsView.fields.collapsedOptionIds = [boardTreeGroup.option.id]
@@ -125,9 +125,9 @@ test('should match snapshot, hide group', async () => {
                 group={boardTreeGroup}
                 readonly={false}
                 hideGroup={hideGroup}
-                addCard={jest.fn()}
-                propertyNameChanged={jest.fn()}
-                onDrop={jest.fn()}
+                addCard={vi.fn()}
+                propertyNameChanged={vi.fn()}
+                onDrop={vi.fn()}
             />
         </Wrapper>,
     )
@@ -141,7 +141,7 @@ test('should match snapshot, hide group', async () => {
 })
 
 test('should match snapshot, add new', async () => {
-    const addNew = jest.fn()
+    const addNew = vi.fn()
 
     const {container} = render(() =>
         <Wrapper>
@@ -150,10 +150,10 @@ test('should match snapshot, add new', async () => {
                 activeView={view}
                 group={boardTreeGroup}
                 readonly={false}
-                hideGroup={jest.fn()}
+                hideGroup={vi.fn()}
                 addCard={addNew}
-                propertyNameChanged={jest.fn()}
-                onDrop={jest.fn()}
+                propertyNameChanged={vi.fn()}
+                onDrop={vi.fn()}
             />
         </Wrapper>,
     )
@@ -174,10 +174,10 @@ test('should match snapshot, edit title', async () => {
                 activeView={view}
                 group={boardTreeGroup}
                 readonly={false}
-                hideGroup={jest.fn()}
-                addCard={jest.fn()}
-                propertyNameChanged={jest.fn()}
-                onDrop={jest.fn()}
+                hideGroup={vi.fn()}
+                addCard={vi.fn()}
+                propertyNameChanged={vi.fn()}
+                onDrop={vi.fn()}
             />
         </Wrapper>,
     )

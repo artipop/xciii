@@ -8,7 +8,7 @@ const createCodeBlockStrategy = (): BlockStrategy => {
 
     return {
         type: blockType,
-        className: 'code-block',
+        class: 'code-block',
 
         // A line is part of a fenced code block if it falls within a *closed* pair
         // of ``` fence lines (inclusive of both fences). Fence lines are paired in

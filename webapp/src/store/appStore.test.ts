@@ -45,14 +45,14 @@ const card = (id: string, boardId: string, title: string, extra: Partial<Card> =
 } as Card)
 
 const fakeClient = (overrides: Partial<OctoClient> = {}): OctoClient => ({
-    getMe: jest.fn(async () => ({id: 'user-1', username: 'user'})),
-    getMyConfig: jest.fn(async () => []),
-    getTeam: jest.fn(async () => ({id: 'team-1', title: 'Team'})),
-    getTeams: jest.fn(async () => [{id: 'team-1', title: 'Team'}]),
-    getBoards: jest.fn(async () => [board('board-1', 'Alpha')]),
-    getMyBoardMemberships: jest.fn(async () => [{boardId: 'board-1', userId: 'user-1', schemeAdmin: true}]),
-    getTeamTemplates: jest.fn(async () => []),
-    getBoardsCloudLimits: jest.fn(async () => ({cards: 0, used_cards: 0, card_limit_timestamp: 0, views: 0})),
+    getMe: vi.fn(async () => ({id: 'user-1', username: 'user'})),
+    getMyConfig: vi.fn(async () => []),
+    getTeam: vi.fn(async () => ({id: 'team-1', title: 'Team'})),
+    getTeams: vi.fn(async () => [{id: 'team-1', title: 'Team'}]),
+    getBoards: vi.fn(async () => [board('board-1', 'Alpha')]),
+    getMyBoardMemberships: vi.fn(async () => [{boardId: 'board-1', userId: 'user-1', schemeAdmin: true}]),
+    getTeamTemplates: vi.fn(async () => []),
+    getBoardsCloudLimits: vi.fn(async () => ({cards: 0, used_cards: 0, card_limit_timestamp: 0, views: 0})),
     ...overrides,
 } as unknown as OctoClient)
 
@@ -82,7 +82,7 @@ describe('createAppStore', () => {
     })
 
     test('initialLoad without a session sets the global error and rethrows', async () => {
-        const store = createAppStore({client: fakeClient({getMe: jest.fn(async () => undefined)} as Partial<OctoClient>)})
+        const store = createAppStore({client: fakeClient({getMe: vi.fn(async () => undefined)} as Partial<OctoClient>)})
 
         await expect(store.actions.load.initialLoad()).rejects.toThrow(ErrorId.NotLoggedIn)
         expect(getGlobalError(store.state)).toBe(ErrorId.NotLoggedIn)

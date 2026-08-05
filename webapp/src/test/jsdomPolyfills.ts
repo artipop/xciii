@@ -33,9 +33,9 @@ if (!anyWindow.PointerEvent) {
 const anyGlobal = global as unknown as {ResizeObserver?: unknown}
 if (!anyGlobal.ResizeObserver) {
     anyGlobal.ResizeObserver = class {
-        observe() {} // eslint-disable-line class-methods-use-this
-        unobserve() {} // eslint-disable-line class-methods-use-this
-        disconnect() {} // eslint-disable-line class-methods-use-this
+        observe() {}
+        unobserve() {}
+        disconnect() {}
     }
 }
 

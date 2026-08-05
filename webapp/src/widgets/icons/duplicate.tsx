@@ -11,7 +11,7 @@ export default function DuplicateIcon(): JSX.Element {
     return (
         <CompassIcon
             icon='content-copy'
-            className='content-copy'
+            class='content-copy'
         />
     )
 }

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/cardDetail/cardDetailContentsMenu return cardDetailContentsMenu 1`] = `
+exports[`components/cardDetail/cardDetailContentsMenu > return cardDetailContentsMenu 1`] = `
 <div>
   <div
     class="CardDetailContentsMenu content add-content"
@@ -222,7 +222,7 @@ exports[`components/cardDetail/cardDetailContentsMenu return cardDetailContentsM
 </div>
 `;
 
-exports[`components/cardDetail/cardDetailContentsMenu return cardDetailContentsMenu and add Text content 1`] = `
+exports[`components/cardDetail/cardDetailContentsMenu > return cardDetailContentsMenu and add Text content 1`] = `
 <div>
   <div
     class="CardDetailContentsMenu content add-content"
@@ -444,7 +444,7 @@ exports[`components/cardDetail/cardDetailContentsMenu return cardDetailContentsM
 </div>
 `;
 
-exports[`components/cardDetail/cardDetailContentsMenu return cardDetailContentsMenu and add Text content 2`] = `
+exports[`components/cardDetail/cardDetailContentsMenu > return cardDetailContentsMenu and add Text content 2`] = `
 <div>
   <div
     class="CardDetailContentsMenu content add-content"

@@ -244,7 +244,7 @@ or the session token — both stay random per launch.
 
 There is deliberately no Vite dev server in the loop: pointing the webview at
 it would buy HMR but would mean re-implementing the bootstrap script in
-`vite.config.mjs`, and the page would no longer be the page a release build
+`vite.config.ts`, and the page would no longer be the page a release build
 serves.
 
 To run it manually instead:

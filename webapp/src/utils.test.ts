@@ -187,7 +187,7 @@ describe('utils', () => {
                 },
                 path: '/team/:teamId/:boardId?/:viewId?/:cardId?',
             } as unknown as RouterMatch
-            const navigate = jest.fn()
+            const navigate = vi.fn()
 
             Utils.showBoard('board_id_2', match, navigate)
 

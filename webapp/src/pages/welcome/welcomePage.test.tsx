@@ -7,8 +7,6 @@ import {MemoryRouter, Route, createMemoryHistory, useLocation} from '@solidjs/ro
 
 import userEvent from '@testing-library/user-event'
 
-import {mocked} from 'jest-mock'
-
 import {mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider, AppStore} from '../../store'
 
@@ -23,14 +21,14 @@ import WelcomePage from './welcomePage'
 const w = (window as any)
 const oldBaseURL = w.baseURL
 
-jest.mock('../../mutator')
-const mockedMutator = mocked(mutator)
+vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
-jest.mock('../../octoClient')
-const mockedOctoClient = mocked(octoClient)
+vi.mock('../../octoClient')
+const mockedOctoClient = vi.mocked(octoClient)
 
 beforeEach(() => {
-    jest.resetAllMocks()
+    vi.resetAllMocks()
     mockedMutator.patchUserConfig.mockImplementation(() => Promise.resolve([
         {
             user_id: '',

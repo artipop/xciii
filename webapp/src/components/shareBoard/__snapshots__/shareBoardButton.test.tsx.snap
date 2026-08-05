@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`src/components/shareBoard/shareBoard should match snapshot, Open Board 1`] = `
+exports[`src/components/shareBoard/shareBoard > should match snapshot, Open Board 1`] = `
 <div>
   <div
     class="ShareBoardButton"
@@ -23,7 +23,7 @@ exports[`src/components/shareBoard/shareBoard should match snapshot, Open Board 
 </div>
 `;
 
-exports[`src/components/shareBoard/shareBoard should match snapshot, Private Board 1`] = `
+exports[`src/components/shareBoard/shareBoard > should match snapshot, Private Board 1`] = `
 <div>
   <div
     class="ShareBoardButton"

@@ -13,7 +13,7 @@ const anyWindow = window as any
 describe('components/acp/deployTargetsDialog', () => {
     afterEach(() => {
         delete anyWindow.go
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     test('isDeployTargetsAvailable is false without desktop bindings', () => {
@@ -22,17 +22,17 @@ describe('components/acp/deployTargetsDialog', () => {
 
     test('lists targets and adds one', async () => {
         const bindings = {
-            ListDeployTargets: jest.fn().mockResolvedValue(JSON.stringify([
+            ListDeployTargets: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'staging', sshHost: 'dokku.example.com', baseApp: 'api'},
             ])),
-            AddDeployTarget: jest.fn().mockResolvedValue(JSON.stringify({name: 'preview'})),
-            UpdateDeployTarget: jest.fn(),
-            RemoveDeployTarget: jest.fn(),
+            AddDeployTarget: vi.fn().mockResolvedValue(JSON.stringify({name: 'preview'})),
+            UpdateDeployTarget: vi.fn(),
+            RemoveDeployTarget: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
         expect(isDeployTargetsAvailable()).toBe(true)
 
-        render(() => wrapIntl(() => <DeployTargetsDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <DeployTargetsDialog onClose={vi.fn()}/>))
         await waitFor(() => expect(screen.getByText('staging')).toBeInTheDocument())
         expect(screen.getByText('dokku@dokku.example.com → *.dokku.example.com')).toBeInTheDocument()
 
@@ -67,16 +67,16 @@ describe('components/acp/deployTargetsDialog', () => {
 
     test('editing keeps the name and sends the whole entry back', async () => {
         const bindings = {
-            ListDeployTargets: jest.fn().mockResolvedValue(JSON.stringify([
+            ListDeployTargets: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'staging', sshHost: 'dokku.example.com', baseApp: 'api', baseDomain: 'preview.example.com'},
             ])),
-            AddDeployTarget: jest.fn(),
-            UpdateDeployTarget: jest.fn().mockResolvedValue('{}'),
-            RemoveDeployTarget: jest.fn(),
+            AddDeployTarget: vi.fn(),
+            UpdateDeployTarget: vi.fn().mockResolvedValue('{}'),
+            RemoveDeployTarget: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <DeployTargetsDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <DeployTargetsDialog onClose={vi.fn()}/>))
         await waitFor(() => expect(screen.getByText('staging')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Edit'}))
@@ -94,14 +94,14 @@ describe('components/acp/deployTargetsDialog', () => {
 
     test('shows the backend validation error', async () => {
         const bindings = {
-            ListDeployTargets: jest.fn().mockResolvedValue('[]'),
-            AddDeployTarget: jest.fn().mockRejectedValue(new Error('не задан адрес Dokku-хоста')),
-            UpdateDeployTarget: jest.fn(),
-            RemoveDeployTarget: jest.fn(),
+            ListDeployTargets: vi.fn().mockResolvedValue('[]'),
+            AddDeployTarget: vi.fn().mockRejectedValue(new Error('не задан адрес Dokku-хоста')),
+            UpdateDeployTarget: vi.fn(),
+            RemoveDeployTarget: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <DeployTargetsDialog onClose={jest.fn()}/>))
+        render(() => wrapIntl(() => <DeployTargetsDialog onClose={vi.fn()}/>))
         await waitFor(() => expect(screen.getByText('No deploy targets yet.')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Add target…'}))

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/cardBadges should match snapshot 1`] = `
+exports[`components/cardBadges > should match snapshot 1`] = `
 <div>
   <div
     class="CardBadges "
@@ -44,4 +44,4 @@ exports[`components/cardBadges should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/cardBadges should match snapshot for empty card 1`] = `<div />`;
+exports[`components/cardBadges > should match snapshot for empty card 1`] = `<div />`;

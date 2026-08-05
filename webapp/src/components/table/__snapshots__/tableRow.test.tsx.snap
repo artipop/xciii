@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/table/TableRow should match snapshot 1`] = `
+exports[`components/table/TableRow > should match snapshot 1`] = `
 <div>
   <div
     class="TableRow octo-table-row"
@@ -81,7 +81,7 @@ exports[`components/table/TableRow should match snapshot 1`] = `
 </div>
 `;
 
-exports[`components/table/TableRow should match snapshot, collapsed tree 1`] = `
+exports[`components/table/TableRow > should match snapshot, collapsed tree 1`] = `
 <div>
   <div
     class="TableRow octo-table-row hidden"
@@ -162,7 +162,7 @@ exports[`components/table/TableRow should match snapshot, collapsed tree 1`] = `
 </div>
 `;
 
-exports[`components/table/TableRow should match snapshot, display properties 1`] = `
+exports[`components/table/TableRow > should match snapshot, display properties 1`] = `
 <div>
   <div
     class="TableRow octo-table-row"
@@ -280,7 +280,7 @@ exports[`components/table/TableRow should match snapshot, display properties 1`]
 </div>
 `;
 
-exports[`components/table/TableRow should match snapshot, isSelected 1`] = `
+exports[`components/table/TableRow > should match snapshot, isSelected 1`] = `
 <div>
   <div
     class="TableRow octo-table-row selected"
@@ -361,7 +361,7 @@ exports[`components/table/TableRow should match snapshot, isSelected 1`] = `
 </div>
 `;
 
-exports[`components/table/TableRow should match snapshot, read-only 1`] = `
+exports[`components/table/TableRow > should match snapshot, read-only 1`] = `
 <div>
   <div
     class="TableRow octo-table-row readonly"
@@ -413,7 +413,7 @@ exports[`components/table/TableRow should match snapshot, read-only 1`] = `
 </div>
 `;
 
-exports[`components/table/TableRow should match snapshot, resizing column 1`] = `
+exports[`components/table/TableRow > should match snapshot, resizing column 1`] = `
 <div>
   <div
     class="TableRow octo-table-row"

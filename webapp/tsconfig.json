@@ -19,6 +19,12 @@
         "baseUrl": "src",
         "outDir": "./dist",
         "moduleResolution": "bundler",
+
+        // What @types/jest used to declare: the suite runs with vitest's
+        // globals rather than importing describe/expect/vi in every file.
+        "types": [
+            "vitest/globals"
+        ],
     },
     "include": [
         "."

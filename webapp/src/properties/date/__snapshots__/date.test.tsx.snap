@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`properties/dateRange cancel set via text input 1`] = `
+exports[`properties/dateRange > cancel set via text input 1`] = `
 <div>
   <div
     class="DateRange  octo-propertyvalue"
@@ -20,7 +20,7 @@ exports[`properties/dateRange cancel set via text input 1`] = `
 </div>
 `;
 
-exports[`properties/dateRange handle clear 1`] = `
+exports[`properties/dateRange > handle clear 1`] = `
 <div>
   <div
     class="DateRange  octo-propertyvalue"
@@ -40,7 +40,7 @@ exports[`properties/dateRange handle clear 1`] = `
 </div>
 `;
 
-exports[`properties/dateRange returns component with new date after prop change 1`] = `
+exports[`properties/dateRange > returns component with new date after prop change 1`] = `
 <div>
   <div
     class="DateRange  octo-propertyvalue"
@@ -60,7 +60,7 @@ exports[`properties/dateRange returns component with new date after prop change 
 </div>
 `;
 
-exports[`properties/dateRange returns default correctly 1`] = `
+exports[`properties/dateRange > returns default correctly 1`] = `
 <div>
   <div
     class="DateRange empty octo-propertyvalue"
@@ -78,7 +78,7 @@ exports[`properties/dateRange returns default correctly 1`] = `
 </div>
 `;
 
-exports[`properties/dateRange returns local correctly - es local 1`] = `
+exports[`properties/dateRange > returns local correctly - es local 1`] = `
 <div>
   <div
     class="DateRange  octo-propertyvalue"
@@ -98,7 +98,7 @@ exports[`properties/dateRange returns local correctly - es local 1`] = `
 </div>
 `;
 
-exports[`properties/dateRange set via text input 1`] = `
+exports[`properties/dateRange > set via text input 1`] = `
 <div>
   <div
     class="DateRange  octo-propertyvalue"
@@ -118,7 +118,7 @@ exports[`properties/dateRange set via text input 1`] = `
 </div>
 `;
 
-exports[`properties/dateRange set via text input, es locale 1`] = `
+exports[`properties/dateRange > set via text input, es locale 1`] = `
 <div>
   <div
     class="DateRange  octo-propertyvalue"

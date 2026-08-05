@@ -6,7 +6,6 @@ import '@testing-library/jest-dom'
 import userEvents from '@testing-library/user-event'
 
 import 'isomorphic-fetch'
-import {mocked} from 'jest-mock'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {FetchMock} from '../../test/fetchMock'
@@ -29,10 +28,10 @@ beforeEach(() => {
     FetchMock.fn.mockReset()
 })
 
-jest.mock('../../mutator')
-jest.mock('../../utils')
-jest.mock('../../telemetry/telemetryClient')
-const mockedMutator = mocked(Mutator)
+vi.mock('../../mutator')
+vi.mock('../../utils')
+vi.mock('../../telemetry/telemetryClient')
+const mockedMutator = vi.mocked(Mutator)
 
 describe('components/table/Table', () => {
     const board = TestBlockFactory.createBoard()
@@ -85,8 +84,8 @@ describe('components/table/Table', () => {
     }
 
     test('should match snapshot', async () => {
-        const callback = jest.fn()
-        const addCard = jest.fn()
+        const callback = vi.fn()
+        const addCard = vi.fn()
         const store = mockAppStore(state)
 
         const component = () => wrapDNDIntl(() =>
@@ -102,9 +101,9 @@ describe('components/table/Table', () => {
                     cardIdToFocusOnRender=''
                     showCard={callback}
                     addCard={addCard}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -113,8 +112,8 @@ describe('components/table/Table', () => {
     })
 
     test('should match snapshot without permissions', async () => {
-        const callback = jest.fn()
-        const addCard = jest.fn()
+        const callback = vi.fn()
+        const addCard = vi.fn()
         const store = mockAppStore({...state, teams: {current: undefined}})
 
         const component = () => wrapDNDIntl(() =>
@@ -130,9 +129,9 @@ describe('components/table/Table', () => {
                     cardIdToFocusOnRender=''
                     showCard={callback}
                     addCard={addCard}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -141,8 +140,8 @@ describe('components/table/Table', () => {
     })
 
     test('should match snapshot, read-only', async () => {
-        const callback = jest.fn()
-        const addCard = jest.fn()
+        const callback = vi.fn()
+        const addCard = vi.fn()
         const store = mockAppStore(state)
 
         const component = () => wrapDNDIntl(() =>
@@ -158,9 +157,9 @@ describe('components/table/Table', () => {
                     cardIdToFocusOnRender=''
                     showCard={callback}
                     addCard={addCard}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -170,8 +169,8 @@ describe('components/table/Table', () => {
     })
 
     test('should match snapshot with GroupBy', async () => {
-        const callback = jest.fn()
-        const addCard = jest.fn()
+        const callback = vi.fn()
+        const addCard = vi.fn()
         const store = mockAppStore(state)
 
         const component = () => wrapDNDIntl(() =>
@@ -193,9 +192,9 @@ describe('components/table/Table', () => {
                     cardIdToFocusOnRender=''
                     showCard={callback}
                     addCard={addCard}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -204,8 +203,8 @@ describe('components/table/Table', () => {
     })
 
     test('limited card in table view', () => {
-        const callback = jest.fn()
-        const addCard = jest.fn()
+        const callback = vi.fn()
+        const addCard = vi.fn()
         const boardTest = TestBlockFactory.createBoard()
         const card1 = TestBlockFactory.createCard(boardTest)
         const card2 = TestBlockFactory.createCard(boardTest)
@@ -253,9 +252,9 @@ describe('components/table/Table', () => {
                     cardIdToFocusOnRender=''
                     showCard={callback}
                     addCard={addCard}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={2}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -327,8 +326,8 @@ describe('components/table/Table extended', () => {
         view.fields.groupById = undefined
         view.fields.visiblePropertyIds = ['property1', 'property2', dateCreatedId]
 
-        const callback = jest.fn()
-        const addCard = jest.fn()
+        const callback = vi.fn()
+        const addCard = vi.fn()
         const store = mockAppStore({
             ...state,
             cards: {
@@ -364,9 +363,9 @@ describe('components/table/Table extended', () => {
                     cardIdToFocusOnRender=''
                     showCard={callback}
                     addCard={addCard}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -407,8 +406,8 @@ describe('components/table/Table extended', () => {
         view.fields.groupById = undefined
         view.fields.visiblePropertyIds = ['property1', 'property2', dateUpdatedId]
 
-        const callback = jest.fn()
-        const addCard = jest.fn()
+        const callback = vi.fn()
+        const addCard = vi.fn()
         const store = mockAppStore({
             ...state,
             comments: {
@@ -448,9 +447,9 @@ describe('components/table/Table extended', () => {
                     cardIdToFocusOnRender=''
                     showCard={callback}
                     addCard={addCard}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -480,8 +479,8 @@ describe('components/table/Table extended', () => {
         view.fields.groupById = undefined
         view.fields.visiblePropertyIds = ['property1', 'property2', createdById]
 
-        const callback = jest.fn()
-        const addCard = jest.fn()
+        const callback = vi.fn()
+        const addCard = vi.fn()
         const store = mockAppStore({
             ...state,
             cards: {
@@ -505,9 +504,9 @@ describe('components/table/Table extended', () => {
                     cardIdToFocusOnRender=''
                     showCard={callback}
                     addCard={addCard}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -554,8 +553,8 @@ describe('components/table/Table extended', () => {
         view.fields.groupById = undefined
         view.fields.visiblePropertyIds = ['property1', 'property2', modifiedById]
 
-        const callback = jest.fn()
-        const addCard = jest.fn()
+        const callback = vi.fn()
+        const addCard = vi.fn()
         const store = mockAppStore({
             ...state,
             comments: {
@@ -595,9 +594,9 @@ describe('components/table/Table extended', () => {
                     cardIdToFocusOnRender=''
                     showCard={callback}
                     addCard={addCard}
-                    onCardClicked={jest.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -645,11 +644,11 @@ describe('components/table/Table extended', () => {
                     selectedCardIds={[]}
                     readonly={false}
                     cardIdToFocusOnRender=''
-                    showCard={jest.fn()}
-                    addCard={jest.fn()}
-                    onCardClicked={jest.fn()}
+                    showCard={vi.fn()}
+                    addCard={vi.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )
@@ -705,11 +704,11 @@ describe('components/table/Table extended', () => {
                     selectedCardIds={[]}
                     readonly={false}
                     cardIdToFocusOnRender=''
-                    showCard={jest.fn()}
-                    addCard={jest.fn()}
-                    onCardClicked={jest.fn()}
+                    showCard={vi.fn()}
+                    addCard={vi.fn()}
+                    onCardClicked={vi.fn()}
                     hiddenCardsCount={0}
-                    showHiddenCardCountNotification={jest.fn()}
+                    showHiddenCardCountNotification={vi.fn()}
                 />
             </AppStoreProvider>,
         )

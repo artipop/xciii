@@ -9,7 +9,7 @@ export default function AlertIcon(): JSX.Element {
     return (
         <CompassIcon
             icon='alert-outline'
-            className='AlertIcon'
+            class='AlertIcon'
         />
     )
 }

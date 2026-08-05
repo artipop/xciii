@@ -10,7 +10,7 @@ export default function Check(): JSX.Element {
     return (
         <CompassIcon
             icon='check'
-            className='CheckIconCompass'
+            class='CheckIconCompass'
         />
     )
 }

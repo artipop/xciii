@@ -42,8 +42,8 @@ describe('hooks/sortable dragging', () => {
     const b = {id: 'b'}
 
     function setup() {
-        const onCard = jest.fn()
-        const onZone = jest.fn()
+        const onCard = vi.fn()
+        const onZone = vi.fn()
         const {getByTestId} = render(() => (
             <SortableProvider>
                 <Card
@@ -102,8 +102,8 @@ describe('hooks/sortable dragging', () => {
     // leaves mid-animation leaves the manager believing a drag is still running,
     // and every press after it is ignored. Two drags in a row is the whole test.
     it('still works after the dragged card has gone away', async () => {
-        const onCard = jest.fn()
-        const onZone = jest.fn()
+        const onCard = vi.fn()
+        const onZone = vi.fn()
 
         function Board(props: {probe: JSX.Element}) {
             const [gone, setGone] = createSignal(false)

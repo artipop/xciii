@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`properties/person not readOnly, show firstname 1`] = `
+exports[`properties/person > not readOnly, show firstname 1`] = `
 <div>
   <div
     class="Combobox Person octo-propertyvalue"
@@ -53,7 +53,7 @@ exports[`properties/person not readOnly, show firstname 1`] = `
 </div>
 `;
 
-exports[`properties/person not readOnly, show me 1`] = `
+exports[`properties/person > not readOnly, show me 1`] = `
 <div>
   <div
     class="Combobox Person octo-propertyvalue"
@@ -161,7 +161,7 @@ exports[`properties/person not readOnly, show me 1`] = `
 </div>
 `;
 
-exports[`properties/person not readOnly, show me 2`] = `
+exports[`properties/person > not readOnly, show me 2`] = `
 <div>
   <div
     class="Combobox Person octo-propertyvalue"
@@ -269,7 +269,7 @@ exports[`properties/person not readOnly, show me 2`] = `
 </div>
 `;
 
-exports[`properties/person not readOnly, show modal 1`] = `
+exports[`properties/person > not readOnly, show modal 1`] = `
 <div>
   <div
     class="Combobox Person octo-propertyvalue"
@@ -310,7 +310,7 @@ exports[`properties/person not readOnly, show modal 1`] = `
 </div>
 `;
 
-exports[`properties/person not readOnly, show modal 2`] = `
+exports[`properties/person > not readOnly, show modal 2`] = `
 <div>
   <div
     class="Combobox Person octo-propertyvalue"
@@ -404,7 +404,7 @@ exports[`properties/person not readOnly, show modal 2`] = `
 </div>
 `;
 
-exports[`properties/person not readOnly, show username 1`] = `
+exports[`properties/person > not readOnly, show username 1`] = `
 <div>
   <div
     class="Combobox Person octo-propertyvalue"
@@ -457,7 +457,7 @@ exports[`properties/person not readOnly, show username 1`] = `
 </div>
 `;
 
-exports[`properties/person readOnly view 1`] = `
+exports[`properties/person > readOnly view 1`] = `
 <div>
   <div
     class="Person octo-propertyvalue octo-propertyvalue--readonly"
@@ -473,7 +473,7 @@ exports[`properties/person readOnly view 1`] = `
 </div>
 `;
 
-exports[`properties/person show multiple 1`] = `
+exports[`properties/person > show multiple 1`] = `
 <div>
   <div
     class="Combobox MultiPerson octo-propertyvalue"
@@ -559,7 +559,7 @@ exports[`properties/person show multiple 1`] = `
 </div>
 `;
 
-exports[`properties/person show multiple, display modal 1`] = `
+exports[`properties/person > show multiple, display modal 1`] = `
 <div>
   <div
     class="Combobox MultiPerson octo-propertyvalue"
@@ -645,7 +645,7 @@ exports[`properties/person show multiple, display modal 1`] = `
 </div>
 `;
 
-exports[`properties/person show multiple, display modal 2`] = `
+exports[`properties/person > show multiple, display modal 2`] = `
 <div>
   <div
     class="Combobox MultiPerson octo-propertyvalue"

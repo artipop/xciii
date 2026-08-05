@@ -125,7 +125,7 @@ const PlanningDialog = (props: Props) => {
     return (
         <Dialog
             onClose={props.onClose}
-            className='PlanningDialog'
+            class='PlanningDialog'
             title={<div>{intl.formatMessage({id: 'Planning.title', defaultMessage: 'Plan a task'})}</div>}
         >
             <div class='PlanningDialog__body'>
