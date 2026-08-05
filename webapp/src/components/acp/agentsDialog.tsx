@@ -14,7 +14,7 @@ import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 import {sendFlashMessage} from '../flashMessages'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 import ProxiesPanel, {ProxyEntry, isProxiesAvailable} from './proxiesPanel'
 
 import './agentsDialog.scss'

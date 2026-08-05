@@ -21,7 +21,7 @@ var patternArg = map[string]string{
 }
 
 // readOnlyShellCommands are the commands a planning session may run unasked.
-// Exploring a repository is most of what planning does, and forbidding the
+// Exploring a project is most of what planning does, and forbidding the
 // shell outright pushes the agent into declaring it cannot see the code at all
 // — so the useful read-only commands are listed instead, and everything else
 // asks. Nothing here writes, and notably absent is `find`, which can delete

@@ -183,7 +183,7 @@ func (m *Manager) adoptFlows(boardID string, flows []FlowEntry) int {
 	added := 0
 	for _, f := range flows {
 		f.BoardID = boardID
-		valid, err := validateFlow(f, m.cfg.Repos, m.cfg.Agents, m.cfg.Deploys)
+		valid, err := validateFlow(f, m.cfg.Projects, m.cfg.Agents, m.cfg.Deploys)
 		if err != nil {
 			m.log.Warn("acp: the board offers a route that cannot be used", "board", boardID, "flow", f.Name, "err", err)
 			continue

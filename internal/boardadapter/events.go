@@ -106,7 +106,7 @@ func (b *EventsBackend) BlockChanged(evt notify.BlockChangeEvent) error {
 
 // CardByID reads a card on demand so a console can be opened on it without
 // moving it into the trigger column. The returned event carries no columns —
-// nothing moved — but everything repo/agent resolution needs.
+// nothing moved — but everything project/agent resolution needs.
 func (b *EventsBackend) CardByID(ctx context.Context, cardID string) (acp.CardMoved, error) {
 	b.mu.Lock()
 	a := b.app
@@ -192,7 +192,7 @@ func stringValue(v any) string {
 
 // selectedOptionNames collects the display names of every selected
 // select/multiSelect option on the card — the "tags" used to map the card to
-// a registered repository.
+// a registered project.
 func selectedOptionNames(props map[string]any, schema model.PropSchema) []string {
 	var out []string
 	appendOption := func(def model.PropDef, v any) {

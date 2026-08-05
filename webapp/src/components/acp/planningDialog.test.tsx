@@ -12,7 +12,7 @@ const anyWindow = window as any
 
 function planningBindings() {
     return {
-        ListAgentRepos: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app', path: '/src/app'}])),
+        ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app', path: '/src/app'}])),
         ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'planner', kind: 'claude'}])),
         OpenPlanningTerminal: vi.fn().mockResolvedValue(JSON.stringify({
             id: 'term-1', url: 'http://127.0.0.1:1234/acp/terminal/term-1', windowed: true,
@@ -32,7 +32,7 @@ describe('components/acp/planningDialog', () => {
         expect(isPlanningAvailable()).toBe(false)
     })
 
-    it('preselects the one repository and agent, then opens a terminal', async () => {
+    it('preselects the one project and agent, then opens a terminal', async () => {
         const bindings = planningBindings()
         anyWindow.go = {main: {App: bindings}}
 

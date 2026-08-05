@@ -12,7 +12,7 @@ import {Utils, IDType} from '../../utils'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 import FlowDiagram, {StageCount} from './flowDiagram'
 
 import './workflowsDialog.scss'
@@ -48,7 +48,7 @@ export type FlowEdge = {
 export type Flow = {
     name: string
     boardId?: string
-    repoName?: string
+    projectName?: string
     property?: string
     nodes: FlowNode[]
     edges: FlowEdge[]
@@ -326,11 +326,11 @@ const WorkflowsDialog = (props: Props) => {
                                 </select>
                             </label>
                             <label>
-                                {intl.formatMessage({id: 'Workflows.repoName', defaultMessage: 'Repository (optional)'})}
+                                {intl.formatMessage({id: 'Workflows.projectName', defaultMessage: 'Project (optional)'})}
                                 <input
-                                    value={form()!.repoName || ''}
-                                    placeholder={intl.formatMessage({id: 'Workflows.repoName-placeholder', defaultMessage: 'Registry name — cards of this repository use this flow'})}
-                                    onInput={(e) => updateForm({repoName: e.currentTarget.value})}
+                                    value={form()!.projectName || ''}
+                                    placeholder={intl.formatMessage({id: 'Workflows.projectName-placeholder', defaultMessage: 'Registry name — cards of this project use this flow'})}
+                                    onInput={(e) => updateForm({projectName: e.currentTarget.value})}
                                 />
                             </label>
                         </div>

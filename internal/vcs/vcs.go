@@ -1,4 +1,4 @@
-// Package vcs watches repositories for the events a card's route waits on:
+// Package vcs watches projects for the events a card's route waits on:
 // the branch was pushed, the branch was merged, a pull request was opened or
 // merged, checks passed. It knows nothing about boards or flows — it is handed
 // a target and reports what it sees, and the caller decides what that means.
@@ -29,10 +29,10 @@ const (
 
 // Target is one branch somebody is waiting on.
 type Target struct {
-	RepoPath string   // local git repository
-	Branch   string   // branch the card is about
-	Remote   string   // remote to consult; empty means "origin"
-	Triggers []string // event kinds the caller cares about
+	ProjectPath string   // local git project
+	Branch      string   // branch the card is about
+	Remote      string   // remote to consult; empty means "origin"
+	Triggers    []string // event kinds the caller cares about
 }
 
 // RemoteOr returns the remote to use.
@@ -59,12 +59,12 @@ func (t Target) Wants(kind string) bool {
 
 // Event is something that happened to a branch.
 type Event struct {
-	Kind     string
-	RepoPath string
-	Branch   string
-	Detail   string // human phrasing for the card comment
-	URL      string // pull request URL, when there is one
-	Number   int    // pull request number, when there is one
+	Kind        string
+	ProjectPath string
+	Branch      string
+	Detail      string // human phrasing for the card comment
+	URL         string // pull request URL, when there is one
+	Number      int    // pull request number, when there is one
 
 	// Marker distinguishes one occurrence from the next: the same kind fires
 	// again only when the marker changes (a new commit, another pull request).
@@ -79,6 +79,6 @@ type Watcher interface {
 	// Name identifies the watcher in logs.
 	Name() string
 	// Poll reports what it can see for one target. An error is transient by
-	// nature (network, a repository being rewritten) and only gets logged.
+	// nature (network, a project being rewritten) and only gets logged.
 	Poll(ctx context.Context, t Target) ([]Event, error)
 }

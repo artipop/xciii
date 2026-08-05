@@ -13,11 +13,11 @@ import (
 const ServerName = "dokku"
 
 // Environment the MCP process is configured through. Everything it may touch —
-// which host, which repository, which branch — arrives here rather than as tool
+// which host, which project, which branch — arrives here rather than as tool
 // arguments, so the model cannot point a deploy somewhere else.
 const (
 	EnvTarget = "XCIII_DOKKU_TARGET" // JSON Target
-	EnvRepo   = "XCIII_DOKKU_REPO"   // local repository the branch is pushed from
+	EnvRepo   = "XCIII_DOKKU_REPO"   // local project the branch is pushed from
 	EnvBranch = "XCIII_DOKKU_BRANCH" // default branch for tools that omit one
 )
 
@@ -28,17 +28,17 @@ const version = "0.1.0"
 // instructions tell the model what this server is for. They arrive with the
 // tool list, before any prompt we write elsewhere.
 const instructions = `Инструменты деплоя ветки на Dokku. Одна ветка — одно приложение,
-доступное на адресе «репозиторий-ветка.базовый-домен». Хост, ключ, имя приложения
+доступное на адресе «проект-ветка.базовый-домен». Хост, ключ, имя приложения
 и домен уже заданы: их нельзя переопределить из инструментов, ты выбираешь только ветку.
 Если деплой упал, посмотри app_logs — там вывод сборки и приложения.`
 
 // deployInput is shared by every tool: an explicit branch, or the session's own.
 type deployInput struct {
-	Branch string `json:"branch,omitempty" jsonschema:"ветка репозитория; по умолчанию — ветка карточки"`
+	Branch string `json:"branch,omitempty" jsonschema:"ветка проекта; по умолчанию — ветка карточки"`
 }
 
 type logsInput struct {
-	Branch string `json:"branch,omitempty" jsonschema:"ветка репозитория; по умолчанию — ветка карточки"`
+	Branch string `json:"branch,omitempty" jsonschema:"ветка проекта; по умолчанию — ветка карточки"`
 	Lines  int    `json:"lines,omitempty" jsonschema:"сколько последних строк лога вернуть (по умолчанию 200)"`
 }
 
@@ -176,7 +176,7 @@ func recordOutcome(dir string, res Result, branch string, deployErr error) {
 }
 
 // branch resolves the branch a tool call works on: the explicit argument, the
-// branch the session was started for, or whatever the repository has checked out.
+// branch the session was started for, or whatever the project has checked out.
 func (c *Client) branch(ctx context.Context, explicit string) (string, error) {
 	if b := strings.TrimSpace(explicit); b != "" {
 		return b, nil
@@ -184,10 +184,10 @@ func (c *Client) branch(ctx context.Context, explicit string) (string, error) {
 	if c.Branch != "" {
 		return c.Branch, nil
 	}
-	if c.Repo == "" {
+	if c.Project == "" {
 		return "", fmt.Errorf("ветка не указана и определить её неоткуда — передай branch")
 	}
-	return CurrentBranch(ctx, c.Run, c.Repo)
+	return CurrentBranch(ctx, c.Run, c.Project)
 }
 
 func textResult(text string) *mcp.CallToolResult {

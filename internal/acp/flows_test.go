@@ -27,11 +27,11 @@ func sampleFlow() FlowEntry {
 }
 
 func TestValidateFlow(t *testing.T) {
-	repos := []RepoEntry{{Name: "webapp", Path: "/repos/webapp"}}
+	projects := []ProjectEntry{{Name: "webapp", Path: "/projects/webapp"}}
 	agents := []AgentEntry{{Name: "claude-1", Kind: AgentKindClaude}}
 	deploys := []DeployEntry{deployEntry("prod")}
 
-	if _, err := validateFlow(sampleFlow(), repos, agents, deploys); err != nil {
+	if _, err := validateFlow(sampleFlow(), projects, agents, deploys); err != nil {
 		t.Fatalf("a well-formed flow was rejected: %v", err)
 	}
 
@@ -48,27 +48,27 @@ func TestValidateFlow(t *testing.T) {
 		"два перехода по одному событию": func(f *FlowEntry) {
 			f.Edges = append(f.Edges, FlowEdge{From: "work", To: "blocked", On: TriggerSuccess})
 		},
-		"неизвестный репозиторий": func(f *FlowEntry) { f.RepoName = "nosuchrepo" },
+		"неизвестный проект": func(f *FlowEntry) { f.ProjectName = "nosuchproject" },
 		"неизвестный агент":       func(f *FlowEntry) { f.Nodes[0].AgentName = "nosuchagent" },
 		"неизвестная цель":        func(f *FlowEntry) { f.Nodes[0].DeployName = "nosuchtarget" },
 	}
 	for name, break_ := range cases {
 		f := sampleFlow()
 		break_(&f)
-		if _, err := validateFlow(f, repos, agents, deploys); err == nil {
+		if _, err := validateFlow(f, projects, agents, deploys); err == nil {
 			t.Errorf("%s: принято без ошибки", name)
 		}
 	}
 
 	// References that do exist are accepted, and an empty action defaults to none.
 	f := sampleFlow()
-	f.RepoName = "WEBAPP"
+	f.ProjectName = "WEBAPP"
 	// A stage that named one agent becomes a stage with a crew of one.
 	f.Nodes[0].AgentName = "claude-1"
 	// And an empty action is kept as it is: the stage does whatever its column
 	// does, which is not the same as doing nothing.
 	f.Nodes[1].Action = ""
-	got, err := validateFlow(f, repos, agents, deploys)
+	got, err := validateFlow(f, projects, agents, deploys)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,33 +118,33 @@ func TestAddUpdateRemoveFlowPersists(t *testing.T) {
 
 func TestResolveFlow(t *testing.T) {
 	m := agentManager(t, "")
-	m.cfg.Repos = []RepoEntry{{Name: "webapp", Path: "/repos/webapp"}}
+	m.cfg.Projects = []ProjectEntry{{Name: "webapp", Path: "/projects/webapp"}}
 	feature := sampleFlow()
 	hotfix := sampleFlow()
 	hotfix.Name = "hotfix"
-	hotfix.RepoName = "webapp"
+	hotfix.ProjectName = "webapp"
 	m.cfg.Flows = []FlowEntry{feature, hotfix}
 
 	// 1. A card option naming a flow wins.
-	if f := m.resolveFlow(CardMoved{OptionNames: []string{"webapp", "feature"}}, "/repos/webapp"); f == nil || f.Name != "feature" {
+	if f := m.resolveFlow(CardMoved{OptionNames: []string{"webapp", "feature"}}, "/projects/webapp"); f == nil || f.Name != "feature" {
 		t.Fatalf("option match: %+v", f)
 	}
-	// 2. Otherwise the flow tied to the card's repository.
-	if f := m.resolveFlow(CardMoved{OptionNames: []string{"webapp"}}, "/repos/webapp"); f == nil || f.Name != "hotfix" {
-		t.Fatalf("repo match: %+v", f)
+	// 2. Otherwise the flow tied to the card's project.
+	if f := m.resolveFlow(CardMoved{OptionNames: []string{"webapp"}}, "/projects/webapp"); f == nil || f.Name != "hotfix" {
+		t.Fatalf("project match: %+v", f)
 	}
 	// 3. Ambiguity means no route rather than a guess — the legacy columns then
 	//    keep working for that card.
-	if f := m.resolveFlow(CardMoved{}, "/repos/other"); f != nil {
+	if f := m.resolveFlow(CardMoved{}, "/projects/other"); f != nil {
 		t.Fatalf("two unrelated flows should not resolve: %+v", f)
 	}
 	// 4. A single registered flow is the answer by default.
 	m.cfg.Flows = []FlowEntry{feature}
-	if f := m.resolveFlow(CardMoved{}, "/repos/other"); f == nil || f.Name != "feature" {
+	if f := m.resolveFlow(CardMoved{}, "/projects/other"); f == nil || f.Name != "feature" {
 		t.Fatalf("single flow: %+v", f)
 	}
 	m.cfg.Flows = nil
-	if f := m.resolveFlow(CardMoved{}, "/repos/other"); f != nil {
+	if f := m.resolveFlow(CardMoved{}, "/projects/other"); f != nil {
 		t.Fatalf("empty registry: %+v", f)
 	}
 }

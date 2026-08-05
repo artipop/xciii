@@ -269,7 +269,7 @@ func migratedColumns(cfg Config) []ColumnSpec {
 var errStageBusy = errors.New("состав колонки занят")
 
 // WorktreeMode is where sessions run: "always" — each in its own git worktree,
-// "never" — directly in the repository. It decides whether a column's crew can
+// "never" — directly in the project. It decides whether a column's crew can
 // work in parallel at all, which is why the editor asks.
 func (m *Manager) WorktreeMode() string {
 	m.cfgMu.RLock()

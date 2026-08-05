@@ -93,17 +93,17 @@ func TestTerminalCommandRefusesAKindItCannotKnow(t *testing.T) {
 // The end of a terminal is the only thing a card hears about it, so it has to
 // carry the work: the branch, the commits and anything left uncommitted.
 func TestTerminalReportsWhatTheSessionLeftBehind(t *testing.T) {
-	repo := initTestRepo(t)
-	start := headSHA(t.Context(), repo)
+	project := initTestProject(t)
+	start := headSHA(t.Context(), project)
 
-	write(t, filepath.Join(repo, "done.txt"), "work")
-	git(t, repo, "add", ".")
-	git(t, repo, "commit", "-m", "did the thing")
-	write(t, filepath.Join(repo, "wip.txt"), "half")
+	write(t, filepath.Join(project, "done.txt"), "work")
+	git(t, project, "add", ".")
+	git(t, project, "commit", "-m", "did the thing")
+	write(t, filepath.Join(project, "wip.txt"), "half")
 
 	report := terminalReport(t.Context(), &TerminalSession{
 		AgentName: "clauuus",
-		Cwd:       repo,
+		Cwd:       project,
 		Branch:    "acp/thing-1",
 		startSHA:  start,
 	})
@@ -116,11 +116,11 @@ func TestTerminalReportsWhatTheSessionLeftBehind(t *testing.T) {
 }
 
 func TestTerminalReportSaysWhenNothingWasCommitted(t *testing.T) {
-	repo := initTestRepo(t)
+	project := initTestProject(t)
 	report := terminalReport(t.Context(), &TerminalSession{
 		AgentName: "clauuus",
-		Cwd:       repo,
-		startSHA:  headSHA(t.Context(), repo),
+		Cwd:       project,
+		startSHA:  headSHA(t.Context(), project),
 	})
 	if !strings.Contains(report, "Новых коммитов нет") {
 		t.Errorf("report should say the branch is untouched:\n%s", report)
@@ -134,19 +134,19 @@ func TestTerminalStreamsBothWaysAndReportsToTheCard(t *testing.T) {
 	if _, err := exec.LookPath("sh"); err != nil {
 		t.Skip("no shell to stand in for an agent CLI")
 	}
-	m, writer, _, repo := testManager(t, "idle", nil)
+	m, writer, _, project := testManager(t, "idle", nil)
 
 	// A shell is the most honest stand-in for an agent CLI: it is interactive,
 	// it echoes, and it exits when told to.
 	agent := AgentEntry{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}}
 
 	term, err := m.startTerminal(terminalSpec{
-		cardID:   "card-term",
-		boardID:  "board1",
-		title:    "Терминальная задача",
-		repoPath: repo,
-		agent:    agent,
-		worktree: true,
+		cardID:      "card-term",
+		boardID:     "board1",
+		title:       "Терминальная задача",
+		projectPath: project,
+		agent:       agent,
+		worktree:    true,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -158,10 +158,10 @@ func TestTerminalStreamsBothWaysAndReportsToTheCard(t *testing.T) {
 		t.Logf("history already had %d bytes, which is fine", len(history))
 	}
 
-	// The terminal must be the card's worktree, not the repository: two of them
+	// The terminal must be the card's worktree, not the project: two of them
 	// sharing one checkout is exactly what worktrees are for.
-	if term.Cwd == repo {
-		t.Errorf("terminal ran in the repository itself: %s", term.Cwd)
+	if term.Cwd == project {
+		t.Errorf("terminal ran in the project itself: %s", term.Cwd)
 	}
 	if term.Branch == "" {
 		t.Error("terminal has no branch")
@@ -218,11 +218,11 @@ func TestTerminalStreamsBothWaysAndReportsToTheCard(t *testing.T) {
 // Resuming is the point of recording terminals at all: the next one on the card
 // goes back to the same worktree and asks the CLI to continue what is there.
 func TestTerminalResumesWhereTheCardLeftOff(t *testing.T) {
-	m, _, _, repo := testManager(t, "idle", nil)
+	m, _, _, project := testManager(t, "idle", nil)
 	cwd := t.TempDir()
 
 	if err := m.store.InsertTerminal(TerminalRecord{
-		ID: "earlier", CardID: "card-r", RepoPath: repo, Cwd: cwd,
+		ID: "earlier", CardID: "card-r", ProjectPath: project, Cwd: cwd,
 		Branch: "acp/earlier", Agent: "clauuus", Kind: AgentKindClaude,
 		StartedAt: time.Now().Add(-time.Hour),
 	}); err != nil {
@@ -230,7 +230,7 @@ func TestTerminalResumesWhereTheCardLeftOff(t *testing.T) {
 	}
 
 	agent := AgentEntry{Name: "clauuus", Kind: AgentKindClaude}
-	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-r", repoPath: repo, agent: agent})
+	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-r", projectPath: project, agent: agent})
 	if !resume {
 		t.Fatal("a card with a worktree still on disk should resume")
 	}
@@ -249,12 +249,12 @@ func TestTerminalResumesWhereTheCardLeftOff(t *testing.T) {
 	if err := os.RemoveAll(cwd); err != nil {
 		t.Fatal(err)
 	}
-	if _, resume := m.terminalResumePoint(terminalSpec{cardID: "card-r", repoPath: repo, agent: agent}); resume {
+	if _, resume := m.terminalResumePoint(terminalSpec{cardID: "card-r", projectPath: project, agent: agent}); resume {
 		t.Error("resumed into a directory that is gone")
 	}
 }
 
-// write and git are the two things a report test needs a repository to do.
+// write and git are the two things a report test needs a project to do.
 func write(t *testing.T, path, content string) {
 	t.Helper()
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
@@ -262,9 +262,9 @@ func write(t *testing.T, path, content string) {
 	}
 }
 
-func git(t *testing.T, repo string, args ...string) {
+func git(t *testing.T, project string, args ...string) {
 	t.Helper()
-	cmd := exec.Command("git", append([]string{"-C", repo}, args...)...)
+	cmd := exec.Command("git", append([]string{"-C", project}, args...)...)
 	cmd.Env = append(os.Environ(),
 		"GIT_AUTHOR_NAME=t", "GIT_AUTHOR_EMAIL=t@t", "GIT_COMMITTER_NAME=t", "GIT_COMMITTER_EMAIL=t@t")
 	if out, err := cmd.CombinedOutput(); err != nil {
@@ -301,9 +301,9 @@ func TestPlanningTerminalIsHandedBackRatherThanStartedTwice(t *testing.T) {
 	if _, err := exec.LookPath("sh"); err != nil {
 		t.Skip("no shell to stand in for an agent CLI")
 	}
-	repo := initTestRepo(t)
+	project := initTestProject(t)
 	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
-		cfg.Repos = []RepoEntry{{Name: "testrepo", Path: repo}}
+		cfg.Projects = []ProjectEntry{{Name: "testrepo", Path: project}}
 		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}}}
 	})
 

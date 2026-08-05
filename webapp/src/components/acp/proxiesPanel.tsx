@@ -9,7 +9,7 @@ import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 
 import './proxiesPanel.scss'
 

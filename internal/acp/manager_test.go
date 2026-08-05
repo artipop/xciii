@@ -136,20 +136,20 @@ func (f *fakeEvents) Subscribe(ctx context.Context) (<-chan CardMoved, error) { 
 
 func testManager(t *testing.T, scenario string, mutate func(*Config)) (*Manager, *fakeWriter, *fakeEvents, string) {
 	t.Helper()
-	m, w, ev, repo, _ := testManagerWithEmitter(t, scenario, mutate)
-	return m, w, ev, repo
+	m, w, ev, project, _ := testManagerWithEmitter(t, scenario, mutate)
+	return m, w, ev, project
 }
 
 func testManagerWithEmitter(t *testing.T, scenario string, mutate func(*Config)) (*Manager, *fakeWriter, *fakeEvents, string, *fakeEmitter) {
 	t.Helper()
-	repo := initTestRepo(t)
+	project := initTestProject(t)
 	dir := t.TempDir()
 	cfg := DefaultConfig(dir)
 	// Every kind is an ACP process now, so the fallback path is the one that
 	// spells the agent out: the fake agent is the whole command.
 	cfg.AgentMode = agentModeCommand
 	cfg.AgentCommand = []string{writeFakeAgent(t, scenario)}
-	cfg.RepoWhitelist = []string{filepath.Dir(repo)}
+	cfg.ProjectWhitelist = []string{filepath.Dir(project)}
 	cfg.WorktreeDir = filepath.Join(dir, "wt")
 	if mutate != nil {
 		mutate(&cfg)
@@ -170,23 +170,23 @@ func testManagerWithEmitter(t *testing.T, scenario string, mutate func(*Config))
 		BoardID: "board1",
 		Title:   "Test task",
 		Body:    "Do nothing useful.",
-		Props:   map[string]string{"repo_path": repo},
+		Props:   map[string]string{"repo_path": project},
 	}})
 	if err := m.Start(context.Background(), events); err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { m.Shutdown(3 * time.Second) })
-	return m, writer, events, repo, emitter
+	return m, writer, events, project, emitter
 }
 
-func moveEvent(cardID, repo, from, to string) CardMoved {
+func moveEvent(cardID, project, from, to string) CardMoved {
 	return CardMoved{
 		EventID:    "ev-" + cardID + to,
 		CardID:     cardID,
 		BoardID:    "board1",
 		Title:      "Test task",
 		Body:       "Do nothing useful.",
-		Props:      map[string]string{"repo_path": repo},
+		Props:      map[string]string{"repo_path": project},
 		FromColumn: Column{PropertyID: "p1", PropertyName: "Status", OptionID: from, Name: columnName(from)},
 		ToColumn:   Column{PropertyID: "p1", PropertyName: "Status", OptionID: to, Name: columnName(to)},
 		At:         time.Now(),
@@ -213,9 +213,9 @@ func waitFor(t *testing.T, timeout time.Duration, what string, cond func() bool)
 }
 
 func TestTriggerRunsSessionToDone(t *testing.T) {
-	m, writer, events, repo := testManager(t, fakeClaudeHappy, nil)
+	m, writer, events, project := testManager(t, fakeClaudeHappy, nil)
 
-	events.ch <- moveEvent("card1", repo, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("card1", project, "opt-backlog", "opt-agent")
 
 	waitFor(t, 15*time.Second, "session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("card1")
@@ -249,11 +249,11 @@ func TestTriggerRunsSessionToDone(t *testing.T) {
 }
 
 func TestWorktreeModeAlways(t *testing.T) {
-	m, writer, events, repo := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, writer, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.WorktreeMode = "always"
 	})
 
-	events.ch <- moveEvent("cardWT", repo, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardWT", project, "opt-backlog", "opt-agent")
 	waitFor(t, 15*time.Second, "worktree session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardWT")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusDone
@@ -271,25 +271,25 @@ func TestWorktreeModeAlways(t *testing.T) {
 	}
 }
 
-func TestRepoBusyRejectedWithoutWorktrees(t *testing.T) {
+func TestProjectBusyRejectedWithoutWorktrees(t *testing.T) {
 	// Worktrees are the default now, so this rule only applies to an install
 	// that has turned them off.
-	m, writer, events, repo := testManager(t, fakeClaudeHang, func(c *Config) {
+	m, writer, events, project := testManager(t, fakeClaudeHang, func(c *Config) {
 		c.WorktreeMode = "never"
 	})
 
-	events.ch <- moveEvent("cardA", repo, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardA", project, "opt-backlog", "opt-agent")
 	waitFor(t, 10*time.Second, "first session running", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardA")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusRunning
 	})
 
-	events.ch <- moveEvent("cardB", repo, "opt-backlog", "opt-agent")
-	waitFor(t, 5*time.Second, "busy-repo comment on second card", func() bool {
+	events.ch <- moveEvent("cardB", project, "opt-backlog", "opt-agent")
+	waitFor(t, 5*time.Second, "busy-project comment on second card", func() bool {
 		return len(writer.cardComments("cardB")) >= 1
 	})
 	if got := writer.cardComments("cardB")[0]; !strings.Contains(got, "уже работает") {
-		t.Errorf("expected busy-repo error comment, got %q", got)
+		t.Errorf("expected busy-project error comment, got %q", got)
 	}
 	if sessions, _, _ := m.store.SessionsForCard("cardB"); len(sessions) != 0 {
 		t.Errorf("second card must not get a session, got %d", len(sessions))
@@ -297,11 +297,11 @@ func TestRepoBusyRejectedWithoutWorktrees(t *testing.T) {
 }
 
 func TestRapidMovesStartOneSession(t *testing.T) {
-	m, _, events, repo := testManager(t, fakeClaudeHappy, nil)
+	m, _, events, project := testManager(t, fakeClaudeHappy, nil)
 
 	// Spec acceptance §10.4: five rapid back-and-forth moves → one session.
 	for i := 0; i < 5; i++ {
-		events.ch <- moveEvent("card2", repo, "opt-backlog", "opt-agent")
+		events.ch <- moveEvent("card2", project, "opt-backlog", "opt-agent")
 	}
 
 	waitFor(t, 15*time.Second, "exactly one session, terminal", func() bool {
@@ -316,7 +316,7 @@ func TestRapidMovesStartOneSession(t *testing.T) {
 	}
 }
 
-func TestInvalidRepoPathComments(t *testing.T) {
+func TestInvalidProjectPathComments(t *testing.T) {
 	m, writer, events, _ := testManager(t, fakeClaudeHappy, nil)
 
 	ev := moveEvent("card3", "/nonexistent/path", "opt-backlog", "opt-agent")
@@ -334,9 +334,9 @@ func TestInvalidRepoPathComments(t *testing.T) {
 }
 
 func TestMoveBackCancelsSession(t *testing.T) {
-	m, _, events, repo := testManager(t, fakeClaudeHang, nil)
+	m, _, events, project := testManager(t, fakeClaudeHang, nil)
 
-	events.ch <- moveEvent("card4", repo, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("card4", project, "opt-backlog", "opt-agent")
 	waitFor(t, 10*time.Second, "session running", func() bool {
 		sessions, _, err := m.store.SessionsForCard("card4")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusRunning
@@ -344,7 +344,7 @@ func TestMoveBackCancelsSession(t *testing.T) {
 
 	// Let the fake agent actually start before yanking the card back.
 	time.Sleep(300 * time.Millisecond)
-	events.ch <- moveEvent("card4", repo, "opt-agent", "opt-backlog")
+	events.ch <- moveEvent("card4", project, "opt-agent", "opt-backlog")
 
 	start := time.Now()
 	waitFor(t, 10*time.Second, "session cancelled", func() bool {
@@ -361,12 +361,12 @@ func TestMoveBackCancelsSession(t *testing.T) {
 }
 
 func TestRecoveryMarksStaleFailed(t *testing.T) {
-	repo := initTestRepo(t)
+	project := initTestProject(t)
 	dir := t.TempDir()
 	cfg := DefaultConfig(dir)
 	cfg.AgentMode = agentModeCommand
 	cfg.AgentCommand = []string{writeFakeAgent(t, fakeClaudeHappy)}
-	cfg.RepoWhitelist = []string{filepath.Dir(repo)}
+	cfg.ProjectWhitelist = []string{filepath.Dir(project)}
 
 	dbPath := filepath.Join(dir, "acp.db")
 	st, err := OpenStore(dbPath)
@@ -440,10 +440,10 @@ func waitStatus(t *testing.T, s *Session, want SessionStatus) {
 // policy does not cover is refused at once rather than put to a person who is
 // not there. Asking is the terminal's job, and a terminal is not a session.
 func TestPermissionOutsideThePolicyIsRefused(t *testing.T) {
-	m, _, events, repo, emitter := testManagerWithEmitter(t, fakeClaudeAsksPermission, nil)
+	m, _, events, project, emitter := testManagerWithEmitter(t, fakeClaudeAsksPermission, nil)
 
 	// It must decide by policy straight away rather than block on a prompt.
-	events.ch <- moveEvent("cardAuto", repo, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardAuto", project, "opt-backlog", "opt-agent")
 	waitFor(t, 15*time.Second, "session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardAuto")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusDone

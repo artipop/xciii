@@ -11,7 +11,7 @@ import {IPropertyOption, IPropertyTemplate} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 
 import './columnSettingsDialog.scss'
 
@@ -187,7 +187,7 @@ const ColumnSettingsDialog = (props: Props) => {
 
                 <Show when={form().action !== 'none' && (form().maxRunning || 0) !== 1 && crew().length > 1 && !worktrees()}>
                     <div class='ColumnSettingsDialog__warning'>
-                        {intl.formatMessage({id: 'ColumnSettings.no-worktrees', defaultMessage: 'worktreeMode is “never”, so two agents cannot work one repository at the same time: the crew will take cards one after another.'})}
+                        {intl.formatMessage({id: 'ColumnSettings.no-worktrees', defaultMessage: 'worktreeMode is “never”, so two agents cannot work one project at the same time: the crew will take cards one after another.'})}
                     </div>
                 </Show>
 

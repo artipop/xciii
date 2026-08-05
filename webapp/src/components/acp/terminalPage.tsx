@@ -11,14 +11,14 @@ import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 
 import '@xterm/xterm/css/xterm.css'
 import './terminalPage.scss'
 
 // The page a terminal window shows: the agent's own CLI, drawn by xterm.js and
 // wired to the pty over the WebSocket at /acp/terminal/<id>/ws. Everything else
-// about the session — which repository, which worktree, which branch, what the
+// about the session — which project, which worktree, which branch, what the
 // card asked for — was decided when the terminal was started; this only draws
 // it and types into it.
 //

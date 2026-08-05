@@ -22,10 +22,10 @@ export interface IAppWindow extends Window {
     go?: {
         main?: {
             App?: {
-                ListAgentRepos(): Promise<string>
+                ListAgentProjects(): Promise<string>
                 PickDirectory(title: string): Promise<string>
-                AddAgentRepo(name: string, path: string): Promise<string>
-                RemoveAgentRepo(name: string): Promise<void>
+                AddAgentProject(name: string, path: string): Promise<string>
+                RemoveAgentProject(name: string): Promise<void>
                 ListAgents(): Promise<string>
                 AddAgent(entryJSON: string): Promise<string>
                 UpdateAgent(entryJSON: string): Promise<string>
@@ -61,8 +61,8 @@ export interface IAppWindow extends Window {
 
                 // Terminal windows: the agent's own CLI on a card, opened in a
                 // window of the desktop app (absent in browser builds).
-                OpenCardTerminal?(cardId: string, repoName: string, agentName: string): Promise<string>
-                OpenPlanningTerminal?(repoName: string, agentName: string): Promise<string>
+                OpenCardTerminal?(cardId: string, projectName: string, agentName: string): Promise<string>
+                OpenPlanningTerminal?(projectName: string, agentName: string): Promise<string>
                 GetTerminalInfo?(terminalId: string): Promise<string>
                 GetCardAgent?(cardId: string): Promise<string>
                 CancelSession(cardId: string): Promise<boolean>

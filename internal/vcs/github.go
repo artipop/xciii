@@ -12,17 +12,17 @@ import (
 	"time"
 )
 
-// GitHub answers the questions the repository alone cannot: is there a pull
+// GitHub answers the questions the project alone cannot: is there a pull
 // request for this branch, was it merged, did anyone approve it, did the checks
 // pass. It talks to the REST API directly — no gh CLI, nothing to install.
 //
-// A token is optional. Public repositories work without one at 60 requests an
+// A token is optional. Public projects work without one at 60 requests an
 // hour per address, which is why an unauthenticated watcher polls far less
-// often; private repositories need a token to answer at all.
+// often; private projects need a token to answer at all.
 type GitHub struct {
 	Token   string
 	BaseURL string // defaults to https://api.github.com; tests point it elsewhere
-	Remote  string // remote whose URL names the repository
+	Remote  string // remote whose URL names the project
 	HTTP    *http.Client
 	Run     Runner // git, for reading the remote URL
 
@@ -50,19 +50,19 @@ func (g *GitHub) Poll(ctx context.Context, t Target) ([]Event, error) {
 			break
 		}
 	}
-	if !wanted || t.RepoPath == "" || t.Branch == "" {
+	if !wanted || t.ProjectPath == "" || t.Branch == "" {
 		return nil, nil
 	}
 	if !g.due(t) {
 		return nil, nil
 	}
 
-	owner, repo, err := g.repository(ctx, t)
+	owner, project, err := g.project(ctx, t)
 	if err != nil || owner == "" {
 		return nil, err
 	}
 
-	pr, err := g.latestPR(ctx, owner, repo, t.Branch)
+	pr, err := g.latestPR(ctx, owner, project, t.Branch)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (g *GitHub) Poll(ctx context.Context, t Target) ([]Event, error) {
 			return
 		}
 		events = append(events, Event{
-			Kind: kind, RepoPath: t.RepoPath, Branch: t.Branch, Detail: detail,
+			Kind: kind, ProjectPath: t.ProjectPath, Branch: t.Branch, Detail: detail,
 			URL: pr.HTMLURL, Number: pr.Number, Marker: marker, At: time.Now(),
 		})
 	}
@@ -91,7 +91,7 @@ func (g *GitHub) Poll(ctx context.Context, t Target) ([]Event, error) {
 	}
 
 	if t.Wants(KindReviewApproved) {
-		approved, err := g.approved(ctx, owner, repo, pr.Number)
+		approved, err := g.approved(ctx, owner, project, pr.Number)
 		if err != nil {
 			return events, err
 		}
@@ -100,7 +100,7 @@ func (g *GitHub) Poll(ctx context.Context, t Target) ([]Event, error) {
 		}
 	}
 	if t.Wants(KindChecksPassed) || t.Wants(KindChecksFailed) {
-		state, err := g.checks(ctx, owner, repo, pr.Head.SHA)
+		state, err := g.checks(ctx, owner, project, pr.Head.SHA)
 		if err != nil {
 			return events, err
 		}
@@ -124,7 +124,7 @@ func (g *GitHub) due(t Target) bool {
 			interval = time.Minute
 		}
 	}
-	key := t.RepoPath + "\x00" + t.Branch
+	key := t.ProjectPath + "\x00" + t.Branch
 
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -138,27 +138,27 @@ func (g *GitHub) due(t Target) bool {
 	return true
 }
 
-// repository resolves owner/repo from the remote URL. A remote that is not on
+// project resolves owner/project from the remote URL. A remote that is not on
 // github.com yields nothing at all rather than an error: the watcher simply has
 // nothing to say about it.
-func (g *GitHub) repository(ctx context.Context, t Target) (owner, repo string, err error) {
+func (g *GitHub) project(ctx context.Context, t Target) (owner, project string, err error) {
 	remote := t.RemoteOr(g.Remote)
 	run := g.Run
 	if run == nil {
 		run = Exec
 	}
-	out, err := run(ctx, t.RepoPath, "remote", "get-url", remote)
+	out, err := run(ctx, t.ProjectPath, "remote", "get-url", remote)
 	if err != nil {
 		return "", "", fmt.Errorf("не удалось прочитать адрес remote %s: %w", remote, err)
 	}
-	owner, repo = ParseGitHubRemote(strings.TrimSpace(out))
-	return owner, repo, nil
+	owner, project = ParseGitHubRemote(strings.TrimSpace(out))
+	return owner, project, nil
 }
 
-// ParseGitHubRemote extracts owner and repository from the forms git prints:
-// git@github.com:owner/repo.git, https://github.com/owner/repo.git,
-// ssh://git@github.com/owner/repo. Anything else yields empty strings.
-func ParseGitHubRemote(raw string) (owner, repo string) {
+// ParseGitHubRemote extracts owner and project from the forms git prints:
+// git@github.com:owner/project.git, https://github.com/owner/project.git,
+// ssh://git@github.com/owner/project. Anything else yields empty strings.
+func ParseGitHubRemote(raw string) (owner, project string) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
 		return "", ""
@@ -201,7 +201,7 @@ type githubPR struct {
 
 // latestPR is the most recently updated pull request for the branch, open or
 // not: a card waits for its own PR to land, and a landed one is closed.
-func (g *GitHub) latestPR(ctx context.Context, owner, repo, branch string) (*githubPR, error) {
+func (g *GitHub) latestPR(ctx context.Context, owner, project, branch string) (*githubPR, error) {
 	q := url.Values{}
 	q.Set("head", owner+":"+branch)
 	q.Set("state", "all")
@@ -210,7 +210,7 @@ func (g *GitHub) latestPR(ctx context.Context, owner, repo, branch string) (*git
 	q.Set("per_page", "5")
 
 	var prs []githubPR
-	if err := g.get(ctx, fmt.Sprintf("/repos/%s/%s/pulls?%s", owner, repo, q.Encode()), &prs); err != nil {
+	if err := g.get(ctx, fmt.Sprintf("/projects/%s/%s/pulls?%s", owner, project, q.Encode()), &prs); err != nil {
 		return nil, err
 	}
 	for i := range prs {
@@ -222,12 +222,12 @@ func (g *GitHub) latestPR(ctx context.Context, owner, repo, branch string) (*git
 }
 
 // approved returns a marker identifying the latest approving review, or "".
-func (g *GitHub) approved(ctx context.Context, owner, repo string, number int) (string, error) {
+func (g *GitHub) approved(ctx context.Context, owner, project string, number int) (string, error) {
 	var reviews []struct {
 		ID    int64  `json:"id"`
 		State string `json:"state"`
 	}
-	if err := g.get(ctx, fmt.Sprintf("/repos/%s/%s/pulls/%d/reviews?per_page=100", owner, repo, number), &reviews); err != nil {
+	if err := g.get(ctx, fmt.Sprintf("/projects/%s/%s/pulls/%d/reviews?per_page=100", owner, project, number), &reviews); err != nil {
 		return "", err
 	}
 	marker := ""
@@ -241,7 +241,7 @@ func (g *GitHub) approved(ctx context.Context, owner, repo string, number int) (
 
 // checks folds the check runs of a commit into one answer. Anything still
 // running means no answer yet — a half-finished pipeline is not a verdict.
-func (g *GitHub) checks(ctx context.Context, owner, repo, sha string) (string, error) {
+func (g *GitHub) checks(ctx context.Context, owner, project, sha string) (string, error) {
 	if sha == "" {
 		return "", nil
 	}
@@ -252,7 +252,7 @@ func (g *GitHub) checks(ctx context.Context, owner, repo, sha string) (string, e
 			Conclusion string `json:"conclusion"`
 		} `json:"check_runs"`
 	}
-	if err := g.get(ctx, fmt.Sprintf("/repos/%s/%s/commits/%s/check-runs?per_page=100", owner, repo, sha), &payload); err != nil {
+	if err := g.get(ctx, fmt.Sprintf("/projects/%s/%s/commits/%s/check-runs?per_page=100", owner, project, sha), &payload); err != nil {
 		return "", err
 	}
 	if payload.TotalCount == 0 || len(payload.CheckRuns) == 0 {
@@ -302,9 +302,9 @@ func (g *GitHub) get(ctx context.Context, path string, out any) error {
 
 	switch {
 	case resp.StatusCode == http.StatusNotFound:
-		// A private repository without a token looks exactly like a missing one.
+		// A private project without a token looks exactly like a missing one.
 		if g.Token == "" {
-			return fmt.Errorf("GitHub отвечает 404 на %s — для приватного репозитория нужен токен (githubToken в конфиге или GITHUB_TOKEN)", path)
+			return fmt.Errorf("GitHub отвечает 404 на %s — для приватного проекта нужен токен (githubToken в конфиге или GITHUB_TOKEN)", path)
 		}
 		return fmt.Errorf("GitHub: 404 на %s", path)
 	case resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests:

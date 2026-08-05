@@ -17,7 +17,7 @@ import {Utils} from '../../utils'
 
 import ModalWrapper from '../modalWrapper'
 import {sendFlashMessage} from '../flashMessages'
-import AgentReposDialog, {isAgentReposAvailable} from '../acp/agentReposDialog'
+import AgentProjectsDialog, {isAgentProjectsAvailable} from '../acp/agentProjectsDialog'
 import AgentsDialog, {isAgentsAvailable} from '../acp/agentsDialog'
 import DeployTargetsDialog, {isDeployTargetsAvailable} from '../acp/deployTargetsDialog'
 import WorkflowsDialog, {isWorkflowsAvailable} from '../acp/workflowsDialog'
@@ -87,10 +87,10 @@ const ViewHeaderActionsMenu = (props: Props) => {
                                 onClick={() => setShowSetup(true)}
                             />
                         </Show>
-                        <Show when={isAgentReposAvailable()}>
+                        <Show when={isAgentProjectsAvailable()}>
                             <Menu.Text
                                 id='agentRepos'
-                                name={intl.formatMessage({id: 'ViewHeader.agent-repos', defaultMessage: 'Repositories…'})}
+                                name={intl.formatMessage({id: 'ViewHeader.agent-projects', defaultMessage: 'Projects…'})}
                                 onClick={() => setShowAgentRepos(true)}
                             />
                         </Show>
@@ -121,7 +121,7 @@ const ViewHeaderActionsMenu = (props: Props) => {
                 <IconButton icon={<OptionsIcon/>}/>
             </MenuWrapper>
             <Show when={showAgentRepos()}>
-                <AgentReposDialog
+                <AgentProjectsDialog
                     board={props.board}
                     onClose={() => setShowAgentRepos(false)}
                 />

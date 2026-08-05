@@ -103,12 +103,12 @@ func TestTargetValidate(t *testing.T) {
 		t.Error("expected an error for a relative ssh key path")
 	}
 
-	// The app name is derived from the repository, so a target without one is
+	// The app name is derived from the project, so a target without one is
 	// valid in the registry — and unusable only once a deploy needs it.
 	if _, err := (Target{SSHHost: "host.example.com", BaseDomain: "x.com"}).Validate(); err != nil {
 		t.Errorf("a target without a base app should validate: %v", err)
 	}
-	if _, err := New(Target{SSHHost: "h", BaseDomain: "x.com"}, "/repo", "main"); err == nil {
+	if _, err := New(Target{SSHHost: "h", BaseDomain: "x.com"}, "/project", "main"); err == nil {
 		t.Error("expected New to reject a target with no app name")
 	}
 
@@ -149,31 +149,31 @@ func TestWithBaseApp(t *testing.T) {
 		t.Errorf("derived app/domain: %q %q", got.BaseApp, got.Domain("feat"))
 	}
 
-	// A repository whose name cannot start an app name still gets a valid one.
+	// A project whose name cannot start an app name still gets a valid one.
 	if got := base.WithBaseApp("2fa-service"); got.BaseApp != "r-2fa-service" {
 		t.Errorf("leading digit: %q", got.BaseApp)
 	}
 
-	// An explicit name wins, and nothing is invented without a repository.
+	// An explicit name wins, and nothing is invented without a project.
 	if got := (Target{SSHHost: "h", BaseApp: "api", BaseDomain: "example.com"}).WithBaseApp("other"); got.BaseApp != "api" {
 		t.Errorf("explicit base app overwritten: %q", got.BaseApp)
 	}
 	if got := base.WithBaseApp("  "); got.BaseApp != "" {
-		t.Errorf("empty repository name produced %q", got.BaseApp)
+		t.Errorf("empty project name produced %q", got.BaseApp)
 	}
 
 	// The whole app name is one DNS label, so the two halves together must stay
-	// inside 63 characters however long the repository and the branch are — the
-	// worst case being a repository name that also needs the "r-" prefix.
-	long := base.WithBaseApp("9-repository-with-an-unreasonably-long-name")
+	// inside 63 characters however long the project and the branch are — the
+	// worst case being a project name that also needs the "r-" prefix.
+	long := base.WithBaseApp("9-project-with-an-unreasonably-long-name")
 	app := long.AppName(AppSlug("feature/an-unreasonably-long-branch-name-as-well"))
 	if len(app) > 63 {
 		t.Errorf("app name %q is %d characters, over the DNS label limit", app, len(app))
 	}
 
-	// Two long repository names must not fold onto one label.
-	if AppLabel("a-repository-with-an-unreasonably-long-name") == AppLabel("a-repository-with-an-unreasonably-long-name-too") {
-		t.Error("two long repository names collided")
+	// Two long project names must not fold onto one label.
+	if AppLabel("a-project-with-an-unreasonably-long-name") == AppLabel("a-project-with-an-unreasonably-long-name-too") {
+		t.Error("two long project names collided")
 	}
 }
 
@@ -183,7 +183,7 @@ func TestDeployCreatesAppAndPushes(t *testing.T) {
 		"apps:exists": {out: "app does not exist", err: &ExitError{Code: 1}},
 		"git push":    {out: "remote: build\nremote: done\nTo ssh://…\n"},
 	}}
-	cl, err := New(testTarget(), "/repo", "feat/login")
+	cl, err := New(testTarget(), "/project", "feat/login")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +206,7 @@ func TestDeployCreatesAppAndPushes(t *testing.T) {
 		t.Errorf("domains call: %s", f.line(2))
 	}
 	push := f.calls[3]
-	if push.name != "git" || push.dir != "/repo" {
+	if push.name != "git" || push.dir != "/project" {
 		t.Errorf("push ran as %q in %q", push.name, push.dir)
 	}
 	if !strings.Contains(f.line(3), "ssh://dokku@dokku.example.com:22/api-feat-login feat/login:refs/heads/master") {
@@ -216,7 +216,7 @@ func TestDeployCreatesAppAndPushes(t *testing.T) {
 
 func TestDeployExistingAppSkipsCreate(t *testing.T) {
 	f := &fakeRunner{}
-	cl, _ := New(testTarget(), "/repo", "main")
+	cl, _ := New(testTarget(), "/project", "main")
 	cl.Run = f.run
 
 	res, err := cl.Deploy(context.Background(), "")
@@ -238,7 +238,7 @@ func TestSSHConnectionFailureIsNotAMissingApp(t *testing.T) {
 		"apps:exists": {out: "ssh: connect to host dokku.example.com port 22: Connection refused",
 			err: &ExitError{Code: sshConnectFailed}},
 	}}
-	cl, _ := New(testTarget(), "/repo", "main")
+	cl, _ := New(testTarget(), "/project", "main")
 	cl.Run = f.run
 
 	if _, err := cl.Deploy(context.Background(), ""); err == nil {
@@ -255,7 +255,7 @@ func TestPushFailureCarriesTheLog(t *testing.T) {
 	f := &fakeRunner{replies: map[string]reply{
 		"git push": {out: "remote: Building…\nremote: ERROR: no Procfile\n", err: &ExitError{Code: 1}},
 	}}
-	cl, _ := New(testTarget(), "/repo", "main")
+	cl, _ := New(testTarget(), "/project", "main")
 	cl.Run = f.run
 
 	res, err := cl.Deploy(context.Background(), "")
@@ -272,7 +272,7 @@ func TestSSHArgsAndGitEnvUseTheKey(t *testing.T) {
 	target.SSHKey = "/home/me/keys/id ed25519"
 	target.SSHPort = 2222
 	target.SSHUser = "deploy"
-	cl, err := New(target, "/repo", "main")
+	cl, err := New(target, "/project", "main")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -331,11 +331,11 @@ func TestListFallsBackToPlainOutput(t *testing.T) {
 
 func TestCurrentBranchRejectsDetachedHead(t *testing.T) {
 	f := &fakeRunner{replies: map[string]reply{"rev-parse": {out: "HEAD\n"}}}
-	if _, err := CurrentBranch(context.Background(), f.run, "/repo"); err == nil {
+	if _, err := CurrentBranch(context.Background(), f.run, "/project"); err == nil {
 		t.Error("expected an error on a detached HEAD")
 	}
 	f2 := &fakeRunner{replies: map[string]reply{"rev-parse": {out: "feat/x\n"}}}
-	branch, err := CurrentBranch(context.Background(), f2.run, "/repo")
+	branch, err := CurrentBranch(context.Background(), f2.run, "/project")
 	if err != nil || branch != "feat/x" {
 		t.Errorf("got %q, %v", branch, err)
 	}

@@ -5,7 +5,7 @@
 /* eslint-disable new-cap */
 import {Accessor, createSignal, Setter} from 'solid-js'
 
-import {agentBindings} from './agentReposDialog'
+import {agentBindings} from './agentProjectsDialog'
 
 // What the Go side knows about the agent on a card: the session it ran, the
 // branch and worktree it left behind, and whether a terminal is open on it.

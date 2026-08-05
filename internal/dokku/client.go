@@ -58,25 +58,25 @@ func Exec(ctx context.Context, dir string, env []string, name string, args ...st
 	return text, nil
 }
 
-// Client talks to one Dokku target on behalf of one local repository.
+// Client talks to one Dokku target on behalf of one local project.
 type Client struct {
-	Target Target
-	Repo   string // local git repository the branch is pushed from
-	Branch string // branch used when a tool call omits one
-	Run    Runner // nil → Exec
+	Target  Target
+	Project string // local git project the branch is pushed from
+	Branch  string // branch used when a tool call omits one
+	Run     Runner // nil → Exec
 }
 
-// New validates the target and returns a client. repo may be empty for a client
+// New validates the target and returns a client. project may be empty for a client
 // that only inspects (logs, status, list).
-func New(t Target, repo, branch string) (*Client, error) {
+func New(t Target, project, branch string) (*Client, error) {
 	t, err := t.Validate()
 	if err != nil {
 		return nil, err
 	}
 	if t.BaseApp == "" {
-		return nil, fmt.Errorf("у цели не определено имя приложения: оно берётся из имени репозитория, задайте его явно (baseApp)")
+		return nil, fmt.Errorf("у цели не определено имя приложения: оно берётся из названия проекта, задайте его явно (baseApp)")
 	}
-	return &Client{Target: t, Repo: repo, Branch: strings.TrimSpace(branch)}, nil
+	return &Client{Target: t, Project: project, Branch: strings.TrimSpace(branch)}, nil
 }
 
 func (c *Client) run(ctx context.Context, dir string, env []string, name string, args ...string) (string, error) {
@@ -174,8 +174,8 @@ func (c *Client) Deploy(ctx context.Context, branch string) (Result, error) {
 	if branch == "" {
 		return Result{}, fmt.Errorf("не указана ветка для деплоя")
 	}
-	if c.Repo == "" {
-		return Result{}, fmt.Errorf("не задан локальный репозиторий")
+	if c.Project == "" {
+		return Result{}, fmt.Errorf("не задан локальный проект")
 	}
 	slug := AppSlug(branch)
 	app := c.Target.AppName(slug)
@@ -188,7 +188,7 @@ func (c *Client) Deploy(ctx context.Context, branch string) (Result, error) {
 	}
 
 	remote := fmt.Sprintf("ssh://%s@%s:%d/%s", c.Target.User(), c.Target.SSHHost, c.Target.Port(), app)
-	out, err := c.run(ctx, c.Repo, c.gitEnv(), "git", "push", "--force", remote, branch+":refs/heads/master")
+	out, err := c.run(ctx, c.Project, c.gitEnv(), "git", "push", "--force", remote, branch+":refs/heads/master")
 	res.PushLog = lastLines(out, 120)
 	if err != nil {
 		if ctx.Err() != nil {
@@ -260,18 +260,18 @@ func (c *Client) List(ctx context.Context) ([]string, error) {
 	return out2, nil
 }
 
-// CurrentBranch is the branch checked out in the local repository.
-func CurrentBranch(ctx context.Context, run Runner, repo string) (string, error) {
+// CurrentBranch is the branch checked out in the local project.
+func CurrentBranch(ctx context.Context, run Runner, project string) (string, error) {
 	if run == nil {
 		run = Exec
 	}
-	out, err := run(ctx, repo, nil, "git", "rev-parse", "--abbrev-ref", "HEAD")
+	out, err := run(ctx, project, nil, "git", "rev-parse", "--abbrev-ref", "HEAD")
 	if err != nil {
-		return "", fmt.Errorf("не удалось определить текущую ветку в %s: %w", repo, err)
+		return "", fmt.Errorf("не удалось определить текущую ветку в %s: %w", project, err)
 	}
 	branch := strings.TrimSpace(out)
 	if branch == "" || branch == "HEAD" {
-		return "", fmt.Errorf("репозиторий %s не на ветке (detached HEAD) — укажи ветку явно", repo)
+		return "", fmt.Errorf("проект %s не на ветке (detached HEAD) — укажи ветку явно", project)
 	}
 	return branch, nil
 }

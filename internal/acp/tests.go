@@ -11,7 +11,7 @@ import (
 )
 
 // The test column points a session at a running preview instead of at the
-// repository. Everything it needs is derived from what the deploy column
+// project. Everything it needs is derived from what the deploy column
 // already produced, so a card that was deployed is testable without any extra
 // configuration.
 
@@ -25,11 +25,11 @@ type TestRun struct {
 
 // resolveTestRun gathers what a test session needs. For any other session it
 // returns nothing and no error, so the launch path can call it unconditionally.
-func (m *Manager) resolveTestRun(ev CardMoved, repoPath, artifacts string, test bool) (*TestRun, error) {
+func (m *Manager) resolveTestRun(ev CardMoved, projectPath, artifacts string, test bool) (*TestRun, error) {
 	if !test {
 		return nil, nil
 	}
-	previewURL, branch, err := m.resolvePreviewURL(ev, repoPath)
+	previewURL, branch, err := m.resolvePreviewURL(ev, projectPath)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (m *Manager) artifactsDir(sessionID string) (string, error) {
 //     there (the deploy session, a person, CI) wins;
 //  2. the address the deploy registry would give the card's branch, which is
 //     deterministic: one branch, one app, one subdomain.
-func (m *Manager) resolvePreviewURL(ev CardMoved, repoPath string) (string, string, error) {
+func (m *Manager) resolvePreviewURL(ev CardMoved, projectPath string) (string, string, error) {
 	if raw := cardPreviewURL(ev); raw != "" {
 		u, err := url.Parse(raw)
 		if err != nil || !u.IsAbs() || u.Host == "" {
@@ -76,8 +76,8 @@ func (m *Manager) resolvePreviewURL(ev CardMoved, repoPath string) (string, stri
 	// The address has to be computed exactly as the deploy computes it, app
 	// name included — that is what makes "deployed, then tested" need no
 	// configuration of its own.
-	target.Target = target.Target.WithBaseApp(m.deployAppName(repoPath))
-	branch, err := resolveDeployBranch(ev, repoPath)
+	target.Target = target.Target.WithBaseApp(m.deployAppName(projectPath))
+	branch, err := resolveDeployBranch(ev, projectPath)
 	if err != nil {
 		return "", "", fmt.Errorf("не удалось определить ветку карточки для адреса превью: %w", err)
 	}

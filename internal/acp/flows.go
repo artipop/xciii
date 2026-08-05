@@ -8,7 +8,7 @@ import (
 // A flow is the route a card takes across the board: a graph of nodes (a column
 // plus what runs when a card lands in it) and edges (which event moves the card
 // on, and where). Several routes coexist — not every task is deployed — so a
-// flow is a named registry entry a card is matched to, exactly like the repo,
+// flow is a named registry entry a card is matched to, exactly like the project,
 // agent and deploy-target registries.
 //
 // The set of edge triggers is closed and implemented in Go (see FlowTriggers):
@@ -45,8 +45,8 @@ const (
 // has to poll for.
 const (
 	SourceOutcome = "outcome" // the node's own action finished
-	SourceGit     = "git"     // local repository, no authentication
-	SourceGitHub  = "github"  // GitHub API, needs a token for private repos
+	SourceGit     = "git"     // local project, no authentication
+	SourceGitHub  = "github"  // GitHub API, needs a token for private projects
 )
 
 // FlowTrigger describes one edge trigger. The list doubles as the editor's
@@ -82,9 +82,9 @@ type FlowEntry struct {
 	// what a route configured before boards were told apart means.
 	BoardID string `json:"boardId,omitempty"`
 
-	// RepoName ties the flow to an entry of the repo registry, so a card that
-	// only names its repository still finds its route.
-	RepoName string `json:"repoName,omitempty"`
+	// ProjectName ties the flow to an entry of the project registry, so a card that
+	// only names its project still finds its route.
+	ProjectName string `json:"projectName,omitempty"`
 	// Property is the select property whose options are the flow's columns.
 	// Empty means Config.TriggerProperty.
 	Property string `json:"property,omitempty"`
@@ -162,7 +162,7 @@ func TriggerLabel(kind string) string {
 	return kind
 }
 
-// IsVCSTrigger reports whether the trigger comes from the repository rather
+// IsVCSTrigger reports whether the trigger comes from the project rather
 // than from the node's own action — the ones the watcher has to poll for.
 func IsVCSTrigger(kind string) bool {
 	t, ok := Trigger(kind)
@@ -256,16 +256,16 @@ func boardFlows(flows []FlowEntry, boardID string) []FlowEntry {
 	return out
 }
 
-// validateFlow normalizes and checks one route. repos/agents/deploys are the
+// validateFlow normalizes and checks one route. projects/agents/deploys are the
 // registries its nodes may reference.
-func validateFlow(f FlowEntry, repos []RepoEntry, agents []AgentEntry, deploys []DeployEntry) (FlowEntry, error) {
+func validateFlow(f FlowEntry, projects []ProjectEntry, agents []AgentEntry, deploys []DeployEntry) (FlowEntry, error) {
 	f.Name = strings.TrimSpace(f.Name)
 	if f.Name == "" {
 		return FlowEntry{}, fmt.Errorf("имя флоу не может быть пустым")
 	}
-	f.RepoName = strings.TrimSpace(f.RepoName)
-	if f.RepoName != "" && !hasRepo(repos, f.RepoName) {
-		return FlowEntry{}, fmt.Errorf("репозиторий %q не найден в реестре (%s)", f.RepoName, repoNames(repos))
+	f.ProjectName = strings.TrimSpace(f.ProjectName)
+	if f.ProjectName != "" && !hasRepo(projects, f.ProjectName) {
+		return FlowEntry{}, fmt.Errorf("проект %q не найден в реестре (%s)", f.ProjectName, projectNames(projects))
 	}
 	f.Property = strings.TrimSpace(f.Property)
 	if len(f.Nodes) == 0 {
@@ -355,7 +355,7 @@ func validateFlow(f FlowEntry, repos []RepoEntry, agents []AgentEntry, deploys [
 func (m *Manager) AddFlow(f FlowEntry) (FlowEntry, error) {
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
-	f, err := validateFlow(f, m.cfg.Repos, m.cfg.Agents, m.cfg.Deploys)
+	f, err := validateFlow(f, m.cfg.Projects, m.cfg.Agents, m.cfg.Deploys)
 	if err != nil {
 		return FlowEntry{}, err
 	}
@@ -372,7 +372,7 @@ func (m *Manager) AddFlow(f FlowEntry) (FlowEntry, error) {
 func (m *Manager) UpdateFlow(f FlowEntry) (FlowEntry, error) {
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
-	f, err := validateFlow(f, m.cfg.Repos, m.cfg.Agents, m.cfg.Deploys)
+	f, err := validateFlow(f, m.cfg.Projects, m.cfg.Agents, m.cfg.Deploys)
 	if err != nil {
 		return FlowEntry{}, err
 	}
@@ -401,15 +401,15 @@ func (m *Manager) RemoveFlow(name string) error {
 
 // resolveFlow maps a card to its route. Priority mirrors every other registry:
 //  1. a "flow" property or a select option naming an entry;
-//  2. the flow tied to the repository the card resolved to;
+//  2. the flow tied to the project the card resolved to;
 //  3. the single registered flow.
 //
 // Nothing matched is not an error: the card simply has no route, and the legacy
 // trigger columns keep working for it.
-func (m *Manager) resolveFlow(ev CardMoved, repoPath string) *FlowEntry {
+func (m *Manager) resolveFlow(ev CardMoved, projectPath string) *FlowEntry {
 	m.cfgMu.RLock()
 	flows := boardFlows(m.cfg.Flows, ev.BoardID)
-	repos := append([]RepoEntry(nil), m.cfg.Repos...)
+	projects := append([]ProjectEntry(nil), m.cfg.Projects...)
 	m.cfgMu.RUnlock()
 
 	if len(flows) == 0 {
@@ -433,9 +433,9 @@ func (m *Manager) resolveFlow(ev CardMoved, repoPath string) *FlowEntry {
 			return f
 		}
 	}
-	if repoName := repoNameForPath(repos, repoPath); repoName != "" {
+	if projectName := rrojectNameForPath(projects, projectPath); projectName != "" {
 		for i := range flows {
-			if strings.EqualFold(flows[i].RepoName, repoName) {
+			if strings.EqualFold(flows[i].ProjectName, projectName) {
 				return &flows[i]
 			}
 		}
@@ -458,8 +458,8 @@ func (m *Manager) FlowByName(name string) (FlowEntry, bool) {
 	return FlowEntry{}, false
 }
 
-func hasRepo(repos []RepoEntry, name string) bool {
-	for _, r := range repos {
+func hasRepo(projects []ProjectEntry, name string) bool {
+	for _, r := range projects {
 		if strings.EqualFold(r.Name, name) {
 			return true
 		}

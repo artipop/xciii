@@ -9,12 +9,12 @@ import (
 	"testing"
 )
 
-// The git watcher is tested against real repositories: its whole job is knowing
+// The git watcher is tested against real projects: its whole job is knowing
 // what git says, and a fake runner would only test our idea of that.
 
-func git(t *testing.T, repo string, args ...string) string {
+func git(t *testing.T, project string, args ...string) string {
 	t.Helper()
-	cmd := exec.Command("git", append([]string{"-C", repo}, args...)...)
+	cmd := exec.Command("git", append([]string{"-C", project}, args...)...)
 	cmd.Env = append(cmd.Environ(),
 		"GIT_AUTHOR_NAME=t", "GIT_AUTHOR_EMAIL=t@e", "GIT_COMMITTER_NAME=t", "GIT_COMMITTER_EMAIL=t@e")
 	out, err := cmd.CombinedOutput()
@@ -53,7 +53,7 @@ func writeFile(path, content string) error {
 func TestGitReportsAPushedBranch(t *testing.T) {
 	clone, _ := twoRepos(t)
 	w := &Git{}
-	target := Target{RepoPath: clone, Branch: "feat/x", Triggers: []string{KindBranchPushed}}
+	target := Target{ProjectPath: clone, Branch: "feat/x", Triggers: []string{KindBranchPushed}}
 
 	// A branch that exists only locally is not pushed.
 	git(t, clone, "checkout", "-q", "-b", "feat/x")
@@ -79,7 +79,7 @@ func TestGitReportsAPushedBranch(t *testing.T) {
 	if len(events) != 1 || events[0].Kind != KindBranchPushed {
 		t.Fatalf("events: %+v", events)
 	}
-	if events[0].Marker == "" || events[0].Branch != "feat/x" || events[0].RepoPath != clone {
+	if events[0].Marker == "" || events[0].Branch != "feat/x" || events[0].ProjectPath != clone {
 		t.Fatalf("event: %+v", events[0])
 	}
 	// The marker follows the commit, so pushing again is a new occurrence.
@@ -99,7 +99,7 @@ func TestGitReportsAPushedBranch(t *testing.T) {
 func TestGitReportsAMergedBranch(t *testing.T) {
 	clone, _ := twoRepos(t)
 	w := &Git{}
-	target := Target{RepoPath: clone, Branch: "feat/y", Triggers: []string{KindBranchMerged}}
+	target := Target{ProjectPath: clone, Branch: "feat/y", Triggers: []string{KindBranchMerged}}
 
 	git(t, clone, "checkout", "-q", "-b", "feat/y")
 	if err := writeFile(filepath.Join(clone, "c.txt"), "c\n"); err != nil {
@@ -150,7 +150,7 @@ func TestGitDoesNotMergeTheDefaultBranchIntoItself(t *testing.T) {
 	clone, _ := twoRepos(t)
 	w := &Git{}
 	events, err := w.Poll(context.Background(), Target{
-		RepoPath: clone, Branch: "main", Triggers: []string{KindBranchMerged, KindBranchPushed},
+		ProjectPath: clone, Branch: "main", Triggers: []string{KindBranchMerged, KindBranchPushed},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -165,14 +165,14 @@ func TestGitDoesNotMergeTheDefaultBranchIntoItself(t *testing.T) {
 func TestGitAsksForNothingItIsNotWaitedOn(t *testing.T) {
 	clone, _ := twoRepos(t)
 	var ran []string
-	w := &Git{Run: func(ctx context.Context, repo string, args ...string) (string, error) {
+	w := &Git{Run: func(ctx context.Context, project string, args ...string) (string, error) {
 		ran = append(ran, strings.Join(args, " "))
-		return Exec(ctx, repo, args...)
+		return Exec(ctx, project, args...)
 	}}
 
 	// Only GitHub triggers: the git watcher must not even fetch.
 	if _, err := w.Poll(context.Background(), Target{
-		RepoPath: clone, Branch: "feat/x", Triggers: []string{KindPRMerged},
+		ProjectPath: clone, Branch: "feat/x", Triggers: []string{KindPRMerged},
 	}); err != nil {
 		t.Fatal(err)
 	}

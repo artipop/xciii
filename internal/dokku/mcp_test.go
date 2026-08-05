@@ -51,7 +51,7 @@ func callText(t *testing.T, cs *mcp.ClientSession, name string, args map[string]
 }
 
 func TestToolsList(t *testing.T) {
-	cl, _ := New(testTarget(), "/repo", "main")
+	cl, _ := New(testTarget(), "/project", "main")
 	cl.Run = (&fakeRunner{}).run
 	cs := connect(t, cl)
 
@@ -75,7 +75,7 @@ func TestDeployToolReportsURL(t *testing.T) {
 		"apps:exists": {err: &ExitError{Code: 1}},
 		"git push":    {out: "remote: deployed\n"},
 	}}
-	cl, _ := New(testTarget(), "/repo", "feat/login")
+	cl, _ := New(testTarget(), "/project", "feat/login")
 	cl.Run = f.run
 
 	text, isErr := callText(t, connect(t, cl), "deploy_branch", nil)
@@ -93,7 +93,7 @@ func TestDeployToolFailureCarriesTheBuildLog(t *testing.T) {
 	f := &fakeRunner{replies: map[string]reply{
 		"git push": {out: "remote: ERROR: no Procfile found\n", err: &ExitError{Code: 1}},
 	}}
-	cl, _ := New(testTarget(), "/repo", "main")
+	cl, _ := New(testTarget(), "/project", "main")
 	cl.Run = f.run
 
 	text, isErr := callText(t, connect(t, cl), "deploy_branch", nil)
@@ -108,7 +108,7 @@ func TestDeployToolFailureCarriesTheBuildLog(t *testing.T) {
 
 func TestDeployToolAcceptsAnExplicitBranch(t *testing.T) {
 	f := &fakeRunner{}
-	cl, _ := New(testTarget(), "/repo", "main")
+	cl, _ := New(testTarget(), "/project", "main")
 	cl.Run = f.run
 
 	text, isErr := callText(t, connect(t, cl), "deploy_branch", map[string]any{"branch": "fix/typo"})
@@ -122,7 +122,7 @@ func TestDeployToolAcceptsAnExplicitBranch(t *testing.T) {
 
 func TestDestroyNeedsConfirmation(t *testing.T) {
 	f := &fakeRunner{}
-	cl, _ := New(testTarget(), "/repo", "main")
+	cl, _ := New(testTarget(), "/project", "main")
 	cl.Run = f.run
 	cs := connect(t, cl)
 
@@ -144,7 +144,7 @@ func TestDestroyNeedsConfirmation(t *testing.T) {
 
 func TestLogsToolUsesRequestedLineCount(t *testing.T) {
 	f := &fakeRunner{replies: map[string]reply{"logs": {out: "line one"}}}
-	cl, _ := New(testTarget(), "/repo", "main")
+	cl, _ := New(testTarget(), "/project", "main")
 	cl.Run = f.run
 
 	text, isErr := callText(t, connect(t, cl), "app_logs", map[string]any{"lines": 50})

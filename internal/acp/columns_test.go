@@ -178,20 +178,20 @@ func TestCrewTakesTheFreeAgent(t *testing.T) {
 // The column's limit is what a WIP limit is on a board: the third card waits in
 // place and says so, and starts by itself when somebody finishes.
 func TestColumnLimitQueuesTheCard(t *testing.T) {
-	m, writer, events, repo := testManager(t, fakeClaudeHang, func(c *Config) {
+	m, writer, events, project := testManager(t, fakeClaudeHang, func(c *Config) {
 		c.Columns = []ColumnSpec{{
 			Property: c.TriggerProperty, Column: c.TriggerColumn,
 			Action: FlowActionAgent, MaxRunning: 1,
 		}}
 	})
 
-	events.ch <- moveEvent("cardOne", repo, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardOne", project, "opt-backlog", "opt-agent")
 	waitFor(t, 10*time.Second, "the first card is working", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardOne")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusRunning
 	})
 
-	events.ch <- moveEvent("cardTwo", repo, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardTwo", project, "opt-backlog", "opt-agent")
 	waitFor(t, 10*time.Second, "the second card says it is waiting", func() bool {
 		return len(writer.cardComments("cardTwo")) > 0
 	})
@@ -220,9 +220,9 @@ func TestColumnLimitQueuesTheCard(t *testing.T) {
 // What the card shows about itself: the route, where it stands on it, and what
 // it is waiting for.
 func TestCardFlowDescribesWhereTheCardStands(t *testing.T) {
-	m, _, events, repo := flowManager(t, fakeClaudeHappy, sampleFlow())
+	m, _, events, project := flowManager(t, fakeClaudeHappy, sampleFlow())
 
-	events.ch <- flowEvent("cardF", repo, "Backlog", "To Agent")
+	events.ch <- flowEvent("cardF", project, "Backlog", "To Agent")
 	waitFor(t, 20*time.Second, "the card reaches Review", func() bool {
 		st, ok, _ := m.store.FlowStateForCard("cardF")
 		return ok && st.NodeID == "review"
@@ -339,9 +339,9 @@ func TestBoardBringsItsOwnAutomation(t *testing.T) {
 
 // The map the workflow view draws: where the board's cards actually are.
 func TestBoardFlowOverviewCountsWhereTheCardsAre(t *testing.T) {
-	m, _, events, repo := flowManager(t, fakeClaudeHang, sampleFlow())
+	m, _, events, project := flowManager(t, fakeClaudeHang, sampleFlow())
 
-	events.ch <- flowEvent("cardOverview", repo, "Backlog", "To Agent")
+	events.ch <- flowEvent("cardOverview", project, "Backlog", "To Agent")
 	waitFor(t, 20*time.Second, "the card is working on the first stage", func() bool {
 		st, ok, _ := m.store.FlowStateForCard("cardOverview")
 		return ok && st.NodeID == "work"
@@ -383,11 +383,11 @@ func TestBoardFlowOverviewCountsWhereTheCardsAre(t *testing.T) {
 // same card up would do the work twice and — on a route — move the card on the
 // moment it decided it was done.
 func TestCardAssignedToAPersonIsLeftAlone(t *testing.T) {
-	m, writer, events, repo := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, writer, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{Name: "claude-1", Kind: "claude"}}
 	})
 
-	ev := moveEvent("cardMine", repo, "opt-backlog", "opt-agent")
+	ev := moveEvent("cardMine", project, "opt-backlog", "opt-agent")
 	ev.PersonNames = []string{"artem"}
 	events.ch <- ev
 
@@ -403,7 +403,7 @@ func TestCardAssignedToAPersonIsLeftAlone(t *testing.T) {
 	}
 
 	// An assignee that is an agent means the opposite: that agent works.
-	agentEv := moveEvent("cardTheirs", repo, "opt-backlog", "opt-agent")
+	agentEv := moveEvent("cardTheirs", project, "opt-backlog", "opt-agent")
 	agentEv.PersonNames = []string{"claude-1"}
 	events.ch <- agentEv
 	waitFor(t, 10*time.Second, "the assigned agent takes its card", func() bool {
@@ -424,7 +424,7 @@ func TestAssignedCardIsStillDeployed(t *testing.T) {
 		Props: map[string]string{"branch": "feat/x"}}
 
 	// The launch path gets past the veto for a deploy session; it stops later,
-	// for want of a repository, which is a different complaint.
+	// for want of a project, which is a different complaint.
 	_, err := m.startSession(ev, startOptions{deploy: true})
 	var mine AssignedToHumanError
 	if errors.As(err, &mine) {

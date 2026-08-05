@@ -7,7 +7,7 @@ import (
 	"github.com/artipop/xciii/internal/vcs"
 )
 
-// The second input of the flow engine: what happens in the repository. The app
+// The second input of the flow engine: what happens in the project. The app
 // sits on a laptop, so there is nowhere for a webhook to arrive — everything is
 // polled, and only for the branches a parked card actually waits on. With no
 // card waiting, no request is made at all.
@@ -15,12 +15,12 @@ import (
 // vcsPollTimeout bounds one watcher call, so a hung network cannot stall the loop.
 const vcsPollTimeout = 60 * time.Second
 
-// SetWatchers replaces the repository watchers (tests use it to inject a fake).
+// SetWatchers replaces the project watchers (tests use it to inject a fake).
 func (m *Manager) SetWatchers(w ...vcs.Watcher) { m.watchers = w }
 
-// defaultWatchers are the ones built from the config: the local repository
+// defaultWatchers are the ones built from the config: the local project
 // always, and GitHub — which only spends a request when a route actually waits
-// for a pull request. Its token is optional: public repositories answer without
+// for a pull request. Its token is optional: public projects answer without
 // one, at a rate limit low enough that the watcher paces itself.
 func defaultWatchers(cfg Config) []vcs.Watcher {
 	return []vcs.Watcher{
@@ -54,18 +54,18 @@ func (m *Manager) PollVCS() {
 	remote := m.gitRemote()
 	for _, ft := range targets {
 		target := vcs.Target{
-			RepoPath: ft.RepoPath,
-			Branch:   ft.Branch,
-			Remote:   remote,
-			Triggers: ft.Triggers,
+			ProjectPath: ft.ProjectPath,
+			Branch:      ft.Branch,
+			Remote:      remote,
+			Triggers:    ft.Triggers,
 		}
 		for _, w := range m.watchers {
 			ctx, cancel := context.WithTimeout(m.rootCtx, vcsPollTimeout)
 			events, err := w.Poll(ctx, target)
 			cancel()
 			if err != nil {
-				m.log.Warn("acp: repository poll failed", "watcher", w.Name(),
-					"repo", ft.RepoPath, "branch", ft.Branch, "err", err)
+				m.log.Warn("acp: project poll failed", "watcher", w.Name(),
+					"project", ft.ProjectPath, "branch", ft.Branch, "err", err)
 			}
 			for _, e := range events {
 				m.deliverVCSEvent(e)
@@ -79,7 +79,7 @@ func (m *Manager) PollVCS() {
 // without this the card would move on every poll.
 func (m *Manager) deliverVCSEvent(e vcs.Event) {
 	if m.store != nil {
-		fresh, err := m.store.ClaimVCSEvent(e.RepoPath, e.Branch, e.Kind, e.Marker)
+		fresh, err := m.store.ClaimVCSEvent(e.ProjectPath, e.Branch, e.Kind, e.Marker)
 		if err != nil {
 			m.log.Error("acp: vcs dedup failed", "err", err)
 			return
@@ -88,8 +88,8 @@ func (m *Manager) deliverVCSEvent(e vcs.Event) {
 			return
 		}
 	}
-	m.log.Info("acp: repository event", "kind", e.Kind, "repo", e.RepoPath, "branch", e.Branch)
-	m.OnVCSEvent(VCSEvent{Kind: e.Kind, RepoPath: e.RepoPath, Branch: e.Branch, Detail: e.Detail})
+	m.log.Info("acp: project event", "kind", e.Kind, "project", e.ProjectPath, "branch", e.Branch)
+	m.OnVCSEvent(VCSEvent{Kind: e.Kind, ProjectPath: e.ProjectPath, Branch: e.Branch, Detail: e.Detail})
 }
 
 func (m *Manager) gitRemote() string {
