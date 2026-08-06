@@ -1,5 +1,11 @@
-// Package plugin is the protocol a source plugin speaks: JSON-RPC 2.0, one
-// message per line, over stdio.
+// Package protocol is the wire contract a source plugin speaks: JSON-RPC 2.0,
+// one message per line, over stdio.
+//
+// It is outside internal/ because it is a contract with people who do not work
+// on this repository: a plugin author has to be able to name these types. One
+// declaration serves both ends — the app's client and the SDK a plugin is
+// written against — so the two cannot drift apart, which is the failure this
+// package exists to prevent.
 //
 // The transport is the one ACP and MCP already use here, and for the same
 // practical reason — everything around it is written: procgroup spawns a
@@ -10,7 +16,7 @@
 // The shape of the contract is a protocol rather than a Go interface because a
 // plugin has to be writable in another language: an interface cannot be
 // implemented from TypeScript. See docs/sources.md, §9.
-package plugin
+package protocol
 
 import "encoding/json"
 

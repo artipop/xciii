@@ -10,6 +10,9 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/artipop/xciii/sources/protocol"
+	"github.com/artipop/xciii/sources/sdk"
 )
 
 // The plugin these tests talk to is this test binary, re-invoked. That is the
@@ -21,10 +24,50 @@ const pluginModeEnv = "XCIII_TEST_PLUGIN"
 
 func TestMain(m *testing.M) {
 	if mode := os.Getenv(pluginModeEnv); mode != "" {
+		// The modes beginning with sdk- are plugins written the way an author
+		// would write them, against the SDK. Everything else is hand-rolled,
+		// so a mistake the SDK cannot make can still be tested for.
+		if strings.HasPrefix(mode, "sdk-") {
+			runSDKPlugin(mode)
+			return
+		}
 		runTestPlugin(mode)
 		return
 	}
 	os.Exit(m.Run())
+}
+
+// runSDKPlugin is a plugin as somebody else would write one: a few lines
+// against sources/sdk. It is what the checker is run against below, so the two
+// halves of the contract meet in a test.
+func runSDKPlugin(mode string) {
+	switch mode {
+	case "sdk-good":
+		sdk.Serve(sdk.Source{
+			Capabilities: protocol.Capabilities{Poll: true, Cursor: true},
+			Poll: func(_ context.Context, req sdk.PollRequest) (sdk.PollResult, error) {
+				if req.Cursor != "" {
+					return sdk.PollResult{Cursor: req.Cursor}, nil
+				}
+				return sdk.PollResult{
+					Items:  []sdk.Item{{ExternalID: "n1", Title: "Доставка завтра"}},
+					Cursor: "c1",
+				}, nil
+			},
+		})
+	case "sdk-sloppy":
+		// The mistakes that cost items quietly: no id, no title, and a cursor
+		// promised but never returned.
+		sdk.Serve(sdk.Source{
+			Capabilities: protocol.Capabilities{Poll: true, Cursor: true},
+			Poll: func(context.Context, sdk.PollRequest) (sdk.PollResult, error) {
+				return sdk.PollResult{Items: []sdk.Item{{Title: ""}}}, nil
+			},
+		})
+	case "sdk-idle":
+		// Claims nothing, so it can never bring anything.
+		sdk.Serve(sdk.Source{})
+	}
 }
 
 // runTestPlugin is the other side of the protocol: a plugin small enough to
