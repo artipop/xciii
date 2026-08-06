@@ -29,8 +29,14 @@ business on the board about code, and vice versa — before this, opening
 *Проекты…* anywhere copied every project anybody had ever added into that
 board's «Проекты» field. One checkout worked from several boards is a real case,
 so the add form has **«На всех досках»** for it, and such a project is marked as
-everyone's in the list. Projects registered before this stay visible everywhere:
-taking one away from a board that has been using it would be the worse mistake.
+everyone's in the list.
+
+A project registered before boards owned them belongs to none of them, so no
+board offers it — that is the whole point, and "it used to be everywhere" is the
+state being fixed. It is not lost either: *Проекты…* lists such entries under
+**«Пока ни на одной доске»**, and one click makes them the board's. That click
+is also the only way back in, since adding their folder again would be refused
+as a duplicate path.
 
 Four templates are offered. «Разработка» is the one written for code, with
 the «Фича», «Хотфикс» and «Только ревью» routes across «В работе», «Деплой»

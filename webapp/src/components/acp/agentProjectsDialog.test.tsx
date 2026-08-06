@@ -57,6 +57,32 @@ describe('components/acp/agentProjectsDialog', () => {
         expect(bindings.ListAgentProjects).toHaveBeenCalledWith(board.id)
     })
 
+    // A project registered before projects belonged to a board is offered
+    // nowhere — and its folder cannot be added again, the path is taken. So it
+    // is listed apart, with the one action that puts it back into use.
+    test('offers a project no board has claimed to this one', async () => {
+        const bindings = {
+            ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+            ListUnattachedProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'legacy', path: '/tmp/legacy'}])),
+            AttachAgentProject: vi.fn().mockResolvedValue('{}'),
+            PickDirectory: vi.fn(),
+            AddAgentProject: vi.fn(),
+            RemoveAgentProject: vi.fn(),
+        }
+        anyWindow.go = {main: {App: bindings}}
+
+        render(() => wrapIntl(() =>
+            <AgentProjectsDialog
+                board={board}
+                onClose={vi.fn()}
+            />,
+        ))
+
+        expect(await screen.findByText('Not on any board yet')).toBeInTheDocument()
+        await userEvent.click(screen.getByRole('button', {name: 'Add to this board'}))
+        await waitFor(() => expect(bindings.AttachAgentProject).toHaveBeenCalledWith('legacy', board.id))
+    })
+
     // The registry is per machine, so without the board on the call every board
     // ended up offering every project anybody had ever added — including the
     // code checkout on the board about the shopping.

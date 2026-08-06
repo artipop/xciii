@@ -12,6 +12,19 @@
         padding: 8px 0;
     }
 
+    .AgentReposDialog__orphans {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    }
+
+    .AgentReposDialog__orphansTitle {
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
     .AgentReposDialog__row {
         display: flex;
         align-items: center;

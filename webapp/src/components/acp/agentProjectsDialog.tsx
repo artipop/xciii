@@ -61,6 +61,7 @@ const AgentProjectsDialog = (props: Props) => {
     const bindings = agentBindings()
 
     const [projects, setProjects] = createSignal<AgentProject[]>([])
+    const [orphans, setOrphans] = createSignal<AgentProject[]>([])
     const [pendingPath, setPendingPath] = createSignal('')
     const [pendingName, setPendingName] = createSignal('')
     const [pendingGlobal, setPendingGlobal] = createSignal(false)
@@ -150,6 +151,15 @@ const AgentProjectsDialog = (props: Props) => {
             return
         }
 
+        // Projects from before they belonged to a board: offered nowhere until
+        // somebody says whose they are, and shown here so that "somebody" has
+        // a place to say it.
+        try {
+            setOrphans(JSON.parse(await bindings.ListUnattachedProjects?.() || '[]') || [])
+        } catch {
+            setOrphans([])
+        }
+
         // The board's "Projects" field is kept in step on its own, so a project
         // this board has is selectable on a card without a second step.
         await syncToBoard(registry)
@@ -185,6 +195,19 @@ const AgentProjectsDialog = (props: Props) => {
             setPendingPath('')
             setPendingName('')
             setPendingGlobal(false)
+            await refresh()
+        } catch (e) {
+            setError(String(e))
+        }
+    }
+
+    const attach = async (name: string) => {
+        if (!bindings?.AttachAgentProject) {
+            return
+        }
+        setError('')
+        try {
+            await bindings.AttachAgentProject(name, props.board.id)
             await refresh()
         } catch (e) {
             setError(String(e))
@@ -239,6 +262,34 @@ const AgentProjectsDialog = (props: Props) => {
                         </div>
                     )}
                 </For>
+
+                {/* Projects the upgrade left without a board. Nothing offers
+                    them, and their folders cannot simply be added again — the
+                    path is taken — so this is the way back into use. */}
+                <Show when={orphans().length > 0}>
+                    <div class='AgentReposDialog__orphans'>
+                        <span class='AgentReposDialog__orphansTitle'>
+                            {intl.formatMessage({id: 'AgentProjects.unattached', defaultMessage: 'Not on any board yet'})}
+                        </span>
+                        <For each={orphans()}>
+                            {(project) => (
+                                <div class='AgentReposDialog__row'>
+                                    <span class='AgentReposDialog__name'>{project.name}</span>
+                                    <span class='AgentReposDialog__path'>{project.path}</span>
+                                    <Button
+                                        emphasis='primary'
+                                        onClick={() => attach(project.name)}
+                                    >
+                                        {intl.formatMessage({id: 'AgentProjects.attach', defaultMessage: 'Add to this board'})}
+                                    </Button>
+                                    <Button onClick={() => removeRepo(project.name)}>
+                                        {intl.formatMessage({id: 'AgentProjects.remove', defaultMessage: 'Remove'})}
+                                    </Button>
+                                </div>
+                            )}
+                        </For>
+                    </div>
+                </Show>
 
                 <Show when={pendingPath()}>
                     <div class='AgentReposDialog__row AgentReposDialog__row--pending'>

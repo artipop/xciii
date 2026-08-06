@@ -122,6 +122,33 @@ func (a *App) AddAgentProject(name, path, boardID string, global bool) (string, 
 	return string(out), nil
 }
 
+// ListUnattachedProjects returns the registry entries no board has claimed, as
+// JSON. They are what an install upgrading into board-owned projects is left
+// with, and the dialog offers them to the board somebody is on.
+func (a *App) ListUnattachedProjects() (string, error) {
+	if a.mgr == nil {
+		return "[]", nil
+	}
+	out, err := json.Marshal(a.mgr.UnattachedProjects())
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// AttachAgentProject gives an unattached project to a board.
+func (a *App) AttachAgentProject(name, boardID string) (string, error) {
+	if a.mgr == nil {
+		return "", errACPDisabled
+	}
+	entry, err := a.mgr.AttachProject(name, boardID)
+	if err != nil {
+		return "", err
+	}
+	out, _ := json.Marshal(entry)
+	return string(out), nil
+}
+
 // RemoveAgentProject deletes a project registry entry by name.
 func (a *App) RemoveAgentProject(name string) error {
 	if a.mgr == nil {

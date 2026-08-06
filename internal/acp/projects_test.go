@@ -165,10 +165,11 @@ func TestAProjectBelongsToTheBoardItWasAddedOn(t *testing.T) {
 	if _, err := m.AddProject("everywhere", shared, "board-home", true); err != nil {
 		t.Fatal(err)
 	}
-	// An entry from before projects had boards: it stays everybody's, because
-	// taking a project away from a board that has been using it is the worse of
-	// the two mistakes.
-	m.cfg.Projects = append(m.cfg.Projects, ProjectEntry{Name: "legacy", Path: t.TempDir()})
+	// An entry from before projects had boards belongs to none of them: a
+	// registry nobody scoped is exactly what made every board offer every
+	// folder, so it is offered nowhere until somebody claims it.
+	orphan := t.TempDir()
+	m.cfg.Projects = append(m.cfg.Projects, ProjectEntry{Name: "legacy", Path: orphan})
 
 	offered := func(boardID string) string {
 		names := make([]string, 0, 3)
@@ -177,11 +178,27 @@ func TestAProjectBelongsToTheBoardItWasAddedOn(t *testing.T) {
 		}
 		return strings.Join(names, ",")
 	}
-	if got := offered("board-home"); got != "notes,everywhere,legacy" {
-		t.Errorf("the home board sees %q, want its own project, the global one and the legacy one", got)
+	if got := offered("board-home"); got != "notes,everywhere" {
+		t.Errorf("the home board sees %q, want its own project and the global one", got)
+	}
+	if got := offered("board-code"); got != "everywhere" {
+		t.Errorf("the code board sees %q, want only the global one", got)
+	}
+
+	// It is not lost, though — it is listed apart, and one click on a board
+	// makes it that board's. Without this it would be invisible everywhere
+	// while its path went on refusing to be added again.
+	if unattached := m.UnattachedProjects(); len(unattached) != 1 || unattached[0].Name != "legacy" {
+		t.Fatalf("unattached %+v, want the entry no board has claimed", unattached)
+	}
+	if _, err := m.AttachProject("legacy", "board-code"); err != nil {
+		t.Fatal(err)
 	}
 	if got := offered("board-code"); got != "everywhere,legacy" {
-		t.Errorf("the code board sees %q, want only the global and the legacy one", got)
+		t.Errorf("the code board sees %q after claiming the legacy project", got)
+	}
+	if len(m.UnattachedProjects()) != 0 {
+		t.Error("a claimed project is still listed as belonging to nobody")
 	}
 
 	// And what a board cannot see, it cannot run in: a tag matching another

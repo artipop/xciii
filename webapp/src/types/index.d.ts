@@ -25,6 +25,12 @@ export interface IAppWindow extends Window {
                 ListAgentProjects(boardId: string): Promise<string>
                 PickDirectory(title: string): Promise<string>
                 AddAgentProject(name: string, path: string, boardId: string, global: boolean): Promise<string>
+
+                // Registry entries no board has claimed — what an install from
+                // before board-owned projects is left with — and the call that
+                // gives one to a board.
+                ListUnattachedProjects?(): Promise<string>
+                AttachAgentProject?(name: string, boardId: string): Promise<string>
                 RemoveAgentProject(name: string): Promise<void>
                 ListAgents(): Promise<string>
                 AddAgent(entryJSON: string): Promise<string>

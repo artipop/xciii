@@ -81,6 +81,43 @@ func (m *Manager) AddProject(name, path, boardID string, global bool) (ProjectEn
 	return entry, m.persistConfigLocked()
 }
 
+// UnattachedProjects are the entries no board has claimed: what a registry
+// written before projects belonged to a board is made of. They are offered
+// nowhere, so the dialog lists them apart — otherwise a project somebody added
+// months ago would simply vanish, with its folder still in the config and its
+// path refusing to be added again.
+func (m *Manager) UnattachedProjects() []ProjectEntry {
+	out := make([]ProjectEntry, 0, 2)
+	for _, p := range m.Projects() {
+		if !p.Attached() {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+// AttachProject gives an unattached project to a board — the way back into use
+// for an entry the upgrade left behind, and the reason adding its folder again
+// does not have to be refused.
+func (m *Manager) AttachProject(name, boardID string) (ProjectEntry, error) {
+	if strings.TrimSpace(boardID) == "" {
+		return ProjectEntry{}, fmt.Errorf("не указана доска")
+	}
+	m.cfgMu.Lock()
+	defer m.cfgMu.Unlock()
+	for i, p := range m.cfg.Projects {
+		if !strings.EqualFold(p.Name, name) {
+			continue
+		}
+		if p.Attached() {
+			return ProjectEntry{}, fmt.Errorf("проект %q уже принадлежит доске", p.Name)
+		}
+		m.cfg.Projects[i].BoardID = boardID
+		return m.cfg.Projects[i], m.persistConfigLocked()
+	}
+	return ProjectEntry{}, fmt.Errorf("проект %q не найден", name)
+}
+
 // RemoveProject deletes a registry entry by name and persists the config.
 func (m *Manager) RemoveProject(name string) error {
 	m.cfgMu.Lock()

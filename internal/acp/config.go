@@ -22,19 +22,29 @@ type ProjectEntry struct {
 	// about code, and the registry is per machine, so without this every board
 	// ends up offering every project anybody ever added.
 	//
-	// Empty means "every board": that is what entries written before this field
-	// existed are, and taking a project away from a board that has been using
-	// it would be a worse answer than showing one project too many.
+	// Empty means no board has claimed it — an entry written before projects
+	// belonged to a board. Such an entry is offered nowhere and worked in by
+	// nothing; the projects dialog lists it apart and attaches it to the board
+	// somebody is on (Attached), which is the only way back into use.
 	BoardID string `json:"boardId,omitempty"`
 	// Global says the project belongs to all of them on purpose — the same
 	// checkout worked from several boards.
 	Global bool `json:"global,omitempty"`
 }
 
-// OfferedOn reports whether this board may see the project.
+// OfferedOn reports whether this board may see the project. A board asking
+// under no name at all (the planning dialog, which has no board) sees the whole
+// registry, unattached entries included — it is choosing a folder to think in,
+// not sending an agent anywhere.
 func (p ProjectEntry) OfferedOn(boardID string) bool {
-	return p.Global || p.BoardID == "" || boardID == "" || p.BoardID == boardID
+	if boardID == "" {
+		return true
+	}
+	return p.Global || (p.BoardID != "" && p.BoardID == boardID)
 }
+
+// Attached reports whether any board has claimed the project.
+func (p ProjectEntry) Attached() bool { return p.Global || p.BoardID != "" }
 
 // AgentEntry is one named coding agent in the registry. A card is mapped to an
 // agent when one of its select option names (e.g. an "Agent" field option)
