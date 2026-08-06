@@ -38,13 +38,14 @@ type origin struct {
 	listener    net.Listener
 	board       http.Handler
 	acp         http.Handler
+	tailnet     *tailnetController
 	privatePort int
 	host        string
 }
 
 const defaultServerPort = 8080
 
-func newOrigin(board, acp http.Handler) (*origin, error) {
+func newOrigin(board, acp http.Handler, tailnet *tailnetController) (*origin, error) {
 	host := envOnce("XCIII_SERVER_HOST", "WAILS_SERVER_HOST")
 	if host == "" {
 		host = "localhost"
@@ -75,6 +76,7 @@ func newOrigin(board, acp http.Handler) (*origin, error) {
 		listener:    listener,
 		board:       board,
 		acp:         acp,
+		tailnet:     tailnet,
 		privatePort: private,
 		host:        net.JoinHostPort(host, strconv.Itoa(port)),
 	}, nil
@@ -116,6 +118,12 @@ func (o *origin) start() {
 			log.Fatalf("front door: %v", err)
 		}
 	}()
+	// The tailnet gets a front door of its own rather than this one: the guards
+	// are keyed to the authority the page is served under, and there it is a
+	// tailnet name, not the address this build was published under.
+	o.tailnet.publish(func(allowedHost string) http.Handler {
+		return newFrontDoor(wails, o.acp, o.board, allowedHost)
+	})
 }
 
 func (o *origin) url() string { return "http://" + o.host + "/" }

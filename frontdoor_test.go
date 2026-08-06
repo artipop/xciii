@@ -37,6 +37,7 @@ func TestFrontDoorSendsWailsToWailsAndTheRestToTheBoard(t *testing.T) {
 		"/wails/runtime.js":    "wails",
 		"/wails/runtime":       "wails",
 		"/acp/terminal/abc/ws": "acp",
+		"/acp/events/ws":       "acp",
 		"/":                    "board",
 		"/ws":                  "board",
 		"/api/v2/teams":        "board",
@@ -68,6 +69,25 @@ func TestFrontDoorRefusesCrossOriginRuntimeCalls(t *testing.T) {
 	for _, c := range cases {
 		if got := request(t, door, "/wails/runtime", c.headers).Code; got != c.want {
 			t.Errorf("%s: status %d, want %d", c.name, got, c.want)
+		}
+	}
+}
+
+// The tailnet door serves the same handler over TLS (tsnetdoor.go), so the
+// page's own origin is https there. Without this the phone's every binding call
+// and both sockets would be refused as somebody else's site — and the board
+// would look broken in a way nothing in the page could explain.
+func TestFrontDoorAcceptsItsOwnOriginOverTLS(t *testing.T) {
+	door := newFrontDoor(named("wails"), named("acp"), named("board"), "board.tail1234.ts.net")
+
+	for _, path := range []string{"/wails/runtime", "/acp/events/ws", "/acp/terminal/abc/ws"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		req.Host = "board.tail1234.ts.net"
+		req.Header.Set("Origin", "https://board.tail1234.ts.net")
+		rec := httptest.NewRecorder()
+		door.ServeHTTP(rec, req)
+		if rec.Code != http.StatusOK {
+			t.Errorf("%s: status %d, want 200", path, rec.Code)
 		}
 	}
 }

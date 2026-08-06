@@ -40,6 +40,9 @@ func newFrontDoor(wails, acp, board http.Handler, allowedHost string) http.Handl
 	// project, so it is guarded exactly as the runtime is — more so, if
 	// anything.
 	mux.Handle("/acp/terminal/{id}/ws", sameOrigin(acp, allowedHost))
+	// The UI event socket is guarded the same way and for the same reason: it
+	// says what the agents are doing on this machine.
+	mux.Handle("/acp/events/ws", sameOrigin(acp, allowedHost))
 	mux.Handle("/", board)
 	return hostGuard(requestLog(mux), allowedHost)
 }
@@ -67,9 +70,15 @@ func requestLog(next http.Handler) http.Handler {
 //
 // A same-origin fetch either sends no Origin header at all (a GET) or sends
 // ours; anything else is somebody else's page.
+//
+// Both schemes are ours, because the same handler is published twice: over
+// plain HTTP on loopback, where the window opens it, and over TLS on the
+// tailnet (tsnetdoor.go), where a phone does. What this guard is about is
+// *which site* is calling, and that is the host.
 func sameOrigin(next http.Handler, allowedHost string) http.Handler {
 	allowed := map[string]bool{
-		"http://" + allowedHost: true,
+		"http://" + allowedHost:  true,
+		"https://" + allowedHost: true,
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if origin := r.Header.Get("Origin"); origin != "" && !allowed[origin] {

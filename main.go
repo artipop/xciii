@@ -33,6 +33,20 @@ func acpDataDir() (string, error) {
 	return dir, nil
 }
 
+// tailnetDataDir returns where the tailnet door keeps its settings and the
+// node's own state (~/Library/Application Support/XCIII/tailnet).
+func tailnetDataDir() (string, error) {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+	dir := filepath.Join(base, "XCIII", "tailnet")
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return "", err
+	}
+	return dir, nil
+}
+
 // ignoreViteDevServer removes the variable `wails3 dev` sets to point the app at
 // a Vite dev server. This app never has one: the page is the board webapp,
 // served by the in-process board server behind the front door, in a dev build
@@ -102,17 +116,34 @@ func main() {
 	// server, which needs the port the front door is already listening on — and
 	// are given it below.
 	terminals := newTerminalRoutes()
+	// The UI event socket beside them: what the agents are doing, sent to every
+	// page rather than only to the windows this application owns.
+	uiEvents := newEventRoutes()
+	acpSockets := newACPSockets(terminals, uiEvents)
+
+	emitter := newWailsEmitter(uiEvents)
+	app := NewApp(emitter)
+
+	// The tailnet door publishes the same front door to the user's own tailnet,
+	// so a phone can reach the board. Off unless its settings file says
+	// otherwise; a bad settings file disables it rather than stopping the app,
+	// which is the same bargain the ACP config gets.
+	var tailnet *tailnetController
+	if dir, err := tailnetDataDir(); err != nil {
+		log.Printf("tailnet: disabled, no data dir: %v", err)
+	} else if tailnet, err = newTailnetController(filepath.Join(dir, "settings.json"), filepath.Join(dir, "state"), app.OpenInBrowser); err != nil {
+		log.Printf("tailnet: disabled, settings error: %v", err)
+		tailnet = nil
+	}
+	app.tailnet = tailnet
 
 	// The front door is the origin the page is served under — a loopback
 	// listener of ours in a desktop build, the published address in a server
 	// build. Its listener is bound here so the window can be pointed at it.
-	front, err := newOrigin(handler, terminals)
+	front, err := newOrigin(handler, acpSockets, tailnet)
 	if err != nil {
 		log.Fatalf("failed to open the front door: %v", err)
 	}
-
-	emitter := newWailsEmitter()
-	app := NewApp(emitter)
 
 	// Manager lifecycle: created after the server (needs srv.App()), stopped
 	// before it (agents may still post comments during the grace period).
@@ -146,6 +177,7 @@ func main() {
 		if mgr != nil {
 			mgr.Shutdown(5 * time.Second)
 		}
+		tailnet.close()
 		_ = srv.Shutdown()
 	}
 
