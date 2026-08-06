@@ -62,6 +62,7 @@ const STEP_PROJECT: SetupStepKind = 'project'
 const STEP_AGENT: SetupStepKind = 'agent'
 const STEP_DEPLOY: SetupStepKind = 'deploy'
 const STEP_BROWSER: SetupStepKind = 'browser'
+const STEP_SOURCE: SetupStepKind = 'source'
 const STEP_DONE: SetupStepKind = 'done'
 
 const BoardSetupWizard = (props: Props) => {
@@ -112,6 +113,8 @@ const BoardSetupWizard = (props: Props) => {
 
     // Step 4: what tests with.
     const [serversText, setServersText] = createSignal(BROWSER_SERVER)
+    const [sourceName, setSourceName] = createSignal('')
+    const [sourceToken, setSourceToken] = createSignal('')
     const [adapters, setAdapters] = createSignal<AdapterStatus[]>([])
 
     const refresh = async () => {
@@ -216,6 +219,18 @@ const BoardSetupWizard = (props: Props) => {
             baseDomain: deploy().baseDomain.trim(),
         }))
     }, STEP_DEPLOY)
+
+    // The token is shown here and only here: a hash is what is kept, so the
+    // moment the source is created is the only moment it can be read.
+    const addSource = () => run(async () => {
+        const created = JSON.parse(await bindings!.AddSource!(JSON.stringify({
+            name: sourceName().trim(),
+            boardId: props.board.id,
+            enabled: true,
+            noisy: true,
+        })))
+        setSourceToken(created.token || '')
+    }, STEP_SOURCE)
 
     const addBrowser = () => run(async () => {
         const agent = registry().agents[0]
@@ -366,6 +381,35 @@ const BoardSetupWizard = (props: Props) => {
                     />
                 </div>
             )
+        case STEP_SOURCE:
+            return (
+                <div class='BoardSetupWizard__step'>
+                    <p>
+                        {intl.formatMessage({
+                            id: 'BoardSetup.source-why',
+                            defaultMessage: 'A source puts cards on this board by itself — a notification from your phone, a script, a service. It is fed over HTTP at the address the board is served on, so from a phone that means the tailnet address.',
+                        })}
+                    </p>
+                    <label class='BoardSetupWizard__field'>
+                        <span>{intl.formatMessage({id: 'BoardSetup.source-name', defaultMessage: 'Name of the source'})}</span>
+                        <input
+                            type='text'
+                            placeholder={intl.formatMessage({id: 'BoardSetup.source-name-example', defaultMessage: 'phone'})}
+                            value={sourceName()}
+                            onInput={(e) => setSourceName(e.currentTarget.value)}
+                        />
+                    </label>
+                    <Show when={sourceToken()}>
+                        <p class='BoardSetupWizard__hint'>
+                            {intl.formatMessage({
+                                id: 'BoardSetup.source-token',
+                                defaultMessage: 'The token, shown once — only its hash is kept, so copy it now:',
+                            })}
+                        </p>
+                        <code>{sourceToken()}</code>
+                    </Show>
+                </div>
+            )
         default:
             return (
                 <div class='BoardSetupWizard__step'>
@@ -430,6 +474,21 @@ const BoardSetupWizard = (props: Props) => {
                     </Button>
                 </>
             )
+        case STEP_SOURCE:
+            return (
+                <>
+                    <Button
+                        emphasis='primary'
+                        disabled={busy() || !sourceName().trim()}
+                        onClick={addSource}
+                    >
+                        {intl.formatMessage({id: 'BoardSetup.save', defaultMessage: 'Save'})}
+                    </Button>
+                    <Button onClick={() => skip(STEP_SOURCE)}>
+                        {intl.formatMessage({id: 'BoardSetup.skip', defaultMessage: 'Skip'})}
+                    </Button>
+                </>
+            )
         default:
             return (
                 <Button
@@ -452,6 +511,8 @@ const BoardSetupWizard = (props: Props) => {
             return intl.formatMessage({id: 'BoardSetup.step-deploy', defaultMessage: 'Deploy'})
         case STEP_BROWSER:
             return intl.formatMessage({id: 'BoardSetup.step-browser', defaultMessage: 'Testing'})
+        case STEP_SOURCE:
+            return intl.formatMessage({id: 'BoardSetup.step-source', defaultMessage: 'Source'})
         default:
             return intl.formatMessage({id: 'BoardSetup.step-done', defaultMessage: 'Ready'})
         }

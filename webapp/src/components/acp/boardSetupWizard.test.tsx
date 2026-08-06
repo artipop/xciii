@@ -265,4 +265,37 @@ describe('components/acp/boardSetupWizard', () => {
         expect(saved.name).toBe('claude')
         expect(saved.mcpServers.playwright.command).toBe('npx')
     })
+
+    // A source is asked for only by a board that says it wants one — no
+    // arrangement of columns implies that cards should arrive by themselves —
+    // and the token it hands back is readable exactly once.
+    test('a board that asks for a source is given one, with its token', async () => {
+        const bindings = stubBindings({
+            AddSource: vi.fn().mockResolvedValue(JSON.stringify({name: 'phone', token: 'secret-token'})),
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan([
+                {kind: 'agent', status: 'done'},
+                {kind: 'source', optional: true},
+                {kind: 'done'},
+            ])),
+        })
+        renderWizard()
+
+        await waitFor(() => expect(screen.getByText(/A source puts cards on this board/)).toBeInTheDocument())
+        await userEvent.type(screen.getByPlaceholderText('phone'), 'phone')
+        userEvent.click(screen.getByRole('button', {name: 'Save'}))
+
+        await waitFor(() => expect(bindings.AddSource).toHaveBeenCalled())
+        const created = JSON.parse(bindings.AddSource.mock.calls[0][0])
+        expect(created.name).toBe('phone')
+        expect(created.boardId).toBe(testBoard.id)
+        expect(await screen.findByText('secret-token')).toBeInTheDocument()
+    })
+
+    test('a board that says nothing about sources is not asked about them', async () => {
+        stubBindings({BoardSetupPlan: vi.fn().mockResolvedValue(CHORES_PLAN)})
+        renderWizard()
+
+        await waitFor(() => expect(screen.getByText(/Папка с домашними заметками/)).toBeInTheDocument())
+        expect(screen.queryByText(/A source puts cards on this board/)).toBeNull()
+    })
 })

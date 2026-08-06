@@ -86,6 +86,54 @@ func TestABoardAsksForTheStepsItNames(t *testing.T) {
 	}
 }
 
+// A source feeds a board rather than works on it, so nothing about a board's
+// columns implies one: it is asked for only where the board asks for it. And
+// because the registry belongs to another package, whether the machine can
+// already answer arrives as a probe rather than from the config.
+func TestASourceIsAskedForOnlyByABoardThatWantsOne(t *testing.T) {
+	m := setupManager(t, boardProps(t, map[string]any{
+		BoardPropSetup: BoardSetup{Steps: []BoardSetupStep{
+			{Kind: SetupStepAgent},
+			{Kind: SetupStepSource},
+			{Kind: SetupStepDone},
+		}},
+	}))
+
+	byKind := func() map[string]SetupStep {
+		out := map[string]SetupStep{}
+		for _, s := range m.SetupPlanFor("board1").Steps {
+			out[s.Kind] = s
+		}
+		return out
+	}
+
+	step, asked := byKind()[SetupStepSource]
+	if !asked {
+		t.Fatal("the board asked for a source and was not offered one")
+	}
+	if !step.Optional {
+		t.Error("a source is optional: a board works without one")
+	}
+	if step.Ready {
+		t.Error("nothing is registered, and the plan says otherwise")
+	}
+
+	m.SetRegistryProbe("sources", func() bool { return true })
+	if !byKind()[SetupStepSource].Ready {
+		t.Error("the machine can answer it now, and the plan does not say so")
+	}
+
+	// A board that says nothing is asked what its automation implies, and no
+	// automation implies a source.
+	quiet := setupManager(t, nil)
+	quiet.cfg.Columns = []ColumnSpec{{BoardID: "board1", Property: "Status", Column: "In Progress", Action: FlowActionAgent}}
+	for _, s := range quiet.SetupPlanFor("board1").Steps {
+		if s.Kind == SetupStepSource {
+			t.Fatal("a source was inferred from columns, and nothing about them implies one")
+		}
+	}
+}
+
 // A step this build has never heard of is skipped rather than fatal: the board
 // may have been made by a newer app, and the rest of the plan still stands.
 func TestAStepThisBuildCannotDoIsLeftOut(t *testing.T) {

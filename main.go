@@ -167,6 +167,10 @@ func main() {
 	// cards from a phone are useful on a board that runs no agents at all.
 	// Anything that goes wrong here costs the sources and nothing else.
 	var sourceStore *sources.Store
+	// Whether this machine has any source at all, for the board setup wizard:
+	// its step set is closed and lives in internal/acp, which cannot import
+	// this registry, so the answer is handed over as a function below.
+	sourcesReady := func() bool { return false }
 	if dir, err := sourcesDataDir(); err != nil {
 		log.Printf("sources: disabled, no data dir: %v", err)
 	} else if cfg, err := sources.LoadConfig(filepath.Join(dir, "sources.json")); err != nil {
@@ -179,6 +183,7 @@ func main() {
 			sourceStore, boardadapter.NewWriter(srv.App()), nil)
 		ingest.SetManager(sourceMgr)
 		app.sources = sourceMgr
+		sourcesReady = func() bool { return len(sourceMgr.Sources()) > 0 }
 		log.Printf("sources: enabled (%d registered)", len(cfg.Sources))
 	}
 
@@ -199,6 +204,9 @@ func main() {
 			// Lets the UI give agents board accounts, so cards can be
 			// assigned to them in a person property.
 			mgr.SetBoardUsers(events)
+			// Lets a board that asks to be asked about sources see the
+			// question as already answered when this machine has one.
+			mgr.SetRegistryProbe("sources", sourcesReady)
 			if err := mgr.Start(context.Background(), events); err != nil {
 				log.Printf("acp: disabled, start error: %v", err)
 				mgr = nil

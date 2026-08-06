@@ -34,6 +34,7 @@ const (
 	SetupStepAgent   = "agent"   // the agent that picks a card up
 	SetupStepDeploy  = "deploy"  // a Dokku host to publish a branch to
 	SetupStepBrowser = "browser" // the MCP server a test session drives
+	SetupStepSource  = "source"  // what puts cards on the board by itself
 	SetupStepDone    = "done"    // no question: how to use what was set up
 )
 
@@ -82,6 +83,11 @@ var SetupStepDefs = []SetupStepDef{
 	{Kind: SetupStepAgent, Registry: "agents"},
 	{Kind: SetupStepDeploy, Registry: "deploys", Optional: true},
 	{Kind: SetupStepBrowser, Registry: "agentMCP", Optional: true},
+	// A source is nobody's prerequisite — it feeds the board rather than works
+	// on it — so it comes last of the questions. It is never inferred either:
+	// no arrangement of columns implies that cards should arrive by themselves,
+	// so only a board that asks for it in acpSetup is asked.
+	{Kind: SetupStepSource, Registry: "sources", Optional: true},
 	{Kind: SetupStepDone},
 }
 
@@ -368,6 +374,13 @@ func (m *Manager) setupStatus(def SetupStepDef, states map[string]string) string
 // is what this used to do. The wizard shows it as "already registered" and lets
 // the step be passed with one click; the status stays this board's own answer.
 func (m *Manager) registryFilled(registry string) bool {
+	// A registry this package does not own answers for itself. Sources are the
+	// first of them: they run with the agent integration switched off, so this
+	// package cannot import them, and asking through a function keeps the
+	// dependency pointing the way it already does.
+	if probe := m.registryProbe(registry); probe != nil {
+		return probe()
+	}
 	m.cfgMu.RLock()
 	defer m.cfgMu.RUnlock()
 	switch registry {
@@ -387,6 +400,24 @@ func (m *Manager) registryFilled(registry string) bool {
 		}
 	}
 	return false
+}
+
+// SetRegistryProbe supplies the answer to "does this registry have anything in
+// it" for a registry another package owns. Optional: without one, a step naming
+// such a registry is simply never already-answered.
+func (m *Manager) SetRegistryProbe(registry string, filled func() bool) {
+	m.cfgMu.Lock()
+	defer m.cfgMu.Unlock()
+	if m.registryProbes == nil {
+		m.registryProbes = map[string]func() bool{}
+	}
+	m.registryProbes[registry] = filled
+}
+
+func (m *Manager) registryProbe(registry string) func() bool {
+	m.cfgMu.RLock()
+	defer m.cfgMu.RUnlock()
+	return m.registryProbes[registry]
 }
 
 func (m *Manager) setupStates(boardID string) map[string]string {
