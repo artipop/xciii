@@ -22,6 +22,12 @@
         li + li::before {
             content: '→';
             margin-right: 12px;
+
+            // The arrow separates the steps, so it belongs to the line rather
+            // than to either side of it. Inheriting the current step's weight
+            // and colour made "→ Агент" read as the name of the step.
+            font-weight: 400;
+            color: rgba(var(--center-channel-color-rgb), 0.48);
         }
 
         .BoardSetupWizard__stepName--current {
