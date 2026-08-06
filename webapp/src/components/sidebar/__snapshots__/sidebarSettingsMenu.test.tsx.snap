@@ -332,6 +332,7 @@ exports[`components/sidebar/SidebarSettingsMenu > imports menu open should match
                 </div>
               </div>
             </div>
+            <div />
             <div>
               <div
                 aria-label="Random icons"
@@ -392,6 +393,7 @@ exports[`components/sidebar/SidebarSettingsMenu > imports menu open should match
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -528,6 +530,7 @@ exports[`components/sidebar/SidebarSettingsMenu > languages menu open should mat
                 </div>
               </div>
             </div>
+            <div />
             <div>
               <div
                 aria-label="Random icons"
@@ -588,6 +591,7 @@ exports[`components/sidebar/SidebarSettingsMenu > languages menu open should mat
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -609,6 +613,7 @@ exports[`components/sidebar/SidebarSettingsMenu > settings menu closed should ma
       </div>
       
     </div>
+    
   </div>
 </div>
 `;
@@ -745,6 +750,7 @@ exports[`components/sidebar/SidebarSettingsMenu > settings menu open should matc
                 </div>
               </div>
             </div>
+            <div />
             <div>
               <div
                 aria-label="Random icons"
@@ -805,6 +811,7 @@ exports[`components/sidebar/SidebarSettingsMenu > settings menu open should matc
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -941,6 +948,7 @@ exports[`components/sidebar/SidebarSettingsMenu > theme menu open should match s
                 </div>
               </div>
             </div>
+            <div />
             <div>
               <div
                 aria-label="Random icons"
@@ -1001,6 +1009,7 @@ exports[`components/sidebar/SidebarSettingsMenu > theme menu open should match s
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 `;

@@ -212,6 +212,7 @@ exports[`components/sidebarSidebar > dont show hidden boards 1`] = `
         </div>
         
       </div>
+      
     </div>
   </div>
 </div>
@@ -483,6 +484,7 @@ exports[`components/sidebarSidebar > should assign default category if current b
         </div>
         
       </div>
+      
     </div>
   </div>
 </div>
@@ -842,6 +844,7 @@ exports[`components/sidebarSidebar > shouldnt do any category assignment is boar
         </div>
         
       </div>
+      
     </div>
   </div>
 </div>
@@ -1144,6 +1147,7 @@ exports[`components/sidebarSidebar > sidebar hidden 1`] = `
         </div>
         
       </div>
+      
     </div>
   </div>
 </div>
@@ -1500,6 +1504,7 @@ exports[`components/sidebarSidebar > some categories hidden 1`] = `
         </div>
         
       </div>
+      
     </div>
   </div>
 </div>

@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {For, createSignal} from 'solid-js'
+import {For, Show, createSignal} from 'solid-js'
 
 import {FormattedMessage, useIntl} from '../../intl'
 
@@ -24,6 +24,7 @@ import {Constants} from '../../constants'
 
 import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../../telemetry/telemetryClient'
 import {agentNotificationsOn, setAgentNotifications} from '../acp/attention'
+import TailnetDialog, {isTailnetAvailable} from '../acp/tailnetDialog'
 
 type Props = {
     activeTheme: string
@@ -43,6 +44,11 @@ const SidebarSettingsMenu = (props: Props) => {
         setTheme(name)
         setThemeName(name)
     }
+
+    // Where the board is reachable from is a property of this machine, not of
+    // the board somebody happens to have open — so it lives here, with the
+    // theme and the language, rather than in a board's own menu.
+    const [showTailnet, setShowTailnet] = createSignal(false)
 
     const [randomIcons, setRandomIcons] = createSignal(UserSettings.prefillRandomIcons)
     const toggleRandomIcons = () => {
@@ -138,6 +144,13 @@ const SidebarSettingsMenu = (props: Props) => {
                             onClick={async () => setAgentNotifications(!agentNotificationsOn())}
                             suppressItemClicked={true}
                         />
+                        <Show when={isTailnetAvailable()}>
+                            <Menu.Text
+                                id='tailnet'
+                                name={intl.formatMessage({id: 'Sidebar.tailnet', defaultMessage: 'Access from a phone…'})}
+                                onClick={async () => setShowTailnet(true)}
+                            />
+                        </Show>
                         <Menu.Switch
                             id='random-icons'
                             name={intl.formatMessage({id: 'Sidebar.random-icons', defaultMessage: 'Random icons'})}
@@ -155,6 +168,9 @@ const SidebarSettingsMenu = (props: Props) => {
                     />
                 </div>
             </MenuWrapper>
+            <Show when={showTailnet()}>
+                <TailnetDialog onClose={() => setShowTailnet(false)}/>
+            </Show>
         </div>
     )
 }

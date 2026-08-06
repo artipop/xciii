@@ -27,6 +27,10 @@ type App struct {
 	origin  string
 	emitter *wailsEmitter
 	mgr     *acp.Manager // nil when the ACP integration is disabled
+	// tailnet is the door a phone comes through; nil when its settings could
+	// not be read at all. Its own methods are safe on a nil receiver, so the
+	// bindings do not each have to check.
+	tailnet *tailnetController
 }
 
 func NewApp(emitter *wailsEmitter) *App {
@@ -622,6 +626,54 @@ func (a *App) GetWorktreeMode() (string, error) {
 		return "", nil
 	}
 	return a.mgr.WorktreeMode(), nil
+}
+
+// GetTailnetAccess reports whether the board is published on the user's tailnet
+// and, when it is, the address to open on a phone. JSON:
+// {"enabled":…,"hostname":…,"status":"off|joining|login|on|error","url":…,
+//
+//	"loginUrl":…,"error":…,"path":…}.
+func (a *App) GetTailnetAccess() (string, error) {
+	out, err := json.Marshal(a.tailnet.status())
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// SetTailnetAccess turns the tailnet door on or off and renames the node,
+// returning the new state. It takes effect immediately — the node is brought up
+// or closed here, not at the next launch — which is the whole point of having a
+// switch rather than a settings file.
+//
+// Only the two fields the panel owns are read: an auth key and the list of
+// allowed logins stay whatever the file says, since the panel has no way to ask
+// for either.
+func (a *App) SetTailnetAccess(entryJSON string) (string, error) {
+	if a.tailnet == nil {
+		return "", errors.New("доступ по tailnet недоступен")
+	}
+	var want struct {
+		Enabled  bool   `json:"enabled"`
+		Hostname string `json:"hostname"`
+	}
+	if err := json.Unmarshal([]byte(entryJSON), &want); err != nil {
+		return "", err
+	}
+
+	next := a.tailnet.settingsCopy()
+	next.Enabled = want.Enabled
+	next.Hostname = strings.TrimSpace(want.Hostname)
+
+	state, err := a.tailnet.update(next)
+	if err != nil {
+		return "", err
+	}
+	out, err := json.Marshal(state)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }
 
 // GetAgentSystemPrompt returns the board/column-level system prompt.

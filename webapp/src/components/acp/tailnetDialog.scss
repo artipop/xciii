@@ -1,0 +1,101 @@
+@import '../../styles/typography';
+
+.TailnetDialog {
+    .TailnetDialog__content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 0 24px 24px;
+        min-width: 560px;
+    }
+
+    // The status is the machine reporting on itself, so it is in the machine's
+    // voice — and the only one of the five that carries a colour is the one
+    // that wants something from a person.
+    .TailnetDialog__status {
+        @include label;
+
+        &--on {
+            color: rgb(var(--success-rgb));
+        }
+
+        &--login {
+            color: rgb(var(--warning-rgb));
+        }
+
+        &--error {
+            color: rgb(var(--error-text-rgb));
+            text-transform: none;
+            letter-spacing: 0;
+        }
+    }
+
+    .TailnetDialog__field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        span {
+            @include label;
+        }
+
+        input {
+            padding: 8px 10px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            background: rgb(var(--canvas-rgb));
+            color: rgb(var(--ink-rgb));
+
+            &:disabled {
+                opacity: 0.6;
+            }
+        }
+    }
+
+    // The address is the one thing on this panel somebody has to copy by eye
+    // onto another device, so it is given room and the data voice.
+    .TailnetDialog__address {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        background: rgb(var(--surface-rgb));
+
+        code {
+            @include data;
+
+            flex: 1;
+            font-size: var(--text-body);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .TailnetDialog__addressLabel {
+        @include label;
+
+        opacity: 0.7;
+        white-space: nowrap;
+    }
+
+    .TailnetDialog__hint {
+        @include prose;
+
+        margin: 0;
+        font-size: var(--text-small);
+        opacity: 0.64;
+    }
+
+    .TailnetDialog__error {
+        color: rgb(var(--error-text-rgb));
+    }
+
+    .TailnetDialog__actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+    }
+}

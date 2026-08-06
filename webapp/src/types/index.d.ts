@@ -88,6 +88,12 @@ export interface IAppWindow extends Window {
                 ListAttention?(): Promise<string>
                 ShowTerminal?(terminalId: string): Promise<string>
                 CloseTerminal?(terminalId: string): Promise<void>
+
+                // Whether the board is published on the user's own tailnet, and
+                // the address a phone opens. The second takes effect at once —
+                // the node is brought up or closed by the call itself.
+                GetTailnetAccess?(): Promise<string>
+                SetTailnetAccess?(entryJson: string): Promise<string>
             }
         }
     }
