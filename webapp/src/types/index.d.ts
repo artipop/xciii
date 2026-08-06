@@ -72,6 +72,14 @@ export interface IAppWindow extends Window {
                 GetCardAgent?(cardId: string): Promise<string>
                 CancelSession(cardId: string): Promise<boolean>
                 ListTerminals?(): Promise<string>
+
+                // The answer an agent is waiting on: an option it offered, or
+                // words typed instead. Both empty is a refusal.
+                AnswerQuestion?(questionId: string, optionId: string, text: string): Promise<void>
+
+                // What is waiting for a person right now: the agents that have
+                // asked something and gone quiet (acp:attention keeps it current).
+                ListAttention?(): Promise<string>
                 ShowTerminal?(terminalId: string): Promise<string>
                 CloseTerminal?(terminalId: string): Promise<void>
             }

@@ -16,7 +16,10 @@ export enum UserSettingKey {
     RandomIcons = 'randomIcons',
     MobileWarningClosed = 'mobileWarningClosed',
     WelcomePageViewed = 'welcomePageViewed',
-    NameFormat = 'nameFormat'
+    NameFormat = 'nameFormat',
+
+    // Whether a card whose agent is waiting for an answer says so out loud.
+    AgentNotifications = 'agentNotifications'
 }
 
 export class UserSettings {
@@ -116,6 +119,17 @@ export class UserSettings {
             data[boardID] = viewID
         }
         UserSettings.set(UserSettingKey.LastViewId, JSON.stringify(data))
+    }
+
+    // On unless it has been turned off: an agent that has stopped to ask
+    // something is worth interrupting for, and somebody who disagrees says so
+    // once.
+    static get agentNotifications(): boolean {
+        return UserSettings.get(UserSettingKey.AgentNotifications) !== 'false'
+    }
+
+    static set agentNotifications(newValue: boolean) {
+        UserSettings.set(UserSettingKey.AgentNotifications, JSON.stringify(newValue))
     }
 
     static get prefillRandomIcons(): boolean {

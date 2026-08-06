@@ -30,6 +30,50 @@
         }
     }
 
+    // The same amber the board's dot uses: one wait, said twice in one language.
+    &__waiting {
+        font-size: 12px;
+        padding: 1px 8px;
+        border-radius: 10px;
+        background: rgba(var(--warning-rgb), 0.2);
+    }
+
+    &__question {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 8px 10px;
+        border-radius: 4px;
+        border-left: 3px solid rgb(var(--warning-rgb));
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+
+    &__questionText {
+        white-space: pre-wrap;
+    }
+
+    &__questionOptions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    &__questionFree {
+        display: flex;
+        gap: 8px;
+
+        input {
+            flex: 1 1 auto;
+            min-width: 0;
+            font: inherit;
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            background: transparent;
+            color: inherit;
+        }
+    }
+
     &__actions {
         display: flex;
         gap: 8px;

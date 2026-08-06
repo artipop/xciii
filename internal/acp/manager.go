@@ -39,12 +39,21 @@ type Manager struct {
 	// lock but nothing else with sessions: a terminal is a person working, not
 	// an agent being driven (terminal.go).
 	terminals map[string]*TerminalSession // terminal ID → terminal session
+	// terminalQuiet overrides how long a CLI must be silent before it counts as
+	// waiting for a person (terminalQuietFor). Only a test sets it: the real
+	// threshold is a human one and would make the suite wait it out.
+	terminalQuiet time.Duration
+
 
 	seededMu sync.Mutex
 	seeded   map[string]bool // boards whose own settings have been imported
 
-	permMu sync.Mutex
-	perms  map[string]pendingPermission // request ID → prompt awaiting a human
+	// questions are what agents are waiting to hear back on: one entry per open
+	// question, keyed by its id (question.go). Its own lock — a question is
+	// registered from an agent's inbound request and answered from the UI, and
+	// neither should queue behind whatever holds mu.
+	questionsMu sync.Mutex
+	questions   map[string]*pendingQuestion
 
 	// What an agent says it can be configured with, keyed by how it is
 	// launched. Asking costs an agent startup, and the dialog asks whenever a
@@ -58,12 +67,6 @@ type Manager struct {
 	rootCtx context.Context
 	stop    context.CancelFunc
 	wg      sync.WaitGroup
-}
-
-// pendingPermission is one permission prompt waiting for a human decision.
-type pendingPermission struct {
-	sessionID string
-	answer    chan string // receives the chosen option id
 }
 
 // SetBoardReader supplies on-demand card reads, which the "open a console on
@@ -99,7 +102,6 @@ func NewManager(cfg Config, cfgPath string, st *Store, w BoardWriter, ui UIEmitt
 		watchers: defaultWatchers(cfg),
 		active:   make(map[string]*Session),
 		byCard:   make(map[string]*Session),
-		perms:    make(map[string]pendingPermission),
 		sem:      make(chan struct{}, maxConc),
 	}
 }
@@ -463,24 +465,6 @@ func (m *Manager) session(sessionID string) *Session {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	return m.active[sessionID]
-}
-
-// ---- permission prompts ----
-
-// registerPermission opens a slot for a human decision and returns the channel
-// the answer arrives on.
-func (m *Manager) registerPermission(requestID, sessionID string) chan string {
-	ch := make(chan string, 1)
-	m.permMu.Lock()
-	m.perms[requestID] = pendingPermission{sessionID: sessionID, answer: ch}
-	m.permMu.Unlock()
-	return ch
-}
-
-func (m *Manager) forgetPermission(requestID string) {
-	m.permMu.Lock()
-	delete(m.perms, requestID)
-	m.permMu.Unlock()
 }
 
 // CardSessions returns persisted sessions and events for a card (UI hydration).

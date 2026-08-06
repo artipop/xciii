@@ -77,12 +77,14 @@ func (c *sessionClient) flushLocked() {
 var _ acpsdk.Client = (*sessionClient)(nil)
 
 // RequestPermission applies the auto-allow list and the session's accumulated
-// "always allow" set. Anything else goes to the user when a console is
-// watching, and is rejected outright when nobody is there to answer.
+// "always allow" set, and asks the person about anything else. This is the
+// protocol's own way of wanting a human, and answering it for them — which is
+// what refusing it is — leaves an agent that cannot do its job and a card that
+// does not say why.
 //
 // Blocking here is safe: the SDK dispatches every inbound request on its own
-// goroutine, so the agent's session/update stream keeps flowing while the
-// prompt is on screen.
+// goroutine, so the agent's session/update stream keeps flowing while the card
+// waits, and the turn is still open when the answer arrives.
 func (c *sessionClient) RequestPermission(ctx context.Context, params acpsdk.RequestPermissionRequest) (acpsdk.RequestPermissionResponse, error) {
 	toolName := c.permissionToolName(params)
 	title := ""
@@ -99,17 +101,75 @@ func (c *sessionClient) RequestPermission(ctx context.Context, params acpsdk.Req
 		c.recordDecision(toolName, title, "allow", true)
 		return selectOption(params, acpsdk.PermissionOptionKindAllowOnce)
 	}
-	// Nobody is watching an automated session — that is what it is — so a tool
-	// the policy does not cover is refused rather than left hanging. The way to
-	// let it through is the policy; the way to work with an agent that has to
-	// ask is a terminal window, where it asks in its own UI.
-	c.recordDecision(toolName, title, "reject", true)
-	c.m.log.Info("acp: permission rejected — not on the allow list",
-		"session", c.s.ID, "card", c.s.CardID, "tool", toolName,
-		// The name to add is the one printed above: an agent that sends no
-		// tool name leaves the prompt's own text as its only identity.
-		"hint", fmt.Sprintf("add %q to autoAllowTools, or open a terminal on the card", toolName))
-	return selectOption(params, acpsdk.PermissionOptionKindRejectOnce)
+	answer := c.m.ask(ctx, c.s, Question{
+		Kind:    QuestionPermission,
+		Text:    permissionText(toolName, title),
+		Tool:    toolName,
+		Options: permissionOptions(params),
+	})
+
+	chosen := permissionOption(params, answer.OptionID)
+	if answer.Declined || chosen == nil {
+		// Nobody answered — the app is closing, the turn was cancelled, or the
+		// person said no. The policy is still the way to stop being asked.
+		c.recordDecision(toolName, title, "reject", answer.Declined)
+		c.m.log.Info("acp: permission not granted",
+			"session", c.s.ID, "card", c.s.CardID, "tool", toolName,
+			"hint", fmt.Sprintf("add %q to autoAllowTools to stop being asked", toolName))
+		return selectOption(params, acpsdk.PermissionOptionKindRejectOnce)
+	}
+	// "Always" is what makes answering once enough: the rest of this session's
+	// calls to the same tool go through without asking again.
+	if chosen.Kind == string(acpsdk.PermissionOptionKindAllowAlways) {
+		c.s.allowToolAlways(toolName)
+	}
+	decision := "reject"
+	if strings.HasPrefix(chosen.Kind, "allow") {
+		decision = "allow"
+	}
+	c.recordDecision(toolName, title, decision, false)
+	return acpsdk.RequestPermissionResponse{Outcome: acpsdk.RequestPermissionOutcome{
+		Selected: &acpsdk.RequestPermissionOutcomeSelected{OptionId: acpsdk.PermissionOptionId(chosen.ID)},
+	}}, nil
+}
+
+// permissionText is the question as a person reads it: what the agent is about
+// to do, in the agent's own words where it gave any.
+func permissionText(toolName, title string) string {
+	switch {
+	case title != "" && toolName != "":
+		return fmt.Sprintf("Разрешить %s: %s?", toolName, title)
+	case title != "":
+		return fmt.Sprintf("Разрешить: %s?", title)
+	case toolName != "":
+		return fmt.Sprintf("Разрешить %s?", toolName)
+	}
+	return "Разрешить действие агента?"
+}
+
+// permissionOptions turns the agent's options into the card's buttons. The
+// labels are the agent's own — it knows what it is asking better than we do.
+func permissionOptions(params acpsdk.RequestPermissionRequest) []QuestionOption {
+	out := make([]QuestionOption, 0, len(params.Options))
+	for _, opt := range params.Options {
+		out = append(out, QuestionOption{
+			ID:    string(opt.OptionId),
+			Label: opt.Name,
+			Kind:  string(opt.Kind),
+		})
+	}
+	return out
+}
+
+// permissionOption finds the option the person chose.
+func permissionOption(params acpsdk.RequestPermissionRequest, optionID string) *QuestionOption {
+	for _, opt := range params.Options {
+		if string(opt.OptionId) == optionID {
+			chosen := QuestionOption{ID: optionID, Label: opt.Name, Kind: string(opt.Kind)}
+			return &chosen
+		}
+	}
+	return nil
 }
 
 // recordDecision persists and broadcasts how a permission ended up. byPolicy

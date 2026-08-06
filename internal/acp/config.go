@@ -677,14 +677,14 @@ func DefaultConfig(dataDir string) Config {
 		ShowThoughts:             true,
 		PermissionTimeoutMinutes: 5,
 		IdempotencyWindowSeconds: 10,
-		// Bash is on the list because a coding agent cannot do its job without a
-		// shell (tests, git, build), and a session with no console open has
-		// nobody to ask — every prompt would simply be rejected. Edit/Write are
-		// already allowed, so withholding the shell bought little in practice.
-		// The dokku tools are on the list for the same reason: a deploy started
-		// by a card move usually has no console watching, and asking nobody
-		// means rejecting. destroy_deployment is deliberately absent — deleting
-		// an environment is always worth a human answer.
+		// This list is what an agent is *not* asked about, and everything on it
+		// is here because being asked would be noise: reading and editing code,
+		// and the shell a coding agent cannot work without (tests, git, build)
+		// — withholding it while Edit and Write are allowed buys nothing but
+		// interruptions. The dokku tools are the same judgement for a deploy.
+		// destroy_deployment is deliberately absent: deleting an environment is
+		// always worth a human answer, and since a session now waits for one
+		// (question.go) that answer is a person's rather than a rejection.
 		AutoAllowTools: []string{
 			"Read", "Grep", "Glob", "Edit", "Write", "MultiEdit", "NotebookEdit", "TodoWrite", "Bash", "Skill",
 			"mcp__dokku__deploy_branch", "mcp__dokku__app_logs",

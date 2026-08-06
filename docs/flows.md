@@ -196,13 +196,26 @@ agent that gains a setting shows it after *Recheck* without an update here.
 
 ### When the agent asks you something
 
-An agent that needs a decision — which database, which of two approaches — asks it as a small
-form in the session console: the question, the options with their explanations, and a free-text
-box if none of them fits. Answer it and the turn carries on.
+An agent that needs a decision — which database, which of two approaches, may it run a command it
+was not given — asks, and waits: the question, the options with their explanations, and a box for
+an answer in your own words if none of them fits. Answer it and the turn carries on from where it
+stopped.
 
-It only asks when somebody is watching. A card-triggered session with no console open has nobody
-to answer, so the question is declined immediately and the card records what was asked, rather
-than the agent waiting out the prompt timeout. Open the card's console if you want to be asked.
+You do not have to be watching for it to reach you. The card grows a small amber dot on the
+board, and the question itself arrives as a notification with its options on it — answer there,
+or open the card and answer on it, whichever you happen to be looking at. Both are the same
+question, and answering either one lets the agent go on.
+
+Two things are worth knowing about the wait:
+
+- only the thing that asked is waiting. The agent keeps working on everything else, and the card
+  stays in its column, marked as waiting for you rather than done;
+- nothing is decided for you by a timer. A question with no answer is answered when the session
+  is cancelled or the app is closed, and "no answer" reaches the agent as a refusal — it then
+  finishes without whatever it asked for, and the card's comments say what that was.
+
+If a particular tool should never be asked about, put it in the column's allow list instead — the
+agent stops asking and stops waiting.
 
 ### What the protocol has no word for
 

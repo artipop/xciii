@@ -239,4 +239,61 @@ describe('src/components/kanban/kanbanCard', () => {
         userEvent.click(elementButtonCopyLink)
         expect(mockedUtils.copyTextToClipboard).toHaveBeenCalledTimes(1)
     })
+
+    // An agent that stopped to ask something did it in a terminal window
+    // nobody is looking at. The board is where that has to be visible, and it
+    // is visible on the card the agent is working — not on the board as a whole.
+    test('shows that the card agent is waiting for a person', async () => {
+        const anyWindow = window as any
+        anyWindow.go = {main: {App: {ListAttention: vi.fn().mockResolvedValue(JSON.stringify([
+            {terminalId: 'term-1', cardId: card.id, agent: 'clauuus', awaiting: true},
+        ]))}}}
+
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <KanbanCard
+                    card={card}
+                    board={board}
+                    visiblePropertyTemplates={[propertyTemplate]}
+                    visibleBadges={false}
+                    isSelected={false}
+                    readonly={false}
+                    onDrop={vi.fn()}
+                    showCard={vi.fn()}
+                    isManualSort={false}
+                    index={0}
+                    groupId='group-1'
+                />
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
+
+        expect(await screen.findByTitle('clauuus is waiting for your answer')).toBeInTheDocument()
+        delete anyWindow.go
+    })
+
+    test('says nothing on a card no agent is waiting on', async () => {
+        const anyWindow = window as any
+        anyWindow.go = {main: {App: {ListAttention: vi.fn().mockResolvedValue('[]')}}}
+
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <KanbanCard
+                    card={card}
+                    board={board}
+                    visiblePropertyTemplates={[propertyTemplate]}
+                    visibleBadges={false}
+                    isSelected={false}
+                    readonly={false}
+                    onDrop={vi.fn()}
+                    showCard={vi.fn()}
+                    isManualSort={false}
+                    index={0}
+                    groupId='group-1'
+                />
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
+
+        expect(screen.queryByRole('status')).toBeNull()
+        delete anyWindow.go
+    })
 })

@@ -1284,6 +1284,7 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
             <div
               class="octo-icontitle"
             >
+              
               <div
                 class="octo-icon"
               >
@@ -1320,6 +1321,7 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
             <div
               class="octo-icontitle"
             >
+              
               <div
                 class="octo-icon"
               >
@@ -9691,6 +9693,7 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
             <div
               class="octo-icontitle"
             >
+              
               <div
                 class="octo-icon"
               >
@@ -10266,6 +10269,7 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
             <div
               class="octo-icontitle"
             >
+              
               <div
                 class="octo-icon"
               >

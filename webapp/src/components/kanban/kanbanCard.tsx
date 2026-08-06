@@ -18,6 +18,7 @@ import './kanbanCard.scss'
 import CardBadges from '../cardBadges'
 import CardActionsMenu from '../cardActionsMenu/cardActionsMenu'
 import CardActionsMenuIcon from '../cardActionsMenu/cardActionsMenuIcon'
+import {attentionHeading, useCardAttention} from '../acp/attention'
 
 export const OnboardingCardClassName = 'onboardingCard'
 
@@ -50,6 +51,12 @@ const KanbanCard = (props: Props) => {
         () => ({id: props.card.id, index: props.index, group: props.groupId}),
     )
     const visiblePropertyTemplates = () => props.visiblePropertyTemplates || []
+
+    // An agent that has stopped to ask something is the one thing about a card
+    // that a person has to notice without opening it — the terminal it asked in
+    // is a window nobody is looking at.
+    const attention = useCardAttention(() => props.card.id)
+    const attentionTitle = () => attentionHeading(intl, attention()!)
     const classes = () => {
         let name = props.isSelected ? 'KanbanCard selected' : 'KanbanCard'
         if (props.isManualSort && isOver()) {
@@ -137,6 +144,14 @@ const KanbanCard = (props: Props) => {
                 </Show>
 
                 <div class='octo-icontitle'>
+                    <Show when={attention()}>
+                        <span
+                            class='KanbanCard__attention'
+                            role='status'
+                            title={attentionTitle()}
+                            aria-label={attentionTitle()}
+                        />
+                    </Show>
                     <Show when={props.card.fields.icon}>
                         <div class='octo-icon'>{props.card.fields.icon}</div>
                     </Show>

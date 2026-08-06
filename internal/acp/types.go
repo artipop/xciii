@@ -121,4 +121,8 @@ const (
 	// EventTerminal says a terminal session (an agent CLI in a window) started
 	// or ended, so a card can offer to open or to resume it.
 	EventTerminal = "acp:terminal"
+	// EventAttention says an agent stopped and is waiting for a person — the
+	// one state a card cannot infer from anything it already has, because it
+	// happens inside a terminal nobody may be looking at.
+	EventAttention = "acp:attention"
 )

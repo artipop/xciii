@@ -178,6 +178,7 @@ exports[`src/component/kanban/kanban > return kanban and change title on KanbanC
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >
@@ -213,6 +214,7 @@ exports[`src/component/kanban/kanban > return kanban and change title on KanbanC
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >
@@ -261,6 +263,7 @@ exports[`src/component/kanban/kanban > return kanban and change title on KanbanC
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >
@@ -670,6 +673,7 @@ exports[`src/component/kanban/kanban > return kanban and click on KanbanCalculat
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >
@@ -705,6 +709,7 @@ exports[`src/component/kanban/kanban > return kanban and click on KanbanCalculat
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >
@@ -753,6 +758,7 @@ exports[`src/component/kanban/kanban > return kanban and click on KanbanCalculat
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >
@@ -984,6 +990,7 @@ exports[`src/component/kanban/kanban > should match snapshot 1`] = `
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >
@@ -1019,6 +1026,7 @@ exports[`src/component/kanban/kanban > should match snapshot 1`] = `
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >
@@ -1067,6 +1075,7 @@ exports[`src/component/kanban/kanban > should match snapshot 1`] = `
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >
@@ -1248,6 +1257,7 @@ exports[`src/component/kanban/kanban > should match snapshot without permissions
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >
@@ -1283,6 +1293,7 @@ exports[`src/component/kanban/kanban > should match snapshot without permissions
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >
@@ -1322,6 +1333,7 @@ exports[`src/component/kanban/kanban > should match snapshot without permissions
           <div
             class="octo-icontitle"
           >
+            
             <div
               class="octo-icon"
             >

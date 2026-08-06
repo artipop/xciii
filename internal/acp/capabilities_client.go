@@ -7,14 +7,14 @@ import acpsdk "github.com/coder/acp-go-sdk"
 
 // clientCapabilities is what we tell an agent this client can do.
 //
-// It no longer claims elicitation. An agent asks a question through it, and
-// there is nobody here to answer: the automation runs unattended, and a person
-// who wants to be asked opens a terminal, where the agent asks in its own UI.
-// The claude adapter reads this exactly that way — with no form capability it
-// passes --disallowedTools AskUserQuestion to the CLI, so the agent states its
-// question in the answer instead of waiting for a dialog that will never open.
+// Form elicitation is claimed, and the claude adapter reads that as permission
+// to leave AskUserQuestion enabled: an agent that needs a decision asks for it,
+// and the question lands on the card it is working (question.go). URL mode is
+// not claimed — it sends a person to a browser to finish something there, and a
+// board that is itself where the work happens has nowhere to put that.
 func clientCapabilities() acpsdk.ClientCapabilities {
 	return acpsdk.ClientCapabilities{
-		Fs: acpsdk.FileSystemCapabilities{ReadTextFile: true, WriteTextFile: true},
+		Fs:          acpsdk.FileSystemCapabilities{ReadTextFile: true, WriteTextFile: true},
+		Elicitation: &acpsdk.ElicitationCapabilities{Form: &acpsdk.ElicitationFormCapabilities{}},
 	}
 }

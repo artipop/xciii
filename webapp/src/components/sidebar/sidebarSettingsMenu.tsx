@@ -23,6 +23,7 @@ import CheckIcon from '../../widgets/icons/check'
 import {Constants} from '../../constants'
 
 import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../../telemetry/telemetryClient'
+import {agentNotificationsOn, setAgentNotifications} from '../acp/attention'
 
 type Props = {
     activeTheme: string
@@ -128,6 +129,15 @@ const SidebarSettingsMenu = (props: Props) => {
                                 )}
                             </For>
                         </Menu.SubMenu>
+                        {/* The card's own indicator is not a setting — it is
+                            part of the card. This is only about interrupting. */}
+                        <Menu.Switch
+                            id='agent-notifications'
+                            name={intl.formatMessage({id: 'Sidebar.agent-notifications', defaultMessage: 'Notify me when an agent is waiting'})}
+                            isOn={agentNotificationsOn()}
+                            onClick={async () => setAgentNotifications(!agentNotificationsOn())}
+                            suppressItemClicked={true}
+                        />
                         <Menu.Switch
                             id='random-icons'
                             name={intl.formatMessage({id: 'Sidebar.random-icons', defaultMessage: 'Random icons'})}

@@ -133,17 +133,33 @@ in `eslint.config.mjs` fails the lint, which is cheaper than finding a React
 component rendered from Solid at runtime — which is exactly how that guard
 earned its place.
 
-### A session is one turn, and nobody watches it
+### A session works on its own, and asks when it has to
 
 `internal/acp` is the agent integration, and it is board-agnostic: `internal/
 boardadapter` is the only package importing both it and the board server.
 
 A session runs the task a card asked for, comments the result and ends. There is no
-console: what a person wants to say goes to the terminal instead (below). Two
-consequences to keep in mind when reading the code — a tool outside `autoAllowTools`
-is **refused rather than asked about**, and `clientCapabilities` does not claim
-elicitation, so the claude adapter passes `--disallowedTools AskUserQuestion` and an
-agent that needs a decision states it in its answer.
+console — what a person wants to *say* goes to the terminal instead (below) — but an
+agent that needs something from a person gets it through the protocol, which is the
+only place it can be asked for without a hack around stdio.
+
+Both of ACP's ways of asking land in `question.go`: a tool outside `autoAllowTools`
+comes as `session/request_permission`, and a decision comes as a form elicitation
+(the claude CLI's own AskUserQuestion, which stays enabled because
+`clientCapabilities` claims form elicitation). Either one **blocks only the request
+that asked** — the SDK gives every inbound request its own goroutine, so the agent
+keeps streaming and the turn is still open when the answer arrives. The session
+reports `waiting_permission` meanwhile, and an unanswered question does not stall
+for ever: cancelling the session, or the app closing, is a refusal, and the agent
+carries on without what it asked for.
+
+The question shows up as `acp:attention` with reason `question` — the amber dot on
+the card's face, and, unless turned off in the settings menu, a notification
+carrying the question itself, since the options *are* the answer and there is
+nothing to navigate to. It is answered in either place through `AnswerQuestion`, and
+the card keeps the exchange in its comments like everything else a session does. The
+other reason is `quiet`, from a terminal, below; `components/acp/attention.ts` is
+the one subscription behind both.
 
 The automation around sessions is untouched by that: columns say what happens when a
 card lands in them, flows join columns into routes, deploys publish a branch to
@@ -168,6 +184,14 @@ The card still hears about it: a comment when the terminal opens, and one when t
 CLI exits saying what it left on the branch. Terminals outlive their window and
 resume — every one is recorded, so the next terminal on that card returns to the
 same worktree with `claude --continue`.
+
+A window nobody is looking at is also where an agent asks its questions, so
+**silence is read as a question**: a CLI that has printed nothing for
+`terminalQuietFor` is waiting for a person, and typing ends the wait. That
+heuristic holds only because a working agent prints continuously — spinner, tool
+output, tokens — and it is used *only here*, where there is no protocol to ask
+through (an ACP agent has no TUI, which is the whole reason a terminal is not a
+session).
 
 ## Conventions
 

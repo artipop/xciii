@@ -60,6 +60,38 @@
         }
     }
 
+    // An agent waiting for an answer, said as quietly as it can be said: a dot
+    // the size of a full stop, breathing slowly enough to catch the eye only
+    // when the eye passes over it.
+    .KanbanCard__attention {
+        flex: 0 0 auto;
+        align-self: flex-start;
+        width: 8px;
+        height: 8px;
+        margin: 6px 6px 0 0;
+        border-radius: 50%;
+        // The amber the design language keeps for exactly this.
+        background: rgb(var(--warning-rgb));
+        animation: kanbancard-attention 2.4s ease-in-out infinite;
+    }
+
+    @keyframes kanbancard-attention {
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.35;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .KanbanCard__attention {
+            animation: none;
+        }
+    }
+
     .octo-icontitle {
         flex: 1 1 auto;
         font-weight: 600;

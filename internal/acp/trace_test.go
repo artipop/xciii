@@ -103,20 +103,23 @@ func TestTraceRecordsBothDirections(t *testing.T) {
 	}
 }
 
-// A tool the policy does not cover is refused, and the trace has to show both
-// halves of that: the agent asking, and the refusal going back.
-func TestTraceRecordsARefusedPermission(t *testing.T) {
+// A tool the policy does not cover is put to the person, and the trace has to
+// show both halves of that: the agent asking, and the answer going back.
+func TestTraceRecordsAPermissionQuestion(t *testing.T) {
 	m, _, _, _, _ := testManagerWithEmitter(t, fakeClaudeAsksPermission, func(c *Config) {
 		c.DebugLog = true
 	})
 	path := m.tr.Path()
 
 	s := liveSession(t, m, "cardTraceQ")
+	waitFor(t, 15*time.Second, "the agent to ask", func() bool { return len(m.Questions()) == 1 })
+	if err := m.AnswerQuestion(m.Questions()[0].ID, Answer{Declined: true}); err != nil {
+		t.Fatal(err)
+	}
 	waitStatus(t, s, StatusDone)
 
 	recs := traceLines(t, path)
 	if !hasTrace(recs, TraceFromCLI, "session/request_permission") {
 		t.Error("the agent's request should be on the wire in the trace")
 	}
-	_ = s
 }

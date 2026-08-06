@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"sync"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -718,6 +719,11 @@ func (a *App) GetCardAgent(cardID string) (string, error) {
 		"resume":  a.mgr.TerminalHistoryForCard(cardID),
 		"session": session,
 	}
+	// An agent waiting on an answer is the one thing on a card that is
+	// addressed to the person reading it.
+	if q := a.mgr.QuestionForCard(cardID); q != nil {
+		payload["question"] = q
+	}
 	if live := a.mgr.TerminalForCard(cardID); live != nil {
 		payload["running"] = live.Info()
 	}
@@ -736,6 +742,34 @@ func (a *App) ListTerminals() (string, error) {
 		return "[]", nil
 	}
 	out, err := json.Marshal(a.mgr.LiveTerminals())
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// AnswerQuestion hands an agent the answer it is waiting for: an option it
+// offered, or text typed instead. Both empty means no — the agent hears a
+// refusal and carries on without what it asked for.
+func (a *App) AnswerQuestion(questionID, optionID, text string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	ans := acp.Answer{OptionID: optionID, Text: text}
+	if optionID == "" && strings.TrimSpace(text) == "" {
+		ans.Declined = true
+	}
+	return a.mgr.AnswerQuestion(questionID, ans)
+}
+
+// ListAttention returns everything waiting for a person as JSON: the terminals
+// whose agent has gone quiet, oldest wait first. The page keeps itself current
+// from acp:attention events; this is what a page that opened later starts from.
+func (a *App) ListAttention() (string, error) {
+	if a.mgr == nil {
+		return "[]", nil
+	}
+	out, err := json.Marshal(a.mgr.Attention())
 	if err != nil {
 		return "", err
 	}

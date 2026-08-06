@@ -311,6 +311,29 @@ exports[`components/sidebar/SidebarSettingsMenu > imports menu open should match
             </div>
             <div>
               <div
+                aria-label="Notify me when an agent is waiting"
+                class="MenuOption SwitchOption menu-option"
+                role="button"
+              >
+                <div
+                  class="noicon"
+                />
+                <div
+                  class="menu-name"
+                >
+                  Notify me when an agent is waiting
+                </div>
+                <div
+                  class="Switch override-main size--small on"
+                >
+                  <div
+                    class="octo-switch-inner"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
                 aria-label="Random icons"
                 class="MenuOption SwitchOption menu-option"
                 role="button"
@@ -480,6 +503,29 @@ exports[`components/sidebar/SidebarSettingsMenu > languages menu open should mat
                   class="CompassIcon icon-chevron-right"
                 />
                 
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="Notify me when an agent is waiting"
+                class="MenuOption SwitchOption menu-option"
+                role="button"
+              >
+                <div
+                  class="noicon"
+                />
+                <div
+                  class="menu-name"
+                >
+                  Notify me when an agent is waiting
+                </div>
+                <div
+                  class="Switch override-main size--small on"
+                >
+                  <div
+                    class="octo-switch-inner"
+                  />
+                </div>
               </div>
             </div>
             <div>
@@ -678,6 +724,29 @@ exports[`components/sidebar/SidebarSettingsMenu > settings menu open should matc
             </div>
             <div>
               <div
+                aria-label="Notify me when an agent is waiting"
+                class="MenuOption SwitchOption menu-option"
+                role="button"
+              >
+                <div
+                  class="noicon"
+                />
+                <div
+                  class="menu-name"
+                >
+                  Notify me when an agent is waiting
+                </div>
+                <div
+                  class="Switch override-main size--small on"
+                >
+                  <div
+                    class="octo-switch-inner"
+                  />
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
                 aria-label="Random icons"
                 class="MenuOption SwitchOption menu-option"
                 role="button"
@@ -847,6 +916,29 @@ exports[`components/sidebar/SidebarSettingsMenu > theme menu open should match s
                   class="CompassIcon icon-chevron-right"
                 />
                 
+              </div>
+            </div>
+            <div>
+              <div
+                aria-label="Notify me when an agent is waiting"
+                class="MenuOption SwitchOption menu-option"
+                role="button"
+              >
+                <div
+                  class="noicon"
+                />
+                <div
+                  class="menu-name"
+                >
+                  Notify me when an agent is waiting
+                </div>
+                <div
+                  class="Switch override-main size--small on"
+                >
+                  <div
+                    class="octo-switch-inner"
+                  />
+                </div>
               </div>
             </div>
             <div>

@@ -39,6 +39,18 @@ import (
 // enough that an agent printing a build log cannot grow it without bound.
 const terminalScrollback = 256 * 1024
 
+// terminalQuietFor is how long a CLI has to print nothing before we say it is
+// waiting for the person.
+//
+// There is nothing better to go on: what runs in the pty is a TUI, not a
+// protocol, so what it wants is only ever visible on the screen. But the shape
+// of the output says it anyway — an agent that is working prints continuously
+// (a spinner, tool output, tokens as they arrive), and an agent that has asked
+// something and stopped prints nothing at all until a key is pressed. Five
+// seconds is longer than any gap between spinner frames and shorter than the
+// patience of somebody waiting to be asked.
+const terminalQuietFor = 5 * time.Second
+
 // TerminalSession is one CLI in one pty.
 type TerminalSession struct {
 	ID          string
@@ -66,6 +78,14 @@ type TerminalSession struct {
 	subs    map[int]chan []byte
 	nextSub int
 	closed  bool
+	// The three fields the "waiting for a person" signal is made of: when the
+	// pty last moved in either direction, whether the CLI has ever printed
+	// anything (a process that has not started drawing yet is not waiting), and
+	// since when we have been saying it waits.
+	lastActivity  time.Time
+	spoke         bool
+	awaitingSince time.Time
+	quietFor      time.Duration
 
 	done     chan struct{}
 	exitCode int
@@ -86,6 +106,10 @@ type TerminalInfo struct {
 	Running   bool   `json:"running"`
 	ExitCode  int    `json:"exitCode"`
 	StartedAt string `json:"startedAt"`
+	// Awaiting says the CLI has gone quiet and the person it is waiting for is
+	// the only thing that will move it.
+	Awaiting      bool   `json:"awaiting"`
+	AwaitingSince string `json:"awaitingSince,omitempty"`
 }
 
 // Info describes the session for the window that draws it.
@@ -110,7 +134,66 @@ func (t *TerminalSession) Info() TerminalInfo {
 	default:
 		info.Running = true
 	}
+	if info.Running && !t.awaitingSince.IsZero() {
+		info.Awaiting = true
+		info.AwaitingSince = t.awaitingSince.Format(time.RFC3339)
+	}
 	return info
+}
+
+// Awaiting reports whether the CLI is currently waiting for the person.
+func (t *TerminalSession) Awaiting() bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return !t.awaitingSince.IsZero()
+}
+
+// noteActivity records that the pty moved and answers whether that ended a wait
+// — the caller emits, because it must not do so holding the lock.
+func (t *TerminalSession) noteActivity(spoke bool) (ended bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.lastActivity = time.Now()
+	t.spoke = t.spoke || spoke
+	if t.awaitingSince.IsZero() {
+		return false
+	}
+	t.awaitingSince = time.Time{}
+	return true
+}
+
+// watchAttention turns silence into the one thing a card can say about a
+// terminal without a person looking at it: this one is waiting for you.
+func (t *TerminalSession) watchAttention() {
+	quiet := t.quietFor
+	if quiet <= 0 {
+		quiet = terminalQuietFor
+	}
+	// A tick finer than the threshold, so "waiting since" is close to when the
+	// CLI actually stopped rather than up to a whole threshold late.
+	tick := time.NewTicker(quiet / 4)
+	defer tick.Stop()
+	for {
+		select {
+		case <-t.done:
+			// Nothing waits for a CLI that has exited; the card says what it
+			// left behind instead.
+			if t.noteActivity(false) {
+				t.m.emitAttention(t)
+			}
+			return
+		case now := <-tick.C:
+			t.mu.Lock()
+			began := t.spoke && t.awaitingSince.IsZero() && now.Sub(t.lastActivity) >= quiet
+			if began {
+				t.awaitingSince = t.lastActivity.Add(quiet)
+			}
+			t.mu.Unlock()
+			if began {
+				t.m.emitAttention(t)
+			}
+		}
+	}
 }
 
 // Subscribe returns the output so far and a channel of everything after it, so
@@ -149,6 +232,12 @@ func (t *TerminalSession) Write(p []byte) error {
 		return fmt.Errorf("терминал уже завершён")
 	default:
 	}
+	// Somebody is typing, so nothing is waiting for them any more — said before
+	// the write, because the answer to a prompt is often what makes the CLI go
+	// quiet again for a while.
+	if t.noteActivity(false) {
+		t.m.emitAttention(t)
+	}
 	_, err := t.tty.Write(p)
 	return err
 }
@@ -167,6 +256,9 @@ func (t *TerminalSession) Done() <-chan struct{} { return t.done }
 
 // publish fans one chunk of output out to every window and keeps a copy.
 func (t *TerminalSession) publish(chunk []byte) {
+	if t.noteActivity(true) {
+		t.m.emitAttention(t)
+	}
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.buf = append(t.buf, chunk...)
@@ -315,19 +407,21 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 
 	id := uuid.NewString()
 	t := &TerminalSession{
-		ID:          id,
-		CardID:      spec.cardID,
-		BoardID:     spec.boardID,
-		Title:       spec.title,
-		Task:        spec.task,
-		ProjectPath: spec.projectPath,
-		Cwd:         spec.projectPath,
-		AgentName:   spec.agent.Name,
-		AgentKind:   spec.agent.Kind,
-		Argv:        argv,
-		StartedAt:   time.Now(),
-		m:           m,
-		done:        make(chan struct{}),
+		ID:           id,
+		CardID:       spec.cardID,
+		BoardID:      spec.boardID,
+		Title:        spec.title,
+		Task:         spec.task,
+		ProjectPath:  spec.projectPath,
+		Cwd:          spec.projectPath,
+		AgentName:    spec.agent.Name,
+		AgentKind:    spec.agent.Kind,
+		Argv:         argv,
+		StartedAt:    time.Now(),
+		m:            m,
+		done:         make(chan struct{}),
+		lastActivity: time.Now(),
+		quietFor:     m.terminalQuiet,
 	}
 
 	switch {
@@ -397,6 +491,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	}
 
 	go t.pump()
+	go t.watchAttention()
 	return t, nil
 }
 
@@ -534,6 +629,132 @@ func (m *Manager) shutdownTerminals() {
 		}
 		_ = t.tty.Close()
 	}
+}
+
+// Attention is one thing waiting for a person, from either of the two places an
+// agent can want one — see the reasons below. The card is what the UI shows it
+// on; a planning terminal has no card at all.
+type Attention struct {
+	// Key identifies this wait for the UI, which keeps them in a map.
+	Key        string `json:"key"`
+	TerminalID string `json:"terminalId,omitempty"`
+	CardID     string `json:"cardId,omitempty"`
+	BoardID    string `json:"boardId,omitempty"`
+	Title      string `json:"title,omitempty"`
+	Agent      string `json:"agent,omitempty"`
+	Reason     string `json:"reason"`
+	// Tool is set for a permission question: what the agent wants to use.
+	Tool string `json:"tool,omitempty"`
+	// A question carries itself, so it can be answered where it is read.
+	QuestionID string           `json:"questionId,omitempty"`
+	Text       string           `json:"text,omitempty"`
+	Options    []QuestionOption `json:"options,omitempty"`
+	FreeText   bool             `json:"freeText,omitempty"`
+	// Awaiting is false in an event that says a wait ended; the list only ever
+	// carries true.
+	Awaiting bool   `json:"awaiting"`
+	Since    string `json:"since,omitempty"`
+}
+
+// The two reasons, and they are answered in different places.
+//
+// AttentionQuestion is the protocol asking: an ACP session sent
+// session/request_permission or an elicitation, and the agent is waiting on the
+// answer with its turn still open (question.go). It is answered on the card.
+//
+// AttentionQuiet is a terminal, where there is no protocol to ask through — an
+// agent CLI in a pty draws a TUI, so silence is the only signal
+// (terminalQuietFor). It is answered by typing in that window.
+const (
+	AttentionQuestion = "question"
+	AttentionQuiet    = "quiet"
+)
+
+// withKey fills in what identifies this wait. A question is keyed by its own id
+// rather than by its card: an agent making two tool calls at once asks twice,
+// and answering one must not take the other off the screen.
+func (a Attention) withKey() Attention {
+	switch {
+	case a.TerminalID != "":
+		a.Key = a.TerminalID
+	case a.QuestionID != "":
+		a.Key = "q:" + a.QuestionID
+	default:
+		a.Key = "card:" + a.CardID
+	}
+	return a
+}
+
+// attention describes the session the way the UI wants it.
+func (t *TerminalSession) attention() Attention {
+	info := t.Info()
+	return Attention{
+		TerminalID: info.ID,
+		CardID:     info.CardID,
+		BoardID:    t.BoardID,
+		Title:      info.Title,
+		Agent:      info.Agent,
+		Reason:     AttentionQuiet,
+		Awaiting:   info.Awaiting,
+		Since:      info.AwaitingSince,
+	}
+}
+
+// Attention lists everything currently waiting for a person, oldest wait first:
+// the one that has been ignored longest is the one worth showing.
+func (m *Manager) Attention() []Attention {
+	m.mu.Lock()
+	live := make([]*TerminalSession, 0, len(m.terminals))
+	for _, t := range m.terminals {
+		live = append(live, t)
+	}
+	m.mu.Unlock()
+
+	out := make([]Attention, 0, len(live))
+	for _, t := range live {
+		if a := t.attention(); a.Awaiting {
+			out = append(out, a.withKey())
+		}
+	}
+
+	for _, q := range m.Questions() {
+		out = append(out, q.attention().withKey())
+	}
+
+	sort.Slice(out, func(i, j int) bool { return out[i].Since < out[j].Since })
+	return out
+}
+
+// emitAttention tells the UI that a terminal started or stopped waiting for a
+// person, so a card can show it without polling.
+func (m *Manager) emitAttention(t *TerminalSession) {
+	if m == nil {
+		return
+	}
+	m.emitAttentionRecord(t.attention())
+}
+
+func (m *Manager) emitAttentionRecord(a Attention) {
+	if m == nil || m.ui == nil {
+		return
+	}
+	a = a.withKey()
+	m.ui.Emit(EventAttention, map[string]any{
+		"key":        a.Key,
+		"terminalId": a.TerminalID,
+		"cardId":     a.CardID,
+		"boardId":    a.BoardID,
+		"title":      a.Title,
+		"agent":      a.Agent,
+		"reason":     a.Reason,
+		"tool":       a.Tool,
+		"questionId": a.QuestionID,
+		"text":       a.Text,
+		"options":    a.Options,
+		"freeText":   a.FreeText,
+		"awaiting":   a.Awaiting,
+		"since":      a.Since,
+	})
 }
 
 // emitTerminal tells the UI a terminal appeared, changed or ended.

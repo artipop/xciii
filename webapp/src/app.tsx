@@ -8,6 +8,7 @@ import {getMessages} from './i18n'
 import {IntlProvider} from './intl'
 import {SortableProvider} from './hooks/sortable'
 import {FlashMessages} from './components/flashMessages'
+import AttentionNotifications from './components/acp/attentionNotifications'
 import NewVersionBanner from './components/newVersionBanner'
 import {getMe} from './store/users'
 import {getLanguage} from './store/language'
@@ -41,6 +42,10 @@ const App: Component = () => {
         >
             <SortableProvider>
                 <FlashMessages milliseconds={2000}/>
+
+                {/* Outside the router: an agent waiting for an answer is worth
+                    saying wherever in the app the person happens to be. */}
+                <AttentionNotifications/>
                 <div id='frame'>
                     <div id='main'>
                         <NewVersionBanner/>

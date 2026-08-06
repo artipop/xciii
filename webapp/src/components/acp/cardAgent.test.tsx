@@ -77,6 +77,39 @@ describe('components/acp/cardAgent', () => {
         await waitFor(() => expect(bindings.CancelSession).toHaveBeenCalledWith('card-1'))
     })
 
+    // An agent that asked something is waiting on this card with its turn open,
+    // so the card is one of the two places the answer can be given.
+    it('puts the agent question on the card and answers it', async () => {
+        const bindings = cardBindings()
+        const answer = vi.fn().mockResolvedValue(undefined)
+        const waiting = [{
+            key: 'card:card-1',
+            cardId: 'card-1',
+            agent: 'clauuus',
+            reason: 'question',
+            questionId: 'q-9',
+            text: 'Какую базу взять?',
+            options: [
+                {
+                    id: 'postgres',
+                    label: 'Postgres',
+                },
+            ],
+            awaiting: true,
+        }]
+        anyWindow.go = {main: {App: {
+            ...bindings,
+            AnswerQuestion: answer,
+            ListAttention: vi.fn().mockResolvedValue(JSON.stringify(waiting)),
+        }}}
+
+        render(() => wrapIntl(() => <CardAgent cardId='card-1'/>))
+
+        expect(await screen.findByText('Какую базу взять?')).toBeInTheDocument()
+        await userEvent.click(screen.getByText('Postgres'))
+        await waitFor(() => expect(answer).toHaveBeenCalledWith('q-9', 'postgres', ''))
+    })
+
     // A card that does not name a project cannot open a terminal until one
     // is chosen, and the refusal has to offer the choice rather than just fail.
     it('offers the projects when the card names none', async () => {

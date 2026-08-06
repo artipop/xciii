@@ -99,25 +99,21 @@ func (e *fakeEmitter) Emit(event string, payload any) {
 	e.payloads = append(e.payloads, p)
 }
 
-// pendingPermissionID returns the request id of a permission prompt the UI was
-// asked to answer, or "" — which is what it always is now that nothing asks.
-// The test that calls it is the one asserting exactly that.
-func (e *fakeEmitter) pendingPermissionID() string {
+// lastAttention is the newest acp:attention payload about one wait, whether it
+// is a terminal (keyed by its id) or a card (keyed by "card:<id>").
+func lastAttention(e *fakeEmitter, key string) map[string]any {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	var found map[string]any
 	for i, name := range e.events {
-		if name != "acp:permission" {
+		if name != EventAttention {
 			continue
 		}
-		p := e.payloads[i]
-		if p == nil || p["pending"] != true {
-			continue
-		}
-		if id, ok := p["requestId"].(string); ok {
-			return id
+		if p := e.payloads[i]; p != nil && p["key"] == key {
+			found = p
 		}
 	}
-	return ""
+	return found
 }
 
 // fakeReader serves one card to whatever asks for one by id.
@@ -436,19 +432,166 @@ func waitStatus(t *testing.T, s *Session, want SessionStatus) {
 	})
 }
 
-// Nobody is watching a session — that is what a session is now — so a tool the
-// policy does not cover is refused at once rather than put to a person who is
-// not there. Asking is the terminal's job, and a terminal is not a session.
-func TestPermissionOutsideThePolicyIsRefused(t *testing.T) {
-	m, _, events, project, emitter := testManagerWithEmitter(t, fakeClaudeAsksPermission, nil)
+// A tool outside the policy is what session/request_permission is for: the
+// agent wants a decision, and the decision is a person's. The card is where it
+// is asked, and the turn stays open until it is answered.
+func TestASessionAsksTheCardForAToolOutsideThePolicy(t *testing.T) {
+	m, writer, events, project, emitter := testManagerWithEmitter(t, fakeClaudeAsksPermission, nil)
 
-	// It must decide by policy straight away rather than block on a prompt.
-	events.ch <- moveEvent("cardAuto", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardAsk", project, "opt-backlog", "opt-agent")
+	waitFor(t, 15*time.Second, "the agent to ask", func() bool { return len(m.Questions()) == 1 })
+
+	q := m.Questions()[0]
+	if q.CardID != "cardAsk" || q.Kind != QuestionPermission {
+		t.Fatalf("question %+v, want a permission question on the card", q)
+	}
+	if q.Tool == "" || len(q.Options) == 0 {
+		t.Fatalf("a question nobody can answer: %+v", q)
+	}
+	// The session says it is waiting rather than looking like one that hung.
+	live := m.byCard["cardAsk"]
+	if live == nil || live.Status() != StatusWaitingPermission {
+		t.Errorf("session status %v, want waiting_permission while the card is asked", live.Status())
+	}
+	// And it is on the board's list of things waiting for a person.
+	if waiting := m.Attention(); len(waiting) != 1 || waiting[0].Reason != AttentionQuestion {
+		t.Errorf("attention %+v, want the question", waiting)
+	}
+	if got := lastAttention(emitter, "q:"+q.ID); got == nil || got["awaiting"] != true {
+		t.Errorf("the UI was never told the card is being asked: %v", got)
+	}
+
+	// Answering lets the turn finish, which is the whole difference from
+	// refusing on the person's behalf.
+	allow := ""
+	for _, opt := range q.Options {
+		if strings.HasPrefix(opt.Kind, "allow") {
+			allow = opt.ID
+		}
+	}
+	if err := m.AnswerQuestion(q.ID, Answer{OptionID: allow}); err != nil {
+		t.Fatal(err)
+	}
 	waitFor(t, 15*time.Second, "session done", func() bool {
-		sessions, _, err := m.store.SessionsForCard("cardAuto")
+		sessions, _, err := m.store.SessionsForCard("cardAsk")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusDone
 	})
-	if id := emitter.pendingPermissionID(); id != "" {
-		t.Errorf("a session should never prompt anybody, got request %s", id)
+	if len(m.Attention()) != 0 {
+		t.Error("an answered question is still listed as waiting for a person")
+	}
+	if got := lastAttention(emitter, "q:"+q.ID); got == nil || got["awaiting"] != false {
+		t.Errorf("the UI was never told the question was answered: %v", got)
+	}
+
+	// The card carries the exchange, as it carries everything else a session does.
+	joined := strings.Join(writer.cardComments("cardAsk"), "\n")
+	if !strings.Contains(joined, "спрашивает") || !strings.Contains(joined, "Ответ агенту") {
+		t.Errorf("the card does not record the question and its answer:\n%s", joined)
+	}
+}
+
+// An agent running two tool calls at once asks twice, and the two are not
+// interchangeable: answering one must leave the other on the board, waiting.
+func TestTwoQuestionsOnOneCardStayApart(t *testing.T) {
+	m, _, _, _ := testManager(t, fakeClaudeHappy, nil)
+	s := liveSession(t, m, "cardTwo")
+
+	answered := make(chan Answer, 2)
+	for _, tool := range []string{"Bash", "WebFetch"} {
+		go func(tool string) {
+			answered <- m.ask(context.Background(), s, Question{
+				Kind:    QuestionPermission,
+				Text:    permissionText(tool, ""),
+				Tool:    tool,
+				Options: []QuestionOption{{ID: "yes", Label: "Да", Kind: "allow_once"}},
+			})
+		}(tool)
+	}
+	waitFor(t, 10*time.Second, "both questions to be asked", func() bool { return len(m.Questions()) == 2 })
+
+	waiting := m.Attention()
+	if len(waiting) != 2 || waiting[0].Key == waiting[1].Key {
+		t.Fatalf("attention %+v, want two waits with keys of their own", waiting)
+	}
+
+	if err := m.AnswerQuestion(m.Questions()[0].ID, Answer{OptionID: "yes"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := <-answered; got.OptionID != "yes" {
+		t.Errorf("the asker heard %+v, want the answer given", got)
+	}
+	waitFor(t, 10*time.Second, "the other question to still be waiting", func() bool { return len(m.Attention()) == 1 })
+
+	if err := m.AnswerQuestion(m.Questions()[0].ID, Answer{Declined: true}); err != nil {
+		t.Fatal(err)
+	}
+	<-answered
+}
+
+// An agent whose question goes unanswered must not sit there for ever: saying
+// no is an answer, and the turn carries on without what it asked for.
+func TestADeclinedQuestionLetsTheTurnCarryOn(t *testing.T) {
+	m, _, events, project, _ := testManagerWithEmitter(t, fakeClaudeAsksPermission, nil)
+
+	events.ch <- moveEvent("cardNo", project, "opt-backlog", "opt-agent")
+	waitFor(t, 15*time.Second, "the agent to ask", func() bool { return len(m.Questions()) == 1 })
+
+	if err := m.AnswerQuestion(m.Questions()[0].ID, Answer{Declined: true}); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, 15*time.Second, "session done", func() bool {
+		sessions, _, err := m.store.SessionsForCard("cardNo")
+		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusDone
+	})
+}
+
+// The claude CLI's AskUserQuestion arrives as an elicitation form: a property
+// with a oneOf of options and a free-text field beside it. The card has to turn
+// that into something answerable, and the answer has to reach the agent in the
+// shape it asked for.
+func TestAnAgentQuestionArrivesAsAFormAndIsAnswered(t *testing.T) {
+	m, _, events, project, _ := testManagerWithEmitter(t, fakeClaudeAsksForm, nil)
+
+	events.ch <- moveEvent("cardForm", project, "opt-backlog", "opt-agent")
+	waitFor(t, 15*time.Second, "the agent to ask", func() bool { return len(m.Questions()) == 1 })
+
+	q := m.Questions()[0]
+	if q.Kind != QuestionForm || q.Text != "Which database?" {
+		t.Fatalf("question %+v, want the agent's own words", q)
+	}
+	if len(q.Options) != 2 || q.Options[0].ID != "sqlite" || q.Options[1].Label != "Postgres" {
+		t.Fatalf("options %+v, want the two the agent offered, labelled as it labelled them", q.Options)
+	}
+	if !q.FreeText {
+		t.Error("the agent offered a custom answer and the card does not")
+	}
+
+	if err := m.AnswerQuestion(q.ID, Answer{OptionID: "postgres"}); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, 15*time.Second, "session done", func() bool {
+		sessions, _, err := m.store.SessionsForCard("cardForm")
+		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusDone
+	})
+
+	// The agent records what it was told, so this is the answer as it heard it.
+	raw, err := os.ReadFile(filepath.Join(fakeAgentDir(m.cfg.AgentCommand[0]), "elicitation.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), `"question_0":"postgres"`) {
+		t.Errorf("the agent heard %s, want the choice under the property it asked about", raw)
+	}
+}
+
+// Claiming form elicitation is what keeps AskUserQuestion enabled in the claude
+// adapter; an agent reads the capability and decides whether to ask at all.
+func TestTheClientTellsAgentsItCanShowAForm(t *testing.T) {
+	caps := clientCapabilities()
+	if caps.Elicitation == nil || caps.Elicitation.Form == nil {
+		t.Fatalf("capabilities %+v, want form elicitation claimed", caps)
+	}
+	if caps.Elicitation.Url != nil {
+		t.Error("URL elicitation is claimed, and a board has nowhere to send somebody")
 	}
 }

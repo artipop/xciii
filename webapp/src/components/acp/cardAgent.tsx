@@ -11,6 +11,7 @@ import Button from '../../widgets/buttons/button'
 
 import {agentBindings} from './agentProjectsDialog'
 import {cardAgentState, refreshCardAgent} from './cardAgentState'
+import {answerQuestion, attentionHeading, useCardAttention} from './attention'
 
 import './cardAgent.scss'
 
@@ -46,6 +47,7 @@ const CardAgent = (props: Props) => {
     const [busy, setBusy] = createSignal(false)
     const [error, setError] = createSignal('')
     const [deployStatus, setDeployStatus] = createSignal('')
+    const [answerText, setAnswerText] = createSignal('')
 
     const refresh = async () => {
         try {
@@ -135,6 +137,10 @@ const CardAgent = (props: Props) => {
         await refresh()
     }
 
+    // The same wait the board shows a dot for, said in words on the card it
+    // belongs to — next to the button that opens the terminal it is waiting in.
+    const attention = useCardAttention(() => props.cardId)
+
     const status = () => state().session?.status || ''
     const working = () => status() === 'running' || status() === 'queued'
 
@@ -157,6 +163,16 @@ const CardAgent = (props: Props) => {
                 <Show when={status()}>
                     <span class={`CardAgent__status CardAgent__status--${status()}`}>{status()}</span>
                 </Show>
+                <Show when={attention()}>
+                    <span
+                        class='CardAgent__waiting'
+                        title={attentionHeading(intl, attention()!)}
+                    >
+                        {attention()!.reason === 'question' ?
+                            intl.formatMessage({id: 'CardAgent.asking', defaultMessage: 'asking you'}) :
+                            intl.formatMessage({id: 'CardAgent.waiting', defaultMessage: 'waiting for you'})}
+                    </span>
+                </Show>
                 <div class='CardAgent__actions'>
                     <Button
                         onClick={openTerminal}
@@ -172,6 +188,52 @@ const CardAgent = (props: Props) => {
                     </Show>
                 </div>
             </div>
+
+            {/* The agent's question, on the card it is about. The same thing the
+                notification carries — answered in either place, whichever the
+                person is looking at. */}
+            <Show when={attention()?.reason === 'question' && attention()}>
+                {(question) => (
+                    <div class='CardAgent__question'>
+                        <div class='CardAgent__questionText'>{question().text}</div>
+                        <div class='CardAgent__questionOptions'>
+                            <For each={question().options || []}>
+                                {(option) => (
+                                    <Button
+                                        onClick={() => answerQuestion(question(), option.id, '')}
+                                        title={option.description}
+                                    >
+                                        {option.label}
+                                    </Button>
+                                )}
+                            </For>
+                        </div>
+                        <Show when={question().freeText}>
+                            <form
+                                class='CardAgent__questionFree'
+                                onSubmit={(e) => {
+                                    e.preventDefault()
+                                    answerQuestion(question(), '', answerText())
+                                    setAnswerText('')
+                                }}
+                            >
+                                <input
+                                    type='text'
+                                    placeholder={intl.formatMessage({id: 'Attention.free-text', defaultMessage: 'Answer in your own words…'})}
+                                    value={answerText()}
+                                    onInput={(e) => setAnswerText(e.currentTarget.value)}
+                                />
+                                <Button
+                                    submit={true}
+                                    disabled={!answerText()}
+                                >
+                                    {intl.formatMessage({id: 'Attention.send', defaultMessage: 'Send'})}
+                                </Button>
+                            </form>
+                        </Show>
+                    </div>
+                )}
+            </Show>
 
             <Show when={state().session?.branch}>
                 <div class='CardAgent__branch'>
