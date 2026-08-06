@@ -124,6 +124,12 @@ func (m *Manager) resolveDeploy(ev CardMoved, projectPath string, deploy bool, o
 	if !deploy {
 		return nil, "", nil
 	}
+	// Publishing means pushing a branch, and a project that is not under git
+	// has none. Said here rather than three steps later, where it would read as
+	// "branch not found" on a card that never had one.
+	if !IsGitProject(m.rootCtx, projectPath) {
+		return nil, "", fmt.Errorf("проект %s не под git — публиковать нечего: деплой работает с веткой", projectPath)
+	}
 	target, err := m.resolveDeployTargetNamed(ev, override)
 	if err != nil {
 		return nil, "", err

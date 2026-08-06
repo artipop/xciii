@@ -44,6 +44,15 @@ const (
 	SetupSkipped = "skipped" // deliberately passed over
 )
 
+// Setup requirements: what an answer to a step has to satisfy on this machine.
+// A closed set like the steps themselves, and derived from what the board's
+// automation actually does rather than named by anybody: a board that publishes
+// a branch or waits for one needs a project under git, and a board that does
+// neither must not be asked to make its folder of notes into a repository.
+const (
+	SetupRequiresGit = "git"
+)
+
 // SetupStepDef describes one step the app can actually carry out. The list
 // doubles as the wizard's shape, so the UI can never offer a step there is no
 // registry behind.
@@ -104,6 +113,10 @@ type SetupStep struct {
 	Optional bool   `json:"optional"`
 	Hint     string `json:"hint,omitempty"`
 	Status   string `json:"status"`
+	// Requires is what an answer has to satisfy — the closed set above. It is
+	// carried in the plan so the question can say so before it is answered,
+	// and enforced by CheckSetupAnswer when it is.
+	Requires []string `json:"requires,omitempty"`
 }
 
 // SetupPlan is the whole answer to "what should this board ask for".
@@ -165,6 +178,7 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 			Optional: optional,
 			Hint:     strings.TrimSpace(step.Hint),
 			Status:   m.setupStatus(def, states),
+			Requires: setupRequirements(def.Kind, columns, flows),
 		})
 	}
 	return plan
@@ -197,6 +211,57 @@ func (m *Manager) boardSetupSources(boardID string) (BoardSetup, []ColumnSpec, [
 		}
 	}
 	return declared, columns, flows
+}
+
+// setupRequirements is what an answer to this step must satisfy, read off the
+// board's automation. Only git is asked for so far, and only by the two things
+// that cannot work without it: publishing a branch, and any transition that
+// waits for one.
+func setupRequirements(kind string, columns []ColumnSpec, flows []FlowEntry) []string {
+	if kind != SetupStepProject {
+		return nil
+	}
+	for _, c := range columns {
+		if c.Action == FlowActionDeploy || c.Action == FlowActionTest {
+			return []string{SetupRequiresGit}
+		}
+	}
+	for _, f := range flows {
+		for _, n := range f.Nodes {
+			if n.Action == FlowActionDeploy || n.Action == FlowActionTest {
+				return []string{SetupRequiresGit}
+			}
+		}
+		for _, e := range f.Edges {
+			// A trigger the watcher polls a project for — a merged branch, a
+			// pull request, a check — has nothing to watch without git.
+			if t, ok := Trigger(e.On); ok && t.Source != SourceOutcome {
+				return []string{SetupRequiresGit}
+			}
+		}
+	}
+	return nil
+}
+
+// CheckSetupAnswer says whether an answer fits the step it is answering, so the
+// question can be refused where it is asked rather than three steps later. It
+// is the general form on purpose: a step gains a requirement here and the page
+// needs no change at all.
+func (m *Manager) CheckSetupAnswer(boardID, step, value string) error {
+	if _, ok := SetupStepDefinition(step); !ok {
+		return fmt.Errorf("неизвестный шаг настройки %q", step)
+	}
+	for _, s := range m.SetupPlanFor(boardID).Steps {
+		if s.Kind != step {
+			continue
+		}
+		for _, req := range s.Requires {
+			if req == SetupRequiresGit && !IsGitProject(m.rootCtx, value) {
+				return fmt.Errorf("в каталоге %s нет git-репозитория, а этой доске он нужен: она публикует ветку или ждёт её — выполните `git init` или выберите другой каталог", value)
+			}
+		}
+	}
+	return nil
 }
 
 // agentColumnOf is the column an agent works in, as this board calls it.

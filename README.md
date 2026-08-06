@@ -205,6 +205,16 @@ the one thing a rewrite must not quietly drop.
   or insist on one the app calls optional. It may only name steps from the
   closed set `internal/acp/setup.go` implements — like the flow triggers, the
   list is the app's, so a board cannot ask for something nothing can fill.
+  **A project does not have to be a git repository.** What git buys — a
+  worktree per session, a branch to publish, every transition that waits for one
+  — is offered to the projects that have it and simply absent from the ones that
+  do not, so a board of household chores sends an agent into a folder of notes
+  and nobody is told to `git init` their shopping list. Which boards do need it
+  is worked out, not declared: a step of the plan carries what its answer must
+  satisfy (`requires: ["git"]`), and the project step asks for git exactly when
+  the board publishes a branch or waits for one — a deploy or test stage, or an
+  edge whose trigger the VCS watcher polls. `CheckBoardSetupAnswer` enforces it
+  where the question is asked, rather than on a card three steps later.
   `BoardSetupPlan` resolves the whole answer in Go: what the board asked for (or,
   failing that, what its automation implies), minus what this machine has
   already answered, plus what was deliberately skipped, which is recorded per

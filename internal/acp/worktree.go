@@ -37,6 +37,29 @@ func gitCmd(ctx context.Context, project string, args ...string) (string, error)
 	return strings.TrimSpace(string(out)), nil
 }
 
+// IsGitProject reports whether a project is under git. Not every one is: a
+// board of household chores sends an agent into a folder of notes, and asking
+// somebody to run `git init` on their notes before the app will look at them is
+// asking them to learn git for the sake of a shopping list. What git buys —
+// worktrees, branches, and every transition that waits for one — is offered to
+// the projects that have it and quietly absent from the ones that do not.
+//
+// It is asked at the moment it matters rather than recorded on the entry: a
+// folder can become a project later, and one that was may stop being one.
+func IsGitProject(ctx context.Context, project string) bool {
+	if strings.TrimSpace(project) == "" {
+		return false
+	}
+	// Callers reach this from the UI as well as from the trigger loop, and the
+	// manager's context does not exist until it starts: a nil one is a panic in
+	// exec.CommandContext rather than a timeout.
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	_, err := gitCmd(ctx, project, "rev-parse", "--git-dir")
+	return err == nil
+}
+
 // CreateWorktree adds a new worktree for the session off baseBranch (or HEAD
 // when empty), on a fresh branch named after the card (see WorktreeBranch).
 func CreateWorktree(ctx context.Context, project, baseBranch, title, cardID, sessionID, worktreeRoot string) (WorktreeInfo, error) {

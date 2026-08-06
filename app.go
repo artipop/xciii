@@ -388,6 +388,17 @@ func (a *App) BoardSetupPlan(boardID string) (string, error) {
 	return string(out), nil
 }
 
+// CheckBoardSetupAnswer says whether an answer fits the step it answers on this
+// board — a project under git for a board that publishes a branch or waits for
+// one, and any requirement a step grows later. Called before the answer is
+// filed, so the question can refuse it where it was asked.
+func (a *App) CheckBoardSetupAnswer(boardID, step, value string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	return a.mgr.CheckSetupAnswer(boardID, step, value)
+}
+
 // RecordBoardSetupStep remembers what was done with a step — skipping above
 // all, which is the one answer no registry can be read for.
 func (a *App) RecordBoardSetupStep(boardID, step, status string) error {

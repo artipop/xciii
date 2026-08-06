@@ -1,7 +1,6 @@
 package acp
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -19,8 +18,9 @@ func (m *Manager) Projects() []ProjectEntry {
 	return append([]ProjectEntry(nil), m.cfg.Projects...)
 }
 
-// AddProject registers a local git project under name (defaults to the
-// directory basename) and persists the config.
+// AddProject registers a local project under name (defaults to the directory
+// basename) and persists the config. Any folder will do — see IsGitProject for
+// what being under git adds.
 //
 // TODO: validate the name as a hostname label. A deploy target names its apps
 // and its subdomain after the project (dokku.AppLabel), so a name that is not
@@ -40,9 +40,9 @@ func (m *Manager) AddProject(name, path string) (ProjectEntry, error) {
 	if err != nil || !info.IsDir() {
 		return ProjectEntry{}, fmt.Errorf("каталог не найден: %s", clean)
 	}
-	if _, err := gitCmd(context.Background(), clean, "rev-parse", "--git-dir"); err != nil {
-		return ProjectEntry{}, fmt.Errorf("в каталоге %s нет git-репозитория: проект должен быть под git", clean)
-	}
+	// A project under git gets worktrees and branch-driven transitions; one
+	// without is an ordinary folder an agent works in, which is all a board of
+	// personal tasks ever needs. Neither is refused here (see IsGitProject).
 	name = strings.TrimSpace(name)
 	if name == "" {
 		name = filepath.Base(clean)

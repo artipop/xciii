@@ -267,11 +267,13 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	if test != nil && len(agent.MCPServers) == 0 {
 		return nil, fmt.Errorf("агенту %q не задан MCP-сервер браузера — тестировать нечем (меню доски → «Агенты…» → «MCP-серверы»)", agent.Name)
 	}
-	// Without worktrees, two agents must never share one working tree
-	// (spec §7): reject while another live session uses the same project. A deploy
-	// session is exempt for the same reason a planning one is — it only pushes
-	// an existing branch and never touches the checkout.
-	if !m.cfg.UseWorktrees() && !opts.deploy {
+	// A project that will not get a worktree — either because worktrees are off
+	// or because it is not under git — is one working copy, and two agents must
+	// never share it (spec §7): reject while another live session uses it. A
+	// deploy session is exempt for the same reason a planning one is: it only
+	// pushes an existing branch and never touches the checkout.
+	worktreeAvailable := m.cfg.UseWorktrees() && IsGitProject(m.rootCtx, projectPath)
+	if !worktreeAvailable && !opts.deploy {
 		m.mu.Lock()
 		var busyCard string
 		for _, other := range m.active {
@@ -291,7 +293,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	m.cfgMu.RLock()
 	systemPrompt, deployPrompt, testPrompt := m.cfg.SystemPrompt, m.cfg.DeployPrompt, m.cfg.TestPrompt
 	m.cfgMu.RUnlock()
-	prompt := composePrompt(ev, agent, systemPrompt, m.cfg.UseWorktrees())
+	prompt := composePrompt(ev, agent, systemPrompt, worktreeAvailable)
 	switch {
 	case deploy != nil:
 		prompt = composeDeployPrompt(ev, agent, systemPrompt, deployPrompt, *deploy, deployBranch)

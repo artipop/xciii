@@ -42,6 +42,7 @@ function stubBindings(overrides: Record<string, unknown> = {}) {
     const bindings = {
         BoardSetupPlan: vi.fn().mockResolvedValue(FULL_PLAN),
         RecordBoardSetupStep: vi.fn().mockResolvedValue(undefined),
+        CheckBoardSetupAnswer: vi.fn().mockResolvedValue(undefined),
         ListAgentProjects: vi.fn().mockResolvedValue('[]'),
         ListAgents: vi.fn().mockResolvedValue('[]'),
         PickDirectory: vi.fn().mockResolvedValue('/Users/me/src/webapp'),
@@ -183,6 +184,35 @@ describe('components/acp/boardSetupWizard', () => {
         await waitFor(() => expect(screen.getByRole('button', {name: 'Done'})).toBeInTheDocument())
         expect(screen.getByText(/Агент готовит/)).toBeInTheDocument()
         expect(bindings.AddDeployTarget).not.toHaveBeenCalled()
+    })
+
+    // Git is asked for by what the board does, and the answer is checked where
+    // it is given: a folder that will not do must not be filed and found out
+    // about later, on a card, when a deploy fails.
+    test('a board that needs git says so, and refuses a folder without it', async () => {
+        const bindings = stubBindings({
+            BoardSetupPlan: vi.fn().mockResolvedValue(
+                plan([{kind: 'project', requires: ['git']}, {kind: 'agent'}, {kind: 'done'}]),
+            ),
+            CheckBoardSetupAnswer: vi.fn().mockRejectedValue('в каталоге /Users/me/src/webapp нет git-репозитория, а этой доске он нужен'),
+        })
+        renderWizard()
+        await waitFor(() => expect(screen.getByText(/has to be under git/)).toBeInTheDocument())
+
+        userEvent.click(screen.getByRole('button', {name: 'Choose a folder…'}))
+        await waitFor(() => expect(screen.getByDisplayValue('webapp')).toBeInTheDocument())
+        userEvent.click(screen.getByRole('button', {name: 'Next'}))
+
+        await waitFor(() => expect(screen.getByText(/нет git-репозитория/)).toBeInTheDocument())
+        expect(bindings.AddAgentProject).not.toHaveBeenCalled()
+    })
+
+    // …and a board of personal tasks is never told about git at all.
+    test('a board that does not need git never mentions it', async () => {
+        stubBindings({BoardSetupPlan: vi.fn().mockResolvedValue(CHORES_PLAN)})
+        renderWizard()
+        await waitFor(() => expect(screen.getByText('Папка с домашними заметками')).toBeInTheDocument())
+        expect(screen.queryByText(/has to be under git/)).toBeNull()
     })
 
     test('the browser server is offered ready to accept', async () => {

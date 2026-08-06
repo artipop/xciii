@@ -269,7 +269,7 @@ func (m *Manager) prepareWorkdir(s *Session) error {
 	// nothing; a deploy session publishes an existing branch rather than writing
 	// code, so a throwaway branch is not the one anybody deploys; and a test
 	// session only reads the code it is checking.
-	if m.cfg.UseWorktrees() && !s.Planning && s.Deploy == nil && s.Test == nil {
+	if m.cfg.UseWorktrees() && !s.Planning && s.Deploy == nil && s.Test == nil && IsGitProject(m.rootCtx, s.ProjectPath) {
 		wt, err := CreateWorktree(m.rootCtx, s.ProjectPath, s.BaseBranch, s.Title, s.CardID, s.ID, m.cfg.WorktreeDir)
 		if err != nil {
 			return fmt.Errorf("не удалось создать git worktree: %w", err)

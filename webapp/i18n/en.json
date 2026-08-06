@@ -100,6 +100,7 @@
   "BoardSetup.finish": "Done",
   "BoardSetup.next": "Next",
   "BoardSetup.pick-project": "Choose a project folder",
+  "BoardSetup.project-git": "This board publishes a branch or waits for one, so its project has to be under git. A board that does neither takes any folder.",
   "BoardSetup.project-known": "Already registered: {names}",
   "BoardSetup.project-name": "Name",
   "BoardSetup.project-why": "An agent works in a project on your machine. A card is matched to one by its \"Projects\" field, which this fills in for you.",

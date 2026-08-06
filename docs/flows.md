@@ -29,14 +29,21 @@ and `To Test`. The other three are the same machinery pointed at ordinary life
 — «Домашние дела», «Покупки и меню», «Дом и техника» — and they are worth
 reading as examples, because they show what is left when deploys and browser
 tests are taken away: one column where an agent works, and a route that waits
-for a person. There the agent writes into a project of household notes (any
-folder with `git init` in it, added under *Проекты…*): a plan for the
-cleaning, a menu and a shopping list for the week, what to ask the plumber. It
-answers on a branch, and merging that branch is how you accept the answer —
-that is the event that moves the card to «Готово». The short routes («Сделать
-сразу», «Быстрый список») skip the reading and close the card as soon as the
-agent is done, and «Позвать мастера» deliberately stops at «Ждём мастера»: the
-last step is not the machine's.
+for a person. There the agent writes into a folder of household notes — an
+ordinary folder, added under *Проекты…*, with nothing to set up in it and no
+git anywhere near it: a plan for the cleaning, a menu and a shopping list for
+the week, what to ask the plumber. When it is done the card moves itself to the
+stage where somebody looks, and no further: «На проверке», «Проверить список»,
+«Ждём мастера» are all ends of the automatic part, and you move the card on
+yourself. The short routes («Сделать сразу», «Быстрый список») skip even that
+and close the card as soon as the agent is done.
+
+Git is asked for by what a board does, not by which template it came from. A
+board that publishes a branch or waits for one — a deploy or test stage, or a
+transition the VCS watcher has to poll for — needs its project under git, and
+the setup wizard says so and refuses a folder that is not. A board that does
+neither takes any folder, gets no worktree (the agent works in the folder
+itself, one card at a time) and has no branch-driven transitions to miss.
 
 ## What happens when a card lands in a column
 

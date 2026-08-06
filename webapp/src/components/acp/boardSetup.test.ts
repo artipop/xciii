@@ -6,6 +6,7 @@ import {
     SetupPlan,
     SetupStep,
     agentColumn,
+    checkSetupAnswer,
     isBoardSetupAvailable,
     offeredFor,
     planHasStep,
@@ -14,6 +15,7 @@ import {
     rememberOffered,
     setupNeeded,
     shouldOfferSetup,
+    stepRequires,
 } from './boardSetup'
 
 const anyWindow = window as any
@@ -88,6 +90,20 @@ describe('components/acp/boardSetup', () => {
         expect(planHasStep(chores, 'project')).toBe(true)
         expect(planHasStep(chores, 'deploy')).toBe(false)
         expect(planHasStep(undefined, 'deploy')).toBe(false)
+    })
+
+    // Git is a requirement of the board's automation, not of the app: the page
+    // only carries what Go said and asks it to check the answer.
+    test('a step may require something of its answer', async () => {
+        const needsGit = plan([{kind: 'project', requires: ['git']}])
+        expect(stepRequires(needsGit.steps[0], 'git')).toBe(true)
+        expect(stepRequires(plan([{kind: 'project'}]).steps[0], 'git')).toBe(false)
+        expect(stepRequires(undefined, 'git')).toBe(false)
+
+        const CheckBoardSetupAnswer = vi.fn().mockRejectedValue('в каталоге /tmp/notes нет git-репозитория')
+        anyWindow.go = {main: {App: {CheckBoardSetupAnswer}}}
+        await expect(checkSetupAnswer('board-1', 'project', '/tmp/notes')).rejects.toBeTruthy()
+        expect(CheckBoardSetupAnswer).toHaveBeenCalledWith('board-1', 'project', '/tmp/notes')
     })
 
     test('the agent column is the board’s own, or the name the config ships', () => {

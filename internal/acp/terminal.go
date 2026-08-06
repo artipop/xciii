@@ -245,7 +245,9 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		projectPath: projectPath,
 		base:        ev.Props["branch"],
 		agent:       agent,
-		worktree:    m.cfg.UseWorktrees(),
+		// A project that is not under git has no worktrees to give, and a
+		// terminal in one is a terminal in the folder itself.
+		worktree: m.cfg.UseWorktrees() && IsGitProject(m.rootCtx, projectPath),
 	})
 }
 

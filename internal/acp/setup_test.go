@@ -251,3 +251,99 @@ func TestABoardCanMakeAnOptionalStepRequired(t *testing.T) {
 		}
 	}
 }
+
+// Git is asked for by what a board does, not by which template it came from: a
+// board that publishes a branch or waits for one needs a project under git, and
+// a board of personal tasks must take any folder — telling somebody to `git
+// init` their shopping list is telling them to learn git for a shopping list.
+func TestGitIsAskedForByWhatTheBoardDoes(t *testing.T) {
+	chores := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{{
+			PropertyID: "p", OptionID: "o1", Property: "Статус",
+			Column: "Агент готовит", Action: FlowActionAgent,
+		}},
+		Flows: []FlowEntry{{
+			Name: "Дело", Property: "Статус",
+			Nodes: []FlowNode{
+				{ID: "agent", Column: "Агент готовит", OptionID: "o1"},
+				{ID: "done", Column: "Готово", OptionID: "o2", Action: FlowActionNone},
+			},
+			Edges: []FlowEdge{{From: "agent", To: "done", On: TriggerSuccess}},
+		}},
+	}))
+	if got := requirementsOf(chores.SetupPlanFor("board1"), SetupStepProject); len(got) != 0 {
+		t.Errorf("a board that only runs an agent asks for %v", got)
+	}
+
+	// The same board with a stage that publishes.
+	deploying := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{
+			{PropertyID: "p", OptionID: "o1", Property: "Status", Column: "In Progress", Action: FlowActionAgent},
+			{PropertyID: "p", OptionID: "o2", Property: "Status", Column: "Deploy", Action: FlowActionDeploy},
+		},
+	}))
+	if got := requirementsOf(deploying.SetupPlanFor("board1"), SetupStepProject); !containsString(got, SetupRequiresGit) {
+		t.Errorf("a board that publishes asks for %v", got)
+	}
+
+	// And so does one that only waits for a branch: the watcher has nothing to
+	// poll without git, so the transition would never fire.
+	waiting := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{{PropertyID: "p", OptionID: "o1", Property: "Status", Column: "In Progress", Action: FlowActionAgent}},
+		Flows: []FlowEntry{{
+			Name: "Review only", Property: "Status",
+			Nodes: []FlowNode{
+				{ID: "agent", Column: "In Progress", OptionID: "o1"},
+				{ID: "done", Column: "Done", OptionID: "o2", Action: FlowActionNone},
+			},
+			Edges: []FlowEdge{{From: "agent", To: "done", On: TriggerBranchMerged}},
+		}},
+	}))
+	if got := requirementsOf(waiting.SetupPlanFor("board1"), SetupStepProject); !containsString(got, SetupRequiresGit) {
+		t.Errorf("a board that waits for a branch asks for %v", got)
+	}
+}
+
+func requirementsOf(plan SetupPlan, kind string) []string {
+	for _, s := range plan.Steps {
+		if s.Kind == kind {
+			return s.Requires
+		}
+	}
+	return nil
+}
+
+// The requirement is enforced where the question is asked, not three steps
+// later on a card nobody is watching.
+func TestAnAnswerIsCheckedAgainstWhatItsStepRequires(t *testing.T) {
+	plain := t.TempDir()
+
+	chores := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "Агент готовит", Action: FlowActionAgent}},
+	}))
+	if err := chores.CheckSetupAnswer("board1", SetupStepProject, plain); err != nil {
+		t.Errorf("an ordinary folder was refused: %v", err)
+	}
+
+	deploying := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{
+			{PropertyID: "p", OptionID: "o1", Property: "Status", Column: "In Progress", Action: FlowActionAgent},
+			{PropertyID: "p", OptionID: "o2", Property: "Status", Column: "Deploy", Action: FlowActionDeploy},
+		},
+	}))
+	if err := deploying.CheckSetupAnswer("board1", SetupStepProject, plain); err == nil {
+		t.Error("a board that publishes accepted a folder with no git in it")
+	}
+	if err := deploying.CheckSetupAnswer("board1", SetupStepProject, initTestProject(t)); err != nil {
+		t.Errorf("a git project was refused: %v", err)
+	}
+
+	// A step nothing requires of takes anything, and an unknown step is
+	// refused: the binding behind this is callable by anything on the page.
+	if err := deploying.CheckSetupAnswer("board1", SetupStepAgent, "claude"); err != nil {
+		t.Errorf("the agent step required something: %v", err)
+	}
+	if err := deploying.CheckSetupAnswer("board1", "telepathy", ""); err == nil {
+		t.Error("an unknown step was checked as if it existed")
+	}
+}

@@ -1,6 +1,7 @@
 package acp
 
 import (
+	"context"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -34,9 +35,16 @@ func TestAddRemoveProjectPersists(t *testing.T) {
 	if _, err := m.AddProject("other", project); err == nil {
 		t.Error("duplicate path accepted")
 	}
-	// Non-git directories are rejected.
-	if _, err := m.AddProject("notgit", t.TempDir()); err == nil {
-		t.Error("non-git dir accepted")
+	// A folder that is not under git is a project too: what git buys is
+	// worktrees and branch-driven transitions, and a board of personal tasks
+	// wants neither. Which board needs it is asked by the setup plan
+	// (setupRequirements), not by the registry.
+	notes := t.TempDir()
+	if _, err := m.AddProject("notes", notes); err != nil {
+		t.Errorf("an ordinary folder was refused: %v", err)
+	}
+	if IsGitProject(context.Background(), notes) {
+		t.Error("the fixture is under git, so this proves nothing")
 	}
 
 	// Persisted and reloadable.
@@ -44,7 +52,7 @@ func TestAddRemoveProjectPersists(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(loaded.Projects) != 1 || loaded.Projects[0].Path != project {
+	if len(loaded.Projects) != 2 || loaded.Projects[0].Path != project {
 		t.Fatalf("registry not persisted: %+v", loaded.Projects)
 	}
 
@@ -55,7 +63,7 @@ func TestAddRemoveProjectPersists(t *testing.T) {
 		t.Error("removing missing entry should fail")
 	}
 	loaded, _ = LoadConfig(cfgPath, t.TempDir())
-	if len(loaded.Projects) != 0 {
+	if len(loaded.Projects) != 1 {
 		t.Fatalf("removal not persisted: %+v", loaded.Projects)
 	}
 }

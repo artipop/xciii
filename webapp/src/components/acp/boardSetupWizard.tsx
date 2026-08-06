@@ -13,7 +13,7 @@ import Dialog from '../dialog'
 
 import {agentBindings} from './agentProjectsDialog'
 import {AGENT_KINDS, textToServers, AdapterStatus} from './agentsDialog'
-import {agentColumn, createSetupPlan, recordSetupStep, SetupStep, SetupStepKind} from './boardSetup'
+import {agentColumn, checkSetupAnswer, createSetupPlan, recordSetupStep, SetupStep, SetupStepKind, stepRequires} from './boardSetup'
 
 import './boardSetupWizard.scss'
 
@@ -184,6 +184,9 @@ const BoardSetupWizard = (props: Props) => {
     }
 
     const addProject = () => run(async () => {
+        // Asked before it is filed: a board that publishes a branch needs a
+        // project under git, and this is where that can still be answered.
+        await checkSetupAnswer(props.board.id, STEP_PROJECT, projectPath())
         await bindings!.AddAgentProject!(projectName().trim(), projectPath())
     }, after(STEP_PROJECT))
 
@@ -240,6 +243,11 @@ const BoardSetupWizard = (props: Props) => {
             return (
                 <div class='BoardSetupWizard__step'>
                     <p>{intl.formatMessage({id: 'BoardSetup.project-why', defaultMessage: 'An agent works in a project on your machine. A card is matched to one by its "Projects" field, which this fills in for you.'})}</p>
+                    <Show when={stepRequires(stepAt(STEP_PROJECT), 'git')}>
+                        <p class='BoardSetupWizard__hint'>
+                            {intl.formatMessage({id: 'BoardSetup.project-git', defaultMessage: 'This board publishes a branch or waits for one, so its project has to be under git. A board that does neither takes any folder.'})}
+                        </p>
+                    </Show>
                     <Show when={hasProject()}>
                         <div class='BoardSetupWizard__known'>
                             {intl.formatMessage({id: 'BoardSetup.project-known', defaultMessage: 'Already registered: {names}'}, {names: registry().projects.map((r) => r.name).join(', ')})}
