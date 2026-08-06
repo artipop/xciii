@@ -19,10 +19,14 @@ import (
 // then on the registry is what runs and what the editors edit. A template that
 // changes later does not silently rewrite what somebody has since adjusted.
 
-// Board properties the template writes its automation into.
+// Board properties the template writes its automation into. The third is not
+// automation but the questions the board needs answered before any of it can
+// run — see setup.go; it is read there rather than adopted here, because it is
+// about this machine and nothing about it belongs in the registry.
 const (
 	BoardPropColumns = "acpColumns"
 	BoardPropFlows   = "acpFlows"
+	BoardPropSetup   = "acpSetup"
 )
 
 // BoardMeta reads a board's own properties, which is where a template leaves

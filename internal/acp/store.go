@@ -135,6 +135,13 @@ CREATE TABLE IF NOT EXISTS stage_queue (
 	queued_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_stage_queue_column ON stage_queue(column_key, queued_at);
+CREATE TABLE IF NOT EXISTS board_setup (
+	board_id TEXT NOT NULL,
+	step TEXT NOT NULL,
+	status TEXT NOT NULL,
+	at INTEGER NOT NULL,
+	PRIMARY KEY (board_id, step)
+);
 CREATE TABLE IF NOT EXISTS vcs_seen (
 	project TEXT NOT NULL,
 	branch TEXT NOT NULL,
@@ -144,6 +151,41 @@ CREATE TABLE IF NOT EXISTS vcs_seen (
 	PRIMARY KEY (project, branch, kind)
 );`)
 	return err
+}
+
+// SaveSetupStep records what was done with one step of a board's setup. It
+// lives here rather than in the browser because it is about this machine: the
+// same install seen from the server build, or after the page's storage is
+// cleared, has to remember that a question was deliberately passed over.
+func (s *Store) SaveSetupStep(st SetupStepState) error {
+	if st.At.IsZero() {
+		st.At = time.Now()
+	}
+	_, err := s.db.Exec(`INSERT INTO board_setup (board_id, step, status, at)
+		VALUES (?,?,?,?)
+		ON CONFLICT(board_id, step) DO UPDATE SET status=excluded.status, at=excluded.at`,
+		st.BoardID, st.Step, st.Status, st.At.UnixMilli())
+	return err
+}
+
+// SetupSteps returns what is recorded about a board's setup.
+func (s *Store) SetupSteps(boardID string) ([]SetupStepState, error) {
+	rows, err := s.db.Query(`SELECT board_id, step, status, at FROM board_setup WHERE board_id=?`, boardID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []SetupStepState
+	for rows.Next() {
+		var st SetupStepState
+		var at int64
+		if err := rows.Scan(&st.BoardID, &st.Step, &st.Status, &at); err != nil {
+			return nil, err
+		}
+		st.At = time.UnixMilli(at)
+		out = append(out, st)
+	}
+	return out, rows.Err()
 }
 
 // ClaimVCSEvent reports whether a project event is new, and remembers it. A

@@ -8,38 +8,40 @@ import {Board} from '../../blocks/board'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {wrapIntl} from '../../testUtils'
 
-import BoardSetupWizard, {isBoardSetupAvailable, readRegistry, rememberOffered, setupNeeded, shouldOfferSetup, stepsFor} from './boardSetupWizard'
+import {SetupPlan, SetupStep, SetupStepKind} from './boardSetup'
+
+import BoardSetupWizard, {readRegistry} from './boardSetupWizard'
 
 const anyWindow = window as any
 
-// A board made from the developer template: it runs an agent, publishes and
-// tests, so every question the wizard has is one it can answer.
-function templateBoard(): Board {
-    const board = TestBlockFactory.createBoard()
-    board.properties = {
-        acpColumns: [
-            {column: 'In Progress', action: 'agent'},
-            {column: 'Deploy', action: 'deploy'},
-            {column: 'To Test', action: 'test'},
-        ],
-        acpFlows: [],
-    } as any
-    return board
+// One board for the whole file: its id is what the wizard reports a skip
+// under, so a fresh one per call would compare against somebody else's.
+const testBoard: Board = TestBlockFactory.createBoard()
+
+// A plan is what Go answers with; the wizard's whole shape comes from it.
+function plan(kinds: Array<SetupStepKind | Partial<SetupStep>>, extra: Partial<SetupPlan> = {}): string {
+    const steps = kinds.map((kind) => {
+        if (typeof kind === 'string') {
+            return {kind, optional: kind === 'deploy' || kind === 'browser', status: 'pending'}
+        }
+        return {kind: 'project', optional: false, status: 'pending', ...kind}
+    })
+    return JSON.stringify({boardId: testBoard.id, steps, declared: true, automated: true, ...extra})
 }
 
-// A board made from one of the everyday-life templates: an agent and nothing
-// else — no Dokku host to name and no browser to test with.
-function choresBoard(): Board {
-    const board = TestBlockFactory.createBoard()
-    board.properties = {
-        acpColumns: [{column: 'Агент готовит', action: 'agent'}],
-        acpFlows: [],
-    } as any
-    return board
-}
+// The developer board: it publishes and it tests, so it is asked everything.
+const FULL_PLAN = plan(['project', 'agent', 'deploy', 'browser', 'done'])
+
+// A board of household chores: an agent and nothing else.
+const CHORES_PLAN = plan(
+    [{kind: 'project', hint: 'Папка с домашними заметками'}, {kind: 'agent'}, {kind: 'done'}],
+    {agentColumn: 'Агент готовит'},
+)
 
 function stubBindings(overrides: Record<string, unknown> = {}) {
     const bindings = {
+        BoardSetupPlan: vi.fn().mockResolvedValue(FULL_PLAN),
+        RecordBoardSetupStep: vi.fn().mockResolvedValue(undefined),
         ListAgentProjects: vi.fn().mockResolvedValue('[]'),
         ListAgents: vi.fn().mockResolvedValue('[]'),
         PickDirectory: vi.fn().mockResolvedValue('/Users/me/src/webapp'),
@@ -55,90 +57,23 @@ function stubBindings(overrides: Record<string, unknown> = {}) {
     return bindings
 }
 
-describe('components/acp/boardSetupWizard when it offers itself', () => {
+describe('components/acp/boardSetupWizard', () => {
     afterEach(() => {
         delete anyWindow.go
         localStorage.clear()
         vi.clearAllMocks()
     })
 
-    test('never outside the desktop app', async () => {
-        expect(isBoardSetupAvailable()).toBe(false)
-        expect(await readRegistry()).toBeNull()
-        expect(setupNeeded(templateBoard(), {agents: [], projects: []})).toBe(false)
-    })
-
-    test('only for a board that runs something on a machine that cannot run it', () => {
-        stubBindings()
-        const empty = {agents: [], projects: []}
-        expect(setupNeeded(templateBoard(), empty)).toBe(true)
-
-        // A board that carries no routes has nothing to set up.
-        expect(setupNeeded(TestBlockFactory.createBoard(), empty)).toBe(false)
-
-        // And a machine that is already configured is not asked again.
-        expect(setupNeeded(templateBoard(), {agents: [{name: 'claude'}], projects: [{name: 'webapp', path: '/src'}]})).toBe(false)
-
-        // Half-configured still counts: an agent with no project cannot work.
-        expect(setupNeeded(templateBoard(), {agents: [{name: 'claude'}], projects: []})).toBe(true)
-    })
-
-    // Being offered the wizard is remembered per board, so making a second
-    // board still gets its own offer.
-    test('it is offered once per board', () => {
-        stubBindings()
-        const board = templateBoard()
-        const other = templateBoard()
-        other.id = 'board-two'
-        const empty = {agents: [], projects: []}
-
-        expect(shouldOfferSetup(board, empty)).toBe(true)
-
-        rememberOffered(board.id)
-        expect(shouldOfferSetup(board, empty)).toBe(false)
-        expect(shouldOfferSetup(other, empty)).toBe(true)
-    })
-
-    // The offer is spent, the need is not: that is what the header reminder
-    // reads, and it is the whole reason the two are separate questions.
-    test('a board that has had its turn still reports that it needs setting up', () => {
-        stubBindings()
-        const board = templateBoard()
-        const empty = {agents: [], projects: []}
-
-        rememberOffered(board.id)
-        expect(shouldOfferSetup(board, empty)).toBe(false)
-        expect(setupNeeded(board, empty)).toBe(true)
-
-        // And once the machine is configured, the reminder goes too.
-        expect(setupNeeded(board, {agents: [{name: 'claude'}], projects: [{name: 'webapp', path: '/src'}]})).toBe(false)
-    })
-})
-
-describe('components/acp/boardSetupWizard which steps it has', () => {
-    test('the board decides: nothing is asked that its automation never uses', () => {
-        expect(stepsFor(templateBoard())).toEqual(['project', 'agent', 'deploy', 'browser', 'done'])
-        expect(stepsFor(choresBoard())).toEqual(['project', 'agent', 'done'])
-
-        // A board that ships no automation of its own says nothing about the
-        // machine either, so nothing is ruled out for it.
-        expect(stepsFor(TestBlockFactory.createBoard())).toEqual(['project', 'agent', 'deploy', 'browser', 'done'])
-    })
-})
-
-describe('components/acp/boardSetupWizard steps', () => {
-    afterEach(() => {
-        delete anyWindow.go
-        localStorage.clear()
-        vi.clearAllMocks()
-    })
-
-    const renderWizard = (onClose = vi.fn(), board = templateBoard()) => render(() => wrapIntl(() =>
+    const renderWizard = (onClose = vi.fn()) => render(() => wrapIntl(() =>
         <BoardSetupWizard
-            board={board}
+            board={testBoard}
             onClose={onClose}
         />,
     ))
+
+    test('outside the desktop app there is no registry to read', async () => {
+        expect(await readRegistry()).toBeNull()
+    })
 
     test('the project step will not pass until there is one', async () => {
         const bindings = stubBindings()
@@ -158,7 +93,7 @@ describe('components/acp/boardSetupWizard steps', () => {
     })
 
     test('a refusal from Go is shown rather than swallowed', async () => {
-        const bindings = stubBindings({AddAgentProject: vi.fn().mockRejectedValue('/Users/me/src не является git-репозиторием')})
+        const bindings = stubBindings({AddAgentProject: vi.fn().mockRejectedValue('/Users/me/src не является git-проектом')})
         renderWizard()
         await waitFor(() => expect(bindings.ListAgentProjects).toHaveBeenCalled())
 
@@ -166,19 +101,22 @@ describe('components/acp/boardSetupWizard steps', () => {
         await waitFor(() => expect(screen.getByDisplayValue('webapp')).toBeInTheDocument())
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
 
-        await waitFor(() => expect(screen.getByText(/не является git-репозиторием/)).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByText(/не является git-проектом/)).toBeInTheDocument())
 
         // And it stays on the step, rather than walking on past the problem.
         expect(screen.getByRole('button', {name: 'Choose a folder…'})).toBeInTheDocument()
     })
 
     test('an agent is registered and made assignable', async () => {
-        const bindings = stubBindings({ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}]))})
+        const bindings = stubBindings({
+            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            BoardSetupPlan: vi.fn().mockResolvedValue(
+                plan([{kind: 'project', status: 'done'}, {kind: 'agent'}, {kind: 'done'}]),
+            ),
+        })
         renderWizard()
-        await waitFor(() => expect(screen.getByRole('button', {name: 'Next'})).toBeEnabled())
 
-        // The project is already there, so this step is passed by moving on.
-        userEvent.click(screen.getByRole('button', {name: 'Next'}))
+        // The project is answered, so the wizard opens on the question that is not.
         await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
@@ -187,40 +125,51 @@ describe('components/acp/boardSetupWizard steps', () => {
         expect(bindings.SyncAgentUsers).toHaveBeenCalled()
     })
 
-    test('deploy and testing are skippable, and the end takes the board’s automation', async () => {
+    test('deploy and testing are skippable, and skipping is remembered', async () => {
         const bindings = stubBindings({
             ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan([
+                {kind: 'project', status: 'done'},
+                {kind: 'agent', status: 'done'},
+                {kind: 'deploy', optional: true},
+                {kind: 'browser', optional: true},
+                {kind: 'done'},
+            ])),
         })
         const onClose = vi.fn()
         renderWizard(onClose)
-        await waitFor(() => expect(screen.getByRole('button', {name: 'Next'})).toBeEnabled())
-
-        userEvent.click(screen.getByRole('button', {name: 'Next'}))
-        await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
-        userEvent.click(screen.getByRole('button', {name: 'Next'}))
 
         await waitFor(() => expect(screen.getByText('Dokku host')).toBeInTheDocument())
         userEvent.click(screen.getByRole('button', {name: 'Skip'}))
-        await waitFor(() => expect(screen.getByRole('button', {name: 'Skip'})).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByText(/browser MCP server/)).toBeInTheDocument())
         userEvent.click(screen.getByRole('button', {name: 'Skip'}))
 
         await waitFor(() => expect(screen.getByRole('button', {name: 'Done'})).toBeInTheDocument())
         expect(bindings.AddDeployTarget).not.toHaveBeenCalled()
         expect(bindings.UpdateAgent).not.toHaveBeenCalled()
 
+        // A skip is the one answer no registry can be read for later, so it is
+        // the one the app has to remember.
+        expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'deploy', 'skipped')
+        expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'browser', 'skipped')
+
         userEvent.click(screen.getByRole('button', {name: 'Done'}))
         await waitFor(() => expect(bindings.SeedBoardAutomation).toHaveBeenCalled())
         expect(onClose).toHaveBeenCalled()
     })
 
-    test('a board that only runs an agent goes straight from the agent to the end', async () => {
+    test('a board is asked only what it asked to be asked', async () => {
         const bindings = stubBindings({
             ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'notes', path: '/src'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
+            BoardSetupPlan: vi.fn().mockResolvedValue(CHORES_PLAN),
         })
-        renderWizard(vi.fn(), choresBoard())
-        await waitFor(() => expect(screen.getByRole('button', {name: 'Next'})).toBeEnabled())
+        renderWizard()
+
+        // The board's own sentence about the step it asks for is shown, and it
+        // is also what says the plan has arrived.
+        await waitFor(() => expect(screen.getByText('Папка с домашними заметками')).toBeInTheDocument())
 
         // The two questions this board cannot answer are not even listed.
         expect(screen.queryByText('Deploy')).toBeNull()
@@ -240,14 +189,14 @@ describe('components/acp/boardSetupWizard steps', () => {
         const bindings = stubBindings({
             ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan([
+                {kind: 'project', status: 'done'},
+                {kind: 'agent', status: 'done'},
+                {kind: 'browser', optional: true},
+                {kind: 'done'},
+            ])),
         })
         renderWizard()
-        await waitFor(() => expect(screen.getByRole('button', {name: 'Next'})).toBeEnabled())
-        userEvent.click(screen.getByRole('button', {name: 'Next'}))
-        await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
-        userEvent.click(screen.getByRole('button', {name: 'Next'}))
-        await waitFor(() => expect(screen.getByText('Dokku host')).toBeInTheDocument())
-        userEvent.click(screen.getByRole('button', {name: 'Skip'}))
 
         await waitFor(() => expect(screen.getByText(/browser MCP server/)).toBeInTheDocument())
         userEvent.click(screen.getByRole('button', {name: 'Save'}))

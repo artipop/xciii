@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Match, Show, Switch, createEffect, createMemo, createSignal, onCleanup, onMount} from 'solid-js'
+import {Match, Show, Switch, createEffect, createMemo, createSignal, onMount} from 'solid-js'
 
 import {useIntl} from '../intl'
 
@@ -59,7 +59,8 @@ import CardLimitNotification from './cardLimitNotification'
 import Gallery from './gallery/gallery'
 import {BoardTourSteps, FINISHED, TOUR_BOARD, TOUR_CARD} from './onboardingTour'
 import ShareBoardTourStep from './onboardingTour/shareBoard/shareBoard'
-import BoardSetupWizard, {readRegistry, rememberOffered, setupNeeded, shouldOfferSetup} from './acp/boardSetupWizard'
+import BoardSetupWizard from './acp/boardSetupWizard'
+import {createSetupPlan, rememberOffered, setupNeeded, shouldOfferSetup} from './acp/boardSetup'
 
 type Props = {
     clientConfig?: ClientConfig
@@ -84,29 +85,17 @@ const CenterPanel = (props: Props) => {
     // quietly and waits to be asked, because a modal on every launch is how a
     // thing you meant to get round to becomes a thing you dismiss on reflex.
     const [showSetup, setShowSetup] = createSignal(false)
-    const [setupPending, setSetupPending] = createSignal(false)
+    const [plan, refreshPlan] = createSetupPlan(() => props.board)
+    const setupPending = () => setupNeeded(plan())
     createEffect(() => {
         const board = props.board
-        let cancelled = false
-        readRegistry().then((registry) => {
-            if (cancelled) {
-                return
-            }
-            setSetupPending(setupNeeded(board, registry))
-            if (shouldOfferSetup(board, registry)) {
-                // Marked as offered when it opens, not when it closes: closing
-                // the window, quitting mid-way or never touching it again all
-                // mean the same thing — it has had its turn.
-                rememberOffered(board.id)
-                setShowSetup(true)
-            }
-        }).catch(() => {
-            setShowSetup(false)
-            setSetupPending(false)
-        })
-        onCleanup(() => {
-            cancelled = true
-        })
+        if (shouldOfferSetup(plan(), board.id)) {
+            // Marked as offered when it opens, not when it closes: closing the
+            // window, quitting mid-way or never touching it again all mean the
+            // same thing — it has had its turn.
+            rememberOffered(board.id)
+            setShowSetup(true)
+        }
     })
     const [cardIdToFocusOnRender, setCardIdToFocusOnRender] = createSignal('')
     const [showHiddenCardCountNotification, setShowHiddenCardCountNotification] = createSignal(false)
@@ -434,9 +423,7 @@ const CenterPanel = (props: Props) => {
                         board={props.board}
                         onClose={() => {
                             setShowSetup(false)
-                            readRegistry().
-                                then((registry) => setSetupPending(setupNeeded(props.board, registry))).
-                                catch(() => undefined)
+                            refreshPlan()
                         }}
                     />
                 </RootPortal>

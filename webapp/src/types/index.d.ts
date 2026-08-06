@@ -52,6 +52,9 @@ export interface IAppWindow extends Window {
                 GetCardFlow(cardId: string): Promise<string>
                 GetBoardFlowOverview(boardId: string): Promise<string>
                 SeedBoardAutomation(boardId: string): Promise<void>
+                BoardSetupPlan(boardId: string): Promise<string>
+                RecordBoardSetupStep(boardId: string, step: string, status: string): Promise<void>
+                ListSetupSteps(): Promise<string>
                 AddFlow(entryJSON: string): Promise<string>
                 UpdateFlow(entryJSON: string): Promise<string>
                 RemoveFlow(name: string): Promise<void>

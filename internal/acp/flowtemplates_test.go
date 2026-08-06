@@ -35,6 +35,7 @@ type templateBoard struct {
 		Properties     struct {
 			Columns []ColumnSpec `json:"acpColumns"`
 			Flows   []FlowEntry  `json:"acpFlows"`
+			Setup   BoardSetup   `json:"acpSetup"`
 		} `json:"properties"`
 	} `json:"fields"`
 }
@@ -291,5 +292,57 @@ func TestTemplateBoardCarriesTheShippedAutomation(t *testing.T) {
 				t.Errorf("route %q stage %q repeats the column's action %q", f.Name, n.Column, n.Action)
 			}
 		}
+	}
+}
+
+// A template says which questions the machine has to answer before its
+// automation can run, and it may only ask for steps this build can carry out —
+// a step nobody implements is a screen the wizard silently drops.
+func TestEveryTemplateAsksForStepsThatExist(t *testing.T) {
+	for _, board := range readTemplateBoards(t) {
+		steps := board.Fields.Properties.Setup.Steps
+		if len(steps) == 0 {
+			t.Errorf("%q asks for nothing, so its setup is guessed from its columns", board.Title)
+			continue
+		}
+		t.Run(board.Title, func(t *testing.T) {
+			seen := map[string]bool{}
+			for _, step := range steps {
+				if _, ok := SetupStepDefinition(step.Kind); !ok {
+					t.Errorf("asks for %q, which no build can do", step.Kind)
+				}
+				if seen[step.Kind] {
+					t.Errorf("asks for %q twice", step.Kind)
+				}
+				seen[step.Kind] = true
+			}
+
+			// Nothing runs without a project and an agent, whatever else the
+			// board does or does not need.
+			for _, required := range []string{SetupStepProject, SetupStepAgent} {
+				if !seen[required] {
+					t.Errorf("does not ask for %q, without which nothing runs", required)
+				}
+			}
+			if steps[len(steps)-1].Kind != SetupStepDone {
+				t.Errorf("ends on %q rather than telling the person how to use what they set up", steps[len(steps)-1].Kind)
+			}
+
+			// And it must ask for what its own automation needs: a board with a
+			// deploy stage and no deploy step is one whose first publish fails
+			// with a registry nobody was asked to fill.
+			for _, c := range board.Fields.Properties.Columns {
+				switch c.Action {
+				case FlowActionDeploy:
+					if !seen[SetupStepDeploy] {
+						t.Errorf("runs a deploy in %q but never asks where to deploy to", c.Column)
+					}
+				case FlowActionTest:
+					if !seen[SetupStepBrowser] {
+						t.Errorf("tests in %q but never asks what to test with", c.Column)
+					}
+				}
+			}
+		})
 	}
 }

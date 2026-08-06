@@ -199,12 +199,20 @@ the one thing a rewrite must not quietly drop.
 - **First run**: a board made from a template opens a setup wizard by itself
   when the registries are still empty — a project and an agent are asked for
   (nothing runs without them), Dokku and a browser MCP server are offered and
-  skippable. Which steps it has is the board's own answer: the two that come
-  last are asked only by a board whose automation deploys and tests, so a board
-  of household chores is three steps long, and *Deploy targets…* is likewise
-  absent from its menu — a setting that could never do anything there. It can be
-  reopened from the board menu (*Set up this board…*), and closing it is
-  remembered for that board.
+  skippable. **Which steps it has is the board's own answer.** A template
+  declares them in `acpSetup`, beside the columns and routes it carries, and may
+  add a sentence of its own to a step ("the folder with your household notes")
+  or insist on one the app calls optional. It may only name steps from the
+  closed set `internal/acp/setup.go` implements — like the flow triggers, the
+  list is the app's, so a board cannot ask for something nothing can fill.
+  `BoardSetupPlan` resolves the whole answer in Go: what the board asked for (or,
+  failing that, what its automation implies), minus what this machine has
+  already answered, plus what was deliberately skipped, which is recorded per
+  board in the `board_setup` table because no registry can be read for it later.
+  The page renders that plan and works nothing out for itself; the board menu
+  reads the same one, which is why *Deploy targets…* is absent from a board that
+  never deploys. The wizard can be reopened from the board menu (*Set up this
+  board…*), and having been offered it once is remembered for that board.
 - **Columns** (column menu → *Agents in this column…*) say what happens when a
   card lands in one: the action, the crew of agents who work it, and how many of
   them at once. A card without an agent of its own goes to whoever of the crew is

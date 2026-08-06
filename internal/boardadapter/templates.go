@@ -33,7 +33,7 @@ var templateFiles embed.FS
 // TemplateVersion is bumped to push edited templates into installs that already
 // have them. Nothing else re-imports: a template somebody has since changed is
 // theirs until this number moves, and then it is replaced.
-const TemplateVersion = 1
+const TemplateVersion = 2
 
 // TemplateMarkerProperty is the board property each template carries its slug
 // in. Ids are regenerated on import and titles are the user's to change, so the

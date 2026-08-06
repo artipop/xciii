@@ -372,6 +372,41 @@ func (a *App) ListFlows(boardID string) (string, error) {
 	return string(out), nil
 }
 
+// BoardSetupPlan returns what this board needs answered before its automation
+// can run: which steps, in which order, which of them may be skipped and which
+// are already answered by this machine. It is one answer to one question — the
+// wizard walks it and the board menu reads it to know which registries are
+// worth opening at all.
+func (a *App) BoardSetupPlan(boardID string) (string, error) {
+	if a.mgr == nil {
+		return "", errACPDisabled
+	}
+	out, err := json.Marshal(a.mgr.SetupPlanFor(boardID))
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// RecordBoardSetupStep remembers what was done with a step — skipping above
+// all, which is the one answer no registry can be read for.
+func (a *App) RecordBoardSetupStep(boardID, step, status string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	return a.mgr.RecordSetupStep(boardID, step, status)
+}
+
+// ListSetupSteps returns the closed set of setup steps this build can carry
+// out, so a board can only ask for one that exists.
+func (a *App) ListSetupSteps() (string, error) {
+	out, err := json.Marshal(acp.SetupStepDefs)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
 // ListFlowTriggers returns the closed set of edge triggers the engine
 // implements, so the editor can only offer transitions that actually work.
 func (a *App) ListFlowTriggers() (string, error) {

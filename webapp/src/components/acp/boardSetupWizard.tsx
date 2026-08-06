@@ -3,29 +3,31 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import {For, Show, createSignal, onMount} from 'solid-js'
+import {For, Show, createEffect, createSignal, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
-import {UserSettings} from '../../userSettings'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
 import {agentBindings} from './agentProjectsDialog'
 import {AGENT_KINDS, textToServers, AdapterStatus} from './agentsDialog'
-import {agentColumn, boardCarriesAutomation, boardDeploys, boardTests} from './boardAutomation'
+import {agentColumn, createSetupPlan, recordSetupStep, SetupStep, SetupStepKind} from './boardSetup'
 
 import './boardSetupWizard.scss'
 
-// A board made from the template arrives knowing how the work is organised —
-// its columns, its routes, the fields a card picks a project and an agent
-// with. What it cannot know is the machine: which agent runs, in which
-// project, where it deploys, what it tests with. That lives in the desktop
-// registries, and until now the only way to find out it was empty was to drag a
-// card and read the complaint afterwards.
+// A board made from a template arrives knowing how the work is organised — its
+// columns, its routes, the fields a card picks a project and an agent with.
+// What it cannot know is the machine: which agent runs, in which project, where
+// it deploys, what it tests with. That lives in the desktop registries, and
+// until this existed the only way to find out one was empty was to drag a card
+// and read the complaint afterwards.
 //
-// This asks for it once, in the order the work needs it.
+// Which questions this board has is not decided here: Go resolves them into a
+// plan (internal/acp/setup.go) out of what the board asks for, what its
+// automation implies and what this machine already has. This walks that plan
+// and knows how to ask each kind of question — nothing more.
 
 // The playwright server, offered as the answer to "what tests with". It is the
 // shape any MCP client takes, so it can also be replaced by a paste.
@@ -40,43 +42,8 @@ type Registry = {
     projects: Array<{name: string, path: string}>
 }
 
-export function isBoardSetupAvailable(): boolean {
-    return Boolean(agentBindings()?.ListAgentProjects)
-}
-
-export {boardCarriesAutomation}
-
-// setupNeeded says the board runs something this machine cannot run yet. It is
-// true for as long as that is the case, which is what the reminder in the
-// header is for — it is not, on its own, a reason to open anything.
-export function setupNeeded(board: Board | undefined, registry: Registry | null): boolean {
-    if (!board || !isBoardSetupAvailable() || !boardCarriesAutomation(board)) {
-        return false
-    }
-    return Boolean(registry) && (registry!.agents.length === 0 || registry!.projects.length === 0)
-}
-
-// shouldOfferSetup is the rule for opening the wizard by itself, and it fires
-// once per board — on the first board you open after making it. It used to fire
-// on every launch until the setup was finished or refused, which meant the app
-// greeted you with a modal every morning for as long as you had not got round
-// to it. A thing you have already seen and closed is a reminder, not a dialog.
-export function shouldOfferSetup(board: Board | undefined, registry: Registry | null): boolean {
-    return setupNeeded(board, registry) && !offeredFor(board!.id)
-}
-
-// Remembered per board, so a board you have seen the wizard for is not the
-// answer for the next one you make. The stored value predates this and meant
-// "dismissed"; having dismissed it is having been offered it, so old settings
-// carry over without a migration.
-export function offeredFor(boardId: string): boolean {
-    return Boolean(UserSettings.acpSetupDismissed[boardId])
-}
-
-export function rememberOffered(boardId: string): void {
-    UserSettings.setAcpSetupDismissed(boardId)
-}
-
+// readRegistry is what the steps show back: the names already registered. The
+// plan says whether a question is answered; this says what the answer was.
 export async function readRegistry(): Promise<Registry | null> {
     const bindings = agentBindings()
     if (!bindings?.ListAgentProjects || !bindings.ListAgents) {
@@ -91,46 +58,43 @@ type Props = {
     onClose: () => void
 }
 
-const STEP_PROJECT = 'project'
-const STEP_AGENT = 'agent'
-const STEP_DEPLOY = 'deploy'
-const STEP_BROWSER = 'browser'
-const STEP_DONE = 'done'
-
-type Step = typeof STEP_PROJECT | typeof STEP_AGENT | typeof STEP_DEPLOY | typeof STEP_BROWSER | typeof STEP_DONE
-
-// stepsFor is the wizard's shape, and the board decides it: a project and an
-// agent are what nothing runs without, and the two that follow are asked only by
-// a board that has somewhere to deploy to and something to test — the everyday
-// templates have neither, and an unanswerable question reads as a missing
-// feature.
-export function stepsFor(board?: Board): Step[] {
-    const steps: Step[] = [STEP_PROJECT, STEP_AGENT]
-    if (boardDeploys(board)) {
-        steps.push(STEP_DEPLOY)
-    }
-    if (boardTests(board)) {
-        steps.push(STEP_BROWSER)
-    }
-    steps.push(STEP_DONE)
-    return steps
-}
+const STEP_PROJECT: SetupStepKind = 'project'
+const STEP_AGENT: SetupStepKind = 'agent'
+const STEP_DEPLOY: SetupStepKind = 'deploy'
+const STEP_BROWSER: SetupStepKind = 'browser'
+const STEP_DONE: SetupStepKind = 'done'
 
 const BoardSetupWizard = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [step, setStep] = createSignal<Step>(STEP_PROJECT)
+    const [plan, refreshPlan] = createSetupPlan(() => props.board)
+    const [step, setStep] = createSignal<SetupStepKind>(STEP_PROJECT)
     const [registry, setRegistry] = createSignal<Registry>({agents: [], projects: []})
     const [error, setError] = createSignal('')
     const [busy, setBusy] = createSignal(false)
 
-    const steps = () => stepsFor(props.board)
+    // The steps this board asks for, in the order it asks for them. A plan that
+    // has not arrived yet is a dialog with one step, which is what it should
+    // look like while it is loading: nothing to answer.
+    const steps = (): SetupStep[] => plan()?.steps || []
 
     // Where the wizard goes on from a step: the next one this board asks for.
-    const after = (current: Step): Step => {
+    const after = (current: SetupStepKind): SetupStepKind => {
         const order = steps()
-        return order[order.indexOf(current) + 1] || STEP_DONE
+        const next = order[order.findIndex((s) => s.kind === current) + 1]
+        return next ? next.kind : STEP_DONE
+    }
+
+    // The step being shown, if this board asks for it at all — its own sentence
+    // hangs off it.
+    const stepAt = (kind: SetupStepKind) => steps().find((s) => s.kind === kind)
+
+    // Skipping is the one answer no registry can be read for later, so it is
+    // recorded; the plan reads it back as the step's status.
+    const skip = (kind: SetupStepKind) => {
+        recordSetupStep(props.board.id, kind, 'skipped').catch(() => undefined)
+        setStep(after(kind))
     }
 
     // Step 1: a project.
@@ -169,16 +133,32 @@ const BoardSetupWizard = (props: Props) => {
         refresh()
     })
 
+    // The wizard opens on the first question this board still has. Walking
+    // somebody through what they have already answered is how a setup dialog
+    // earns being clicked through without reading. Only when the plan first
+    // arrives, though: it is refetched after every answer, and moving the
+    // person then would take the step out of their hands.
+    let opened = false
+    createEffect(() => {
+        const list = steps()
+        if (opened || list.length === 0) {
+            return
+        }
+        opened = true
+        setStep((list.find((s) => s.status === 'pending') || list[0]).kind)
+    })
+
     const adapterStatus = () => adapters().find((a) => a.kind === agentKind())
 
     // Every step does its work through the same registry calls the dialogs use,
     // and shows what Go says when it refuses.
-    const run = async (work: () => Promise<void>, next: Step) => {
+    const run = async (work: () => Promise<void>, next: SetupStepKind) => {
         setError('')
         setBusy(true)
         try {
             await work()
             await refresh()
+            refreshPlan()
             setStep(next)
         } catch (e) {
             setError(String(e))
@@ -372,7 +352,7 @@ const BoardSetupWizard = (props: Props) => {
         default:
             return (
                 <div class='BoardSetupWizard__step'>
-                    <p>{intl.formatMessage({id: 'BoardSetup.done-how', defaultMessage: 'Drag a card into "{column}" — creating it there does not start anything, the trigger is the move. Pick a route in the card’s route field, or the card will only be worked on where it stands.'}, {column: agentColumn(props.board)})}</p>
+                    <p>{intl.formatMessage({id: 'BoardSetup.done-how', defaultMessage: 'Drag a card into "{column}" — creating it there does not start anything, the trigger is the move. Pick a route in the card’s route field, or the card will only be worked on where it stands.'}, {column: agentColumn(plan())})}</p>
                     <p class='BoardSetupWizard__hint'>
                         {intl.formatMessage({id: 'BoardSetup.done-branch', defaultMessage: 'For transitions that wait for a branch to be merged, fill the card’s "branch" property: that is the branch being watched.'})}
                     </p>
@@ -413,7 +393,7 @@ const BoardSetupWizard = (props: Props) => {
                     >
                         {intl.formatMessage({id: 'BoardSetup.save', defaultMessage: 'Save'})}
                     </Button>
-                    <Button onClick={() => setStep(after(STEP_DEPLOY))}>
+                    <Button onClick={() => skip(STEP_DEPLOY)}>
                         {intl.formatMessage({id: 'BoardSetup.skip', defaultMessage: 'Skip'})}
                     </Button>
                 </>
@@ -428,7 +408,7 @@ const BoardSetupWizard = (props: Props) => {
                     >
                         {intl.formatMessage({id: 'BoardSetup.save', defaultMessage: 'Save'})}
                     </Button>
-                    <Button onClick={() => setStep(after(STEP_BROWSER))}>
+                    <Button onClick={() => skip(STEP_BROWSER)}>
                         {intl.formatMessage({id: 'BoardSetup.skip', defaultMessage: 'Skip'})}
                     </Button>
                 </>
@@ -445,7 +425,7 @@ const BoardSetupWizard = (props: Props) => {
         }
     }
 
-    const title = (of: Step) => {
+    const title = (of: SetupStepKind) => {
         switch (of) {
         case STEP_PROJECT:
             return intl.formatMessage({id: 'BoardSetup.step-project', defaultMessage: 'Project'})
@@ -470,13 +450,20 @@ const BoardSetupWizard = (props: Props) => {
             <div class='BoardSetupWizard__content'>
                 <ol class='BoardSetupWizard__steps'>
                     <For each={steps()}>
-                        {(name) => (
+                        {(entry) => (
                             <li
-                                class={name === step() ? 'BoardSetupWizard__stepName--current' : ''}
-                            >{title(name)}</li>
+                                class={entry.kind === step() ? 'BoardSetupWizard__stepName--current' : ''}
+                            >{title(entry.kind)}</li>
                         )}
                     </For>
                 </ol>
+
+                {/* The board's own sentence about this step, when it has one:
+                    "the folder with your household notes" says more than any
+                    wording of ours that has to fit every board. */}
+                <Show when={stepAt(step())?.hint}>
+                    <p class='BoardSetupWizard__hint'>{stepAt(step())!.hint}</p>
+                </Show>
 
                 {body()}
 

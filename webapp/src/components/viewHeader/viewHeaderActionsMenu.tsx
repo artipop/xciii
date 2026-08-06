@@ -22,8 +22,8 @@ import AgentsDialog, {isAgentsAvailable} from '../acp/agentsDialog'
 import DeployTargetsDialog, {isDeployTargetsAvailable} from '../acp/deployTargetsDialog'
 import WorkflowsDialog, {isWorkflowsAvailable} from '../acp/workflowsDialog'
 import PlanningDialog, {isPlanningAvailable} from '../acp/planningDialog'
-import BoardSetupWizard, {isBoardSetupAvailable} from '../acp/boardSetupWizard'
-import {boardDeploys} from '../acp/boardAutomation'
+import BoardSetupWizard from '../acp/boardSetupWizard'
+import {createSetupPlan, isBoardSetupAvailable, planHasStep} from '../acp/boardSetup'
 
 type Props = {
     board: Board
@@ -51,6 +51,7 @@ function onExportCsvTrigger(board: Board, activeView: BoardView, cards: Card[], 
 
 const ViewHeaderActionsMenu = (props: Props) => {
     const intl = useIntl()
+    const [plan] = createSetupPlan(() => props.board)
     const [showAgentRepos, setShowAgentRepos] = createSignal(false)
     const [showAgents, setShowAgents] = createSignal(false)
     const [showDeployTargets, setShowDeployTargets] = createSignal(false)
@@ -103,10 +104,11 @@ const ViewHeaderActionsMenu = (props: Props) => {
                             />
                         </Show>
 
-                        {/* The registries are per machine, but the questions are
-                            per board: a board that never deploys should not be
-                            offered somewhere to deploy to. */}
-                        <Show when={isDeployTargetsAvailable() && boardDeploys(props.board)}>
+                        {/* The registries are per machine, but the questions
+                            are per board, and the board's own setup plan is
+                            where that is decided — one answer, the same one the
+                            wizard walks. */}
+                        <Show when={isDeployTargetsAvailable() && planHasStep(plan(), 'deploy')}>
                             <Menu.Text
                                 id='deployTargets'
                                 name={intl.formatMessage({id: 'ViewHeader.deploy-targets', defaultMessage: 'Deploy targets…'})}

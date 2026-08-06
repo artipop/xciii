@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@solidjs/testing-library'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 
 import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
@@ -85,9 +85,11 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
     // that can never do anything.
     describe('the board decides which registries are worth opening', () => {
         const anyWindow = window as any
-        const openMenuFor = (properties: Record<string, unknown>) => {
+        const openMenuFor = (steps: Array<{kind: string}>) => {
             const themed = TestBlockFactory.createBoard()
-            themed.properties = properties as any
+            anyWindow.go.main.App.BoardSetupPlan = vi.fn().mockResolvedValue(
+                JSON.stringify({boardId: themed.id, steps, declared: true, automated: true}),
+            )
             render(() =>
                 wrapIntl(() =>
                     <AppStoreProvider store={store}>
@@ -103,23 +105,29 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
         }
 
         beforeEach(() => {
-            anyWindow.go = {main: {App: {ListDeployTargets: vi.fn(), ListAgentProjects: vi.fn()}}}
+            anyWindow.go = {main: {App: {
+                ListDeployTargets: vi.fn(),
+                ListAgentProjects: vi.fn(),
+                BoardSetupPlan: vi.fn().mockResolvedValue('{"steps":[]}'),
+            }}}
         })
         afterEach(() => {
             delete anyWindow.go
         })
 
-        test('a board that publishes is offered somewhere to publish to', () => {
-            openMenuFor({acpColumns: [{column: 'Deploy', action: 'deploy'}], acpFlows: []})
-            expect(screen.getByRole('button', {name: 'Deploy targets…'})).toBeInTheDocument()
+        test('a board that publishes is offered somewhere to publish to', async () => {
+            openMenuFor([{kind: 'project'}, {kind: 'deploy'}])
+            await waitFor(() => expect(screen.getByRole('button', {name: 'Deploy targets…'})).toBeInTheDocument())
         })
 
-        test('a board that only runs an agent is not', () => {
-            openMenuFor({acpColumns: [{column: 'Агент готовит', action: 'agent'}], acpFlows: []})
-            expect(screen.queryByRole('button', {name: 'Deploy targets…'})).toBeNull()
+        test('a board that only runs an agent is not', async () => {
+            openMenuFor([{kind: 'project'}, {kind: 'agent'}])
 
-            // The registries it does use are still there.
-            expect(screen.getByRole('button', {name: 'Projects…'})).toBeInTheDocument()
+            // The registries it does use are still there…
+            await waitFor(() => expect(screen.getByRole('button', {name: 'Projects…'})).toBeInTheDocument())
+
+            // …and the one it would never fill is not.
+            expect(screen.queryByRole('button', {name: 'Deploy targets…'})).toBeNull()
         })
     })
 
