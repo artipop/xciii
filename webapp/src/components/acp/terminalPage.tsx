@@ -3,7 +3,7 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import {Show, createSignal, onCleanup, onMount} from 'solid-js'
+import {For, Show, createSignal, onCleanup, onMount} from 'solid-js'
 import type {JSX} from 'solid-js'
 import {useParams} from '@solidjs/router'
 
@@ -39,7 +39,29 @@ type TerminalInfo = {
     exitCode: number
 }
 
-const TerminalPage = (): JSX.Element => {
+// The keys a phone keyboard does not have, and a CLI cannot be worked without.
+// Ctrl+C is the one that matters — it is how a runaway agent is stopped — and
+// the arrows are how its menus are answered.
+const softKeys = [
+    {label: 'esc', data: '\x1b'},
+    {label: 'tab', data: '\t'},
+    {label: '^C', data: '\x03'},
+    {label: '↑', data: '\x1b[A'},
+    {label: '↓', data: '\x1b[B'},
+    {label: '←', data: '\x1b[D'},
+    {label: '→', data: '\x1b[C'},
+    {label: '⏎', data: '\r'},
+]
+
+type TerminalProps = {
+
+    // Whether to draw the soft key row. It is for a phone: on a desktop the
+    // keyboard already has these, and a row of buttons would only take screen
+    // away from the CLI.
+    softKeys?: boolean
+}
+
+const TerminalPage = (props: TerminalProps = {}): JSX.Element => {
     const intl = useIntl()
     const params = useParams<{terminalId: string}>()
     const terminalId = params.terminalId
@@ -219,6 +241,26 @@ const TerminalPage = (): JSX.Element => {
                 class='AcpTerminalPage__screen'
                 ref={host}
             />
+            <Show when={props.softKeys}>
+                <div class='AcpTerminalPage__keys'>
+                    <For each={softKeys}>
+                        {(key) => (
+                            <button
+                                type='button'
+                                class='AcpTerminalPage__key'
+
+                                // Keeping focus in the terminal is the whole
+                                // point: a button that steals it closes the
+                                // phone's keyboard on every tap.
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => writeToPty(key.data)}
+                            >
+                                {key.label}
+                            </button>
+                        )}
+                    </For>
+                </div>
+            </Show>
         </div>
     )
 }

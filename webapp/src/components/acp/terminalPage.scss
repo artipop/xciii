@@ -1,3 +1,5 @@
+@import '../../styles/typography';
+
 .AcpTerminalPage {
     display: flex;
     flex-direction: column;
@@ -99,5 +101,29 @@
         flex: 1 1 auto;
         min-height: 0;
         padding: 4px 8px;
+    }
+
+    // The soft keys sit under the screen and above the phone's own keyboard,
+    // which is why the row scrolls rather than wraps: a second line would move
+    // the terminal every time the keyboard opened.
+    &__keys {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 6px;
+        overflow-x: auto;
+        padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    &__key {
+        @include data;
+
+        min-width: 44px;
+        min-height: 40px;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-sm);
+        background: rgba(var(--ink-rgb), 0.08);
+        color: rgb(var(--ink-rgb));
+        cursor: pointer;
     }
 }

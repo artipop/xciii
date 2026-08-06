@@ -20,6 +20,11 @@ import FBRoute from './route'
 // browser build, which cannot open one, never pays for the emulator.
 const TerminalPage = lazy(() => import('./components/acp/terminalPage'))
 
+// The board on a phone: what is waiting for a person, and the terminals it is
+// waiting in. Lazy for the same reason — a desktop window never opens these,
+// and a browser build should not carry them.
+const MobilePage = lazy(() => import('./pages/mobile/mobilePage'))
+
 const UUID_REGEX = new RegExp(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
 
 // The pre-teams URL scheme survives in bookmarks: resolve the board, then
@@ -101,6 +106,23 @@ const AppRouter: Component = () => {
                 component={() => (
                     <Suspense fallback={null}>
                         <TerminalPage/>
+                    </Suspense>
+                )}
+            />
+
+            <FBRoute
+                path='/m'
+                component={() => (
+                    <Suspense fallback={null}>
+                        <MobilePage/>
+                    </Suspense>
+                )}
+            />
+            <FBRoute
+                path='/m/terminal/:terminalId'
+                component={() => (
+                    <Suspense fallback={null}>
+                        <TerminalPage softKeys={true}/>
                     </Suspense>
                 )}
             />
