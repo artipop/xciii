@@ -401,6 +401,10 @@ window-position autosave.
   board rather than working on it.
 - [docs/plan.md](docs/plan.md) — what is done, what is left, and the open decisions
   this repository starts with.
+- [docs/sources.md](docs/sources.md) — a design for turning outside events (an
+  OAuth API, a notification on a phone) into cards, through a documented plugin
+  protocol a source can be written against in Go or TypeScript. A proposal:
+  none of it is built yet.
 - [docs/desktop-port-and-websocket.md](docs/desktop-port-and-websocket.md) — why the
   app serves itself over a local HTTP port, and why that is now on purpose.
 - [docs/solidjs-migration-plan.md](docs/solidjs-migration-plan.md) — an unfinished
