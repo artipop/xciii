@@ -3,7 +3,7 @@
 import {Show, createSignal} from 'solid-js'
 import {A, Navigate, useNavigate} from '@solidjs/router'
 
-import {FormattedMessage} from '../intl'
+import {FormattedMessage, useIntl} from '../intl'
 
 import {useAppSelector, useAppStore} from '../store/hooks'
 import {getLoggedIn} from '../store/users'
@@ -13,6 +13,7 @@ import client from '../octoClient'
 import './registerPage.scss'
 
 const RegisterPage = () => {
+    const intl = useIntl()
     const [username, setUsername] = createSignal('')
     const [password, setPassword] = createSignal('')
     const [email, setEmail] = createSignal('')
@@ -60,7 +61,7 @@ const RegisterPage = () => {
                     <div class='email'>
                         <input
                             id='login-email'
-                            placeholder={'Enter email'}
+                            placeholder={intl.formatMessage({id: 'register.email-placeholder', defaultMessage: 'Enter email'})}
                             value={email()}
                             onInput={(e) => setEmail(e.target.value.trim())}
                         />
@@ -68,7 +69,7 @@ const RegisterPage = () => {
                     <div class='username'>
                         <input
                             id='login-username'
-                            placeholder={'Enter username'}
+                            placeholder={intl.formatMessage({id: 'login.username-placeholder', defaultMessage: 'Enter username'})}
                             value={username()}
                             onInput={(e) => setUsername(e.target.value.trim())}
                         />
@@ -77,7 +78,7 @@ const RegisterPage = () => {
                         <input
                             id='login-password'
                             type='password'
-                            placeholder={'Enter password'}
+                            placeholder={intl.formatMessage({id: 'login.password-placeholder', defaultMessage: 'Enter password'})}
                             value={password()}
                             onInput={(e) => setPassword(e.target.value)}
                         />

@@ -175,7 +175,7 @@ describe('src/components/kanban/kanbanCard', () => {
         expect(elementButtonDelete).not.toBeNull()
         userEvent.click(elementButtonDelete)
 
-        const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
+        const confirmDialog = screen.getByTitle('Confirmation dialog')
         expect(confirmDialog).toBeDefined()
         const confirmButton = within(confirmDialog).getByRole('button', {name: 'Delete'})
         expect(confirmButton).toBeDefined()

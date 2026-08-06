@@ -3,7 +3,7 @@
 
 import {render, screen, fireEvent} from '@solidjs/testing-library'
 
-import {mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
+import {mockAppStore, mockDOM, wrapDNDIntl, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
@@ -38,7 +38,7 @@ describe('components/blocksEditor/editor', () => {
     const store = mockAppStore(state)
 
     test('should match snapshot', async () => {
-        const {container} = render(() => wrapDNDIntl(() =>
+        const {container} = render(() => wrapIntl(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Editor
                     id='block-id'
@@ -48,32 +48,32 @@ describe('components/blocksEditor/editor', () => {
                     onSave={vi.fn()}
                 />
             </AppStoreProvider>,
-        ))
+        )))
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot on empty', async () => {
-        const {container} = render(() => wrapDNDIntl(() =>
+        const {container} = render(() => wrapIntl(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Editor
                     boardId='fake-board-id'
                     onSave={vi.fn()}
                 />
             </AppStoreProvider>,
-        ))
+        )))
         expect(container).toMatchSnapshot()
     })
 
     test('should call onSave after introduce text and hit enter', async () => {
         const onSave = vi.fn()
-        render(() => wrapDNDIntl(() =>
+        render(() => wrapIntl(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <Editor
                     boardId='fake-board-id'
                     onSave={onSave}
                 />
             </AppStoreProvider>,
-        ))
+        )))
         let input = screen.getByDisplayValue('')
         expect(onSave).not.toHaveBeenCalled()
         fireEvent.input(input, {target: {value: '/title'}})

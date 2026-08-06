@@ -99,7 +99,7 @@ exports[`components/blocksEditor/rootInput > should match Input snapshot with me
         <div
           class="RootInput__placeholder"
         >
-          Introduce your text or your slash command
+          Type your text, or a slash command
         </div>
         <input
           aria-activedescendant="cl-2-option-0"

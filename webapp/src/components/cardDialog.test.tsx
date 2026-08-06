@@ -197,7 +197,7 @@ describe('components/cardDialog', () => {
         const buttonDelete = screen.getByRole('button', {name: 'Delete'})
         userEvent.click(buttonDelete)
 
-        const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
+        const confirmDialog = screen.getByTitle('Confirmation dialog')
         expect(confirmDialog).toBeDefined()
 
         const confirmButton = screen.getByTitle('Delete')
@@ -231,7 +231,7 @@ describe('components/cardDialog', () => {
         const buttonDelete = screen.getByRole('button', {name: 'Delete'})
         userEvent.click(buttonDelete)
 
-        const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
+        const confirmDialog = screen.getByTitle('Confirmation dialog')
         expect(confirmDialog).toBeDefined()
 
         const cancelButton = screen.getByTitle('Cancel')

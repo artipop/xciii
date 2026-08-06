@@ -3,6 +3,7 @@
 import {Show, createSignal} from 'solid-js'
 import {A} from '@solidjs/router'
 
+import {useIntl} from '../intl'
 import Button from '../widgets/buttons/button'
 import client from '../octoClient'
 import './changePasswordPage.scss'
@@ -11,6 +12,7 @@ import {useAppSelector} from '../store/hooks'
 import {getMe} from '../store/users'
 
 const ChangePasswordPage = () => {
+    const intl = useIntl()
     const [oldPassword, setOldPassword] = createSignal('')
     const [newPassword, setNewPassword] = createSignal('')
     const [errorMessage, setErrorMessage] = createSignal('')
@@ -51,7 +53,7 @@ const ChangePasswordPage = () => {
                         <input
                             id='login-oldpassword'
                             type='password'
-                            placeholder={'Enter current password'}
+                            placeholder={intl.formatMessage({id: 'ChangePassword.current-placeholder', defaultMessage: 'Enter current password'})}
                             value={oldPassword()}
                             onInput={(e) => {
                                 setOldPassword(e.target.value)
@@ -63,7 +65,7 @@ const ChangePasswordPage = () => {
                         <input
                             id='login-newpassword'
                             type='password'
-                            placeholder={'Enter new password'}
+                            placeholder={intl.formatMessage({id: 'ChangePassword.new-placeholder', defaultMessage: 'Enter new password'})}
                             value={newPassword()}
                             onInput={(e) => {
                                 setNewPassword(e.target.value)

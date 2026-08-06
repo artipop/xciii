@@ -107,6 +107,21 @@
             padding: 24px 32px;
             justify-content: space-between;
             align-items: flex-start;
+
+            // The dialog itself is what scrolls, so the toolbar used to scroll
+            // away with the content — and with it the only way out of a long
+            // card besides Esc. It stays put instead: it is the way out, and a
+            // way out you have to scroll back up to find is not one.
+            position: sticky;
+            top: 0;
+            @include z-index(modal);
+
+            // Opaque, or the content would show through what it slides under.
+            background-color: rgb(var(--surface-bg-rgb));
+
+            // The dialog clips its own corners, but a sticky child painted over
+            // them squares them off again.
+            border-radius: var(--modal-rad) var(--modal-rad) 0 0;
         }
 
         .toolbar--right {

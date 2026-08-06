@@ -962,7 +962,7 @@ exports[`src/components/gallery/GalleryCard > without block content > return Gal
         </div>
         <div
           class="box-area"
-          title="Confirmation Dialog Box"
+          title="Confirmation dialog"
         >
           <h3
             class="text-heading5"

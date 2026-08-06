@@ -6,7 +6,7 @@ import type {JSX} from 'solid-js'
 import './searchDialog.scss'
 import debounce from 'lodash/debounce'
 
-import {FormattedMessage} from '../../intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import Dialog from '../dialog'
 import {Utils} from '../../utils'
@@ -61,6 +61,7 @@ export const EmptyResults = (props: {query: string}): JSX.Element => (
 )
 
 const SearchDialog = (props: Props): JSX.Element => {
+    const intl = useIntl()
     const [results, setResults] = createSignal<JSX.Element[]>(props.initialData || [])
     const [isSearching, setIsSearching] = createSignal<boolean>(false)
     const [searchQuery, setSearchQuery] = createSignal<string>('')
@@ -116,7 +117,7 @@ const SearchDialog = (props: Props): JSX.Element => {
                         <Search/>
                         <input
                             class='searchQuery'
-                            placeholder='Search for boards'
+                            placeholder={intl.formatMessage({id: 'SearchDialog.placeholder', defaultMessage: 'Search for boards'})}
                             type='text'
                             onInput={(e) => debouncedSearchHandler(e.target.value)}
                             autofocus={true}

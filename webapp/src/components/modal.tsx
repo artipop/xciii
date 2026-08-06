@@ -3,6 +3,7 @@
 import {onCleanup, onMount} from 'solid-js'
 import type {ParentComponent} from 'solid-js'
 
+import {useIntl} from '../intl'
 import IconButton from '../widgets/buttons/iconButton'
 import CloseIcon from '../widgets/icons/close'
 import './modal.scss'
@@ -13,6 +14,7 @@ type Props = {
 }
 
 const Modal: ParentComponent<Props> = (props) => {
+    const intl = useIntl()
     let node: HTMLDivElement | undefined
 
     const closeOnBlur = (e: Event) => {
@@ -38,7 +40,7 @@ const Modal: ParentComponent<Props> = (props) => {
                 <IconButton
                     onClick={() => props.onClose()}
                     icon={<CloseIcon/>}
-                    title={'Close'}
+                    title={intl.formatMessage({id: 'Modal.close', defaultMessage: 'Close'})}
                 />
             </div>
             {props.children}

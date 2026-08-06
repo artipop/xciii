@@ -43,7 +43,7 @@ exports[`/components/confirmationDialogBox > confirmDialog should match snapshot
         </div>
         <div
           class="box-area"
-          title="Confirmation Dialog Box"
+          title="Confirmation dialog"
         >
           <h3
             class="text-heading5"
@@ -131,7 +131,7 @@ exports[`/components/confirmationDialogBox > confirmDialog with Confirm Button T
         </div>
         <div
           class="box-area"
-          title="Confirmation Dialog Box"
+          title="Confirmation dialog"
         >
           <h3
             class="text-heading5"

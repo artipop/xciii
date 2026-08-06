@@ -3,6 +3,7 @@
 import {Show, createContext, createEffect, createSignal, onMount, useContext} from 'solid-js'
 import type {Accessor, JSX} from 'solid-js'
 
+import {useIntl} from '../../intl'
 import CompassIcon from '../../widgets/icons/compassIcon'
 
 import MenuUtil from './menuUtil'
@@ -25,6 +26,7 @@ type SubMenuOptionProps = {
 }
 
 function SubMenuOption(props: SubMenuOptionProps): JSX.Element {
+    const intl = useIntl()
     const [isOpen, setIsOpen] = createSignal(false)
     const isHovering = useContext(HoveringContext)
 
@@ -85,7 +87,7 @@ function SubMenuOption(props: SubMenuOptionProps): JSX.Element {
                         <div class='menu-options hideOnWidescreen'>
                             <TextOption
                                 id='menu-cancel'
-                                name={'Cancel'}
+                                name={intl.formatMessage({id: 'Menu.cancel', defaultMessage: 'Cancel'})}
                                 class='menu-cancel'
                                 onClick={() => undefined}
                             />

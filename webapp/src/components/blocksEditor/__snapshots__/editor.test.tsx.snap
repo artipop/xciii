@@ -44,7 +44,7 @@ exports[`components/blocksEditor/editor > should match snapshot on empty 1`] = `
           <div
             class="RootInput__placeholder"
           >
-            Introduce your text or your slash command
+            Type your text, or a slash command
           </div>
           <input
             aria-controls="cl-0"

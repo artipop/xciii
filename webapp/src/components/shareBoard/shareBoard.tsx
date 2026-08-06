@@ -451,7 +451,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                                 <Button
                                     emphasis='secondary'
                                     size='medium'
-                                    title='Copy public link'
+                                    title={intl.formatMessage({id: 'ShareBoard.copy-link-title', defaultMessage: 'Copy public link'})}
                                     icon={
                                         <CompassIcon
                                             icon='content-copy'

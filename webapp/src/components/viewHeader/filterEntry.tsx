@@ -62,7 +62,7 @@ const FilterEntry = (props: Props): JSX.Element => {
                     <Menu>
                         <Menu.Text
                             id={'title'}
-                            name={'Title'}
+                            name={intl.formatMessage({id: 'Filter.title-property', defaultMessage: 'Title'})}
                             onClick={(optionId: string) => {
                                 const {view, filter} = props
                                 const filterIndex = view.fields.filter.filters.indexOf(filter)

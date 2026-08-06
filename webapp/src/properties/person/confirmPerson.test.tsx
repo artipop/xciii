@@ -157,7 +157,7 @@ describe('properties/person', () => {
             expect(option).not.toBeNull()
             userEvent.click(option as Element)
 
-            const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
+            const confirmDialog = screen.getByTitle('Confirmation dialog')
             expect(confirmDialog).toBeDefined()
             const confirmButton = within(confirmDialog).getByRole('button', {name: 'Add to board'})
             expect(confirmButton).toBeDefined()
@@ -207,7 +207,7 @@ describe('properties/person', () => {
             expect(option).not.toBeNull()
             userEvent.click(option as Element)
 
-            const confirmDialog = screen.getByTitle('Confirmation Dialog Box')
+            const confirmDialog = screen.getByTitle('Confirmation dialog')
             expect(confirmDialog).toBeDefined()
             const cancelButton = within(confirmDialog).getByRole('button', {name: 'Cancel'})
             expect(cancelButton).toBeDefined()

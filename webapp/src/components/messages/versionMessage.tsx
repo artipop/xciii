@@ -61,7 +61,7 @@ const VersionMessage = () => {
                     />
 
                     <Button
-                        title='Learn more'
+                        title={intl.formatMessage({id: 'VersionMessage.learn-more', defaultMessage: 'Learn more'})}
                         size='xsmall'
                         emphasis='primary'
                         onClick={() => {

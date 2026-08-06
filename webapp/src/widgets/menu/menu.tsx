@@ -3,6 +3,8 @@
 import {For, children, createSignal} from 'solid-js'
 import type {Component, JSX} from 'solid-js'
 
+import {useIntl} from '../../intl'
+
 import SeparatorOption from './separatorOption'
 import SwitchOption from './switchOption'
 import TextOption from './textOption'
@@ -33,6 +35,7 @@ const Menu: Component<Props> & {
     TextInput: typeof textInputOption
     Label: typeof LabelOption
 } = (props: Props) => {
+    const intl = useIntl()
     const [hovering, setHovering] = createSignal<JSX.Element|null>(null)
     const resolved = children(() => props.children)
 
@@ -75,7 +78,7 @@ const Menu: Component<Props> & {
                 <div class='menu-options hideOnWidescreen'>
                     <TextOption
                         id='menu-cancel'
-                        name={'Cancel'}
+                        name={intl.formatMessage({id: 'Menu.cancel', defaultMessage: 'Cancel'})}
                         class='menu-cancel'
                         onClick={onCancel}
                     />

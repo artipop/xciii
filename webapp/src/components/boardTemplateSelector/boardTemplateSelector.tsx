@@ -168,7 +168,7 @@ const BoardTemplateSelector = (props: Props) => {
                                 size='medium'
                                 onClick={props.onClose}
                                 icon={<CloseIcon/>}
-                                title={'Close'}
+                                title={intl.formatMessage({id: 'Modal.close', defaultMessage: 'Close'})}
                             />
                         </Show>
                     </div>

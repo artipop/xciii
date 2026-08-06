@@ -3,7 +3,7 @@
 import {Show, createSignal} from 'solid-js'
 import {A, Navigate, useLocation, useNavigate} from '@solidjs/router'
 
-import {FormattedMessage} from '../intl'
+import {FormattedMessage, useIntl} from '../intl'
 
 import {useAppSelector, useAppStore} from '../store/hooks'
 import {getLoggedIn} from '../store/users'
@@ -13,6 +13,7 @@ import client from '../octoClient'
 import './loginPage.scss'
 
 const LoginPage = () => {
+    const intl = useIntl()
     const [username, setUsername] = createSignal('')
     const [password, setPassword] = createSignal('')
     const [errorMessage, setErrorMessage] = createSignal('')
@@ -56,7 +57,7 @@ const LoginPage = () => {
                     <div class='username'>
                         <input
                             id='login-username'
-                            placeholder={'Enter username'}
+                            placeholder={intl.formatMessage({id: 'login.username-placeholder', defaultMessage: 'Enter username'})}
                             value={username()}
                             onInput={(e) => {
                                 setUsername(e.target.value)
@@ -68,7 +69,7 @@ const LoginPage = () => {
                         <input
                             id='login-password'
                             type='password'
-                            placeholder={'Enter password'}
+                            placeholder={intl.formatMessage({id: 'login.password-placeholder', defaultMessage: 'Enter password'})}
                             value={password()}
                             onInput={(e) => {
                                 setPassword(e.target.value)

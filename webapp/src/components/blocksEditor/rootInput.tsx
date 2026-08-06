@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 import {createSignal} from 'solid-js'
 
+import {useIntl} from '../../intl'
 import Combobox from '../../widgets/combobox'
 import type {ComboboxOption} from '../../combobox'
 
@@ -18,11 +19,12 @@ type Props = {
 }
 
 export default function RootInput(props: Props) {
+    const intl = useIntl()
     const [showMenu, setShowMenu] = createSignal(false)
 
     const options: Array<ComboboxOption<ContentType>> = registry.list().map((ct) => ({
         id: ct.slashCommand,
-        label: `${ct.slashCommand} Creates a new ${ct.displayName} block.`,
+        label: `${ct.slashCommand} ${intl.formatMessage({id: 'BlocksEditor.creates-block', defaultMessage: 'Creates a new {type} block.'}, {type: ct.displayName})}`,
         data: ct,
     }))
 
@@ -30,7 +32,7 @@ export default function RootInput(props: Props) {
         <Combobox
             class='RootInput'
             classNamePrefix='RootInput'
-            placeholder={'Introduce your text or your slash command'}
+            placeholder={intl.formatMessage({id: 'BlocksEditor.placeholder', defaultMessage: 'Type your text, or a slash command'})}
             autoFocus={true}
             menuIsOpen={showMenu()}
             portalTarget={document.getElementById('xciii-root-portal')}

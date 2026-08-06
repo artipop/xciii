@@ -3,7 +3,7 @@
 
 import type {Component, JSX} from 'solid-js'
 
-import {FormattedMessage} from '../intl'
+import {FormattedMessage, useIntl} from '../intl'
 
 import Button from '../widgets/buttons/button'
 
@@ -24,6 +24,8 @@ type Props = {
 }
 
 export const ConfirmationDialogBox: Component<Props> = (props) => {
+    const intl = useIntl()
+
     return (
         <Dialog
             size='small'
@@ -32,7 +34,7 @@ export const ConfirmationDialogBox: Component<Props> = (props) => {
         >
             <div
                 class='box-area'
-                title='Confirmation Dialog Box'
+                title={intl.formatMessage({id: 'ConfirmationDialog.title', defaultMessage: 'Confirmation dialog'})}
             >
                 <h3 class='text-heading5'>{props.dialogBox.heading}</h3>
                 <div class='sub-text'>{props.dialogBox.subText}</div>

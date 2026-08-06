@@ -43,7 +43,7 @@ exports[`/components/confirmAddUserForNotifications > should match snapshot 1`] 
         </div>
         <div
           class="box-area"
-          title="Confirmation Dialog Box"
+          title="Confirmation dialog"
         >
           <h3
             class="text-heading5"

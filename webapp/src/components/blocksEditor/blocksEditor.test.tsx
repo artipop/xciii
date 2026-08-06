@@ -3,7 +3,7 @@
 
 import {render, screen, fireEvent} from '@solidjs/testing-library'
 
-import {mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
+import {mockAppStore, mockDOM, wrapDNDIntl, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
@@ -48,7 +48,7 @@ describe('components/blocksEditor/blocksEditor', () => {
     const store = mockAppStore(state)
 
     test('should match snapshot on empty', async () => {
-        const {container} = render(() => wrapDNDIntl(() =>
+        const {container} = render(() => wrapIntl(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlocksEditor
                     boardId='test-board'
@@ -58,12 +58,12 @@ describe('components/blocksEditor/blocksEditor', () => {
                     blocks={[]}
                 />
             </AppStoreProvider>,
-        ))
+        )))
         expect(container).toMatchSnapshot()
     })
 
     test('should match snapshot with blocks', async () => {
-        const {container} = render(() => wrapDNDIntl(() =>
+        const {container} = render(() => wrapIntl(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlocksEditor
                     boardId='test-board'
@@ -73,13 +73,13 @@ describe('components/blocksEditor/blocksEditor', () => {
                     blocks={blocks}
                 />
             </AppStoreProvider>,
-        ))
+        )))
         expect(container).toMatchSnapshot()
     })
 
     test('should call onBlockCreate after introduce text and hit enter', async () => {
         const onBlockCreated = vi.fn()
-        render(() => wrapDNDIntl(() =>
+        render(() => wrapIntl(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlocksEditor
                     boardId='test-board'
@@ -89,7 +89,7 @@ describe('components/blocksEditor/blocksEditor', () => {
                     blocks={[]}
                 />
             </AppStoreProvider>,
-        ))
+        )))
 
         let input = screen.getByDisplayValue('')
         expect(onBlockCreated).not.toHaveBeenCalled()
@@ -105,7 +105,7 @@ describe('components/blocksEditor/blocksEditor', () => {
 
     test('should call onBlockModified after introduce text and hit enter', async () => {
         const onBlockModified = vi.fn()
-        render(() => wrapDNDIntl(() =>
+        render(() => wrapIntl(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>
                 <BlocksEditor
                     boardId='test-board'
@@ -115,7 +115,7 @@ describe('components/blocksEditor/blocksEditor', () => {
                     blocks={blocks}
                 />
             </AppStoreProvider>,
-        ))
+        )))
         const input = screen.getByTestId('checkbox-check')
         expect(onBlockModified).not.toHaveBeenCalled()
         fireEvent.click(input)

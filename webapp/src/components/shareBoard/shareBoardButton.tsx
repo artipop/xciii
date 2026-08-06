@@ -3,7 +3,7 @@
 
 import {Show, createSignal} from 'solid-js'
 
-import {FormattedMessage} from '../../intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
@@ -21,6 +21,7 @@ type Props = {
     enableSharedBoards: boolean
 }
 const ShareBoardButton = (props: Props) => {
+    const intl = useIntl()
     const [showShareDialog, setShowShareDialog] = createSignal(false)
     const board = useAppSelector(getCurrentBoard)
 
@@ -34,7 +35,7 @@ const ShareBoardButton = (props: Props) => {
     return (
         <div class='ShareBoardButton'>
             <Button
-                title='Share board'
+                title={intl.formatMessage({id: 'ShareBoard.share-title', defaultMessage: 'Share board'})}
                 size='medium'
                 emphasis='primary'
                 icon={iconForBoardType()}
