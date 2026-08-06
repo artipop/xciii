@@ -84,6 +84,21 @@ door refuses a `Host` it was not published under. That is the whole of the
 protection: **nothing authenticates a user**. Keep the server build on localhost
 unless something in front of it does.
 
+`tsnetdoor.go` is that something, and the only supported way off this machine: the
+same front door published a second time as a node of the user's own tailnet
+(`tailscale.com/tsnet` — userspace, no daemon, no root), with `ListenTLS` so a phone
+webview gets a real certificate. A port on an interface would have been reachable by
+anything that can route here, and the page hands out the board's session token
+(`proxy.go`) to whoever fetches it. A tsnet listener instead knows its caller:
+`WhoIs` gives the tailnet login, and the gate allows the user this node was logged in
+as (or whatever `allowedLogins` names). Two things follow. The tailnet gets a front
+door **built for its own authority** — `sameOrigin` and `hostGuard` are keyed to the
+address the page was published under, so the loopback handler would refuse every
+request arriving there. And the gate stands in front of *everything*, page included,
+because fetching the page is how a caller gets the token. Settings live in
+`<dataDir>/tailnet/settings.json` and the feature is off until that file says
+otherwise.
+
 ### The page talks to Go through a shim, not through generated bindings
 
 v3 injects nothing into the page: it serves `/wails/runtime.js` and the page loads
@@ -93,6 +108,33 @@ read into `Call.ByName('main.App.<name>', …)` — the fully qualified name of 
 on the bound `App` service — and `window.runtime.EventsOn` wraps `Events.On`,
 unwrapping the event object v3 passes. No bindings are generated; adding a method to
 `App` is all it takes to make it callable.
+
+**Events do not come back that way, though.** The Wails bus delivers an event by
+running JS in the windows the application owns, so a page served through the tailnet
+door hears nothing. `eventsws.go` broadcasts the same events over a socket on the
+front door instead (`/acp/events/ws`), `emitter.go` sends every event both ways, and
+the page listens only on the socket — `components/acp/agentEvents.ts`, one shared
+connection for the whole page, with backoff and a "look again" nudge to every
+subscriber when it reconnects. A new UI event needs nothing but `Emit`.
+
+**`/m` is the board on a phone**, and deliberately not the board: what is waiting
+for a person (answered in place — a question carries its own options) and which
+terminals are alive, with a soft key row on the terminal for the keys a phone
+keyboard lacks. It is `pages/mobile/`, lazily routed like the terminal page, and it
+asks nothing of the board API — everything on it comes from `main.App.*` and the
+event socket, both of which the front door serves to a phone exactly as to the
+window. `router.test.tsx` guards the one thing that could silently break it: the
+board's catch-all route is `/:boardId?/…`, which `/m` fits.
+
+`mobile/` is the phone app itself, and it is **a second Go module on purpose**:
+`wails3 ios overlay:gen` compiles `package main` from the module root, and this
+root's main is a board server with cgo SQLite, git and a pty. The phone runs
+none of that — the app is a window pointed at `https://<machine>.<tailnet>/m`,
+which is what the desktop's own window is too. It keeps the address in the
+platform's secure store, and a failed navigation returns to its setup page,
+because once the window is on the board there is no address bar to type in.
+`mobile/README.md` has the build commands; `go test ./...` there covers the
+address rules.
 
 ### The page is Solid, and its state is a store rather than Redux
 

@@ -92,6 +92,26 @@ The Go code is platform-agnostic — the same files build for every OS:
   agent's environment and proxy. The card is told when it opens and what it left on
   the branch when the CLI exits, and the next terminal on that card returns to the
   same worktree with `claude --continue` / `codex resume --last`.
+- `tsnetdoor.go` — **the board on your own tailnet**, which is how a phone
+  reaches it. The app becomes a Tailscale node itself
+  ([`tsnet`](https://tailscale.com/docs/features/tsnet): userspace, no daemon,
+  no root, nothing to install) and serves the same front door there over TLS, so
+  a phone webview gets a real certificate rather than an excuse. Who is calling
+  is answered by `WhoIs`: the gate lets in the tailnet user this node was logged
+  in as, and nobody else unless `allowedLogins` names them. It stands in front of
+  the page too, because fetching the page is how a caller gets the board's
+  session token.
+
+  Off until `~/Library/Application Support/XCIII/tailnet/settings.json` says
+  otherwise:
+
+  ```json
+  {"enabled": true, "hostname": "board"}
+  ```
+
+  First run has no credentials, so the login URL is opened in the browser;
+  `authKey` in the same file skips that. The node's state lives beside the
+  settings, so later launches come up by themselves.
 - `app.go` — the bound service. Its exported methods are what the frontend
   calls; `OpenInBrowser` is the one the bootstrap script uses.
 - `mode_desktop.go` / `mode_server.go` — everything that differs between a
@@ -99,6 +119,13 @@ The Go code is platform-agnostic — the same files build for every OS:
   server build has no native dialog and says so, rather than returning an empty
   path the UI would read as a cancellation).
 - `main.go` — wires it all together and runs the app.
+
+**On a phone**, the board is the same board: `webapp/src/pages/mobile` is the
+`/m` route — what is waiting for a person, answered in place, and the terminals
+it is waiting in — and [`mobile/`](mobile/README.md) is a small Wails app for
+iOS and Android that is one window onto it, over the tailnet door above. It is
+its own Go module because the mobile build compiles `package main` from the
+module root, and this one is a board server with cgo SQLite, git and a pty.
 
 Builds are **native per platform** (each on its own machine/CI runner) — cgo
 SQLite does not cross-compile with the host toolchain; `wails3 task
