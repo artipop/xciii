@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/artipop/xciii/internal/secrets"
 	"github.com/artipop/xciii/internal/sources/plugin"
 )
 
@@ -63,23 +64,57 @@ type conn interface {
 }
 
 // dialer opens a connection to the plugin a source names.
-type dialer func(ctx context.Context, entry SourceEntry, manifest Manifest, handler plugin.Handler) (conn, error)
+type dialer func(ctx context.Context, entry SourceEntry, manifest Manifest, cred plugin.Credentials, handler plugin.Handler) (conn, error)
 
 // SetDialer replaces how plugins are started (tests inject a fake).
 func (m *Manager) SetDialer(d dialer) { m.dial = d }
 
+// SetSecrets supplies where the credentials a plugin has to present are kept.
+// Optional: without it a source that needs one starts with an empty token and
+// says so through the plugin, which is what a plugin should do anyway.
+func (m *Manager) SetSecrets(store secrets.Store) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.secrets = store
+}
+
+// credentialsFor reads the access token of a source. A missing one is not an
+// error here: whether a source can work without it is the plugin's answer, not
+// this side's guess.
+func (m *Manager) credentialsFor(entry SourceEntry) plugin.Credentials {
+	ref := strings.TrimSpace(entry.SecretRef)
+	if ref == "" {
+		return plugin.Credentials{}
+	}
+	m.mu.RLock()
+	store := m.secrets
+	m.mu.RUnlock()
+	if store == nil {
+		return plugin.Credentials{}
+	}
+	token, err := store.Get(ref)
+	if err != nil {
+		if err != secrets.ErrNotFound {
+			m.log.Warn("sources: не удалось прочитать секрет", "source", entry.Name, "ref", ref, "err", err)
+		}
+		return plugin.Credentials{}
+	}
+	return plugin.Credentials{AccessToken: token}
+}
+
 // dialPlugin is the real one: spawn the manifest's command and hand it the
 // source it is being started for.
-func dialPlugin(ctx context.Context, entry SourceEntry, manifest Manifest, handler plugin.Handler) (conn, error) {
+func dialPlugin(ctx context.Context, entry SourceEntry, manifest Manifest, cred plugin.Credentials, handler plugin.Handler) (conn, error) {
 	env := make([]string, 0, len(manifest.Env))
 	for k, v := range manifest.Env {
 		env = append(env, k+"="+v)
 	}
 	return plugin.Dial(ctx, plugin.Spec{
-		Command: manifest.Argv(),
-		Env:     env,
-		Source:  plugin.SourceInfo{Name: entry.Name, Config: entry.Config},
-		Host:    plugin.HostInfo{Name: "XCIII"},
+		Command:     manifest.Argv(),
+		Env:         env,
+		Source:      plugin.SourceInfo{Name: entry.Name, Config: entry.Config},
+		Credentials: cred,
+		Host:        plugin.HostInfo{Name: "XCIII"},
 	}, handler)
 }
 
@@ -145,7 +180,7 @@ func (m *Manager) loop(entry SourceEntry) {
 	}
 
 	handler := &pluginHandler{mgr: m, source: entry.Name}
-	client, err := m.dial(ctx, entry, manifest, handler)
+	client, err := m.dial(ctx, entry, manifest, m.credentialsFor(entry), handler)
 	if err != nil {
 		m.fail(entry.Name, err)
 		return

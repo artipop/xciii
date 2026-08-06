@@ -1,0 +1,17 @@
+{
+  "name": "@xciii/source-sdk",
+  "version": "0.1.0",
+  "description": "Write an XCIII source plugin in JavaScript or TypeScript",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "AGPL-3.0-only"
+}

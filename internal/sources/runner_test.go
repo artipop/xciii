@@ -83,7 +83,7 @@ func runnerManager(t *testing.T, entry SourceEntry, fake *fakePlugin) (*Manager,
 		Sources: []SourceEntry{entry},
 		Plugins: []Manifest{{Name: "телефон-плагин", Command: "/bin/true"}},
 	}, "", store, board, nil)
-	m.SetDialer(func(context.Context, SourceEntry, Manifest, plugin.Handler) (conn, error) {
+	m.SetDialer(func(context.Context, SourceEntry, Manifest, plugin.Credentials, plugin.Handler) (conn, error) {
 		return fake, nil
 	})
 	return m, board
@@ -202,7 +202,7 @@ func TestAPushPluginsItemsGoDownTheSamePipeline(t *testing.T) {
 	// The handler is created on the source's own goroutine, so it is handed
 	// over rather than assigned to a variable both sides touch.
 	handlers := make(chan plugin.Handler, 1)
-	m.SetDialer(func(_ context.Context, _ SourceEntry, _ Manifest, h plugin.Handler) (conn, error) {
+	m.SetDialer(func(_ context.Context, _ SourceEntry, _ Manifest, _ plugin.Credentials, h plugin.Handler) (conn, error) {
 		handlers <- h
 		return fake, nil
 	})
@@ -292,7 +292,7 @@ func TestAManifestHasToBeStartable(t *testing.T) {
 
 func TestAFailureToStartIsNotSilent(t *testing.T) {
 	m, _ := runnerManager(t, pluginSource(), &fakePlugin{})
-	m.SetDialer(func(context.Context, SourceEntry, Manifest, plugin.Handler) (conn, error) {
+	m.SetDialer(func(context.Context, SourceEntry, Manifest, plugin.Credentials, plugin.Handler) (conn, error) {
 		return nil, errors.New("исполняемый файл не найден")
 	})
 

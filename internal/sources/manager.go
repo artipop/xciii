@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/artipop/xciii/internal/secrets"
 )
 
 // Manager owns the registry and runs the pipeline. It is the only thing outside
@@ -28,6 +30,10 @@ type Manager struct {
 	wg      sync.WaitGroup
 	dial    dialer
 	status  map[string]*Status
+	// secrets is where the credentials a plugin has to present are kept. Not
+	// where an inbound ingest token lives: that one is only ever checked, so it
+	// is a hash on the entry itself.
+	secrets secrets.Store
 }
 
 // NewManager builds a manager over a loaded registry. writer may be nil, which
