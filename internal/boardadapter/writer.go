@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/focalboard/server/utils"
 
 	"github.com/artipop/xciii/internal/acp"
+	"github.com/artipop/xciii/internal/sources"
 )
 
 // Writer implements acp.BoardWriter over the server's app layer. All writes
@@ -21,7 +22,10 @@ type Writer struct {
 	app *app.App
 }
 
-var _ acp.BoardWriter = (*Writer)(nil)
+var (
+	_ acp.BoardWriter     = (*Writer)(nil)
+	_ sources.BoardWriter = (*Writer)(nil)
+)
 
 func NewWriter(a *app.App) *Writer { return &Writer{app: a} }
 
@@ -124,21 +128,14 @@ func findSelectOption(schema model.PropSchema, propertyName, optionName string) 
 	return "", "", false
 }
 
-// CardSpec is a card somebody outside the board asked for. Properties are named
-// rather than identified, the way everything else here names them: a source
-// knows it wants «Ссылка» filled in, and cannot know the id the board gave it.
-type CardSpec struct {
-	Title string
-	Icon  string
-	// Body becomes the card's first text block. The card's own title is not a
-	// place for it: a description lives in content blocks, which is where
-	// cardBody reads it back from.
-	Body string
-	// Properties are property name → value; for a select, the value is the
-	// option name. Both are matched case-insensitively, as the trigger columns
-	// are.
-	Properties map[string]string
-}
+// CardSpec is a card somebody outside the board asked for: a title, an optional
+// body and properties named rather than identified, since a source knows it
+// wants «Ссылка» filled in and cannot know the id the board gave it.
+//
+// It is an alias of the sources type for the same reason the ACP writes take
+// acp types: the interface being satisfied is declared over there, and one
+// CreateCard is better than a second method that only converts a struct.
+type CardSpec = sources.CardSpec
 
 // CreateCard creates a card on the board and returns its id.
 //
