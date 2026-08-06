@@ -166,7 +166,12 @@ func main() {
 	// Sources are wired independently of the agent integration, and on purpose:
 	// cards from a phone are useful on a board that runs no agents at all.
 	// Anything that goes wrong here costs the sources and nothing else.
-	var sourceStore *sources.Store
+	var (
+		sourceStore *sources.Store
+		// The same manager, kept for shutdown: its plugins are processes, and
+		// they have to be stopped before the app goes.
+		sourcePlugins *sources.Manager
+	)
 	// Whether this machine has any source at all, for the board setup wizard:
 	// its step set is closed and lives in internal/acp, which cannot import
 	// this registry, so the answer is handed over as a function below.
@@ -184,6 +189,11 @@ func main() {
 		ingest.SetManager(sourceMgr)
 		app.sources = sourceMgr
 		sourcesReady = func() bool { return len(sourceMgr.Sources()) > 0 }
+		// Plugins come up here and go down in shutdown below. A source fed over
+		// ingest needs none of this; a source with a plugin is a process, and
+		// this is where it starts.
+		sourceMgr.Start(context.Background())
+		sourcePlugins = sourceMgr
 		log.Printf("sources: enabled (%d registered)", len(cfg.Sources))
 	}
 
@@ -223,6 +233,9 @@ func main() {
 			mgr.Shutdown(5 * time.Second)
 		}
 		tailnet.close()
+		if sourcePlugins != nil {
+			sourcePlugins.Stop(5 * time.Second)
+		}
 		if sourceStore != nil {
 			_ = sourceStore.Close()
 		}

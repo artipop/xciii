@@ -5,12 +5,17 @@ import (
 	"errors"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 )
 
 // fakeBoard is the board these tests write to: it records what happened instead
 // of doing it, which is the whole of what the pipeline needs from a board.
+//
+// It is guarded, because the runner writes to it from the goroutine of the
+// source it is running while the test reads it.
 type fakeBoard struct {
+	mu       sync.Mutex
 	created  []CardSpec
 	boards   []string
 	comments []string
@@ -20,6 +25,8 @@ type fakeBoard struct {
 }
 
 func (f *fakeBoard) CreateCard(_ context.Context, boardID string, spec CardSpec) (string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	if f.failNext != nil {
 		err := f.failNext
 		f.failNext = nil
@@ -32,13 +39,49 @@ func (f *fakeBoard) CreateCard(_ context.Context, boardID string, spec CardSpec)
 }
 
 func (f *fakeBoard) AddComment(_ context.Context, cardID, text string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.comments = append(f.comments, cardID+":"+text)
 	return nil
 }
 
 func (f *fakeBoard) MoveCardByOptionName(_ context.Context, cardID, property, column string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.moves = append(f.moves, cardID+":"+property+":"+column)
 	return nil
+}
+
+// The readers a test uses. Snapshots rather than the slices themselves, so a
+// test cannot read one while the runner appends to it.
+func (f *fakeBoard) cards() []CardSpec {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]CardSpec(nil), f.created...)
+}
+
+func (f *fakeBoard) boardIDs() []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]string(nil), f.boards...)
+}
+
+func (f *fakeBoard) commentLines() []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]string(nil), f.comments...)
+}
+
+func (f *fakeBoard) moveLines() []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]string(nil), f.moves...)
+}
+
+func (f *fakeBoard) refuseOnce(err error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.failNext = err
 }
 
 func testManager(t *testing.T, entry SourceEntry) (*Manager, *fakeBoard, *Store) {
@@ -81,20 +124,20 @@ func TestAnItemBecomesACardInTheColumnItsRuleNames(t *testing.T) {
 	if res.Created != 1 {
 		t.Fatalf("result: %+v", res)
 	}
-	if len(board.created) != 1 || board.created[0].Title != "Доставка завтра" {
-		t.Fatalf("created: %+v", board.created)
+	if len(board.cards()) != 1 || board.cards()[0].Title != "Доставка завтра" {
+		t.Fatalf("created: %+v", board.cards())
 	}
-	if board.boards[0] != "board1" {
-		t.Fatalf("the card went to the wrong board: %q", board.boards[0])
+	if board.boardIDs()[0] != "board1" {
+		t.Fatalf("the card went to the wrong board: %q", board.boardIDs()[0])
 	}
-	props := board.created[0].Properties
+	props := board.cards()[0].Properties
 	if props["Ссылка"] != "https://example.com/1" || props["Источник"] != "телефон" {
 		t.Fatalf("properties: %+v", props)
 	}
 	// The move is what the automation sees: a card created straight into a
 	// working column would start nothing, because the trigger fires on a change.
-	if len(board.moves) != 1 || board.moves[0] != "card1:Status:Сегодня" {
-		t.Fatalf("moves: %+v", board.moves)
+	if len(board.moveLines()) != 1 || board.moveLines()[0] != "card1:Status:Сегодня" {
+		t.Fatalf("moves: %+v", board.moveLines())
 	}
 }
 
@@ -112,8 +155,8 @@ func TestTheSameItemTwiceMakesOneCard(t *testing.T) {
 	if res.Skipped != 1 || res.Created != 0 {
 		t.Fatalf("result: %+v", res)
 	}
-	if len(board.created) != 1 {
-		t.Fatalf("a source reports its whole state every time: %+v", board.created)
+	if len(board.cards()) != 1 {
+		t.Fatalf("a source reports its whole state every time: %+v", board.cards())
 	}
 }
 
@@ -132,14 +175,14 @@ func TestAChangedItemComesBackAsACommentOnItsOwnCard(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if res.Commented != 1 || len(board.created) != 1 {
-		t.Fatalf("an update must not create a second card: %+v %+v", res, board.created)
+	if res.Commented != 1 || len(board.cards()) != 1 {
+		t.Fatalf("an update must not create a second card: %+v %+v", res, board.cards())
 	}
-	if len(board.comments) != 1 || !strings.Contains(board.comments[0], "Курьер задерживается") {
-		t.Fatalf("comments: %+v", board.comments)
+	if len(board.commentLines()) != 1 || !strings.Contains(board.commentLines()[0], "Курьер задерживается") {
+		t.Fatalf("comments: %+v", board.commentLines())
 	}
-	if !strings.HasPrefix(board.comments[0], "card1:") {
-		t.Fatalf("the comment went to another card: %q", board.comments[0])
+	if !strings.HasPrefix(board.commentLines()[0], "card1:") {
+		t.Fatalf("the comment went to another card: %q", board.commentLines()[0])
 	}
 }
 
@@ -153,8 +196,8 @@ func TestOnANoisySourceWhatMatchedNothingIsDropped(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if res.Dropped != 1 || len(board.created) != 0 {
-		t.Fatalf("result: %+v, created: %+v", res, board.created)
+	if res.Dropped != 1 || len(board.cards()) != 0 {
+		t.Fatalf("result: %+v, created: %+v", res, board.cards())
 	}
 	// Dropped is still recorded: "why did nothing happen" is the only question
 	// anybody asks of a source.
@@ -176,11 +219,11 @@ func TestOnAQuietSourceWhatMatchedNothingGoesToTheInbox(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if res.Created != 1 || len(board.moves) != 1 {
-		t.Fatalf("result: %+v, moves: %+v", res, board.moves)
+	if res.Created != 1 || len(board.moveLines()) != 1 {
+		t.Fatalf("result: %+v, moves: %+v", res, board.moveLines())
 	}
-	if board.moves[0] != "card1:Status:Входящие" {
-		t.Fatalf("it should have gone to the inbox: %+v", board.moves)
+	if board.moveLines()[0] != "card1:Status:Входящие" {
+		t.Fatalf("it should have gone to the inbox: %+v", board.moveLines())
 	}
 }
 
@@ -188,7 +231,7 @@ func TestOnAQuietSourceWhatMatchedNothingGoesToTheInbox(t *testing.T) {
 // the card exists.
 func TestAnItemIsNotForgottenWhenTheBoardRefusesIt(t *testing.T) {
 	m, board, _ := testManager(t, phoneSource())
-	board.failNext = errors.New("доска недоступна")
+	board.refuseOnce(errors.New("доска недоступна"))
 	ctx := context.Background()
 
 	res, err := m.Deliver(ctx, "телефон", []Item{deliveryItem()})
@@ -203,8 +246,8 @@ func TestAnItemIsNotForgottenWhenTheBoardRefusesIt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if res.Created != 1 || len(board.created) != 1 {
-		t.Fatalf("the item should have come back: %+v, %+v", res, board.created)
+	if res.Created != 1 || len(board.cards()) != 1 {
+		t.Fatalf("the item should have come back: %+v, %+v", res, board.cards())
 	}
 }
 
@@ -260,7 +303,7 @@ func TestRemovingASourceForgetsWhatItBrought(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if res.Created != 1 || len(board.created) != 2 {
-		t.Fatalf("result: %+v, created: %+v", res, board.created)
+	if res.Created != 1 || len(board.cards()) != 2 {
+		t.Fatalf("result: %+v, created: %+v", res, board.cards())
 	}
 }

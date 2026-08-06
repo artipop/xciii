@@ -167,9 +167,98 @@ func (s SourceEntry) InboxOr() string {
 	return DefaultInbox
 }
 
+// Field is one setting a plugin needs, as its manifest declares it. The form a
+// person fills in is built from these, which is the whole reason a manifest
+// exists: without it every new source would need its own dialog in the webapp,
+// and a plugin somebody else wrote could not have one at all.
+//
+// The types are a closed set for the same reason the setup wizard's steps are:
+// a manifest that could describe anything would be a program, and nothing here
+// could promise the form it produced made sense.
+type Field struct {
+	Key     string   `json:"key"`
+	Title   string   `json:"title,omitempty"`
+	Type    string   `json:"type,omitempty"` // string | number | bool | select | secret
+	Default string   `json:"default,omitempty"`
+	Values  []string `json:"values,omitempty"` // for select
+}
+
+// FieldTypes lists every accepted field type.
+var FieldTypes = []string{"string", "number", "bool", "select", "secret"}
+
+// AuthSpec is what a plugin needs to be given. The app performs the
+// authorization — it has the browser, the redirect listener and the keychain —
+// and hands the plugin the access token, so this describes the flow rather than
+// carrying any of it.
+type AuthSpec struct {
+	Type             string   `json:"type"` // token | oauth2
+	AuthorizationURL string   `json:"authorizationUrl,omitempty"`
+	TokenURL         string   `json:"tokenUrl,omitempty"`
+	Scopes           []string `json:"scopes,omitempty"`
+}
+
+// Manifest describes a plugin: how to start it, what it needs and what to ask
+// for. It is meant to be pasted whole, the way an MCP server is pasted into an
+// agent from its README.
+type Manifest struct {
+	Name            string            `json:"name"`
+	Title           string            `json:"title,omitempty"`
+	ProtocolVersion int               `json:"protocolVersion,omitempty"`
+	Command         string            `json:"command"`
+	Args            []string          `json:"args,omitempty"`
+	Env             map[string]string `json:"env,omitempty"`
+	Auth            *AuthSpec         `json:"auth,omitempty"`
+	Fields          []Field           `json:"fields,omitempty"`
+}
+
+// Validate normalizes a manifest and refuses what cannot be started or shown.
+func (p Manifest) Validate() (Manifest, error) {
+	p.Name = strings.TrimSpace(p.Name)
+	if p.Name == "" {
+		return p, fmt.Errorf("у плагина нет имени")
+	}
+	p.Command = strings.TrimSpace(p.Command)
+	if p.Command == "" {
+		return p, fmt.Errorf("плагин %q: не сказано, чем его запускать (command)", p.Name)
+	}
+	for i, f := range p.Fields {
+		if strings.TrimSpace(f.Key) == "" {
+			return p, fmt.Errorf("плагин %q: у поля №%d нет ключа", p.Name, i+1)
+		}
+		if f.Type == "" {
+			p.Fields[i].Type = "string"
+			continue
+		}
+		if !contains(FieldTypes, f.Type) {
+			return p, fmt.Errorf("плагин %q, поле %q: непонятный тип %q (%s)",
+				p.Name, f.Key, f.Type, strings.Join(FieldTypes, ", "))
+		}
+	}
+	return p, nil
+}
+
+// Argv is the command to start, ready for the process group.
+func (p Manifest) Argv() []string {
+	return append([]string{p.Command}, p.Args...)
+}
+
+func contains(list []string, value string) bool {
+	for _, item := range list {
+		if item == value {
+			return true
+		}
+	}
+	return false
+}
+
 // Config is the whole registry, stored as JSON in the app data directory.
 type Config struct {
 	Sources []SourceEntry `json:"sources"`
+	// Plugins are the manifests sources refer to by name. They are registry
+	// entries rather than something discovered on disk: starting a program is
+	// a deliberate act, and a plugin that appeared because a file did would be
+	// one nobody chose.
+	Plugins []Manifest `json:"plugins,omitempty"`
 }
 
 // Validate normalizes an entry and rejects what cannot work. It returns a

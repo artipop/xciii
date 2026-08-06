@@ -20,6 +20,14 @@ type Manager struct {
 	store  *Store
 	writer BoardWriter
 	log    *slog.Logger
+
+	// The running half: one goroutine per source that names a plugin, under a
+	// context the app cancels, and what each of them is currently doing.
+	rootCtx context.Context
+	stop    context.CancelFunc
+	wg      sync.WaitGroup
+	dial    dialer
+	status  map[string]*Status
 }
 
 // NewManager builds a manager over a loaded registry. writer may be nil, which

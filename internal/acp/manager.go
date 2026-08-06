@@ -20,21 +20,21 @@ import (
 // Manager owns all agent sessions: it consumes board events, enforces limits
 // and policies, and reports results back to the board and the UI.
 type Manager struct {
-	cfg     Config
-	cfgMu   sync.RWMutex // guards the UI-mutable parts of cfg (Projects, Agents, SystemPrompt)
+	cfg   Config
+	cfgMu sync.RWMutex // guards the UI-mutable parts of cfg (Projects, Agents, SystemPrompt)
 	// registryProbes answer for registries another package owns — see
 	// SetRegistryProbe. Guarded by cfgMu, since they are read where the config
 	// is.
 	registryProbes map[string]func() bool
-	cfgPath string       // where registry edits are persisted; empty in tests
-	store   *Store
-	writer  BoardWriter
-	reader  BoardReader // optional; enables opening a console on a card
-	users   BoardUsers  // optional; enables assigning cards to an agent
-	meta    BoardMeta   // optional; lets a board bring its own columns and routes
-	ui      UIEmitter
-	log     *slog.Logger
-	tr      *Tracer
+	cfgPath        string // where registry edits are persisted; empty in tests
+	store          *Store
+	writer         BoardWriter
+	reader         BoardReader // optional; enables opening a console on a card
+	users          BoardUsers  // optional; enables assigning cards to an agent
+	meta           BoardMeta   // optional; lets a board bring its own columns and routes
+	ui             UIEmitter
+	log            *slog.Logger
+	tr             *Tracer
 
 	mu     sync.Mutex
 	active map[string]*Session // session ID → session
@@ -47,7 +47,6 @@ type Manager struct {
 	// waiting for a person (terminalQuietFor). Only a test sets it: the real
 	// threshold is a human one and would make the suite wait it out.
 	terminalQuiet time.Duration
-
 
 	seededMu sync.Mutex
 	seeded   map[string]bool // boards whose own settings have been imported
