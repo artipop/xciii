@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {fireEvent, render, screen, within} from '@solidjs/testing-library'
+import {fireEvent, render, screen, waitFor, within} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
 import {TestRouter, mockAppStore, mockDOM, wrapDNDIntl} from '../testUtils'
@@ -137,6 +137,78 @@ describe('components/centerPanel', () => {
     beforeEach(() => {
         activeView.fields.viewType = 'board'
         vi.clearAllMocks()
+    })
+
+    // The setup wizard: it opens once per board, and what it leaves unanswered
+    // is what the header quietly goes on saying.
+    describe('the setup a board still needs', () => {
+        const anyWindow = window as any
+        const setupBoard = TestBlockFactory.createBoard()
+        setupBoard.id = 'board-needing-setup'
+        setupBoard.teamId = 'team-id'
+
+        const stubPlan = (steps: Array<Record<string, unknown>>) => {
+            anyWindow.go = {main: {App: {
+                BoardSetupPlan: vi.fn().mockResolvedValue(JSON.stringify({
+                    boardId: setupBoard.id, steps, declared: true, automated: true,
+                })),
+                RecordBoardSetupStep: vi.fn().mockResolvedValue(undefined),
+                ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+                ListAgents: vi.fn().mockResolvedValue('[]'),
+            }}}
+        }
+        const renderPanel = () => render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <CenterPanel
+                        cards={[card1]}
+                        views={[activeView]}
+                        board={setupBoard}
+                        activeView={activeView}
+                        readonly={false}
+                        showCard={vi.fn()}
+                        groupByProperty={groupProperty}
+                        hiddenCardsCount={0}
+                    />
+                </TestRouter>
+            </AppStoreProvider>,
+        ))
+
+        afterEach(() => {
+            delete anyWindow.go
+            localStorage.clear()
+        })
+
+        test('opens by itself for a board that has not been through it', async () => {
+            stubPlan([{kind: 'project', optional: false, status: 'pending'}, {kind: 'done', optional: false, status: 'done'}])
+            renderPanel()
+            await waitFor(() => expect(screen.getByText('Set up this board: Project')).toBeInTheDocument())
+        })
+
+        // Closing it half-way is an answer to "have you seen this?", not to any
+        // of the questions in it: the board still needs setting up, and says so,
+        // but the modal does not come back by itself.
+        test('does not open twice, and the reminder stays while a question is unanswered', async () => {
+            stubPlan([{kind: 'project', optional: false, status: 'pending'}, {kind: 'done', optional: false, status: 'done'}])
+            const first = renderPanel()
+            await waitFor(() => expect(screen.getByText('Set up this board: Project')).toBeInTheDocument())
+            first.unmount()
+
+            renderPanel()
+            await waitFor(() => expect(screen.getByText('This board is not set up yet')).toBeInTheDocument())
+            expect(screen.queryByText('Set up this board: Project')).toBeNull()
+        })
+
+        test('and the reminder goes when every question this board asks is answered', async () => {
+            stubPlan([
+                {kind: 'project', optional: false, status: 'done'},
+                {kind: 'deploy', optional: true, status: 'skipped'},
+                {kind: 'done', optional: false, status: 'done'},
+            ])
+            renderPanel()
+            await waitFor(() => expect(screen.queryByText('Set up this board: Project')).toBeNull())
+            expect(screen.queryByText('This board is not set up yet')).toBeNull()
+        })
     })
     test('should match snapshot for Kanban, not shared', () => {
         const {container} = render(() => wrapDNDIntl(() =>

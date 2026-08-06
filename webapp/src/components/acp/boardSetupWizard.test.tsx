@@ -124,6 +124,33 @@ describe('components/acp/boardSetupWizard', () => {
         await waitFor(() => expect(bindings.AddAgent).toHaveBeenCalled())
         expect(JSON.parse(bindings.AddAgent.mock.calls[0][0])).toEqual({name: 'claude', kind: 'claude'})
         expect(bindings.SyncAgentUsers).toHaveBeenCalled()
+        await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'agent', 'done'))
+    })
+
+    // The machine being configured is not this board being set up: passing a
+    // step because a project is already registered still answers it, for this
+    // board, or the second board you make is created in silence.
+    test('a step passed because the machine already has one is answered too', async () => {
+        const bindings = stubBindings({
+            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan([
+                {kind: 'project', ready: true},
+                {kind: 'agent', ready: true},
+                {kind: 'done'},
+            ])),
+        })
+        renderWizard()
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Next'})).toBeEnabled())
+
+        userEvent.click(screen.getByRole('button', {name: 'Next'}))
+        await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'project', 'done'))
+        expect(bindings.AddAgentProject).not.toHaveBeenCalled()
+
+        await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
+        userEvent.click(screen.getByRole('button', {name: 'Next'}))
+        await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'agent', 'done'))
+        expect(bindings.AddAgent).not.toHaveBeenCalled()
     })
 
     test('deploy and testing are skippable, and skipping is remembered', async () => {

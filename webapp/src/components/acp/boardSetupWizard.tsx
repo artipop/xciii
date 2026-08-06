@@ -93,7 +93,9 @@ const BoardSetupWizard = (props: Props) => {
     // Skipping is the one answer no registry can be read for later, so it is
     // recorded; the plan reads it back as the step's status.
     const skip = (kind: SetupStepKind) => {
-        recordSetupStep(props.board.id, kind, 'skipped').catch(() => undefined)
+        recordSetupStep(props.board.id, kind, 'skipped').
+            then(() => refreshPlan()).
+            catch(() => undefined)
         setStep(after(kind))
     }
 
@@ -151,21 +153,28 @@ const BoardSetupWizard = (props: Props) => {
     const adapterStatus = () => adapters().find((a) => a.kind === agentKind())
 
     // Every step does its work through the same registry calls the dialogs use,
-    // and shows what Go says when it refuses.
-    const run = async (work: () => Promise<void>, next: SetupStepKind) => {
+    // and shows what Go says when it refuses. The step is recorded as answered
+    // for *this board* — the registries are the machine's and say nothing about
+    // whether this board has been through the questions.
+    const run = async (work: () => Promise<void>, answering: SetupStepKind) => {
         setError('')
         setBusy(true)
         try {
             await work()
+            await recordSetupStep(props.board.id, answering, 'done')
             await refresh()
             refreshPlan()
-            setStep(next)
+            setStep(after(answering))
         } catch (e) {
             setError(String(e))
         } finally {
             setBusy(false)
         }
     }
+
+    // Passing a step the machine can already answer — there is a project, an
+    // agent — is answering it too, and has to be recorded as one.
+    const pass = (answering: SetupStepKind) => run(async () => {}, answering)
 
     const pickProject = async () => {
         if (!bindings?.PickDirectory) {
@@ -188,7 +197,7 @@ const BoardSetupWizard = (props: Props) => {
         // project under git, and this is where that can still be answered.
         await checkSetupAnswer(props.board.id, STEP_PROJECT, projectPath())
         await bindings!.AddAgentProject!(projectName().trim(), projectPath())
-    }, after(STEP_PROJECT))
+    }, STEP_PROJECT)
 
     const addAgent = () => run(async () => {
         await bindings!.AddAgent!(JSON.stringify({name: agentName().trim(), kind: agentKind()}))
@@ -196,7 +205,7 @@ const BoardSetupWizard = (props: Props) => {
             // So the agent can be put in a card's "Assignee" like a teammate.
             await bindings!.SyncAgentUsers(props.board.id)
         }
-    }, after(STEP_AGENT))
+    }, STEP_AGENT)
 
     const addDeploy = () => run(async () => {
         await bindings!.AddDeployTarget!(JSON.stringify({
@@ -206,7 +215,7 @@ const BoardSetupWizard = (props: Props) => {
             sshKey: deploy().sshKey.trim(),
             baseDomain: deploy().baseDomain.trim(),
         }))
-    }, after(STEP_DEPLOY))
+    }, STEP_DEPLOY)
 
     const addBrowser = () => run(async () => {
         const agent = registry().agents[0]
@@ -218,7 +227,7 @@ const BoardSetupWizard = (props: Props) => {
             kind: agentKind(),
             mcpServers: textToServers(serversText()),
         }))
-    }, STEP_DONE)
+    }, STEP_BROWSER)
 
     const finish = async () => {
         // Take the board's own columns and routes now, so what it can do is
@@ -376,7 +385,7 @@ const BoardSetupWizard = (props: Props) => {
                 <Button
                     emphasis='primary'
                     disabled={busy() || (!hasProject() && !(projectPath() && projectName().trim()))}
-                    onClick={() => (projectPath() && projectName().trim() ? addProject() : setStep(after(STEP_PROJECT)))}
+                    onClick={() => (projectPath() && projectName().trim() ? addProject() : pass(STEP_PROJECT))}
                 >
                     {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
                 </Button>
@@ -386,7 +395,7 @@ const BoardSetupWizard = (props: Props) => {
                 <Button
                     emphasis='primary'
                     disabled={busy() || (!hasAgent() && !agentName().trim())}
-                    onClick={() => (agentName().trim() && !hasAgent() ? addAgent() : setStep(after(STEP_AGENT)))}
+                    onClick={() => (agentName().trim() && !hasAgent() ? addAgent() : pass(STEP_AGENT))}
                 >
                     {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
                 </Button>

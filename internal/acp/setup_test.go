@@ -165,37 +165,57 @@ func TestABoardWithNoAutomationIsOfferedEverythingAndOpensNothing(t *testing.T) 
 	}
 }
 
-// A question this machine has already answered is not asked again, however it
-// came to be answered — the registry is the answer, not the record of asking.
-func TestAFilledRegistryAnswersItsStep(t *testing.T) {
+// A machine that can already answer a step says so — but the step is still this
+// board's to answer. Setting up one board used to mark every board that came
+// after it as set up, which meant a second board was created in silence: no
+// wizard, no reminder, nothing asked.
+func TestAFilledRegistryOffersAnAnswerRatherThanBeingOne(t *testing.T) {
 	m := setupManager(t, nil)
 	m.cfg.Projects = []ProjectEntry{{Name: "notes", Path: "/tmp/notes"}}
 	m.cfg.Agents = []AgentEntry{{Name: "claude", Kind: "claude"}}
 
-	byKind := map[string]SetupStep{}
-	for _, s := range m.SetupPlanFor("board1").Steps {
-		byKind[s.Kind] = s
-	}
-	if byKind[SetupStepProject].Status != SetupDone {
-		t.Errorf("project: %q", byKind[SetupStepProject].Status)
-	}
-	if byKind[SetupStepAgent].Status != SetupDone {
-		t.Errorf("agent: %q", byKind[SetupStepAgent].Status)
-	}
-	if byKind[SetupStepDeploy].Status != SetupPending {
-		t.Errorf("deploy: %q", byKind[SetupStepDeploy].Status)
+	byKind := func(boardID string) map[string]SetupStep {
+		out := map[string]SetupStep{}
+		for _, s := range m.SetupPlanFor(boardID).Steps {
+			out[s.Kind] = s
+		}
+		return out
 	}
 
-	// The browser is not a registry of its own: an agent carrying an MCP
-	// server is that question answered.
-	if byKind[SetupStepBrowser].Status != SetupPending {
-		t.Errorf("browser before: %q", byKind[SetupStepBrowser].Status)
+	first := byKind("board1")
+	for _, kind := range []string{SetupStepProject, SetupStepAgent} {
+		if first[kind].Status != SetupPending {
+			t.Errorf("%s: %q — a board nobody set up counts as set up", kind, first[kind].Status)
+		}
+		if !first[kind].Ready {
+			t.Errorf("%s: the machine can answer it, and the plan does not say so", kind)
+		}
+	}
+	if first[SetupStepDeploy].Ready {
+		t.Error("deploy: nothing is registered, and the plan says otherwise")
+	}
+
+	// The browser is not a registry of its own: an agent carrying an MCP server
+	// is what makes that question answerable.
+	if first[SetupStepBrowser].Ready {
+		t.Error("browser: no agent carries a server yet")
 	}
 	m.cfg.Agents[0].MCPServers = MCPServerSet{"playwright": {Command: "npx"}}
-	for _, s := range m.SetupPlanFor("board1").Steps {
-		if s.Kind == SetupStepBrowser && s.Status != SetupDone {
-			t.Errorf("browser after: %q", s.Status)
+	if !byKind("board1")[SetupStepBrowser].Ready {
+		t.Error("browser: an agent carries a server and the plan does not say so")
+	}
+
+	// Answering it for one board leaves the next one asking.
+	for _, kind := range []string{SetupStepProject, SetupStepAgent} {
+		if err := m.RecordSetupStep("board1", kind, SetupDone); err != nil {
+			t.Fatal(err)
 		}
+	}
+	if got := byKind("board1")[SetupStepProject].Status; got != SetupDone {
+		t.Errorf("board1 project after answering: %q", got)
+	}
+	if got := byKind("board2")[SetupStepProject].Status; got != SetupPending {
+		t.Errorf("board2 project: %q — one board's answer stood in for another's", got)
 	}
 }
 

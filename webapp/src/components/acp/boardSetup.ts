@@ -25,6 +25,11 @@ export type SetupStep = {
     hint?: string
     status: SetupStepStatus
 
+    // The machine can already answer this step — there is a project, an agent.
+    // Not the same as this board having answered it: the registries are the
+    // machine's, and every board is asked for itself.
+    ready?: boolean
+
     // What an answer has to satisfy — 'git' so far, asked for only by a board
     // that publishes a branch or waits for one. Go enforces it in
     // checkSetupAnswer; the page carries it to say so before it is answered.

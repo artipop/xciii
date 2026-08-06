@@ -113,6 +113,9 @@ type SetupStep struct {
 	Optional bool   `json:"optional"`
 	Hint     string `json:"hint,omitempty"`
 	Status   string `json:"status"`
+	// Ready says this machine can already answer the step, however this board
+	// has answered it — see registryFilled.
+	Ready bool `json:"ready"`
 	// Requires is what an answer has to satisfy — the closed set above. It is
 	// carried in the plan so the question can say so before it is answered,
 	// and enforced by CheckSetupAnswer when it is.
@@ -178,6 +181,7 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 			Optional: optional,
 			Hint:     strings.TrimSpace(step.Hint),
 			Status:   m.setupStatus(def, states),
+			Ready:    def.Registry != "" && m.registryFilled(def.Registry),
 			Requires: setupRequirements(def.Kind, columns, flows),
 		})
 	}
@@ -334,9 +338,6 @@ func impliedSetup(columns []ColumnSpec, flows []FlowEntry) []BoardSetupStep {
 // registry that already has an entry is an answered question however it came to
 // be answered, and only a step nobody can answer for you is read off the record.
 func (m *Manager) setupStatus(def SetupStepDef, states map[string]string) string {
-	if def.Registry != "" && m.registryFilled(def.Registry) {
-		return SetupDone
-	}
 	if status, ok := states[def.Kind]; ok {
 		return status
 	}
@@ -346,6 +347,12 @@ func (m *Manager) setupStatus(def SetupStepDef, states map[string]string) string
 	return SetupPending
 }
 
+// registryFilled says the machine can already answer this step — there is a
+// project, an agent, somewhere to deploy to, a browser. It is deliberately not
+// the same as the step being *answered*: setting up one board must not mark the
+// next one set up, or every board after the first is created in silence, which
+// is what this used to do. The wizard shows it as "already registered" and lets
+// the step be passed with one click; the status stays this board's own answer.
 func (m *Manager) registryFilled(registry string) bool {
 	m.cfgMu.RLock()
 	defer m.cfgMu.RUnlock()

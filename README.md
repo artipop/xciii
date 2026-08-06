@@ -215,14 +215,19 @@ the one thing a rewrite must not quietly drop.
   the board publishes a branch or waits for one — a deploy or test stage, or an
   edge whose trigger the VCS watcher polls. `CheckBoardSetupAnswer` enforces it
   where the question is asked, rather than on a card three steps later.
-  `BoardSetupPlan` resolves the whole answer in Go: what the board asked for (or,
-  failing that, what its automation implies), minus what this machine has
-  already answered, plus what was deliberately skipped, which is recorded per
-  board in the `board_setup` table because no registry can be read for it later.
-  The page renders that plan and works nothing out for itself; the board menu
-  reads the same one, which is why *Deploy targets…* is absent from a board that
-  never deploys. The wizard can be reopened from the board menu (*Set up this
-  board…*), and having been offered it once is remembered for that board.
+  `BoardSetupPlan` resolves the whole answer in Go: what the board asked for, or
+  failing that what its automation implies, and how far *this board* has got
+  through it. **Setup is per board, not per machine.** Every step's status is
+  read from the `board_setup` table, keyed by board — the registries are the
+  machine's and say only that a step *can* be answered quickly (`ready`, shown
+  as "already registered" with one click to pass it). Reading them as the answer
+  is what made every board after the first appear fully set up and get created
+  in silence. The page renders that plan and works nothing out for itself; the
+  board menu reads the same one, which is why *Deploy targets…* is absent from a
+  board that never deploys. The wizard opens itself once per board — closing it
+  half-way answers nothing, so the header goes on saying *«Доска ещё не
+  настроена»* until every question that board asks has an answer, and that
+  button is the way back in (*Set up this board…* in the board menu too).
 - **Columns** (column menu → *Agents in this column…*) say what happens when a
   card lands in one: the action, the crew of agents who work it, and how many of
   them at once. A card without an agent of its own goes to whoever of the crew is
