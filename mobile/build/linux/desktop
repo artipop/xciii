@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=XCIII
+Comment=Boards with coding agents
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/xciii %u
+Terminal=false
+Type=Application
+Icon=xciii
+Categories=Utility;
+StartupWMClass=xciii
+
+ 

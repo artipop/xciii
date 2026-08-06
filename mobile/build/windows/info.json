@@ -1,0 +1,15 @@
+{
+	"fixed": {
+		"file_version": "0.0.0"
+	},
+	"info": {
+		"0000": {
+			"ProductVersion": "0.0.0",
+			"CompanyName": "artipop",
+			"FileDescription": "Boards with coding agents",
+			"LegalCopyright": "Copyright (c) 2026 Artem",
+			"ProductName": "XCIII",
+			"Comments": "The board on a phone, over your own tailnet"
+		}
+	}
+}

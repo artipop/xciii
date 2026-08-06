@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>CFBundleExecutable</key>
+		<string>xciii</string>
+		<key>CFBundleGetInfoString</key>
+		<string>The board on a phone, over your own tailnet</string>
+		<key>CFBundleIconFile</key>
+		<string>icons</string>
+		<key>CFBundleIconName</key>
+		<string>appicon</string>
+		<key>CFBundleIdentifier</key>
+		<string>io.deffun.xciii.mobile</string>
+		<key>CFBundleName</key>
+		<string>XCIII</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleShortVersionString</key>
+		<string>0.0.0</string>
+		<key>CFBundleVersion</key>
+		<string>0.0.0</string>
+		<key>LSMinimumSystemVersion</key>
+		<string>12.0.0</string>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsLocalNetworking</key>
+			<true/>
+		</dict>
+		<key>NSHighResolutionCapable</key>
+		<string>true</string>
+		<key>NSHumanReadableCopyright</key>
+		<string>Copyright (c) 2026 Artem</string>
+	</dict>
+</plist>

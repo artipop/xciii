@@ -25,6 +25,16 @@ build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 # among the task's `generates`).
 build/darwin/Assets.car
 
+# The phone app's generated project. `wails3 ios xcode:gen` writes the Xcode
+# project and the main.m shim from templates inside the CLI on every build, and
+# the Go overlay beside them names absolute paths of this machine.
+mobile/build/ios/xcode
+mobile/build/android/overlay.json
+mobile/build/android/gen
+mobile/build/android/app/src/main/jniLibs
+# `go build .` in mobile/ leaves a binary named after that directory.
+mobile/mobile
+
 # Go workspace files: a local convenience for building this module from a
 # git worktree, where the relative replace of the server module does not resolve.
 go.work

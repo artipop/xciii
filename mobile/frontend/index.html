@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>XCIII</title>
+    <!--
+        The only page this app carries of its own: where is the board.
+        Everything after this is the board's own page, served by the front
+        door over the tailnet — so this is deliberately one field, and it is
+        written in plain HTML rather than pulling a framework onto a phone to
+        ask one question.
+    -->
+    <style>
+        :root {
+            --canvas: #0c0c0e;
+            --surface: #18181b;
+            --ink: #e9e9ec;
+            --accent: #e24234;
+            color-scheme: dark;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 20px;
+            background: var(--canvas);
+            color: var(--ink);
+            font-family: ui-sans-serif, -apple-system, system-ui, sans-serif;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+        }
+
+        p {
+            margin: 0;
+            opacity: 0.7;
+            line-height: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            opacity: 0.7;
+        }
+
+        input, button {
+            width: 100%;
+            min-height: 48px;
+            padding: 12px 14px;
+            border-radius: 2px;
+            font: inherit;
+            font-size: 16px; /* Anything smaller and iOS zooms the page on focus. */
+        }
+
+        input {
+            border: 1px solid rgba(233, 233, 236, 0.2);
+            background: var(--surface);
+            color: var(--ink);
+        }
+
+        button {
+            margin-top: 12px;
+            border: 0;
+            background: var(--accent);
+            color: #08080a;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+        }
+
+        button:disabled { opacity: 0.5; }
+
+        .error {
+            min-height: 20px;
+            color: #ff8ca0;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <h1>XCIII</h1>
+    <p>Введите имя машины в вашем tailnet — то, под которым доска опубликована. Телефон должен быть подключён к Tailscale.</p>
+
+    <form id="connect">
+        <label for="address">Адрес доски</label>
+        <input id="address" name="address" type="text" inputmode="url" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="board.tail1234.ts.net">
+        <button type="submit">Подключиться</button>
+    </form>
+    <div class="error" id="error"></div>
+
+    <script type="module">
+        // The bindings are reached the same way the board reaches them: the v3
+        // runtime is a module the page imports, and Call.ByName names a method
+        // on the bound service.
+        const {Call} = await import('/wails/runtime.js')
+        const settings = (name, ...args) => Call.ByName(`main.Settings.${name}`, ...args)
+
+        const field = document.getElementById('address')
+        const error = document.getElementById('error')
+        const form = document.getElementById('connect')
+
+        try {
+            field.value = await settings('Address')
+        } catch (e) {
+            // A first launch has nothing saved, which is not worth saying.
+        }
+        field.focus()
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault()
+            error.textContent = ''
+            form.querySelector('button').disabled = true
+            try {
+                await settings('Connect', field.value)
+            } catch (e) {
+                error.textContent = String(e?.message || e)
+            } finally {
+                form.querySelector('button').disabled = false
+            }
+        })
+    </script>
+</body>
+</html>
