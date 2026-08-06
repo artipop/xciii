@@ -13,6 +13,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 
 	"github.com/artipop/xciii/internal/acp"
+	"github.com/artipop/xciii/internal/sources"
 )
 
 // errACPDisabled is returned by bindings when the integration is off.
@@ -31,6 +32,9 @@ type App struct {
 	// not be read at all. Its own methods are safe on a nil receiver, so the
 	// bindings do not each have to check.
 	tailnet *tailnetController
+	// sources turns outside events into cards. Separate from mgr on purpose: a
+	// board of household chores wants cards from a phone and no agents at all.
+	sources *sources.Manager
 }
 
 func NewApp(emitter *wailsEmitter) *App {
@@ -878,4 +882,118 @@ func (a *App) CloseTerminal(terminalID string) error {
 		return errACPDisabled
 	}
 	return a.mgr.CloseTerminal(terminalID)
+}
+
+// errSourcesDisabled is returned by the source bindings when the subsystem
+// could not be started at all — no data directory, an unreadable registry.
+var errSourcesDisabled = errors.New("источники недоступны")
+
+// ListSources returns the source registry as JSON, as one board sees it: its
+// own sources and the ones marked global. An empty boardID asks for all.
+func (a *App) ListSources(boardID string) (string, error) {
+	if a.sources == nil {
+		return "[]", nil
+	}
+	out, err := json.Marshal(a.sources.SourcesForBoard(boardID))
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// AddSource registers a source from a JSON-encoded entry and returns it with
+// its ingest token — the one time the token is ever shown, since only its hash
+// is kept.
+func (a *App) AddSource(entryJSON string) (string, error) {
+	if a.sources == nil {
+		return "", errSourcesDisabled
+	}
+	var entry sources.SourceEntry
+	if err := json.Unmarshal([]byte(entryJSON), &entry); err != nil {
+		return "", err
+	}
+	token, err := sources.GenerateToken()
+	if err != nil {
+		return "", err
+	}
+	entry.TokenHash = sources.HashToken(token)
+	saved, err := a.sources.AddSource(entry)
+	if err != nil {
+		return "", err
+	}
+	out, _ := json.Marshal(struct {
+		sources.SourceEntry
+		Token string `json:"token"`
+	}{saved, token})
+	return string(out), nil
+}
+
+// UpdateSource replaces a source, matched by name. The token is deliberately
+// carried over rather than taken from the entry: the UI never holds one, and a
+// blank field would otherwise lock out whatever is already sending.
+func (a *App) UpdateSource(entryJSON string) (string, error) {
+	if a.sources == nil {
+		return "", errSourcesDisabled
+	}
+	var entry sources.SourceEntry
+	if err := json.Unmarshal([]byte(entryJSON), &entry); err != nil {
+		return "", err
+	}
+	if existing, ok := a.sources.Source(entry.Name); ok {
+		entry.TokenHash = existing.TokenHash
+	}
+	saved, err := a.sources.UpdateSource(entry)
+	if err != nil {
+		return "", err
+	}
+	out, _ := json.Marshal(saved)
+	return string(out), nil
+}
+
+// ResetSourceToken issues a new token and returns it, which is the only way to
+// see one again: the previous token stops working the moment this returns.
+func (a *App) ResetSourceToken(name string) (string, error) {
+	if a.sources == nil {
+		return "", errSourcesDisabled
+	}
+	entry, ok := a.sources.Source(name)
+	if !ok {
+		return "", errors.New("источник не найден")
+	}
+	token, err := sources.GenerateToken()
+	if err != nil {
+		return "", err
+	}
+	entry.TokenHash = sources.HashToken(token)
+	if _, err := a.sources.UpdateSource(entry); err != nil {
+		return "", err
+	}
+	out, _ := json.Marshal(map[string]string{"name": entry.Name, "token": token})
+	return string(out), nil
+}
+
+// RemoveSource deletes a source and everything it remembered.
+func (a *App) RemoveSource(name string) error {
+	if a.sources == nil {
+		return errSourcesDisabled
+	}
+	return a.sources.RemoveSource(name)
+}
+
+// SourceEvents returns a source's log, newest first: what arrived, what the
+// rules decided and which card it became. This is the answer to the only
+// question a source is ever asked — why nothing happened.
+func (a *App) SourceEvents(name string, limit int) (string, error) {
+	if a.sources == nil {
+		return "[]", nil
+	}
+	events, err := a.sources.Events(name, limit)
+	if err != nil {
+		return "", err
+	}
+	out, err := json.Marshal(events)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }

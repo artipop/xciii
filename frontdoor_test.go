@@ -31,13 +31,14 @@ func request(t *testing.T, h http.Handler, path string, headers map[string]strin
 // everything else, /ws included — which is what lets the socket live on the
 // page's own origin instead of being told a second address.
 func TestFrontDoorSendsWailsToWailsAndTheRestToTheBoard(t *testing.T) {
-	door := newFrontDoor(named("wails"), named("acp"), named("board"), "127.0.0.1:9000")
+	door := newFrontDoor(named("wails"), named("acp"), named("ingest"), named("board"), "127.0.0.1:9000")
 
 	for path, want := range map[string]string{
 		"/wails/runtime.js":    "wails",
 		"/wails/runtime":       "wails",
 		"/acp/terminal/abc/ws": "acp",
 		"/acp/events/ws":       "acp",
+		"/sources/ingest/phone": "ingest",
 		"/":                    "board",
 		"/ws":                  "board",
 		"/api/v2/teams":        "board",
@@ -53,7 +54,7 @@ func TestFrontDoorSendsWailsToWailsAndTheRestToTheBoard(t *testing.T) {
 // a loopback port, so a call whose Origin is somebody else's page is refused —
 // the response would be unreadable to them, the side effect would not.
 func TestFrontDoorRefusesCrossOriginRuntimeCalls(t *testing.T) {
-	door := newFrontDoor(named("wails"), named("acp"), named("board"), "127.0.0.1:9000")
+	door := newFrontDoor(named("wails"), named("acp"), named("ingest"), named("board"), "127.0.0.1:9000")
 
 	cases := []struct {
 		name    string
@@ -78,7 +79,7 @@ func TestFrontDoorRefusesCrossOriginRuntimeCalls(t *testing.T) {
 // and both sockets would be refused as somebody else's site — and the board
 // would look broken in a way nothing in the page could explain.
 func TestFrontDoorAcceptsItsOwnOriginOverTLS(t *testing.T) {
-	door := newFrontDoor(named("wails"), named("acp"), named("board"), "board.tail1234.ts.net")
+	door := newFrontDoor(named("wails"), named("acp"), named("ingest"), named("board"), "board.tail1234.ts.net")
 
 	for _, path := range []string{"/wails/runtime", "/acp/events/ws", "/acp/terminal/abc/ws"} {
 		req := httptest.NewRequest(http.MethodGet, path, nil)
@@ -95,7 +96,7 @@ func TestFrontDoorAcceptsItsOwnOriginOverTLS(t *testing.T) {
 // A name the attacker controls, repointed at 127.0.0.1, would otherwise be
 // same-origin with the app for as long as it is running.
 func TestFrontDoorRefusesAnUnexpectedHost(t *testing.T) {
-	door := newFrontDoor(named("wails"), named("acp"), named("board"), "127.0.0.1:9000")
+	door := newFrontDoor(named("wails"), named("acp"), named("ingest"), named("board"), "127.0.0.1:9000")
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Host = "rebind.example:9000"
@@ -123,7 +124,7 @@ func TestFrontDoorRefusesAnUnexpectedHost(t *testing.T) {
 // Without this, `XCIII_SERVER_HOST=0.0.0.0` would answer 403 to everyone
 // but localhost, which is the opposite of what asking for it means.
 func TestFrontDoorPublishedOnEveryInterfaceAcceptsAnyName(t *testing.T) {
-	door := newFrontDoor(named("wails"), named("acp"), named("board"), "0.0.0.0:8080")
+	door := newFrontDoor(named("wails"), named("acp"), named("ingest"), named("board"), "0.0.0.0:8080")
 
 	for host, want := range map[string]int{
 		"boards.internal:8080": http.StatusOK,

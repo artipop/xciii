@@ -32,6 +32,7 @@ type origin struct {
 	listener net.Listener
 	board    http.Handler
 	acp      http.Handler
+	ingest   http.Handler
 	tailnet  *tailnetController
 	server   *http.Server
 }
@@ -39,7 +40,7 @@ type origin struct {
 // newOrigin binds the front door's listener up front, so its address is known
 // before the application — and therefore the window — is created. Serving
 // starts later, when Wails hands over the asset handler.
-func newOrigin(board, acp http.Handler, tailnet *tailnetController) (*origin, error) {
+func newOrigin(board, acp, ingest http.Handler, tailnet *tailnetController) (*origin, error) {
 	listener, err := listenLoopback(0)
 	if err != nil {
 		return nil, fmt.Errorf("front door: %w", err)
@@ -49,6 +50,7 @@ func newOrigin(board, acp http.Handler, tailnet *tailnetController) (*origin, er
 		listener:      listener,
 		board:         board,
 		acp:           acp,
+		ingest:        ingest,
 		tailnet:       tailnet,
 	}, nil
 }
@@ -56,7 +58,7 @@ func newOrigin(board, acp http.Handler, tailnet *tailnetController) (*origin, er
 // ServeAssets is called by Wails once the asset server exists. Everything but
 // /wails/ goes to the board.
 func (o *origin) ServeAssets(assetHandler http.Handler) error {
-	o.server = &http.Server{Handler: newFrontDoor(assetHandler, o.acp, o.board, o.host())}
+	o.server = &http.Server{Handler: newFrontDoor(assetHandler, o.acp, o.ingest, o.board, o.host())}
 	go func() {
 		if err := o.server.Serve(o.listener); err != nil && err != http.ErrServerClosed {
 			log.Printf("front door stopped: %v", err)
@@ -66,7 +68,7 @@ func (o *origin) ServeAssets(assetHandler http.Handler) error {
 	// are keyed to the authority the page is served under, and there it is a
 	// tailnet name, not this loopback address.
 	o.tailnet.publish(func(allowedHost string) http.Handler {
-		return newFrontDoor(assetHandler, o.acp, o.board, allowedHost)
+		return newFrontDoor(assetHandler, o.acp, o.ingest, o.board, allowedHost)
 	})
 	return nil
 }

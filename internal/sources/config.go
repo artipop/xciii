@@ -1,6 +1,11 @@
 package sources
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -90,6 +95,45 @@ type SourceEntry struct {
 	IntervalSeconds int               `json:"intervalSeconds,omitempty"`
 	SecretRef       string            `json:"secretRef,omitempty"`
 	Rules           []Rule            `json:"rules,omitempty"`
+
+	// TokenHash authorizes what is *sent to* this source. It is a hash and not
+	// a reference to the secret store, because an inbound token only ever has
+	// to be checked: keeping the hash means the registry file cannot leak a
+	// credential, and there is nothing to migrate if the store changes. Secrets
+	// the app itself has to present — an OAuth token — are the other direction
+	// and live in the store under SecretRef.
+	TokenHash string `json:"tokenHash,omitempty"`
+}
+
+// GenerateToken returns a new ingest token. It is shown once, when it is
+// created; only its hash is kept.
+func GenerateToken() (string, error) {
+	buf := make([]byte, 32)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(buf), nil
+}
+
+// HashToken is how a token is stored and compared.
+//
+// A plain SHA-256 rather than bcrypt: the token is 256 bits from crypto/rand,
+// so there is no dictionary to run against it and nothing for a slow hash to
+// buy. Password hashing exists because people choose passwords.
+func HashToken(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])
+}
+
+// CheckToken reports whether the token authorizes this source. A source with no
+// token accepts nothing: the token is the whole of the protection on the
+// loopback door, so an empty one is a source that is not ready rather than a
+// source that is open.
+func (s SourceEntry) CheckToken(token string) bool {
+	if s.TokenHash == "" || token == "" {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(HashToken(token)), []byte(s.TokenHash)) == 1
 }
 
 // Update policies.

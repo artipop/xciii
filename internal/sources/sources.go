@@ -12,7 +12,10 @@ package sources
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"strings"
 	"time"
 )
 
@@ -37,6 +40,18 @@ type Item struct {
 	// changes shape, the only way to find out what it now sends is to look at
 	// what it sent.
 	Raw json.RawMessage `json:"raw,omitempty"`
+}
+
+// WithFallbackID gives the item an id when the sender had none to give: the
+// hash of what it said. A phone that loses the answer to a request repeats it,
+// and without a stable key the repeat would be a second card.
+func (it Item) WithFallbackID() Item {
+	if strings.TrimSpace(it.ExternalID) != "" {
+		return it
+	}
+	sum := sha256.Sum256([]byte(it.Title + "\x00" + it.Body + "\x00" + it.At.UTC().Format(time.RFC3339)))
+	it.ExternalID = "sha256:" + hex.EncodeToString(sum[:16])
+	return it
 }
 
 // CardSpec is a card the pipeline asks for. Properties are named rather than

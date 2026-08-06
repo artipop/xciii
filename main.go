@@ -17,6 +17,7 @@ import (
 
 	"github.com/artipop/xciii/internal/acp"
 	"github.com/artipop/xciii/internal/boardadapter"
+	"github.com/artipop/xciii/internal/sources"
 )
 
 // acpDataDir returns the ACP integration's own state directory
@@ -27,6 +28,20 @@ func acpDataDir() (string, error) {
 		return "", err
 	}
 	dir := filepath.Join(base, "XCIII", "acp")
+	if err := os.MkdirAll(dir, 0o750); err != nil {
+		return "", err
+	}
+	return dir, nil
+}
+
+// sourcesDataDir returns where the sources subsystem keeps its registry and
+// what it has already seen (~/Library/Application Support/XCIII/sources).
+func sourcesDataDir() (string, error) {
+	base, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+	dir := filepath.Join(base, "XCIII", "sources")
 	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return "", err
 	}
@@ -120,6 +135,9 @@ func main() {
 	// page rather than only to the windows this application owns.
 	uiEvents := newEventRoutes()
 	acpSockets := newACPSockets(terminals, uiEvents)
+	// The ingest endpoint, on the same terms: it is a route on the front door,
+	// and it is handed its manager once the board exists.
+	ingest := newSourceRoutes()
 
 	emitter := newWailsEmitter(uiEvents)
 	app := NewApp(emitter)
@@ -140,9 +158,28 @@ func main() {
 	// The front door is the origin the page is served under — a loopback
 	// listener of ours in a desktop build, the published address in a server
 	// build. Its listener is bound here so the window can be pointed at it.
-	front, err := newOrigin(handler, acpSockets, tailnet)
+	front, err := newOrigin(handler, acpSockets, ingest, tailnet)
 	if err != nil {
 		log.Fatalf("failed to open the front door: %v", err)
+	}
+
+	// Sources are wired independently of the agent integration, and on purpose:
+	// cards from a phone are useful on a board that runs no agents at all.
+	// Anything that goes wrong here costs the sources and nothing else.
+	var sourceStore *sources.Store
+	if dir, err := sourcesDataDir(); err != nil {
+		log.Printf("sources: disabled, no data dir: %v", err)
+	} else if cfg, err := sources.LoadConfig(filepath.Join(dir, "sources.json")); err != nil {
+		log.Printf("sources: disabled, config error: %v", err)
+	} else if sourceStore, err = sources.OpenStore(filepath.Join(dir, "sources.db")); err != nil {
+		log.Printf("sources: disabled, store error: %v", err)
+		sourceStore = nil
+	} else {
+		sourceMgr := sources.NewManager(cfg, filepath.Join(dir, "sources.json"),
+			sourceStore, boardadapter.NewWriter(srv.App()), nil)
+		ingest.SetManager(sourceMgr)
+		app.sources = sourceMgr
+		log.Printf("sources: enabled (%d registered)", len(cfg.Sources))
 	}
 
 	// Manager lifecycle: created after the server (needs srv.App()), stopped
@@ -178,6 +215,9 @@ func main() {
 			mgr.Shutdown(5 * time.Second)
 		}
 		tailnet.close()
+		if sourceStore != nil {
+			_ = sourceStore.Close()
+		}
 		_ = srv.Shutdown()
 	}
 

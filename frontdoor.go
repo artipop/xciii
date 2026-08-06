@@ -27,11 +27,12 @@ import (
 // of ours, where an upgrade is ordinary.
 
 // newFrontDoor routes /wails/ to the Wails runtime, /acp/ to our own sockets
-// (the terminal windows) and everything else to the board. allowedHost is the
-// authority the page is served under; a request for any other Host is refused,
-// since a name that resolves to this listener but isn't the one we handed out
-// is somebody else's DNS entry pointing here.
-func newFrontDoor(wails, acp, board http.Handler, allowedHost string) http.Handler {
+// (the terminal windows), /sources/ to the ingest endpoint and everything else
+// to the board. allowedHost is the authority the page is served under; a
+// request for any other Host is refused, since a name that resolves to this
+// listener but isn't the one we handed out is somebody else's DNS entry
+// pointing here.
+func newFrontDoor(wails, acp, ingest, board http.Handler, allowedHost string) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/wails/", sameOrigin(wails, allowedHost))
 	// Only the socket, not the path around it: /acp/terminal/{id} is the page
@@ -43,6 +44,11 @@ func newFrontDoor(wails, acp, board http.Handler, allowedHost string) http.Handl
 	// The UI event socket is guarded the same way and for the same reason: it
 	// says what the agents are doing on this machine.
 	mux.Handle("/acp/events/ws", sameOrigin(acp, allowedHost))
+	// The one route here that is *not* same-origin, and it cannot be: what
+	// posts to it is a script, a webhook or a phone, so its Origin is somebody
+	// else's or absent. Its own token is what stands in for the check — see
+	// ingest.go.
+	mux.Handle("/sources/ingest/{name}", ingest)
 	mux.Handle("/", board)
 	return hostGuard(requestLog(mux), allowedHost)
 }
