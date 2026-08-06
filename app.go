@@ -388,6 +388,17 @@ func (a *App) BoardSetupPlan(boardID string) (string, error) {
 	return string(out), nil
 }
 
+// MarkBoardSetupOffered remembers that the setup wizard has opened itself for
+// this board. It is stored beside the rest of the board's setup rather than in
+// the page: the desktop app serves itself on a fresh port every launch, so the
+// page's own storage is a fresh one too.
+func (a *App) MarkBoardSetupOffered(boardID string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	return a.mgr.MarkSetupOffered(boardID)
+}
+
 // CheckBoardSetupAnswer says whether an answer fits the step it answers on this
 // board — a project under git for a board that publishes a branch or waits for
 // one, and any requirement a step grows later. Called before the answer is

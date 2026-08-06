@@ -6,7 +6,6 @@
 import {createResource, type Resource} from 'solid-js'
 
 import {Board} from '../../blocks/board'
-import {UserSettings} from '../../userSettings'
 
 import {agentBindings} from './agentProjectsDialog'
 
@@ -50,12 +49,15 @@ export type SetupPlan = {
     // The board brings columns or routes of its own. One that brings none is
     // not a board the wizard should open itself for.
     automated: boolean
+
+    // The wizard has already opened itself for this board once.
+    offered?: boolean
 }
 
 // The plan a board with nothing to say gets: no steps at all, so nothing is
 // offered and nothing is asked. It is what a browser or plugin build sees,
 // where there is no machine to set up in the first place.
-export const NO_SETUP: SetupPlan = {boardId: '', steps: [], declared: false, automated: false}
+export const NO_SETUP: SetupPlan = {boardId: '', steps: [], declared: false, automated: false, offered: false}
 
 // What the trigger column is called on a board that ships none: the default the
 // Go config carries (acp.DefaultConfig).
@@ -130,18 +132,18 @@ export function setupNeeded(plan: SetupPlan | undefined): boolean {
 // on every launch until the setup was finished or refused, which meant the app
 // greeted you with a modal every morning for as long as you had not got round
 // to it. A thing you have already seen and closed is a reminder, not a dialog.
-export function shouldOfferSetup(plan: SetupPlan | undefined, boardId: string): boolean {
-    return setupNeeded(plan) && !offeredFor(boardId)
+export function shouldOfferSetup(plan: SetupPlan | undefined): boolean {
+    return setupNeeded(plan) && !plan?.offered
 }
 
-// Whether the wizard has had its turn is the one thing kept in the browser
-// rather than the store: it is not what the machine is missing but whether this
-// person has been shown the dialog, and it is per board, so a board you have
-// seen it for is not the answer for the next one you make.
-export function offeredFor(boardId: string): boolean {
-    return Boolean(UserSettings.acpSetupDismissed[boardId])
-}
-
-export function rememberOffered(boardId: string): void {
-    UserSettings.setAcpSetupDismissed(boardId)
+// Remembered by Go, in the store, because the page cannot: the desktop app
+// serves itself on a fresh port every launch, so localStorage is keyed by an
+// origin that does not survive a restart — which made "do not show this again"
+// last exactly one run.
+export async function markSetupOffered(boardId: string): Promise<void> {
+    const bindings = agentBindings()
+    if (!bindings?.MarkBoardSetupOffered || !boardId) {
+        return
+    }
+    await bindings.MarkBoardSetupOffered(boardId)
 }

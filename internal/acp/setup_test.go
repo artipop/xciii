@@ -408,3 +408,52 @@ func TestABoardIsNotAskedForWhatOnlyTheMachineHas(t *testing.T) {
 		t.Errorf("a board run by the machine's own columns asks for %v", got)
 	}
 }
+
+// Having been offered the wizard has to outlive the run it happened in. It used
+// to live in the page's localStorage, which is keyed by origin — and the desktop
+// app publishes itself on a fresh port, and therefore a fresh origin, every
+// launch, so "do not show me this again" lasted exactly one launch.
+func TestTheOfferIsRememberedAcrossRestarts(t *testing.T) {
+	dir := t.TempDir()
+	store, err := OpenStore(filepath.Join(dir, "acp.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	manager := func(store *Store) *Manager {
+		m := NewManager(DefaultConfig(dir), "", store, newFakeWriter(), &fakeEmitter{}, nil)
+		m.cfg.Columns = nil
+		m.cfg.Flows = nil
+		m.rootCtx = context.Background()
+		m.SetBoardMeta(&fakeBoardMeta{})
+		return m
+	}
+
+	m := manager(store)
+	if m.SetupPlanFor("board1").Offered {
+		t.Fatal("a board nobody has seen the wizard for says it has")
+	}
+	if err := m.MarkSetupOffered("board1"); err != nil {
+		t.Fatal(err)
+	}
+	if !m.SetupPlanFor("board1").Offered {
+		t.Fatal("the offer was not remembered at all")
+	}
+	if m.SetupPlanFor("board2").Offered {
+		t.Error("one board's offer stood in for another's")
+	}
+	if err := store.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	// The next launch: a new store on the same file, and nothing else carried
+	// over — no page, no memory.
+	reopened, err := OpenStore(filepath.Join(dir, "acp.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = reopened.Close() })
+	if !manager(reopened).SetupPlanFor("board1").Offered {
+		t.Fatal("the offer did not survive the restart")
+	}
+}

@@ -60,7 +60,7 @@ import Gallery from './gallery/gallery'
 import {BoardTourSteps, FINISHED, TOUR_BOARD, TOUR_CARD} from './onboardingTour'
 import ShareBoardTourStep from './onboardingTour/shareBoard/shareBoard'
 import BoardSetupWizard from './acp/boardSetupWizard'
-import {createSetupPlan, rememberOffered, setupNeeded, shouldOfferSetup} from './acp/boardSetup'
+import {createSetupPlan, markSetupOffered, setupNeeded, shouldOfferSetup} from './acp/boardSetup'
 
 type Props = {
     clientConfig?: ClientConfig
@@ -89,11 +89,11 @@ const CenterPanel = (props: Props) => {
     const setupPending = () => setupNeeded(plan())
     createEffect(() => {
         const board = props.board
-        if (shouldOfferSetup(plan(), board.id)) {
+        if (shouldOfferSetup(plan())) {
             // Marked as offered when it opens, not when it closes: closing the
             // window, quitting mid-way or never touching it again all mean the
             // same thing — it has had its turn.
-            rememberOffered(board.id)
+            markSetupOffered(board.id).catch(() => undefined)
             setShowSetup(true)
         }
     })

@@ -55,6 +55,7 @@ export interface IAppWindow extends Window {
                 BoardSetupPlan(boardId: string): Promise<string>
                 RecordBoardSetupStep(boardId: string, step: string, status: string): Promise<void>
                 CheckBoardSetupAnswer(boardId: string, step: string, value: string): Promise<void>
+                MarkBoardSetupOffered(boardId: string): Promise<void>
                 ListSetupSteps(): Promise<string>
                 AddFlow(entryJSON: string): Promise<string>
                 UpdateFlow(entryJSON: string): Promise<string>

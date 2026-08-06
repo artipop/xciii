@@ -228,6 +228,10 @@ the one thing a rewrite must not quietly drop.
   half-way answers nothing, so the header goes on saying *«Доска ещё не
   настроена»* until every question that board asks has an answer, and that
   button is the way back in (*Set up this board…* in the board menu too).
+  Having been offered it is remembered in the store, not in the page: the app
+  publishes itself on a fresh port every launch, so `localStorage` is keyed by
+  an origin that does not survive a restart — anything the page has to remember
+  between runs has to be asked of Go.
 - **Columns** (column menu → *Agents in this column…*) say what happens when a
   card lands in one: the action, the crew of agents who work it, and how many of
   them at once. A card without an agent of its own goes to whoever of the crew is

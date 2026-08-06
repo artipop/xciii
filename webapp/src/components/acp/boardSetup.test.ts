@@ -8,11 +8,10 @@ import {
     agentColumn,
     checkSetupAnswer,
     isBoardSetupAvailable,
-    offeredFor,
+    markSetupOffered,
     planHasStep,
     readSetupPlan,
     recordSetupStep,
-    rememberOffered,
     setupNeeded,
     shouldOfferSetup,
     stepRequires,
@@ -70,19 +69,25 @@ describe('components/acp/boardSetup', () => {
         expect(setupNeeded(undefined)).toBe(false)
     })
 
-    test('the wizard offers itself once per board', () => {
+    // Having been offered the wizard is remembered by Go, in the store: the
+    // desktop app takes a fresh port every launch, so the page's own storage is
+    // keyed by an origin that does not survive a restart.
+    test('the wizard offers itself once per board, and Go is what remembers it', async () => {
         const pending = plan([{kind: 'project', status: 'pending'}])
-        expect(shouldOfferSetup(pending, 'board-1')).toBe(true)
-
-        rememberOffered('board-1')
-        expect(offeredFor('board-1')).toBe(true)
-        expect(shouldOfferSetup(pending, 'board-1')).toBe(false)
-
-        // Another board gets its own turn.
-        expect(shouldOfferSetup(pending, 'board-2')).toBe(true)
+        expect(shouldOfferSetup(pending)).toBe(true)
+        expect(shouldOfferSetup({...pending, offered: true})).toBe(false)
 
         // And the need outlives the offer — that is what the reminder reads.
-        expect(setupNeeded(pending)).toBe(true)
+        expect(setupNeeded({...pending, offered: true})).toBe(true)
+
+        const MarkBoardSetupOffered = vi.fn().mockResolvedValue(undefined)
+        anyWindow.go = {main: {App: {MarkBoardSetupOffered}}}
+        await markSetupOffered('board-1')
+        expect(MarkBoardSetupOffered).toHaveBeenCalledWith('board-1')
+
+        // A board with no id is not a board anything is remembered for.
+        await markSetupOffered('')
+        expect(MarkBoardSetupOffered).toHaveBeenCalledTimes(1)
     })
 
     test('a step the board never asks for is not a setting worth offering', () => {

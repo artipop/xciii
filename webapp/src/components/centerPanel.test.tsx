@@ -147,11 +147,19 @@ describe('components/centerPanel', () => {
         setupBoard.id = 'board-needing-setup'
         setupBoard.teamId = 'team-id'
 
+        // A stand-in for the store: what Go remembers about this board, which
+        // is the whole point — it outlives the page, and the page is what a
+        // restart throws away.
         const stubPlan = (steps: Array<Record<string, unknown>>) => {
+            let offered = false
             anyWindow.go = {main: {App: {
-                BoardSetupPlan: vi.fn().mockResolvedValue(JSON.stringify({
-                    boardId: setupBoard.id, steps, declared: true, automated: true,
-                })),
+                BoardSetupPlan: vi.fn().mockImplementation(() => Promise.resolve(JSON.stringify({
+                    boardId: setupBoard.id, steps, declared: true, automated: true, offered,
+                }))),
+                MarkBoardSetupOffered: vi.fn().mockImplementation(() => {
+                    offered = true
+                    return Promise.resolve()
+                }),
                 RecordBoardSetupStep: vi.fn().mockResolvedValue(undefined),
                 ListAgentProjects: vi.fn().mockResolvedValue('[]'),
                 ListAgents: vi.fn().mockResolvedValue('[]'),
@@ -188,12 +196,18 @@ describe('components/centerPanel', () => {
         // Closing it half-way is an answer to "have you seen this?", not to any
         // of the questions in it: the board still needs setting up, and says so,
         // but the modal does not come back by itself.
+        // Throwing the page away and building it again is what a restart looks
+        // like from here — and localStorage would not have survived it, because
+        // the app serves itself on a fresh port, and therefore a fresh origin,
+        // every launch.
         test('does not open twice, and the reminder stays while a question is unanswered', async () => {
             stubPlan([{kind: 'project', optional: false, status: 'pending'}, {kind: 'done', optional: false, status: 'done'}])
             const first = renderPanel()
             await waitFor(() => expect(screen.getByText('Set up this board: Project')).toBeInTheDocument())
+            await waitFor(() => expect(anyWindow.go.main.App.MarkBoardSetupOffered).toHaveBeenCalledWith(setupBoard.id))
             first.unmount()
 
+            localStorage.clear()
             renderPanel()
             await waitFor(() => expect(screen.getByText('This board is not set up yet')).toBeInTheDocument())
             expect(screen.queryByText('Set up this board: Project')).toBeNull()

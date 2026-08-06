@@ -44,6 +44,14 @@ const (
 	SetupSkipped = "skipped" // deliberately passed over
 )
 
+// setupWizardStep is not a step: it is the row that remembers the wizard itself
+// was offered for a board. It lives in the same table because it is the same
+// kind of fact — something this machine knows about this board — and it cannot
+// live in the page, where localStorage is keyed by origin and the desktop app
+// takes a fresh port (and therefore a fresh origin) on every launch, so a
+// refusal lasted exactly one run.
+const setupWizardStep = "wizard"
+
 // Setup requirements: what an answer to a step has to satisfy on this machine.
 // A closed set like the steps themselves, and derived from what the board's
 // automation actually does rather than named by anybody: a board that publishes
@@ -138,6 +146,11 @@ type SetupPlan struct {
 	// one thing every board has and every board names differently, and the last
 	// thing the wizard has to say.
 	AgentColumn string `json:"agentColumn,omitempty"`
+	// Offered says the wizard has already opened itself for this board once.
+	// Closing it half-way answers nothing, but it is still an answer to "have
+	// you seen this?", and asking again on every launch is how a dialog becomes
+	// something people close on reflex.
+	Offered bool `json:"offered"`
 }
 
 // SetupStepState is what a person did with a step, remembered per board.
@@ -166,6 +179,7 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 
 	plan.AgentColumn = agentColumnOf(columns)
 	states := m.setupStates(boardID)
+	plan.Offered = states[setupWizardStep] != ""
 	for _, step := range steps {
 		def, ok := SetupStepDefinition(step.Kind)
 		if !ok {
@@ -389,6 +403,16 @@ func (m *Manager) setupStates(boardID string) map[string]string {
 		out[st.Step] = st.Status
 	}
 	return out
+}
+
+// MarkSetupOffered remembers that the wizard opened itself for this board, so
+// it does not do so again — on the next board, on the next launch, or after the
+// page's storage is cleared.
+func (m *Manager) MarkSetupOffered(boardID string) error {
+	if m.store == nil {
+		return nil
+	}
+	return m.store.SaveSetupStep(SetupStepState{BoardID: boardID, Step: setupWizardStep, Status: "offered"})
 }
 
 // RecordSetupStep remembers what was done with a step. Skipping is the one
