@@ -192,9 +192,16 @@ var FieldTypes = []string{"string", "number", "bool", "select", "secret"}
 // carrying any of it.
 type AuthSpec struct {
 	Type             string   `json:"type"` // token | oauth2
+	ClientID         string   `json:"clientId,omitempty"`
 	AuthorizationURL string   `json:"authorizationUrl,omitempty"`
 	TokenURL         string   `json:"tokenUrl,omitempty"`
 	Scopes           []string `json:"scopes,omitempty"`
+
+	// ClientSecret is here because some providers refuse a native app without
+	// one, not because it is a secret: a desktop app ships it to everybody who
+	// installs it. What actually proves the answer came back to this program is
+	// PKCE — see internal/oauth.
+	ClientSecret string `json:"clientSecret,omitempty"`
 }
 
 // Manifest describes a plugin: how to start it, what it needs and what to ask
