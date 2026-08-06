@@ -10,12 +10,12 @@ import (
 )
 
 // The board template and the seeded routes are two halves of one promise: open
-// a fresh "Задачи разработчика" board and the routes already point at columns that
+// a fresh "Разработка" board and the routes already point at columns that
 // exist, with a "Workflow" property whose options name them. Nothing in the
 // build enforces that — a template is JSON nobody compiles — so the test reads
 // the templates themselves and compares.
 
-const templateBoardTitle = "Задачи разработчика"
+const templateBoardTitle = "Разработка"
 
 type templateProperty struct {
 	ID      string `json:"id"`

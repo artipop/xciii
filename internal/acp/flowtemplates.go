@@ -3,7 +3,7 @@ package acp
 import "strings"
 
 // The routes an install starts with. They exist so a fresh board is not a blank
-// registry: the «Задачи разработчика» board template ships the columns these
+// registry: the «Разработка» board template ships the columns these
 // routes name and a "Workflow" property whose options are their names, so the
 // whole mechanism can be seen — and picked — before anything is configured.
 //

@@ -51,7 +51,7 @@ type Props = {
 // about. The titles are the ones this app ships
 // (`internal/boardadapter/templates`).
 const VISIBLE_TEMPLATE_TITLES = [
-    'Задачи разработчика',
+    'Разработка',
     'Домашние дела',
     'Покупки и меню',
     'Дом и техника',

@@ -180,7 +180,7 @@ the one thing a rewrite must not quietly drop.
   `<dataDir>/artifacts/<session-id>`) where the agent is asked to save its
   screenshots and write `result.json` — that verdict is what moves the card.
 - **Templates**: the board selector offers four of them, and each ships the
-  columns and routes it needs in the board's own properties — «Задачи разработчика»
+  columns and routes it needs in the board's own properties — «Разработка»
   for code, and «Домашние дела», «Покупки и меню» and «Дом и техника» for the
   ordinary life the same machinery turns out to fit: an agent that prepares a
   plan, a checklist or a shopping list in a project of household notes, and a
@@ -254,14 +254,14 @@ the one thing a rewrite must not quietly drop.
   (default `origin`). Which branch is watched: the card's `branch` property if
   it has one, otherwise the branch the card's own sessions worked on — with
   worktrees that is the agent's branch, which the card never names itself. A fresh config is seeded with three routes — «Фича»,
-  «Хотфикс» and «Только ревью» — and the «Задачи разработчика» board template ships
+  «Хотфикс» and «Только ревью» — and the «Разработка» board template ships
   the columns they name plus a «Сценарий» property to pick one with, so a new
   board runs them without any setup. Picking a route stays optional: a card with
   no «Сценарий» option takes none, and the trigger columns work as they always
   did. The editor draws the route as a graph and offers whichever shipped route
   the registry is missing. A card shows its own route: which stage it stands on
   and what that stage is waiting for. Routes belong to the board they were made
-  on, and a board made from the «Задачи разработчика» template arrives with them:
+  on, and a board made from the «Разработка» template arrives with them:
   the template carries its columns and routes in the board's own properties, and
   the first card moved on it takes them into the registry. The Workflows dialog
   is both the map and the builder: it draws each route with the number of cards

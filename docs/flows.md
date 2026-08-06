@@ -23,7 +23,7 @@ board made from any of the offered templates brings its own columns and routes;
 the first time it is opened on a machine with empty registries, the setup wizard
 asks for the rest.
 
-Four templates are offered. «Задачи разработчика» is the one written for code, with
+Four templates are offered. «Разработка» is the one written for code, with
 the «Фича», «Хотфикс» and «Только ревью» routes across «В работе», «Деплой»
 and «Тестирование». The other three are the same machinery pointed at ordinary life
 — «Домашние дела», «Покупки и меню», «Дом и техника» — and they are worth

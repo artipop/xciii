@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// A board can bring its own automation. The «Задачи разработчика» template ships
+// A board can bring its own automation. The «Разработка» template ships
 // the columns it runs and the routes cards take across it, in the board's own
 // properties, so a board made from it works before anything is configured — the
 // columns are already the ones the routes name, and the ids match, because both
