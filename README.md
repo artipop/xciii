@@ -8,21 +8,16 @@ server running **in-process** — no spawned server process, no Node.js of our
 own — and the same code builds a **headless server** (`-tags server`) that serves
 the whole thing to a browser.
 
-The frontend lives here, in `webapp/` — its own npm project built with Vite. The
-**server module does not**: it is a fork of Mattermost's Focalboard server, and
-`go.mod` `replace`s it to `../focalboard/server`, so that checkout beside this one
-is still what a build needs:
+Everything a build needs is in this repository: `webapp/` is the frontend, its
+own npm project built with Vite, and `server/` is the board server, a fork of
+Mattermost's Focalboard with our own patches (`GetUserByUsername` and two
+single-user endpoint fixes). `go.mod` `replace`s the module to `./server`, so
+**`git clone` and `go build ./...` is the whole of it** — there is no second
+checkout to place beside this one and no branch of somebody else's to be on.
 
-```
-sources/
-  focalboard/   # github.com/artipop/focalboard — the server module
-  xciii/        # this repository, webapp included
-```
-
-**That checkout has to be on a branch carrying the fork's server patches** —
-`experiments` — because this app needs `GetUserByUsername` and two single-user
-endpoint fixes that upstream does not have. Settling that properly is the first
-open question: see [docs/plan.md](docs/plan.md), "Открытые решения".
+`server/` keeps Focalboard's import path, `github.com/mattermost/focalboard/
+server`, because that is what its own thousands of files say. The path is
+upstream's; the code is ours.
 
 ## How it works
 

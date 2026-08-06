@@ -2,9 +2,15 @@ module github.com/artipop/xciii
 
 go 1.26.5
 
-// The board server is Focalboard's own module, taken from a checkout beside
-// this one. See README.md: pinning it properly is the first open question.
-replace github.com/mattermost/focalboard/server => ../focalboard/server
+// The board server lives in this repository, in server/. It keeps Focalboard's
+// import path because that is what its own thousands of files say; the path is
+// upstream's, the code is ours, and a rename would be a tree-wide edit that
+// buys nothing but the name.
+//
+// It was a checkout beside this one until it turned out that the branch the
+// build needed had never been published — so the project built on exactly one
+// machine. A repository that cannot be cloned and built is not a project.
+replace github.com/mattermost/focalboard/server => ./server
 
 require (
 	github.com/aymanbagabas/go-pty v0.2.3

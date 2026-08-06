@@ -14,16 +14,19 @@ a browser instead of a webview.
 
 The board server and the webapp are both forks of Mattermost's Focalboard, and
 the product no longer carries that name anywhere a person can see it — the only
-places it survives are the upstream Go import path and the checkout it is
-replaced with.
+place it survives is the upstream Go import path.
 
-The frontend is here: `webapp/` is its own npm project built with Vite, copied in
-from the `experiments` branch of the server checkout — and since rewritten from
-React to **SolidJS**, so upstream and this repository's early history are both
-React and neither is a recipe any more. The **server** is still not here —
-`go.mod` `replace`s that module to `../focalboard/server`, so a checkout beside
-this one is what a build still needs. See `docs/plan.md` for how that should end
-up, and `docs/solidjs-migration-plan.md` for what the rewrite promised.
+Both halves are here. `webapp/` is its own npm project built with Vite, since
+rewritten from React to **SolidJS**, so upstream and this repository's early
+history are both React and neither is a recipe any more; see
+`docs/solidjs-migration-plan.md` for what the rewrite promised. `server/` is the
+board server, its own Go module, which `go.mod` `replace`s the upstream path
+onto. It was a checkout beside this one until that turned out to mean the
+project built on exactly one machine, because the branch it needed had never
+been pushed. Nothing outside this repository is required to build it.
+
+`server/` is a fork carried, not a library consumed: patch it here, and keep
+patches small enough to explain, because there is nobody upstream to merge them.
 
 What the page needs from the Go side is described in README.md, "What this app
 requires of the frontend": the output layout `go:embed` expects, and three
