@@ -94,6 +94,16 @@ export interface IAppWindow extends Window {
                 // the node is brought up or closed by the call itself.
                 GetTailnetAccess?(): Promise<string>
                 SetTailnetAccess?(entryJson: string): Promise<string>
+
+                // What turns into cards on a board on its own. AddSource and
+                // ResetSourceToken are the only calls that ever return the
+                // ingest token: only its hash is kept, so it is shown once.
+                ListSources?(boardId: string): Promise<string>
+                AddSource?(entryJson: string): Promise<string>
+                UpdateSource?(entryJson: string): Promise<string>
+                ResetSourceToken?(name: string): Promise<string>
+                RemoveSource?(name: string): Promise<void>
+                SourceEvents?(name: string, limit: number): Promise<string>
             }
         }
     }

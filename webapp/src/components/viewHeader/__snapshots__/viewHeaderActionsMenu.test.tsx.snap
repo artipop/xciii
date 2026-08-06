@@ -89,6 +89,7 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu 1`] = `
             <div />
             <div />
             <div />
+            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -219,6 +220,7 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify ca
             <div />
             <div />
             <div />
+            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -343,6 +345,7 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify ca
                 />
               </div>
             </div>
+            <div />
             <div />
             <div />
             <div />

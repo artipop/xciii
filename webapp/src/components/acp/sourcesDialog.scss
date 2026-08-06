@@ -1,0 +1,164 @@
+@import '../../styles/typography';
+
+.SourcesDialog {
+    .SourcesDialog__content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 0 24px 24px;
+        min-width: 560px;
+    }
+
+    .SourcesDialog__source {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 10px 12px;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        background: rgb(var(--surface-rgb));
+    }
+
+    .SourcesDialog__sourceHead {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    // The name is the user's own word for the thing, so it keeps a person's
+    // voice; everything the machine says about it below is in the machine's.
+    .SourcesDialog__sourceName {
+        @include prose;
+
+        flex: 1;
+        font-weight: 600;
+    }
+
+    .SourcesDialog__sourceMode {
+        @include label;
+
+        opacity: 0.7;
+        white-space: nowrap;
+    }
+
+    // The address and the token are the two things somebody copies by eye onto
+    // another device.
+    .SourcesDialog__address {
+        @include data;
+
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: var(--text-small);
+        opacity: 0.8;
+    }
+
+    .SourcesDialog__token {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-sm);
+        background: rgb(var(--surface-rgb));
+
+        code {
+            @include data;
+
+            flex: 1;
+            font-size: var(--text-body);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .SourcesDialog__tokenLabel {
+        @include label;
+
+        opacity: 0.7;
+    }
+
+    .SourcesDialog__add {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-top: 4px;
+        border-top: 1px solid var(--border-subtle);
+
+        input[type='text'] {
+            padding: 8px 10px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            background: rgb(var(--canvas-rgb));
+            color: rgb(var(--ink-rgb));
+        }
+    }
+
+    .SourcesDialog__noisy {
+        @include prose;
+
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: var(--text-small);
+    }
+
+    .SourcesDialog__log {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding-top: 4px;
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .SourcesDialog__logLabel {
+        @include label;
+
+        opacity: 0.7;
+    }
+
+    .SourcesDialog__event {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+    }
+
+    // What became of an item is the machine reporting on itself. Only the two
+    // outcomes somebody may need to act on carry a colour.
+    .SourcesDialog__outcome {
+        @include label;
+
+        white-space: nowrap;
+
+        &--inbox {
+            color: rgb(var(--warning-rgb));
+        }
+
+        &--failed {
+            color: rgb(var(--error-text-rgb));
+        }
+    }
+
+    .SourcesDialog__eventDetail {
+        @include data;
+
+        font-size: var(--text-small);
+        opacity: 0.7;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .SourcesDialog__hint {
+        @include prose;
+
+        margin: 0;
+        font-size: var(--text-small);
+        opacity: 0.64;
+    }
+
+    .SourcesDialog__error {
+        color: rgb(var(--error-text-rgb));
+    }
+}

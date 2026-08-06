@@ -22,6 +22,7 @@ import AgentsDialog, {isAgentsAvailable} from '../acp/agentsDialog'
 import DeployTargetsDialog, {isDeployTargetsAvailable} from '../acp/deployTargetsDialog'
 import WorkflowsDialog, {isWorkflowsAvailable} from '../acp/workflowsDialog'
 import PlanningDialog, {isPlanningAvailable} from '../acp/planningDialog'
+import SourcesDialog, {isSourcesAvailable} from '../acp/sourcesDialog'
 import BoardSetupWizard from '../acp/boardSetupWizard'
 import {createSetupPlan, isBoardSetupAvailable, planHasStep} from '../acp/boardSetup'
 
@@ -58,6 +59,7 @@ const ViewHeaderActionsMenu = (props: Props) => {
     const [showWorkflows, setShowWorkflows] = createSignal(false)
     const [showPlanning, setShowPlanning] = createSignal(false)
     const [showSetup, setShowSetup] = createSignal(false)
+    const [showSources, setShowSources] = createSignal(false)
 
     return (
         <ModalWrapper>
@@ -115,6 +117,13 @@ const ViewHeaderActionsMenu = (props: Props) => {
                                 onClick={() => setShowDeployTargets(true)}
                             />
                         </Show>
+                        <Show when={isSourcesAvailable()}>
+                            <Menu.Text
+                                id='sources'
+                                name={intl.formatMessage({id: 'ViewHeader.sources', defaultMessage: 'Sources…'})}
+                                onClick={() => setShowSources(true)}
+                            />
+                        </Show>
                         <Show when={isWorkflowsAvailable()}>
                             <Menu.Text
                                 id='workflows'
@@ -154,6 +163,12 @@ const ViewHeaderActionsMenu = (props: Props) => {
                 <BoardSetupWizard
                     board={props.board}
                     onClose={() => setShowSetup(false)}
+                />
+            </Show>
+            <Show when={showSources()}>
+                <SourcesDialog
+                    board={props.board}
+                    onClose={() => setShowSources(false)}
                 />
             </Show>
             <Show when={showPlanning()}>
