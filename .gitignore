@@ -24,3 +24,8 @@ build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 # writes it back (plain `task` can consider itself up to date: Assets.car is not
 # among the task's `generates`).
 build/darwin/Assets.car
+
+# Go workspace files: a local convenience for building this module from a
+# git worktree, where the relative replace of the server module does not resolve.
+go.work
+go.work.sum

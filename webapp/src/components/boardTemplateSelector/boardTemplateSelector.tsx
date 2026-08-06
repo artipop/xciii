@@ -48,8 +48,8 @@ type Props = {
 // is hidden. Each of them ships its own columns and routes in the board's own
 // properties, which is what makes a board from it run without any setup — an
 // upstream template would land here as a board the automation knows nothing
-// about. The titles are the ones in the template archive
-// (`server/assets/templates-boardarchive`).
+// about. The titles are the ones this app ships
+// (`internal/boardadapter/templates`).
 const VISIBLE_TEMPLATE_TITLES = [
     'Developer Tasks',
     'Домашние дела',

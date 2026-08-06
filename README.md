@@ -186,10 +186,16 @@ the one thing a rewrite must not quietly drop.
   plan, a checklist or a shopping list in a project of household notes, and a
   route that closes the card once the branch it wrote is merged. Every other
   upstream template is hidden, because a board the automation knows nothing
-  about arrives empty. They live in `server/assets/templates-boardarchive`, one
-  directory per board, and `make templates-archive` packs them into the archive
-  the server embeds; bumping `defaultTemplateVersion` in
-  `server/app/templates.go` is what makes an existing install re-import them.
+  about arrives empty — the server module's own templates are the upstream's
+  examples and stay hidden. Ours live **here**, in
+  `internal/boardadapter/templates/`, one `.jsonl` per board, embedded with
+  `go:embed` and installed into the global team on launch by `ImportTemplates`.
+  A board is recognised on the next launch by the `xciiiTemplate` property
+  carrying its file's slug (ids are regenerated on import, titles are the
+  user's), and `TemplateVersion` in `internal/boardadapter/templates.go` is what
+  replaces an installed copy with an edited one. Authoring is not by hand:
+  build the board in the app, *Export board archive*, unzip, keep the
+  `board.jsonl`.
 - **First run**: a board made from a template opens a setup wizard by itself
   when the registries are still empty — a project and an agent are asked for
   (nothing runs without them), Dokku and a browser MCP server are offered and

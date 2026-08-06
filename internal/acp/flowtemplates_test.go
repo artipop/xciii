@@ -12,8 +12,8 @@ import (
 // The board template and the seeded routes are two halves of one promise: open
 // a fresh "Developer Tasks" board and the routes already point at columns that
 // exist, with a "Workflow" property whose options name them. Nothing in the
-// build enforces that — the template is JSON in the server module — so the test
-// reads the template itself and compares.
+// build enforces that — a template is JSON nobody compiles — so the test reads
+// the templates themselves and compares.
 
 const templateBoardTitle = "Developer Tasks"
 
@@ -39,36 +39,20 @@ type templateBoard struct {
 	} `json:"fields"`
 }
 
-// readTemplateBoards reads every board the template archive ships.
+// templatesDir is where the boards this app ships live. They are read as files
+// rather than through boardadapter, which imports the board server: this package
+// is board-agnostic and must stay buildable without it.
+const templatesDir = "../boardadapter/templates"
+
+// readTemplateBoards reads every board this app ships as a template.
 func readTemplateBoards(t *testing.T) []templateBoard {
 	t.Helper()
-	// The server module is a checkout somewhere above us — beside this
-	// repository (what go.mod replaces it with), or around it as it was when
-	// this was a directory of Focalboard itself. Neither depth is fixed: a git
-	// worktree of this repository sits deeper than the repository does.
-	var files []string
-	suffixes := []string{
-		filepath.Join("focalboard", "server", "assets", "templates-boardarchive"),
-		filepath.Join("server", "assets", "templates-boardarchive"),
-	}
-	up := ".."
-	for level := 0; level < 8 && files == nil; level++ {
-		for _, suffix := range suffixes {
-			found, err := filepath.Glob(filepath.Join(up, suffix, "*", "board.jsonl"))
-			if err != nil {
-				t.Fatal(err)
-			}
-			if len(found) > 0 {
-				files = found
-				break
-			}
-		}
-		up = filepath.Join(up, "..")
+	files, err := filepath.Glob(filepath.Join(templatesDir, "*.jsonl"))
+	if err != nil {
+		t.Fatal(err)
 	}
 	if len(files) == 0 {
-		// The desktop module is buildable on its own; without the server tree
-		// there is nothing to compare against.
-		t.Skipf("board templates not found in any parent directory (%v)", suffixes)
+		t.Fatalf("no board templates under %s", templatesDir)
 	}
 	var boards []templateBoard
 	for _, path := range files {

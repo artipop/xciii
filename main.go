@@ -84,6 +84,14 @@ func main() {
 		log.Fatalf("failed to start the server: %v", err)
 	}
 
+	// The templates this app offers are its own (internal/boardadapter/
+	// templates); the server module's are the upstream's examples and carry no
+	// automation. Failing to install them costs the selector its contents, not
+	// the app, so it is logged rather than fatal.
+	if err := boardadapter.ImportTemplates(srv.App(), logger); err != nil {
+		log.Printf("templates: %v", err)
+	}
+
 	handler, err := newServerProxy(port, sessionToken)
 	if err != nil {
 		log.Fatalf("failed to create the server proxy: %v", err)
