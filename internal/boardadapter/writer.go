@@ -124,6 +124,115 @@ func findSelectOption(schema model.PropSchema, propertyName, optionName string) 
 	return "", "", false
 }
 
+// CardSpec is a card somebody outside the board asked for. Properties are named
+// rather than identified, the way everything else here names them: a source
+// knows it wants «Ссылка» filled in, and cannot know the id the board gave it.
+type CardSpec struct {
+	Title string
+	Icon  string
+	// Body becomes the card's first text block. The card's own title is not a
+	// place for it: a description lives in content blocks, which is where
+	// cardBody reads it back from.
+	Body string
+	// Properties are property name → value; for a select, the value is the
+	// option name. Both are matched case-insensitively, as the trigger columns
+	// are.
+	Properties map[string]string
+}
+
+// CreateCard creates a card on the board and returns its id.
+//
+// It is written with disableNotify=true like every other write here, so the
+// card arrives without waking the agent trigger. That is not a limitation to
+// work around: the trigger only fires on a *change* of the column property, so
+// a card created straight into a working column would start nothing anyway.
+// Whoever wants the automation creates the card where nothing happens and then
+// moves it with MoveCardByOptionName, which is a real move with a real previous
+// state — the same thing the flow engine does.
+func (w *Writer) CreateCard(ctx context.Context, boardID string, spec CardSpec) (string, error) {
+	board, err := w.app.GetBoard(boardID)
+	if err != nil {
+		return "", fmt.Errorf("get board %s: %w", boardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return "", fmt.Errorf("parse property schema of board %s: %w", boardID, err)
+	}
+
+	card := &model.Card{
+		Title:      spec.Title,
+		Icon:       spec.Icon,
+		Properties: cardProperties(schema, spec.Properties),
+	}
+	created, err := w.app.CreateCard(card, boardID, model.SingleUser, true)
+	if err != nil {
+		return "", fmt.Errorf("create card on board %s: %w", boardID, err)
+	}
+	if strings.TrimSpace(spec.Body) == "" {
+		return created.ID, nil
+	}
+	if err := w.appendText(created.ID, boardID, spec.Body); err != nil {
+		// The card exists and is the useful half; a missing body is worth
+		// reporting, not worth pretending the card was never created.
+		return created.ID, err
+	}
+	return created.ID, nil
+}
+
+// appendText adds a text block to the end of the card's content — the two-step
+// write AttachFile already does, and the only way a card gets a description.
+func (w *Writer) appendText(cardID, boardID, text string) error {
+	now := utils.GetMillis()
+	block := &model.Block{
+		ID:        utils.NewID(model.BlockType2IDType(model.TypeText)),
+		BoardID:   boardID,
+		ParentID:  cardID,
+		Type:      model.TypeText,
+		Title:     text,
+		CreatedBy: model.SingleUser,
+		CreateAt:  now,
+		UpdateAt:  now,
+	}
+	if _, err := w.app.InsertBlocksAndNotify([]*model.Block{block}, model.SingleUser, true); err != nil {
+		return fmt.Errorf("insert text block: %w", err)
+	}
+	return w.appendContent(cardID, block.ID)
+}
+
+// cardProperties resolves named properties against the board's schema: a select
+// takes the id of the option named, everything else takes the value as it came.
+//
+// A name the board does not have is skipped rather than refused. A source
+// describes what it brought, and boards differ — one carries «Ссылка», the next
+// does not — so a missing property must cost that property and not the card.
+func cardProperties(schema model.PropSchema, props map[string]string) map[string]any {
+	if len(props) == 0 {
+		return nil
+	}
+	out := make(map[string]any, len(props))
+	for name, value := range props {
+		for id, def := range schema {
+			if !strings.EqualFold(def.Name, name) {
+				continue
+			}
+			if def.Type != "select" {
+				out[id] = value
+				break
+			}
+			// An option the board does not have is not invented here: adding
+			// options to a board is a deliberate, add-only act elsewhere.
+			for oid, opt := range def.Options {
+				if strings.EqualFold(opt.Value, value) {
+					out[id] = oid
+					break
+				}
+			}
+			break
+		}
+	}
+	return out
+}
+
 // AttachFile puts a file into the card's content: an image is rendered inline,
 // anything else becomes a download. This is how a test run's screenshots end up
 // where a human reads the result, instead of in a directory nobody opens.
