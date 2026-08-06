@@ -179,9 +179,9 @@ the one thing a rewrite must not quietly drop.
   gets a directory under `artifactsDir` (default
   `<dataDir>/artifacts/<session-id>`) where the agent is asked to save its
   screenshots and write `result.json` — that verdict is what moves the card.
-- **Templates**: the board selector offers four of them, and each ships the
+- **Templates**: the board selector offers three of them, and each ships the
   columns and routes it needs in the board's own properties — «Разработка»
-  for code, and «Домашние дела», «Покупки и меню» and «Дом и техника» for the
+  for code, and «Домашние дела» and «Покупки и меню» for the
   ordinary life the same machinery turns out to fit: an agent that prepares a
   plan, a checklist or a shopping list in a project of household notes, and a
   route that closes the card once the branch it wrote is merged. Every other

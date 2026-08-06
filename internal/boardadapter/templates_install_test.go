@@ -111,7 +111,7 @@ func TestTemplatesAreInstalledOnceAndStayThere(t *testing.T) {
 		}
 	}
 	sort.Strings(slugs)
-	want := []string{"developer-tasks", "home-chores", "house-and-appliances", "shopping-and-meals"}
+	want := []string{"developer-tasks", "home-chores", "shopping-and-meals"}
 	if strings.Join(slugs, ",") != strings.Join(want, ",") {
 		t.Fatalf("installed %v, expected %v", slugs, want)
 	}

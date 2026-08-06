@@ -55,17 +55,21 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
     }
     const template1Title = 'Template 1'
 
-    // The selector shows only the templates named in VISIBLE_TEMPLATE_TITLES —
-    // the ones that ship their own automation; everything else is hidden. The
-    // global template fixtures below carry two of those titles.
+    // The selector shows only the templates that ship their own automation,
+    // and it knows them by the marker they carry (xciiiTemplate); everything
+    // else is hidden. Two of the global fixtures below carry one.
     const globalTemplateTitle = 'Разработка'
     const householdTemplateTitle = 'Домашние дела'
     const boardTitle = 'Board 1'
     let store: ReturnType<typeof mockAppStore>
+
+    // Kept where a test can build a second store out of it: one of them needs
+    // the same fixtures with the marker taken away.
+    let state: any
     beforeAll(mockDOM)
     beforeEach(() => {
         vi.clearAllMocks()
-        const state = {
+        state = {
             teams: {
                 current: team1,
             },
@@ -140,6 +144,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
                     templateVersion: 2,
                     properties: {
                         trackingTemplateId: 'template_id_household',
+                        xciiiTemplate: 'home-chores',
                     },
                     createdBy: 'system',
                 }, {
@@ -155,6 +160,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
                     templateVersion: 2,
                     properties: {
                         trackingTemplateId: 'template_id_global',
+                        xciiiTemplate: 'developer-tasks',
                     },
                     createdBy: 'system',
                 }],
@@ -262,6 +268,31 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             // every other template is hidden from the selector
             expect(screen.queryByText(template1Title)).toBeNull()
             expect(screen.queryByText('Welcome to Boards!')).toBeNull()
+        })
+
+        // What makes a template ours is the marker it ships, not its title.
+        // Keyed on the title, this filter would offer a stranger that happens
+        // to be called the same — and would offer nothing at all the day
+        // somebody rewords one of ours.
+        test('goes by the marker a template carries, not by its name', () => {
+            const impostor = {
+                ...state.globalTemplates.value[1],
+                id: 'global-3',
+                properties: {trackingTemplateId: 'template_id_impostor'},
+            }
+            const storeWithImpostor = mockAppStore({
+                ...state,
+                globalTemplates: {value: [impostor]},
+            })
+
+            render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={storeWithImpostor}>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
+                </AppStoreProvider>
+                ,
+            ), {wrapper: TestRouter})
+
+            expect(screen.queryByText(globalTemplateTitle)).toBeNull()
         })
         test('opens on the developer template however the archive ordered them', () => {
             const {container} = render(() => wrapDNDIntl(() =>

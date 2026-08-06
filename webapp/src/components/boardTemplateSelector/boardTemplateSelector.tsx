@@ -48,14 +48,26 @@ type Props = {
 // is hidden. Each of them ships its own columns and routes in the board's own
 // properties, which is what makes a board from it run without any setup — an
 // upstream template would land here as a board the automation knows nothing
-// about. The titles are the ones this app ships
-// (`internal/boardadapter/templates`).
-const VISIBLE_TEMPLATE_TITLES = [
-    'Разработка',
-    'Домашние дела',
-    'Покупки и меню',
-    'Дом и техника',
+// about.
+//
+// They are named by the marker each one carries rather than by its title. The
+// title is Russian prose somebody may reword, and a filter keyed on it would
+// then quietly offer nothing; the marker is what the Go side already recognises
+// a board by (`TemplateMarkerProperty` in `internal/boardadapter/templates.go`),
+// and it is the file name in `internal/boardadapter/templates`.
+const TEMPLATE_MARKER = 'xciiiTemplate'
+const VISIBLE_TEMPLATE_SLUGS = [
+    'developer-tasks',
+    'home-chores',
+    'shopping-and-meals',
 ]
+
+// templateSlug is the marker, or '' for a board that carries none — every
+// template but ours.
+function templateSlug(template: Board): string {
+    const marker = template.properties?.[TEMPLATE_MARKER]
+    return typeof marker === 'string' ? marker : ''
+}
 
 const BoardTemplateSelector = (props: Props) => {
     const globalTemplates = useAppSelector<Board[]>(getGlobalTemplates)
@@ -100,12 +112,13 @@ const BoardTemplateSelector = (props: Props) => {
     const unsortedTemplates = useAppSelector(getTemplates)
     const allTemplates = createMemo(() => {
         const templates = Object.values(unsortedTemplates()).sort((a: Board, b: Board) => a.createAt - b.createAt)
-        const visible = (globalTemplates() || []).concat(templates).filter((template) => VISIBLE_TEMPLATE_TITLES.includes(template.title))
+        const visible = (globalTemplates() || []).concat(templates).filter((template) => VISIBLE_TEMPLATE_SLUGS.includes(templateSlug(template)))
 
         // The archive hands them over in whatever order it was packed in, so the
         // list above is also the order they are offered in — and its first entry
         // is what the selector opens on.
-        return visible.sort((a: Board, b: Board) => VISIBLE_TEMPLATE_TITLES.indexOf(a.title) - VISIBLE_TEMPLATE_TITLES.indexOf(b.title))
+        return visible.sort((a: Board, b: Board) =>
+            VISIBLE_TEMPLATE_SLUGS.indexOf(templateSlug(a)) - VISIBLE_TEMPLATE_SLUGS.indexOf(templateSlug(b)))
     })
 
     const resetTour = async () => {
