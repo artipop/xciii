@@ -81,11 +81,13 @@ func (a *App) CancelSession(cardID string) bool {
 }
 
 // ListAgentProjects returns the project registry as JSON: [{"name","path"}, …].
-func (a *App) ListAgentProjects() (string, error) {
+// boardID is the board asking; "" asks for the whole registry, which is what a
+// place with no board behind it (the planning dialog) wants.
+func (a *App) ListAgentProjects(boardID string) (string, error) {
 	if a.mgr == nil {
 		return "[]", nil
 	}
-	out, err := json.Marshal(a.mgr.Projects())
+	out, err := json.Marshal(a.mgr.ProjectsForBoard(boardID))
 	if err != nil {
 		return "", err
 	}
@@ -105,12 +107,14 @@ func (a *App) PickDirectory(title string) (string, error) {
 }
 
 // AddAgentProject registers a local project (name defaults to the directory
-// basename when empty) and returns the created entry as JSON.
-func (a *App) AddAgentProject(name, path string) (string, error) {
+// basename when empty) and returns the created entry as JSON. It belongs to
+// boardID — the board it was added on and the only one that offers it — unless
+// global says every board should.
+func (a *App) AddAgentProject(name, path, boardID string, global bool) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
-	entry, err := a.mgr.AddProject(name, path)
+	entry, err := a.mgr.AddProject(name, path, boardID, global)
 	if err != nil {
 		return "", err
 	}

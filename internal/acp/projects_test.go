@@ -20,7 +20,7 @@ func TestAddRemoveProjectPersists(t *testing.T) {
 	cfgPath := filepath.Join(t.TempDir(), "config.json")
 	m := registryManager(t, cfgPath)
 
-	entry, err := m.AddProject("", project)
+	entry, err := m.AddProject("", project, "board1", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,10 +29,10 @@ func TestAddRemoveProjectPersists(t *testing.T) {
 	}
 
 	// Duplicates by name and by path are rejected.
-	if _, err := m.AddProject(entry.Name, t.TempDir()); err == nil {
+	if _, err := m.AddProject(entry.Name, t.TempDir(), "board1", false); err == nil {
 		t.Error("duplicate name accepted")
 	}
-	if _, err := m.AddProject("other", project); err == nil {
+	if _, err := m.AddProject("other", project, "board1", false); err == nil {
 		t.Error("duplicate path accepted")
 	}
 	// A folder that is not under git is a project too: what git buys is
@@ -40,7 +40,7 @@ func TestAddRemoveProjectPersists(t *testing.T) {
 	// wants neither. Which board needs it is asked by the setup plan
 	// (setupRequirements), not by the registry.
 	notes := t.TempDir()
-	if _, err := m.AddProject("notes", notes); err != nil {
+	if _, err := m.AddProject("notes", notes, "board1", false); err != nil {
 		t.Errorf("an ordinary folder was refused: %v", err)
 	}
 	if IsGitProject(context.Background(), notes) {
@@ -126,7 +126,7 @@ func TestResolveRepoExplicitOverride(t *testing.T) {
 
 func TestTriggerSessionViaTag(t *testing.T) {
 	m, writer, events, project := testManager(t, fakeClaudeHappy, nil)
-	if _, err := m.AddProject("boardrepo", project); err != nil {
+	if _, err := m.AddProject("boardrepo", project, "board1", false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -148,5 +148,50 @@ func TestTriggerSessionViaTag(t *testing.T) {
 	}
 	if got := writer.cardComments("card10"); len(got) < 2 {
 		t.Errorf("expected comments, got %v", got)
+	}
+}
+
+// The registry is per machine, but a project is not: a folder of household
+// notes added on the home board has no business being offered — or worked in —
+// by the board about code.
+func TestAProjectBelongsToTheBoardItWasAddedOn(t *testing.T) {
+	home := initTestProject(t)
+	shared := initTestProject(t)
+	m := registryManager(t, filepath.Join(t.TempDir(), "config.json"))
+
+	if _, err := m.AddProject("notes", home, "board-home", false); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.AddProject("everywhere", shared, "board-home", true); err != nil {
+		t.Fatal(err)
+	}
+	// An entry from before projects had boards: it stays everybody's, because
+	// taking a project away from a board that has been using it is the worse of
+	// the two mistakes.
+	m.cfg.Projects = append(m.cfg.Projects, ProjectEntry{Name: "legacy", Path: t.TempDir()})
+
+	offered := func(boardID string) string {
+		names := make([]string, 0, 3)
+		for _, p := range m.ProjectsForBoard(boardID) {
+			names = append(names, p.Name)
+		}
+		return strings.Join(names, ",")
+	}
+	if got := offered("board-home"); got != "notes,everywhere,legacy" {
+		t.Errorf("the home board sees %q, want its own project, the global one and the legacy one", got)
+	}
+	if got := offered("board-code"); got != "everywhere,legacy" {
+		t.Errorf("the code board sees %q, want only the global and the legacy one", got)
+	}
+
+	// And what a board cannot see, it cannot run in: a tag matching another
+	// board's project resolves to nothing rather than to that folder.
+	ev := CardMoved{CardID: "c1", BoardID: "board-code", OptionNames: []string{"notes"}}
+	if _, err := m.resolveProject(ev); err == nil {
+		t.Error("a card resolved a project belonging to another board")
+	}
+	ev.BoardID = "board-home"
+	if got, err := m.resolveProject(ev); err != nil || got != home {
+		t.Errorf("its own board could not resolve it: got=%q err=%v", got, err)
 	}
 }

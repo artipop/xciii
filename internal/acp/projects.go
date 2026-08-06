@@ -18,6 +18,19 @@ func (m *Manager) Projects() []ProjectEntry {
 	return append([]ProjectEntry(nil), m.cfg.Projects...)
 }
 
+// ProjectsForBoard is the registry as one board sees it: its own projects and
+// the ones marked global. An empty boardID asks for all of them, which is what
+// a place with no board behind it (the planning dialog) gets.
+func (m *Manager) ProjectsForBoard(boardID string) []ProjectEntry {
+	out := make([]ProjectEntry, 0, 4)
+	for _, p := range m.Projects() {
+		if p.OfferedOn(boardID) {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
 // AddProject registers a local project under name (defaults to the directory
 // basename) and persists the config. Any folder will do — see IsGitProject for
 // what being under git adds.
@@ -31,7 +44,7 @@ func (m *Manager) Projects() []ProjectEntry {
 // variables for the branch app, whether to request a Let's Encrypt certificate,
 // how long a build may take. They were on the deploy target, which is wrong: a
 // target is a machine, and those describe the thing being deployed.
-func (m *Manager) AddProject(name, path string) (ProjectEntry, error) {
+func (m *Manager) AddProject(name, path, boardID string, global bool) (ProjectEntry, error) {
 	if !filepath.IsAbs(path) {
 		return ProjectEntry{}, fmt.Errorf("путь должен быть абсолютным: %s", path)
 	}
@@ -50,15 +63,20 @@ func (m *Manager) AddProject(name, path string) (ProjectEntry, error) {
 
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
+	// Names and paths stay unique across the machine even though a project now
+	// belongs to a board: a card names its project by name, and two entries
+	// answering to one name would make which project a card meant a matter of
+	// registry order. The way to work one folder from two boards is the global
+	// flag, and the error says so.
 	for _, r := range m.cfg.Projects {
 		if strings.EqualFold(r.Name, name) {
 			return ProjectEntry{}, fmt.Errorf("имя %q уже занято (%s)", r.Name, r.Path)
 		}
 		if filepath.Clean(r.Path) == clean {
-			return ProjectEntry{}, fmt.Errorf("проект уже добавлен как %q", r.Name)
+			return ProjectEntry{}, fmt.Errorf("проект уже добавлен как %q — отметьте его общим, чтобы он был доступен и на этой доске", r.Name)
 		}
 	}
-	entry := ProjectEntry{Name: name, Path: clean}
+	entry := ProjectEntry{Name: name, Path: clean, BoardID: boardID, Global: global}
 	m.cfg.Projects = append(m.cfg.Projects, entry)
 	return entry, m.persistConfigLocked()
 }
@@ -136,9 +154,10 @@ func (m *Manager) resolveProject(ev CardMoved) (string, error) {
 		return cfg.ValidateProjectPath(explicit)
 	}
 
-	m.cfgMu.RLock()
-	projects := append([]ProjectEntry(nil), m.cfg.Projects...)
-	m.cfgMu.RUnlock()
+	// Only what this board offers: a tag left over from a template, or a column
+	// that happens to be named like somebody else's project, must not send an
+	// agent into a checkout this board knows nothing about.
+	projects := m.ProjectsForBoard(ev.BoardID)
 
 	candidates := append(append([]string(nil), ev.OptionNames...), ev.FromColumn.Name)
 	for _, opt := range candidates {

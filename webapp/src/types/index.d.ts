@@ -22,9 +22,9 @@ export interface IAppWindow extends Window {
     go?: {
         main?: {
             App?: {
-                ListAgentProjects(): Promise<string>
+                ListAgentProjects(boardId: string): Promise<string>
                 PickDirectory(title: string): Promise<string>
-                AddAgentProject(name: string, path: string): Promise<string>
+                AddAgentProject(name: string, path: string, boardId: string, global: boolean): Promise<string>
                 RemoveAgentProject(name: string): Promise<void>
                 ListAgents(): Promise<string>
                 AddAgent(entryJSON: string): Promise<string>

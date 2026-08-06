@@ -33,6 +33,10 @@ export function isCardAgentAvailable(): boolean {
 
 type Props = {
     cardId: string
+
+    // Which board's projects to offer when the card names none: a project
+    // belongs to the board it was added on.
+    boardId: string
 }
 
 const CardAgent = (props: Props) => {
@@ -83,7 +87,7 @@ const CardAgent = (props: Props) => {
             return
         }
         try {
-            setProjects(JSON.parse(await bindings.ListAgentProjects()))
+            setProjects(JSON.parse(await bindings.ListAgentProjects(props.boardId)))
         } catch (e) {
             // An empty registry is not an error to report here.
         }

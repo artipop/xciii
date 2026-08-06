@@ -50,7 +50,39 @@ describe('components/acp/agentProjectsDialog', () => {
         await waitFor(() => expect(screen.getByDisplayValue('beta')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Add'}))
-        await waitFor(() => expect(bindings.AddAgentProject).toHaveBeenCalledWith('beta', '/tmp/beta'))
+
+        // The board it was added on, and not global unless asked: a project is
+        // this board's business until somebody says it is everyone's.
+        await waitFor(() => expect(bindings.AddAgentProject).toHaveBeenCalledWith('beta', '/tmp/beta', board.id, false))
+        expect(bindings.ListAgentProjects).toHaveBeenCalledWith(board.id)
+    })
+
+    // The registry is per machine, so without the board on the call every board
+    // ended up offering every project anybody had ever added — including the
+    // code checkout on the board about the shopping.
+    test('a project can be made every board’s on purpose', async () => {
+        const bindings = {
+            ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+            PickDirectory: vi.fn().mockResolvedValue('/tmp/shared'),
+            AddAgentProject: vi.fn().mockResolvedValue(JSON.stringify({name: 'shared', path: '/tmp/shared', global: true})),
+            RemoveAgentProject: vi.fn().mockResolvedValue(undefined),
+        }
+        anyWindow.go = {main: {App: bindings}}
+
+        render(() => wrapIntl(() =>
+            <AgentProjectsDialog
+                board={board}
+                onClose={vi.fn()}
+            />,
+        ))
+
+        userEvent.click(screen.getByRole('button', {name: 'Add project…'}))
+        await waitFor(() => expect(screen.getByDisplayValue('shared')).toBeInTheDocument())
+
+        await userEvent.click(screen.getByRole('checkbox'))
+        userEvent.click(screen.getByRole('button', {name: 'Add'}))
+
+        await waitFor(() => expect(bindings.AddAgentProject).toHaveBeenCalledWith('shared', '/tmp/shared', board.id, true))
     })
 
     test('creates a Projects field and adds missing project options', async () => {

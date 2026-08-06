@@ -336,7 +336,10 @@ const CardDetail = (props: Props): JSX.Element => {
 
                 <Show when={!limited() && !props.readonly && isCardAgentAvailable()}>
                     <hr/>
-                    <CardAgent cardId={props.card.id}/>
+                    <CardAgent
+                        cardId={props.card.id}
+                        boardId={props.board.id}
+                    />
                 </Show>
 
                 {/* Comments */}

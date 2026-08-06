@@ -44,12 +44,12 @@ type Registry = {
 
 // readRegistry is what the steps show back: the names already registered. The
 // plan says whether a question is answered; this says what the answer was.
-export async function readRegistry(): Promise<Registry | null> {
+export async function readRegistry(boardId: string): Promise<Registry | null> {
     const bindings = agentBindings()
     if (!bindings?.ListAgentProjects || !bindings.ListAgents) {
         return null
     }
-    const [projects, agents] = await Promise.all([bindings.ListAgentProjects(), bindings.ListAgents()])
+    const [projects, agents] = await Promise.all([bindings.ListAgentProjects(boardId), bindings.ListAgents()])
     return {projects: JSON.parse(projects) || [], agents: JSON.parse(agents) || []}
 }
 
@@ -116,7 +116,7 @@ const BoardSetupWizard = (props: Props) => {
 
     const refresh = async () => {
         try {
-            const loaded = await readRegistry()
+            const loaded = await readRegistry(props.board.id)
             if (loaded) {
                 setRegistry(loaded)
             }
@@ -196,7 +196,7 @@ const BoardSetupWizard = (props: Props) => {
         // Asked before it is filed: a board that publishes a branch needs a
         // project under git, and this is where that can still be answered.
         await checkSetupAnswer(props.board.id, STEP_PROJECT, projectPath())
-        await bindings!.AddAgentProject!(projectName().trim(), projectPath())
+        await bindings!.AddAgentProject!(projectName().trim(), projectPath(), props.board.id, false)
     }, STEP_PROJECT)
 
     const addAgent = () => run(async () => {

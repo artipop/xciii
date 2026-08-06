@@ -87,7 +87,9 @@ describe('components/acp/boardSetupWizard', () => {
         await waitFor(() => expect(screen.getByDisplayValue('webapp')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
-        await waitFor(() => expect(bindings.AddAgentProject).toHaveBeenCalledWith('webapp', '/Users/me/src/webapp'))
+
+        // Filed against the board being set up: the wizard is that board's.
+        await waitFor(() => expect(bindings.AddAgentProject).toHaveBeenCalledWith('webapp', '/Users/me/src/webapp', testBoard.id, false))
 
         // And having added it, the wizard is on the agent step.
         await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())

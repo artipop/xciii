@@ -18,10 +18,19 @@ where the card goes afterwards**. A board with columns but no route still works
 — cards are worked on where they stand and moved by hand. A board with routes
 but no columns moves cards around without doing anything.
 
-The registries are per machine, the columns and routes belong to a board. A
+The registries live on the machine, the columns and routes belong to a board. A
 board made from any of the offered templates brings its own columns and routes;
 the first time it is opened on a machine with empty registries, the setup wizard
 asks for the rest.
+
+A **project** is the exception, and deliberately: it belongs to the board it was
+added on, and only that board offers it. The folder of household notes has no
+business on the board about code, and vice versa — before this, opening
+*Проекты…* anywhere copied every project anybody had ever added into that
+board's «Проекты» field. One checkout worked from several boards is a real case,
+so the add form has **«На всех досках»** for it, and such a project is marked as
+everyone's in the list. Projects registered before this stay visible everywhere:
+taking one away from a board that has been using it would be the worse mistake.
 
 Four templates are offered. «Разработка» is the one written for code, with
 the «Фича», «Хотфикс» and «Только ревью» routes across «В работе», «Деплой»

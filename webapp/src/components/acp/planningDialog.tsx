@@ -65,8 +65,10 @@ const PlanningDialog = (props: Props) => {
             return
         }
         try {
+            // Planning has no card and no board behind it, so it offers every
+            // project on the machine rather than one board's.
             const [repoList, agentList] = await Promise.all([
-                bindings.ListAgentProjects(),
+                bindings.ListAgentProjects(''),
                 bindings.ListAgents(),
             ])
             const parsedRepos: NamedEntry[] = JSON.parse(repoList) || []

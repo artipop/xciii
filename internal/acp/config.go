@@ -17,6 +17,23 @@ import (
 type ProjectEntry struct {
 	Name string `json:"name"`
 	Path string `json:"path"`
+	// BoardID is the board the project was added on, and the only board that
+	// offers it. A folder of household notes has no business being on the board
+	// about code, and the registry is per machine, so without this every board
+	// ends up offering every project anybody ever added.
+	//
+	// Empty means "every board": that is what entries written before this field
+	// existed are, and taking a project away from a board that has been using
+	// it would be a worse answer than showing one project too many.
+	BoardID string `json:"boardId,omitempty"`
+	// Global says the project belongs to all of them on purpose — the same
+	// checkout worked from several boards.
+	Global bool `json:"global,omitempty"`
+}
+
+// OfferedOn reports whether this board may see the project.
+func (p ProjectEntry) OfferedOn(boardID string) bool {
+	return p.Global || p.BoardID == "" || boardID == "" || p.BoardID == boardID
 }
 
 // AgentEntry is one named coding agent in the registry. A card is mapped to an

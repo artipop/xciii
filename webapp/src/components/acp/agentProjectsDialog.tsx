@@ -31,9 +31,14 @@ const PROJECT_PROPERTY_NAME = 'Проекты'
 // *value*, never by the property's name, so it is not affected either.
 const LEGACY_PROJECT_PROPERTY_NAMES = ['Repositories']
 
-type AgentProject = {
+export type AgentProject = {
     name: string
     path: string
+
+    // The board it was added on, and — unless global — the only one that offers
+    // it. Empty on entries written before projects belonged to a board.
+    boardId?: string
+    global?: boolean
 }
 
 // agentBindings returns the Wails-injected ACP bindings, or undefined in
@@ -58,6 +63,7 @@ const AgentProjectsDialog = (props: Props) => {
     const [projects, setProjects] = createSignal<AgentProject[]>([])
     const [pendingPath, setPendingPath] = createSignal('')
     const [pendingName, setPendingName] = createSignal('')
+    const [pendingGlobal, setPendingGlobal] = createSignal(false)
     const [error, setError] = createSignal('')
 
     // The board's project property, under its current name or the one it had
@@ -135,15 +141,17 @@ const AgentProjectsDialog = (props: Props) => {
         }
         let registry: AgentProject[] = []
         try {
-            registry = JSON.parse(await bindings.ListAgentProjects()) || []
+            // This board's projects and the global ones — never somebody
+            // else's, which is what used to end up in every board's field.
+            registry = JSON.parse(await bindings.ListAgentProjects(props.board.id)) || []
             setProjects(registry)
         } catch (e) {
             setError(String(e))
             return
         }
 
-        // The board's "Repositories" field is kept in step on its own, so a
-        // registered project is selectable on a card without a second step.
+        // The board's "Projects" field is kept in step on its own, so a project
+        // this board has is selectable on a card without a second step.
         await syncToBoard(registry)
     }
 
@@ -173,9 +181,10 @@ const AgentProjectsDialog = (props: Props) => {
         }
         setError('')
         try {
-            await bindings.AddAgentProject(pendingName().trim(), pendingPath())
+            await bindings.AddAgentProject(pendingName().trim(), pendingPath(), props.board.id, pendingGlobal())
             setPendingPath('')
             setPendingName('')
+            setPendingGlobal(false)
             await refresh()
         } catch (e) {
             setError(String(e))
@@ -215,6 +224,11 @@ const AgentProjectsDialog = (props: Props) => {
                             class='AgentReposDialog__row'
                         >
                             <span class='AgentReposDialog__name'>{project.name}</span>
+                            <Show when={project.global}>
+                                <span class='AgentReposDialog__global'>
+                                    {intl.formatMessage({id: 'AgentProjects.global-badge', defaultMessage: 'all boards'})}
+                                </span>
+                            </Show>
                             <span class='AgentReposDialog__path'>{project.path}</span>
                             <Button
                                 onClick={() => removeRepo(project.name)}
@@ -235,6 +249,17 @@ const AgentProjectsDialog = (props: Props) => {
                             onInput={(e) => setPendingName(e.currentTarget.value)}
                         />
                         <span class='AgentReposDialog__path'>{pendingPath()}</span>
+                        {/* A project belongs to this board unless it is said to
+                            belong to all of them — one checkout worked from
+                            several boards is a real case, but it is the rare one. */}
+                        <label class='AgentReposDialog__globalToggle'>
+                            <input
+                                type='checkbox'
+                                checked={pendingGlobal()}
+                                onChange={(e) => setPendingGlobal(e.currentTarget.checked)}
+                            />
+                            {intl.formatMessage({id: 'AgentProjects.global', defaultMessage: 'On every board'})}
+                        </label>
                         <Button
                             emphasis='primary'
                             onClick={confirmAdd}
@@ -261,7 +286,7 @@ const AgentProjectsDialog = (props: Props) => {
                 <Show when={projects().length > 0}>
                     <div class='AgentReposDialog__sync'>
                         <span>
-                            {intl.formatMessage({id: 'AgentProjects.sync-hint', defaultMessage: 'Every project above is an option of the board’s "Projects" field, so a card picks one there.'})}
+                            {intl.formatMessage({id: 'AgentProjects.sync-hint', defaultMessage: 'Every project above is an option of this board’s "Projects" field, so a card picks one there. A project added here belongs to this board unless it says otherwise.'})}
                         </span>
                     </div>
                 </Show>
