@@ -172,25 +172,26 @@ func TestTestSessionNeedsABrowserServer(t *testing.T) {
 
 func TestTestColumnRouting(t *testing.T) {
 	m := agentManager(t, "")
-	m.cfg.TriggerProperty = "Status"
 	m.cfg.Columns = migratedColumns(m.cfg)
 
-	col := func(name string) Column { return Column{PropertyName: "status", Name: name} }
-	spec, ok := m.columnFor("board1", col("to test"))
+	col := func(name string) Column {
+		return Column{PropertyName: strings.ToLower(m.cfg.TriggerProperty), Name: name}
+	}
+	spec, ok := m.columnFor("board1", col(strings.ToLower(m.cfg.TestColumn)))
 	if !ok || spec.Action != FlowActionTest {
 		t.Fatalf("the test column should match case-insensitively: %+v, %v", spec, ok)
 	}
 	if spec, _ := m.columnFor("board1", col(m.cfg.TriggerColumn)); spec.Action != FlowActionAgent {
 		t.Fatalf("the trigger column should run an agent: %+v", spec)
 	}
-	if _, ok := m.columnFor("board1", Column{PropertyName: "Other", Name: "To Test"}); ok {
+	if _, ok := m.columnFor("board1", Column{PropertyName: "Other", Name: m.cfg.TestColumn}); ok {
 		t.Fatal("only the configured property may match")
 	}
 
 	// An empty name is not a column: it must not match every unnamed one.
 	m.cfg.TestColumn = ""
 	m.cfg.Columns = migratedColumns(m.cfg)
-	if _, ok := m.columnFor("board1", Column{PropertyName: "Status"}); ok {
+	if _, ok := m.columnFor("board1", Column{PropertyName: m.cfg.TriggerProperty}); ok {
 		t.Fatal("an empty column name must not become a trigger")
 	}
 }

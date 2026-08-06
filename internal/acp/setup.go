@@ -187,10 +187,13 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 // boardSetupSources reads the three properties a template writes: what it asks
 // to be asked, and the automation the question would otherwise be inferred from.
 func (m *Manager) boardSetupSources(boardID string) (BoardSetup, []ColumnSpec, []FlowEntry) {
-	// The registry is what runs, so a board whose automation was already taken
-	// into it is answered from there — the board property is only the seed.
-	columns := m.BoardColumns(boardID)
-	flows := m.BoardFlows(boardID)
+	// What this board runs is what this board says it runs — its own registry
+	// entries, or the automation it still carries in its properties. The
+	// machine-wide entries (the ones migrated from the old config keys, which
+	// name no board at all) are deliberately not read here: they describe a
+	// board that deploys and tests, and reading them made every board ask for a
+	// project under git, including one whose whole job is a shopping list.
+	columns, flows := m.boardOwnAutomation(boardID)
 
 	var declared BoardSetup
 	props := m.boardProperties(boardID)
@@ -210,7 +213,36 @@ func (m *Manager) boardSetupSources(boardID string) (BoardSetup, []ColumnSpec, [
 			columns, flows = boardColumns, boardFlows
 		}
 	}
+	if len(columns) == 0 && len(flows) == 0 {
+		// A board that brings nothing of its own is run by whatever the machine
+		// is configured with, so that is what it has to be set up for.
+		columns, flows = m.BoardColumns(boardID), m.BoardFlows(boardID)
+	}
 	return declared, columns, flows
+}
+
+// boardOwnAutomation is the registry filtered to entries tagged with this board
+// — what was taken from the board itself, and nothing that merely applies to
+// every board.
+func (m *Manager) boardOwnAutomation(boardID string) ([]ColumnSpec, []FlowEntry) {
+	if boardID == "" {
+		return nil, nil
+	}
+	m.cfgMu.RLock()
+	defer m.cfgMu.RUnlock()
+	var columns []ColumnSpec
+	for _, c := range m.cfg.Columns {
+		if c.BoardID == boardID {
+			columns = append(columns, c)
+		}
+	}
+	var flows []FlowEntry
+	for _, f := range m.cfg.Flows {
+		if f.BoardID == boardID {
+			flows = append(flows, f)
+		}
+	}
+	return columns, flows
 }
 
 // setupRequirements is what an answer to this step must satisfy, read off the

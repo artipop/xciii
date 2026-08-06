@@ -635,8 +635,14 @@ type Config struct {
 
 // The column a card is dropped into to hand it to an agent. Work starts where
 // work normally starts on a board, rather than in a lane invented for agents.
+// The names are the ones the boards this app ships use, and a person reads them
+// on the board itself — hence Russian, like everything else they read. An
+// install that already has a config keeps whatever it says: these are the
+// defaults for a machine that has none.
 const (
-	DefaultTriggerColumn = "In Progress"
+	// DefaultTriggerProperty is the select property the columns live on.
+	DefaultTriggerProperty = "Статус"
+	DefaultTriggerColumn   = "В работе"
 	// legacyTriggerColumn is the column earlier versions triggered on; configs
 	// still carrying it are migrated on load.
 	legacyTriggerColumn = "To Agent"
@@ -648,12 +654,12 @@ func DefaultConfig(dataDir string) Config {
 	return Config{
 		Enabled:                  true,
 		AgentMode:                "claude",
-		TriggerProperty:          "Status",
+		TriggerProperty:          DefaultTriggerProperty,
 		TriggerColumn:            DefaultTriggerColumn,
-		DeployColumn:             "Deploy",
-		TestColumn:               "To Test",
-		TestPassColumn:           "Tested",
-		TestFailColumn:           "Failed",
+		DeployColumn:             "Деплой",
+		TestColumn:               "Тестирование",
+		TestPassColumn:           "Проверено",
+		TestFailColumn:           "Не прошло",
 		ProjectWhitelist:         []string{},
 		Projects:                 []ProjectEntry{},
 		Agents:                   []AgentEntry{},

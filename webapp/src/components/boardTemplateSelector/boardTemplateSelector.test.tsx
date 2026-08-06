@@ -58,7 +58,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
     // The selector shows only the templates named in VISIBLE_TEMPLATE_TITLES —
     // the ones that ship their own automation; everything else is hidden. The
     // global template fixtures below carry two of those titles.
-    const globalTemplateTitle = 'Developer Tasks'
+    const globalTemplateTitle = 'Задачи разработчика'
     const householdTemplateTitle = 'Домашние дела'
     const boardTitle = 'Board 1'
     let store: ReturnType<typeof mockAppStore>

@@ -3,7 +3,7 @@ package acp
 import "strings"
 
 // The routes an install starts with. They exist so a fresh board is not a blank
-// registry: the "Developer Tasks" board template ships the columns these
+// registry: the «Задачи разработчика» board template ships the columns these
 // routes name and a "Workflow" property whose options are their names, so the
 // whole mechanism can be seen — and picked — before anything is configured.
 //
@@ -17,17 +17,17 @@ import "strings"
 // renaming triggerColumn renames the stage with it; the two stages with no
 // config key of their own are named here.
 const (
-	TemplateReviewColumn  = "In Review"
-	TemplateBlockedColumn = "Blocked"
-	TemplateDoneColumn    = "Completed 🙌"
+	TemplateReviewColumn  = "На ревью"
+	TemplateBlockedColumn = "Заблокировано"
+	TemplateDoneColumn    = "Готово 🙌"
 )
 
 // Flow names, which are also the options of the board template's "Workflow"
 // property — the two lists are kept in step by TestTemplateFlowsMatchTheBoardTemplate.
 const (
-	TemplateFlowFeature = "Feature"
-	TemplateFlowHotfix  = "Hotfix"
-	TemplateFlowReview  = "Review only"
+	TemplateFlowFeature = "Фича"
+	TemplateFlowHotfix  = "Хотфикс"
+	TemplateFlowReview  = "Только ревью"
 )
 
 // flowBuilder assembles one route, quietly dropping stages whose column the

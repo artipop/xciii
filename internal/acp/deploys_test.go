@@ -333,8 +333,8 @@ func deployMoveEvent(cardID, project, column string) CardMoved {
 		BoardID:    "board1",
 		Title:      "Deploy me",
 		Props:      map[string]string{"repo_path": project},
-		FromColumn: Column{PropertyID: "p1", PropertyName: "Status", OptionID: "opt-backlog", Name: "Backlog"},
-		ToColumn:   Column{PropertyID: "p1", PropertyName: "Status", OptionID: "opt-deploy", Name: column},
+		FromColumn: Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: "opt-backlog", Name: "Backlog"},
+		ToColumn:   Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: "opt-deploy", Name: column},
 		At:         time.Now(),
 	}
 }
@@ -344,7 +344,7 @@ func TestDeployColumnStartsASessionWithTheDokkuTools(t *testing.T) {
 		c.Deploys = []DeployEntry{deployEntry("prod")}
 	})
 
-	events.ch <- deployMoveEvent("cardD", project, "Deploy")
+	events.ch <- deployMoveEvent("cardD", project, DefaultConfig("").DeployColumn)
 
 	waitFor(t, 15*time.Second, "deploy session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardD")
@@ -391,7 +391,7 @@ func TestDeployColumnIgnoredWhenDisabled(t *testing.T) {
 		c.Deploys = []DeployEntry{deployEntry("prod")}
 	})
 
-	events.ch <- deployMoveEvent("cardOff", project, "Deploy")
+	events.ch <- deployMoveEvent("cardOff", project, DefaultConfig("").DeployColumn)
 
 	// Nothing should happen at all — give the trigger loop a moment to prove it.
 	time.Sleep(500 * time.Millisecond)
@@ -407,7 +407,7 @@ func TestDeployColumnIgnoredWhenDisabled(t *testing.T) {
 func TestDeployWithoutTargetsCommentsOnTheCard(t *testing.T) {
 	m, writer, events, project := testManager(t, fakeClaudeRecordingArgs, nil)
 
-	events.ch <- deployMoveEvent("cardNoTarget", project, "Deploy")
+	events.ch <- deployMoveEvent("cardNoTarget", project, DefaultConfig("").DeployColumn)
 
 	waitFor(t, 5*time.Second, "failure comment", func() bool {
 		return len(writer.cardComments("cardNoTarget")) > 0

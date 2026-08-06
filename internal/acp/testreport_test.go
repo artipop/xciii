@@ -95,7 +95,7 @@ func TestProjectrtTestRunPassMovesTheCardAndAttachsEvidence(t *testing.T) {
 	}
 
 	moves := w.cardMoves()
-	if len(moves) != 1 || moves[0].option != "Tested" || moves[0].property != "Status" {
+	if len(moves) != 1 || moves[0].option != m.cfg.TestPassColumn || moves[0].property != m.cfg.TriggerProperty {
 		t.Fatalf("moves: %+v", moves)
 	}
 }
@@ -116,7 +116,7 @@ func TestProjectrtTestRunFailListsBugsAndMovesToFailed(t *testing.T) {
 			t.Fatalf("comment is missing %q:\n%s", want, comment)
 		}
 	}
-	if moves := w.cardMoves(); len(moves) != 1 || moves[0].option != "Failed" {
+	if moves := w.cardMoves(); len(moves) != 1 || moves[0].option != m.cfg.TestFailColumn {
 		t.Fatalf("moves: %+v", moves)
 	}
 }

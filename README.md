@@ -170,7 +170,7 @@ the one thing a rewrite must not quietly drop.
 - **Linux targets GTK 3** (`gtk3` build tag, webkit2gtk-4.1). Wails v3 defaults
   to GTK 4, but its GTK 4 code needs 4.10 — newer than several still-supported
   distributions ship. `GTK_TAG=` drops the tag where GTK 4 is new enough.
-- **Browser-testing sessions** (the "To Test" column) need a browser MCP server
+- **Browser-testing sessions** (the «Тестирование» column) need a browser MCP server
   on the agent — under *Agents → MCP servers*, paste the same JSON any MCP
   client takes, e.g. `{"mcpServers": {"playwright": {"command": "npx", "args":
   ["-y", "@playwright/mcp@latest", "--headless"]}}}`. The app ships no
@@ -180,7 +180,7 @@ the one thing a rewrite must not quietly drop.
   `<dataDir>/artifacts/<session-id>`) where the agent is asked to save its
   screenshots and write `result.json` — that verdict is what moves the card.
 - **Templates**: the board selector offers four of them, and each ships the
-  columns and routes it needs in the board's own properties — "Developer Tasks"
+  columns and routes it needs in the board's own properties — «Задачи разработчика»
   for code, and «Домашние дела», «Покупки и меню» and «Дом и техника» for the
   ordinary life the same machinery turns out to fit: an agent that prepares a
   plan, a checklist or a shopping list in a project of household notes, and a
@@ -244,15 +244,15 @@ the one thing a rewrite must not quietly drop.
   interval is `vcsPollSeconds` (default 60) and the remote is `gitRemote`
   (default `origin`). Which branch is watched: the card's `branch` property if
   it has one, otherwise the branch the card's own sessions worked on — with
-  worktrees that is the agent's branch, which the card never names itself. A fresh config is seeded with three routes — `Feature`,
-  `Hotfix` and `Review only` — and the "Developer Tasks" board template ships
-  the columns they name plus a `Workflow` property to pick one with, so a new
+  worktrees that is the agent's branch, which the card never names itself. A fresh config is seeded with three routes — «Фича»,
+  «Хотфикс» and «Только ревью» — and the «Задачи разработчика» board template ships
+  the columns they name plus a «Сценарий» property to pick one with, so a new
   board runs them without any setup. Picking a route stays optional: a card with
-  no `Workflow` option takes none, and the trigger columns work as they always
+  no «Сценарий» option takes none, and the trigger columns work as they always
   did. The editor draws the route as a graph and offers whichever shipped route
   the registry is missing. A card shows its own route: which stage it stands on
   and what that stage is waiting for. Routes belong to the board they were made
-  on, and a board made from the "Developer Tasks" template arrives with them:
+  on, and a board made from the «Задачи разработчика» template arrives with them:
   the template carries its columns and routes in the board's own properties, and
   the first card moved on it takes them into the registry. The Workflows dialog
   is both the map and the builder: it draws each route with the number of cards

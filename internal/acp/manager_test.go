@@ -187,8 +187,8 @@ func moveEvent(cardID, project, from, to string) CardMoved {
 		Title:      "Test task",
 		Body:       "Do nothing useful.",
 		Props:      map[string]string{"repo_path": project},
-		FromColumn: Column{PropertyID: "p1", PropertyName: "Status", OptionID: from, Name: columnName(from)},
-		ToColumn:   Column{PropertyID: "p1", PropertyName: "Status", OptionID: to, Name: columnName(to)},
+		FromColumn: Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: from, Name: columnName(from)},
+		ToColumn:   Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: to, Name: columnName(to)},
 		At:         time.Now(),
 	}
 }

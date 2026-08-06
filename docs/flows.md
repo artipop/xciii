@@ -23,9 +23,9 @@ board made from any of the offered templates brings its own columns and routes;
 the first time it is opened on a machine with empty registries, the setup wizard
 asks for the rest.
 
-Four templates are offered. "Developer Tasks" is the one written for code, with
-the `Feature`, `Hotfix` and `Review only` routes across `In Progress`, `Deploy`
-and `To Test`. The other three are the same machinery pointed at ordinary life
+Four templates are offered. «Задачи разработчика» is the one written for code, with
+the «Фича», «Хотфикс» and «Только ревью» routes across «В работе», «Деплой»
+and «Тестирование». The other three are the same machinery pointed at ordinary life
 — «Домашние дела», «Покупки и меню», «Дом и техника» — and they are worth
 reading as examples, because they show what is left when deploys and browser
 tests are taken away: one column where an agent works, and a route that waits
@@ -122,16 +122,16 @@ actually waiting on**. An idle board makes no requests at all.
 
 ## The routes the template ships
 
-### Feature — the long way round
+### «Фича» — the long way round
 
 ```mermaid
 flowchart LR
-    P["In Progress<br/>agent"] -->|done| R["In Review"]
-    P -->|failed| B["Blocked"]
-    R -->|branch merged| D["Deploy<br/>deploy"]
-    D -->|done| T["To Test<br/>test"]
-    D -->|failed| F["Failed"]
-    T -->|passed| OK["Tested"]
+    P["В работе<br/>agent"] -->|done| R["На ревью"]
+    P -->|failed| B["Заблокировано"]
+    R -->|branch merged| D["Деплой<br/>deploy"]
+    D -->|done| T["Тестирование<br/>test"]
+    D -->|failed| F["Не прошло"]
+    T -->|passed| OK["Проверено"]
     T -->|failed| P
     T -->|could not test| B
 ```
@@ -140,26 +140,26 @@ The loop is the point: a failed check sends the card back to the agent rather
 than to a person, and the next session opens a new branch which the route then
 follows.
 
-### Hotfix — written and published
+### «Хотфикс» — written and published
 
 ```mermaid
 flowchart LR
-    P["In Progress<br/>agent"] -->|done| D["Deploy<br/>deploy"]
-    P -->|failed| B["Blocked"]
-    D -->|done| C["Completed"]
-    D -->|failed| F["Failed"]
+    P["В работе<br/>agent"] -->|done| D["Деплой<br/>deploy"]
+    P -->|failed| B["Заблокировано"]
+    D -->|done| C["Готово"]
+    D -->|failed| F["Не прошло"]
 ```
 
-### Review only — never deployed from here
+### «Только ревью» — never deployed from here
 
 ```mermaid
 flowchart LR
-    P["In Progress<br/>agent"] -->|done| R["In Review"]
-    P -->|failed| B["Blocked"]
-    R -->|branch merged| C["Completed"]
+    P["В работе<br/>agent"] -->|done| R["На ревью"]
+    P -->|failed| B["Заблокировано"]
+    R -->|branch merged| C["Готово"]
 ```
 
-A card takes a route by naming it in its **Workflow** field. A card that names
+A card takes a route by naming it in its **«Сценарий»** field. A card that names
 none is still worked on by the columns it passes through — it just does not move
 by itself.
 

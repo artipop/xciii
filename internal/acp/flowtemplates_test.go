@@ -10,12 +10,12 @@ import (
 )
 
 // The board template and the seeded routes are two halves of one promise: open
-// a fresh "Developer Tasks" board and the routes already point at columns that
+// a fresh "Задачи разработчика" board and the routes already point at columns that
 // exist, with a "Workflow" property whose options name them. Nothing in the
 // build enforces that — a template is JSON nobody compiles — so the test reads
 // the templates themselves and compares.
 
-const templateBoardTitle = "Developer Tasks"
+const templateBoardTitle = "Задачи разработчика"
 
 type templateProperty struct {
 	ID      string `json:"id"`
@@ -218,12 +218,12 @@ func TestTemplateFlowsMatchTheBoardTemplate(t *testing.T) {
 
 	// And the property a card picks its route with must offer exactly the
 	// routes that exist: an option naming nothing does nothing.
-	picks := board.options(t, "Workflow")
+	picks := board.options(t, "Сценарий")
 	names := make(map[string]bool, len(flows))
 	for _, f := range flows {
 		names[strings.ToLower(f.Name)] = true
 		if !picks[strings.ToLower(f.Name)] {
-			t.Errorf("flow %q is seeded but the template's Workflow property does not offer it", f.Name)
+			t.Errorf("flow %q is seeded but the template's «Сценарий» property does not offer it", f.Name)
 		}
 	}
 	for option := range picks {

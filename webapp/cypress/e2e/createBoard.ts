@@ -23,7 +23,7 @@ describe('Create and delete board / card', () => {
         // The selector deliberately offers only one template -- see
         // VISIBLE_TEMPLATE_TITLE in boardTemplateSelector.tsx. The server still
         // ships the full set of default templates, they are just not listed here.
-        cy.contains('Developer Tasks').should('exist')
+        cy.contains('Задачи разработчика').should('exist')
 
         // Create empty board
         cy.contains('Create empty board').should('exist').click({force: true})

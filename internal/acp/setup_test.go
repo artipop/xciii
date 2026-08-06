@@ -347,3 +347,44 @@ func TestAnAnswerIsCheckedAgainstWhatItsStepRequires(t *testing.T) {
 		t.Error("an unknown step was checked as if it existed")
 	}
 }
+
+// The bug this fixes: on a machine configured before boards were told apart,
+// the registry carries a deploy column and a test column that name no board at
+// all, and every board inherited them — so opening a board of household chores
+// demanded a git project for a folder of notes. A board is set up for what it
+// runs, not for what the machine happens to have lying about.
+func TestABoardIsNotAskedForWhatOnlyTheMachineHas(t *testing.T) {
+	chores := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{{
+			PropertyID: "p", OptionID: "o1", Property: "Статус",
+			Column: "Агент разбирается", Action: FlowActionAgent,
+		}},
+	}))
+	// The legacy entries: no board id, so every board sees them at run time.
+	chores.cfg.Columns = []ColumnSpec{
+		{Property: "Status", Column: "In Progress", Action: FlowActionAgent},
+		{Property: "Status", Column: "Deploy", Action: FlowActionDeploy},
+		{Property: "Status", Column: "To Test", Action: FlowActionTest},
+	}
+
+	plan := chores.SetupPlanFor("board1")
+	if got := requirementsOf(plan, SetupStepProject); len(got) != 0 {
+		t.Errorf("the board was asked for %v because the machine has a deploy column", got)
+	}
+	for _, s := range plan.Steps {
+		if s.Kind == SetupStepDeploy || s.Kind == SetupStepBrowser {
+			t.Errorf("the board is asked about %q, which nothing on it does", s.Kind)
+		}
+	}
+	if err := chores.CheckSetupAnswer("board1", SetupStepProject, t.TempDir()); err != nil {
+		t.Errorf("an ordinary folder was refused: %v", err)
+	}
+
+	// And the same registry is still what a board bringing nothing of its own
+	// has to be set up for.
+	plain := setupManager(t, nil)
+	plain.cfg.Columns = chores.cfg.Columns
+	if got := requirementsOf(plain.SetupPlanFor("board2"), SetupStepProject); !containsString(got, SetupRequiresGit) {
+		t.Errorf("a board run by the machine's own columns asks for %v", got)
+	}
+}
