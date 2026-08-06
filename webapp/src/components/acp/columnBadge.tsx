@@ -8,6 +8,7 @@ import {Accessor, Show, createMemo, createSignal, onCleanup, onMount} from 'soli
 import {useIntl} from '../../intl'
 
 import {agentBindings} from './agentProjectsDialog'
+import {onAgentEvent} from './agentEvents'
 import {ColumnSpec, specFor} from './columnSettingsDialog'
 
 import './columnBadge.scss'
@@ -62,8 +63,7 @@ export function useBoardColumns(boardId: string): Accessor<ColumnSpec[]> {
         listeners.add(refresh)
 
         // A session starting or ending changes what the badge counts.
-        const runtime = (window as any).runtime
-        const off = runtime?.EventsOn?.('acp:session', () => {
+        const off = onAgentEvent('acp:session', () => {
             cache.clear()
             refresh()
         })

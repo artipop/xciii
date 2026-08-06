@@ -8,6 +8,7 @@ import {Accessor, createMemo, createSignal, onCleanup, onMount} from 'solid-js'
 import {UserSettings} from '../../userSettings'
 
 import {agentBindings} from './agentProjectsDialog'
+import {onAgentEvent} from './agentEvents'
 
 // Which cards are waiting for a person.
 //
@@ -103,8 +104,11 @@ async function reload(): Promise<void> {
 function subscribe(): () => void {
     consumers++
     if (consumers === 1) {
-        const runtime = (window as unknown as import('../../types').IAppWindow).runtime
-        unsubscribe = runtime?.EventsOn?.('acp:attention', (payload: Attention) => apply(payload))
+        // No payload means the socket has just (re)connected and nobody knows
+        // what was missed while it was down — which for a question waiting to
+        // be answered is exactly the wrong thing to be wrong about, so the
+        // whole list is fetched again.
+        unsubscribe = onAgentEvent('acp:attention', (payload?: Attention) => (payload ? apply(payload) : reload()))
         reload()
     }
     return () => {

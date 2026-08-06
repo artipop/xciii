@@ -51,19 +51,21 @@ const askedOnCard = {
     since: '2026-08-05T11:00:00Z',
 }
 
-describe('components/acp/attentionNotifications', () => {
-    // The Wails event bus, kept where a test can make an agent stop and wait.
-    let handlers: Record<string, (payload: any) => void> = {}
+// The agent event socket, kept where a test can make an agent stop and wait.
+// vi.mock is hoisted above the imports, so what it captures has to be too.
+const {handlers} = vi.hoisted(() => ({handlers: {} as Record<string, (payload?: any) => void>}))
 
+vi.mock('./agentEvents', () => ({
+    onAgentEvent: (event: string, handler: (payload?: any) => void) => {
+        handlers[event] = handler
+        return () => delete handlers[event]
+    },
+}))
+
+describe('components/acp/attentionNotifications', () => {
     beforeEach(() => {
         vi.clearAllMocks()
-        handlers = {}
-        anyWindow.runtime = {
-            EventsOn: (event: string, callback: (payload: any) => void) => {
-                handlers[event] = callback
-                return () => delete handlers[event]
-            },
-        }
+        Object.keys(handlers).forEach((event) => delete handlers[event])
         setAgentNotifications(true)
     })
 

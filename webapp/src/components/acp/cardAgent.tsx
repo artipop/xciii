@@ -10,6 +10,7 @@ import {useIntl} from '../../intl'
 import Button from '../../widgets/buttons/button'
 
 import {agentBindings} from './agentProjectsDialog'
+import {onAgentEvent} from './agentEvents'
 import {cardAgentState, refreshCardAgent} from './cardAgentState'
 import {answerQuestion, attentionHeading, useCardAttention} from './attention'
 
@@ -63,13 +64,12 @@ const CardAgent = (props: Props) => {
 
     onMount(() => {
         refresh()
-        const runtime = (window as unknown as import('../../types').IAppWindow).runtime
-        const offSession = runtime?.EventsOn?.('acp:session', (payload: any) => {
+        const offSession = onAgentEvent('acp:session', (payload: any) => {
             if (!payload?.cardId || payload.cardId === props.cardId) {
                 refresh()
             }
         })
-        const offTerminal = runtime?.EventsOn?.('acp:terminal', (payload: any) => {
+        const offTerminal = onAgentEvent('acp:terminal', (payload: any) => {
             if (!payload?.cardId || payload.cardId === props.cardId) {
                 refresh()
             }

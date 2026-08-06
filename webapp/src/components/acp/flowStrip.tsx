@@ -8,6 +8,7 @@ import {For, Show, createSignal, onCleanup, onMount} from 'solid-js'
 import {useIntl} from '../../intl'
 
 import {agentBindings} from './agentProjectsDialog'
+import {onAgentEvent} from './agentEvents'
 
 import './flowStrip.scss'
 
@@ -85,8 +86,7 @@ const FlowStrip = (props: Props) => {
         refresh()
 
         // A session starting, finishing or moving the card changes the answer.
-        const runtime = (window as any).runtime
-        const off = runtime?.EventsOn?.('acp:session', () => refresh())
+        const off = onAgentEvent('acp:session', () => refresh())
         onCleanup(() => off?.())
     })
 
