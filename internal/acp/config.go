@@ -746,18 +746,19 @@ func DefaultConfig(dataDir string) Config {
 // permissions. Here the instruction is all there is, which is also why it is
 // editable: whoever plans is the one who knows what "don't touch" means for
 // their project.
+//
+// It says nothing about creating cards on purpose. The board tools describe
+// themselves — an MCP server's instructions arrive with its tool list — so an
+// agent that has them is already told what they are for, and one that has not
+// is not told to reach for something it does not have. Naming them here would
+// be the same sentence written twice, in the one place a person edits by hand.
 const DefaultPlanningPrompt = `Мы планируем новую задачу.
 
 Код проекта у тебя есть — читай файлы, ищи по ним, смотри историю git: опирайся
 на код, а не на догадки.
 
-Ничего не меняй: ни файлов, ни состояния, ни веток. Это обсуждение, а не
-выполнение.
-
-Когда договоримся, что делать, — заведи задачи на доске инструментами доски
-(mcp__board__*), по одной карточке на задачу: сначала посмотри list_columns,
-потом create_cards. Если этих инструментов у тебя нет, просто выпиши задачи
-списком.
+Ничего не меняй в проекте: ни файлов, ни состояния, ни веток. Это обсуждение,
+а не выполнение.
 
 Начни с короткого вопроса о том, что нужно сделать.`
 

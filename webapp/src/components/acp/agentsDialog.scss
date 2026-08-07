@@ -88,6 +88,7 @@
         }
     }
 
+    // The prompt itself is PromptField's; this is only where it sits.
     .AgentsDialog__systemPrompt {
         display: flex;
         flex-direction: column;
@@ -95,24 +96,6 @@
         margin-top: 16px;
         padding-top: 12px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-
-        label {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            font-weight: 600;
-        }
-
-        textarea {
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            border-radius: var(--radius-sm);
-            padding: 6px 8px;
-            background: rgb(var(--surface-bg-rgb));
-            color: rgb(var(--center-channel-color-rgb));
-            font-weight: 400;
-            font-family: inherit;
-            resize: vertical;
-        }
     }
 
     // Whether the chosen kind can start at all, said next to the choice.

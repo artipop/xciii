@@ -16,6 +16,7 @@ import {sendFlashMessage} from '../flashMessages'
 
 import {agentBindings} from './agentProjectsDialog'
 import ProxiesPanel, {ProxyEntry, isProxiesAvailable} from './proxiesPanel'
+import PromptField from './promptField'
 
 import './agentsDialog.scss'
 
@@ -855,14 +856,12 @@ const AgentsDialog = (props: Props) => {
                             </div>
                         </Show>
 
-                        <label>
-                            {intl.formatMessage({id: 'Agents.prompt', defaultMessage: 'Agent system prompt'})}
-                            <textarea
-                                rows={3}
-                                value={form()!.prompt || ''}
-                                onInput={(e) => updateForm({prompt: e.currentTarget.value})}
-                            />
-                        </label>
+                        <PromptField
+                            label={intl.formatMessage({id: 'Agents.prompt', defaultMessage: 'Agent system prompt'})}
+                            value={form()!.prompt || ''}
+                            rows={6}
+                            onInput={(text) => updateForm({prompt: text})}
+                        />
                         <label>
                             {intl.formatMessage({id: 'Agents.proxyName', defaultMessage: 'Proxy configuration'})}
                             <select
@@ -958,17 +957,16 @@ const AgentsDialog = (props: Props) => {
                 </Show>
 
                 <div class='AgentsDialog__systemPrompt'>
-                    <label>
-                        {intl.formatMessage({id: 'Agents.system-prompt', defaultMessage: 'Board system prompt (prepended to every agent prompt)'})}
-                        <textarea
-                            rows={3}
-                            value={systemPrompt()}
-                            onInput={(e) => setSystemPrompt(e.currentTarget.value)}
-                        />
-                    </label>
-                    <Button onClick={saveSystemPrompt}>
-                        {intl.formatMessage({id: 'Agents.save-system-prompt', defaultMessage: 'Save system prompt'})}
-                    </Button>
+                    <PromptField
+                        label={intl.formatMessage({id: 'Agents.system-prompt', defaultMessage: 'Board system prompt (prepended to every agent prompt)'})}
+                        value={systemPrompt()}
+                        rows={6}
+                        onInput={setSystemPrompt}
+                    >
+                        <Button onClick={saveSystemPrompt}>
+                            {intl.formatMessage({id: 'Agents.save-system-prompt', defaultMessage: 'Save system prompt'})}
+                        </Button>
+                    </PromptField>
                 </div>
 
                 {/* Proxies exist only to be referenced by an agent, so they live

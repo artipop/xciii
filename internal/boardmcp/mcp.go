@@ -36,9 +36,16 @@ const Path = "/acp/board/mcp"
 // version tracks the tool surface, not the app.
 const version = "0.1.0"
 
-// instructions arrive with the tool list, before any prompt written elsewhere.
-const instructions = `Инструменты доски XCIII. Через них можно завести карточки —
+// instructions arrive with the tool list, and they are the only place these
+// tools are described. Nothing in the prompts an agent is started with mentions
+// them: a server says what it is for, and a prompt that named these tools would
+// be a second copy of this paragraph — one that goes on telling an agent to use
+// tools it was not given, in the file a person edits by hand.
+const instructions = `Инструменты доски XCIII. Через них заводятся карточки —
 это способ отдать результат обсуждения приложению, а не человеку в переписку.
+
+Когда с человеком договорились, что делать, — заведи задачи: по одной карточке
+на задачу, все разом через create_cards.
 
 Доска уже выбрана, указать другую нельзя. Колонка решает, что с карточкой
 произойдёт дальше: сначала посмотри list_columns, потом клади карточку в ту

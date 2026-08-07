@@ -11,6 +11,7 @@ import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
 import {agentBindings} from './agentProjectsDialog'
+import PromptField from './promptField'
 
 import './planningDialog.scss'
 
@@ -77,8 +78,9 @@ const PlanningDialog = (props: Props) => {
                 setSavedPrompt(stored)
             }
 
-            // Planning has no card and no board behind it, so it offers every
-            // project on the machine rather than one board's.
+            // Planning is about a project, not about the board it was opened
+            // from, so every project on the machine is offered. The board
+            // bounds only where the cards may land.
             const [repoList, agentList] = await Promise.all([
                 bindings.ListAgentProjects(''),
                 bindings.ListAgents(),
@@ -167,7 +169,7 @@ const PlanningDialog = (props: Props) => {
                 <p class='PlanningDialog__hint'>
                     {intl.formatMessage({
                         id: 'Planning.hint-terminal',
-                        defaultMessage: 'Opens the agent\'s CLI in the project. Nothing is committed for you and no card is created — this is a place to think out loud.',
+                        defaultMessage: 'Opens the agent\'s CLI in the project. This is a place to think out loud: nothing is committed for you, and the cards you agree on the agent can put on this board itself.',
                     })}
                 </p>
 
@@ -216,27 +218,25 @@ const PlanningDialog = (props: Props) => {
                 </div>
 
                 <Show when={Boolean(bindings?.GetPlanningPrompt)}>
-                    <div class='PlanningDialog__prompt'>
-                        <label>
-                            {intl.formatMessage({
-                                id: 'Planning.prompt',
-                                defaultMessage: 'What the agent is told to begin with (the board system prompt and the agent\'s own come before it, the project after)',
-                            })}
-                            {/* Ten rows: the default instructions are nine
-                                lines, and a box that cuts off its own default
-                                reads as a bug rather than as a setting. */}
-                            <textarea
-                                rows={10}
-                                value={prompt()}
-                                onInput={(e) => setPrompt(e.currentTarget.value)}
-                            />
-                        </label>
+                    <PromptField
+                        label={intl.formatMessage({
+                            id: 'Planning.prompt',
+                            defaultMessage: 'What the agent is told to begin with (the board system prompt and the agent\'s own come before it, the project after)',
+                        })}
+                        value={prompt()}
+
+                        // Ten rows: the default instructions are eight lines,
+                        // and a box that cuts off its own default reads as a
+                        // bug rather than as a setting.
+                        rows={10}
+                        onInput={setPrompt}
+                    >
                         <Show when={prompt() !== savedPrompt()}>
                             <Button onClick={saveOnly}>
                                 {intl.formatMessage({id: 'Planning.save-prompt', defaultMessage: 'Save the instructions'})}
                             </Button>
                         </Show>
-                    </div>
+                    </PromptField>
                 </Show>
 
                 <Show when={error()}>

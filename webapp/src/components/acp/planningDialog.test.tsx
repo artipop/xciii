@@ -82,6 +82,10 @@ describe('components/acp/planningDialog', () => {
 
         render(() => wrapIntl(() => <PlanningDialog board={board} onClose={vi.fn()}/>))
 
+        // Folded away until somebody comes to change it: the dialog is opened
+        // to start a terminal far more often than to rewrite the instructions.
+        await userEvent.click(await screen.findByText(/What the agent is told to begin with/))
+
         const box = await screen.findByDisplayValue('Ничего не меняй.')
         await userEvent.clear(box)
         await userEvent.type(box, 'Спроси про сроки.')

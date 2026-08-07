@@ -54,36 +54,6 @@
         }
     }
 
-    .PlanningDialog__prompt {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-
-        label {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            width: 100%;
-            font-size: 12px;
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-        }
-
-        // The instructions are text a person writes, but they are read by a
-        // machine and often carry paths and names, so they are set as data.
-        textarea {
-            padding: 8px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-            border-radius: var(--radius-sm);
-            background: rgb(var(--surface-bg-rgb));
-            color: rgba(var(--center-channel-color-rgb), 1);
-            font-family: var(--font-mono);
-            font-size: 12px;
-            line-height: 1.5;
-            resize: vertical;
-        }
-    }
-
     .PlanningDialog__error {
         color: rgb(var(--error-text-rgb, 210, 75, 78));
     }
