@@ -37,7 +37,7 @@ class Constants {
     static readonly titleColumnId = '__title'
     static readonly badgesColumnId = '__badges'
 
-    static readonly versionString = '8.0.0'
+    static readonly versionString = '1.0.0'
     static readonly versionDisplayString = 'June 2024'
 
     // The app has no marketing or documentation site: the repository is the

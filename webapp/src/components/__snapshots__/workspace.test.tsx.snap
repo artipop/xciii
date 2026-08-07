@@ -63,16 +63,6 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                     <span>
                       XCIII
                     </span>
-                    <div
-                      class="versionFrame"
-                    >
-                      <div
-                        class="version"
-                        title="v1.0.0"
-                      >
-                        v1.0.0
-                      </div>
-                    </div>
                   </div>
                 </div>
                 
@@ -1166,16 +1156,6 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                     <span>
                       XCIII
                     </span>
-                    <div
-                      class="versionFrame"
-                    >
-                      <div
-                        class="version"
-                        title="v1.0.0"
-                      >
-                        v1.0.0
-                      </div>
-                    </div>
                   </div>
                 </div>
                 

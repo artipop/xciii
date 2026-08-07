@@ -86,14 +86,6 @@ const SidebarUserMenu = () => {
                         <div class='logo-title'>
                             <AppLogoIcon/>
                             <span>{'XCIII'}</span>
-                            <div class='versionFrame'>
-                                <div
-                                    class='version'
-                                    title={`v${Constants.versionString}`}
-                                >
-                                    {`v${Constants.versionString}`}
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </MenuWrapper>
