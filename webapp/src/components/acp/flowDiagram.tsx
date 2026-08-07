@@ -303,13 +303,22 @@ const FlowDiagram = (props: Props) => {
             // Stated rather than measured: the box is a fixed size in CSS and
             // its handles sit at fixed points, so the arrows are drawn on the
             // first paint instead of after the browser reports a layout.
+            //
+            // Every handle states its own size too, and must. The canvas works
+            // out where an arrow starts by adding the handle's width and height
+            // to its corner, and the library's own defaulting of those two
+            // writes them back into the node — but these nodes live in a Solid
+            // store, whose proxy ignores a write from outside its setter. The
+            // defaults were dropped silently, `x + undefined` came out NaN, and
+            // every path was drawn as `MNaN NaN…`, which a browser renders as
+            // nothing at all: the stages appeared and not one arrow between them.
             width: NODE_WIDTH,
             height: NODE_HEIGHT,
             handles: [
-                {type: 'target', position: Position.Left, x: 0, y: NODE_HEIGHT / 2},
-                {type: 'source', id: HANDLE_SUCCESS, position: Position.Right, x: NODE_WIDTH, y: NODE_HEIGHT * 0.3},
-                {type: 'source', id: HANDLE_FAILURE, position: Position.Right, x: NODE_WIDTH, y: NODE_HEIGHT * 0.7},
-                {type: 'source', id: HANDLE_EVENT, position: Position.Bottom, x: NODE_WIDTH / 2, y: NODE_HEIGHT},
+                {type: 'target', position: Position.Left, x: 0, y: NODE_HEIGHT / 2, width: 1, height: 1},
+                {type: 'source', id: HANDLE_SUCCESS, position: Position.Right, x: NODE_WIDTH, y: NODE_HEIGHT * 0.3, width: 1, height: 1},
+                {type: 'source', id: HANDLE_FAILURE, position: Position.Right, x: NODE_WIDTH, y: NODE_HEIGHT * 0.7, width: 1, height: 1},
+                {type: 'source', id: HANDLE_EVENT, position: Position.Bottom, x: NODE_WIDTH / 2, y: NODE_HEIGHT, width: 1, height: 1},
             ],
             data: {
                 column: node.column,

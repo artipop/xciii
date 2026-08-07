@@ -1,4 +1,4 @@
-// The route as a canvas. React Flow needs a sized container: without a height
+// The route as a canvas. The canvas needs a sized container: without a height
 // the graph renders into nothing.
 .FlowDiagram {
     height: 320px;
@@ -68,16 +68,19 @@
         color: rgba(var(--center-channel-color-rgb), 0.56);
     }
 
-    // React Flow's own chrome follows the board's theme rather than its
-    // built-in light one.
+    // Solid Flow's own chrome follows the board's theme rather than its
+    // built-in light one. These are the library's class names and not React
+    // Flow's, which is what they were until the arrows went missing and the
+    // handles turned up on a canvas nobody can draw on: a stale prefix styles
+    // nothing and says nothing about it.
     // A route being read has no outputs to pull from; one being built shows
     // them, and their colour is what the arrow will be.
-    .react-flow__handle {
+    .solid-flow__handle {
         opacity: 0;
     }
 
     &.FlowDiagram--editable {
-        .react-flow__handle {
+        .solid-flow__handle {
             opacity: 1;
             width: 8px;
             height: 8px;
@@ -96,21 +99,20 @@
             background: rgba(var(--center-channel-color-rgb), 0.4);
         }
 
-        .react-flow__handle-left {
+        .solid-flow__handle-left {
             background: rgba(var(--center-channel-color-rgb), 0.32);
         }
     }
 
-    .react-flow__edge-textbg {
-        fill: rgba(var(--center-channel-bg-rgb), 1);
-    }
-
-    .react-flow__edge-text {
-        fill: rgba(var(--center-channel-color-rgb), 0.72);
+    // The label of an awaited event. It is an HTML box over the canvas rather
+    // than SVG text, so it is painted, not filled.
+    .solid-flow__edge-label {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        background: rgb(var(--surface-bg-rgb));
         font-size: 10px;
     }
 
-    .react-flow__controls-button {
+    .solid-flow__controls-button {
         background: rgb(var(--surface-bg-rgb));
         border-bottom-color: rgba(var(--center-channel-color-rgb), 0.12);
 
@@ -119,7 +121,7 @@
         }
     }
 
-    .react-flow__attribution {
+    .solid-flow__attribution {
         background: transparent;
 
         a {
