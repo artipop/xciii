@@ -16,6 +16,9 @@
 // A timeout is the shim everyone uses: the callback is not urgent (it is a
 // measurement, and the canvas draws from stated geometry until it arrives), so
 // the next tick is idle enough.
+//
+// TODO.md says how to find out whether this is still needed — a shim that
+// outlives its gap hides what the browser actually does now.
 export function installPolyfills(): void {
     const anyWindow = window as any
 
