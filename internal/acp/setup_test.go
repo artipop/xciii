@@ -64,6 +64,35 @@ func equal(a, b []string) bool {
 	return true
 }
 
+// A template is a board being written, not one being run: whatever a copy of it
+// will need is the copy's business, and a wizard on top of one asks about a
+// board that does not exist yet. This came up as the setup screen opening on
+// «Create new template», where there is nothing to set up at all.
+func TestATemplateIsAskedForNothing(t *testing.T) {
+	asks := boardProps(t, map[string]any{
+		BoardPropSetup: BoardSetup{Steps: []BoardSetupStep{
+			{Kind: SetupStepProject},
+			{Kind: SetupStepAgent},
+		}},
+	})
+	m := setupManager(t, asks)
+
+	// The same board, asking for the same two things, is asked them as a board
+	// and not as a template.
+	if len(m.SetupPlanFor("board1").Steps) != 2 {
+		t.Fatalf("the board itself was asked for %v", kinds(m.SetupPlanFor("board1")))
+	}
+
+	m.SetBoardMeta(&fakeBoardMeta{props: asks, template: true})
+	plan := m.SetupPlanFor("board1")
+	if len(plan.Steps) != 0 {
+		t.Errorf("a template was asked for %v", kinds(plan))
+	}
+	if plan.Automated {
+		t.Error("a template counts as automated, so the wizard would open itself on it")
+	}
+}
+
 // A board that says what it needs is asked for exactly that, in its own order.
 func TestABoardAsksForTheStepsItNames(t *testing.T) {
 	m := setupManager(t, boardProps(t, map[string]any{

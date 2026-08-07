@@ -44,7 +44,6 @@ type Manager struct {
 	// threshold is a human one and would make the suite wait it out.
 	terminalQuiet time.Duration
 
-
 	seededMu sync.Mutex
 	seeded   map[string]bool // boards whose own settings have been imported
 

@@ -162,6 +162,21 @@ func (b *EventsBackend) BoardProperties(_ context.Context, boardID string) (map[
 	return board.Properties, nil
 }
 
+// IsBoardTemplate says the board is one to copy rather than to work in.
+func (b *EventsBackend) IsBoardTemplate(_ context.Context, boardID string) (bool, error) {
+	b.mu.Lock()
+	a := b.app
+	b.mu.Unlock()
+	if a == nil {
+		return false, fmt.Errorf("board app is not ready")
+	}
+	board, err := a.GetBoard(boardID)
+	if err != nil {
+		return false, fmt.Errorf("get board %s: %w", boardID, err)
+	}
+	return board != nil && board.IsTemplate, nil
+}
+
 func column(def model.PropDef, optionID string) acp.Column {
 	name := ""
 	if opt, ok := def.Options[optionID]; ok {

@@ -30,9 +30,14 @@ const (
 )
 
 // BoardMeta reads a board's own properties, which is where a template leaves
-// the automation it ships. Optional: without it a board simply brings nothing.
+// the automation it ships, and whether the board is itself a template.
+// Optional: without it a board simply brings nothing.
 type BoardMeta interface {
 	BoardProperties(ctx context.Context, boardID string) (map[string]any, error)
+	// IsBoardTemplate says this board is one to copy rather than to work in.
+	// Nothing runs in a template — no card moves in it, no session starts from
+	// it — so nothing about this machine is asked for on its behalf.
+	IsBoardTemplate(ctx context.Context, boardID string) (bool, error)
 }
 
 // SetBoardMeta supplies the board-property reader.

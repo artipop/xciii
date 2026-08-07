@@ -82,7 +82,10 @@ const ViewHeaderActionsMenu = (props: Props) => {
                                 onClick={() => setShowPlanning(true)}
                             />
                         </Show>
-                        <Show when={isBoardSetupAvailable()}>
+                        {/* A board with nothing to answer is not offered a
+                            walk through nothing — a template, or a board that
+                            runs no automation at all. */}
+                        <Show when={isBoardSetupAvailable() && plan().steps.length > 0}>
                             <Menu.Text
                                 id='boardSetup'
                                 name={intl.formatMessage({id: 'ViewHeader.board-setup', defaultMessage: 'Set up this board…'})}

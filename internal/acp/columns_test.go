@@ -264,10 +264,17 @@ func TestCardFlowDescribesWhereTheCardStands(t *testing.T) {
 
 // fakeBoardMeta is a board that carries its own automation, the way the
 // template does.
-type fakeBoardMeta struct{ props map[string]any }
+type fakeBoardMeta struct {
+	props    map[string]any
+	template bool
+}
 
 func (f *fakeBoardMeta) BoardProperties(context.Context, string) (map[string]any, error) {
 	return f.props, nil
+}
+
+func (f *fakeBoardMeta) IsBoardTemplate(context.Context, string) (bool, error) {
+	return f.template, nil
 }
 
 // A board made from the template works before anything is configured: it brings
