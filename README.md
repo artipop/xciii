@@ -396,6 +396,9 @@ window-position autosave.
   board rather than working on it.
 - [docs/plan.md](docs/plan.md) — what is done, what is left, and the open decisions
   this repository starts with.
+- [docs/local-and-shared-state.md](docs/local-and-shared-state.md) — which of the
+  things this app stores belong to the machine and which to the board. A note to
+  think about later: nothing in it bites while the app is one process.
 - [docs/sources.md](docs/sources.md) — a design for turning outside events (an
   OAuth API, a notification on a phone) into cards, through a documented plugin
   protocol a source can be written against in Go or TypeScript. A proposal:
