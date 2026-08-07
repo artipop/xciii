@@ -72,6 +72,11 @@ type TerminalSession struct {
 	worktree     WorktreeInfo
 	usedWorktree bool
 	startSHA     string
+	// The board tools this CLI was given: a grant token and the config file
+	// that carries it. Both die with the terminal — a door nobody is standing
+	// in must not stay open.
+	boardToken string
+	mcpConfig  string
 
 	mu      sync.Mutex
 	buf     []byte
@@ -346,7 +351,7 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 // StartPlanningTerminal opens the CLI with no card behind it — the terminal
 // half of "Plan a task". It runs in the project itself and never creates a
 // branch: there is nothing yet to put on one.
-func (m *Manager) StartPlanningTerminal(projectName, agentName string) (*TerminalSession, error) {
+func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) (*TerminalSession, error) {
 	project, err := m.planningRepo(projectName)
 	if err != nil {
 		return nil, err
@@ -367,6 +372,9 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName string) (*Termina
 	}
 	return m.startTerminal(terminalSpec{
 		title: "Планирование",
+		// The board the dialog was opened from, and therefore the only board
+		// the conversation may put cards on.
+		boardID: boardID,
 		// The planning instructions ride along as the task, which is what a
 		// card's terminal already does with its card: the CLI is not ready for
 		// input when it starts, so the terminal page offers it as a button
@@ -380,7 +388,10 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName string) (*Termina
 
 // terminalSpec is everything startTerminal needs, resolved by the caller.
 type terminalSpec struct {
-	cardID      string
+	cardID string
+	// boardID is also the board this terminal may write to through the board
+	// tools. A card's terminal has its card's board; planning has the board it
+	// was opened from, which is the only reason that dialog knows about one.
 	boardID     string
 	title       string
 	task        string
@@ -398,15 +409,24 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// stored or guessed.
 	resumeAt, resume := m.terminalResumePoint(spec)
 
-	argv, err := terminalCommand(spec.agent, resume)
+	// The board tools: a terminal that stands on a board can hand work back to
+	// it rather than leaving a person to retype the plan (boardtools.go). A
+	// kind whose CLI cannot be told about MCP gets none, and the terminal opens
+	// exactly as it did before.
+	boardToken, mcpConfig := m.openBoardTools(spec.boardID, spec.agent)
+
+	argv, err := terminalCommand(spec.agent, resume, mcpConfig)
 	if err != nil {
+		m.closeBoardTools(boardToken, mcpConfig)
 		return nil, err
 	}
 	if _, err := exec.LookPath(argv[0]); err != nil {
+		m.closeBoardTools(boardToken, mcpConfig)
 		return nil, fmt.Errorf("не найден %s — CLI агента %q не установлен", argv[0], spec.agent.Name)
 	}
 	net, err := m.resolveNetwork(spec.agent)
 	if err != nil {
+		m.closeBoardTools(boardToken, mcpConfig)
 		return nil, err
 	}
 
@@ -427,6 +447,8 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		done:         make(chan struct{}),
 		lastActivity: time.Now(),
 		quietFor:     m.terminalQuiet,
+		boardToken:   boardToken,
+		mcpConfig:    mcpConfig,
 	}
 
 	switch {
@@ -536,6 +558,7 @@ func (m *Manager) terminalEnded(t *TerminalSession) {
 	if t.CardID != "" {
 		m.commentCard(t.CardID, terminalReport(m.rootCtx, t))
 	}
+	m.closeBoardTools(t.boardToken, t.mcpConfig)
 	// A worktree with nothing in it is a branch nobody asked for; one with
 	// commits stays, exactly as a session's does.
 	m.releaseTerminalWorktree(t)

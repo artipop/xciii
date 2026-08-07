@@ -469,6 +469,14 @@ type acpAdapter struct {
 	// is per card, so "the last conversation here" is that card's. A kind with
 	// no such flag simply starts fresh.
 	cliResumeArgs []string
+	// cliMCPArgs hand the interactive CLI a file of MCP servers. A session gets
+	// its servers over the protocol (session/new has a field for them), but a
+	// terminal is the vendor CLI itself and has to be told in its own spelling
+	// — which is why this is a column of the same table that already knows
+	// which binary the terminal runs. A kind that leaves it empty simply runs
+	// without our tools; that is better than guessing a flag and failing to
+	// open the terminal at all.
+	cliMCPArgs func(configPath string) []string
 	// dropEnv names variables the process must not inherit from ours.
 	dropEnv []string
 	// mode is the session mode to select after session/new, when the agent's
@@ -495,6 +503,7 @@ var acpNative = map[string]acpAdapter{
 		// which has to be installed for that (and only that).
 		cliBin:        "claude",
 		cliResumeArgs: []string{"--continue"},
+		cliMCPArgs:    func(path string) []string { return []string{"--mcp-config", path} },
 		// Claude Code refuses to start inside another Claude Code session, and
 		// the desktop app may well have been launched from one.
 		dropEnv: []string{"CLAUDECODE"},
@@ -743,7 +752,12 @@ const DefaultPlanningPrompt = `Мы планируем новую задачу.
 на код, а не на догадки.
 
 Ничего не меняй: ни файлов, ни состояния, ни веток. Это обсуждение, а не
-выполнение — карточку по итогам заведёт человек.
+выполнение.
+
+Когда договоримся, что делать, — заведи задачи на доске инструментами доски
+(mcp__board__*), по одной карточке на задачу: сначала посмотри list_columns,
+потом create_cards. Если этих инструментов у тебя нет, просто выпиши задачи
+списком.
 
 Начни с короткого вопроса о том, что нужно сделать.`
 

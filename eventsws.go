@@ -42,10 +42,14 @@ func newEventRoutes() *eventRoutes {
 // newACPSockets is the /acp/ half of the front door: the sockets, and only the
 // sockets. The pages around them (/acp/terminal/{id}) are webapp routes the
 // board serves like any other.
-func newACPSockets(terminals, events http.Handler) http.Handler {
+// boardTools is not a socket but belongs to the same subtree: it is the other
+// end of the MCP server an agent runs, and it is authenticated by a grant token
+// rather than by the origin the request came from (boardapi.go).
+func newACPSockets(terminals, events, boardTools http.Handler) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/acp/terminal/{id}/ws", terminals)
 	mux.Handle("/acp/events/ws", events)
+	mux.Handle("/acp/board/", boardTools)
 	return mux
 }
 

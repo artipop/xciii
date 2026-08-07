@@ -158,6 +158,7 @@ const ViewHeaderActionsMenu = (props: Props) => {
             </Show>
             <Show when={showPlanning()}>
                 <PlanningDialog
+                    board={props.board}
                     onClose={() => setShowPlanning(false)}
                 />
             </Show>

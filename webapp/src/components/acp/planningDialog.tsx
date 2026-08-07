@@ -32,6 +32,10 @@ export function isPlanningAvailable(): boolean {
 }
 
 type Props = {
+
+    // The board the dialog was opened from. Planning has no card, but it may
+    // leave cards — and this is the only board it may leave them on.
+    board: Board
     onClose: () => void
 }
 
@@ -132,7 +136,7 @@ const PlanningDialog = (props: Props) => {
         setBusy(true)
         try {
             await savePrompt()
-            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(projectName(), agentName())))
+            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(projectName(), agentName(), props.board.id)))
             await refreshTerminals()
         } catch (e: any) {
             setError(String(e?.message || e))

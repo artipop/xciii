@@ -55,6 +55,14 @@ type Manager struct {
 	questionsMu sync.Mutex
 	questions   map[string]*pendingQuestion
 
+	// grants are the open permissions to write to a board through the board
+	// tools (boardtools.go), one per agent run, and origin is the address the
+	// tool server reaches us at. Their own lock: a tool call arrives on an
+	// HTTP handler and must not queue behind a session starting.
+	grantsMu sync.RWMutex
+	grants   map[string]BoardGrant
+	origin   string
+
 	// What an agent says it can be configured with, keyed by how it is
 	// launched. Asking costs an agent startup, and the dialog asks whenever a
 	// form is opened. See capabilities.go.

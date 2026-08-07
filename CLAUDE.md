@@ -213,6 +213,31 @@ Dokku through our own MCP server, and the test column drives a browser through a
 MCP server the agent carries. `docs/flows.md` is that machinery written for somebody
 using the board.
 
+### An agent talks back through MCP, not through its output
+
+Everything above is us talking to an agent. `internal/boardmcp` is the way back:
+an MCP server of ours — `xciii mcp board`, the same binary again — that gives an
+agent the board as tools (`list_columns`, `create_card`, `create_cards`). It is
+what planning ends with: a conversation about what to do leaves the cards on the
+board itself, where before a person read the screen and retyped them.
+
+Three things make it work and all three are deliberate. It is **a separate
+process**, because that is what an MCP server is, so it reaches the app over the
+front door (`/acp/board/`, `boardapi.go`) rather than through the board's own
+API — what it offers is ours: a column that means something, a project by name.
+It carries **a grant token, not a board id** (`internal/acp/boardtools.go`): the
+token names the board, is minted per agent run and dies with it, so an agent
+cannot leave cards anywhere else — the same bargain the dokku server takes, where
+the model picks steps and never targets. And a **terminal** is handed it as a
+config file the vendor CLI is pointed at (`cliMCPArgs` in the kind table, beside
+`cliBin`), since a terminal has no `session/new` to declare servers in; a kind
+that has not filled that column in simply runs without the tools, which is better
+than guessing a flag and failing to open the window.
+
+A session could take the same server through `session/new` and does not yet: a
+card's own agent creating cards is a loop with nothing to stop it, and that wants
+a decision before it wants code.
+
 ### A terminal is how a person works with an agent
 
 `internal/acp/terminal.go` + `terminalws.go` run the agent's **own CLI** in a pty in

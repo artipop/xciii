@@ -6,7 +6,13 @@ import '@testing-library/jest-dom'
 
 import {wrapIntl} from '../../testUtils'
 
+import {Board, createBoard} from '../../blocks/board'
+
 import PlanningDialog, {isPlanningAvailable} from './planningDialog'
+
+// The board the dialog was opened from: what bounds where the agent may leave
+// the cards it agrees on.
+const board: Board = createBoard({id: 'board-1'} as any)
 
 const anyWindow = window as any
 
@@ -38,14 +44,14 @@ describe('components/acp/planningDialog', () => {
         const bindings = planningBindings()
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <PlanningDialog onClose={vi.fn()}/>))
+        render(() => wrapIntl(() => <PlanningDialog board={board} onClose={vi.fn()}/>))
 
         // One of a kind needs no choosing, so the button is live at once.
         const open = await screen.findByText('Open a terminal')
         await waitFor(() => expect(open.closest('button')).not.toBeDisabled())
         await userEvent.click(open)
 
-        await waitFor(() => expect(bindings.OpenPlanningTerminal).toHaveBeenCalledWith('app', 'planner'))
+        await waitFor(() => expect(bindings.OpenPlanningTerminal).toHaveBeenCalledWith('app', 'planner', 'board-1'))
 
         // The desktop opened the window itself; nothing else should be needed.
         expect(bindings.ListTerminals).toHaveBeenCalled()
@@ -60,7 +66,7 @@ describe('components/acp/planningDialog', () => {
         ]))
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <PlanningDialog onClose={vi.fn()}/>))
+        render(() => wrapIntl(() => <PlanningDialog board={board} onClose={vi.fn()}/>))
 
         const running = await screen.findByText('planner · app')
         await userEvent.click(running)
@@ -74,7 +80,7 @@ describe('components/acp/planningDialog', () => {
         const bindings = planningBindings()
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <PlanningDialog onClose={vi.fn()}/>))
+        render(() => wrapIntl(() => <PlanningDialog board={board} onClose={vi.fn()}/>))
 
         const box = await screen.findByDisplayValue('Ничего не меняй.')
         await userEvent.clear(box)
@@ -85,7 +91,7 @@ describe('components/acp/planningDialog', () => {
         await userEvent.click(open)
 
         await waitFor(() => expect(bindings.SetPlanningPrompt).toHaveBeenCalledWith('Спроси про сроки.'))
-        expect(bindings.OpenPlanningTerminal).toHaveBeenCalledWith('app', 'planner')
+        expect(bindings.OpenPlanningTerminal).toHaveBeenCalledWith('app', 'planner', 'board-1')
     })
 
     // An unchanged prompt is not a write: the dialog is opened far more often
@@ -94,7 +100,7 @@ describe('components/acp/planningDialog', () => {
         const bindings = planningBindings()
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <PlanningDialog onClose={vi.fn()}/>))
+        render(() => wrapIntl(() => <PlanningDialog board={board} onClose={vi.fn()}/>))
 
         const open = await screen.findByText('Open a terminal')
         await waitFor(() => expect(open.closest('button')).not.toBeDisabled())
@@ -109,7 +115,7 @@ describe('components/acp/planningDialog', () => {
         bindings.OpenPlanningTerminal = vi.fn().mockRejectedValue(new Error('CLI агента не установлен'))
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <PlanningDialog onClose={vi.fn()}/>))
+        render(() => wrapIntl(() => <PlanningDialog board={board} onClose={vi.fn()}/>))
 
         const open = await screen.findByText('Open a terminal')
         await waitFor(() => expect(open.closest('button')).not.toBeDisabled())

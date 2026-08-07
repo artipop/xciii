@@ -13,14 +13,17 @@ import (
 
 // terminalCommand is the argv of the agent's interactive CLI: the binary from
 // the kind's table (or the entry's own binPath, when that is the CLI rather
-// than an adapter), plus the flags that continue the last conversation in this
-// directory when we are resuming one.
+// than an adapter), the flags that continue the last conversation in this
+// directory when we are resuming one, and — when the terminal has tools of ours
+// to offer — the kind's own way of taking a file of MCP servers.
 //
 // Nothing else is passed. A model, a mode, a system prompt — everything an ACP
 // session negotiates over the protocol — is the CLI's own business here,
 // configured the way its user configured it, and guessing another agent's flags
-// is how a terminal would fail to open at all.
-func terminalCommand(a AgentEntry, resume bool) ([]string, error) {
+// is how a terminal would fail to open at all. The MCP flag is not a guess: it
+// is a column of the same table that already knows which binary to run, and a
+// kind that has not filled it in gets no flag and no tools.
+func terminalCommand(a AgentEntry, resume bool, mcpConfig string) ([]string, error) {
 	// An explicit argv is the whole command, exactly as Command is for ACP:
 	// with it set nothing of ours is appended, resume flags included, since we
 	// cannot know whether a wrapper would pass them on.
@@ -47,7 +50,19 @@ func terminalCommand(a AgentEntry, resume bool) ([]string, error) {
 	if resume {
 		argv = append(argv, adapter.cliResumeArgs...)
 	}
+	if mcpConfig != "" && adapter.cliMCPArgs != nil {
+		argv = append(argv, adapter.cliMCPArgs(mcpConfig)...)
+	}
 	return argv, nil
+}
+
+// terminalTakesMCP reports whether this entry's terminal can be handed tools of
+// ours at all — the caller asks before minting a grant nobody would use.
+func terminalTakesMCP(a AgentEntry) bool {
+	if len(a.TerminalCommand) > 0 {
+		return false
+	}
+	return acpNative[a.Kind].cliMCPArgs != nil
 }
 
 // canResumeTerminal reports whether the kind can continue a conversation at

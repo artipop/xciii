@@ -119,7 +119,9 @@ func main() {
 	// The UI event socket beside them: what the agents are doing, sent to every
 	// page rather than only to the windows this application owns.
 	uiEvents := newEventRoutes()
-	acpSockets := newACPSockets(terminals, uiEvents)
+	// The board tools an agent calls back through, on the same subtree.
+	boardTools := newBoardToolRoutes()
+	acpSockets := newACPSockets(terminals, uiEvents, boardTools.Handler())
 
 	emitter := newWailsEmitter(uiEvents)
 	app := NewApp(emitter)
@@ -168,6 +170,7 @@ func main() {
 			} else {
 				app.mgr = mgr
 				terminals.SetManager(mgr)
+				boardTools.SetManager(mgr)
 				log.Printf("acp: enabled (trigger %q/%q)", acpCfg.TriggerProperty, acpCfg.TriggerColumn)
 			}
 		}
@@ -209,6 +212,11 @@ func main() {
 	// startup hook to wait for before an event can be delivered.
 	app.SetApplication(wapp)
 	app.SetOrigin(front.url())
+	if mgr != nil {
+		// Where an agent's board tools call back to. Known only now: the front
+		// door picks its port when it binds.
+		mgr.SetOrigin(front.url())
+	}
 	emitter.SetApplication(wapp)
 
 	front.start()

@@ -124,6 +124,28 @@ func findSelectOption(schema model.PropSchema, propertyName, optionName string) 
 	return "", "", false
 }
 
+// findOptionByName resolves a bare option name — "xciii", "claude", "Быстрый
+// маршрут" — to the property that owns it. Which property that is, is the
+// board's business: a card is read back the same way, by the names of the
+// options selected on it and not by where they sit.
+func findOptionByName(schema model.PropSchema, optionName string) (propID, optionID string, ok bool) {
+	name := strings.TrimSpace(optionName)
+	if name == "" {
+		return "", "", false
+	}
+	for id, def := range schema {
+		if def.Type != "select" {
+			continue
+		}
+		for oid, opt := range def.Options {
+			if strings.EqualFold(opt.Value, name) {
+				return id, oid, true
+			}
+		}
+	}
+	return "", "", false
+}
+
 // AttachFile puts a file into the card's content: an image is rendered inline,
 // anything else becomes a download. This is how a test run's screenshots end up
 // where a human reads the result, instead of in a directory nobody opens.
@@ -161,6 +183,72 @@ func (w *Writer) AttachFile(ctx context.Context, cardID, filename, mime string, 
 		return fmt.Errorf("insert %s block: %w", blockType, err)
 	}
 	return w.appendContent(cardID, block.ID)
+}
+
+// CreateCard puts a new card on a board, in the column the spec names, with its
+// description as the card's first text block — the same shape a card typed by a
+// person has, since it is read back by the same code (EventsBackend.cardBody).
+//
+// Properties are resolved by name and a name the board does not have is
+// dropped rather than refused: a plan of five cards must not be lost because
+// the agent guessed one option wrong, and what it got is in the report.
+func (w *Writer) CreateCard(ctx context.Context, spec acp.NewCard) (string, error) {
+	board, err := w.app.GetBoard(spec.BoardID)
+	if err != nil {
+		return "", fmt.Errorf("get board %s: %w", spec.BoardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return "", err
+	}
+
+	properties := map[string]any{}
+	if spec.Column != "" {
+		propID, optionID, ok := findSelectOption(schema, spec.Property, spec.Column)
+		if !ok {
+			return "", fmt.Errorf("на доске %s нет колонки %q в свойстве %q", board.ID, spec.Column, spec.Property)
+		}
+		properties[propID] = optionID
+	}
+	for _, option := range spec.Options {
+		propID, optionID, ok := findOptionByName(schema, option)
+		// Not the column property: the column is the spec's own field, and an
+		// option name that happens to match a column must not move the card
+		// somewhere the caller did not ask for.
+		if ok && properties[propID] == nil {
+			properties[propID] = optionID
+		}
+	}
+
+	card, err := w.app.CreateCard(&model.Card{Title: spec.Title, Properties: properties}, board.ID, model.SingleUser, true)
+	if err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(spec.Body) == "" {
+		return card.ID, nil
+	}
+
+	now := utils.GetMillis()
+	body := &model.Block{
+		ID:        utils.NewID(model.BlockType2IDType(model.TypeText)),
+		BoardID:   board.ID,
+		ParentID:  card.ID,
+		Type:      model.TypeText,
+		Title:     spec.Body,
+		Fields:    map[string]any{},
+		CreatedBy: model.SingleUser,
+		CreateAt:  now,
+		UpdateAt:  now,
+	}
+	if _, err := w.app.InsertBlocksAndNotify([]*model.Block{body}, model.SingleUser, true); err != nil {
+		// The card exists and is the point; a description that did not land is
+		// worth reporting, not worth pretending the card was never made.
+		return card.ID, fmt.Errorf("карточка создана, но описание не сохранилось: %w", err)
+	}
+	if err := w.appendContent(card.ID, body.ID); err != nil {
+		return card.ID, fmt.Errorf("карточка создана, но описание не встало в неё: %w", err)
+	}
+	return card.ID, nil
 }
 
 // appendContent adds a block to the end of the card's content. The card's raw

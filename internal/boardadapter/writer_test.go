@@ -27,6 +27,28 @@ func TestFindSelectOption(t *testing.T) {
 	}
 }
 
+// A card asked for by an agent names option values and nothing else: which
+// property holds "To Agent" is the board's business, exactly as it is when a
+// card is read back by the names of the options selected on it.
+func TestFindOptionByName(t *testing.T) {
+	schema, err := model.ParsePropertySchema(testBoard())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	propID, optionID, ok := findOptionByName(schema, "to agent")
+	if !ok || propID != "prop-status" || optionID != "opt-agent" {
+		t.Fatalf("got %q/%q, ok=%v", propID, optionID, ok)
+	}
+
+	if _, _, ok := findOptionByName(schema, "  "); ok {
+		t.Error("an empty name must not resolve to whatever comes first")
+	}
+	if _, _, ok := findOptionByName(schema, "/tmp/project"); ok {
+		t.Error("only select options may be matched, not the value of a text property")
+	}
+}
+
 func TestAppendContentOrder(t *testing.T) {
 	// A card with nothing in it.
 	if got := appendContentOrder(map[string]any{}, "block-1"); len(got) != 1 || got[0] != "block-1" {

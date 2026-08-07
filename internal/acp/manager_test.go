@@ -2,6 +2,7 @@ package acp
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -23,6 +24,8 @@ type fakeWriter struct {
 	comments    map[string][]string // cardID → comments
 	moves       []cardMove          // moves by column name, in order
 	attachments []attachment
+	created     []NewCard // cards asked for through the board tools
+	createErr   error
 }
 
 // cardMove is one MoveCardByOptionName call.
@@ -64,6 +67,16 @@ func (w *fakeWriter) AttachFile(ctx context.Context, cardID, filename, mimeType 
 	defer w.mu.Unlock()
 	w.attachments = append(w.attachments, attachment{cardID: cardID, name: filename, mime: mimeType, data: data})
 	return nil
+}
+
+func (w *fakeWriter) CreateCard(ctx context.Context, card NewCard) (string, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.createErr != nil {
+		return "", w.createErr
+	}
+	w.created = append(w.created, card)
+	return fmt.Sprintf("card-%d", len(w.created)), nil
 }
 
 func (w *fakeWriter) cardComments(cardID string) []string {

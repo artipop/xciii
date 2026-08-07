@@ -757,12 +757,14 @@ func (a *App) OpenCardTerminal(cardID, projectName, agentName string) (string, e
 }
 
 // OpenPlanningTerminal opens the CLI with no card behind it — the terminal half
-// of "Plan a task".
-func (a *App) OpenPlanningTerminal(projectName, agentName string) (string, error) {
+// of "Plan a task". boardID is the board the dialog was opened from: the
+// conversation has no card, but it may leave cards, and that is the only board
+// it may leave them on.
+func (a *App) OpenPlanningTerminal(projectName, agentName, boardID string) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
-	t, err := a.mgr.StartPlanningTerminal(projectName, agentName)
+	t, err := a.mgr.StartPlanningTerminal(projectName, agentName, boardID)
 	if err != nil {
 		return "", err
 	}

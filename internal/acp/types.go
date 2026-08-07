@@ -53,6 +53,31 @@ type BoardWriter interface {
 	// AttachFile adds a file to the card's content — how a test run's
 	// screenshots reach the person reading the result.
 	AttachFile(ctx context.Context, cardID, filename, mime string, data []byte) error
+	// CreateCard puts a new card on a board. This is the one way work gets onto
+	// the board from outside a person's hands, and it exists for the planning
+	// conversation: it ends in tasks, and until now somebody had to retype them.
+	CreateCard(ctx context.Context, card NewCard) (string, error)
+}
+
+// NewCard is a card asked for from outside the board — by an agent through the
+// board MCP server today. The board is not a field an agent fills in: it comes
+// from the grant its tools were started with, so a conversation about one board
+// cannot leave cards on another.
+type NewCard struct {
+	BoardID string
+	Title   string
+	Body    string
+	// Column is the name of the option in the board's trigger property. It is
+	// what decides whether anything happens to the card next, so a card asked
+	// for without one lands wherever a card with no column lands.
+	Property string
+	Column   string
+	// Options are the card's other select values by option name — a project, an
+	// agent, a route. Which property each belongs to is the board's business,
+	// not the caller's: that is already how a card is read back (CardMoved
+	// carries OptionNames, and project/agent/flow resolution matches against
+	// them without caring which property they came from).
+	Options []string
 }
 
 // BoardReader reads a card on demand, so a session can be opened from the UI
