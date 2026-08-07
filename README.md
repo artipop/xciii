@@ -259,7 +259,8 @@ the one thing a rewrite must not quietly drop.
   publishes itself on a fresh port every launch, so `localStorage` is keyed by
   an origin that does not survive a restart — anything the page has to remember
   between runs has to be asked of Go.
-- **Columns** (column menu → *Agents in this column…*) say what happens when a
+- **Columns** (column menu → *«Что происходит в этой колонке…»*, or the board
+  menu's *«Как работает эта доска…»*) say what happens when a
   card lands in one: the action, the crew of agents who work it, and how many of
   them at once. A card without an agent of its own goes to whoever of the crew is
   free; when they are all busy, or the limit is reached, the card waits in place
@@ -272,7 +273,7 @@ the one thing a rewrite must not quietly drop.
   the card keeps its place on the route and waits for you to move it on. Deploy
   and test still run, since that is machine work; assigning a registered agent,
   or nobody, hands the card back to automation.
-- **Flows** (board "…" menu → *Workflows*) join those columns into a route and
+- **Flows** (board "…" menu → *«Как работает эта доска…»*) join those columns into a route and
   move cards along it. Repository events are polled from the branches parked
   cards wait on: plain git needs nothing, while `pr.*`, `review.approved` and
   `checks.*` call the GitHub API and want a token in `githubToken` (or
@@ -290,11 +291,30 @@ the one thing a rewrite must not quietly drop.
   and what that stage is waiting for. Routes belong to the board they were made
   on, and a board made from the «Разработка» template arrives with them:
   the template carries its columns and routes in the board's own properties, and
-  the first card moved on it takes them into the registry. The Workflows dialog
-  is both the map and the builder: it draws each route with the number of cards
-  standing on every stage, and editing one turns the same canvas into the place
-  the graph is drawn — stages are dragged, and pulling from a stage's right edge
-  joins it to another.
+  the first card moved on it — or opening the editor — takes them into the
+  registry.
+- **One editor for both halves** (board menu → *«Как работает эта доска…»*).
+  The canvas is the board: every column of the chosen select property is a box
+  on it, and choosing a route draws that route's arrows over the same boxes,
+  fading the columns it does not use — clicking one, or drawing an arrow to it,
+  is what puts it on the route. There is no "add a stage, then pick its column".
+  The panel beside the canvas is about whatever is selected: a column (what
+  happens there, the crew, the limit, the deploy target — the whole of what used
+  to be a dialog of its own) or a transition (which event, and where it leads).
+  What a card names its route with is checked too: a route with no option of its
+  name is one no card can ever take, and the editor says so and offers the click
+  that adds it.
+- **Templates** (*«Сохранить как шаблон…»* in the board menu, the pencil in the
+  template picker, or *«Колонки, маршруты и настройка…»* on the banner of a
+  template being edited). A template is a board that has not been made yet, and
+  what makes it worth choosing is not on the board: the same editor writes its
+  columns and routes into the template's own properties, and below it the
+  template names the questions a new board should ask about this machine — the
+  closed set of setup steps, each with a line of the template's own and a "cannot
+  be skipped" flag. Saving a working board as a template reads its automation
+  back out of the registry into the copy, so the template arrives with the
+  columns *doing* something rather than merely drawn. Templates somebody made
+  are offered beside the ones the install ships.
 
 ## Develop
 
@@ -399,6 +419,8 @@ window-position autosave.
 
 - [docs/flows.md](docs/flows.md) — how a card gets worked on, for somebody using the
   board rather than working on it.
+- [docs/templates.md](docs/templates.md) — what a template carries, how it is edited,
+  and how a working board becomes one.
 - [docs/plan.md](docs/plan.md) — what is done, what is left, and the open decisions
   this repository starts with.
 - [docs/desktop-port-and-websocket.md](docs/desktop-port-and-websocket.md) — why the

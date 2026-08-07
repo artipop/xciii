@@ -213,6 +213,18 @@ Dokku through our own MCP server, and the test column drives a browser through a
 MCP server the agent carries. `docs/flows.md` is that machinery written for somebody
 using the board.
 
+Both halves are edited over **the board's own columns**: `components/acp/
+automationEditor.tsx` draws every option of the board's column property as a box,
+and a route is that same set of boxes with arrows over it — a stage that is not a
+column is a stage no card can stand on, so there is no way to make one. The
+editor is source-agnostic and the container decides what it edits: `automation
+Dialog.tsx` points it at the registry of a live board (saving through
+`SaveBoardColumn`/`AddFlow`/…), `templateEditor.tsx` at a template board's own
+properties (`acpColumns`, `acpFlows`, `acpSetup`), which is where a board made
+from it will read them. `automation.ts` holds the types and every pure helper,
+which is what keeps the two containers from growing their own answers.
+`docs/templates.md` is the template half written for somebody using it.
+
 ### An agent talks back through MCP, not through its output
 
 Everything above is us talking to an agent. `internal/boardmcp` is the way back:

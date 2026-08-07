@@ -9,9 +9,9 @@ moves the card on. Written for a person using the board; the code is in
 
 | | Where it lives | What it answers |
 |---|---|---|
-| **Column** | column menu → *Agents in this column…* | what happens when a card lands here, who works it, how many at once |
-| **Flow (route)** | board menu → *Workflows…* | where the card goes next, and on what event |
-| **Registries** | board menu → *Agent projects…*, *Agents…*, *Deploy targets…* | the machine: which agents exist, which projects, where to deploy |
+| **Column** | board menu → *«Как работает эта доска…»*, or the column's own menu | what happens when a card lands here, who works it, how many at once |
+| **Flow (route)** | the same editor, a route tab | where the card goes next, and on what event |
+| **Registries** | board menu → *Проекты…*, *Агенты…*, *Цели деплоя…* | the machine: which agents exist, which projects, where to deploy |
 
 The split is worth holding onto: a **column says what is done**, a **route says
 where the card goes afterwards**. A board with columns but no route still works
@@ -22,6 +22,40 @@ The registries live on the machine, the columns and routes belong to a board. A
 board made from any of the offered templates brings its own columns and routes;
 the first time it is opened on a machine with empty registries, the setup wizard
 asks for the rest.
+
+## Where both halves are edited
+
+*«Как работает эта доска…»* is one screen for the two of them, and the picture on
+it is the board itself: **every column is a box on the canvas**, whatever
+happens in it. Along the top are the routes; **«Колонки»** is the same canvas
+with no route chosen, which is where you say what each column does.
+
+- **choose a column** and the panel on the right is about it: what happens when a
+  card lands there, who works it, how many at once, where it deploys. That
+  answer holds for every route at once, because it is the column's;
+- **choose a route** and its arrows are drawn over the same boxes. The columns
+  the route does not use stay on the canvas, faded — **clicking one puts it on
+  the route**, and so does drawing an arrow to it. There is no separate "add a
+  stage and then pick its column": a stage a card can stand on *is* a column;
+- **draw a transition** by pulling from a box's right edge — the upper point is
+  "when this succeeded", the lower "when it failed" — or from the bottom point
+  for something to wait for, like a merged branch. Click an arrow to change what
+  it waits for or where it leads;
+- a stage may differ from its column on one route only — «Только в этом
+  маршруте…» in the panel — but that is the exception, folded away.
+
+Two things are saved at different moments, and it is worth knowing which. A
+**column of the board** — adding one, renaming one — is a change to the board and
+lands at once, for everybody looking at it. **What happens in a column, and the
+routes** are saved when you press *«Сохранить»*, because the engine checks the
+whole picture before it takes it: a transition leading nowhere, two stages on one
+column, an agent that is not registered are all refused with a sentence saying
+which.
+
+The editor also checks the one thing that silently costs an afternoon: a card
+takes a route by **naming** it, so a route with no option of that name anywhere
+on the board is a route no card can ever be put on. It says so where the route is
+edited, and the button beside it adds the option.
 
 A **project** is the exception, and deliberately: it belongs to the board it was
 added on, and only that board offers it. The folder of household notes has no
