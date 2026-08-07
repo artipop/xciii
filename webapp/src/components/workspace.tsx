@@ -34,6 +34,7 @@ import {getMe} from '../store/users'
 import {getHiddenBoardIDs} from '../store/sidebar'
 
 import CenterPanel from './centerPanel'
+import TemplateEditor from './acp/templateEditor'
 import BoardTemplateSelector from './boardTemplateSelector/boardTemplateSelector'
 import GuestNoBoards from './guestNoBoards'
 
@@ -177,6 +178,7 @@ const Workspace = (props: Props): JSX.Element => {
 
     const viewId = useAppSelector(getCurrentViewId)
     const [boardTemplateSelectorOpen, setBoardTemplateSelectorOpen] = createSignal(false)
+    const [editingTemplate, setEditingTemplate] = createSignal(false)
 
     const closeBoardTemplateSelector = () => {
         setBoardTemplateSelectorOpen(false)
@@ -211,7 +213,28 @@ const Workspace = (props: Props): JSX.Element => {
                             id='Workspace.editing-board-template'
                             defaultMessage="You're editing a board template."
                         />
+
+                        {/* The board shows the cards and the columns; what a
+                            template is actually for — what runs in a column,
+                            where a card goes next, what the board will ask for
+                            — is not on the board at all, so the way to it has
+                            to be here. */}
+                        <button
+                            class='banner__action'
+                            onClick={() => setEditingTemplate(true)}
+                        >
+                            <FormattedMessage
+                                id='Workspace.edit-template-settings'
+                                defaultMessage='Columns, routes and setup…'
+                            />
+                        </button>
                     </div>
+                    <Show when={editingTemplate() && board()}>
+                        <TemplateEditor
+                            board={board()!}
+                            onClose={() => setEditingTemplate(false)}
+                        />
+                    </Show>
                 </Show>
                 <CenterContent
                     readonly={props.readonly}

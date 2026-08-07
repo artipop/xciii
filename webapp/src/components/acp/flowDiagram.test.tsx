@@ -7,7 +7,7 @@ import {wrapIntl} from '../../testUtils'
 import {setupReactFlowEnvironment} from '../../test/reactFlowEnvironment'
 
 import FlowDiagram, {depths, layout, edgeKind, connectEdge, HANDLE_EVENT, HANDLE_FAILURE, HANDLE_SUCCESS, NODE_WIDTH} from './flowDiagram'
-import {SUCCESS, FAILURE} from './workflowsDialog'
+import {SUCCESS, FAILURE} from './automation'
 
 setupReactFlowEnvironment()
 

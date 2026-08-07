@@ -199,8 +199,7 @@ func (m *Manager) adoptFlows(boardID string, flows []FlowEntry) int {
 		}
 		known := false
 		for _, existing := range m.cfg.Flows {
-			if strings.EqualFold(existing.Name, valid.Name) &&
-				(existing.BoardID == boardID || existing.BoardID == "") {
+			if sameFlow(existing, valid) {
 				known = true
 				break
 			}
@@ -219,9 +218,34 @@ func (m *Manager) adoptFlows(boardID string, flows []FlowEntry) int {
 	return added
 }
 
+// BoardAutomation reads a board's automation back out of the registry in the
+// shape a template carries it — the other direction of seedFromBoard, and how a
+// board built by hand becomes a template somebody else can start from.
+//
+// The board id is dropped and the option ids are kept, which is exactly what a
+// copy needs: duplicating a board keeps its card properties (options and their
+// ids) and gives the copy a new board id, so a spec that names the option still
+// finds it and one that named the board would point at the original.
+func (m *Manager) BoardAutomation(boardID string) BoardAutomation {
+	columns, flows := m.boardOwnAutomation(boardID)
+	out := BoardAutomation{
+		Columns: make([]ColumnSpec, 0, len(columns)),
+		Flows:   make([]FlowEntry, 0, len(flows)),
+	}
+	for _, c := range columns {
+		c.BoardID = ""
+		out.Columns = append(out.Columns, c)
+	}
+	for _, f := range flows {
+		f.BoardID = ""
+		out.Flows = append(out.Flows, f)
+	}
+	return out
+}
+
 // BoardAutomation is what a board carries: the columns it runs and the routes
-// across it. Exported so a test — and a future "export this board's automation"
-// — speaks the same shape the template does.
+// across it. Exported so a test — and "save this board as a template" —
+// speaks the same shape the template does.
 type BoardAutomation struct {
 	Columns []ColumnSpec `json:"acpColumns,omitempty"`
 	Flows   []FlowEntry  `json:"acpFlows,omitempty"`

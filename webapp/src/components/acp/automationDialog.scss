@@ -1,0 +1,42 @@
+// The dialog is wide because the canvas inside it is: a route read across a
+// narrow column is a route nobody reads.
+.AutomationDialog {
+    // Both classes, because the base dialog's own width rule is `.Dialog
+    // .dialog` and a single class here loses the tie and leaves the canvas
+    // 975px wide — narrow enough to push the inspector off screen.
+    &.dialog-back .dialog {
+        max-width: 1180px;
+        width: min(1180px, 94vw);
+    }
+
+    .AutomationDialog__content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 4px 0;
+    }
+
+    .AutomationDialog__ready {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .AutomationDialog__actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .AutomationDialog__hint {
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .AutomationDialog__error {
+        white-space: pre-wrap;
+        color: rgb(var(--error-text-rgb));
+        font-size: 12px;
+    }
+}

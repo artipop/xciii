@@ -33,6 +33,8 @@ import {Utils} from '../../utils'
 
 import {Constants} from '../../constants'
 
+import TemplateEditor from '../acp/templateEditor'
+
 import BoardTemplateSelectorPreview from './boardTemplateSelectorPreview'
 import BoardTemplateSelectorItem from './boardTemplateSelectorItem'
 
@@ -43,12 +45,15 @@ type Props = {
     channelId?: string
 }
 
-// Only these templates are offered in the selector; every other template
-// (the rest of the upstream defaults, the onboarding board, user-created ones)
-// is hidden. Each of them ships its own columns and routes in the board's own
-// properties, which is what makes a board from it run without any setup — an
-// upstream template would land here as a board the automation knows nothing
-// about.
+// Of the templates that come with the install, only these are offered: the rest
+// of the upstream defaults and the onboarding board are hidden. Each of ours
+// ships its own columns and routes in the board's own properties, which is what
+// makes a board from it run without any setup — an upstream template would land
+// here as a board the automation knows nothing about.
+//
+// A template the user made is a different matter and is always offered,
+// whatever it carries: it is theirs, they can see what is in it, and hiding it
+// is how "Create new template" used to lead nowhere at all.
 //
 // They are named by the marker each one carries rather than by its title. The
 // title is Russian prose somebody may reword, and a filter keyed on it would
@@ -111,14 +116,22 @@ const BoardTemplateSelector = (props: Props) => {
 
     const unsortedTemplates = useAppSelector(getTemplates)
     const allTemplates = createMemo(() => {
-        const templates = Object.values(unsortedTemplates()).sort((a: Board, b: Board) => a.createAt - b.createAt)
-        const visible = (globalTemplates() || []).concat(templates).filter((template) => VISIBLE_TEMPLATE_SLUGS.includes(templateSlug(template)))
+        // The archive hands ours over in whatever order it was packed in, so
+        // the list above is also the order they are offered in — and its first
+        // entry is what the selector opens on.
+        const ours = (globalTemplates() || []).
+            filter((template) => VISIBLE_TEMPLATE_SLUGS.includes(templateSlug(template))).
+            sort((a: Board, b: Board) =>
+                VISIBLE_TEMPLATE_SLUGS.indexOf(templateSlug(a)) - VISIBLE_TEMPLATE_SLUGS.indexOf(templateSlug(b)))
 
-        // The archive hands them over in whatever order it was packed in, so the
-        // list above is also the order they are offered in — and its first entry
-        // is what the selector opens on.
-        return visible.sort((a: Board, b: Board) =>
-            VISIBLE_TEMPLATE_SLUGS.indexOf(templateSlug(a)) - VISIBLE_TEMPLATE_SLUGS.indexOf(templateSlug(b)))
+        // Then the user's own, oldest first — a list that grows downwards is
+        // one where a template stays where it was put. A template of the global
+        // team is not theirs: that is where the install's own live, ours among
+        // the upstream ones the filter above leaves out.
+        const mine = Object.values(unsortedTemplates()).
+            filter((template: Board) => template.teamId !== Constants.globalTeamId).
+            sort((a: Board, b: Board) => a.createAt - b.createAt)
+        return [...ours, ...mine]
     })
 
     const resetTour = async () => {
@@ -144,6 +157,11 @@ const BoardTemplateSelector = (props: Props) => {
     }
 
     const [activeTemplate, setActiveTemplate] = createSignal<Board>(allTemplates()[0])
+
+    // The pencil used to open the template as a board, which shows its cards
+    // and hides everything a template is chosen for. It opens the template
+    // itself now.
+    const [editing, setEditing] = createSignal<Board | null>(null)
 
     createEffect(() => {
         if (!activeTemplate()) {
@@ -173,6 +191,14 @@ const BoardTemplateSelector = (props: Props) => {
                         onClick={props.onClose}
                         class='BoardTemplateSelector__backdrop'
                     />
+                </Show>
+                <Show when={editing()}>
+                    {(template) => (
+                        <TemplateEditor
+                            board={template()}
+                            onClose={() => setEditing(null)}
+                        />
+                    )}
                 </Show>
                 <div class='BoardTemplateSelector'>
                     <div class='toolbar'>
@@ -225,7 +251,7 @@ const BoardTemplateSelector = (props: Props) => {
                                             template={boardTemplate}
                                             onSelect={setActiveTemplate}
                                             onDelete={onBoardTemplateDelete}
-                                            onEdit={showBoard}
+                                            onEdit={setEditing}
                                         />
                                     )}
                                 </For>

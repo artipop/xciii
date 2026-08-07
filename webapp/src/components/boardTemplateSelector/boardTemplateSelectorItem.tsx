@@ -21,7 +21,11 @@ type Props = {
     template: Board
     onSelect: (template: Board) => void
     onDelete: (template: Board) => void
-    onEdit: (templateId: string) => void
+
+    // The whole template, not its id: editing one is about what it carries —
+    // its columns, its routes, what it asks for — and that is read off the
+    // board itself rather than fetched again.
+    onEdit: (template: Board) => void
 }
 
 const BoardTemplateSelectorItem = (props: Props) => {
@@ -32,7 +36,7 @@ const BoardTemplateSelectorItem = (props: Props) => {
     }
     const onEditHandler = (e: MouseEvent) => {
         e.stopPropagation()
-        props.onEdit(props.template.id)
+        props.onEdit(props.template)
     }
 
     return (

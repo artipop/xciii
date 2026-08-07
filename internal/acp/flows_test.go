@@ -108,11 +108,69 @@ func TestAddUpdateRemoveFlowPersists(t *testing.T) {
 		t.Fatalf("config did not persist the update: %+v", loaded.Flows)
 	}
 
-	if err := m.RemoveFlow("FEATURE"); err != nil {
+	if err := m.RemoveFlow("", "FEATURE"); err != nil {
 		t.Fatal(err)
 	}
 	if len(m.Flows()) != 0 {
 		t.Fatalf("flow not removed: %+v", m.Flows())
+	}
+}
+
+// Two boards each name their route «Фича» and mean different things by it, so
+// the registry is keyed by the board as well as the name — otherwise the second
+// board cannot even save its own.
+func TestFlowsAreScopedToTheirBoard(t *testing.T) {
+	m := agentManager(t, filepath.Join(t.TempDir(), "config.json"))
+
+	first := sampleFlow()
+	first.BoardID = "board-1"
+	if _, err := m.AddFlow(first); err != nil {
+		t.Fatal(err)
+	}
+	second := sampleFlow()
+	second.BoardID = "board-2"
+	second.Nodes[1].Column = "Ревью"
+	if _, err := m.AddFlow(second); err != nil {
+		t.Fatalf("another board cannot have a route of the same name: %v", err)
+	}
+	if _, err := m.AddFlow(second); err == nil {
+		t.Error("the same board took the same name twice")
+	}
+
+	// Editing and deleting reach that board's route and leave the other's alone.
+	edited := second
+	edited.Nodes[0].Column = "В работе 2"
+	if _, err := m.UpdateFlow(edited); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.RemoveFlow("board-2", edited.Name); err != nil {
+		t.Fatal(err)
+	}
+	left := m.Flows()
+	if len(left) != 1 || left[0].BoardID != "board-1" {
+		t.Fatalf("removing one board's route took another's: %+v", left)
+	}
+}
+
+// A board's automation is read back out of the registry to become a template:
+// the option ids survive (a copy keeps its card properties) and the board id
+// does not (the copy is a different board).
+func TestBoardAutomationIsExportedWithoutTheBoard(t *testing.T) {
+	m := agentManager(t, "")
+	m.cfg.Columns = []ColumnSpec{
+		{BoardID: "board-1", OptionID: "opt-1", Property: "Статус", Column: "В работе", Action: FlowActionAgent},
+		{BoardID: "board-2", OptionID: "opt-9", Property: "Статус", Column: "Чужая", Action: FlowActionAgent},
+	}
+	flow := sampleFlow()
+	flow.BoardID = "board-1"
+	m.cfg.Flows = []FlowEntry{flow}
+
+	got := m.BoardAutomation("board-1")
+	if len(got.Columns) != 1 || got.Columns[0].BoardID != "" || got.Columns[0].OptionID != "opt-1" {
+		t.Fatalf("columns exported wrong: %+v", got.Columns)
+	}
+	if len(got.Flows) != 1 || got.Flows[0].BoardID != "" {
+		t.Fatalf("routes exported wrong: %+v", got.Flows)
 	}
 }
 

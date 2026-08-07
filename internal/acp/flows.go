@@ -351,6 +351,16 @@ func validateFlow(f FlowEntry, projects []ProjectEntry, agents []AgentEntry, dep
 	return f, nil
 }
 
+// sameFlow reports whether two entries are one route of the registry: the same
+// name on the same board. A route tied to no board runs on every board, so it
+// collides with a board's own route of that name — the card would have two.
+// This is the predicate every edit is keyed on, which is what lets two boards
+// each have their own «Фича».
+func sameFlow(a, b FlowEntry) bool {
+	return strings.EqualFold(strings.TrimSpace(a.Name), strings.TrimSpace(b.Name)) &&
+		(a.BoardID == b.BoardID || a.BoardID == "" || b.BoardID == "")
+}
+
 // AddFlow registers a new route and persists the config.
 func (m *Manager) AddFlow(f FlowEntry) (FlowEntry, error) {
 	m.cfgMu.Lock()
@@ -360,7 +370,7 @@ func (m *Manager) AddFlow(f FlowEntry) (FlowEntry, error) {
 		return FlowEntry{}, err
 	}
 	for _, e := range m.cfg.Flows {
-		if strings.EqualFold(e.Name, f.Name) {
+		if sameFlow(e, f) {
 			return FlowEntry{}, fmt.Errorf("флоу с именем %q уже существует", e.Name)
 		}
 	}
@@ -368,7 +378,8 @@ func (m *Manager) AddFlow(f FlowEntry) (FlowEntry, error) {
 	return f, m.persistConfigLocked()
 }
 
-// UpdateFlow replaces an existing route (matched by name) and persists.
+// UpdateFlow replaces an existing route (matched by board and name) and
+// persists.
 func (m *Manager) UpdateFlow(f FlowEntry) (FlowEntry, error) {
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
@@ -377,7 +388,10 @@ func (m *Manager) UpdateFlow(f FlowEntry) (FlowEntry, error) {
 		return FlowEntry{}, err
 	}
 	for i, e := range m.cfg.Flows {
-		if strings.EqualFold(e.Name, f.Name) {
+		if sameFlow(e, f) {
+			// The board it belongs to is the editor's to state: a route the
+			// registry held for every board becomes this board's own the moment
+			// this board edits it, and the other boards keep what they had.
 			m.cfg.Flows[i] = f
 			return f, m.persistConfigLocked()
 		}
@@ -385,13 +399,14 @@ func (m *Manager) UpdateFlow(f FlowEntry) (FlowEntry, error) {
 	return FlowEntry{}, fmt.Errorf("флоу %q не найден", f.Name)
 }
 
-// RemoveFlow deletes a route by name and persists. Cards currently on it stop
-// moving by themselves; nothing else happens to them.
-func (m *Manager) RemoveFlow(name string) error {
+// RemoveFlow deletes a board's route by name and persists. Cards currently on
+// it stop moving by themselves; nothing else happens to them.
+func (m *Manager) RemoveFlow(boardID, name string) error {
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
+	target := FlowEntry{BoardID: boardID, Name: name}
 	for i, e := range m.cfg.Flows {
-		if strings.EqualFold(e.Name, name) {
+		if sameFlow(e, target) {
 			m.cfg.Flows = append(m.cfg.Flows[:i], m.cfg.Flows[i+1:]...)
 			return m.persistConfigLocked()
 		}

@@ -253,7 +253,7 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(mockedMutator.addEmptyBoard).toHaveBeenCalledTimes(1)
             await waitFor(() => expect(mockedMutator.updateBoard).toHaveBeenCalledWith(newBoard, newBoard, 'linked channel'))
         })
-        test('offers the templates that ship automation and hides the rest', () => {
+        test('offers ours and the user’s own, and hides the upstream ones', () => {
             render(() => wrapDNDIntl(() =>
                 <AppStoreProvider store={store}>
                     <BoardTemplateSelector onClose={vi.fn()}/>
@@ -265,8 +265,11 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(screen.getByText(globalTemplateTitle)).not.toBeNull()
             expect(screen.getByText(householdTemplateTitle)).not.toBeNull()
 
-            // every other template is hidden from the selector
-            expect(screen.queryByText(template1Title)).toBeNull()
+            // and so does a template of the user's own, whatever it carries:
+            // hiding it is how "Create new template" used to lead nowhere
+            expect(screen.getByText(template1Title)).not.toBeNull()
+
+            // what stays hidden is the install's own upstream ones
             expect(screen.queryByText('Welcome to Boards!')).toBeNull()
         })
 
@@ -306,6 +309,9 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(offered.map((item) => item.textContent)).toEqual([
                 expect.stringContaining(globalTemplateTitle),
                 expect.stringContaining(householdTemplateTitle),
+
+                // the user's own come after the ones the install ships
+                expect.stringContaining(template1Title),
             ])
             expect(offered[0]!.className).toContain('active')
         })

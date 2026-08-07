@@ -1,0 +1,682 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+import {For, Show, createMemo, createSignal} from 'solid-js'
+
+import {useIntl, IntlShape} from '../../intl'
+
+import {IPropertyTemplate} from '../../blocks/board'
+import Button from '../../widgets/buttons/button'
+
+import FlowDiagram, {NODE_HEIGHT, NODE_WIDTH, StageCount, edgeId} from './flowDiagram'
+import {
+    ACTIONS,
+    Automation,
+    BoardColumn,
+    ColumnSpec,
+    FAILURE,
+    Flow,
+    FlowEdge,
+    FlowNode,
+    FlowTrigger,
+    SUCCESS,
+    blankSpec,
+    columnsOf,
+    nodeFor,
+    outgoing,
+    setEdge,
+    specFor,
+    upsertSpec,
+    withColumn,
+    withNode,
+    withoutColumn,
+} from './automation'
+
+import './automationEditor.scss'
+
+// The board's automation on one screen: the columns as they are on the board,
+// the routes drawn over them, and one panel that edits whichever of the two is
+// selected.
+//
+// It replaces two dialogs that each held half the answer — a column's settings
+// on the board and a route's graph in a menu — because the question a person
+// actually has is neither half: "what happens to a card here, and where does it
+// go next". Both halves are now the same picture.
+//
+// Nothing here loads or saves. A live board hands it the registry, a template
+// hands it its own properties, and both get back the whole automation to write.
+
+type Named = {name: string}
+
+type Props = {
+    boardId: string
+
+    // The select property the columns are options of, and the others a board
+    // could be organised by instead.
+    property?: IPropertyTemplate
+    properties: IPropertyTemplate[]
+    columns: BoardColumn[]
+
+    automation: Automation
+    triggers: FlowTrigger[]
+    agents: Named[]
+    deploys: Named[]
+
+    // counts is where the board's cards actually stand, per route. Only a live
+    // board has any; a template is a drawing.
+    counts?: Record<string, StageCount[]>
+
+    // worktrees says sessions get a worktree each, which is what lets a crew
+    // work one column at the same time.
+    worktrees?: boolean
+
+    // The column the editor opens on — set when it was opened from that
+    // column's own menu, so the answer is already on screen.
+    focusColumnId?: string
+
+    onChange: (next: Automation) => void
+    onPropertyChange?: (property: IPropertyTemplate) => void
+
+    // A column is the board's, not the automation's: adding or renaming one
+    // changes the board itself, which is why the editor asks rather than does.
+    onAddBoardColumn?: (name: string) => void
+
+    // onAddRouteOption puts the route's name among the options a card can name
+    // it with. Without one, the route is drawn and never taken.
+    onAddRouteOption?: (flow: Flow) => void
+    routeOptionMissing?: (flow: Flow) => boolean
+}
+
+type Selection = {kind: 'node' | 'edge', id: string} | null
+
+// COLUMNS_VIEW is the canvas with no route on it: what each column does, which
+// is the half of the answer that holds for every card.
+const COLUMNS_VIEW = ''
+
+// How many columns stand in a row when there is no route to lay them out by.
+const COLUMNS_PER_ROW = 5
+
+// The canvas is the point of this screen, so it gets the room: a route with a
+// failure branch and a shelf of unused columns is three rows deep.
+const CANVAS_HEIGHT = 420
+
+const AutomationEditor = (props: Props) => {
+    const intl = useIntl()
+    const [route, setRoute] = createSignal(COLUMNS_VIEW)
+    const [selected, setSelected] = createSignal<Selection>(
+        props.focusColumnId ? {kind: 'node', id: props.focusColumnId} : null,
+    )
+    const [newColumn, setNewColumn] = createSignal('')
+
+    const flows = () => props.automation.flows
+    const specs = () => props.automation.columns
+    const flow = () => flows().find((f) => f.name === route())
+    const waitTriggers = createMemo(() => props.triggers.filter((t) => t.source !== 'outcome'))
+
+    // The stages on the canvas: the route's, or one box per column when no
+    // route is chosen — the columns view is the same picture without arrows.
+    const nodes = createMemo<FlowNode[]>(() => {
+        const current = flow()
+        if (current) {
+            return current.nodes
+        }
+
+        // With no route there are no arrows to lay the columns out by, and a
+        // graph layout would stack all ten in one tall column. A grid in the
+        // board's own order reads the way the board does.
+        return props.columns.map((c, i) => ({
+            id: c.optionId || c.name,
+            column: c.name,
+            optionId: c.optionId,
+            action: '',
+            x: (i % COLUMNS_PER_ROW) * (NODE_WIDTH + 40),
+            y: Math.floor(i / COLUMNS_PER_ROW) * (NODE_HEIGHT + 28),
+        }))
+    })
+
+    const edges = () => flow()?.edges || []
+
+    // Columns the route does not go through are still on the canvas — faded.
+    const spare = createMemo(() => (flow() ? props.columns.filter((c) => !nodeFor(flow(), c)) : []))
+
+    const columnOf = (node: FlowNode): BoardColumn | undefined =>
+        props.columns.find((c) => (node.optionId && c.optionId === node.optionId) ||
+            c.name.toLowerCase() === node.column.toLowerCase())
+
+    const specOf = (node: FlowNode): ColumnSpec | undefined => {
+        const column = columnOf(node)
+        return column ? specFor(specs(), column) : undefined
+    }
+
+    // What a stage does is the column's business unless the stage says
+    // otherwise — the same order the engine resolves it in.
+    const actionOf = (node: FlowNode) => node.action || specOf(node)?.action || 'none'
+    const crewOf = (node: FlowNode) => (node.agentNames?.length ? node.agentNames : specOf(node)?.agents) || []
+
+    const selectedNode = () => {
+        const current = selected()
+        return current?.kind === 'node' ? nodes().find((n) => n.id === current.id) : undefined
+    }
+
+    const selectedEdge = () => {
+        const current = selected()
+        return current?.kind === 'edge' ? edges().find((e) => edgeId(e) === current.id) : undefined
+    }
+
+    const updateFlow = (name: string, patch: (f: Flow) => Flow) => {
+        props.onChange({...props.automation, flows: flows().map((f) => (f.name === name ? patch(f) : f))})
+    }
+
+    const updateSpec = (node: FlowNode, patch: Partial<ColumnSpec>) => {
+        const column = columnOf(node)
+        if (!column) {
+            return
+        }
+        const current = specOf(node) || blankSpec(props.boardId, props.property, column)
+        props.onChange({
+            ...props.automation,
+            columns: upsertSpec(specs(), {
+                ...current,
+                ...patch,
+                boardId: props.boardId,
+                propertyId: props.property?.id || current.propertyId,
+                property: props.property?.name || current.property,
+                column: column.name,
+                optionId: column.optionId,
+            }),
+        })
+    }
+
+    const onCanvasChange = (nextNodes: FlowNode[], nextEdges: FlowEdge[]) => {
+        const current = flow()
+        if (!current) {
+            return
+        }
+        updateFlow(current.name, (f) => ({...f, nodes: nextNodes, edges: nextEdges}))
+    }
+
+    const addColumnToRoute = (column: BoardColumn) => {
+        const current = flow()
+        if (!current) {
+            return
+        }
+        updateFlow(current.name, (f) => withColumn(f, column))
+        setSelected({kind: 'node', id: column.optionId || column.name})
+    }
+
+    const removeFromRoute = (node: FlowNode) => {
+        const current = flow()
+        if (!current) {
+            return
+        }
+        updateFlow(current.name, (f) => withoutColumn(f, node.id))
+        setSelected(null)
+    }
+
+    const changeEdge = (from: string, on: string, to: string) => {
+        const current = flow()
+        if (!current) {
+            return
+        }
+        updateFlow(current.name, (f) => ({...f, edges: setEdge(f.edges, from, on, to)}))
+    }
+
+    // Changing which event a transition waits for keeps where it leads: the
+    // arrow is the same arrow, drawn for a different reason.
+    const changeEdgeKind = (edge: FlowEdge, on: string) => {
+        const current = flow()
+        if (!current) {
+            return
+        }
+        updateFlow(current.name, (f) => ({...f, edges: setEdge(setEdge(f.edges, edge.from, edge.on, ''), edge.from, on, edge.to)}))
+        setSelected({kind: 'edge', id: `${edge.from}-${on}`})
+    }
+
+    const addTransition = (node: FlowNode) => {
+        const current = flow()
+        if (!current) {
+            return
+        }
+        const used = new Set(outgoing(current.edges, node.id).map((e) => e.on))
+        const kind = [SUCCESS, FAILURE, ...waitTriggers().map((t) => t.kind)].find((k) => !used.has(k))
+        const target = current.nodes.find((n) => n.id !== node.id)
+        if (kind && target) {
+            changeEdge(node.id, kind, target.id)
+        }
+    }
+
+    const addRoute = () => {
+        const name = intl.formatMessage({id: 'Automation.new-route-name', defaultMessage: 'New route'})
+        const taken = new Set(flows().map((f) => f.name.toLowerCase()))
+        let unique = name
+        for (let n = 2; taken.has(unique.toLowerCase()); n++) {
+            unique = `${name} ${n}`
+        }
+
+        // A new route starts on the column an agent works in, if the board has
+        // one: an empty canvas is a question, and this is the answer to it that
+        // is right nearly every time.
+        const working = props.columns.find((c) => specFor(specs(), c)?.action === 'agent')
+        const blank: Flow = {
+            name: unique,
+            boardId: props.boardId,
+            property: props.property?.name,
+            nodes: [],
+            edges: [],
+        }
+        props.onChange({...props.automation, flows: [...flows(), working ? withColumn(blank, working) : blank]})
+        setRoute(unique)
+        setSelected(null)
+    }
+
+    const renameRoute = (from: string, to: string) => {
+        props.onChange({...props.automation, flows: flows().map((f) => (f.name === from ? {...f, name: to} : f))})
+        setRoute(to)
+    }
+
+    const removeRoute = (name: string) => {
+        props.onChange({...props.automation, flows: flows().filter((f) => f.name !== name)})
+        setRoute(COLUMNS_VIEW)
+        setSelected(null)
+    }
+
+    const addBoardColumn = () => {
+        const name = newColumn().trim()
+        if (!name) {
+            return
+        }
+        props.onAddBoardColumn?.(name)
+        setNewColumn('')
+    }
+
+    const stageTargets = () => nodes().filter((n) => n.id !== selectedNode()?.id)
+
+    return (
+        <div class='AutomationEditor'>
+            <div class='AutomationEditor__routes'>
+                <button
+                    type='button'
+                    class={`AutomationEditor__route${route() === COLUMNS_VIEW ? ' AutomationEditor__route--active' : ''}`}
+                    onClick={() => {
+                        setRoute(COLUMNS_VIEW)
+                        setSelected(null)
+                    }}
+                >
+                    {intl.formatMessage({id: 'Automation.columns-view', defaultMessage: 'Columns'})}
+                </button>
+                <For each={flows()}>
+                    {(f) => (
+                        <button
+                            type='button'
+                            class={`AutomationEditor__route${route() === f.name ? ' AutomationEditor__route--active' : ''}`}
+                            onClick={() => {
+                                setRoute(f.name)
+                                setSelected(null)
+                            }}
+                        >
+                            {f.name}
+                        </button>
+                    )}
+                </For>
+                <button
+                    type='button'
+                    class='AutomationEditor__route AutomationEditor__route--add'
+                    onClick={addRoute}
+                >
+                    {intl.formatMessage({id: 'Automation.add-route', defaultMessage: '+ route'})}
+                </button>
+
+                <Show when={props.properties.length > 1}>
+                    <select
+                        class='AutomationEditor__property'
+                        value={props.property?.name || ''}
+                        onChange={(e) => {
+                            const next = props.properties.find((p) => p.name === e.currentTarget.value)
+                            if (next) {
+                                props.onPropertyChange?.(next)
+                            }
+                        }}
+                    >
+                        <For each={props.properties}>
+                            {(p) => (
+                                <option
+                                    value={p.name}
+                                    selected={props.property?.name === p.name}
+                                >{p.name}</option>
+                            )}
+                        </For>
+                    </select>
+                </Show>
+            </div>
+
+            <div class='AutomationEditor__body'>
+                <div class='AutomationEditor__canvas'>
+                    <FlowDiagram
+                        nodes={nodes()}
+                        edges={edges()}
+                        spare={spare()}
+                        triggers={props.triggers}
+                        counts={props.counts?.[route()]}
+                        actionOf={actionOf}
+                        crewOf={crewOf}
+                        selected={selected()}
+                        onSelect={setSelected}
+                        height={CANVAS_HEIGHT}
+                        onChange={flow() ? onCanvasChange : undefined}
+                        onAddColumn={addColumnToRoute}
+                    />
+                    <div class='AutomationEditor__hint'>
+                        <Show
+                            when={flow()}
+                            fallback={intl.formatMessage({id: 'Automation.columns-hint', defaultMessage: 'Every column of the board is here. Pick one to say what happens when a card lands in it.'})}
+                        >
+                            {intl.formatMessage({id: 'Automation.route-hint', defaultMessage: 'Pull from the right side of a column to join it to the next one (upper point — on success, lower — on failure), from the bottom point to wait for an event. A faded column joins the route when you click it.'})}
+                        </Show>
+                    </div>
+                    <Show when={props.onAddBoardColumn}>
+                        <div class='AutomationEditor__newColumn'>
+                            <input
+                                value={newColumn()}
+                                placeholder={intl.formatMessage({id: 'Automation.new-column-placeholder', defaultMessage: 'New column on the board…'})}
+                                onInput={(e) => setNewColumn(e.currentTarget.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        addBoardColumn()
+                                    }
+                                }}
+                            />
+                            <Button onClick={addBoardColumn}>
+                                {intl.formatMessage({id: 'Automation.add-column', defaultMessage: 'Add column'})}
+                            </Button>
+                        </div>
+                    </Show>
+                </div>
+
+                <div class='AutomationEditor__panel'>
+                    <Show when={selectedNode()}>
+                        {(node) => (
+                            <div class='AutomationEditor__section'>
+                                <div class='AutomationEditor__panelTitle'>{node().column}</div>
+
+                                <label>
+                                    {intl.formatMessage({id: 'Automation.on-arrival', defaultMessage: 'When a card lands here'})}
+                                    <select
+                                        value={specOf(node())?.action || 'none'}
+                                        onChange={(e) => updateSpec(node(), {action: e.currentTarget.value})}
+                                    >
+                                        <For each={ACTIONS}>
+                                            {(a) => (
+                                                <option
+                                                    value={a}
+                                                    selected={(specOf(node())?.action || 'none') === a}
+                                                >{actionLabel(intl, a)}</option>
+                                            )}
+                                        </For>
+                                    </select>
+                                </label>
+
+                                <Show when={(specOf(node())?.action || 'none') !== 'none'}>
+                                    <div class='AutomationEditor__crew'>
+                                        <span class='AutomationEditor__label'>
+                                            {intl.formatMessage({id: 'Automation.crew', defaultMessage: 'Worked by'})}
+                                        </span>
+                                        <Show when={props.agents.length === 0}>
+                                            <span class='AutomationEditor__hint'>
+                                                {intl.formatMessage({id: 'Automation.no-agents', defaultMessage: 'No agents registered yet — see “Agents…” in the board menu.'})}
+                                            </span>
+                                        </Show>
+                                        <For each={props.agents}>
+                                            {(a) => (
+                                                <label class='AutomationEditor__agent'>
+                                                    <input
+                                                        type='checkbox'
+                                                        checked={(specOf(node())?.agents || []).includes(a.name)}
+                                                        onChange={() => {
+                                                            const crew = specOf(node())?.agents || []
+                                                            updateSpec(node(), {agents: crew.includes(a.name) ? crew.filter((n) => n !== a.name) : [...crew, a.name]})
+                                                        }}
+                                                    />
+                                                    {a.name}
+                                                </label>
+                                            )}
+                                        </For>
+                                    </div>
+
+                                    <label>
+                                        {intl.formatMessage({id: 'Automation.limit', defaultMessage: 'At once (0 — no limit)'})}
+                                        <input
+                                            type='number'
+                                            min={0}
+                                            value={specOf(node())?.maxRunning || 0}
+                                            onInput={(e) => updateSpec(node(), {maxRunning: Number(e.currentTarget.value)})}
+                                        />
+                                    </label>
+
+                                    <Show when={props.worktrees === false && (specOf(node())?.agents || []).length > 1}>
+                                        <div class='AutomationEditor__warning'>
+                                            {intl.formatMessage({id: 'Automation.no-worktrees', defaultMessage: 'worktreeMode is “never”, so two agents cannot work one project at the same time: the crew will take cards one after another.'})}
+                                        </div>
+                                    </Show>
+                                </Show>
+
+                                <Show when={specOf(node())?.action === 'deploy'}>
+                                    <label>
+                                        {intl.formatMessage({id: 'Automation.deploy', defaultMessage: 'Deploy target'})}
+                                        <select
+                                            value={specOf(node())?.deployName || ''}
+                                            onChange={(e) => updateSpec(node(), {deployName: e.currentTarget.value})}
+                                        >
+                                            <option value=''>{intl.formatMessage({id: 'Automation.deploy-default', defaultMessage: '— the card’s own —'})}</option>
+                                            <For each={props.deploys}>
+                                                {(d) => (
+                                                    <option
+                                                        value={d.name}
+                                                        selected={specOf(node())?.deployName === d.name}
+                                                    >{d.name}</option>
+                                                )}
+                                            </For>
+                                        </select>
+                                    </label>
+                                </Show>
+
+                                <Show when={flow()}>
+                                    <div class='AutomationEditor__transitions'>
+                                        <span class='AutomationEditor__label'>
+                                            {intl.formatMessage({id: 'Automation.transitions', defaultMessage: 'From here the card goes'})}
+                                        </span>
+                                        <For each={outgoing(edges(), node().id)}>
+                                            {(edge) => (
+                                                <div class='AutomationEditor__transition'>
+                                                    <select
+                                                        value={edge.on}
+                                                        onChange={(e) => changeEdgeKind(edge, e.currentTarget.value)}
+                                                    >
+                                                        <For each={props.triggers}>
+                                                            {(t) => (
+                                                                <option
+                                                                    value={t.kind}
+                                                                    selected={edge.on === t.kind}
+                                                                >{t.label}</option>
+                                                            )}
+                                                        </For>
+                                                    </select>
+                                                    <span class='AutomationEditor__arrow'>{'→'}</span>
+                                                    <select
+                                                        value={edge.to}
+                                                        onChange={(e) => changeEdge(edge.from, edge.on, e.currentTarget.value)}
+                                                    >
+                                                        <For each={stageTargets()}>
+                                                            {(n) => (
+                                                                <option
+                                                                    value={n.id}
+                                                                    selected={edge.to === n.id}
+                                                                >{n.column}</option>
+                                                            )}
+                                                        </For>
+                                                    </select>
+                                                    <button
+                                                        type='button'
+                                                        class='AutomationEditor__remove'
+                                                        title={intl.formatMessage({id: 'Automation.remove-transition', defaultMessage: 'Remove'})}
+                                                        onClick={() => changeEdge(edge.from, edge.on, '')}
+                                                    >{'×'}</button>
+                                                </div>
+                                            )}
+                                        </For>
+                                        <Button onClick={() => addTransition(node())}>
+                                            {intl.formatMessage({id: 'Automation.add-transition', defaultMessage: 'Add a transition'})}
+                                        </Button>
+                                        <Button onClick={() => removeFromRoute(node())}>
+                                            {intl.formatMessage({id: 'Automation.remove-from-route', defaultMessage: 'Take off this route'})}
+                                        </Button>
+                                    </div>
+
+                                    {/* An override is the exception, so it is
+                                        folded away: what a column does is the
+                                        board's answer, and a route only differs
+                                        from it when somebody says so. */}
+                                    <details
+                                        class='AutomationEditor__override'
+                                        open={Boolean(node().action)}
+                                    >
+                                        <summary>{intl.formatMessage({id: 'Automation.override', defaultMessage: 'Only on this route…'})}</summary>
+                                        <select
+                                            value={node().action || ''}
+                                            onChange={(e) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {action: e.currentTarget.value}))}
+                                        >
+                                            <option value=''>{intl.formatMessage({id: 'Automation.override-none', defaultMessage: '— whatever the column does —'})}</option>
+                                            <For each={ACTIONS}>
+                                                {(a) => (
+                                                    <option
+                                                        value={a}
+                                                        selected={node().action === a}
+                                                    >{actionLabel(intl, a)}</option>
+                                                )}
+                                            </For>
+                                        </select>
+                                    </details>
+                                </Show>
+                            </div>
+                        )}
+                    </Show>
+
+                    <Show when={selectedEdge()}>
+                        {(edge) => (
+                            <div class='AutomationEditor__section'>
+                                <div class='AutomationEditor__panelTitle'>
+                                    {intl.formatMessage({id: 'Automation.transition', defaultMessage: 'Transition'})}
+                                </div>
+                                <label>
+                                    {intl.formatMessage({id: 'Automation.transition-on', defaultMessage: 'When'})}
+                                    <select
+                                        value={edge().on}
+                                        onChange={(e) => changeEdgeKind(edge(), e.currentTarget.value)}
+                                    >
+                                        <For each={props.triggers}>
+                                            {(t) => (
+                                                <option
+                                                    value={t.kind}
+                                                    selected={edge().on === t.kind}
+                                                >{t.label}</option>
+                                            )}
+                                        </For>
+                                    </select>
+                                </label>
+                                <label>
+                                    {intl.formatMessage({id: 'Automation.transition-to', defaultMessage: 'The card moves to'})}
+                                    <select
+                                        value={edge().to}
+                                        onChange={(e) => changeEdge(edge().from, edge().on, e.currentTarget.value)}
+                                    >
+                                        <For each={nodes().filter((n) => n.id !== edge().from)}>
+                                            {(n) => (
+                                                <option
+                                                    value={n.id}
+                                                    selected={edge().to === n.id}
+                                                >{n.column}</option>
+                                            )}
+                                        </For>
+                                    </select>
+                                </label>
+                                <Button
+                                    onClick={() => {
+                                        changeEdge(edge().from, edge().on, '')
+                                        setSelected(null)
+                                    }}
+                                >
+                                    {intl.formatMessage({id: 'Automation.remove-transition', defaultMessage: 'Remove'})}
+                                </Button>
+                            </div>
+                        )}
+                    </Show>
+
+                    <Show when={!selectedNode() && !selectedEdge() ? flow() : undefined}>
+                        {(current) => (
+                            <div class='AutomationEditor__section'>
+                                <div class='AutomationEditor__panelTitle'>
+                                    {intl.formatMessage({id: 'Automation.route', defaultMessage: 'Route'})}
+                                </div>
+                                <label>
+                                    {intl.formatMessage({id: 'Automation.route-name', defaultMessage: 'Name'})}
+                                    <input
+                                        value={current().name}
+                                        onChange={(e) => renameRoute(current().name, e.currentTarget.value.trim() || current().name)}
+                                    />
+                                </label>
+                                <div class='AutomationEditor__hint'>
+                                    {intl.formatMessage({id: 'Automation.route-name-hint', defaultMessage: 'A card takes this route by naming it — the option of the same name on the card.'})}
+                                </div>
+                                <Show when={props.routeOptionMissing?.(current()) && props.onAddRouteOption}>
+                                    <div class='AutomationEditor__warning'>
+                                        {intl.formatMessage({id: 'Automation.route-option-missing', defaultMessage: 'No card can name this route: the board has no option called that.'})}
+                                        <Button onClick={() => props.onAddRouteOption?.(current())}>
+                                            {intl.formatMessage({id: 'Automation.add-route-option', defaultMessage: 'Add the option'})}
+                                        </Button>
+                                    </div>
+                                </Show>
+                                <label>
+                                    {intl.formatMessage({id: 'Automation.route-project', defaultMessage: 'Project (optional)'})}
+                                    <input
+                                        value={current().projectName || ''}
+                                        placeholder={intl.formatMessage({id: 'Automation.route-project-placeholder', defaultMessage: 'Cards of this project take this route'})}
+                                        onChange={(e) => updateFlow(current().name, (f) => ({...f, projectName: e.currentTarget.value.trim()}))}
+                                    />
+                                </label>
+                                <div class='AutomationEditor__hint'>
+                                    {intl.formatMessage(
+                                        {id: 'Automation.route-columns', defaultMessage: 'Goes through: {columns}'},
+                                        {columns: columnsOf(current(), props.columns).map((c) => c.name).join(' → ') || '—'},
+                                    )}
+                                </div>
+                                <Button onClick={() => removeRoute(current().name)}>
+                                    {intl.formatMessage({id: 'Automation.remove-route', defaultMessage: 'Delete this route'})}
+                                </Button>
+                            </div>
+                        )}
+                    </Show>
+
+                    <Show when={!selectedNode() && !selectedEdge() && !flow()}>
+                        <div class='AutomationEditor__section AutomationEditor__hint'>
+                            {intl.formatMessage({id: 'Automation.empty-panel', defaultMessage: 'A column says what is done. A route says where the card goes afterwards. Pick a column to start.'})}
+                        </div>
+                    </Show>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// actionLabel names what happens in a column, in the reader's language.
+export function actionLabel(intl: IntlShape, action: string): string {
+    switch (action) {
+    case 'agent':
+        return intl.formatMessage({id: 'Automation.action-agent', defaultMessage: 'an agent works on the card'})
+    case 'deploy':
+        return intl.formatMessage({id: 'Automation.action-deploy', defaultMessage: 'deploy the card’s branch'})
+    case 'test':
+        return intl.formatMessage({id: 'Automation.action-test', defaultMessage: 'test the preview'})
+    default:
+        return intl.formatMessage({id: 'Automation.action-none', defaultMessage: 'nothing — the card waits'})
+    }
+}
+
+export default AutomationEditor

@@ -524,13 +524,28 @@ func (a *App) UpdateFlow(entryJSON string) (string, error) {
 	return string(out), nil
 }
 
-// RemoveFlow deletes a route by name. Cards standing on it simply stop moving
-// by themselves.
-func (a *App) RemoveFlow(name string) error {
+// RemoveFlow deletes a board's route by name. Cards standing on it simply stop
+// moving by themselves.
+func (a *App) RemoveFlow(boardID, name string) error {
 	if a.mgr == nil {
 		return errACPDisabled
 	}
-	return a.mgr.RemoveFlow(name)
+	return a.mgr.RemoveFlow(boardID, name)
+}
+
+// ExportBoardAutomation returns what a board runs — its columns and its routes
+// — in the shape a template carries them in its own properties. It is how a
+// board somebody has built by hand becomes a template: the registry is Go's, so
+// only this side can read it out.
+func (a *App) ExportBoardAutomation(boardID string) (string, error) {
+	if a.mgr == nil {
+		return "", errACPDisabled
+	}
+	out, err := json.Marshal(a.mgr.BoardAutomation(boardID))
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }
 
 // ListBoardColumns returns what each configured column of a board does: the

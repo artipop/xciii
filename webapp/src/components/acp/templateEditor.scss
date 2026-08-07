@@ -1,0 +1,110 @@
+@import '../../styles/typography';
+
+.TemplateEditor {
+    // See automationDialog.scss: one class loses the tie with the base rule.
+    &.dialog-back .dialog {
+        max-width: 1180px;
+        width: min(1180px, 94vw);
+    }
+
+    .TemplateEditor__content {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 4px 0;
+    }
+
+    // The template's own name and icon, on one line: they are the smallest part
+    // of the answer and should not look like the biggest.
+    .TemplateEditor__meta {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+
+            @include label;
+
+            font-size: 11px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+
+        .TemplateEditor__icon input {
+            width: 48px;
+            text-align: center;
+        }
+
+        .TemplateEditor__name {
+            flex: 0 1 260px;
+        }
+
+        .TemplateEditor__description {
+            flex: 1 1 auto;
+        }
+    }
+
+    .TemplateEditor__sectionTitle {
+        @include label;
+
+        font-size: 13px;
+        color: rgba(var(--center-channel-color-rgb), 1);
+    }
+
+    .TemplateEditor__setup {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-sm);
+    }
+
+    .TemplateEditor__step {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .TemplateEditor__stepOn,
+    .TemplateEditor__stepRequired {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    .TemplateEditor__stepRequired {
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .TemplateEditor__stepHint {
+        flex: 1 1 240px;
+        min-width: 160px;
+    }
+
+    .TemplateEditor__hint {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .TemplateEditor__actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .TemplateEditor__error {
+        white-space: pre-wrap;
+        color: rgb(var(--error-text-rgb));
+        font-size: 12px;
+    }
+}

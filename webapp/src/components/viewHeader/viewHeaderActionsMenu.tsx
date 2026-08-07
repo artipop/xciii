@@ -20,7 +20,9 @@ import {sendFlashMessage} from '../flashMessages'
 import AgentProjectsDialog, {isAgentProjectsAvailable} from '../acp/agentProjectsDialog'
 import AgentsDialog, {isAgentsAvailable} from '../acp/agentsDialog'
 import DeployTargetsDialog, {isDeployTargetsAvailable} from '../acp/deployTargetsDialog'
-import WorkflowsDialog, {isWorkflowsAvailable} from '../acp/workflowsDialog'
+import AutomationDialog, {isAutomationAvailable} from '../acp/automationDialog'
+import TemplateEditor from '../acp/templateEditor'
+import {isSaveAsTemplateAvailable, saveBoardAsTemplate} from '../acp/saveAsTemplate'
 import PlanningDialog, {isPlanningAvailable} from '../acp/planningDialog'
 import BoardSetupWizard from '../acp/boardSetupWizard'
 import {createSetupPlan, isBoardSetupAvailable, planHasStep} from '../acp/boardSetup'
@@ -58,6 +60,18 @@ const ViewHeaderActionsMenu = (props: Props) => {
     const [showWorkflows, setShowWorkflows] = createSignal(false)
     const [showPlanning, setShowPlanning] = createSignal(false)
     const [showSetup, setShowSetup] = createSignal(false)
+
+    // The template a board was saved as, held so the editor opens on it: it is
+    // a board of its own and the page has not navigated to it.
+    const [template, setTemplate] = createSignal<Board | null>(null)
+
+    const saveAsTemplate = async () => {
+        try {
+            setTemplate(await saveBoardAsTemplate(props.board, intl))
+        } catch (e) {
+            sendFlashMessage({content: String(e), severity: 'high'})
+        }
+    }
 
     return (
         <ModalWrapper>
@@ -118,11 +132,22 @@ const ViewHeaderActionsMenu = (props: Props) => {
                                 onClick={() => setShowDeployTargets(true)}
                             />
                         </Show>
-                        <Show when={isWorkflowsAvailable()}>
+                        <Show when={isAutomationAvailable()}>
                             <Menu.Text
                                 id='workflows'
-                                name={intl.formatMessage({id: 'ViewHeader.workflows', defaultMessage: 'Workflows…'})}
+                                name={intl.formatMessage({id: 'ViewHeader.automation', defaultMessage: 'How this board works…'})}
                                 onClick={() => setShowWorkflows(true)}
+                            />
+                        </Show>
+
+                        {/* A board that has been set up the way somebody wants
+                            it is the best template there is, and until now the
+                            only way to make one was to build it twice. */}
+                        <Show when={isSaveAsTemplateAvailable() && !props.board.isTemplate}>
+                            <Menu.Text
+                                id='saveAsTemplate'
+                                name={intl.formatMessage({id: 'ViewHeader.save-as-template', defaultMessage: 'Save as a template…'})}
+                                onClick={saveAsTemplate}
                             />
                         </Show>
                     </Menu>
@@ -148,7 +173,7 @@ const ViewHeaderActionsMenu = (props: Props) => {
                 />
             </Show>
             <Show when={showWorkflows()}>
-                <WorkflowsDialog
+                <AutomationDialog
                     board={props.board}
                     onClose={() => setShowWorkflows(false)}
                 />
@@ -164,6 +189,14 @@ const ViewHeaderActionsMenu = (props: Props) => {
                     board={props.board}
                     onClose={() => setShowPlanning(false)}
                 />
+            </Show>
+            <Show when={template()}>
+                {(saved) => (
+                    <TemplateEditor
+                        board={saved()}
+                        onClose={() => setTemplate(null)}
+                    />
+                )}
             </Show>
         </ModalWrapper>
     )

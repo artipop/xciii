@@ -1,0 +1,181 @@
+@import '../../styles/typography';
+
+// The automation on one screen: routes across the top, the board's columns on
+// the canvas, and one panel that is about whatever is selected. The canvas is
+// the wide half on purpose — the picture is the point, the panel is a caption.
+.AutomationEditor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 520px;
+
+    .AutomationEditor__routes {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    // A route is a tab, not a row in a list: switching between them is the
+    // commonest thing done here, and a tab says "the picture below is this one".
+    .AutomationEditor__route {
+        @include label;
+
+        padding: 4px 10px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: var(--radius-md);
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        cursor: pointer;
+    }
+
+    .AutomationEditor__route--active {
+        border-color: rgba(var(--button-bg-rgb), 1);
+        color: rgba(var(--center-channel-color-rgb), 1);
+        background: rgba(var(--button-bg-rgb), 0.08);
+    }
+
+    .AutomationEditor__route--add {
+        border-style: dashed;
+    }
+
+    .AutomationEditor__property {
+        margin-left: auto;
+    }
+
+    .AutomationEditor__body {
+        display: flex;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .AutomationEditor__canvas {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .AutomationEditor__panel {
+        flex: 0 0 280px;
+        max-height: 460px;
+        overflow-y: auto;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-sm);
+        background: rgba(var(--center-channel-color-rgb), 0.03);
+    }
+
+    .AutomationEditor__section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .AutomationEditor__panelTitle {
+        @include label;
+
+        font-size: 13px;
+        color: rgba(var(--center-channel-color-rgb), 1);
+    }
+
+    .AutomationEditor__label {
+        @include label;
+
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        @include label;
+
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    .AutomationEditor__crew,
+    .AutomationEditor__transitions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .AutomationEditor__agent {
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        text-transform: none;
+        letter-spacing: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+    }
+
+    // A transition reads as a sentence — on this event, go there — so its two
+    // selects sit on one line with the arrow between them.
+    .AutomationEditor__transition {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        select {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+    }
+
+    .AutomationEditor__arrow {
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+    }
+
+    .AutomationEditor__remove {
+        border: 0;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+    }
+
+    .AutomationEditor__override summary {
+        @include label;
+
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        cursor: pointer;
+    }
+
+    // A hint is somebody explaining, so it is prose: the dialog sits inside
+    // rules that put dialog text in the label voice, and a sentence in tracked
+    // caps is a sentence nobody reads.
+    .AutomationEditor__hint {
+        @include prose;
+
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .AutomationEditor__warning {
+        @include prose;
+
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 8px;
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+        background: rgba(var(--warning-rgb), 0.16);
+    }
+
+    .AutomationEditor__newColumn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+
+        input {
+            flex: 0 1 260px;
+        }
+    }
+}

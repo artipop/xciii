@@ -26,7 +26,7 @@ import {useSortable} from '../../hooks/sortable'
 import BoardPermissionGate from '../permissions/boardPermissionGate'
 
 import ColumnBadge, {invalidateBoardColumns} from '../acp/columnBadge'
-import ColumnSettingsDialog, {isColumnSettingsAvailable} from '../acp/columnSettingsDialog'
+import AutomationDialog, {isAutomationAvailable} from '../acp/automationDialog'
 
 import {KanbanCalculation} from './calculation/calculation'
 
@@ -170,10 +170,14 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                                     name={props.intl.formatMessage({id: 'BoardComponent.hide', defaultMessage: 'Hide'})}
                                     onClick={() => mutator.hideViewColumn(props.board.id, props.activeView, props.group.option.id || '')}
                                 />
-                                <Show when={canEditOption() && isColumnSettingsAvailable()}>
+                                {/* A column's settings are a panel of the
+                                    board's automation now, so this opens the
+                                    whole picture with this column selected
+                                    rather than a dialog of its own. */}
+                                <Show when={canEditOption() && isAutomationAvailable()}>
                                     <Menu.Text
                                         id='columnAgents'
-                                        name={props.intl.formatMessage({id: 'BoardComponent.column-agents', defaultMessage: 'Agents in this column…'})}
+                                        name={props.intl.formatMessage({id: 'BoardComponent.column-agents', defaultMessage: 'What happens in this column…'})}
                                         onClick={() => setShowColumnSettings(true)}
                                     />
                                 </Show>
@@ -211,10 +215,9 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                 </BoardPermissionGate>
             </Show>
             <Show when={showColumnSettings() && props.groupByProperty}>
-                <ColumnSettingsDialog
-                    boardId={props.board.id}
-                    property={props.groupByProperty!}
-                    option={props.group.option}
+                <AutomationDialog
+                    board={props.board}
+                    focusColumnId={props.group.option.id}
                     onClose={() => setShowColumnSettings(false)}
                     onSaved={invalidateBoardColumns}
                 />
