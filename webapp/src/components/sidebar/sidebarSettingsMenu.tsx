@@ -16,7 +16,6 @@ import Menu from '../../widgets/menu'
 import MenuWrapper from '../../widgets/menuWrapper'
 import {useAppSelector, useAppStore} from '../../store/hooks'
 import {getCurrentTeam, Team} from '../../store/teams'
-import {UserSettings} from '../../userSettings'
 
 import './sidebarSettingsMenu.scss'
 import CheckIcon from '../../widgets/icons/check'
@@ -49,12 +48,6 @@ const SidebarSettingsMenu = (props: Props) => {
     // the board somebody happens to have open — so it lives here, with the
     // theme and the language, rather than in a board's own menu.
     const [showTailnet, setShowTailnet] = createSignal(false)
-
-    const [randomIcons, setRandomIcons] = createSignal(UserSettings.prefillRandomIcons)
-    const toggleRandomIcons = () => {
-        UserSettings.prefillRandomIcons = !UserSettings.prefillRandomIcons
-        setRandomIcons(!randomIcons())
-    }
 
     const themes: Array<{id: ThemeName, displayName: string}> = [
         {id: lightThemeName, displayName: 'Light theme'},
@@ -151,13 +144,6 @@ const SidebarSettingsMenu = (props: Props) => {
                                 onClick={async () => setShowTailnet(true)}
                             />
                         </Show>
-                        <Menu.Switch
-                            id='random-icons'
-                            name={intl.formatMessage({id: 'Sidebar.random-icons', defaultMessage: 'Random icons'})}
-                            isOn={randomIcons()}
-                            onClick={async () => toggleRandomIcons()}
-                            suppressItemClicked={true}
-                        />
                     </Menu>
                 }
             >

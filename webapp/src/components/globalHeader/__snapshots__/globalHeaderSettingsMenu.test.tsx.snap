@@ -266,29 +266,6 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu > imports menu open should 
             </div>
             <div>
               <div
-                aria-label="Random icons"
-                class="MenuOption SwitchOption menu-option"
-                role="button"
-              >
-                <div
-                  class="noicon"
-                />
-                <div
-                  class="menu-name"
-                >
-                  Random icons
-                </div>
-                <div
-                  class="Switch override-main size--small on"
-                >
-                  <div
-                    class="octo-switch-inner"
-                  />
-                </div>
-              </div>
-            </div>
-            <div>
-              <div
                 aria-label="Product tour"
                 class="MenuOption TextOption menu-option product-tour"
                 role="button"
@@ -418,29 +395,6 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu > languages menu open shoul
                   class="CompassIcon icon-chevron-right"
                 />
                 
-              </div>
-            </div>
-            <div>
-              <div
-                aria-label="Random icons"
-                class="MenuOption SwitchOption menu-option"
-                role="button"
-              >
-                <div
-                  class="noicon"
-                />
-                <div
-                  class="menu-name"
-                >
-                  Random icons
-                </div>
-                <div
-                  class="Switch override-main size--small on"
-                >
-                  <div
-                    class="octo-switch-inner"
-                  />
-                </div>
               </div>
             </div>
             <div>
@@ -597,29 +551,6 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu > settings menu open should
                   class="CompassIcon icon-chevron-right"
                 />
                 
-              </div>
-            </div>
-            <div>
-              <div
-                aria-label="Random icons"
-                class="MenuOption SwitchOption menu-option"
-                role="button"
-              >
-                <div
-                  class="noicon"
-                />
-                <div
-                  class="menu-name"
-                >
-                  Random icons
-                </div>
-                <div
-                  class="Switch override-main size--small on"
-                >
-                  <div
-                    class="octo-switch-inner"
-                  />
-                </div>
               </div>
             </div>
             <div>

@@ -333,29 +333,6 @@ exports[`components/sidebar/SidebarSettingsMenu > imports menu open should match
               </div>
             </div>
             <div />
-            <div>
-              <div
-                aria-label="Random icons"
-                class="MenuOption SwitchOption menu-option"
-                role="button"
-              >
-                <div
-                  class="noicon"
-                />
-                <div
-                  class="menu-name"
-                >
-                  Random icons
-                </div>
-                <div
-                  class="Switch override-main size--small on"
-                >
-                  <div
-                    class="octo-switch-inner"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -531,29 +508,6 @@ exports[`components/sidebar/SidebarSettingsMenu > languages menu open should mat
               </div>
             </div>
             <div />
-            <div>
-              <div
-                aria-label="Random icons"
-                class="MenuOption SwitchOption menu-option"
-                role="button"
-              >
-                <div
-                  class="noicon"
-                />
-                <div
-                  class="menu-name"
-                >
-                  Random icons
-                </div>
-                <div
-                  class="Switch override-main size--small on"
-                >
-                  <div
-                    class="octo-switch-inner"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -751,29 +705,6 @@ exports[`components/sidebar/SidebarSettingsMenu > settings menu open should matc
               </div>
             </div>
             <div />
-            <div>
-              <div
-                aria-label="Random icons"
-                class="MenuOption SwitchOption menu-option"
-                role="button"
-              >
-                <div
-                  class="noicon"
-                />
-                <div
-                  class="menu-name"
-                >
-                  Random icons
-                </div>
-                <div
-                  class="Switch override-main size--small on"
-                >
-                  <div
-                    class="octo-switch-inner"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -949,29 +880,6 @@ exports[`components/sidebar/SidebarSettingsMenu > theme menu open should match s
               </div>
             </div>
             <div />
-            <div>
-              <div
-                aria-label="Random icons"
-                class="MenuOption SwitchOption menu-option"
-                role="button"
-              >
-                <div
-                  class="noicon"
-                />
-                <div
-                  class="menu-name"
-                >
-                  Random icons
-                </div>
-                <div
-                  class="Switch override-main size--small on"
-                >
-                  <div
-                    class="octo-switch-inner"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
