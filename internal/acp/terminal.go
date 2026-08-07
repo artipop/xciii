@@ -366,7 +366,12 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName string) (*Termina
 		return live, nil
 	}
 	return m.startTerminal(terminalSpec{
-		title:       "Планирование",
+		title: "Планирование",
+		// The planning instructions ride along as the task, which is what a
+		// card's terminal already does with its card: the CLI is not ready for
+		// input when it starts, so the terminal page offers it as a button
+		// rather than typing it in.
+		task:        planningPrompt(m.SystemPrompt(), m.PlanningPrompt(), agent, project),
 		projectPath: project.Path,
 		agent:       agent,
 		worktree:    false,

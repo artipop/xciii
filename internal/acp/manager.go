@@ -674,10 +674,15 @@ func resolveArgv0(argv []string) []string {
 	return out
 }
 
-// planningPrompt opens a planning conversation: the board/agent system prompts,
-// then what this session is for. It is deliberately explicit that nothing is to
-// be changed — the tool policy enforces it, but the agent should not try.
-func planningPrompt(systemPrompt string, agent AgentEntry, project ProjectEntry) string {
+// planningPrompt is what a planning terminal is opened with: the board's system
+// prompt, the agent's own, the planning instructions a person can edit, and the
+// one fact nobody should have to type — which project the CLI is standing in.
+//
+// It reaches the CLI as the terminal's task text, pasted by the button on the
+// terminal page, rather than as an argv flag: what a CLI is told at startup is
+// its own business (terminalCommand says why), and this is the same road a
+// card's task already travels.
+func planningPrompt(systemPrompt, planning string, agent AgentEntry, project ProjectEntry) string {
 	var b []byte
 	if p := strings.TrimSpace(systemPrompt); p != "" {
 		b = fmt.Appendf(b, "%s\n\n", p)
@@ -685,18 +690,12 @@ func planningPrompt(systemPrompt string, agent AgentEntry, project ProjectEntry)
 	if p := strings.TrimSpace(agent.Prompt); p != "" {
 		b = fmt.Appendf(b, "%s\n\n", p)
 	}
-	if project.Path == "" {
-		b = fmt.Appendf(b, "Мы планируем новую задачу. Репозиторий не выбран, кода под рукой нет — ")
-		b = fmt.Appendf(b, "опирайся на то, что расскажет пользователь, и не пытайся ничего искать в файлах.\n\n")
-		b = fmt.Appendf(b, "Начни с короткого вопроса о том, что нужно сделать.")
-		return string(b)
+	if p := strings.TrimSpace(planning); p == "" {
+		b = fmt.Appendf(b, "%s\n\n", DefaultPlanningPrompt)
+	} else {
+		b = fmt.Appendf(b, "%s\n\n", p)
 	}
-	b = fmt.Appendf(b, "Мы планируем новую задачу по проекту `%s` (%s).\n", project.Name, project.Path)
-	b = fmt.Appendf(b, "Код у тебя есть — читай файлы, ищи по ним, смотри историю git: ")
-	b = fmt.Appendf(b, "чтение и безопасные команды осмотра разрешены, опирайся на код, а не на догадки.\n")
-	b = fmt.Appendf(b, "Не меняй ничего: ни файлов, ни состояния. Это обсуждение, а не выполнение. ")
-	b = fmt.Appendf(b, "Если для ответа всё же нужна команда, меняющая состояние, — попроси, у пользователя спросят подтверждение.\n\n")
-	b = fmt.Appendf(b, "Начни с короткого вопроса о том, что нужно сделать.")
+	b = fmt.Appendf(b, "Проект: `%s` (%s).", project.Name, project.Path)
 	return string(b)
 }
 

@@ -226,6 +226,27 @@ func (m *Manager) SetSystemPrompt(text string) error {
 	return m.persistConfigLocked()
 }
 
+// PlanningPrompt returns the instructions a planning terminal is opened with.
+func (m *Manager) PlanningPrompt() string {
+	m.cfgMu.RLock()
+	defer m.cfgMu.RUnlock()
+	if p := strings.TrimSpace(m.cfg.PlanningPrompt); p != "" {
+		return m.cfg.PlanningPrompt
+	}
+	// A config written before this key existed, or emptied by hand: the
+	// planning terminal has no other instructions, so it gets the default
+	// rather than nothing.
+	return DefaultPlanningPrompt
+}
+
+// SetPlanningPrompt stores the planning instructions and persists.
+func (m *Manager) SetPlanningPrompt(text string) error {
+	m.cfgMu.Lock()
+	defer m.cfgMu.Unlock()
+	m.cfg.PlanningPrompt = text
+	return m.persistConfigLocked()
+}
+
 // RemoveAgent deletes a registry entry by name, persists the config and takes
 // the agent's account off the boards it was a member of — an unregistered agent
 // must stop being offered as an assignee. The account survives (cards may still

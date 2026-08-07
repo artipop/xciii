@@ -612,6 +612,11 @@ type Config struct {
 	// card's own description (which is the scenario) are appended to it.
 	TestPrompt string `json:"testPrompt"`
 
+	// PlanningPrompt is what a planning terminal is opened with; the project it
+	// stands in is appended to it. Unlike the three above it is edited where it
+	// is used — in the planning dialog, beside the project and the agent.
+	PlanningPrompt string `json:"planningPrompt"`
+
 	// TestTimeoutMinutes replaces SessionTimeoutMinutes for a test turn, which
 	// clicks through a whole scenario and needs longer than a code edit. How the
 	// browser itself is launched — headless, which binary, what viewport — is
@@ -696,6 +701,7 @@ func DefaultConfig(dataDir string) Config {
 		Flows:                    []FlowEntry{},
 		DeployPrompt:             DefaultDeployPrompt,
 		TestPrompt:               DefaultTestPrompt,
+		PlanningPrompt:           DefaultPlanningPrompt,
 		WorktreeMode:             "always",
 		MaxConcurrent:            3,
 		SessionTimeoutMinutes:    15,
@@ -723,6 +729,23 @@ func DefaultConfig(dataDir string) Config {
 		ArtifactsDir:   filepath.Join(dataDir, "artifacts"),
 	}
 }
+
+// DefaultPlanningPrompt is what a planning terminal is opened with. It is a
+// conversation about a task that does not exist yet, so the one rule is that
+// nothing is to be changed — and unlike a session, where the tool policy holds
+// the agent to that, a terminal is the CLI's own with the person's own
+// permissions. Here the instruction is all there is, which is also why it is
+// editable: whoever plans is the one who knows what "don't touch" means for
+// their project.
+const DefaultPlanningPrompt = `Мы планируем новую задачу.
+
+Код проекта у тебя есть — читай файлы, ищи по ним, смотри историю git: опирайся
+на код, а не на догадки.
+
+Ничего не меняй: ни файлов, ни состояния, ни веток. Это обсуждение, а не
+выполнение — карточку по итогам заведёт человек.
+
+Начни с короткого вопроса о том, что нужно сделать.`
 
 // DefaultDeployPrompt is the task text a deploy session starts with.
 const DefaultDeployPrompt = `Задача: опубликовать ветку этой карточки на Dokku.

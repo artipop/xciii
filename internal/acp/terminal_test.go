@@ -434,3 +434,44 @@ func TestPlanningTerminalIsHandedBackRatherThanStartedTwice(t *testing.T) {
 		t.Fatal("the CLI never exited")
 	}
 }
+
+// A planning terminal opens on a conversation, and what starts that
+// conversation is a setting a person edits. It has to reach the CLI: the board
+// prompt and the agent's own come first, the edited instructions next, and the
+// project last, because that is the one line nobody should have to type.
+func TestPlanningTerminalCarriesTheEditedInstructions(t *testing.T) {
+	if _, err := exec.LookPath("sh"); err != nil {
+		t.Skip("no shell to stand in for an agent CLI")
+	}
+	project := initTestProject(t)
+	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
+		cfg.SystemPrompt = "Отвечай по-русски."
+		cfg.Projects = []ProjectEntry{{Name: "testrepo", Path: project}}
+		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, Prompt: "Ты архитектор.", TerminalCommand: []string{"sh"}}}
+	})
+	if err := m.SetPlanningPrompt("Спроси про сроки."); err != nil {
+		t.Fatal(err)
+	}
+
+	term, err := m.StartPlanningTerminal("testrepo", "shellish")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(term.ID) }()
+
+	task := term.Info().Task
+	for _, want := range []string{"Отвечай по-русски.", "Ты архитектор.", "Спроси про сроки.", project} {
+		if !strings.Contains(task, want) {
+			t.Errorf("planning terminal task %q does not carry %q", task, want)
+		}
+	}
+
+	// The default is what a config that never named a planning prompt gets,
+	// rather than an agent opening on nothing at all.
+	if err := m.SetPlanningPrompt(""); err != nil {
+		t.Fatal(err)
+	}
+	if got := m.PlanningPrompt(); got != DefaultPlanningPrompt {
+		t.Errorf("emptied planning prompt reads back as %q, want the default", got)
+	}
+}

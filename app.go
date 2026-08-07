@@ -692,6 +692,23 @@ func (a *App) SetAgentSystemPrompt(text string) error {
 	return a.mgr.SetSystemPrompt(text)
 }
 
+// GetPlanningPrompt returns the instructions a planning terminal is opened
+// with, falling back to the default when the config has none.
+func (a *App) GetPlanningPrompt() (string, error) {
+	if a.mgr == nil {
+		return acp.DefaultPlanningPrompt, nil
+	}
+	return a.mgr.PlanningPrompt(), nil
+}
+
+// SetPlanningPrompt stores the instructions a planning terminal is opened with.
+func (a *App) SetPlanningPrompt(text string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	return a.mgr.SetPlanningPrompt(text)
+}
+
 // StartCardDeploy publishes a card's branch to its Dokku target without moving
 // the card into the deploy column, and returns the deploy session's id. branch
 // is the one the card is working on (its session's worktree branch); empty lets

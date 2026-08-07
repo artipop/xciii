@@ -44,6 +44,8 @@ const PlanningDialog = (props: Props) => {
     const [projectName, setProjectName] = createSignal('')
     const [agentName, setAgentName] = createSignal('')
     const [terminals, setTerminals] = createSignal<LiveTerminal[]>([])
+    const [prompt, setPrompt] = createSignal('')
+    const [savedPrompt, setSavedPrompt] = createSignal('')
     const [busy, setBusy] = createSignal(false)
     const [error, setError] = createSignal('')
 
@@ -65,6 +67,12 @@ const PlanningDialog = (props: Props) => {
             return
         }
         try {
+            if (bindings.GetPlanningPrompt) {
+                const stored = await bindings.GetPlanningPrompt()
+                setPrompt(stored)
+                setSavedPrompt(stored)
+            }
+
             // Planning has no card and no board behind it, so it offers every
             // project on the machine rather than one board's.
             const [repoList, agentList] = await Promise.all([
@@ -96,6 +104,26 @@ const PlanningDialog = (props: Props) => {
         }
     }
 
+    // The prompt is stored before the terminal starts rather than sent with it:
+    // what a planning terminal opens with is a setting, and one edited in the
+    // moment is still the one the next terminal should get.
+    const savePrompt = async () => {
+        if (!bindings?.SetPlanningPrompt || prompt() === savedPrompt()) {
+            return
+        }
+        await bindings.SetPlanningPrompt(prompt())
+        setSavedPrompt(prompt())
+    }
+
+    const saveOnly = async () => {
+        setError('')
+        try {
+            await savePrompt()
+        } catch (e: any) {
+            setError(String(e?.message || e))
+        }
+    }
+
     const start = async () => {
         if (!bindings?.OpenPlanningTerminal) {
             return
@@ -103,6 +131,7 @@ const PlanningDialog = (props: Props) => {
         setError('')
         setBusy(true)
         try {
+            await savePrompt()
             openWindow(JSON.parse(await bindings.OpenPlanningTerminal(projectName(), agentName())))
             await refreshTerminals()
         } catch (e: any) {
@@ -181,6 +210,30 @@ const PlanningDialog = (props: Props) => {
                         {intl.formatMessage({id: 'Planning.start-terminal', defaultMessage: 'Open a terminal'})}
                     </Button>
                 </div>
+
+                <Show when={Boolean(bindings?.GetPlanningPrompt)}>
+                    <div class='PlanningDialog__prompt'>
+                        <label>
+                            {intl.formatMessage({
+                                id: 'Planning.prompt',
+                                defaultMessage: 'What the agent is told to begin with (the board system prompt and the agent\'s own come before it, the project after)',
+                            })}
+                            {/* Ten rows: the default instructions are nine
+                                lines, and a box that cuts off its own default
+                                reads as a bug rather than as a setting. */}
+                            <textarea
+                                rows={10}
+                                value={prompt()}
+                                onInput={(e) => setPrompt(e.currentTarget.value)}
+                            />
+                        </label>
+                        <Show when={prompt() !== savedPrompt()}>
+                            <Button onClick={saveOnly}>
+                                {intl.formatMessage({id: 'Planning.save-prompt', defaultMessage: 'Save the instructions'})}
+                            </Button>
+                        </Show>
+                    </div>
+                </Show>
 
                 <Show when={error()}>
                     <div class='PlanningDialog__error'>{error()}</div>

@@ -68,6 +68,8 @@ export interface IAppWindow extends Window {
                 RemoveFlow(name: string): Promise<void>
                 GetAgentSystemPrompt(): Promise<string>
                 SetAgentSystemPrompt(text: string): Promise<void>
+                GetPlanningPrompt?(): Promise<string>
+                SetPlanningPrompt?(text: string): Promise<void>
                 StartCardDeploy(cardId: string, branch: string): Promise<string>
 
                 // Terminal windows: the agent's own CLI on a card, opened in a

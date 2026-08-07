@@ -19,6 +19,8 @@ function planningBindings() {
         })),
         ListTerminals: vi.fn().mockResolvedValue('[]'),
         ShowTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-9', windowed: true})),
+        GetPlanningPrompt: vi.fn().mockResolvedValue('Ничего не меняй.'),
+        SetPlanningPrompt: vi.fn().mockResolvedValue(undefined),
     }
 }
 
@@ -63,6 +65,43 @@ describe('components/acp/planningDialog', () => {
         const running = await screen.findByText('planner · app')
         await userEvent.click(running)
         await waitFor(() => expect(bindings.ShowTerminal).toHaveBeenCalledWith('term-9'))
+    })
+
+    // What the agent is told to begin with is a setting, and the planning
+    // dialog is where a person meets it: an edit made here has to be the one
+    // the terminal that opens next is given.
+    it('shows the stored instructions and stores an edit before opening', async () => {
+        const bindings = planningBindings()
+        anyWindow.go = {main: {App: bindings}}
+
+        render(() => wrapIntl(() => <PlanningDialog onClose={vi.fn()}/>))
+
+        const box = await screen.findByDisplayValue('Ничего не меняй.')
+        await userEvent.clear(box)
+        await userEvent.type(box, 'Спроси про сроки.')
+
+        const open = await screen.findByText('Open a terminal')
+        await waitFor(() => expect(open.closest('button')).not.toBeDisabled())
+        await userEvent.click(open)
+
+        await waitFor(() => expect(bindings.SetPlanningPrompt).toHaveBeenCalledWith('Спроси про сроки.'))
+        expect(bindings.OpenPlanningTerminal).toHaveBeenCalledWith('app', 'planner')
+    })
+
+    // An unchanged prompt is not a write: the dialog is opened far more often
+    // to find a terminal than to change what the agent is told.
+    it('leaves the instructions alone when nothing was typed', async () => {
+        const bindings = planningBindings()
+        anyWindow.go = {main: {App: bindings}}
+
+        render(() => wrapIntl(() => <PlanningDialog onClose={vi.fn()}/>))
+
+        const open = await screen.findByText('Open a terminal')
+        await waitFor(() => expect(open.closest('button')).not.toBeDisabled())
+        await userEvent.click(open)
+
+        await waitFor(() => expect(bindings.OpenPlanningTerminal).toHaveBeenCalled())
+        expect(bindings.SetPlanningPrompt).not.toHaveBeenCalled()
     })
 
     it('says what went wrong instead of failing silently', async () => {
