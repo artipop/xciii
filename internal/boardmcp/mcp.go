@@ -5,19 +5,23 @@
 // work back to this application instead of printing it for a person to retype.
 //
 // A planning conversation ends in tasks. Until it could create them itself, the
-// end of planning was a person reading the screen and typing cards in by hand —
-// and that is the only step of the whole loop still done twice.
+// end of planning was a person reading the screen and typing the cards in by
+// hand — the only step of the whole loop still done twice.
+//
+// The server is served by the app, over HTTP, on the front door. The other two
+// MCP servers here are subprocesses because they do work of their own — dokku
+// talks ssh, webtest drives a browser — and an agent spawning them is the whole
+// arrangement. This one *is* the app: the board it writes to lives in this
+// process, and the app is already a separate process from the agent, already
+// listening on an origin the agent can reach. A subprocess in between would
+// have been a proxy of ours to ourselves, with the tool schema written twice.
 package boardmcp
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -25,13 +29,9 @@ import (
 // ServerName is how the tools appear to an agent: mcp__board__create_card etc.
 const ServerName = "board"
 
-// Environment the MCP process is configured through. The board is deliberately
-// not among these: it is what the token stands for, so an agent that reads its
-// own environment still cannot name another board.
-const (
-	EnvOrigin = "XCIII_BOARD_URL"   // front door this app answers on
-	EnvToken  = "XCIII_BOARD_TOKEN" // grant for one board, for one agent run
-)
+// Path is where the front door serves this, under the /acp/ subtree that is
+// already ours.
+const Path = "/acp/board/mcp"
 
 // version tracks the tool surface, not the app.
 const version = "0.1.0"
@@ -45,8 +45,7 @@ const instructions = `Инструменты доски XCIII. Через них
 колонку, где работа начинается, если только человек не попросил иначе.
 Проект, агента и маршрут задавай именами — так, как они называются на доске.`
 
-// Card is one card asked for. The field names are what the model fills in, and
-// they are also the wire format of the app's own endpoint.
+// Card is one card asked for; the field names are what the model fills in.
 type Card struct {
 	Title       string   `json:"title" jsonschema:"заголовок карточки — одна строка, что нужно сделать"`
 	Description string   `json:"description,omitempty" jsonschema:"описание задачи: контекст, что менять, как проверить"`
@@ -54,18 +53,29 @@ type Card struct {
 	Options     []string `json:"options,omitempty" jsonschema:"остальные поля карточки именами значений: проект, агент, маршрут"`
 }
 
-// CardResult is what the app says about a card it created.
+// CardResult is what became of one card.
 type CardResult struct {
-	ID    string `json:"id,omitempty"`
-	Title string `json:"title,omitempty"`
-	Error string `json:"error,omitempty"`
+	ID    string
+	Title string
+	Error string
 }
 
-// Column is one column as the agent is told about it.
+// Column is one column as the agent is told about it: the name it must use and
+// what putting a card there sets off.
 type Column struct {
-	Name   string   `json:"name"`
-	Action string   `json:"action,omitempty"`
-	Agents []string `json:"agents,omitempty"`
+	Name   string
+	Action string
+	Agents []string
+}
+
+// Board is the board these tools act on, already bound to one agent's grant —
+// which is why no method takes a board id. Resolving the grant is the handler's
+// job, and it happens per request.
+type Board interface {
+	Columns(ctx context.Context) ([]Column, error)
+	// CreateCards attempts every card and reports on each: a plan is a list,
+	// and one bad column in it must not cost the other four.
+	CreateCards(ctx context.Context, cards []Card) ([]CardResult, error)
 }
 
 type createInput struct {
@@ -78,91 +88,8 @@ type createManyInput struct {
 
 type noInput struct{}
 
-// Client talks to the front door. It is a plain HTTP client on loopback: the
-// board lives in the desktop process, and this server is a child of the agent,
-// not of the app.
-type Client struct {
-	Origin string
-	Token  string
-	HTTP   *http.Client
-}
-
-// NewClient builds the client from the environment the app spawned us with.
-func NewClient(origin, token string) (*Client, error) {
-	if strings.TrimSpace(origin) == "" || strings.TrimSpace(token) == "" {
-		return nil, fmt.Errorf("не заданы %s и %s", EnvOrigin, EnvToken)
-	}
-	if !strings.HasSuffix(origin, "/") {
-		origin += "/"
-	}
-	return &Client{Origin: origin, Token: token, HTTP: &http.Client{Timeout: 30 * time.Second}}, nil
-}
-
-func (c *Client) post(ctx context.Context, path string, body, out any) error {
-	raw, err := json.Marshal(body)
-	if err != nil {
-		return err
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.Origin+path, bytes.NewReader(raw))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	return c.do(req, out)
-}
-
-func (c *Client) get(ctx context.Context, path string, out any) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.Origin+path, nil)
-	if err != nil {
-		return err
-	}
-	return c.do(req, out)
-}
-
-func (c *Client) do(req *http.Request, out any) error {
-	req.Header.Set("Authorization", "Bearer "+c.Token)
-	resp, err := c.HTTP.Do(req)
-	if err != nil {
-		return fmt.Errorf("доска не отвечает: %w", err)
-	}
-	defer resp.Body.Close()
-	payload, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("доска ответила %s: %s", resp.Status, strings.TrimSpace(string(payload)))
-	}
-	if out == nil {
-		return nil
-	}
-	return json.Unmarshal(payload, out)
-}
-
-// Columns lists the board's columns and what each one starts.
-func (c *Client) Columns(ctx context.Context) ([]Column, error) {
-	var out []Column
-	if err := c.get(ctx, "acp/board/columns", &out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// Create asks the board for cards and reports on each one separately: a plan of
-// five tasks must not be lost because the third names a column that is not
-// there.
-func (c *Client) Create(ctx context.Context, cards []Card) ([]CardResult, error) {
-	var out []CardResult
-	if err := c.post(ctx, "acp/board/cards", struct {
-		Cards []Card `json:"cards"`
-	}{Cards: cards}, &out); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// NewServer exposes the client's operations as tools.
-func NewServer(cl *Client) *mcp.Server {
+// NewServer exposes one board's operations as tools.
+func NewServer(board Board) *mcp.Server {
 	srv := mcp.NewServer(
 		&mcp.Implementation{Name: ServerName, Title: "XCIII board", Version: version},
 		&mcp.ServerOptions{Instructions: instructions},
@@ -172,7 +99,7 @@ func NewServer(cl *Client) *mcp.Server {
 		Name:        "list_columns",
 		Description: "Колонки доски и что происходит с карточкой, попавшей в каждую из них.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, _ noInput) (*mcp.CallToolResult, any, error) {
-		columns, err := cl.Columns(ctx)
+		columns, err := board.Columns(ctx)
 		if err != nil {
 			return errorResult("%v", err), nil, nil
 		}
@@ -197,7 +124,7 @@ func NewServer(cl *Client) *mcp.Server {
 		Name:        "create_card",
 		Description: "Завести на доске одну карточку.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in createInput) (*mcp.CallToolResult, any, error) {
-		return created(cl.Create(ctx, []Card{in.Card}))
+		return created(board.CreateCards(ctx, []Card{in.Card}))
 	})
 
 	mcp.AddTool(srv, &mcp.Tool{
@@ -207,14 +134,38 @@ func NewServer(cl *Client) *mcp.Server {
 		if len(in.Cards) == 0 {
 			return errorResult("не передано ни одной карточки"), nil, nil
 		}
-		return created(cl.Create(ctx, in.Cards))
+		return created(board.CreateCards(ctx, in.Cards))
 	})
 
 	return srv
 }
 
+// NewHandler serves the tools over MCP's HTTP transport. open resolves the
+// request to the board its caller was granted, and its error is the refusal the
+// caller gets — nothing here is reachable without a grant.
+//
+// Stateless on purpose: the tools are one request each, and a session id that
+// outlived the check would be a second way in that carries no grant.
+func NewHandler(open func(*http.Request) (Board, error)) http.Handler {
+	inner := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
+		board, err := open(r)
+		if err != nil {
+			return nil
+		}
+		return NewServer(board)
+	}, &mcp.StreamableHTTPOptions{Stateless: true})
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, err := open(r); err != nil {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+		inner.ServeHTTP(w, r)
+	})
+}
+
 // created turns the per-card outcome into what the model reads back. Failures
-// are named rather than aggregated: the agent has to know which card to redo.
+// are named rather than counted: the agent has to know which card to redo.
 func created(results []CardResult, err error) (*mcp.CallToolResult, any, error) {
 	if err != nil {
 		return errorResult("%v", err), nil, nil
@@ -222,14 +173,15 @@ func created(results []CardResult, err error) (*mcp.CallToolResult, any, error) 
 	var b strings.Builder
 	failed := 0
 	for _, r := range results {
-		switch {
-		case r.Error != "":
+		if r.Error != "" {
 			failed++
 			fmt.Fprintf(&b, "- %q не заведена: %s\n", r.Title, r.Error)
-		default:
-			fmt.Fprintf(&b, "- %q заведена (%s)\n", r.Title, r.ID)
+			continue
 		}
+		fmt.Fprintf(&b, "- %q заведена (%s)\n", r.Title, r.ID)
 	}
+	// Nothing landing at all is a failed call: the agent must see that its plan
+	// is not on the board rather than read a list and move on.
 	if failed > 0 && failed == len(results) {
 		return errorResult("%s", strings.TrimSpace(b.String())), nil, nil
 	}
@@ -247,9 +199,4 @@ func errorResult(format string, args ...any) *mcp.CallToolResult {
 	res := textResult(fmt.Sprintf(format, args...))
 	res.IsError = true
 	return res
-}
-
-// ServeStdio runs the server on the agent's stdio until it closes it.
-func ServeStdio(ctx context.Context, cl *Client) error {
-	return NewServer(cl).Run(ctx, &mcp.StdioTransport{})
 }

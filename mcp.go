@@ -13,7 +13,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/artipop/xciii/internal/boardmcp"
 	"github.com/artipop/xciii/internal/dokku"
 )
 
@@ -27,17 +26,15 @@ func maybeRunMCP(args []string) {
 		return
 	}
 	if len(args) < 2 {
-		fmt.Fprintf(os.Stderr, "usage: xciii mcp %s|%s\n", dokku.ServerName, boardmcp.ServerName)
+		fmt.Fprintf(os.Stderr, "usage: xciii mcp %s\n", dokku.ServerName)
 		os.Exit(2)
 	}
 	var err error
 	switch args[1] {
 	case dokku.ServerName:
 		err = runDokkuMCP()
-	case boardmcp.ServerName:
-		err = runBoardMCP()
 	default:
-		fmt.Fprintf(os.Stderr, "неизвестный MCP-сервер %q (есть %q и %q)\n", args[1], dokku.ServerName, boardmcp.ServerName)
+		fmt.Fprintf(os.Stderr, "неизвестный MCP-сервер %q (есть только %q)\n", args[1], dokku.ServerName)
 		os.Exit(2)
 	}
 	if err != nil {
@@ -68,25 +65,6 @@ func runDokkuMCP() error {
 
 	// The agent closing our stdio is how a session ends, so EOF is success.
 	if err := dokku.ServeStdio(ctx, cl, os.Getenv(dokku.EnvArtifacts)); err != nil &&
-		!errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
-		return err
-	}
-	return nil
-}
-
-// runBoardMCP serves the board tools: the way an agent hands work back to this
-// application. It is pointed at the front door and carries a grant for one
-// board; both arrive in the environment, so nothing the model says can change
-// which board is written to.
-func runBoardMCP() error {
-	cl, err := boardmcp.NewClient(os.Getenv(boardmcp.EnvOrigin), os.Getenv(boardmcp.EnvToken))
-	if err != nil {
-		return err
-	}
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-
-	if err := boardmcp.ServeStdio(ctx, cl); err != nil &&
 		!errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
 		return err
 	}

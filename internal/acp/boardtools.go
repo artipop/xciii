@@ -16,15 +16,14 @@ import (
 )
 
 // The board tools are how an agent says something back to this application
-// instead of only to the person watching it: an MCP server of ours (internal/
-// boardmcp), spawned by the agent, that reaches the front door over loopback.
+// instead of only to the person watching it: an MCP server the app serves
+// itself, over HTTP, on the front door (internal/boardmcp).
 //
-// It is a separate process — that is what MCP is — so it cannot be trusted with
-// the board id: it is handed a grant token instead, and the token is what names
-// the board. An agent planning against one board therefore cannot leave cards on
-// another, and when the run that was granted the token ends, the token stops
-// working. This is the same bargain the dokku server takes: the model chooses
-// steps, never targets.
+// What an agent may reach through it is decided here, by a grant. The token
+// names the board, is minted for one agent run and dies with it, so an agent
+// that read every byte of its own configuration still cannot leave cards on
+// another board, and a token found afterwards opens nothing. This is the same
+// bargain the dokku server takes: the model chooses steps, never targets.
 
 // BoardGrant is one agent run's permission to write to one board.
 type BoardGrant struct {
@@ -95,48 +94,31 @@ func (m *Manager) originURL() string {
 	return m.origin
 }
 
-// boardToolsSpec is the MCP server as an agent is handed it: our own binary,
-// re-invoked, pointed at the front door with a grant in its environment.
-func (m *Manager) boardToolsSpec(token string) (mcpServerSpec, error) {
-	self, err := os.Executable()
-	if err != nil {
-		return mcpServerSpec{}, fmt.Errorf("не удалось определить путь к приложению для MCP-сервера: %w", err)
-	}
+// BoardToolsURL is where the tools are served — the front door, on the /acp/
+// subtree that is already ours.
+func (m *Manager) BoardToolsURL() string {
 	origin := m.originURL()
 	if origin == "" {
-		return mcpServerSpec{}, fmt.Errorf("адрес приложения ещё не известен")
+		return ""
 	}
-	return mcpServerSpec{
-		Name:    boardmcp.ServerName,
-		Command: self,
-		Args:    []string{"mcp", boardmcp.ServerName},
-		Env: map[string]string{
-			boardmcp.EnvOrigin: origin,
-			boardmcp.EnvToken:  token,
-		},
-	}, nil
+	return strings.TrimSuffix(origin, "/") + boardmcp.Path
 }
 
 // openBoardTools mints a grant for a board and writes the MCP config file the
-// vendor CLI of a terminal takes. It returns the token and the file, both of
-// which the caller must close when the run ends: the file holds the token, and
-// the token is a door into the board.
+// vendor CLI of a terminal is pointed at: an address and the grant to send with
+// it. It returns the token and the file, both of which the caller must close
+// when the run ends — the file carries the grant, and the grant is a door.
 //
 // A board nobody named, an agent whose CLI cannot be told about MCP at all, or
 // an app that does not know its own address yet — each of those simply means no
 // tools, never a terminal that refuses to open.
 func (m *Manager) openBoardTools(boardID string, agent AgentEntry) (token, configPath string) {
-	if boardID == "" || !terminalTakesMCP(agent) {
+	url := m.BoardToolsURL()
+	if boardID == "" || url == "" || !terminalTakesMCP(agent) {
 		return "", ""
 	}
 	token = m.GrantBoardTools(boardID)
 	if token == "" {
-		return "", ""
-	}
-	spec, err := m.boardToolsSpec(token)
-	if err != nil {
-		m.log.Warn("acp: no board tools for this terminal", "err", err)
-		m.RevokeBoardTools(token)
 		return "", ""
 	}
 	// 0600 by default, and it carries the grant, so it stays that way.
@@ -148,10 +130,10 @@ func (m *Manager) openBoardTools(boardID string, agent AgentEntry) (token, confi
 	}
 	defer f.Close()
 
-	config := map[string]any{"mcpServers": map[string]any{spec.Name: map[string]any{
-		"command": spec.Command,
-		"args":    spec.Args,
-		"env":     spec.Env,
+	config := map[string]any{"mcpServers": map[string]any{boardmcp.ServerName: map[string]any{
+		"type":    "http",
+		"url":     url,
+		"headers": map[string]string{"Authorization": "Bearer " + token},
 	}}}
 	if err := json.NewEncoder(f).Encode(config); err != nil {
 		m.log.Warn("acp: cannot write the MCP config for a terminal", "err", err)

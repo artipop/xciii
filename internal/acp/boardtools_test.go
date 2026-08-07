@@ -92,9 +92,9 @@ func TestBoardToolsConfigIsWrittenForTheCLIAndCleanedUpAfter(t *testing.T) {
 	}
 	var config struct {
 		MCPServers map[string]struct {
-			Command string            `json:"command"`
-			Args    []string          `json:"args"`
-			Env     map[string]string `json:"env"`
+			Type    string            `json:"type"`
+			URL     string            `json:"url"`
+			Headers map[string]string `json:"headers"`
 		} `json:"mcpServers"`
 	}
 	if err := json.Unmarshal(raw, &config); err != nil {
@@ -104,14 +104,13 @@ func TestBoardToolsConfigIsWrittenForTheCLIAndCleanedUpAfter(t *testing.T) {
 	if !ok {
 		t.Fatalf("no board server in the config: %s", raw)
 	}
-	if strings.Join(server.Args, " ") != "mcp board" {
-		t.Errorf("server args %v, want our own binary re-invoked", server.Args)
+	// The app serves the tools itself, so the CLI is pointed at the front door
+	// rather than at a program to run.
+	if server.Type != "http" || server.URL != "http://127.0.0.1:8088/acp/board/mcp" {
+		t.Errorf("the CLI was pointed at %s %q", server.Type, server.URL)
 	}
-	if server.Env["XCIII_BOARD_TOKEN"] != token {
-		t.Error("the server was not given the grant")
-	}
-	if server.Env["XCIII_BOARD_URL"] != "http://127.0.0.1:8088/" {
-		t.Errorf("the server was pointed at %q", server.Env["XCIII_BOARD_URL"])
+	if server.Headers["Authorization"] != "Bearer "+token {
+		t.Errorf("the grant does not travel with the call: %q", server.Headers["Authorization"])
 	}
 
 	// And the argv the terminal runs is what that CLI takes.
