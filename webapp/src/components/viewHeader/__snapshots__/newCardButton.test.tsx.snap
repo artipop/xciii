@@ -31,93 +31,88 @@ exports[`components/viewHeader/newCardButton > return NewCardButton 1`] = `
           <div
             class="menu-options"
           >
-            <div />
-            <div>
+            <div
+              aria-label="Empty card"
+              class="MenuOption TextOption menu-option bold-menu-text"
+              role="button"
+            >
               <div
-                aria-label="Empty card"
-                class="MenuOption TextOption menu-option bold-menu-text"
-                role="button"
+                class="d-flex"
               >
                 <div
-                  class="d-flex"
+                  class="menu-option__icon"
                 >
-                  <div
-                    class="menu-option__icon"
+                  <svg
+                    class="CardIcon Icon"
+                    viewBox="0 0 100 100"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <svg
-                      class="CardIcon Icon"
-                      viewBox="0 0 100 100"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <rect
-                        height="40"
-                        rx="3"
-                        ry="3"
-                        width="60"
-                        x="20"
-                        y="30"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Empty card
-                  </div>
-                  
-                </div>
-                <div
-                  aria-label="menuwrapper"
-                  class="MenuWrapper"
-                  role="button"
-                >
-                  <button
-                    class="IconButton"
-                    type="button"
-                  >
-                    <i
-                      class="CompassIcon icon-dots-horizontal OptionsIcon"
+                    <rect
+                      height="40"
+                      rx="3"
+                      ry="3"
+                      width="60"
+                      x="20"
+                      y="30"
                     />
-                  </button>
-                  
+                  </svg>
                 </div>
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Empty card
+                </div>
+                
+              </div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="IconButton"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+                
               </div>
             </div>
-            <div>
+            <div
+              aria-label="New template"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="New template"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
                 <div
-                  class="d-flex"
+                  class="menu-option__icon"
                 >
-                  <div
-                    class="menu-option__icon"
-                  >
-                    <i
-                      class="CompassIcon icon-plus AddIcon"
-                    />
-                  </div>
+                  <i
+                    class="CompassIcon icon-plus AddIcon"
+                  />
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    New template
-                  </div>
-                  
-                </div>
-                <div
-                  class="noicon"
-                />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  New template
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
           </div>
           <div
@@ -191,93 +186,88 @@ exports[`components/viewHeader/newCardButton > return NewCardButton and addCard 
           <div
             class="menu-options"
           >
-            <div />
-            <div>
+            <div
+              aria-label="Empty card"
+              class="MenuOption TextOption menu-option bold-menu-text"
+              role="button"
+            >
               <div
-                aria-label="Empty card"
-                class="MenuOption TextOption menu-option bold-menu-text"
-                role="button"
+                class="d-flex"
               >
                 <div
-                  class="d-flex"
+                  class="menu-option__icon"
                 >
-                  <div
-                    class="menu-option__icon"
+                  <svg
+                    class="CardIcon Icon"
+                    viewBox="0 0 100 100"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <svg
-                      class="CardIcon Icon"
-                      viewBox="0 0 100 100"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <rect
-                        height="40"
-                        rx="3"
-                        ry="3"
-                        width="60"
-                        x="20"
-                        y="30"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Empty card
-                  </div>
-                  
-                </div>
-                <div
-                  aria-label="menuwrapper"
-                  class="MenuWrapper"
-                  role="button"
-                >
-                  <button
-                    class="IconButton"
-                    type="button"
-                  >
-                    <i
-                      class="CompassIcon icon-dots-horizontal OptionsIcon"
+                    <rect
+                      height="40"
+                      rx="3"
+                      ry="3"
+                      width="60"
+                      x="20"
+                      y="30"
                     />
-                  </button>
-                  
+                  </svg>
                 </div>
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Empty card
+                </div>
+                
+              </div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="IconButton"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+                
               </div>
             </div>
-            <div>
+            <div
+              aria-label="New template"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="New template"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
                 <div
-                  class="d-flex"
+                  class="menu-option__icon"
                 >
-                  <div
-                    class="menu-option__icon"
-                  >
-                    <i
-                      class="CompassIcon icon-plus AddIcon"
-                    />
-                  </div>
+                  <i
+                    class="CompassIcon icon-plus AddIcon"
+                  />
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    New template
-                  </div>
-                  
-                </div>
-                <div
-                  class="noicon"
-                />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  New template
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
           </div>
           <div
@@ -351,93 +341,88 @@ exports[`components/viewHeader/newCardButton > return NewCardButton and addCardT
           <div
             class="menu-options"
           >
-            <div />
-            <div>
+            <div
+              aria-label="Empty card"
+              class="MenuOption TextOption menu-option bold-menu-text"
+              role="button"
+            >
               <div
-                aria-label="Empty card"
-                class="MenuOption TextOption menu-option bold-menu-text"
-                role="button"
+                class="d-flex"
               >
                 <div
-                  class="d-flex"
+                  class="menu-option__icon"
                 >
-                  <div
-                    class="menu-option__icon"
+                  <svg
+                    class="CardIcon Icon"
+                    viewBox="0 0 100 100"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <svg
-                      class="CardIcon Icon"
-                      viewBox="0 0 100 100"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <rect
-                        height="40"
-                        rx="3"
-                        ry="3"
-                        width="60"
-                        x="20"
-                        y="30"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Empty card
-                  </div>
-                  
-                </div>
-                <div
-                  aria-label="menuwrapper"
-                  class="MenuWrapper"
-                  role="button"
-                >
-                  <button
-                    class="IconButton"
-                    type="button"
-                  >
-                    <i
-                      class="CompassIcon icon-dots-horizontal OptionsIcon"
+                    <rect
+                      height="40"
+                      rx="3"
+                      ry="3"
+                      width="60"
+                      x="20"
+                      y="30"
                     />
-                  </button>
-                  
+                  </svg>
                 </div>
+              </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Empty card
+                </div>
+                
+              </div>
+              <div
+                aria-label="menuwrapper"
+                class="MenuWrapper"
+                role="button"
+              >
+                <button
+                  class="IconButton"
+                  type="button"
+                >
+                  <i
+                    class="CompassIcon icon-dots-horizontal OptionsIcon"
+                  />
+                </button>
+                
               </div>
             </div>
-            <div>
+            <div
+              aria-label="New template"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="New template"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
                 <div
-                  class="d-flex"
+                  class="menu-option__icon"
                 >
-                  <div
-                    class="menu-option__icon"
-                  >
-                    <i
-                      class="CompassIcon icon-plus AddIcon"
-                    />
-                  </div>
+                  <i
+                    class="CompassIcon icon-plus AddIcon"
+                  />
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    New template
-                  </div>
-                  
-                </div>
-                <div
-                  class="noicon"
-                />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  New template
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
           </div>
           <div

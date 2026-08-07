@@ -119,43 +119,41 @@ exports[`components/viewHeader/emptyCardButton > return EmptyCardButton and Set 
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="Set as default"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Set as default"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
                 <div
-                  class="d-flex"
+                  class="menu-option__icon"
                 >
-                  <div
-                    class="menu-option__icon"
+                  <svg
+                    class="CheckIcon Icon"
+                    viewBox="0 0 100 100"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <svg
-                      class="CheckIcon Icon"
-                      viewBox="0 0 100 100"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <polyline
-                        points="20,60 40,80 80,40"
-                      />
-                    </svg>
-                  </div>
+                    <polyline
+                      points="20,60 40,80 80,40"
+                    />
+                  </svg>
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Set as default
-                  </div>
-                  
-                </div>
-                <div
-                  class="noicon"
-                />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Set as default
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
           </div>
           <div

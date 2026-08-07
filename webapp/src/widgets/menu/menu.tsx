@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {For, children, createSignal} from 'solid-js'
+import {For, children} from 'solid-js'
 import type {Component, JSX} from 'solid-js'
 
 import {useIntl} from '../../intl'
@@ -9,7 +9,7 @@ import SeparatorOption from './separatorOption'
 import SwitchOption from './switchOption'
 import TextOption from './textOption'
 import ColorOption from './colorOption'
-import SubMenuOption, {HoveringContext} from './subMenuOption'
+import SubMenuOption from './subMenuOption'
 import LabelOption from './labelOption'
 
 import './menu.scss'
@@ -23,9 +23,11 @@ type Props = {
     parentRef?: AnchorRef
 }
 
-// The hover tracking the class component kept in state: each option is
-// wrapped, and the context tells a SubMenuOption whether its wrapper is the
-// hovered one, which is what opens it on hover.
+// A submenu opens itself on hover (subMenuOption.tsx). It used to be told to,
+// through a context this menu provided around every option — which never once
+// reached it: children() resolves the options before the provider exists, so
+// each of them was created outside it and read the default, false. Nothing
+// opened on hover, and nothing closed on leaving.
 const Menu: Component<Props> & {
     Color: typeof ColorOption
     SubMenu: typeof SubMenuOption
@@ -36,7 +38,6 @@ const Menu: Component<Props> & {
     Label: typeof LabelOption
 } = (props: Props) => {
     const intl = useIntl()
-    const [hovering, setHovering] = createSignal<JSX.Element|null>(null)
     const resolved = children(() => props.children)
 
     // Position against the anchor is measured when the menu opens — creation
@@ -61,15 +62,7 @@ const Menu: Component<Props> & {
             <div class='menu-contents'>
                 <div class='menu-options'>
                     <For each={resolved.toArray()}>
-                        {(child) => (
-                            <div
-                                onMouseEnter={() => setHovering(child)}
-                            >
-                                <HoveringContext.Provider value={() => child === hovering()}>
-                                    {child}
-                                </HoveringContext.Provider>
-                            </div>
-                        )}
+                        {(child) => child}
                     </For>
                 </div>
 

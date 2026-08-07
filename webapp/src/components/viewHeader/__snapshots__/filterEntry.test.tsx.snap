@@ -29,145 +29,135 @@ exports[`components/viewHeader/filterEntry > return filterEntry 1`] = `
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="Title"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Title"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Title
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Title
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Status"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Status"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Status
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Status
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 1"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 1"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 1
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 1
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 2"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 2"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 2
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 2
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 3"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 3"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 3
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 3
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
           </div>
           <div
@@ -303,124 +293,110 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on del
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="includes"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="includes"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    includes
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="doesn't include"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  includes
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    doesn't include
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="doesn't include"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="is empty"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  doesn't include
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is empty
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="is empty"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="is not empty"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  is empty
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is not empty
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="is not empty"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  is not empty
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -521,145 +497,135 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="Title"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Title"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Title
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Title
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Status"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Status"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Status
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Status
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 1"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 1"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 1
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 1
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 2"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 2"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 2
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 2
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 3"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 3"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 3
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 3
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
           </div>
           <div
@@ -778,145 +744,135 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="Title"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Title"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Title
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Title
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Status"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Status"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Status
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Status
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 1"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 1"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 1
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 1
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 2"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 2"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 2
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 2
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 3"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 3"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 3
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 3
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
           </div>
           <div
@@ -1036,124 +992,110 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on doe
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="includes"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="includes"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    includes
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="doesn't include"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  includes
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    doesn't include
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="doesn't include"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="is empty"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  doesn't include
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is empty
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="is empty"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="is not empty"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  is empty
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is not empty
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="is not empty"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  is not empty
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -1271,124 +1213,110 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on inc
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="includes"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="includes"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    includes
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="doesn't include"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  includes
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    doesn't include
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="doesn't include"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="is empty"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  doesn't include
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is empty
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="is empty"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="is not empty"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  is empty
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is not empty
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="is not empty"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  is not empty
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -1506,124 +1434,110 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on is 
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="includes"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="includes"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    includes
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="doesn't include"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  includes
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    doesn't include
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="doesn't include"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="is empty"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  doesn't include
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is empty
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="is empty"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="is not empty"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  is empty
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is not empty
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="is not empty"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  is not empty
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -1741,124 +1655,110 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on is 
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="includes"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="includes"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    includes
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="doesn't include"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  includes
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    doesn't include
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="doesn't include"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="is empty"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  doesn't include
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is empty
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="is empty"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="is not empty"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  is empty
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is not empty
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="is not empty"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  is not empty
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -1959,145 +1859,135 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on sta
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="Title"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Title"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Title
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Title
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Status"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Status"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Status
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Status
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 1"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 1"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 1
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 1
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 2"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 2"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 2
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 2
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="Property 3"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="Property 3"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Property 3
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Property 3
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
           </div>
           <div
@@ -2274,68 +2164,58 @@ exports[`components/viewHeader/filterEntry > return filterEntry for boolean fiel
           <div
             class="menu-options"
           >
-            <div />
-            <div />
-            <div />
-            <div>
+            <div
+              aria-label="is set"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="is set"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is set
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="is not set"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  is set
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is not set
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="is not set"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  is not set
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div />
-            <div />
-            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -2508,150 +2388,135 @@ exports[`components/viewHeader/filterEntry > return filterEntry for date field 2
           <div
             class="menu-options"
           >
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div>
+            <div
+              aria-label="is"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="is"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  is
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="is before"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="is before"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is before
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  is before
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="is after"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="is after"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is after
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  is after
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="is set"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="is set"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is set
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  is set
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div>
+            <div
+              aria-label="is not set"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="is not set"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is not set
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  is not set
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
           </div>
           <div
@@ -2829,208 +2694,188 @@ exports[`components/viewHeader/filterEntry > return filterEntry for text field 2
           <div
             class="menu-options"
           >
-            <div />
-            <div />
-            <div />
-            <div />
-            <div>
+            <div
+              aria-label="is"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
               <div
-                aria-label="is"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    is
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="contains"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  is
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    contains
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="contains"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="doesn't contain"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  contains
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    doesn't contain
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="doesn't contain"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="starts with"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  doesn't contain
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    starts with
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="starts with"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="doesn't start with"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  starts with
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    doesn't start with
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="doesn't start with"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="ends with"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  doesn't start with
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    ends with
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="ends with"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="doesn't end with"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  ends with
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    doesn't end with
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="doesn't end with"
+              class="MenuOption TextOption menu-option"
+              role="button"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  doesn't end with
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div />
-            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
