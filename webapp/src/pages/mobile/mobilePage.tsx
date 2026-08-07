@@ -3,7 +3,7 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import {For, Show, createSignal, onCleanup, onMount} from 'solid-js'
+import {For, Show, createEffect, createSignal, onCleanup, onMount} from 'solid-js'
 import {useNavigate} from '@solidjs/router'
 
 import {useIntl} from '../../intl'
@@ -62,6 +62,27 @@ const MobilePage = () => {
             setTerminals([])
         }
     }
+
+    // The phone app shows one machine per tab, each tab a frame holding that
+    // machine's board (mobile/frontend/index.html), and puts the number waiting
+    // on the tab — so which desktop needs a person is visible without opening
+    // its tab. The frame is cross-origin, so the number is posted out rather
+    // than read in. The target origin is '*' because the app's own page is not
+    // served by us and its origin is the platform's business; a count of open
+    // questions is nothing to protect, and the frame's own origin is what the
+    // app checks on the way in.
+    createEffect(() => {
+        const count = waiting().length
+        if (window.parent === window) {
+            return
+        }
+        try {
+            window.parent.postMessage({type: 'xciii:waiting', count}, '*')
+        } catch {
+            // Whatever is holding this page is not listening; nothing here
+            // depends on it.
+        }
+    })
 
     onMount(() => {
         refreshTerminals()

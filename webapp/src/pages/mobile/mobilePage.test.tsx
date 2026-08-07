@@ -111,6 +111,27 @@ describe('pages/mobile/mobilePage', () => {
         expect(app.ShowTerminal).not.toHaveBeenCalled()
     })
 
+    // The phone app puts one tab per machine around this page, and the number
+    // on a tab is the only thing it can learn about the frame behind it: a
+    // person has to see which desktop is asking without opening its tab.
+    it('tells the app around it how many things are waiting', async () => {
+        anyWindow.go = {main: {App: bindings([askedOnCard, quietOnCard])}}
+
+        const parent = {postMessage: vi.fn()}
+        const original = Object.getOwnPropertyDescriptor(window, 'parent')
+        Object.defineProperty(window, 'parent', {value: parent, configurable: true})
+
+        try {
+            renderPage()
+
+            await waitFor(() => expect(parent.postMessage).toHaveBeenCalledWith({type: 'xciii:waiting', count: 2}, '*'))
+        } finally {
+            if (original) {
+                Object.defineProperty(window, 'parent', original)
+            }
+        }
+    })
+
     // What is running changes while the phone is in a pocket, and the socket is
     // what says so.
     it('relists the terminals when one opens or closes', async () => {

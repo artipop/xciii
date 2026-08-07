@@ -129,12 +129,16 @@ board's catch-all route is `/:boardId?/…`, which `/m` fits.
 `mobile/` is the phone app itself, and it is **a second Go module on purpose**:
 `wails3 ios overlay:gen` compiles `package main` from the module root, and this
 root's main is a board server with cgo SQLite, git and a pty. The phone runs
-none of that — the app is a window pointed at `https://<machine>.<tailnet>/m`,
-which is what the desktop's own window is too. It keeps the address in the
-platform's secure store, and a failed navigation returns to its setup page,
-because once the window is on the board there is no address bar to type in.
+none of that — the app is a window onto `https://<machine>.<tailnet>/m`, which
+is what the desktop's own window is too. It keeps the machines in the platform's
+secure store, because a person has more than one desktop and each publishes its
+own board: the window holds **a tab per machine and a frame behind each tab**,
+which is what keeps every board same-origin with its own front door and costs
+the desktop side nothing. Two things cross that boundary — a `postMessage` with
+the number waiting there, so a tab can carry it, and a `no-cors` probe of the
+machine's own page, since a frame's failure is not readable from outside it.
 `mobile/README.md` has the build commands; `go test ./...` there covers the
-address rules.
+address rules and the machine list.
 
 ### The page is Solid, and its state is a store rather than Redux
 
