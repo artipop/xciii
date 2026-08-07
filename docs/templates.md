@@ -20,6 +20,7 @@ and moving cards about. It is edited in *«Шаблон»*, which is reached fro
 |---|---|---|
 | **Columns and their behaviour** | the canvas, the same one as [flows.md](flows.md) | the new board's columns already run an agent, deploy, test |
 | **Routes** | the route tabs on that canvas | a card that names one moves along it by itself |
+| **Rules** | conditions on the arrows | the same outcome forks on the card's own properties, or on what the agent wrote |
 | **Questions to ask** | the list under the canvas | the setup wizard walks exactly these, in this order |
 
 The first two live in the template board's own properties (`acpColumns`,

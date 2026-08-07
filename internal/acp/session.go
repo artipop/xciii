@@ -95,6 +95,7 @@ type Session struct {
 	status        SessionStatus
 	outcome       string             // flow trigger the session ended with, when it is known
 	outcomeText   string             // what to write on the card when the flow moves on
+	finalText     string             // the agent's closing words — what a comment condition on an edge reads
 	turnCancel    context.CancelFunc // cancels the in-flight turn
 	cancelSent    bool
 	cancelPending bool // cancelled before a turn existed; the next one is stopped at once
@@ -134,6 +135,20 @@ func (s *Session) setOutcome(trigger, detail string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.outcome, s.outcomeText = trigger, detail
+}
+
+// setFinalText keeps the agent's closing words for the route to read: an edge
+// may be conditional on what the agent said («READY TO DEPLOY»).
+func (s *Session) setFinalText(text string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.finalText = text
+}
+
+func (s *Session) agentFinalText() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.finalText
 }
 
 // flowOutcome is the event the session hands to its stage. A recorded outcome
@@ -323,6 +338,7 @@ func (m *Manager) cleanupWorktree(s *Session) {
 // not through here, so a session is exactly the piece of work a card asked for.
 func (m *Manager) runCardTask(s *Session, conn *acpsdk.ClientSideConnection, acpSessionID acpsdk.SessionId) {
 	finalText, err := m.runTurn(s, conn, acpSessionID, s.PromptText)
+	s.setFinalText(finalText)
 	m.commentFirstTurn(s, finalText, err)
 
 	if m.rootCtx.Err() != nil {

@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {Show, createEffect, createMemo} from 'solid-js'
+import {Show, createEffect, createMemo, createSignal} from 'solid-js'
 import {
     Background,
     Connection,
@@ -14,11 +14,12 @@ import {
     SolidFlow,
     createEdgeStore,
     createNodeStore,
+    useSolidFlow,
 } from '@dschz/solid-flow'
 
 import {useIntl, IntlShape} from '../../intl'
 
-import {BoardColumn, FlowEdge, FlowNode, FlowTrigger, SUCCESS, FAILURE, nodeId} from './automation'
+import {BoardColumn, CARD_CHANGED, EdgeCond, FlowEdge, FlowNode, FlowTrigger, SUCCESS, FAILURE, nodeId} from './automation'
 
 import '@dschz/solid-flow/dist/style.css'
 import './flowDiagram.scss'
@@ -79,8 +80,13 @@ type Props = {
     onChange?: (nodes: FlowNode[], edges: FlowEdge[]) => void
 
     // onAddColumn is a faded column being joined to the route — by a click on
-    // it, or by an arrow drawn to or from it.
-    onAddColumn?: (column: BoardColumn) => void
+    // it, an arrow drawn to or from it, or a drag that carries it into the
+    // graph (`at` is then where it was dropped).
+    onAddColumn?: (column: BoardColumn, at?: {x: number, y: number}) => void
+
+    // onDropBlock is a palette block landing on the canvas: a new column of
+    // this kind, at this point. Absent means there is no palette.
+    onDropBlock?: (kind: string, at: {x: number, y: number}) => void
 
     // selected/onSelect drive the inspector beside the canvas: what is selected
     // is what the panel is about.
@@ -238,10 +244,17 @@ export function edgeKind(on: string): string {
     return 'event'
 }
 
-// edgeId names a transition on the canvas. A stage has at most one transition
-// per event, so this is unique — and it is what a selection carries back.
-export function edgeId(edge: FlowEdge): string {
-    return `${edge.from}-${edge.on}`
+// edgeId names a transition on the canvas. Conditions allow several edges per
+// (from, on), so the identity is the edge's index in the route — which is also
+// how the inspector addresses it.
+export function edgeId(edge: FlowEdge, index: number): string {
+    return `${edge.from}-${edge.on}-${index}`
+}
+
+// edgeIndexOf reads the index back out of a canvas id.
+export function edgeIndexOf(id: string): number {
+    const at = id.lastIndexOf('-')
+    return at < 0 ? -1 : Number(id.slice(at + 1))
 }
 
 // The three ways out of a stage. A route is drawn by pulling from one of them
@@ -318,6 +331,24 @@ const StageNode = (props: NodeProps) => {
 
 const nodeTypes = {stage: StageNode}
 
+// The palette's drags travel as this content type, so a file dragged from the
+// desktop is not mistaken for a block.
+export const BLOCK_DRAG_TYPE = 'application/x-xciii-block'
+
+// FlowHandle is the part of the canvas API the drop handling needs.
+type FlowHandle = {
+    screenToFlowPosition: (p: {x: number, y: number}) => {x: number, y: number}
+}
+
+// CanvasHook runs inside the canvas' context and hands its API out: the drop
+// events land on the wrapper div, which is outside, and converting a drop
+// point into graph coordinates is the canvas' own knowledge.
+const CanvasHook = (props: {onReady: (flow: FlowHandle) => void}) => {
+    // eslint-disable-next-line new-cap
+    props.onReady(useSolidFlow() as unknown as FlowHandle)
+    return null
+}
+
 // connectEdge is what pulling a connection means: the handle says which
 // transition it is, and an event connection takes the first trigger the stage
 // does not already wait for — the inspector is where it is changed.
@@ -333,14 +364,30 @@ export function connectEdge(
     }
     let on = handle || HANDLE_SUCCESS
     if (on === HANDLE_EVENT) {
+        // card.changed is never auto-picked: it is meaningless without its
+        // condition, which the inspector is where to state.
         const used = new Set(edges.filter((e) => e.from === from).map((e) => e.on))
-        const free = waitTriggers.find((t) => !used.has(t.kind))
+        const free = waitTriggers.find((t) => t.kind !== CARD_CHANGED && !used.has(t.kind))
         if (!free) {
             return edges
         }
         on = free.kind
     }
-    return [...edges.filter((e) => !(e.from === from && e.on === on)), {from, to, on}]
+
+    // Pulling the same output again redraws the unconditional edge; the
+    // conditional ones are the fork's branches and stay as they are.
+    return [...edges.filter((e) => !(e.from === from && e.on === on && !e.if)), {from, to, on}]
+}
+
+// condLabel is a condition as an edge caption: the question, not a sentence.
+export function condLabel(intl: IntlShape, cond: EdgeCond | undefined): string {
+    if (!cond) {
+        return ''
+    }
+    if (cond.commentContains) {
+        return intl.formatMessage({id: 'FlowDiagram.cond-comment', defaultMessage: 'agent said «{text}»'}, {text: cond.commentContains})
+    }
+    return `${cond.property} = ${cond.value}`
 }
 
 // stageLabel names what a stage does, in the reader's language. Kept short:
@@ -426,23 +473,37 @@ const FlowDiagram = (props: Props) => {
         }
 
         const known = new Set(props.nodes.map((n) => n.id))
-        const rfEdges: Edge[] = props.edges.filter((e) => known.has(e.from) && known.has(e.to)).map((edge) => {
-            const kind = edgeKind(edge.on)
-            const color = EDGE_COLOR[kind]
-            const label = kind === 'event' ? (props.triggers.find((t) => t.kind === edge.on)?.label || edge.on) : ''
-            const chosen = props.selected?.kind === 'edge' && props.selected.id === edgeId(edge)
-            return {
-                id: edgeId(edge),
-                source: edge.from,
-                target: edge.to,
-                sourceHandle: kind === 'event' ? HANDLE_EVENT : kind,
-                type: 'smoothstep',
-                class: `FlowDiagram__edge FlowDiagram__edge--${kind}${chosen ? ' FlowDiagram__edge--selected' : ''}`,
-                label,
-                style: {stroke: color, 'stroke-width': chosen ? '3' : '1.5', 'stroke-dasharray': kind === 'event' ? '4 3' : undefined},
-                markerEnd: {type: MarkerType.ArrowClosed, width: 16, height: 16, color},
-            }
-        })
+        const rfEdges: Edge[] = props.edges.
+            map((edge, index) => ({edge, index})).
+            filter(({edge}) => known.has(edge.from) && known.has(edge.to)).
+            map(({edge, index}) => {
+                const kind = edgeKind(edge.on)
+                const color = EDGE_COLOR[kind]
+
+                // The caption is what decides where the card goes: the event
+                // for a wait, the condition for a fork — both where the arrow
+                // is, not three clicks away.
+                const parts: string[] = []
+                if (kind === 'event') {
+                    parts.push(props.triggers.find((t) => t.kind === edge.on)?.label || edge.on)
+                }
+                const cond = condLabel(intl, edge.if)
+                if (cond) {
+                    parts.push(edge.on === CARD_CHANGED ? cond : intl.formatMessage({id: 'FlowDiagram.cond-if', defaultMessage: 'if {cond}'}, {cond}))
+                }
+                const chosen = props.selected?.kind === 'edge' && props.selected.id === edgeId(edge, index)
+                return {
+                    id: edgeId(edge, index),
+                    source: edge.from,
+                    target: edge.to,
+                    sourceHandle: kind === 'event' ? HANDLE_EVENT : kind,
+                    type: 'smoothstep',
+                    class: `FlowDiagram__edge FlowDiagram__edge--${kind}${chosen ? ' FlowDiagram__edge--selected' : ''}`,
+                    label: parts.join(' · '),
+                    style: {stroke: color, 'stroke-width': chosen ? '3' : '1.5', 'stroke-dasharray': kind === 'event' ? '4 3' : undefined},
+                    markerEnd: {type: MarkerType.ArrowClosed, width: 16, height: 16, color},
+                }
+            })
         return {rfNodes, rfEdges}
     })
 
@@ -482,7 +543,15 @@ const FlowDiagram = (props: Props) => {
     }
 
     const onNodeDragStop = ({targetNode}: {targetNode: Node | null}) => {
-        if (!props.onChange || !targetNode || spareById().has(targetNode.id)) {
+        if (!props.onChange || !targetNode) {
+            return
+        }
+
+        // A faded column carried into the graph joins the route where it was
+        // let go — the same gesture as dropping a palette block.
+        const column = spareById().get(targetNode.id)
+        if (column) {
+            props.onAddColumn?.(column, {x: targetNode.position.x, y: targetNode.position.y})
             return
         }
         props.onChange(props.nodes.map((n) => (n.id === targetNode.id ? {...n, x: targetNode.position.x, y: targetNode.position.y} : n)), props.edges)
@@ -507,7 +576,7 @@ const FlowDiagram = (props: Props) => {
             return
         }
         const gone = new Set(deleted.map((e) => e.id))
-        props.onChange(props.nodes, props.edges.filter((e) => !gone.has(edgeId(e))))
+        props.onChange(props.nodes, props.edges.filter((e, i) => !gone.has(edgeId(e, i))))
     }
 
     const onNodeClick = ({node}: {node: Node}) => {
@@ -519,12 +588,46 @@ const FlowDiagram = (props: Props) => {
         props.onSelect?.({kind: 'node', id: node.id})
     }
 
+    // The canvas API arrives from inside the canvas (CanvasHook); the drop
+    // events arrive on the wrapper. Between them a palette block becomes a
+    // stage exactly under the pointer.
+    const [flowHandle, setFlowHandle] = createSignal<FlowHandle | null>(null)
+
+    const dropPoint = (e: DragEvent) => {
+        const at = {x: e.clientX, y: e.clientY}
+        const handle = flowHandle()
+
+        // Without the canvas API (jsdom, or a not-yet-mounted canvas) the drop
+        // still works — the block lands at a default spot instead of the exact
+        // pointer position.
+        return handle ? handle.screenToFlowPosition(at) : {x: 0, y: 0}
+    }
+
+    const onDragOver = (e: DragEvent) => {
+        if (props.onDropBlock && e.dataTransfer?.types.includes(BLOCK_DRAG_TYPE)) {
+            e.preventDefault()
+            e.dataTransfer.dropEffect = 'copy'
+        }
+    }
+
+    const onDrop = (e: DragEvent) => {
+        const kind = e.dataTransfer?.getData(BLOCK_DRAG_TYPE)
+        if (!kind || !props.onDropBlock) {
+            return
+        }
+        e.preventDefault()
+        const at = dropPoint(e)
+        props.onDropBlock(kind, {x: at.x - (NODE_WIDTH / 2), y: at.y - (NODE_HEIGHT / 2)})
+    }
+
     return (
         <Show when={props.nodes.length > 0 || spare().length > 0}>
             <div
                 class={`FlowDiagram${editable() ? ' FlowDiagram--editable' : ''}`}
                 data-testid='flow-diagram'
                 style={props.height ? {height: `${props.height}px`} : undefined}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
             >
                 <SolidFlow
                     nodes={drawnNodes}
@@ -548,6 +651,7 @@ const FlowDiagram = (props: Props) => {
                 >
                     <Background/>
                     <Controls showLock={false}/>
+                    <CanvasHook onReady={setFlowHandle}/>
                 </SolidFlow>
             </div>
         </Show>

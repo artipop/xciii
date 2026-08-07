@@ -36,6 +36,20 @@ export type FlowEdge = {
     from: string
     to: string
     on: string
+
+    // A condition makes the transition ask about the card: several conditional
+    // edges may share one (from, on) — the first that holds wins — and an edge
+    // without one is the fallback. For the card.changed trigger the condition
+    // is the event itself: which option firing it means.
+    if?: EdgeCond
+}
+
+// EdgeCond is exactly one of two questions: does the card's select property
+// carry this value, or did the agent's closing words contain this text.
+export type EdgeCond = {
+    property?: string
+    value?: string
+    commentContains?: string
 }
 
 export type Flow = {
@@ -80,8 +94,18 @@ export type Automation = {
 // everything else is an event the stage waits for.
 export const SUCCESS = 'success'
 export const FAILURE = 'failure'
+export const BLOCKED = 'blocked'
+
+// CARD_CHANGED is the board-side trigger: an option set on the card itself.
+// Its edge must say which option through its condition.
+export const CARD_CHANGED = 'card.changed'
 
 export const ACTIONS = ['none', 'agent', 'deploy', 'test']
+
+// OUTCOMES are the triggers produced by the stage's own action — the only ones
+// where the agent spoke, and therefore the only ones a comment condition makes
+// sense on.
+export const OUTCOMES = [SUCCESS, FAILURE, BLOCKED]
 
 // BoardColumn is a column as the board has it: an option of a select property.
 // The editor never invents one — a column exists on the board first.
@@ -193,31 +217,48 @@ export function withNode(flow: Flow, id: string, patch: Partial<FlowNode>): Flow
     return {...flow, nodes: flow.nodes.map((n) => (n.id === id ? {...n, ...patch} : n))}
 }
 
-// edgeTarget is the stage an event leads to, or '' when the graph says nothing.
+// Edges are addressed by their index in the flow: with conditions, several may
+// share one (from, on), so the pair stops being an identity.
+
+// edgeTarget is the stage an event leads to unconditionally, or '' when the
+// graph says nothing — the fallback edge, in engine terms.
 export function edgeTarget(edges: FlowEdge[], from: string, on: string): string {
-    return edges.find((e) => e.from === from && e.on === on)?.to || ''
+    return edges.find((e) => e.from === from && e.on === on && !e.if)?.to || ''
 }
 
-// setEdge replaces the transition (from, on); an empty target removes it.
-export function setEdge(edges: FlowEdge[], from: string, on: string, to: string): FlowEdge[] {
-    const rest = edges.filter((e) => !(e.from === from && e.on === on))
-    return to ? [...rest, {from, to, on}] : rest
-}
-
-// waitEdges are the stage's non-outcome transitions, in graph order.
-export function waitEdges(edges: FlowEdge[], from: string): FlowEdge[] {
-    return edges.filter((e) => e.from === from && e.on !== SUCCESS && e.on !== FAILURE)
-}
-
-// outgoing is everything a stage leads to, outcomes first — the order the
-// inspector lists transitions in, which is the order a person reads them.
-export function outgoing(edges: FlowEdge[], from: string): FlowEdge[] {
-    const order = [SUCCESS, FAILURE]
+// outgoing is everything a stage leads to, with the index each edge is edited
+// by — outcomes first, which is the order a person reads them in.
+export function outgoing(edges: FlowEdge[], from: string): Array<{edge: FlowEdge, index: number}> {
     const rank = (on: string) => {
-        const at = order.indexOf(on)
-        return at < 0 ? order.length : at
+        const at = OUTCOMES.indexOf(on)
+        return at < 0 ? OUTCOMES.length : at
     }
-    return edges.filter((e) => e.from === from).sort((a, b) => rank(a.on) - rank(b.on))
+    return edges.
+        map((edge, index) => ({edge, index})).
+        filter(({edge}) => edge.from === from).
+        sort((a, b) => (rank(a.edge.on) - rank(b.edge.on)) || (a.index - b.index))
+}
+
+// withEdge changes one transition of a route.
+export function withEdge(flow: Flow, index: number, patch: Partial<FlowEdge>): Flow {
+    return {...flow, edges: flow.edges.map((e, i) => (i === index ? {...e, ...patch} : e))}
+}
+
+// withoutEdge removes one transition.
+export function withoutEdge(flow: Flow, index: number): Flow {
+    return {...flow, edges: flow.edges.filter((_, i) => i !== index)}
+}
+
+// condIsComplete says the condition can actually decide something — the engine
+// refuses half-filled ones, so the editor keeps them out of what it saves.
+export function condIsComplete(cond: EdgeCond | undefined): boolean {
+    if (!cond) {
+        return true
+    }
+    if (cond.commentContains) {
+        return !cond.property && !cond.value
+    }
+    return Boolean(cond.property && cond.value)
 }
 
 // columnsOf lists the columns a route goes through, in the board's own order —

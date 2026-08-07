@@ -129,23 +129,35 @@ const AutomationDialog = (props: Props) => {
         setDirty(true)
     }
 
-    // A column is a option of the board's own property, so adding one is a
+    // A column is an option of the board's own property, so making one is a
     // board edit and lands immediately — the automation around it is what waits
-    // for Save.
-    const addBoardColumn = async (name: string) => {
+    // for Save. The option id is generated here, which is what lets a dropped
+    // palette block become a stage without waiting for the board to come back.
+    const createColumn = async (name: string): Promise<BoardColumn | undefined> => {
         const target = property()
         if (!target) {
+            return undefined
+        }
+        setError('')
+        const option = {id: Utils.createGuid(IDType.BlockID), value: name, color: 'propColorDefault'} as IPropertyOption
+        try {
+            await mutator.insertPropertyOption(props.board.id, props.board.cardProperties, target, option, 'add column')
+            return {optionId: option.id, name}
+        } catch (e) {
+            setError(String(e))
+            return undefined
+        }
+    }
+
+    const renameColumn = async (column: BoardColumn, name: string) => {
+        const target = property()
+        const option = target?.options.find((o) => o.id === column.optionId)
+        if (!target || !option) {
             return
         }
         setError('')
         try {
-            await mutator.insertPropertyOption(
-                props.board.id,
-                props.board.cardProperties,
-                target,
-                {id: Utils.createGuid(IDType.BlockID), value: name, color: 'propColorDefault'} as IPropertyOption,
-                'add column',
-            )
+            await mutator.changePropertyOptionValue(props.board.id, props.board.cardProperties, target, option, name)
         } catch (e) {
             setError(String(e))
         }
@@ -265,7 +277,8 @@ const AutomationDialog = (props: Props) => {
                     focusColumnId={props.focusColumnId}
                     onChange={change}
                     onPropertyChange={setProperty}
-                    onAddBoardColumn={addBoardColumn}
+                    onCreateColumn={createColumn}
+                    onRenameColumn={renameColumn}
                     onAddRouteOption={addRouteOption}
                     routeOptionMissing={(flow) => routeOptionMissing(props.board, flow)}
                 />

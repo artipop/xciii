@@ -1101,7 +1101,6 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
@@ -1162,7 +1161,6 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
@@ -1223,7 +1221,6 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         
         <div
@@ -1363,6 +1360,7 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
         </div>
         
       </div>
+      
     </div>
     
   </div>
@@ -9510,7 +9508,6 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
@@ -9571,7 +9568,6 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
@@ -9632,7 +9628,6 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         
         <div
@@ -9735,6 +9730,7 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
         </div>
         
       </div>
+      
     </div>
     
   </div>
@@ -10086,7 +10082,6 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
@@ -10147,7 +10142,6 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
@@ -10208,7 +10202,6 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         
         <div
@@ -10311,6 +10304,7 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
         </div>
         
       </div>
+      
     </div>
     
   </div>

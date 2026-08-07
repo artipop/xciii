@@ -167,4 +167,97 @@ describe('components/acp/automationEditor', () => {
         expect(next.flows).toHaveLength(2)
         expect(next.flows[1].nodes.map((n) => n.column)).toEqual(['В работе'])
     })
+
+    // The palette is how a board grows a column that does something: a block
+    // dropped on the canvas becomes a column of the board, a spec saying what
+    // it does and — on a route — a stage standing where it landed.
+    test('a palette block dropped on the canvas becomes a working column', async () => {
+        const onCreateColumn = vi.fn().mockResolvedValue({optionId: 'opt-new', name: 'Deploy'})
+        const {container, onChange} = renderEditor({onCreateColumn})
+
+        expect(container.querySelectorAll('.AutomationEditor__block')).toHaveLength(4)
+        userEvent.click(screen.getByRole('button', {name: 'Фича'}))
+
+        const canvas = container.querySelector('[data-testid="flow-diagram"]')!
+        const data = new Map([['application/x-xciii-block', 'deploy']])
+        fireEvent.drop(canvas, {
+            dataTransfer: {
+                types: [...data.keys()],
+                getData: (t: string) => data.get(t) || '',
+            },
+        })
+
+        await waitFor(() => expect(onCreateColumn).toHaveBeenCalledWith('Deploy'))
+        await waitFor(() => expect(onChange).toHaveBeenCalled())
+        const next: Automation = onChange.mock.calls.at(-1)![0]
+        expect(next.columns.find((c) => c.optionId === 'opt-new')).toMatchObject({column: 'Deploy', action: 'deploy'})
+        expect(next.flows[0].nodes.map((n) => n.column)).toContain('Deploy')
+    })
+
+    // A transition can fork on the card: the success edge stays the fallback,
+    // and a branch with a condition is added beside it.
+    test('a branch on a condition is added beside the transition', async () => {
+        const {container, onChange} = renderEditor()
+
+        userEvent.click(screen.getByRole('button', {name: 'Фича'}))
+        const stage = await waitFor(() => {
+            const found = [...container.querySelectorAll('.FlowDiagram__stage')].
+                find((el) => el.textContent?.includes('В работе'))
+            expect(found).toBeTruthy()
+            return found!
+        })
+        fireEvent.click(stage)
+        userEvent.click(await screen.findByRole('button', {name: '+ branch on a condition'}))
+
+        await waitFor(() => expect(onChange).toHaveBeenCalled())
+        const next: Automation = onChange.mock.calls.at(-1)![0]
+        expect(next.flows[0].edges).toHaveLength(2)
+        expect(next.flows[0].edges[1]).toMatchObject({from: 'opt-work', on: SUCCESS, if: {property: '', value: ''}})
+    })
+
+    // The condition is written where the arrow is edited: property and value
+    // from the board's own vocabulary, nothing typed by hand.
+    test('a property condition is picked from the board’s own options', async () => {
+        const priority = {
+            id: 'prop-priority',
+            name: 'Приоритет',
+            type: 'select',
+            options: [
+                {id: 'opt-high', value: 'Высокий', color: ''},
+                {id: 'opt-low', value: 'Низкий', color: ''},
+            ],
+        } as IPropertyTemplate
+        const withBranch: Automation = {
+            ...automation,
+            flows: [{
+                ...automation.flows[0],
+                edges: [
+                    ...automation.flows[0].edges,
+                    {from: 'opt-work', to: 'opt-review', on: SUCCESS, if: {property: '', value: ''}},
+                ],
+            }],
+        }
+        const {container, onChange} = renderEditor({
+            automation: withBranch,
+            properties: [property, priority],
+        })
+        userEvent.click(screen.getByRole('button', {name: 'Фича'}))
+        const stage = await waitFor(() => {
+            const found = [...container.querySelectorAll('.FlowDiagram__stage')].
+                find((el) => el.textContent?.includes('В работе'))
+            expect(found).toBeTruthy()
+            return found!
+        })
+        fireEvent.click(stage)
+
+        // Scoped to the condition editor: with two select properties the routes
+        // bar has a property picker too, and it also offers «Приоритет».
+        const propertyPick = [...container.querySelectorAll('.AutomationEditor__cond select')].
+            find((el) => [...el.querySelectorAll('option')].some((o) => o.textContent === 'Приоритет'))!
+        userEvent.selectOptions(propertyPick, 'Приоритет')
+
+        await waitFor(() => expect(onChange).toHaveBeenCalled())
+        const next: Automation = onChange.mock.calls.at(-1)![0]
+        expect(next.flows[0].edges[1].if).toEqual({property: 'Приоритет', value: ''})
+    })
 })

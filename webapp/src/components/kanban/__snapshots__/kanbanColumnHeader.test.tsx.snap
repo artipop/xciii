@@ -344,7 +344,6 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
         class="CompassIcon icon-plus AddIcon"
       />
     </button>
-    
   </div>
 </div>
 `;
@@ -410,7 +409,6 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
         class="CompassIcon icon-plus AddIcon"
       />
     </button>
-    
   </div>
 </div>
 `;
@@ -476,7 +474,6 @@ exports[`src/components/kanban/kanbanColumnHeader > should match snapshot 1`] = 
         class="CompassIcon icon-plus AddIcon"
       />
     </button>
-    
   </div>
 </div>
 `;
@@ -520,7 +517,6 @@ exports[`src/components/kanban/kanbanColumnHeader > should match snapshot readon
     <div
       class="octo-spacer"
     />
-    
     
   </div>
 </div>

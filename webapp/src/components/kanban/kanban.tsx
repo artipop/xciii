@@ -23,6 +23,9 @@ import {getCurrentBoardTemplates} from '../../store/cards'
 import BoardPermissionGate from '../permissions/boardPermissionGate'
 import HiddenCardCount from '../../components/hiddenCardCount/hiddenCardCount'
 
+import {invalidateBoardColumns} from '../acp/columnBadge'
+import AutomationDialog from '../acp/automationDialog'
+
 import KanbanCard from './kanbanCard'
 import KanbanColumn from './kanbanColumn'
 import KanbanColumnHeader from './kanbanColumnHeader'
@@ -48,6 +51,9 @@ type Props = {
 }
 
 const Kanban = (props: Props) => {
+    // The column whose automation is open. Held here rather than in the header
+    // because a board edit made from inside the dialog re-creates the headers.
+    const [settingsColumn, setSettingsColumn] = createSignal('')
     const intl = useIntl()
     const cardTemplates = useAppSelector(getCurrentBoardTemplates)
     const [defaultTemplateID, setDefaultTemplateID] = createSignal<string>()
@@ -231,6 +237,7 @@ const Kanban = (props: Props) => {
                             calculationMenuOpen={showCalculationsMenu().get(group.option.id) || false}
                             onCalculationMenuOpen={() => toggleOptions(group.option.id, true)}
                             onCalculationMenuClose={() => toggleOptions(group.option.id, false)}
+                            onOpenSettings={setSettingsColumn}
                         />
                     )}
                 </For>
@@ -341,6 +348,15 @@ const Kanban = (props: Props) => {
                     </div>
                 </Show>
             </div>
+
+            <Show when={settingsColumn()}>
+                <AutomationDialog
+                    board={props.board}
+                    focusColumnId={settingsColumn()}
+                    onClose={() => setSettingsColumn('')}
+                    onSaved={invalidateBoardColumns}
+                />
+            </Show>
         </div>
     )
 }

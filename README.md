@@ -303,7 +303,17 @@ the one thing a rewrite must not quietly drop.
   to be a dialog of its own) or a transition (which event, and where it leads).
   What a card names its route with is checked too: a route with no option of its
   name is one no card can ever take, and the editor says so and offers the click
-  that adds it.
+  that adds it. A palette beside the canvas holds the blocks a route is built
+  from — «Агент», «Деплой», «Тест», a plain column — and dropping one makes a
+  real column of the board where it landed, already doing what the block says.
+- **Rules on the arrows.** A transition can be conditional on the card — «по
+  успеху → Деплой, но только если Приоритет = Высокий», with the unconditional
+  arrow as the fallback — or on the words the agent signed off with («ГОТОВО К
+  ДЕПЛОЮ»), which is how the agent itself routes the card. A stage can also wait
+  for an option set on the card («Одобрено = Да») and move the moment a person
+  marks it — pushed by the board, nothing polled. The conditions are drawn on
+  the arrows, spelled out in the card's flow strip, and the set is closed: the
+  board picks from what the engine implements, nothing is a script.
 - **Templates** (*«Сохранить как шаблон…»* in the board menu, the pencil in the
   template picker, or *«Колонки, маршруты и настройка…»* on the banner of a
   template being edited). A template is a board that has not been made yet, and

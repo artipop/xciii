@@ -7,28 +7,30 @@ import {useIntl, IntlShape} from '../../intl'
 import {IPropertyTemplate} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
 
-import FlowDiagram, {NODE_HEIGHT, NODE_WIDTH, StageCount, edgeId} from './flowDiagram'
+import FlowDiagram, {BLOCK_DRAG_TYPE, NODE_HEIGHT, NODE_WIDTH, StageCount, condLabel, edgeId, edgeIndexOf} from './flowDiagram'
 import {
     ACTIONS,
     Automation,
     BoardColumn,
+    CARD_CHANGED,
     ColumnSpec,
-    FAILURE,
     Flow,
     FlowEdge,
     FlowNode,
     FlowTrigger,
+    OUTCOMES,
     SUCCESS,
     blankSpec,
     columnsOf,
     nodeFor,
     outgoing,
-    setEdge,
     specFor,
     upsertSpec,
     withColumn,
+    withEdge,
     withNode,
     withoutColumn,
+    withoutEdge,
 } from './automation'
 
 import './automationEditor.scss'
@@ -76,9 +78,12 @@ type Props = {
     onChange: (next: Automation) => void
     onPropertyChange?: (property: IPropertyTemplate) => void
 
-    // A column is the board's, not the automation's: adding or renaming one
+    // A column is the board's, not the automation's: making or renaming one
     // changes the board itself, which is why the editor asks rather than does.
-    onAddBoardColumn?: (name: string) => void
+    // onCreateColumn returns the created column, so a block dropped on the
+    // canvas can become a stage without waiting for the board to come back.
+    onCreateColumn?: (name: string) => Promise<BoardColumn | undefined>
+    onRenameColumn?: (column: BoardColumn, name: string) => Promise<void>
 
     // onAddRouteOption puts the route's name among the options a card can name
     // it with. Without one, the route is drawn and never taken.
@@ -99,13 +104,16 @@ const COLUMNS_PER_ROW = 5
 // failure branch and a shelf of unused columns is three rows deep.
 const CANVAS_HEIGHT = 420
 
+// The palette: what a block dropped on the canvas becomes. 'none' is a plain
+// column — a place cards stand, nothing runs.
+const PALETTE = ['agent', 'deploy', 'test', 'none']
+
 const AutomationEditor = (props: Props) => {
     const intl = useIntl()
     const [route, setRoute] = createSignal(COLUMNS_VIEW)
     const [selected, setSelected] = createSignal<Selection>(
         props.focusColumnId ? {kind: 'node', id: props.focusColumnId} : null,
     )
-    const [newColumn, setNewColumn] = createSignal('')
 
     const flows = () => props.automation.flows
     const specs = () => props.automation.columns
@@ -157,24 +165,29 @@ const AutomationEditor = (props: Props) => {
         return current?.kind === 'node' ? nodes().find((n) => n.id === current.id) : undefined
     }
 
-    const selectedEdge = () => {
+    // An edge is addressed by its index in the route; the canvas id carries it.
+    const selectedEdgeIndex = (): number => {
         const current = selected()
-        return current?.kind === 'edge' ? edges().find((e) => edgeId(e) === current.id) : undefined
+        if (current?.kind !== 'edge') {
+            return -1
+        }
+        const index = edgeIndexOf(current.id)
+        const edge = edges()[index]
+        return edge && edgeId(edge, index) === current.id ? index : -1
     }
+
+    const selectedEdge = () => edges()[selectedEdgeIndex()]
 
     const updateFlow = (name: string, patch: (f: Flow) => Flow) => {
         props.onChange({...props.automation, flows: flows().map((f) => (f.name === name ? patch(f) : f))})
     }
 
-    const updateSpec = (node: FlowNode, patch: Partial<ColumnSpec>) => {
-        const column = columnOf(node)
-        if (!column) {
-            return
-        }
-        const current = specOf(node) || blankSpec(props.boardId, props.property, column)
+    const updateSpec = (column: BoardColumn, patch: Partial<ColumnSpec>, base?: Automation) => {
+        const automation = base || props.automation
+        const current = specFor(automation.columns, column) || blankSpec(props.boardId, props.property, column)
         props.onChange({
-            ...props.automation,
-            columns: upsertSpec(specs(), {
+            ...automation,
+            columns: upsertSpec(automation.columns, {
                 ...current,
                 ...patch,
                 boardId: props.boardId,
@@ -186,6 +199,13 @@ const AutomationEditor = (props: Props) => {
         })
     }
 
+    const updateNodeSpec = (node: FlowNode, patch: Partial<ColumnSpec>) => {
+        const column = columnOf(node)
+        if (column) {
+            updateSpec(column, patch)
+        }
+    }
+
     const onCanvasChange = (nextNodes: FlowNode[], nextEdges: FlowEdge[]) => {
         const current = flow()
         if (!current) {
@@ -194,12 +214,46 @@ const AutomationEditor = (props: Props) => {
         updateFlow(current.name, (f) => ({...f, nodes: nextNodes, edges: nextEdges}))
     }
 
-    const addColumnToRoute = (column: BoardColumn) => {
+    const addColumnToRoute = (column: BoardColumn, at?: {x: number, y: number}) => {
         const current = flow()
         if (!current) {
             return
         }
-        updateFlow(current.name, (f) => withColumn(f, column))
+        updateFlow(current.name, (f) => withColumn(f, column, at))
+        setSelected({kind: 'node', id: column.optionId || column.name})
+    }
+
+    // A palette block dropped on the canvas: a new column of the board, doing
+    // what the block says, standing where it was dropped.
+    const dropBlock = async (kind: string, at: {x: number, y: number}) => {
+        if (!props.onCreateColumn) {
+            return
+        }
+        const taken = new Set(props.columns.map((c) => c.name.toLowerCase()))
+        let name = blockName(intl, kind)
+        for (let n = 2; taken.has(name.toLowerCase()); n++) {
+            name = `${blockName(intl, kind)} ${n}`
+        }
+        const column = await props.onCreateColumn(name)
+        if (!column) {
+            return
+        }
+
+        // One onChange for the whole outcome: the spec (what the column does)
+        // and, on a route, the stage standing where the block landed.
+        let next = props.automation
+        const current = flow()
+        if (current) {
+            next = {
+                ...next,
+                flows: next.flows.map((f) => (f.name === current.name ? withColumn(f, column, at) : f)),
+            }
+        }
+        if (kind === 'none') {
+            props.onChange(next)
+        } else {
+            updateSpec(column, {action: kind}, next)
+        }
         setSelected({kind: 'node', id: column.optionId || column.name})
     }
 
@@ -212,23 +266,28 @@ const AutomationEditor = (props: Props) => {
         setSelected(null)
     }
 
-    const changeEdge = (from: string, on: string, to: string) => {
+    const patchEdge = (index: number, patch: Partial<FlowEdge>) => {
         const current = flow()
         if (!current) {
             return
         }
-        updateFlow(current.name, (f) => ({...f, edges: setEdge(f.edges, from, on, to)}))
+        updateFlow(current.name, (f) => withEdge(f, index, patch))
+        const selection = selected()
+        if (selection?.kind === 'edge' && edgeIndexOf(selection.id) === index) {
+            const edge = {...current.edges[index], ...patch}
+            setSelected({kind: 'edge', id: edgeId(edge, index)})
+        }
     }
 
-    // Changing which event a transition waits for keeps where it leads: the
-    // arrow is the same arrow, drawn for a different reason.
-    const changeEdgeKind = (edge: FlowEdge, on: string) => {
+    const dropEdge = (index: number) => {
         const current = flow()
         if (!current) {
             return
         }
-        updateFlow(current.name, (f) => ({...f, edges: setEdge(setEdge(f.edges, edge.from, edge.on, ''), edge.from, on, edge.to)}))
-        setSelected({kind: 'edge', id: `${edge.from}-${on}`})
+        updateFlow(current.name, (f) => withoutEdge(f, index))
+        if (selected()?.kind === 'edge') {
+            setSelected(null)
+        }
     }
 
     const addTransition = (node: FlowNode) => {
@@ -236,12 +295,29 @@ const AutomationEditor = (props: Props) => {
         if (!current) {
             return
         }
-        const used = new Set(outgoing(current.edges, node.id).map((e) => e.on))
-        const kind = [SUCCESS, FAILURE, ...waitTriggers().map((t) => t.kind)].find((k) => !used.has(k))
+        const used = new Set(outgoing(current.edges, node.id).map(({edge}) => edge.on))
+        const kind = [...OUTCOMES, ...waitTriggers().map((t) => t.kind)].
+            find((k) => k !== CARD_CHANGED && !used.has(k)) || SUCCESS
         const target = current.nodes.find((n) => n.id !== node.id)
-        if (kind && target) {
-            changeEdge(node.id, kind, target.id)
+        if (!target) {
+            return
         }
+        updateFlow(current.name, (f) => ({...f, edges: [...f.edges, {from: node.id, to: target.id, on: kind}]}))
+        setSelected({kind: 'edge', id: edgeId({from: node.id, to: target.id, on: kind}, current.edges.length)})
+    }
+
+    // A fork: a second edge on the same event, told apart by its condition. The
+    // condition starts empty and the panel opens on it — an empty condition is
+    // exactly what the engine refuses, so it has to be filled to be saved.
+    const addBranch = (index: number) => {
+        const current = flow()
+        const edge = current?.edges[index]
+        if (!current || !edge) {
+            return
+        }
+        const branch: FlowEdge = {...edge, if: {property: '', value: ''}}
+        updateFlow(current.name, (f) => ({...f, edges: [...f.edges, branch]}))
+        setSelected({kind: 'edge', id: edgeId(branch, current.edges.length)})
     }
 
     const addRoute = () => {
@@ -279,16 +355,116 @@ const AutomationEditor = (props: Props) => {
         setSelected(null)
     }
 
-    const addBoardColumn = () => {
-        const name = newColumn().trim()
-        if (!name) {
+    // Renaming a column happens on the board (through the container) and in the
+    // draft at once: the specs and stages that name it must follow, or the
+    // engine would look for a column that no longer exists.
+    const renameColumn = async (node: FlowNode, name: string) => {
+        const column = columnOf(node)
+        if (!column || !name.trim() || name.trim() === column.name) {
             return
         }
-        props.onAddBoardColumn?.(name)
-        setNewColumn('')
+        const trimmed = name.trim()
+        await props.onRenameColumn?.(column, trimmed)
+        props.onChange({
+            ...props.automation,
+            columns: specs().map((s) => (s.optionId === column.optionId ? {...s, column: trimmed} : s)),
+            flows: flows().map((f) => ({
+                ...f,
+                nodes: f.nodes.map((n) => (n.optionId === column.optionId ? {...n, column: trimmed} : n)),
+            })),
+        })
     }
 
     const stageTargets = () => nodes().filter((n) => n.id !== selectedNode()?.id)
+
+    // The select properties a condition may ask about. The route's own column
+    // property is excluded: a change of that is a move, not a mark.
+    const condProperties = () => props.properties.filter((p) => p.name !== (flow()?.property || props.property?.name))
+
+    // The condition editor, shared by the node panel's rows and the edge panel:
+    // one select for the kind of question, then the question's own fields.
+    const condEditor = (index: number, edge: FlowEdge) => {
+        const cond = edge.if
+        const isOutcome = OUTCOMES.includes(edge.on)
+        const kind = () => {
+            if (!cond) {
+                return 'always'
+            }
+            return cond.commentContains === undefined ? 'property' : 'comment'
+        }
+        const setKind = (next: string) => {
+            switch (next) {
+            case 'always':
+                patchEdge(index, {if: undefined})
+                break
+            case 'comment':
+                patchEdge(index, {if: {commentContains: ''}})
+                break
+            default:
+                patchEdge(index, {if: {property: condProperties()[0]?.name || '', value: ''}})
+            }
+        }
+        const condProperty = () => condProperties().find((p) => p.name === cond?.property)
+
+        return (
+            <div class='AutomationEditor__cond'>
+                <Show when={edge.on !== CARD_CHANGED}>
+                    <select
+                        value={kind()}
+                        onChange={(e) => setKind(e.currentTarget.value)}
+                    >
+                        <option value='always'>{intl.formatMessage({id: 'Automation.cond-always', defaultMessage: 'always'})}</option>
+                        <option value='property'>{intl.formatMessage({id: 'Automation.cond-property', defaultMessage: 'only if the card has…'})}</option>
+                        <Show when={isOutcome}>
+                            <option value='comment'>{intl.formatMessage({id: 'Automation.cond-comment', defaultMessage: 'only if the agent wrote…'})}</option>
+                        </Show>
+                    </select>
+                </Show>
+
+                <Show when={kind() === 'property' || edge.on === CARD_CHANGED}>
+                    <div class='AutomationEditor__condFields'>
+                        <select
+                            value={cond?.property || ''}
+                            onChange={(e) => patchEdge(index, {if: {property: e.currentTarget.value, value: ''}})}
+                        >
+                            <option value=''>{intl.formatMessage({id: 'Automation.cond-pick-property', defaultMessage: '— property —'})}</option>
+                            <For each={condProperties()}>
+                                {(p) => (
+                                    <option
+                                        value={p.name}
+                                        selected={cond?.property === p.name}
+                                    >{p.name}</option>
+                                )}
+                            </For>
+                        </select>
+                        <span class='AutomationEditor__arrow'>{'='}</span>
+                        <select
+                            value={cond?.value || ''}
+                            onChange={(e) => patchEdge(index, {if: {property: cond?.property || '', value: e.currentTarget.value}})}
+                        >
+                            <option value=''>{intl.formatMessage({id: 'Automation.cond-pick-value', defaultMessage: '— value —'})}</option>
+                            <For each={condProperty()?.options || []}>
+                                {(o) => (
+                                    <option
+                                        value={o.value}
+                                        selected={cond?.value === o.value}
+                                    >{o.value}</option>
+                                )}
+                            </For>
+                        </select>
+                    </div>
+                </Show>
+
+                <Show when={kind() === 'comment' && edge.on !== CARD_CHANGED}>
+                    <input
+                        value={cond?.commentContains || ''}
+                        placeholder={intl.formatMessage({id: 'Automation.cond-comment-placeholder', defaultMessage: 'text in the agent’s closing comment'})}
+                        onInput={(e) => patchEdge(index, {if: {commentContains: e.currentTarget.value}})}
+                    />
+                </Show>
+            </div>
+        )
+    }
 
     return (
         <div class='AutomationEditor'>
@@ -349,6 +525,29 @@ const AutomationEditor = (props: Props) => {
             </div>
 
             <div class='AutomationEditor__body'>
+                <Show when={props.onCreateColumn}>
+                    <div class='AutomationEditor__palette'>
+                        <span class='AutomationEditor__label'>
+                            {intl.formatMessage({id: 'Automation.palette', defaultMessage: 'Drag onto the canvas'})}
+                        </span>
+                        <For each={PALETTE}>
+                            {(kind) => (
+                                <div
+                                    class={`AutomationEditor__block AutomationEditor__block--${kind}`}
+                                    draggable={true}
+                                    data-block={kind}
+                                    onDragStart={(e) => {
+                                        e.dataTransfer?.setData(BLOCK_DRAG_TYPE, kind)
+                                    }}
+                                >
+                                    <span class='AutomationEditor__blockName'>{blockName(intl, kind)}</span>
+                                    <span class='AutomationEditor__blockWhat'>{actionLabel(intl, kind)}</span>
+                                </div>
+                            )}
+                        </For>
+                    </div>
+                </Show>
+
                 <div class='AutomationEditor__canvas'>
                     <FlowDiagram
                         nodes={nodes()}
@@ -363,45 +562,38 @@ const AutomationEditor = (props: Props) => {
                         height={CANVAS_HEIGHT}
                         onChange={flow() ? onCanvasChange : undefined}
                         onAddColumn={addColumnToRoute}
+                        onDropBlock={props.onCreateColumn ? dropBlock : undefined}
                     />
                     <div class='AutomationEditor__hint'>
                         <Show
                             when={flow()}
-                            fallback={intl.formatMessage({id: 'Automation.columns-hint', defaultMessage: 'Every column of the board is here. Pick one to say what happens when a card lands in it.'})}
+                            fallback={intl.formatMessage({id: 'Automation.columns-hint', defaultMessage: 'Every column of the board is here. Pick one to say what happens when a card lands in it, or drop a block from the palette to make a new one.'})}
                         >
-                            {intl.formatMessage({id: 'Automation.route-hint', defaultMessage: 'Pull from the right side of a column to join it to the next one (upper point — on success, lower — on failure), from the bottom point to wait for an event. A faded column joins the route when you click it.'})}
+                            {intl.formatMessage({id: 'Automation.route-hint', defaultMessage: 'Pull from the right side of a column to join it to the next one (upper point — on success, lower — on failure), from the bottom point to wait for an event. A faded column joins the route when you click or drag it.'})}
                         </Show>
                     </div>
-                    <Show when={props.onAddBoardColumn}>
-                        <div class='AutomationEditor__newColumn'>
-                            <input
-                                value={newColumn()}
-                                placeholder={intl.formatMessage({id: 'Automation.new-column-placeholder', defaultMessage: 'New column on the board…'})}
-                                onInput={(e) => setNewColumn(e.currentTarget.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        addBoardColumn()
-                                    }
-                                }}
-                            />
-                            <Button onClick={addBoardColumn}>
-                                {intl.formatMessage({id: 'Automation.add-column', defaultMessage: 'Add column'})}
-                            </Button>
-                        </div>
-                    </Show>
                 </div>
 
                 <div class='AutomationEditor__panel'>
                     <Show when={selectedNode()}>
                         {(node) => (
                             <div class='AutomationEditor__section'>
-                                <div class='AutomationEditor__panelTitle'>{node().column}</div>
+                                <Show
+                                    when={props.onRenameColumn}
+                                    fallback={<div class='AutomationEditor__panelTitle'>{node().column}</div>}
+                                >
+                                    <input
+                                        class='AutomationEditor__panelName'
+                                        value={node().column}
+                                        onChange={(e) => renameColumn(node(), e.currentTarget.value)}
+                                    />
+                                </Show>
 
                                 <label>
                                     {intl.formatMessage({id: 'Automation.on-arrival', defaultMessage: 'When a card lands here'})}
                                     <select
                                         value={specOf(node())?.action || 'none'}
-                                        onChange={(e) => updateSpec(node(), {action: e.currentTarget.value})}
+                                        onChange={(e) => updateNodeSpec(node(), {action: e.currentTarget.value})}
                                     >
                                         <For each={ACTIONS}>
                                             {(a) => (
@@ -432,7 +624,7 @@ const AutomationEditor = (props: Props) => {
                                                         checked={(specOf(node())?.agents || []).includes(a.name)}
                                                         onChange={() => {
                                                             const crew = specOf(node())?.agents || []
-                                                            updateSpec(node(), {agents: crew.includes(a.name) ? crew.filter((n) => n !== a.name) : [...crew, a.name]})
+                                                            updateNodeSpec(node(), {agents: crew.includes(a.name) ? crew.filter((n) => n !== a.name) : [...crew, a.name]})
                                                         }}
                                                     />
                                                     {a.name}
@@ -447,7 +639,7 @@ const AutomationEditor = (props: Props) => {
                                             type='number'
                                             min={0}
                                             value={specOf(node())?.maxRunning || 0}
-                                            onInput={(e) => updateSpec(node(), {maxRunning: Number(e.currentTarget.value)})}
+                                            onInput={(e) => updateNodeSpec(node(), {maxRunning: Number(e.currentTarget.value)})}
                                         />
                                     </label>
 
@@ -463,7 +655,7 @@ const AutomationEditor = (props: Props) => {
                                         {intl.formatMessage({id: 'Automation.deploy', defaultMessage: 'Deploy target'})}
                                         <select
                                             value={specOf(node())?.deployName || ''}
-                                            onChange={(e) => updateSpec(node(), {deployName: e.currentTarget.value})}
+                                            onChange={(e) => updateNodeSpec(node(), {deployName: e.currentTarget.value})}
                                         >
                                             <option value=''>{intl.formatMessage({id: 'Automation.deploy-default', defaultMessage: '— the card’s own —'})}</option>
                                             <For each={props.deploys}>
@@ -484,41 +676,58 @@ const AutomationEditor = (props: Props) => {
                                             {intl.formatMessage({id: 'Automation.transitions', defaultMessage: 'From here the card goes'})}
                                         </span>
                                         <For each={outgoing(edges(), node().id)}>
-                                            {(edge) => (
+                                            {({edge, index}) => (
                                                 <div class='AutomationEditor__transition'>
-                                                    <select
-                                                        value={edge.on}
-                                                        onChange={(e) => changeEdgeKind(edge, e.currentTarget.value)}
-                                                    >
-                                                        <For each={props.triggers}>
-                                                            {(t) => (
-                                                                <option
-                                                                    value={t.kind}
-                                                                    selected={edge.on === t.kind}
-                                                                >{t.label}</option>
-                                                            )}
-                                                        </For>
-                                                    </select>
-                                                    <span class='AutomationEditor__arrow'>{'→'}</span>
-                                                    <select
-                                                        value={edge.to}
-                                                        onChange={(e) => changeEdge(edge.from, edge.on, e.currentTarget.value)}
-                                                    >
-                                                        <For each={stageTargets()}>
-                                                            {(n) => (
-                                                                <option
-                                                                    value={n.id}
-                                                                    selected={edge.to === n.id}
-                                                                >{n.column}</option>
-                                                            )}
-                                                        </For>
-                                                    </select>
-                                                    <button
-                                                        type='button'
-                                                        class='AutomationEditor__remove'
-                                                        title={intl.formatMessage({id: 'Automation.remove-transition', defaultMessage: 'Remove'})}
-                                                        onClick={() => changeEdge(edge.from, edge.on, '')}
-                                                    >{'×'}</button>
+                                                    <div class='AutomationEditor__transitionRow'>
+                                                        <select
+                                                            value={edge.on}
+                                                            onChange={(e) => patchEdge(index, {on: e.currentTarget.value})}
+                                                        >
+                                                            <For each={props.triggers}>
+                                                                {(t) => (
+                                                                    <option
+                                                                        value={t.kind}
+                                                                        selected={edge.on === t.kind}
+                                                                    >{t.label}</option>
+                                                                )}
+                                                            </For>
+                                                        </select>
+                                                        <span class='AutomationEditor__arrow'>{'→'}</span>
+                                                        <select
+                                                            value={edge.to}
+                                                            onChange={(e) => patchEdge(index, {to: e.currentTarget.value})}
+                                                        >
+                                                            <For each={stageTargets()}>
+                                                                {(n) => (
+                                                                    <option
+                                                                        value={n.id}
+                                                                        selected={edge.to === n.id}
+                                                                    >{n.column}</option>
+                                                                )}
+                                                            </For>
+                                                        </select>
+                                                        <button
+                                                            type='button'
+                                                            class='AutomationEditor__remove'
+                                                            title={intl.formatMessage({id: 'Automation.remove-transition', defaultMessage: 'Remove'})}
+                                                            onClick={() => dropEdge(index)}
+                                                        >{'×'}</button>
+                                                    </div>
+
+                                                    {/* The rule, right under its arrow: the fork is
+                                                        drawn by conditions, so this is where a route
+                                                        stops being a straight line. */}
+                                                    {condEditor(index, edge)}
+
+                                                    <Show when={OUTCOMES.includes(edge.on) && !edge.if}>
+                                                        <button
+                                                            type='button'
+                                                            class='AutomationEditor__branch'
+                                                            onClick={() => addBranch(index)}
+                                                        >
+                                                            {intl.formatMessage({id: 'Automation.add-branch', defaultMessage: '+ branch on a condition'})}
+                                                        </button>
+                                                    </Show>
                                                 </div>
                                             )}
                                         </For>
@@ -564,12 +773,15 @@ const AutomationEditor = (props: Props) => {
                             <div class='AutomationEditor__section'>
                                 <div class='AutomationEditor__panelTitle'>
                                     {intl.formatMessage({id: 'Automation.transition', defaultMessage: 'Transition'})}
+                                    <Show when={condLabel(intl, edge().if)}>
+                                        <span class='AutomationEditor__condBadge'>{condLabel(intl, edge().if)}</span>
+                                    </Show>
                                 </div>
                                 <label>
                                     {intl.formatMessage({id: 'Automation.transition-on', defaultMessage: 'When'})}
                                     <select
                                         value={edge().on}
-                                        onChange={(e) => changeEdgeKind(edge(), e.currentTarget.value)}
+                                        onChange={(e) => patchEdge(selectedEdgeIndex(), {on: e.currentTarget.value})}
                                     >
                                         <For each={props.triggers}>
                                             {(t) => (
@@ -581,11 +793,12 @@ const AutomationEditor = (props: Props) => {
                                         </For>
                                     </select>
                                 </label>
+                                {condEditor(selectedEdgeIndex(), edge())}
                                 <label>
                                     {intl.formatMessage({id: 'Automation.transition-to', defaultMessage: 'The card moves to'})}
                                     <select
                                         value={edge().to}
-                                        onChange={(e) => changeEdge(edge().from, edge().on, e.currentTarget.value)}
+                                        onChange={(e) => patchEdge(selectedEdgeIndex(), {to: e.currentTarget.value})}
                                     >
                                         <For each={nodes().filter((n) => n.id !== edge().from)}>
                                             {(n) => (
@@ -597,12 +810,7 @@ const AutomationEditor = (props: Props) => {
                                         </For>
                                     </select>
                                 </label>
-                                <Button
-                                    onClick={() => {
-                                        changeEdge(edge().from, edge().on, '')
-                                        setSelected(null)
-                                    }}
-                                >
+                                <Button onClick={() => dropEdge(selectedEdgeIndex())}>
                                     {intl.formatMessage({id: 'Automation.remove-transition', defaultMessage: 'Remove'})}
                                 </Button>
                             </div>
@@ -663,6 +871,21 @@ const AutomationEditor = (props: Props) => {
             </div>
         </div>
     )
+}
+
+// blockName is what a palette block's column is called until somebody renames
+// it — the noun, where actionLabel is the sentence.
+export function blockName(intl: IntlShape, kind: string): string {
+    switch (kind) {
+    case 'agent':
+        return intl.formatMessage({id: 'Automation.block-agent', defaultMessage: 'Agent'})
+    case 'deploy':
+        return intl.formatMessage({id: 'Automation.block-deploy', defaultMessage: 'Deploy'})
+    case 'test':
+        return intl.formatMessage({id: 'Automation.block-test', defaultMessage: 'Test'})
+    default:
+        return intl.formatMessage({id: 'Automation.block-none', defaultMessage: 'Column'})
+    }
 }
 
 // actionLabel names what happens in a column, in the reader's language.

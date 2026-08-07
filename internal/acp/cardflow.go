@@ -81,9 +81,9 @@ func (m *Manager) CardFlowFor(cardID string) (*CardFlow, error) {
 		})
 	}
 
-	for _, kind := range flow.WaitsFor(st.NodeID) {
-		out.WaitingFor = append(out.WaitingFor, TriggerLabel(kind))
-	}
+	// Conditions included: «на карточке выбрано «Одобрено» = «Да»» is the
+	// answer to "what is this card waiting for", the kind alone is not.
+	out.WaitingFor = append(out.WaitingFor, flow.WaitDescriptions(st.NodeID)...)
 
 	m.mu.Lock()
 	_, out.Running = m.byCard[cardID]

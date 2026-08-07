@@ -12,12 +12,17 @@ import {
     automationChanges,
     boardAutomationProperties,
     boardColumns,
+    condIsComplete,
+    edgeTarget,
     impliedSetupSteps,
+    outgoing,
     readBoardAutomation,
     readBoardSetup,
     routeOptionMissing,
     withColumn,
+    withEdge,
     withoutColumn,
+    withoutEdge,
 } from './automation'
 
 const columns = [
@@ -153,5 +158,34 @@ describe('components/acp/automation', () => {
         const board = boardWith({})
         expect(routeOptionMissing(board, {name: 'Фича', nodes: [], edges: []})).toBe(true)
         expect(routeOptionMissing(board, {name: 'на ревью', nodes: [], edges: []})).toBe(false)
+    })
+
+    // With conditions, several edges share one (from, on): the identity of an
+    // edge is its index, and the unconditional one is the fallback wherever it
+    // stands in the list.
+    test('edges are addressed by index, and the fallback is the unconditional one', () => {
+        const edges = [
+            {from: 'a', to: 'fast', on: SUCCESS, if: {property: 'Приоритет', value: 'Высокий'}},
+            {from: 'a', to: 'review', on: SUCCESS},
+            {from: 'a', to: 'blocked', on: 'failure'},
+        ]
+        expect(edgeTarget(edges, 'a', SUCCESS)).toBe('review')
+
+        const listed = outgoing(edges, 'a')
+        expect(listed.map(({index}) => index)).toEqual([0, 1, 2])
+
+        const flow: Flow = {name: 'Фича', nodes: [], edges}
+        expect(withEdge(flow, 0, {to: 'done'}).edges[0].to).toBe('done')
+        expect(withoutEdge(flow, 1).edges).toHaveLength(2)
+    })
+
+    // The engine refuses half-filled conditions, so the editor must know when
+    // one can be saved at all.
+    test('a condition is complete with both halves of exactly one question', () => {
+        expect(condIsComplete(undefined)).toBe(true)
+        expect(condIsComplete({property: 'Приоритет', value: 'Высокий'})).toBe(true)
+        expect(condIsComplete({commentContains: 'READY'})).toBe(true)
+        expect(condIsComplete({property: 'Приоритет'})).toBe(false)
+        expect(condIsComplete({property: 'Приоритет', value: 'Высокий', commentContains: 'x'})).toBe(false)
     })
 })

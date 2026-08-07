@@ -17,6 +17,7 @@ import {agentBindings} from './agentProjectsDialog'
 import AutomationEditor from './automationEditor'
 import {
     Automation,
+    BoardColumn,
     BoardSetup,
     BoardSetupStep,
     Flow,
@@ -98,20 +99,31 @@ const TemplateEditor = (props: Props) => {
     // template. Go fills it in when the copy is first opened.
     const columns = () => boardColumns(props.board, property()?.name)
 
-    const addBoardColumn = async (name: string) => {
+    const createColumn = async (name: string): Promise<BoardColumn | undefined> => {
         const target = property()
         if (!target) {
+            return undefined
+        }
+        setError('')
+        const option = {id: Utils.createGuid(IDType.BlockID), value: name, color: 'propColorDefault'} as IPropertyOption
+        try {
+            await mutator.insertPropertyOption(props.board.id, props.board.cardProperties, target, option, 'add column to template')
+            return {optionId: option.id, name}
+        } catch (e) {
+            setError(String(e))
+            return undefined
+        }
+    }
+
+    const renameColumn = async (column: BoardColumn, name: string) => {
+        const target = property()
+        const option = target?.options.find((o) => o.id === column.optionId)
+        if (!target || !option) {
             return
         }
         setError('')
         try {
-            await mutator.insertPropertyOption(
-                props.board.id,
-                props.board.cardProperties,
-                target,
-                {id: Utils.createGuid(IDType.BlockID), value: name, color: 'propColorDefault'} as IPropertyOption,
-                'add column to template',
-            )
+            await mutator.changePropertyOptionValue(props.board.id, props.board.cardProperties, target, option, name)
         } catch (e) {
             setError(String(e))
         }
@@ -229,7 +241,8 @@ const TemplateEditor = (props: Props) => {
                     deploys={deploys()}
                     onChange={setAutomation}
                     onPropertyChange={setProperty}
-                    onAddBoardColumn={addBoardColumn}
+                    onCreateColumn={createColumn}
+                    onRenameColumn={renameColumn}
                     onAddRouteOption={addRouteOption}
                     routeOptionMissing={(flow) => routeOptionMissing(props.board, flow)}
                 />

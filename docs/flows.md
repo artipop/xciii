@@ -41,8 +41,37 @@ with no route chosen, which is where you say what each column does.
   "when this succeeded", the lower "when it failed" — or from the bottom point
   for something to wait for, like a merged branch. Click an arrow to change what
   it waits for or where it leads;
+- **drop a block from the palette** — «Агент», «Деплой», «Тест» or a plain
+  column — and a new column of the board appears where it landed, already doing
+  what the block says. Rename it in the panel; the routes and specs follow the
+  option, not the name;
 - a stage may differ from its column on one route only — «Только в этом
   маршруте…» in the panel — but that is the exception, folded away.
+
+## Rules: when one event is not one arrow
+
+A transition can ask about the card before it moves it. The condition sits on
+the arrow, in the panel and on its caption, and there are exactly two questions
+it can ask — both about the card, neither a script:
+
+- **«только если на карточке…»** — a select property carries a value. Two
+  arrows out of one event make a fork: «шаг прошёл» ведёт срочную карточку в
+  «Деплой», остальные — в «На ревью». The first condition that holds wins, and
+  the arrow without one is the fallback;
+- **«только если агент написал…»** — the agent's closing comment contains a
+  text. This is how the agent itself routes the card: попросите его закончить
+  словами «ГОТОВО К ДЕПЛОЮ», и ветка с этим условием поедет, только когда он
+  сам так решил. Только на исходах шага — там, где агент вообще говорил.
+
+And one more thing a stage can wait for, beside the project's events:
+
+- **«на карточке выбрано»** — a person (or an agent through the board's tools)
+  sets an option on the card: «Одобрено = Да», скажем. The stage moves the card
+  the moment the option is set — no polling, the board pushes. Setting any
+  other option does nothing: the arrow names exactly what it waits for.
+
+A card's own strip shows these waits with their conditions spelled out, so a
+parked card always answers "what are you waiting for" precisely.
 
 Two things are saved at different moments, and it is worth knowing which. A
 **column of the board** — adding one, renaming one — is a change to the board and

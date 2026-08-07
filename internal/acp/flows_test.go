@@ -51,6 +51,20 @@ func TestValidateFlow(t *testing.T) {
 		"неизвестный проект": func(f *FlowEntry) { f.ProjectName = "nosuchproject" },
 		"неизвестный агент":       func(f *FlowEntry) { f.Nodes[0].AgentName = "nosuchagent" },
 		"неизвестная цель":        func(f *FlowEntry) { f.Nodes[0].DeployName = "nosuchtarget" },
+		"пустое условие":          func(f *FlowEntry) { f.Edges[0].If = &EdgeCond{} },
+		"условие про оба сразу": func(f *FlowEntry) {
+			f.Edges[0].If = &EdgeCond{Property: "Приоритет", Value: "Высокий", CommentContains: "готово"}
+		},
+		"условие без значения": func(f *FlowEntry) { f.Edges[0].If = &EdgeCond{Property: "Приоритет"} },
+		"ответ агента на VCS-переходе": func(f *FlowEntry) {
+			f.Edges[2].If = &EdgeCond{CommentContains: "готово"} // pr.closed: агент там не говорил
+		},
+		"card.changed без опции": func(f *FlowEntry) {
+			f.Edges = append(f.Edges, FlowEdge{From: "review", To: "blocked", On: TriggerCardChanged})
+		},
+		"два безусловных перехода по одному событию": func(f *FlowEntry) {
+			f.Edges = append(f.Edges, FlowEdge{From: "work", To: "blocked", On: TriggerSuccess})
+		},
 	}
 	for name, break_ := range cases {
 		f := sampleFlow()
@@ -77,6 +91,17 @@ func TestValidateFlow(t *testing.T) {
 	}
 	if len(got.Nodes[0].AgentNames) != 1 || got.Nodes[0].AgentNames[0] != "claude-1" || got.Nodes[0].AgentName != "" {
 		t.Fatalf("the old single agent was not folded into the crew: %+v", got.Nodes[0])
+	}
+
+	// Several conditional edges on one event are the point of conditions: the
+	// fork. They are told apart by their conditions, and one fallback is fine.
+	f = sampleFlow()
+	f.Edges = append(f.Edges,
+		FlowEdge{From: "work", To: "blocked", On: TriggerSuccess, If: &EdgeCond{Property: "Приоритет", Value: "Низкий"}},
+		FlowEdge{From: "work", To: "review", On: TriggerSuccess, If: &EdgeCond{CommentContains: "READY"}},
+	)
+	if _, err := validateFlow(f, projects, agents, deploys); err != nil {
+		t.Fatalf("a fork of conditional edges was rejected: %v", err)
 	}
 }
 
@@ -213,10 +238,10 @@ func TestFlowGraphLookups(t *testing.T) {
 	if n, ok := f.NodeByColumn("to agent"); !ok || n.ID != "work" {
 		t.Fatalf("column lookup is case-sensitive: %+v", n)
 	}
-	if n, ok := f.Next("work", TriggerSuccess); !ok || n.ID != "review" {
+	if n, _, ok := f.Next("work", TriggerSuccess, nil, ""); !ok || n.ID != "review" {
 		t.Fatalf("success edge: %+v", n)
 	}
-	if _, ok := f.Next("review", TriggerSuccess); ok {
+	if _, _, ok := f.Next("review", TriggerSuccess, nil, ""); ok {
 		t.Fatal("a node without an edge must not resolve one")
 	}
 	// Only the VCS triggers make a node worth polling for.
@@ -280,18 +305,18 @@ func TestTemplateFlowsUseTheConfigsOwnColumns(t *testing.T) {
 	if n, ok := feature.NodeByColumn("К агенту"); !ok || n.Action != FlowActionAgent {
 		t.Fatalf("agent stage: %+v", n)
 	}
-	if n, ok := feature.Next("test", TriggerSuccess); !ok || n.Column != "Проверено" {
+	if n, _, ok := feature.Next("test", TriggerSuccess, nil, ""); !ok || n.Column != "Проверено" {
 		t.Fatalf("test success edge: %+v", n)
 	}
 	// A failed check goes back to the agent rather than to a person.
-	if n, ok := feature.Next("test", TriggerFailure); !ok || n.Column != "К агенту" {
+	if n, _, ok := feature.Next("test", TriggerFailure, nil, ""); !ok || n.Column != "К агенту" {
 		t.Fatalf("test failure edge: %+v", n)
 	}
 	// Waiting for the merge needs no token: it is the local git watcher.
 	if !IsVCSTrigger(TriggerBranchMerged) || IsGitHubTrigger(TriggerBranchMerged) {
 		t.Fatal("the seeded routes must work without GitHub credentials")
 	}
-	if n, ok := feature.Next("review", TriggerBranchMerged); !ok || n.Column != cfg.DeployColumn {
+	if n, _, ok := feature.Next("review", TriggerBranchMerged, nil, ""); !ok || n.Column != cfg.DeployColumn {
 		t.Fatalf("review edge: %+v", n)
 	}
 

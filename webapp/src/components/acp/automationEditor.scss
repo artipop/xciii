@@ -49,6 +49,59 @@
         align-items: stretch;
     }
 
+    // The palette: blocks a route is built from. Dragging one onto the canvas
+    // makes a column of the board, so the blocks look like the stages they
+    // become — same box, same coloured edge.
+    .AutomationEditor__palette {
+        flex: 0 0 132px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .AutomationEditor__block {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 10px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
+        border-left-width: 4px;
+        border-radius: var(--radius-md);
+        background: rgb(var(--surface-bg-rgb));
+        cursor: grab;
+        user-select: none;
+    }
+
+    .AutomationEditor__block:active {
+        cursor: grabbing;
+    }
+
+    .AutomationEditor__block--agent {
+        border-left-color: rgba(var(--link-color-rgb), 1);
+    }
+
+    .AutomationEditor__block--deploy {
+        border-left-color: rgba(var(--sidebar-text-active-border-rgb), 1);
+    }
+
+    .AutomationEditor__block--test {
+        border-left-color: rgba(var(--online-indicator-rgb), 1);
+    }
+
+    .AutomationEditor__blockName {
+        @include label;
+
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 1);
+    }
+
+    .AutomationEditor__blockWhat {
+        @include prose;
+
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
     .AutomationEditor__canvas {
         flex: 1 1 auto;
         min-width: 0;
@@ -112,8 +165,18 @@
     }
 
     // A transition reads as a sentence — on this event, go there — so its two
-    // selects sit on one line with the arrow between them.
+    // selects sit on one line with the arrow between them, and its rule sits
+    // right underneath.
     .AutomationEditor__transition {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 6px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: var(--radius-sm);
+    }
+
+    .AutomationEditor__transitionRow {
         display: flex;
         align-items: center;
         gap: 4px;
@@ -122,6 +185,55 @@
             flex: 1 1 0;
             min-width: 0;
         }
+    }
+
+    .AutomationEditor__cond {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .AutomationEditor__condFields {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        select {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+    }
+
+    .AutomationEditor__condBadge {
+        @include prose;
+
+        margin-left: 8px;
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        text-transform: none;
+    }
+
+    .AutomationEditor__branch {
+        @include label;
+
+        align-self: flex-start;
+        border: 0;
+        background: transparent;
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .AutomationEditor__branch:hover {
+        color: rgba(var(--center-channel-color-rgb), 0.8);
+    }
+
+    .AutomationEditor__panelName {
+        @include label;
+
+        font-size: 13px;
+        width: 100%;
     }
 
     .AutomationEditor__arrow {
@@ -166,16 +278,5 @@
         font-size: 12px;
         color: rgba(var(--center-channel-color-rgb), 0.88);
         background: rgba(var(--warning-rgb), 0.16);
-    }
-
-    .AutomationEditor__newColumn {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 8px;
-
-        input {
-            flex: 0 1 260px;
-        }
     }
 }
