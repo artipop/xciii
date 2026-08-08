@@ -427,6 +427,8 @@ window-position autosave.
 
 ## Documentation
 
+- [docs/guide/](docs/guide/README.md) — руководство пользователя, по-русски:
+  как этим пользоваться, а не как это устроено.
 - [docs/flows.md](docs/flows.md) — how a card gets worked on, for somebody using the
   board rather than working on it.
 - [docs/templates.md](docs/templates.md) — what a template carries, how it is edited,
