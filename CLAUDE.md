@@ -228,10 +228,29 @@ which is what keeps the two containers from growing their own answers.
 ### An agent talks back through MCP, not through its output
 
 Everything above is us talking to an agent. `internal/boardmcp` is the way back:
-an MCP server giving an agent the board as tools (`list_columns`, `create_card`,
-`create_cards`). It is what planning ends with — a conversation about what to do
-leaves the cards on the board itself, where before a person read the screen and
-retyped them.
+an MCP server giving an agent the board as tools. It is what planning ends with —
+a conversation about what to do leaves the cards on the board itself, where before
+a person read the screen and retyped them — and it is what finishing ends with
+too, since a card carries what happens to it next in its own column.
+
+The surface is the board in the vocabulary a person uses: read it
+(`list_columns`, `list_flows`, `list_cards`, `get_card`), put work on it
+(`create_card`, `create_cards`), change it (`update_card`, `comment_card`), and
+carry a card on (`move_card`). Everything is **named, never identified** — a
+column, a project, a route, an answer a stage waits for — because names are what
+a person typed and ids are what the board's own REST API would have made an agent
+learn. A **card id** is the one exception, and it has a default: empty means the
+card the run stands on (the grant carries it), which is the card an agent working
+on one always means.
+
+`move_card` is `update_card` with a column in it, and the split is for the model
+rather than for the code: moving is the call whose *consequence* is the point.
+Which is why `acp.CardEdit` is the one write in `BoardWriter` that lets the board
+notify — the rest are the integration's own bookkeeping and must not re-trigger
+the agent that produced them, but a card moved because an agent asked for it has
+to set the column's automation off, exactly as a person's drag does. The card's
+**description is not editable**: it is a person's content, and what an agent has
+to say about a card goes where everything else a session says already goes.
 
 **The app serves it, over HTTP, on the front door** (`/acp/board/mcp`,
 `boardapi.go`). The other two MCP servers are subprocesses of the agent because
@@ -247,7 +266,10 @@ The server carries **a grant token, not a board id**
 run and dies with it, so an agent cannot leave cards anywhere else, and one found
 later opens nothing — the same bargain the dokku server takes, where the model
 picks steps and never targets. The handler is **stateless**, so every request
-carries the grant and no session id outlives the check.
+carries the grant and no session id outlives the check. Now that the tools reach
+existing cards, every call that names one is checked against the grant's board
+(`grantedCard`): a card id is something an agent can read anywhere, and without
+that check one board's grant would edit every other board's cards.
 
 A session declares MCP servers in `session/new`, where ACP has a field for HTTP
 ones. A **terminal** has no such field, so it gets a config file its CLI is
@@ -256,8 +278,10 @@ filled that column in simply runs without the tools, which is better than
 guessing a flag and failing to open the window.
 
 A session could take the same server through `session/new` and does not yet: a
-card's own agent creating cards is a loop with nothing to stop it, and that wants
-a decision before it wants code.
+card's own agent creating cards — or moving its own card into the column that
+starts it — is a loop with nothing to stop it, and that wants a decision before
+it wants code. A terminal is a person watching, which is what stands in for that
+decision today.
 
 ### A terminal is how a person works with an agent
 

@@ -57,6 +57,10 @@ type BoardWriter interface {
 	// the board from outside a person's hands, and it exists for the planning
 	// conversation: it ends in tasks, and until now somebody had to retype them.
 	CreateCard(ctx context.Context, card NewCard) (string, error)
+	// UpdateCard changes an existing card: its title, its select values, the
+	// column it stands in. Alone among the writes here it is *not* silent — see
+	// CardEdit for why.
+	UpdateCard(ctx context.Context, cardID string, edit CardEdit) error
 }
 
 // NewCard is a card asked for from outside the board — by an agent through the
@@ -80,11 +84,41 @@ type NewCard struct {
 	Options []string
 }
 
+// CardEdit is a change to a card asked for from outside the board — by an agent
+// through the board MCP server today. Every field is empty-means-unchanged, so a
+// caller that only knows the column does not have to send the title back with it.
+//
+// The rest of BoardWriter writes with notifications off, because those writes
+// are the integration's own bookkeeping and must not re-trigger the agent that
+// produced them. This one is the opposite: an agent asking for a card to move is
+// somebody asking the board for something, exactly as a person dragging it is,
+// and the automation has to see it or the request means nothing.
+//
+// The card's description is deliberately not here. It is a person's content —
+// arbitrary blocks a person wrote — and an agent that has something to say about
+// a card says it in a comment, which is where everything else a session says
+// already goes.
+type CardEdit struct {
+	Title string
+	// Property/Column name the column the card should stand in, the way the
+	// config names it rather than by option id.
+	Property string
+	Column   string
+	// Options are the card's other select values by option name — a project, a
+	// route, the answer a stage is waiting for. Which property each belongs to
+	// is the board's business, as it is for NewCard.
+	Options []string
+}
+
 // BoardReader reads a card on demand, so a session can be opened from the UI
 // without waiting for the card to be moved into the trigger column. The
 // returned event carries no columns — nothing was moved.
 type BoardReader interface {
 	CardByID(ctx context.Context, cardID string) (CardMoved, error)
+	// CardsForBoard is every card on a board. The events it returns carry no
+	// Body: reading one costs a query per card, and a list is read to pick a
+	// card out, not to work from it — CardByID is what answers about one card.
+	CardsForBoard(ctx context.Context, boardID string) ([]CardMoved, error)
 }
 
 // AgentUser is a registry entry seen as a board account: the user an agent is

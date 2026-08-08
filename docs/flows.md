@@ -253,6 +253,39 @@ Nothing here takes the board away from you:
   that is asking for one outright, so the assignee rule does not apply;
 - **Deploy** next to the branch publishes it without moving the card.
 
+## What an agent can do to the board itself
+
+An agent working in a terminal is given the board as tools, so the board is
+something it can read and change rather than something it describes to you and
+leaves you to do. Every one of them speaks in the names you see on the screen —
+a column, a project, an agent, a route, an answer — and none of them takes a
+board: an agent only ever reaches the board its terminal was opened on.
+
+| What it can do | Tools |
+|---|---|
+| see the board | *list_columns* — the columns and what each one sets off; *list_flows* — the routes, their stages and what carries a card off each one |
+| find a card | *list_cards*, optionally in one column; *get_card* for one card with its description and where it stands on its route |
+| put work on the board | *create_card*, *create_cards* — how a planning conversation ends |
+| change a card | *update_card* — its title, its project, its route, an answer a stage is waiting on; *comment_card* — a note in the card's own history |
+| hand work on | *move_card* — the card goes into another column, **and the column starts** |
+
+That last row is the one to know about. A card an agent moves is a card moved:
+the column it lands in does what it always does, and the route takes it from
+there, exactly as if you had dragged it yourself. So an agent that finishes what
+a card asked for can put it into review, and the route carries it the rest of the
+way without you.
+
+Two things are deliberately not there. An agent **cannot rewrite a card's
+description** — that is what you wrote, and what an agent has to say about a card
+goes into the comments where the rest of its history already is. And a card an
+agent asks about must be **on the same board**: a card id it read somewhere else
+opens nothing.
+
+The tools reach an agent you are talking to in a terminal. A session running a
+card on its own does not get them — an agent moving its own card into the column
+that starts it is a circle with nobody in it, and while that is worth having, it
+is not worth having by accident.
+
 ## Settings an agent has of its own
 
 Agents differ in what they can be told beyond the task: Claude has **Fast mode**,

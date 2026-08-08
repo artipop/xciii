@@ -25,11 +25,27 @@ var _ acp.BoardWriter = (*Writer)(nil)
 
 func NewWriter(a *app.App) *Writer { return &Writer{app: a} }
 
+// cardBlock is the card every write here starts from. It reads the block rather
+// than the board's own Card view on purpose: Block2Card refuses a card whose
+// contentOrder is not a list — which a card created with none is, stored as JSON
+// null — and a card that cannot be read is a card that cannot be commented on or
+// moved. Nothing below needs anything from a card but the board it stands on.
+func (w *Writer) cardBlock(cardID string) (*model.Block, error) {
+	block, err := w.app.GetBlockByID(cardID)
+	if err != nil {
+		return nil, fmt.Errorf("get card %s: %w", cardID, err)
+	}
+	if block == nil || block.Type != model.TypeCard {
+		return nil, fmt.Errorf("block %s is not a card", cardID)
+	}
+	return block, nil
+}
+
 // AddComment posts a comment block on the card.
 func (w *Writer) AddComment(ctx context.Context, cardID, text string) error {
-	card, err := w.app.GetCardByID(cardID)
+	card, err := w.cardBlock(cardID)
 	if err != nil {
-		return fmt.Errorf("get card %s: %w", cardID, err)
+		return err
 	}
 	now := utils.GetMillis()
 	block := &model.Block{
@@ -54,9 +70,9 @@ func (w *Writer) AddComment(ctx context.Context, cardID, text string) error {
 // MoveCard sets the card's select property to optionID (post-MVP: used to
 // advance the card after a successful session).
 func (w *Writer) MoveCard(ctx context.Context, cardID, optionID string) error {
-	card, err := w.app.GetCardByID(cardID)
+	card, err := w.cardBlock(cardID)
 	if err != nil {
-		return fmt.Errorf("get card %s: %w", cardID, err)
+		return err
 	}
 	board, err := w.app.GetBoard(card.BoardID)
 	if err != nil {
@@ -78,18 +94,16 @@ func (w *Writer) MoveCard(ctx context.Context, cardID, optionID string) error {
 	if propID == "" {
 		return fmt.Errorf("no select property on board %s has option %s", board.ID, optionID)
 	}
-	patch := &model.CardPatch{UpdatedProperties: map[string]any{propID: optionID}}
-	_, err = w.app.PatchCard(patch, cardID, model.SingleUser, true)
-	return err
+	return w.patchCard(cardID, &model.CardPatch{UpdatedProperties: map[string]any{propID: optionID}}, true)
 }
 
 // MoveCardByOptionName moves a card to a column named in the config rather than
 // identified by id — "Tested", not "a7f3…". Property and option are matched
 // case-insensitively, as the trigger columns are.
 func (w *Writer) MoveCardByOptionName(ctx context.Context, cardID, propertyName, optionName string) error {
-	card, err := w.app.GetCardByID(cardID)
+	card, err := w.cardBlock(cardID)
 	if err != nil {
-		return fmt.Errorf("get card %s: %w", cardID, err)
+		return err
 	}
 	board, err := w.app.GetBoard(card.BoardID)
 	if err != nil {
@@ -103,9 +117,89 @@ func (w *Writer) MoveCardByOptionName(ctx context.Context, cardID, propertyName,
 	if !ok {
 		return fmt.Errorf("на доске %s нет колонки %q в свойстве %q", board.ID, optionName, propertyName)
 	}
-	patch := &model.CardPatch{UpdatedProperties: map[string]any{propID: optionID}}
-	_, err = w.app.PatchCard(patch, cardID, model.SingleUser, true)
+	return w.patchCard(cardID, &model.CardPatch{UpdatedProperties: map[string]any{propID: optionID}}, true)
+}
+
+// UpdateCard changes an existing card the way a person editing it would: its
+// title, the column it stands in, its other select values — all named, never
+// identified by id.
+//
+// It is the one write here that lets the board notify: a card moved because an
+// agent asked for it has to set off the column's automation, or asking was
+// pointless. Everything else in this file stays silent so the integration's own
+// writes cannot re-trigger the agent that produced them.
+//
+// A name the board does not have is refused rather than dropped. CreateCard
+// takes the opposite bargain, and for a reason that does not hold here: there a
+// plan of five cards must not be lost to one wrong guess, while here one card
+// was asked to change one way, and half of that change is not it.
+func (w *Writer) UpdateCard(ctx context.Context, cardID string, edit acp.CardEdit) error {
+	card, err := w.cardBlock(cardID)
+	if err != nil {
+		return err
+	}
+	board, err := w.app.GetBoard(card.BoardID)
+	if err != nil {
+		return fmt.Errorf("get board %s: %w", card.BoardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return err
+	}
+
+	patch, err := cardPatchFor(schema, edit)
+	if err != nil {
+		return err
+	}
+	return w.patchCard(cardID, patch, false)
+}
+
+// patchCard applies a card patch as a block patch. app.PatchCard would do the
+// same and then convert the result back into a Card, which fails for a card
+// whose contentOrder is not a list — and a write that landed must not be
+// reported as an error because the answer could not be rendered.
+func (w *Writer) patchCard(cardID string, patch *model.CardPatch, disableNotify bool) error {
+	blockPatch, err := model.CardPatch2BlockPatch(patch)
+	if err != nil {
+		return err
+	}
+	_, err = w.app.PatchBlockAndNotify(cardID, blockPatch, model.SingleUser, disableNotify)
 	return err
+}
+
+// cardPatchFor turns named values into the ids a card stores, or says which name
+// the board does not have.
+func cardPatchFor(schema model.PropSchema, edit acp.CardEdit) (*model.CardPatch, error) {
+	patch := &model.CardPatch{}
+	if title := strings.TrimSpace(edit.Title); title != "" {
+		patch.Title = &title
+	}
+	properties := map[string]any{}
+	if edit.Column != "" {
+		propID, optionID, ok := findSelectOption(schema, edit.Property, edit.Column)
+		if !ok {
+			return nil, fmt.Errorf("на доске нет колонки %q в свойстве %q", edit.Column, edit.Property)
+		}
+		properties[propID] = optionID
+	}
+	for _, option := range edit.Options {
+		propID, optionID, ok := findOptionByName(schema, option)
+		if !ok {
+			return nil, fmt.Errorf("на доске нет значения %q", option)
+		}
+		// The column is the edit's own field, so an option name that happens to
+		// match a column must not move the card somewhere nobody asked for.
+		if properties[propID] == nil {
+			properties[propID] = optionID
+		}
+	}
+	if patch.Title == nil && len(properties) == 0 {
+		return nil, fmt.Errorf("не сказано, что менять")
+	}
+	if len(properties) > 0 {
+		patch.UpdatedProperties = properties
+	}
+	return patch, nil
 }
 
 // findSelectOption resolves a (property name, option name) pair to the ids the
@@ -150,9 +244,9 @@ func findOptionByName(schema model.PropSchema, optionName string) (propID, optio
 // anything else becomes a download. This is how a test run's screenshots end up
 // where a human reads the result, instead of in a directory nobody opens.
 func (w *Writer) AttachFile(ctx context.Context, cardID, filename, mime string, data []byte) error {
-	card, err := w.app.GetCardByID(cardID)
+	card, err := w.cardBlock(cardID)
 	if err != nil {
-		return fmt.Errorf("get card %s: %w", cardID, err)
+		return err
 	}
 	board, err := w.app.GetBoard(card.BoardID)
 	if err != nil {
@@ -220,7 +314,15 @@ func (w *Writer) CreateCard(ctx context.Context, spec acp.NewCard) (string, erro
 		}
 	}
 
-	card, err := w.app.CreateCard(&model.Card{Title: spec.Title, Properties: properties}, board.ID, model.SingleUser, true)
+	// ContentOrder is set even though the card has no content yet: a nil one is
+	// stored as JSON null, and the board's own Block2Card refuses to read a card
+	// whose contentOrder is neither a list nor absent. A card nobody can read
+	// back is a card nobody can comment on or move — which is everything that
+	// was supposed to happen to it next.
+	card, err := w.app.CreateCard(
+		&model.Card{Title: spec.Title, Properties: properties, ContentOrder: []string{}},
+		board.ID, model.SingleUser, true,
+	)
 	if err != nil {
 		return "", err
 	}

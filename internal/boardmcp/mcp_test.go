@@ -16,11 +16,52 @@ import (
 
 // fakeBoard is one agent's board: already bound to a grant, like the real one.
 type fakeBoard struct {
-	cards []Card
+	cards    []Card
+	changes  []CardChange
+	comments []string
 }
 
 func (b *fakeBoard) Columns(context.Context) ([]Column, error) {
 	return []Column{{Name: "К агенту", Action: "session"}, {Name: "Идеи"}}, nil
+}
+
+func (b *fakeBoard) Flows(context.Context) ([]Flow, error) {
+	return []Flow{{Name: "Обычный", Stages: []FlowStage{
+		{Column: "К агенту", Action: "session", Crew: []string{"claude"}},
+		{Column: "Ревью", Waiting: []string{"ревью одобрено"}},
+	}}}, nil
+}
+
+func (b *fakeBoard) Cards(_ context.Context, column string) ([]CardInfo, error) {
+	all := []CardInfo{
+		{ID: "card-1", Title: "Починить окно", Column: "К агенту", Options: []string{"xciii"}, Mine: true,
+			Flow: "Обычный", Stage: "К агенту", Running: true},
+		{ID: "card-2", Title: "Вторая", Column: "Идеи"},
+	}
+	if column == "" {
+		return all, nil
+	}
+	var out []CardInfo
+	for _, c := range all {
+		if strings.EqualFold(c.Column, column) {
+			out = append(out, c)
+		}
+	}
+	return out, nil
+}
+
+func (b *fakeBoard) Card(ctx context.Context, cardID string) (CardInfo, error) {
+	if cardID == "" {
+		cardID = "card-1"
+	}
+	cards, _ := b.Cards(ctx, "")
+	for _, c := range cards {
+		if c.ID == cardID {
+			c.Body = "Оно открывается пополам."
+			return c, nil
+		}
+	}
+	return CardInfo{}, fmt.Errorf("карточка %s не на этой доске", cardID)
 }
 
 func (b *fakeBoard) CreateCards(_ context.Context, cards []Card) ([]CardResult, error) {
@@ -34,6 +75,19 @@ func (b *fakeBoard) CreateCards(_ context.Context, cards []Card) ([]CardResult, 
 		out = append(out, CardResult{ID: fmt.Sprintf("card-%d", i), Title: c.Title})
 	}
 	return out, nil
+}
+
+func (b *fakeBoard) UpdateCard(_ context.Context, change CardChange) error {
+	if change.Column == "Такой нет" {
+		return fmt.Errorf("нет такой колонки")
+	}
+	b.changes = append(b.changes, change)
+	return nil
+}
+
+func (b *fakeBoard) Comment(_ context.Context, cardID, text string) error {
+	b.comments = append(b.comments, cardID+": "+text)
+	return nil
 }
 
 func text(t *testing.T, res *mcp.CallToolResult) string {
@@ -81,6 +135,32 @@ func TestNothingLandingIsAFailure(t *testing.T) {
 	}
 	if !strings.Contains(text(t, res), "нет доступа") {
 		t.Errorf("the reason is missing: %s", text(t, res))
+	}
+}
+
+// A card an agent has to act on is a card it must be able to name, and the
+// answer has to say the things a decision turns on: the id, where it stands, and
+// whether somebody is already working on it.
+func TestACardSaysWhatActingOnItNeeds(t *testing.T) {
+	line := cardLine(CardInfo{
+		ID: "card-1", Title: "Починить окно", Column: "К агенту", Options: []string{"xciii"},
+		Mine: true, Flow: "Обычный", Stage: "К агенту", Running: true,
+		Waiting: []string{"ревью одобрено"},
+	})
+	for _, want := range []string{"card-1", "Починить окно", "К агенту", "xciii", "Обычный", "агент работает", "ревью одобрено"} {
+		if !strings.Contains(line, want) {
+			t.Errorf("the card does not say %q:\n%s", want, line)
+		}
+	}
+	if !strings.Contains(line, "в работе у тебя") {
+		t.Errorf("the agent's own card is not pointed out:\n%s", line)
+	}
+
+	// A card off any route says nothing about routes, rather than saying so with
+	// empty fields the model then has to interpret.
+	plain := cardLine(CardInfo{ID: "card-2", Title: "Вторая", Column: "Идеи"})
+	if strings.Contains(plain, "маршрут") {
+		t.Errorf("a card on no route talks about one:\n%s", plain)
 	}
 }
 

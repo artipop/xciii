@@ -413,7 +413,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// it rather than leaving a person to retype the plan (boardtools.go). A
 	// kind whose CLI cannot be told about MCP gets none, and the terminal opens
 	// exactly as it did before.
-	boardToken, mcpConfig := m.openBoardTools(spec.boardID, spec.agent)
+	boardToken, mcpConfig := m.openBoardTools(spec.boardID, spec.cardID, spec.agent)
 
 	argv, err := terminalCommand(spec.agent, resume, mcpConfig)
 	if err != nil {

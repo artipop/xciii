@@ -76,6 +76,8 @@ type grantedBoard struct {
 	token string
 }
 
+var _ boardmcp.Board = (*grantedBoard)(nil)
+
 func (g *grantedBoard) Columns(_ context.Context) ([]boardmcp.Column, error) {
 	columns, err := g.mgr.BoardToolColumns(g.token)
 	if err != nil {
@@ -86,6 +88,75 @@ func (g *grantedBoard) Columns(_ context.Context) ([]boardmcp.Column, error) {
 		out = append(out, boardmcp.Column{Name: c.Name, Action: c.Action, Agents: c.Agents})
 	}
 	return out, nil
+}
+
+func (g *grantedBoard) Flows(_ context.Context) ([]boardmcp.Flow, error) {
+	flows, err := g.mgr.BoardToolFlows(g.token)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]boardmcp.Flow, 0, len(flows))
+	for _, f := range flows {
+		stages := make([]boardmcp.FlowStage, 0, len(f.Stages))
+		for _, s := range f.Stages {
+			stages = append(stages, boardmcp.FlowStage{
+				Column:  s.Column,
+				Action:  s.Action,
+				Crew:    s.Crew,
+				Waiting: s.Waiting,
+			})
+		}
+		out = append(out, boardmcp.Flow{Name: f.Name, Stages: stages})
+	}
+	return out, nil
+}
+
+func (g *grantedBoard) Cards(ctx context.Context, column string) ([]boardmcp.CardInfo, error) {
+	cards, err := g.mgr.BoardToolCards(ctx, g.token, column)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]boardmcp.CardInfo, 0, len(cards))
+	for _, c := range cards {
+		out = append(out, cardInfo(c))
+	}
+	return out, nil
+}
+
+func (g *grantedBoard) Card(ctx context.Context, cardID string) (boardmcp.CardInfo, error) {
+	card, err := g.mgr.BoardToolCardByID(ctx, g.token, cardID)
+	if err != nil {
+		return boardmcp.CardInfo{}, err
+	}
+	return cardInfo(card), nil
+}
+
+func (g *grantedBoard) UpdateCard(ctx context.Context, change boardmcp.CardChange) error {
+	return g.mgr.UpdateCardFromTools(ctx, g.token, change.CardID, acp.CardEdit{
+		Title:   change.Title,
+		Column:  change.Column,
+		Options: change.Options,
+	})
+}
+
+func (g *grantedBoard) Comment(ctx context.Context, cardID, text string) error {
+	return g.mgr.CommentFromTools(ctx, g.token, cardID, text)
+}
+
+func cardInfo(c acp.BoardToolCard) boardmcp.CardInfo {
+	return boardmcp.CardInfo{
+		ID:      c.ID,
+		Title:   c.Title,
+		Column:  c.Column,
+		Options: c.Options,
+		Body:    c.Body,
+		Mine:    c.Mine,
+		Flow:    c.Flow,
+		Stage:   c.Stage,
+		Waiting: c.Waiting,
+		Running: c.Running,
+		Queued:  c.Queued,
+	}
 }
 
 func (g *grantedBoard) CreateCards(ctx context.Context, cards []boardmcp.Card) ([]boardmcp.CardResult, error) {

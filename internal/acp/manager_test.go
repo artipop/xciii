@@ -24,8 +24,10 @@ type fakeWriter struct {
 	comments    map[string][]string // cardID → comments
 	moves       []cardMove          // moves by column name, in order
 	attachments []attachment
-	created     []NewCard // cards asked for through the board tools
+	created     []NewCard           // cards asked for through the board tools
+	edits       map[string]CardEdit // changes asked for through the board tools
 	createErr   error
+	editErr     error
 }
 
 // cardMove is one MoveCardByOptionName call.
@@ -79,6 +81,26 @@ func (w *fakeWriter) CreateCard(ctx context.Context, card NewCard) (string, erro
 	return fmt.Sprintf("card-%d", len(w.created)), nil
 }
 
+func (w *fakeWriter) UpdateCard(ctx context.Context, cardID string, edit CardEdit) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.editErr != nil {
+		return w.editErr
+	}
+	if w.edits == nil {
+		w.edits = map[string]CardEdit{}
+	}
+	w.edits[cardID] = edit
+	return nil
+}
+
+func (w *fakeWriter) cardEdit(cardID string) (CardEdit, bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	edit, ok := w.edits[cardID]
+	return edit, ok
+}
+
 func (w *fakeWriter) cardComments(cardID string) []string {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -129,13 +151,32 @@ func lastAttention(e *fakeEmitter, key string) map[string]any {
 	return found
 }
 
-// fakeReader serves one card to whatever asks for one by id.
-type fakeReader struct{ ev CardMoved }
+// fakeReader serves one card to whatever asks for one by id, and whatever it
+// was given as the board's listing.
+type fakeReader struct {
+	ev    CardMoved
+	cards []CardMoved
+}
 
 func (r *fakeReader) CardByID(ctx context.Context, cardID string) (CardMoved, error) {
+	for _, card := range r.cards {
+		if card.CardID == cardID {
+			return card, nil
+		}
+	}
 	ev := r.ev
 	ev.CardID = cardID
 	return ev, nil
+}
+
+func (r *fakeReader) CardsForBoard(ctx context.Context, boardID string) ([]CardMoved, error) {
+	var out []CardMoved
+	for _, card := range r.cards {
+		if card.BoardID == boardID {
+			out = append(out, card)
+		}
+	}
+	return out, nil
 }
 
 // fakeEvents is a manual BoardEvents feed.
