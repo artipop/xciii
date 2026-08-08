@@ -115,6 +115,34 @@
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         border-radius: var(--radius-sm);
         background: rgba(var(--center-channel-color-rgb), 0.03);
+
+        // Native selects and inputs arrive in the browser's own white, which
+        // on the dark board reads as holes in the panel. Same recipe as the
+        // other dialogs' forms: the board's surface, the board's ink.
+        input,
+        select {
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: var(--radius-sm);
+            padding: 5px 8px;
+            background: rgb(var(--surface-bg-rgb));
+            color: rgb(var(--center-channel-color-rgb));
+            font-family: inherit;
+            font-size: 12px;
+
+            &:focus {
+                border-color: rgba(var(--button-bg-rgb), 0.64);
+                outline: none;
+            }
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        input[type='checkbox'] {
+            cursor: pointer;
+            accent-color: rgb(var(--button-bg-rgb));
+        }
     }
 
     .AutomationEditor__section {
