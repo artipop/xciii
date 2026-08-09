@@ -141,12 +141,19 @@ func TestRuleValidationRefusesWhatCannotWork(t *testing.T) {
 	}
 }
 
+// Every source names the board it writes to, global ones included. Global says
+// where the entry is offered — in every board's dialog rather than one — and
+// answers nothing about where its cards go, so a global source without a board
+// used to reach CreateCard with an empty id and fail on every item it took.
 func TestASourceHasToBelongSomewhere(t *testing.T) {
 	if _, err := (SourceEntry{Name: "телефон"}).Validate(); err == nil {
 		t.Fatal("a source attached to no board must be refused")
 	}
-	if _, err := (SourceEntry{Name: "телефон", Global: true}).Validate(); err != nil {
-		t.Fatalf("global is a deliberate answer to the same question: %v", err)
+	if _, err := (SourceEntry{Name: "телефон", Global: true}).Validate(); err == nil {
+		t.Fatal("global is about where the source is offered, not about where its cards go")
+	}
+	if _, err := (SourceEntry{Name: "телефон", BoardID: "board1", Global: true}).Validate(); err != nil {
+		t.Fatalf("a global source with a board is the whole point of global: %v", err)
 	}
 	if _, err := (SourceEntry{BoardID: "board1"}).Validate(); err == nil {
 		t.Fatal("a source without a name must be refused")

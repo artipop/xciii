@@ -283,7 +283,11 @@ func (s SourceEntry) Validate() (SourceEntry, error) {
 		return s, fmt.Errorf("источник %q: непонятная политика обновления %q (%s или %s)",
 			s.Name, s.Update, UpdateComment, UpdateIgnore)
 	}
-	if s.BoardID == "" && !s.Global {
+	// A board is required even of a global source. Global says where the entry
+	// is *offered* — in every board's dialog rather than one — and the pipeline
+	// still has to write the card somewhere: an entry with no board reached
+	// CreateCard with an empty id and failed on every item it ever took.
+	if s.BoardID == "" {
 		return s, fmt.Errorf("источник %q не привязан к доске", s.Name)
 	}
 	rules := make([]Rule, 0, len(s.Rules))
