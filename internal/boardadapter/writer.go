@@ -208,10 +208,23 @@ func (w *Writer) CreateCard(ctx context.Context, boardID string, spec CardSpec) 
 		return "", fmt.Errorf("parse property schema of board %s: %w", boardID, err)
 	}
 
+	properties := cardProperties(schema, spec.Properties)
+	if properties == nil {
+		properties = map[string]any{}
+	}
+
 	card := &model.Card{
-		Title:      spec.Title,
-		Icon:       spec.Icon,
-		Properties: cardProperties(schema, spec.Properties),
+		Title: spec.Title,
+		Icon:  spec.Icon,
+		// Both empty rather than nil: a nil slice or map is stored as JSON null,
+		// and Block2Card refuses to read such a field back at all — so a card
+		// created this way could never be touched again. Both cases are the
+		// ordinary one for a notification, which has no body and, on a board
+		// without «Ссылка», no property this card can hold either; and both
+		// failures land on the move into the inbox, where nothing about them
+		// explains itself.
+		ContentOrder: []string{},
+		Properties:   properties,
 	}
 	created, err := w.app.CreateCard(card, boardID, model.SingleUser, true)
 	if err != nil {
