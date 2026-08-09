@@ -39,6 +39,11 @@ type Props = {
     // one, rather than only that something was released over something else.
     index: number
     groupId: string
+
+    // dragDisabled is for a board whose columns are not places a card can be
+    // put — «Входящие», grouped by who brought the card. It is not the same as
+    // readonly: the card still opens, and its menu still works.
+    dragDisabled?: boolean
 }
 
 const KanbanCard = (props: Props) => {
@@ -46,7 +51,7 @@ const KanbanCard = (props: Props) => {
     const [isDragging, isOver, cardRef] = useListSortable(
         'card',
         () => props.card,
-        () => !props.readonly,
+        () => !props.readonly && !props.dragDisabled,
         (src, dst) => props.onDrop(src, dst),
         () => ({id: props.card.id, index: props.index, group: props.groupId}),
     )
@@ -105,7 +110,7 @@ const KanbanCard = (props: Props) => {
     return (
         <>
             <div
-                ref={props.readonly ? undefined : cardRef}
+                ref={props.readonly || props.dragDisabled ? undefined : cardRef}
                 class={classes()}
                 style={{opacity: isDragging() ? 0.5 : 1}}
                 onClick={handleOnClick}

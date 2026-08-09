@@ -398,9 +398,11 @@ is called: `ColumnProperty` asks the board, because "Status" and «Статус�
 each right for exactly half the boards there are.
 
 Where a person meets the inbox, though, is **a view of the board and not a
-column of it** (`boardadapter.Writer.EnsureInbox`): a table filtered to that
-column, called «Входящие», which the sidebar lists under the board beside its
-other views. That is where somebody looks for a part of a board, and it keeps
+column of it** (`boardadapter.Writer.EnsureInbox`): a kanban filtered to that
+column and grouped by who brought the card — a column per source — called
+«Входящие», which the sidebar lists under the board beside its other views. Its
+columns are facts about the past rather than places, so a card cannot be dragged
+between them (`columnsAreFacts` in `kanban.tsx`). That is where somebody looks for a part of a board, and it keeps
 what nobody has read yet out of the middle of the work — which is also why the
 column itself is hidden from the kanban (`hideFromKanban`, and
 `hiddenOptionIds` in the templates). The column has to exist, since a card

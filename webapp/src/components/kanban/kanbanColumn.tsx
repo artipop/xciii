@@ -10,10 +10,15 @@ import './kanbanColumn.scss'
 
 type Props = {
     onDrop: (card: Card) => void
+
+    // accepts is false where a column is not a place a card can be put: the
+    // inbox groups by who brought the card, and that is not something a drop
+    // can change.
+    accepts?: boolean
 }
 
 const KanbanColumn: ParentComponent<Props> = (props) => {
-    const [isOver, drop] = useDropZone<Card>('card', () => true, (card) => props.onDrop(card))
+    const [isOver, drop] = useDropZone<Card>('card', () => props.accepts !== false, (card) => props.onDrop(card))
 
     const classes = () => {
         let name = 'octo-board-column'

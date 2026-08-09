@@ -214,6 +214,16 @@ const Kanban = (props: Props) => {
         return <div/>
     }
 
+    // Some columns are not places a card can be put. Grouped by who created it
+    // — which is what «Входящие» is, one column per source — a column is a fact
+    // about the past: dropping a card in another one would be asking the board
+    // to have been written by somebody else. So the cards do not drag, and
+    // there is no group to add.
+    const columnsAreFacts = () => {
+        const type = props.groupByProperty?.type
+        return type === 'createdBy' || type === 'updatedBy'
+    }
+
     return (
         <div class='Kanban'>
             <div
@@ -253,7 +263,7 @@ const Kanban = (props: Props) => {
                     </div>
                 </Show>
 
-                <Show when={!props.readonly}>
+                <Show when={!props.readonly && !columnsAreFacts()}>
                     <BoardPermissionGate permissions={[Permission.ManageBoardProperties]}>
                         <div class='octo-board-header-cell narrow'>
                             <Button
@@ -280,6 +290,7 @@ const Kanban = (props: Props) => {
                 <For each={props.visibleGroups}>
                     {(group) => (
                         <KanbanColumn
+                            accepts={!columnsAreFacts()}
                             onDrop={(card: Card) => onDropToColumn(group.option, card)}
                         >
                             <For each={group.cards}>
@@ -292,6 +303,7 @@ const Kanban = (props: Props) => {
                                         visiblePropertyTemplates={visiblePropertyTemplates()}
                                         visibleBadges={visibleBadges()}
                                         readonly={props.readonly}
+                                        dragDisabled={columnsAreFacts()}
                                         isSelected={props.selectedCardIds.includes(card.id)}
                                         onClick={props.onCardClicked}
                                         onDrop={onDropToCard}

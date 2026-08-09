@@ -182,6 +182,39 @@ describe('src/component/kanban/kanban', () => {
         ), {wrapper: TestRouter})
         expect(container).toMatchSnapshot()
     })
+    // «Входящие» is a kanban grouped by who brought the card, so its columns
+    // are not places a card can be put: dropping one in another column would be
+    // asking the board to have been written by somebody else. The cards do not
+    // drag there, and there is no group to add.
+    test('a board grouped by who made the card offers no dragging and no new group', () => {
+        const byAuthor: IPropertyTemplate = {id: 'author', name: 'Автор', type: 'createdBy', options: []}
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <Kanban
+                    board={board}
+                    activeView={activeView}
+                    cards={[card1]}
+                    groupByProperty={byAuthor}
+                    visibleGroups={[{option: {id: 'user_id_1', value: 'user_id_1', color: ''}, cards: [card1]}]}
+                    hiddenGroups={[]}
+                    selectedCardIds={[]}
+                    readonly={false}
+                    onCardClicked={vi.fn()}
+                    addCard={vi.fn()}
+                    addCardFromTemplate={vi.fn()}
+                    showCard={vi.fn()}
+                    hiddenCardsCount={0}
+                    showHiddenCardCountNotification={vi.fn()}
+                />
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
+
+        expect(screen.queryByText('+ Add a group')).toBeNull()
+        // The card is there and opens; what it does not do is start a drag.
+        expect(container.querySelector('.KanbanCard')).not.toBeNull()
+        expect(container.querySelector('.KanbanCard[draggable="true"]')).toBeNull()
+    })
+
     test('do not return a kanban with groupByProperty undefined', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>

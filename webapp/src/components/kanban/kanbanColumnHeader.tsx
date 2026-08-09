@@ -22,6 +22,9 @@ import Editable from '../../widgets/editable'
 import Label from '../../widgets/label'
 import {useHasCurrentBoardPermissions} from '../../hooks/permissions'
 import {useSortable} from '../../hooks/sortable'
+import {useAppSelector} from '../../store/hooks'
+import {getBoardUsers} from '../../store/users'
+import {IUser} from '../../user'
 
 import BoardPermissionGate from '../permissions/boardPermissionGate'
 
@@ -59,7 +62,22 @@ const defaultProperty: IPropertyTemplate = {
 export default function KanbanColumnHeader(props: Props): JSX.Element {
     const [groupTitle, setGroupTitle] = createSignal(props.group.option.value)
     const canEditBoardProperties = useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
-    const canEditOption = () => props.groupByProperty?.type !== 'person' && props.group.option.id
+
+    // Who a group is, when the board is grouped by a person rather than by an
+    // option: «кто создал» groups by user id, and an id is not a heading.
+    const boardUsers = useAppSelector<{[key: string]: IUser}>(getBoardUsers)
+    const isPersonGroup = () => {
+        const type = props.groupByProperty?.type
+        return type === 'person' || type === 'createdBy' || type === 'updatedBy'
+    }
+    const personName = () => {
+        const id = props.group.option.id
+        return boardUsers()[id]?.username || id
+    }
+
+    // A person group has no option behind it to rename, so it is a label and
+    // not an editable one — renaming it would write to nothing.
+    const canEditOption = () => !isPersonGroup() && props.group.option.id
 
     const [isDragging, isOver, headerRef] = useSortable(
         'column',
@@ -105,9 +123,9 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                     />
                 </Label>
             </Show>
-            <Show when={props.groupByProperty?.type === 'person'}>
+            <Show when={isPersonGroup() && props.group.option.id}>
                 <Label>
-                    {groupTitle()}
+                    {personName()}
                 </Label>
             </Show>
             <Show when={canEditOption()}>

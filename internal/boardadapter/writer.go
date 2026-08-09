@@ -454,6 +454,11 @@ func withOption(raw any, optionID string) ([]any, bool) {
 	return append(append([]any{}, list...), optionID), false
 }
 
+// inboxViewType is what the inbox is drawn as. A kanban rather than a table
+// because it is grouped by what brought the card, and a column per source is
+// what somebody opening an inbox is actually asking about.
+const inboxViewType = "board"
+
 // AuthorPropertyTitle is what the board calls "who made this card". It is the
 // name the developer template already uses, so a board made from it keeps the
 // property it had rather than growing a second one saying the same thing.
@@ -503,18 +508,6 @@ func arrivedAuthor(board *model.Board, schema model.PropSchema) (string, bool) {
 	return "", false
 }
 
-// arrivedProperty is the board's own "created" property, if it has one. In the
-// inbox it is the column worth seeing beside the title: what a table of arrived
-// things is read for is what arrived and when.
-func arrivedProperty(schema model.PropSchema) (string, bool) {
-	for id, def := range schema {
-		if def.Type == "createdTime" {
-			return id, true
-		}
-	}
-	return "", false
-}
-
 // ensureInboxView adds the view if the board has not got one already, and
 // teaches an older one to group — a view made before the inbox grouped by
 // anything would otherwise be the one board where it does not.
@@ -546,19 +539,23 @@ func (w *Writer) ensureInboxView(boardID, propertyName, optionID, authorID strin
 		if !strings.EqualFold(view.Title, InboxViewTitle) {
 			continue
 		}
-		if groupBy, _ := view.Fields["groupById"].(string); groupBy == authorID {
+		// An inbox made by an older version of this is a table grouped by
+		// nothing. Both are brought to what it is now — a board grouped by who
+		// brought the card — because the alternative is one board where the
+		// inbox looks and behaves differently for no reason anybody can see.
+		fields := map[string]any{}
+		if groupBy, _ := view.Fields["groupById"].(string); groupBy != authorID {
+			fields["groupById"] = authorID
+		}
+		if viewType, _ := view.Fields["viewType"].(string); viewType != inboxViewType {
+			fields["viewType"] = inboxViewType
+		}
+		if len(fields) == 0 {
 			return nil
 		}
-		patch := &model.BlockPatch{UpdatedFields: map[string]any{"groupById": authorID}}
+		patch := &model.BlockPatch{UpdatedFields: fields}
 		_, err := w.app.PatchBlockAndNotify(view.ID, patch, model.SingleUser, true)
 		return err
-	}
-
-	visible := []any{}
-	widths := map[string]any{"__title": 420}
-	if arrived, ok := arrivedProperty(schema); ok {
-		visible = append(visible, arrived)
-		widths[arrived] = 160
 	}
 
 	now := utils.GetMillis()
@@ -569,11 +566,12 @@ func (w *Writer) ensureInboxView(boardID, propertyName, optionID, authorID strin
 		Type:     model.TypeView,
 		Title:    InboxViewTitle,
 		Fields: map[string]any{
-			// A table and not a kanban: an inbox is a list of what came in, and
-			// a board of one column is a board pretending to be a list.
-			"viewType": "table",
-			// Grouped by who made the card: for what arrived that is the source
-			// that brought it, and for the rest it is whoever typed it.
+			// A kanban, and grouped by who made the card — which for what
+			// arrived is the source that brought it. One column per source is
+			// the question a person actually has of an inbox ("what did the
+			// mail bring, what did Kaiten"), and a card is dragged out of it
+			// into work the same way it is dragged anywhere else.
+			"viewType":  inboxViewType,
 			"groupById": authorID,
 			"filter": map[string]any{
 				"operation": "and",
@@ -583,17 +581,12 @@ func (w *Writer) ensureInboxView(boardID, propertyName, optionID, authorID strin
 					"values":     []any{optionID},
 				}},
 			},
-			// The title, and when it arrived if the board keeps that. Nothing
-			// else: a source's own «Источник» and «Ссылка» are not properties
-			// these boards have, and a table of empty columns says less than
-			// none. The title is given a real width, since a column left to
-			// the minimum is what makes a one-column table look broken.
-			"visiblePropertyIds": visible,
-			"columnWidths":       widths,
-			"sortOptions": []any{map[string]any{
-				"propertyId": "__title",
-				"reversed":   false,
-			}},
+			// Nothing else on the face of a card: what a person reads in an
+			// inbox is the title and who brought it, and the second is the
+			// column it stands in.
+			"visiblePropertyIds": []any{},
+			"columnWidths":       map[string]any{},
+			"sortOptions":        []any{},
 			"visibleOptionIds":   []any{},
 			"hiddenOptionIds":    []any{},
 			"collapsedOptionIds": []any{},
