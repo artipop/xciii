@@ -44,6 +44,16 @@ in a browser and as a Mattermost plugin.
   rest. `wails3 task build:server` — the headless build.
 - Build tags travel as `EXTRA_TAGS`, defaulting to `json1,sqlite3,frontend`
   (cgo SQLite plus the `go:embed` of `webapp/pack`). Linux adds `gtk3`.
+- **`CGO_ENABLED=0` is a trap on the headless build and only there.** A desktop
+  build fails honestly — `wails/v3/pkg/mac` has every file excluded — but the
+  server build *compiles clean* and then dies at the first query, because
+  `mattn/go-sqlite3` swaps itself for `static_mock.go`, which registers the
+  `sqlite3` driver name and answers every `Open` with "Binary was compiled with
+  'CGO_ENABLED=0' […] This is a stub". Nothing is wrong with the binary until it
+  touches the database. Only two other packages in the tree use cgo at all —
+  `prometheus/client_golang` for a Darwin memory collector and
+  `tailscale/certstore` — and both fall back to pure Go, so SQLite and Wails are
+  the whole of the requirement.
 - `npm test` in `webapp/` — the page's suite, **vitest** under jsdom, sharing
   `vite-plugin-solid` with the build through `vitest.config.ts`. Coverage is on by
   default (v8); `--coverage.enabled=false` while iterating, `npm run updatesnapshot`
@@ -65,7 +75,7 @@ installers are native-tool jobs (AppImage shells out to `ldd`, NSIS is `makensis
 
 ## Architecture
 
-Five ideas hold this together. Read them before changing anything structural.
+Six ideas hold this together. Read them before changing anything structural.
 
 ### The front door owns the origin
 
@@ -120,13 +130,26 @@ the page listens only on the socket — `components/acp/agentEvents.ts`, one sha
 connection for the whole page, with backoff and a "look again" nudge to every
 subscriber when it reconnects. A new UI event needs nothing but `Emit`.
 
-**`/m` is the board on a phone**, and deliberately not the board: what is waiting
-for a person (answered in place — a question carries its own options) and which
-terminals are alive, with a soft key row on the terminal for the keys a phone
-keyboard lacks. It is `pages/mobile/`, lazily routed like the terminal page, and it
-asks nothing of the board API — everything on it comes from `main.App.*` and the
-event socket, both of which the front door serves to a phone exactly as to the
-window. `router.test.tsx` guards the one thing that could silently break it: the
+**`/m` is the board on a phone**, and deliberately not the board: four screens
+and a row of buttons at the bottom, which is where a thumb is. «Входящие» — what
+a source left and nobody has looked at, carried onto a board from there;
+«Карточки» — one board's cards as a list, to find out where something got to
+without walking to the desk; «Ждут» — what is asking for a person, answered in
+place, because a question carries its own options; «Терминалы» — which are
+alive, with a soft key row on the terminal for the keys a phone keyboard lacks.
+«Ждут» is what opens, being the only one of the four that cannot wait; the rest
+count themselves on their own button, which is why the page and not the tab
+holds those lists — a tab that only counts once you are looking at it counts
+nothing.
+
+It is `pages/mobile/`, lazily routed like the terminal page, and it **asks
+nothing of the board's own API**: everything on it, the board included, comes
+from `main.App.*` and the event socket, both of which the front door serves to a
+phone exactly as to the window. That is what `ListBoards`/`ListInbox`/
+`ListBoardCards`/`MoveCardToBoard` are for (`pages/mobile/mobileBoards.ts`) —
+carrying the store, the board client and the websocket onto a screen that shows
+a list and moves one card would be the whole app to do a tenth of it.
+`router.test.tsx` guards the one thing that could silently break the page: the
 board's catch-all route is `/:boardId?/…`, which `/m` fits.
 
 `mobile/` is the phone app itself, and it is **a second Go module on purpose**:
@@ -211,6 +234,50 @@ card lands in them, flows join columns into routes, deploys publish a branch to
 Dokku through our own MCP server, and the test column drives a browser through an
 MCP server the agent carries. `docs/flows.md` is that machinery written for somebody
 using the board.
+
+### A source brings cards in, and the app decides what they become
+
+`internal/sources` turns outside events into cards: mail, an issue, a
+notification from a phone. It is board-agnostic the way `internal/acp` is, and
+deliberately **not part of it** — cards from a phone on a board of household
+chores are useful to somebody who has no agent and never will, so a source has
+to work with the agent integration switched off.
+
+A source is a **plugin**, not a branch in our code: a separate process speaking
+JSON-RPC over stdio (`sources/protocol`, `internal/sources/plugin`), which is
+what lets one be written in TypeScript and by somebody else. The plugin does one
+thing — hands over items. It never sees the board: rules, columns and cards are
+this side's, because a plugin author must not be trusted with the board and
+because otherwise every plugin would invent its own filter syntax.
+`ingest.go` is the way in for everything that has no plugin — a script, a phone,
+a webhook — a route on the front door guarded by a per-source token.
+`docs/sources.md` is the whole design.
+
+**Everything a source brings lands in «Входящие» unless a rule says otherwise**,
+and that is the one column the app will put on a board itself
+(`boardadapter.Writer.EnsureColumn`, add-only). The templates carry it, but a
+template only ever reaches a board that does not exist yet — `importTemplates`
+replaces the *template* board and never one made from it — so a column that
+shipped only in a template would exist for every board except the ones people
+already have. For the same reason nothing here assumes what the column property
+is called: `ColumnProperty` asks the board, because "Status" and «Статус» are
+each right for exactly half the boards there are.
+
+Where a person meets the inbox, though, is **a view of the board and not a
+column of it** (`boardadapter.Writer.EnsureInbox`): a table filtered to that
+column, called «Входящие», which the sidebar lists under the board beside its
+other views. That is where somebody looks for a part of a board, and it keeps
+what nobody has read yet out of the middle of the work. A board with no source
+gets neither the column nor the view, because nothing arrives on it.
+
+A card can then be carried onto another board — from the card's own menu, or
+from «Входящие» on a phone — and that is a **real move** — same card id, so comments come with it and everything outside
+the board that remembers the card by id still finds it. It lives in the server
+module (`app.MoveCardToBoard`, `POST /cards/{cardID}/move`) because moving a
+card is the board's own operation, not ours, and because it cannot be built out
+of what was there: `insertBlock` keys its update on `id AND board_id`, so
+re-inserting a block under a new board updates nothing and says it worked.
+Properties travel by **name**, since the two boards share nothing else.
 
 ### A terminal is how a person works with an agent
 
