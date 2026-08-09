@@ -14,6 +14,7 @@ import FocalboardRouter from './router'
 vi.mock('./pages/boardPage/boardPage', () => ({default: () => <div>{'the board'}</div>}))
 vi.mock('./pages/mobile/mobilePage', () => ({default: () => <div>{'the phone page'}</div>}))
 vi.mock('./components/acp/terminalPage', () => ({default: () => <div>{'the terminal'}</div>}))
+vi.mock('./pages/share/sharePage', () => ({default: () => <div>{'the share dialog'}</div>}))
 
 const renderAt = (path: string) => {
     window.history.pushState({}, '', path)
@@ -34,6 +35,15 @@ describe('router', () => {
         renderAt('/m/terminal/term-1')
 
         expect(await screen.findByText('the terminal')).toBeInTheDocument()
+    })
+
+    // /share falls into the same catch-all, and it is opened by the system's
+    // share sheet — where an empty board instead of the dialog would be a
+    // feature that silently stopped existing.
+    it('gives /share the share dialog, not the board', async () => {
+        renderAt('/share')
+
+        expect(await screen.findByText('the share dialog')).toBeInTheDocument()
     })
 
     it('still gives a board id the board', async () => {

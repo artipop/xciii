@@ -167,13 +167,61 @@ tasks:
         fi
       - cp "{{.BIN_DIR}}/{{.APP_NAME}}" "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/MacOS"
       - cp build/darwin/Info.plist "{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents"
+      - task: '{{if eq OS "darwin"}}create:share:extension{{else}}share:extension:skip{{end}}'
       - task: '{{if eq OS "darwin"}}codesign:adhoc{{else}}codesign:skip{{end}}'
+
+  create:share:extension:
+    summary: Builds the share extension into the app bundle (macOS only)
+    internal: true
+    platforms: [darwin]
+    cmds:
+      # Built with swiftc rather than by an Xcode project: the whole extension
+      # is one file, and an .xcodeproj here would be a second build system
+      # carried for it. `-e _NSExtensionMain` is what an extension target does
+      # under the hood — an app extension has no main() of its own, the entry
+      # point is Foundation's.
+      - mkdir -p "{{.APPEX}}/Contents/MacOS"
+      - >-
+        xcrun swiftc -target arm64-apple-macos12.0 -parse-as-library -O
+        -o "{{.APPEX}}/Contents/MacOS/ShareExtension-arm64"
+        build/darwin/share-extension/ShareViewController.swift
+        -framework Cocoa -Xlinker -e -Xlinker _NSExtensionMain
+      - >-
+        xcrun swiftc -target x86_64-apple-macos12.0 -parse-as-library -O
+        -o "{{.APPEX}}/Contents/MacOS/ShareExtension-x86_64"
+        build/darwin/share-extension/ShareViewController.swift
+        -framework Cocoa -Xlinker -e -Xlinker _NSExtensionMain
+      # Both architectures whatever the app was built for: the extension is
+      # loaded by the system, not by us, and a Rosetta host would refuse a
+      # single-architecture one.
+      - >-
+        lipo -create -output "{{.APPEX}}/Contents/MacOS/ShareExtension"
+        "{{.APPEX}}/Contents/MacOS/ShareExtension-arm64" "{{.APPEX}}/Contents/MacOS/ShareExtension-x86_64"
+      - rm "{{.APPEX}}/Contents/MacOS/ShareExtension-arm64" "{{.APPEX}}/Contents/MacOS/ShareExtension-x86_64"
+      - cp build/darwin/share-extension/Info.plist "{{.APPEX}}/Contents/Info.plist"
+      # Signed here, before the app around it: a signature covers what is
+      # nested inside it, so signing outside-in would either drop these
+      # entitlements or invalidate the app's own seal.
+      - >-
+        codesign --force --sign - --timestamp=none
+        --entitlements build/darwin/share-extension/ShareExtension.entitlements "{{.APPEX}}"
+    vars:
+      APPEX: '{{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/PlugIns/ShareExtension.appex'
+
+  share:extension:skip:
+    summary: Skips the share extension when cross-compiling
+    internal: true
+    cmds:
+      - 'echo "Skipping the share extension (needs the Swift toolchain on macOS)."'
 
   codesign:adhoc:
     summary: Ad-hoc signs the app bundle (macOS only)
     internal: true
     cmds:
-      - codesign --force --deep --sign - "{{.BIN_DIR}}/{{.APP_NAME}}.app"
+      # Not --deep: the share extension inside is already signed, with
+      # entitlements of its own, and --deep would sign over it without them.
+      # Inner first and then the bundle is the order Apple asks for anyway.
+      - codesign --force --sign - "{{.BIN_DIR}}/{{.APP_NAME}}.app"
 
   codesign:skip:
     summary: Skips codesigning when cross-compiling

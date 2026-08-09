@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<!-- App extensions run sandboxed. This one needs nothing from the
+		     sandbox but the right to hand a URL to LaunchServices, which every
+		     process has: it reads no files, opens no sockets and keeps no
+		     state of its own. -->
+		<key>com.apple.security.app-sandbox</key>
+		<true/>
+	</dict>
+</plist>
