@@ -3,11 +3,10 @@
 // *inbound* token lives: a token the app only ever checks is kept as a hash,
 // which cannot leak access at all (see internal/sources, TokenHash).
 //
-// The store the app uses is the operating system's own where there is one:
-// Keychain on macOS (keychain_darwin.go). Credential Manager and the Secret
-// Service are the same shape of thing and are not written yet, so on Windows
-// and Linux this still falls back to the file store below — which keeps values
-// in plain text, at 0600, and says so.
+// The store the app uses is the operating system's own where there is one —
+// Keychain, Credential Manager, the Secret Service (keyring.go) — and the file
+// store below where there is not, which is a headless Linux and therefore the
+// server build. That file keeps values in plain text, at 0600, and says so.
 //
 // Encrypting that file with a key lying beside it on the same disk would be
 // theatre, and the app already keeps proxy passwords and a GitHub token in a

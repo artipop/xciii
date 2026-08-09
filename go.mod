@@ -32,6 +32,7 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/modelcontextprotocol/go-sdk v1.6.1
 	github.com/wailsapp/wails/v3 v3.0.0-beta.2
+	github.com/zalando/go-keyring v0.2.8
 	tailscale.com v1.102.2
 )
 
@@ -47,6 +48,7 @@ require (
 	github.com/coder/websocket v1.8.14 // indirect
 	github.com/creachadair/msync v0.8.1 // indirect
 	github.com/creack/pty v1.1.24 // indirect
+	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dblohm7/wingoes v0.0.0-20240119213807-a09d6be7affa // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
