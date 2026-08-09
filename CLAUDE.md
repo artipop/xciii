@@ -470,7 +470,15 @@ whoever opened it. **Only the protocol asks** (`question.go`), which is why
   than leaving a no-op behind, so a spy that must not call through says so with
   `mockResolvedValue`, and the hook around it clears rather than resets.
 - Russian in user-facing strings and product docs, English in code, comments and
-  commit messages. `webapp/i18n/ru.json` carries the
+  commit messages.
+- **A feature a person uses is not finished until `docs/guide/` says how.**
+  `docs/` is for whoever works on the code; `docs/guide/` is the other shelf —
+  Russian, organised by screen or by task, for the person the thing was built
+  for. A new way to do something on the board gets a page or a section there in
+  the same change that adds it, and every menu item, button and message the
+  guide quotes is checked against `webapp/i18n/ru.json` rather than remembered:
+  a guide that misquotes the screen teaches somebody to look for a thing that
+  is not there. `webapp/i18n/ru.json` carries the
   translations; defaults in components stay English.
 - Commit messages: a plain subject line saying what changed, and a body saying why —
   the reasoning, the alternative that was rejected, what was verified. No emoji.
