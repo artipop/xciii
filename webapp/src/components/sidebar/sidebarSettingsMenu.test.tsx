@@ -98,7 +98,7 @@ describe('components/sidebar/SidebarSettingsMenu', () => {
         userEvent.click(container.querySelector('#import') as Element)
         expect(container).toMatchSnapshot()
 
-        userEvent.click(document.querySelector('[aria-label="Asana"]') as Element)
-        expect(mockedTelemetry.trackEvent).toHaveBeenCalledWith(TelemetryCategory, TelemetryActions.ImportAsana)
+        userEvent.click(document.querySelector('[aria-label="Trello"]') as Element)
+        expect(mockedTelemetry.trackEvent).toHaveBeenCalledWith(TelemetryCategory, TelemetryActions.ImportTrello)
     })
 })

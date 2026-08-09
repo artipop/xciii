@@ -104,32 +104,6 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu > imports menu open should 
                         />
                       </div>
                       <div
-                        aria-label="Asana"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Asana
-                          </div>
-                          
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
                         aria-label="Notion"
                         class="MenuOption TextOption menu-option"
                         role="button"
@@ -148,32 +122,6 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu > imports menu open should 
                             class="menu-name"
                           >
                             Notion
-                          </div>
-                          
-                        </div>
-                        <div
-                          class="noicon"
-                        />
-                      </div>
-                      <div
-                        aria-label="Jira"
-                        class="MenuOption TextOption menu-option"
-                        role="button"
-                      >
-                        <div
-                          class="d-flex"
-                        >
-                          <div
-                            class="noicon"
-                          />
-                        </div>
-                        <div
-                          class="menu-option__content"
-                        >
-                          <div
-                            class="menu-name"
-                          >
-                            Jira
                           </div>
                           
                         </div>

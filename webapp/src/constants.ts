@@ -54,22 +54,10 @@ class Constants {
             href: Constants.archiveHelpPage + '#import-from-trello',
         },
         {
-            id: 'asana',
-            displayName: 'Asana',
-            telemetryName: TelemetryActions.ImportAsana,
-            href: Constants.archiveHelpPage + '#import-from-asana',
-        },
-        {
             id: 'notion',
             displayName: 'Notion',
             telemetryName: TelemetryActions.ImportNotion,
             href: Constants.archiveHelpPage + '#import-from-notion',
-        },
-        {
-            id: 'jira',
-            displayName: 'Jira',
-            telemetryName: TelemetryActions.ImportJira,
-            href: Constants.archiveHelpPage + '#import-from-jira',
         },
         {
             id: 'todoist',
