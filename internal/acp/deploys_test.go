@@ -165,19 +165,21 @@ func TestResolveDeployBranch(t *testing.T) {
 func TestResolveSessionAgentPrefersTheStagesCrew(t *testing.T) {
 	m := agentManager(t, "", AgentEntry{Name: "claude-1", Kind: "claude"}, AgentEntry{Name: "deployer", Kind: "codex"})
 
-	agent, busy, err := m.resolveSessionAgent(CardMoved{OptionNames: []string{"claude-1"}}, []string{"deployer"})
+	assigned := CardMoved{PersonNames: []string{"claude-1"}}
+
+	agent, busy, err := m.resolveSessionAgent(assigned, []string{"deployer"})
 	if err != nil || busy || agent.Name != "deployer" {
 		t.Fatalf("the crew should decide: %+v, %v, %v", agent, busy, err)
 	}
 
 	// On the crew, the card's own choice stands.
-	agent, _, err = m.resolveSessionAgent(CardMoved{OptionNames: []string{"claude-1"}}, []string{"claude-1", "deployer"})
+	agent, _, err = m.resolveSessionAgent(assigned, []string{"claude-1", "deployer"})
 	if err != nil || agent.Name != "claude-1" {
 		t.Fatalf("card agent ignored: %+v, %v", agent, err)
 	}
 
 	// Without a crew the card decides, exactly as before.
-	agent, _, err = m.resolveSessionAgent(CardMoved{OptionNames: []string{"claude-1"}}, nil)
+	agent, _, err = m.resolveSessionAgent(assigned, nil)
 	if err != nil || agent.Name != "claude-1" {
 		t.Fatalf("card agent ignored without a crew: %+v, %v", agent, err)
 	}

@@ -11,8 +11,9 @@ import {Board} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
-import {agentBindings} from './agentProjectsDialog'
-import {AGENT_KINDS, textToServers, AdapterStatus} from './agentsDialog'
+import {agentBindings} from './bindings'
+import {textToServers} from './agentsPanel'
+import AgentQuickAdd from './agentQuickAdd'
 import {agentColumn, checkSetupAnswer, createSetupPlan, recordSetupStep, SetupStep, SetupStepKind, stepRequires} from './boardSetup'
 
 import './boardSetupWizard.scss'
@@ -38,7 +39,7 @@ const BROWSER_SERVER = JSON.stringify({
 }, null, 2)
 
 type Registry = {
-    agents: Array<{name: string}>
+    agents: Array<{name: string, kind: string}>
     projects: Array<{name: string, path: string}>
 }
 
@@ -103,28 +104,17 @@ const BoardSetupWizard = (props: Props) => {
     const [projectPath, setProjectPath] = createSignal('')
     const [projectName, setProjectName] = createSignal('')
 
-    // Step 2: an agent.
-    const [agentName, setAgentName] = createSignal('claude')
-    const [agentKind, setAgentKind] = createSignal('claude')
-
     // Step 3: a Dokku host.
     const [deploy, setDeploy] = createSignal({name: '', sshHost: '', sshUser: '', sshKey: '', baseDomain: ''})
 
     // Step 4: what tests with.
     const [serversText, setServersText] = createSignal(BROWSER_SERVER)
-    const [adapters, setAdapters] = createSignal<AdapterStatus[]>([])
 
     const refresh = async () => {
         try {
             const loaded = await readRegistry(props.board.id)
             if (loaded) {
                 setRegistry(loaded)
-            }
-
-            // A fresh machine is exactly where the agent's adapter is missing,
-            // so the step that asks for an agent is where that has to be said.
-            if (bindings?.ListAgentAdapters) {
-                setAdapters(JSON.parse(await bindings.ListAgentAdapters()) || [])
             }
         } catch (e) {
             setError(String(e))
@@ -149,8 +139,6 @@ const BoardSetupWizard = (props: Props) => {
         opened = true
         setStep((list.find((s) => s.status === 'pending') || list[0]).kind)
     })
-
-    const adapterStatus = () => adapters().find((a) => a.kind === agentKind())
 
     // Every step does its work through the same registry calls the dialogs use,
     // and shows what Go says when it refuses. The step is recorded as answered
@@ -199,14 +187,6 @@ const BoardSetupWizard = (props: Props) => {
         await bindings!.AddAgentProject!(projectName().trim(), projectPath(), props.board.id, false)
     }, STEP_PROJECT)
 
-    const addAgent = () => run(async () => {
-        await bindings!.AddAgent!(JSON.stringify({name: agentName().trim(), kind: agentKind()}))
-        if (bindings!.SyncAgentUsers) {
-            // So the agent can be put in a card's "Assignee" like a teammate.
-            await bindings!.SyncAgentUsers(props.board.id)
-        }
-    }, STEP_AGENT)
-
     const addDeploy = () => run(async () => {
         await bindings!.AddDeployTarget!(JSON.stringify({
             name: deploy().name.trim(),
@@ -224,7 +204,7 @@ const BoardSetupWizard = (props: Props) => {
         }
         await bindings!.UpdateAgent!(JSON.stringify({
             name: agent.name,
-            kind: agentKind(),
+            kind: agent.kind,
             mcpServers: textToServers(serversText()),
         }))
     }, STEP_BROWSER)
@@ -286,31 +266,16 @@ const BoardSetupWizard = (props: Props) => {
                             {intl.formatMessage({id: 'BoardSetup.agent-known', defaultMessage: 'Already registered: {names}'}, {names: registry().agents.map((a) => a.name).join(', ')})}
                         </div>
                     </Show>
-                    <label>
-                        {intl.formatMessage({id: 'BoardSetup.agent-name', defaultMessage: 'Name'})}
-                        <input
-                            value={agentName()}
-                            onInput={(e) => setAgentName(e.currentTarget.value)}
+
+                    {/* The same two questions a card asks when it needs an
+                        agent and has none, asked by the same component: a
+                        second form here is how a kind ends up offered in one
+                        place and not the other. */}
+                    <Show when={!hasAgent()}>
+                        <AgentQuickAdd
+                            board={props.board}
+                            onAdded={() => run(async () => {}, STEP_AGENT)}
                         />
-                    </label>
-                    <label>
-                        {intl.formatMessage({id: 'BoardSetup.agent-kind', defaultMessage: 'Kind'})}
-                        <select
-                            value={agentKind()}
-                            onChange={(e) => setAgentKind(e.currentTarget.value)}
-                        >
-                            <For each={AGENT_KINDS}>
-                                {(kind) => (
-                                    <option
-                                        value={kind.value}
-                                        selected={agentKind() === kind.value}
-                                    >{kind.label}</option>
-                                )}
-                            </For>
-                        </select>
-                    </label>
-                    <Show when={adapterStatus() && !adapterStatus()!.ready}>
-                        <div class='BoardSetupWizard__warning'>{adapterStatus()!.detail}</div>
                     </Show>
                 </div>
             )
@@ -391,14 +356,19 @@ const BoardSetupWizard = (props: Props) => {
                 </Button>
             )
         case STEP_AGENT:
+
+            // The form above has its own button and moves the step itself, so
+            // Next is offered only when there is nothing left to fill in.
             return (
-                <Button
-                    emphasis='primary'
-                    disabled={busy() || (!hasAgent() && !agentName().trim())}
-                    onClick={() => (agentName().trim() && !hasAgent() ? addAgent() : pass(STEP_AGENT))}
-                >
-                    {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
-                </Button>
+                <Show when={hasAgent()}>
+                    <Button
+                        emphasis='primary'
+                        disabled={busy()}
+                        onClick={() => pass(STEP_AGENT)}
+                    >
+                        {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
+                    </Button>
+                </Show>
             )
         case STEP_DEPLOY:
             return (

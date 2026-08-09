@@ -11,7 +11,7 @@ and moving cards about. It is edited in *«Шаблон»*, which is reached fro
 - the template picker — the pencil on any template of yours;
 - the banner on a template you already have open — *«Колонки, маршруты и
   настройка…»*;
-- the board menu of an ordinary board — *«Сохранить как шаблон…»*, which copies
+- the ⋯ menu of an ordinary board — *«Сохранить как шаблон…»*, which copies
   the board and opens the copy.
 
 ## What a template carries
@@ -63,8 +63,10 @@ state of this machine rather than anything on the board, so an ordinary copy
 would produce a template with the columns drawn and nothing happening in them.
 *«Сохранить как шаблон…»* reads that half back out and writes it into the copy,
 along with the questions the original declared. What it deliberately does not
-carry is the machine: the agents, projects and deploy targets it named are this
-machine's, and a board made from the template asks for them again.
+carry is the machine: the agents and deploy targets it named live in
+*«Настройки → Эта машина…»* and are this install's, the folders belong to the
+board they were added on, and a board made from the template asks for them
+again.
 
 ## What is offered in the picker
 

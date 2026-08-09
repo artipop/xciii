@@ -215,80 +215,22 @@ func TestTerminalStreamsBothWaysAndReportsToTheCard(t *testing.T) {
 	}
 }
 
-// An agent that has asked something stops printing and waits, and the window it
-// waits in is usually one nobody is looking at. That silence is the only signal
-// there is, and the card is where it has to show up.
-func TestTerminalSaysWhenItIsWaitingForAPerson(t *testing.T) {
+// A terminal raises nothing at all: the window is in front of the person who
+// opened it, and the silence it used to report as a question could not be told
+// from a CLI sitting at its prompt. Only the protocol asks now (question.go).
+func TestATerminalNeverAsksForAttention(t *testing.T) {
 	if _, err := exec.LookPath("sh"); err != nil {
 		t.Skip("no shell to stand in for an agent CLI")
 	}
 	m, _, _, project, emitter := testManagerWithEmitter(t, "idle", nil)
-	m.terminalQuiet = 300 * time.Millisecond
 
 	term, err := m.startTerminal(terminalSpec{
-		cardID:      "card-wait",
+		cardID:      "card-quiet",
 		boardID:     "board1",
-		title:       "Ждущая задача",
+		title:       "Тихая задача",
 		projectPath: project,
-		agent:       AgentEntry{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() { _ = m.CloseTerminal(term.ID) }()
-
-	// A shell that has printed something and then sits at its prompt is exactly
-	// the shape of an agent that has asked a question: output, then nothing.
-	_, updates, unsubscribe := term.Subscribe()
-	defer unsubscribe()
-	if err := term.Write([]byte("echo asked-something\n")); err != nil {
-		t.Fatal(err)
-	}
-	if !waitForOutput(t, updates, "asked-something") {
-		t.Fatal("the CLI never printed anything")
-	}
-
-	waitFor(t, 10*time.Second, "the terminal to say it is waiting", func() bool { return term.Awaiting() })
-
-	waiting := m.Attention()
-	if len(waiting) != 1 || waiting[0].CardID != "card-wait" || waiting[0].TerminalID != term.ID {
-		t.Fatalf("waiting for a person: %+v, want the one card", waiting)
-	}
-	if waiting[0].Title != "Ждущая задача" || waiting[0].Agent != "shellish" {
-		t.Errorf("a notification could not name what it points at: %+v", waiting[0])
-	}
-	if got := lastAttention(emitter, term.ID); got == nil || got["awaiting"] != true {
-		t.Errorf("the UI was never told the terminal is waiting: %v", got)
-	}
-
-	// Typing is what ends a wait: the person the CLI was waiting for arrived.
-	if err := term.Write([]byte("echo answered\n")); err != nil {
-		t.Fatal(err)
-	}
-	if term.Awaiting() {
-		t.Error("the terminal still says it is waiting after somebody typed")
-	}
-	if len(m.Attention()) != 0 {
-		t.Error("an answered terminal is still listed as waiting")
-	}
-	if got := lastAttention(emitter, term.ID); got == nil || got["awaiting"] != false {
-		t.Errorf("the UI was never told the wait ended: %v", got)
-	}
-}
-
-// A CLI that is working prints as it goes, and that must not be mistaken for a
-// question: nothing is more useless than an indicator that is always on.
-func TestABusyTerminalIsNotWaitingForAnybody(t *testing.T) {
-	if _, err := exec.LookPath("sh"); err != nil {
-		t.Skip("no shell to stand in for an agent CLI")
-	}
-	m, _, _, project, _ := testManagerWithEmitter(t, "idle", nil)
-	m.terminalQuiet = 300 * time.Millisecond
-
-	term, err := m.startTerminal(terminalSpec{
-		cardID:      "card-busy",
-		projectPath: project,
-		agent:       AgentEntry{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}},
+		agent: AgentEntry{Name: "shellish", Kind: AgentKindClaude,
+			TerminalCommand: []string{"sh", "-c", "echo banner; sleep 5"}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -297,21 +239,24 @@ func TestABusyTerminalIsNotWaitingForAnybody(t *testing.T) {
 
 	_, updates, unsubscribe := term.Subscribe()
 	defer unsubscribe()
-	// A spinner, spelled the way a shell can spell one: output every 50ms for
-	// well over the threshold.
-	if err := term.Write([]byte("i=0; while [ $i -lt 30 ]; do echo tick; sleep 0.05; i=$((i+1)); done\n")); err != nil {
+	if !waitForOutput(t, updates, "banner") {
+		t.Fatal("the CLI never printed its banner")
+	}
+	if err := term.Write([]byte("echo typed\n")); err != nil {
 		t.Fatal(err)
 	}
-	if !waitForOutput(t, updates, "tick") {
-		t.Fatal("the CLI never printed anything")
+	if !waitForOutput(t, updates, "typed") {
+		t.Fatal("the CLI never answered")
 	}
 
-	deadline := time.Now().Add(time.Second)
-	for time.Now().Before(deadline) {
-		if term.Awaiting() {
-			t.Fatal("a terminal printing all the while was reported as waiting for a person")
-		}
-		time.Sleep(50 * time.Millisecond)
+	// Long past what used to be the threshold, having printed and been typed
+	// into — the shape that used to be read as a question.
+	time.Sleep(time.Second)
+	if got := m.Attention(); len(got) != 0 {
+		t.Errorf("a terminal is on the attention list: %+v", got)
+	}
+	if got := lastAttention(emitter, term.ID); got != nil {
+		t.Errorf("the UI was told a terminal needs somebody: %v", got)
 	}
 }
 
@@ -445,7 +390,7 @@ func TestPlanningTerminalCarriesTheEditedInstructions(t *testing.T) {
 	}
 	project := initTestProject(t)
 	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
-		cfg.SystemPrompt = "Отвечай по-русски."
+		cfg.BoardPrompts = map[string]string{"board1": "Отвечай по-русски."}
 		cfg.Projects = []ProjectEntry{{Name: "testrepo", Path: project}}
 		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, Prompt: "Ты архитектор.", TerminalCommand: []string{"sh"}}}
 	})

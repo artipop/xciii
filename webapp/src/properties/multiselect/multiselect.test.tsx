@@ -303,4 +303,54 @@ describe('properties/multiSelect', () => {
 
         expect(mockedMutator.changePropertyOptionColor).toHaveBeenCalledWith(board.id, board.cardProperties, propertyTemplate, selectedOption, newColorKey)
     })
+
+    // On the card each chosen folder is a chip you can take off, the way the
+    // people a card is assigned to are. The only visible way out used to be
+    // «Delete» in the option's own menu, which takes the option away from the
+    // whole board — a different act entirely.
+    it('takes one value off the card by the cross on its chip', () => {
+        const propertyTemplate = buildMultiSelectPropertyTemplate()
+        const propertyValue = ['multi-option-1', 'multi-option-2']
+
+        render(() =>
+            <MultiSelect
+                property={new MultiSelectProperty()}
+                readOnly={false}
+                showEmptyPlaceholder={true}
+                propertyTemplate={propertyTemplate}
+                propertyValue={propertyValue}
+                board={{...board}}
+                card={{...card}}
+            />,
+        {wrapper: Wrapper},
+        )
+
+        userEvent.click(screen.getAllByRole('button', {name: /clear/i})[0])
+
+        expect(mockedMutator.changePropertyValue).toHaveBeenCalledWith(board.id, card, propertyTemplate.id, ['multi-option-2'])
+
+        // And the chip did not also open the selector on the way out.
+        expect(screen.queryByRole('combobox', {name: /value selector/i})).not.toBeInTheDocument()
+    })
+
+    // Everywhere the values are only being read — a table cell, a badge on a
+    // kanban card — a cross on every one of them is noise.
+    it('offers no crosses outside the card', () => {
+        const propertyTemplate = buildMultiSelectPropertyTemplate()
+
+        render(() =>
+            <MultiSelect
+                property={new MultiSelectProperty()}
+                readOnly={false}
+                showEmptyPlaceholder={false}
+                propertyTemplate={propertyTemplate}
+                propertyValue={['multi-option-1']}
+                board={{...board}}
+                card={{...card}}
+            />,
+        {wrapper: Wrapper},
+        )
+
+        expect(screen.queryByRole('button', {name: /clear/i})).not.toBeInTheDocument()
+    })
 })

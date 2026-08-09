@@ -6,11 +6,11 @@ import '@testing-library/jest-dom'
 
 import {wrapIntl} from '../../testUtils'
 
-import DeployTargetsDialog, {isDeployTargetsAvailable} from './deployTargetsDialog'
+import DeployTargetsPanel, {isDeployTargetsAvailable} from './deployTargetsPanel'
 
 const anyWindow = window as any
 
-describe('components/acp/deployTargetsDialog', () => {
+describe('components/acp/deployTargetsPanel', () => {
     afterEach(() => {
         delete anyWindow.go
         vi.clearAllMocks()
@@ -32,7 +32,7 @@ describe('components/acp/deployTargetsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
         expect(isDeployTargetsAvailable()).toBe(true)
 
-        render(() => wrapIntl(() => <DeployTargetsDialog onClose={vi.fn()}/>))
+        render(() => wrapIntl(() => <DeployTargetsPanel onClose={vi.fn()}/>))
         await waitFor(() => expect(screen.getByText('staging')).toBeInTheDocument())
         expect(screen.getByText('dokku@dokku.example.com → *.dokku.example.com')).toBeInTheDocument()
 
@@ -76,7 +76,7 @@ describe('components/acp/deployTargetsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <DeployTargetsDialog onClose={vi.fn()}/>))
+        render(() => wrapIntl(() => <DeployTargetsPanel onClose={vi.fn()}/>))
         await waitFor(() => expect(screen.getByText('staging')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Edit'}))
@@ -101,7 +101,7 @@ describe('components/acp/deployTargetsDialog', () => {
         }
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <DeployTargetsDialog onClose={vi.fn()}/>))
+        render(() => wrapIntl(() => <DeployTargetsPanel onClose={vi.fn()}/>))
         await waitFor(() => expect(screen.getByText('No deploy targets yet.')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Add target…'}))

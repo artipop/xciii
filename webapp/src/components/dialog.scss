@@ -53,6 +53,14 @@
         position: relative;
         display: flex;
         flex-direction: column;
+
+        // A dialog is its own layout context, wherever it was opened from. One
+        // opened out of the board's toolbar used to inherit that toolbar's
+        // `white-space: nowrap` — which is right for keeping controls on one
+        // line and wrong for every paragraph and panel inside a modal, where it
+        // made prose lay out at its full one-line width and push the content
+        // sideways out of the box it lives in.
+        white-space: normal;
         background-color: rgb(var(--surface-bg-rgb));
         box-shadow: 0 0 0 1px var(--border-subtle), var(--elevation-5);
         border-radius: var(--modal-rad);

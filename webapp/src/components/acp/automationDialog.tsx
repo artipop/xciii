@@ -13,8 +13,15 @@ import {Utils, IDType} from '../../utils'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 import AutomationEditor from './automationEditor'
+import AgentProjectsPanel, {isAgentProjectsAvailable} from './agentProjectsPanel'
+import AgentQuickAdd from './agentQuickAdd'
+import {isAgentsAvailable} from './agentsPanel'
+import BoardSetupWizard from './boardSetupWizard'
+import {createSetupPlan, isBoardSetupAvailable} from './boardSetup'
+import {syncAgentsToBoard} from './agentSync'
+import PromptField from './promptField'
 import {StageCount} from './flowDiagram'
 import {
     Automation,
@@ -77,7 +84,26 @@ const AutomationDialog = (props: Props) => {
     const [error, setError] = createSignal('')
     const [dirty, setDirty] = createSignal(false)
 
+    // What every session of this board is told first. It is registry state like
+    // the columns, so it is saved with them rather than on its own.
+    const [prompt, setPrompt] = createSignal('')
+    const [savedPrompt, setSavedPrompt] = createSignal('')
+
+    // Projects are a folder an agent writes in, and plenty of boards have no
+    // agent at all — so the section is offered only to a board that has folders
+    // already or a column that would need one. A board of shopping lists is
+    // never asked about a checkout.
+    const [projectCount, setProjectCount] = createSignal(0)
+    const [showProjects, setShowProjects] = createSignal(false)
+    const [showSetup, setShowSetup] = createSignal(false)
+    const [addingAgent, setAddingAgent] = createSignal(false)
+    const [plan, refreshPlan] = createSetupPlan(() => props.board)
+
     const columns = (): BoardColumn[] => boardColumns(props.board, property()?.name)
+
+    const usesProjects = () => isAgentProjectsAvailable() && (
+        projectCount() > 0 ||
+        draft().columns.some((c) => c.action === 'agent' || c.action === 'test'))
 
     const refresh = async () => {
         if (!bindings?.ListFlows) {
@@ -115,6 +141,14 @@ const AutomationDialog = (props: Props) => {
                 const overview: FlowOverview[] = JSON.parse(await bindings.GetBoardFlowOverview(props.board.id)) || []
                 setCounts(Object.fromEntries(overview.map((o) => [o.flow, o.stages])))
             }
+            if (bindings.GetBoardPrompt) {
+                const stored = await bindings.GetBoardPrompt(props.board.id)
+                setPrompt(stored)
+                setSavedPrompt(stored)
+            }
+            if (bindings.ListAgentProjects) {
+                setProjectCount((JSON.parse(await bindings.ListAgentProjects(props.board.id)) || []).length)
+            }
         } catch (e) {
             setError(String(e))
         }
@@ -122,6 +156,11 @@ const AutomationDialog = (props: Props) => {
 
     onMount(() => {
         refresh()
+
+        // The agents are the machine's and are edited there; this is the board
+        // where they have to be nameable, so it picks them up on its own rather
+        // than through a button somebody has to know to press.
+        syncAgentsToBoard(props.board).catch((e) => setError(String(e)))
     })
 
     const change = (next: Automation) => {
@@ -233,6 +272,10 @@ const AutomationDialog = (props: Props) => {
         }
         /* eslint-enable no-await-in-loop */
 
+        if (bindings.SetBoardPrompt && prompt() !== savedPrompt()) {
+            await attempt(() => bindings.SetBoardPrompt!(props.board.id, prompt()))
+        }
+
         // Whatever happened, the registry is now the truth — reloading is what
         // shows which half of a refused save did land.
         await refresh()
@@ -243,6 +286,8 @@ const AutomationDialog = (props: Props) => {
         props.onSaved?.()
         props.onClose()
     }
+
+    const unsaved = () => dirty() || prompt() !== savedPrompt()
 
     // A shipped route is offered only when this board has every column it
     // names: a route drawn over columns that are not there is not a start, it
@@ -281,7 +326,19 @@ const AutomationDialog = (props: Props) => {
                     onRenameColumn={renameColumn}
                     onAddRouteOption={addRouteOption}
                     routeOptionMissing={(flow) => routeOptionMissing(props.board, flow)}
+                    onAddAgent={isAgentsAvailable() ? () => setAddingAgent(true) : undefined}
                 />
+
+                <Show when={addingAgent()}>
+                    <AgentQuickAdd
+                        board={props.board}
+                        onAdded={async () => {
+                            setAddingAgent(false)
+                            await refresh()
+                        }}
+                        onCancel={() => setAddingAgent(false)}
+                    />
+                </Show>
 
                 <Show when={offered().length > 0}>
                     <div class='AutomationDialog__ready'>
@@ -296,6 +353,41 @@ const AutomationDialog = (props: Props) => {
                     </div>
                 </Show>
 
+                {/* What the agents of this board are told before anything
+                    else. Per board, because the board is what the instruction
+                    is about — one text shared by the household board and the
+                    code board was one nobody could write anything useful in. */}
+                <Show when={Boolean(bindings?.GetBoardPrompt)}>
+                    <div class='AutomationDialog__prompt'>
+                        <PromptField
+                            label={intl.formatMessage({id: 'Automation.board-prompt', defaultMessage: 'What every agent on this board is told first'})}
+                            value={prompt()}
+                            rows={6}
+                            onInput={setPrompt}
+                        />
+                    </div>
+                </Show>
+
+                {/* Folders are what an agent writes in, so a board with no
+                    agent column and no folders of its own is never asked. */}
+                <Show when={usesProjects()}>
+                    <details
+                        class='AutomationDialog__projects'
+                        open={showProjects()}
+                        onToggle={(e) => setShowProjects(e.currentTarget.open)}
+                    >
+                        <summary>
+                            {intl.formatMessage({id: 'AgentProjects.title', defaultMessage: 'Projects'})}
+                        </summary>
+                        <Show when={showProjects()}>
+                            <AgentProjectsPanel
+                                board={props.board}
+                                onChange={refreshPlan}
+                            />
+                        </Show>
+                    </details>
+                </Show>
+
                 <div class='AutomationDialog__actions'>
                     <Button
                         emphasis='primary'
@@ -306,7 +398,17 @@ const AutomationDialog = (props: Props) => {
                     <Button onClick={props.onClose}>
                         {intl.formatMessage({id: 'Automation.cancel', defaultMessage: 'Close'})}
                     </Button>
-                    <Show when={dirty()}>
+
+                    {/* The wizard opens by itself once, and the board's title
+                        carries a reminder while it is unanswered. This is the
+                        way back to it afterwards — the only one, now that it is
+                        no longer a permanent entry in the board's menu. */}
+                    <Show when={isBoardSetupAvailable() && (plan()?.steps.length || 0) > 0}>
+                        <Button onClick={() => setShowSetup(true)}>
+                            {intl.formatMessage({id: 'Automation.setup', defaultMessage: 'Walk the setup again…'})}
+                        </Button>
+                    </Show>
+                    <Show when={unsaved()}>
                         <span class='AutomationDialog__hint'>
                             {intl.formatMessage({id: 'Automation.unsaved', defaultMessage: 'Unsaved changes'})}
                         </span>
@@ -317,6 +419,17 @@ const AutomationDialog = (props: Props) => {
                     <div class='AutomationDialog__error'>{error()}</div>
                 </Show>
             </div>
+
+            <Show when={showSetup()}>
+                <BoardSetupWizard
+                    board={props.board}
+                    onClose={() => {
+                        setShowSetup(false)
+                        refreshPlan()
+                        refresh()
+                    }}
+                />
+            </Show>
         </Dialog>
     )
 }

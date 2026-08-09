@@ -1,28 +1,26 @@
-.DeployTargetsDialog {
-    .DeployTargetsDialog__content {
+.DeployTargetsPanel {
+    .DeployTargetsPanel__content {
         display: flex;
         flex-direction: column;
         gap: 8px;
-        padding: 0 24px 24px;
-        min-width: 560px;
     }
 
-    .DeployTargetsDialog__empty {
+    .DeployTargetsPanel__empty {
         color: rgba(var(--center-channel-color-rgb), 0.64);
         padding: 8px 0;
     }
 
-    .DeployTargetsDialog__row {
+    .DeployTargetsPanel__row {
         display: flex;
         align-items: center;
         gap: 12px;
 
-        .DeployTargetsDialog__name {
+        .DeployTargetsPanel__name {
             font-weight: 600;
             white-space: nowrap;
         }
 
-        .DeployTargetsDialog__where {
+        .DeployTargetsPanel__where {
             flex: 1;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 12px;
@@ -32,7 +30,7 @@
         }
     }
 
-    .DeployTargetsDialog__form {
+    .DeployTargetsPanel__form {
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -49,7 +47,7 @@
         }
 
         // A checkbox belongs beside its label, not above it.
-        label.DeployTargetsDialog__checkbox {
+        label.DeployTargetsPanel__checkbox {
             flex-direction: row;
             align-items: flex-start;
             gap: 8px;
@@ -62,7 +60,7 @@
         }
 
         input,
-        select,
+        .Select__trigger,
         textarea {
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             border-radius: var(--radius-sm);
@@ -79,21 +77,21 @@
 
         // The hostname is composed from the fields above it, so it is shown
         // rather than typed.
-        .DeployTargetsDialog__hint {
+        .DeployTargetsPanel__hint {
             margin-top: -4px;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 12px;
         }
     }
 
-    .DeployTargetsDialog__formActions,
-    .DeployTargetsDialog__actions {
+    .DeployTargetsPanel__formActions,
+    .DeployTargetsPanel__actions {
         display: flex;
         gap: 8px;
         padding-top: 4px;
     }
 
-    .DeployTargetsDialog__error {
+    .DeployTargetsPanel__error {
         color: rgb(var(--error-text-rgb, 210, 75, 78));
         padding-top: 8px;
     }

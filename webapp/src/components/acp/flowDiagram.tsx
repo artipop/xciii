@@ -344,7 +344,6 @@ type FlowHandle = {
 // events land on the wrapper div, which is outside, and converting a drop
 // point into graph coordinates is the canvas' own knowledge.
 const CanvasHook = (props: {onReady: (flow: FlowHandle) => void}) => {
-    // eslint-disable-next-line new-cap
     props.onReady(useSolidFlow() as unknown as FlowHandle)
     return null
 }

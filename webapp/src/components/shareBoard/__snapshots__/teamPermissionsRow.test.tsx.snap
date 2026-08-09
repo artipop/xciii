@@ -44,6 +44,7 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot 1`
                 aria-label="Editor"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -74,6 +75,7 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot 1`
                 aria-label="Commenter"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -104,6 +106,7 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot 1`
                 aria-label="Viewer"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -134,6 +137,7 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot 1`
                 aria-label="None"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -253,6 +257,7 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot in
                 aria-label="Editor"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -283,6 +288,7 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot in
                 aria-label="Commenter"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -313,6 +319,7 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot in
                 aria-label="Viewer"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -343,6 +350,7 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot in
                 aria-label="None"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -462,6 +470,7 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot in
                 aria-label="Viewer"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -492,6 +501,7 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot in
                 aria-label="None"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"

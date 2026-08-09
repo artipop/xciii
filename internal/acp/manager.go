@@ -21,7 +21,7 @@ import (
 // and policies, and reports results back to the board and the UI.
 type Manager struct {
 	cfg     Config
-	cfgMu   sync.RWMutex // guards the UI-mutable parts of cfg (Projects, Agents, SystemPrompt)
+	cfgMu   sync.RWMutex // guards the UI-mutable parts of cfg (Projects, Agents, BoardPrompts)
 	cfgPath string       // where registry edits are persisted; empty in tests
 	store   *Store
 	writer  BoardWriter
@@ -39,13 +39,14 @@ type Manager struct {
 	// lock but nothing else with sessions: a terminal is a person working, not
 	// an agent being driven (terminal.go).
 	terminals map[string]*TerminalSession // terminal ID → terminal session
-	// terminalQuiet overrides how long a CLI must be silent before it counts as
-	// waiting for a person (terminalQuietFor). Only a test sets it: the real
-	// threshold is a human one and would make the suite wait it out.
-	terminalQuiet time.Duration
 
 	seededMu sync.Mutex
 	seeded   map[string]bool // boards whose own settings have been imported
+
+	// boardStored are the boards that now hold their own columns and routes
+	// (boardseed.go). Guarded by cfgMu, because it is exactly what decides
+	// which of them still go into config.json.
+	boardStored map[string]bool
 
 	// questions are what agents are waiting to hear back on: one entry per open
 	// question, keyed by its id (question.go). Its own lock — a question is
@@ -81,7 +82,8 @@ type Manager struct {
 func (m *Manager) SetBoardReader(r BoardReader) { m.reader = r }
 
 // SetBoardUsers supplies account provisioning, which "assign a card to an
-// agent" needs. Optional: without it only the "Agent" field routes cards.
+// agent" needs. Optional: without it a card can only reach an agent through
+// its column's crew.
 func (m *Manager) SetBoardUsers(u BoardUsers) { m.users = u }
 
 // NewManager wires the manager. cfgPath is where project-registry edits are
@@ -133,6 +135,10 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 			m.log.Warn("acp: agent is configured in a way that will not work", "agent", a.Name, "err", err)
 		}
 	}
+
+	// Before anything can edit either side: whatever automation the file still
+	// carries goes onto the boards that own it (boardseed.go).
+	m.moveAutomationToBoards()
 
 	m.recover()
 	PruneStale(m.rootCtx, m.cfg.ProjectWhitelist)
@@ -213,10 +219,11 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	// Asked before anything is resolved: a card somebody took for themselves is
 	// theirs, and there is no point working out which project an agent would
 	// not be using. Deploy and test are unaffected — that is machine work, not
-	// the assignee's — and an explicit `agent` property still wins, since it is
-	// a direct instruction. Somebody who wants to work the card *with* an agent
-	// opens a terminal on it, which is not a session and not vetoed here.
-	if !opts.deploy && !opts.test && strings.TrimSpace(ev.Props["agent"]) == "" {
+	// the assignee's. Somebody who wants to work the card *with* an agent opens
+	// a terminal on it, which is not a session and not vetoed here; somebody
+	// who wants an agent to work it assigns the agent, which humanAssignee
+	// reads as the opposite answer.
+	if !opts.deploy && !opts.test {
 		m.cfgMu.RLock()
 		known := append([]AgentEntry(nil), m.cfg.Agents...)
 		m.cfgMu.RUnlock()
@@ -300,7 +307,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	}
 
 	m.cfgMu.RLock()
-	systemPrompt, deployPrompt, testPrompt := m.cfg.SystemPrompt, m.cfg.DeployPrompt, m.cfg.TestPrompt
+	systemPrompt, deployPrompt, testPrompt := m.cfg.BoardPrompts[ev.BoardID], m.cfg.DeployPrompt, m.cfg.TestPrompt
 	m.cfgMu.RUnlock()
 	prompt := composePrompt(ev, agent, systemPrompt, worktreeAvailable)
 	switch {

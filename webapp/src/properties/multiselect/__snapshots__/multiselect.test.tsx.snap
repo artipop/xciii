@@ -10,12 +10,20 @@ exports[`properties/multiSelect > shows only the selected options when menu is n
     <span
       class="Label propColorDefault "
     >
-      a
+      <span
+        class="Label-text"
+      >
+        a
+      </span>
     </span>
     <span
       class="Label empty "
     >
-      b
+      <span
+        class="Label-text"
+      >
+        b
+      </span>
     </span>
     
   </div>

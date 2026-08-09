@@ -4,7 +4,7 @@ import {fireEvent, render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
-import {wrapIntl} from '../../testUtils'
+import {chooseOption, wrapIntl} from '../../testUtils'
 import {setupReactFlowEnvironment} from '../../test/reactFlowEnvironment'
 import {IPropertyTemplate} from '../../blocks/board'
 
@@ -87,8 +87,7 @@ describe('components/acp/automationEditor', () => {
         const {container, onChange} = renderEditor({focusColumnId: 'opt-review'})
 
         expect(container.querySelector('.AutomationEditor__panelTitle')).toHaveTextContent('На ревью')
-        const action = screen.getByRole('combobox', {name: /When a card lands here/}) as HTMLSelectElement
-        userEvent.selectOptions(action, 'deploy')
+        chooseOption(screen.getByRole('button', {name: 'When a card lands here'}), 'deploy the card’s branch')
 
         await waitFor(() => expect(onChange).toHaveBeenCalled())
         const next: Automation = onChange.mock.calls[0][0]
@@ -252,9 +251,8 @@ describe('components/acp/automationEditor', () => {
 
         // Scoped to the condition editor: with two select properties the routes
         // bar has a property picker too, and it also offers «Приоритет».
-        const propertyPick = [...container.querySelectorAll('.AutomationEditor__cond select')].
-            find((el) => [...el.querySelectorAll('option')].some((o) => o.textContent === 'Приоритет'))!
-        userEvent.selectOptions(propertyPick, 'Приоритет')
+        const propertyPick = container.querySelector('.AutomationEditor__cond .AutomationEditor__condFields .Select') as HTMLElement
+        chooseOption(propertyPick, 'Приоритет')
 
         await waitFor(() => expect(onChange).toHaveBeenCalled())
         const next: Automation = onChange.mock.calls.at(-1)![0]

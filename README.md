@@ -223,6 +223,31 @@ the one thing a rewrite must not quietly drop.
   replaces an installed copy with an edited one. Authoring is not by hand:
   build the board in the app, *Export board archive*, unzip, keep the
   `board.jsonl`.
+- **Where a setting lives is decided by whose it is.** The registries are the
+  machine's — which agents are installed, where they deploy, how they reach the
+  network, whether the board is published on the tailnet — so they are one
+  dialog opened from the sidebar's *«Настройки → Эта машина…»*, beside the theme
+  and the language, and are reachable with no board open at all. What a board
+  runs — its columns, its routes, the folders its agents work in, and what those
+  agents are told first — is one screen, *«Как работает эта доска…»*. The board's
+  ⋯ menu holds nothing else but export and *«Сохранить как шаблон…»*: it used to
+  be the only door to all of the above, which made machine settings look like a
+  property of whichever board happened to be open.
+  Registering an agent or a folder does not require going there — the card's
+  terminal and the column's crew list both offer the short form (a name and a
+  kind) where the choice is being made, and the full form stays in the
+  settings. **Folders are part of running an agent, not of having a board**: a
+  board with no agent column is never asked for one and never grows a «Проекты»
+  field, and a project marked "on every board" joins only boards that already
+  have that field.
+- **What a board tells its agents first is the board's** (`boardPrompts` in the
+  config, keyed by board id, edited in *«Как работает эта доска…»*). It was one
+  string shared by every board on the machine, labelled "board system prompt"
+  while being nothing of the kind — which meant the household board and the code
+  board shared it and so nobody could write anything useful in it. An install
+  that had written something keeps it: on first load the old `systemPrompt` is
+  spread over every board named by a column or a route, and the global field is
+  blanked.
 - **First run**: a board made from a template opens a setup wizard by itself
   when the registries are still empty — a project and an agent are asked for
   (nothing runs without them), Dokku and a browser MCP server are offered and
@@ -250,11 +275,12 @@ the one thing a rewrite must not quietly drop.
   as "already registered" with one click to pass it). Reading them as the answer
   is what made every board after the first appear fully set up and get created
   in silence. The page renders that plan and works nothing out for itself; the
-  board menu reads the same one, which is why *Deploy targets…* is absent from a
-  board that never deploys. The wizard opens itself once per board — closing it
-  half-way answers nothing, so the header goes on saying *«Доска ещё не
-  настроена»* until every question that board asks has an answer, and that
-  button is the way back in (*Set up this board…* in the board menu too).
+  wizard walks exactly what the plan lists, which is why a board that never
+  deploys is never asked where to. The wizard opens itself once per board —
+  closing it half-way answers nothing, so the header goes on saying *«Доска ещё
+  не настроена»* until every question that board asks has an answer, and that
+  button is the way back in (*«Пройти настройку заново…»* in *«Как работает эта
+  доска…»* afterwards).
   Having been offered it is remembered in the store, not in the page: the app
   publishes itself on a fresh port every launch, so `localStorage` is keyed by
   an origin that does not survive a restart — anything the page has to remember

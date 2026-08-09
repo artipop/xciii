@@ -73,45 +73,18 @@ describe('components/acp/planningDialog', () => {
         await waitFor(() => expect(bindings.ShowTerminal).toHaveBeenCalledWith('term-9'))
     })
 
-    // What the agent is told to begin with is a setting, and the planning
-    // dialog is where a person meets it: an edit made here has to be the one
-    // the terminal that opens next is given.
-    it('shows the stored instructions and stores an edit before opening', async () => {
-        const bindings = planningBindings()
-        anyWindow.go = {main: {App: bindings}}
+    // What the agent is told to begin with is a setting of the machine, edited
+    // in Settings → This machine. It used to be edited here, which made a
+    // setting look like part of the act of opening a terminal. The bindings for
+    // it are still handed to the dialog below, so this fails if it goes back to
+    // reading them.
+    it('does not ask about the instructions it opens with', async () => {
+        anyWindow.go = {main: {App: planningBindings()}}
 
         render(() => wrapIntl(() => <PlanningDialog board={board} onClose={vi.fn()}/>))
 
-        // Folded away until somebody comes to change it: the dialog is opened
-        // to start a terminal far more often than to rewrite the instructions.
-        await userEvent.click(await screen.findByText(/What the agent is told to begin with/))
-
-        const box = await screen.findByDisplayValue('Ничего не меняй.')
-        await userEvent.clear(box)
-        await userEvent.type(box, 'Спроси про сроки.')
-
-        const open = await screen.findByText('Open a terminal')
-        await waitFor(() => expect(open.closest('button')).not.toBeDisabled())
-        await userEvent.click(open)
-
-        await waitFor(() => expect(bindings.SetPlanningPrompt).toHaveBeenCalledWith('Спроси про сроки.'))
-        expect(bindings.OpenPlanningTerminal).toHaveBeenCalledWith('app', 'planner', 'board-1')
-    })
-
-    // An unchanged prompt is not a write: the dialog is opened far more often
-    // to find a terminal than to change what the agent is told.
-    it('leaves the instructions alone when nothing was typed', async () => {
-        const bindings = planningBindings()
-        anyWindow.go = {main: {App: bindings}}
-
-        render(() => wrapIntl(() => <PlanningDialog board={board} onClose={vi.fn()}/>))
-
-        const open = await screen.findByText('Open a terminal')
-        await waitFor(() => expect(open.closest('button')).not.toBeDisabled())
-        await userEvent.click(open)
-
-        await waitFor(() => expect(bindings.OpenPlanningTerminal).toHaveBeenCalled())
-        expect(bindings.SetPlanningPrompt).not.toHaveBeenCalled()
+        await screen.findByText('Open a terminal')
+        expect(screen.queryByRole('textbox')).toBeNull()
     })
 
     it('says what went wrong instead of failing silently', async () => {

@@ -338,7 +338,7 @@ const CardDetail = (props: Props): JSX.Element => {
                     <hr/>
                     <CardAgent
                         cardId={props.card.id}
-                        boardId={props.board.id}
+                        board={props.board}
                     />
                 </Show>
 

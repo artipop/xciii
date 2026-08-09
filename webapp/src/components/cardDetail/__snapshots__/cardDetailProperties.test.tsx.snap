@@ -42,6 +42,16 @@ exports[`components/cardDetail/CardDetailProperties > cancel on delete dialog sh
           >
             Jean-Luc Picard
           </span>
+          <button
+            aria-label="Clear"
+            class="IconButton margin-left delete-value"
+            title="Clear"
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-close CloseIcon"
+            />
+          </button>
         </span>
       </div>
     </div>
@@ -145,6 +155,16 @@ exports[`components/cardDetail/CardDetailProperties > should match snapshot 1`] 
           >
             Jean-Luc Picard
           </span>
+          <button
+            aria-label="Clear"
+            class="IconButton margin-left delete-value"
+            title="Clear"
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-close CloseIcon"
+            />
+          </button>
         </span>
       </div>
     </div>
@@ -248,6 +268,16 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
           >
             Jean-Luc Picard
           </span>
+          <button
+            aria-label="Clear"
+            class="IconButton margin-left delete-value"
+            title="Clear"
+            type="button"
+          >
+            <i
+              class="CompassIcon icon-close CloseIcon"
+            />
+          </button>
         </span>
       </div>
     </div>
@@ -334,6 +364,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Text"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -360,6 +391,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Number"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -386,6 +418,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Email"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -412,6 +445,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Phone"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -438,6 +472,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="URL"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -464,6 +499,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Select"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -490,6 +526,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Multi select"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -516,6 +553,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Date"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -542,6 +580,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Person"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -568,6 +607,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Multi person"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -594,6 +634,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Checkbox"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -620,6 +661,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Created time"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -646,6 +688,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Created by"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -672,6 +715,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Last updated time"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -698,6 +742,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
                 aria-label="Last updated by"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"

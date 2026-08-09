@@ -1,18 +1,16 @@
 @import '../../styles/typography';
 
-.TailnetDialog {
-    .TailnetDialog__content {
+.TailnetPanel {
+    .TailnetPanel__content {
         display: flex;
         flex-direction: column;
         gap: 12px;
-        padding: 0 24px 24px;
-        min-width: 560px;
     }
 
     // The status is the machine reporting on itself, so it is in the machine's
     // voice — and the only one of the five that carries a colour is the one
     // that wants something from a person.
-    .TailnetDialog__status {
+    .TailnetPanel__status {
         @include label;
 
         &--on {
@@ -30,7 +28,7 @@
         }
     }
 
-    .TailnetDialog__field {
+    .TailnetPanel__field {
         display: flex;
         flex-direction: column;
         gap: 4px;
@@ -54,7 +52,7 @@
 
     // The address is the one thing on this panel somebody has to copy by eye
     // onto another device, so it is given room and the data voice.
-    .TailnetDialog__address {
+    .TailnetPanel__address {
         display: flex;
         align-items: center;
         gap: 12px;
@@ -74,14 +72,14 @@
         }
     }
 
-    .TailnetDialog__addressLabel {
+    .TailnetPanel__addressLabel {
         @include label;
 
         opacity: 0.7;
         white-space: nowrap;
     }
 
-    .TailnetDialog__hint {
+    .TailnetPanel__hint {
         @include prose;
 
         margin: 0;
@@ -89,11 +87,11 @@
         opacity: 0.64;
     }
 
-    .TailnetDialog__error {
+    .TailnetPanel__error {
         color: rgb(var(--error-text-rgb));
     }
 
-    .TailnetDialog__actions {
+    .TailnetPanel__actions {
         display: flex;
         gap: 8px;
         margin-top: 4px;

@@ -7,7 +7,7 @@ import {Accessor, Show, createMemo, createSignal, onCleanup, onMount} from 'soli
 
 import {useIntl} from '../../intl'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 import {onAgentEvent} from './agentEvents'
 import {ColumnSpec, specFor} from './automation'
 

@@ -64,6 +64,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Hide"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -100,6 +101,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Delete"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -133,6 +135,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Select Default Color"
               class="MenuOption ColorOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -150,6 +153,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Select Gray Color"
               class="MenuOption ColorOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -167,6 +171,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Select Brown Color"
               class="MenuOption ColorOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -184,6 +189,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Select Orange Color"
               class="MenuOption ColorOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -201,6 +207,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Select Yellow Color"
               class="MenuOption ColorOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -218,6 +225,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Select Green Color"
               class="MenuOption ColorOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -235,6 +243,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Select Blue Color"
               class="MenuOption ColorOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -252,6 +261,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Select Purple Color"
               class="MenuOption ColorOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -269,6 +279,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Select Pink Color"
               class="MenuOption ColorOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -286,6 +297,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
               aria-label="Select Red Color"
               class="MenuOption ColorOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"

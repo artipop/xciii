@@ -86,6 +86,17 @@
                 background: rgba(var(--button-bg-rgb), 0.08);
             }
 
+            // The keyboard's own pointer. It is the hover wash and an edge
+            // rather than the browser's ring, because the walk is inside a
+            // list — the ring drew a box around a full-width row and read as
+            // something being edited. Not :focus-visible: this focus is only
+            // ever given by an arrow key, so it is always worth showing.
+            &:focus {
+                background: rgba(var(--button-bg-rgb), 0.12);
+                box-shadow: inset 2px 0 0 rgb(var(--button-bg-rgb));
+                outline: none;
+            }
+
             &-active {
                 background: rgba(var(--button-bg-rgb), 0.08);
             }

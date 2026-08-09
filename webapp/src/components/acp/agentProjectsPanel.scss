@@ -1,5 +1,5 @@
-.AgentProjectsDialog {
-    .AgentReposDialog__content {
+.AgentProjectsPanel {
+    .AgentProjectsPanel__content {
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -7,12 +7,12 @@
         min-width: 480px;
     }
 
-    .AgentReposDialog__empty {
+    .AgentProjectsPanel__empty {
         color: rgba(var(--center-channel-color-rgb), 0.64);
         padding: 8px 0;
     }
 
-    .AgentReposDialog__orphans {
+    .AgentProjectsPanel__orphans {
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -20,22 +20,22 @@
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     }
 
-    .AgentReposDialog__orphansTitle {
+    .AgentProjectsPanel__orphansTitle {
         font-size: 12px;
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
-    .AgentReposDialog__row {
+    .AgentProjectsPanel__row {
         display: flex;
         align-items: center;
         gap: 12px;
 
-        .AgentReposDialog__name {
+        .AgentProjectsPanel__name {
             font-weight: 600;
             white-space: nowrap;
         }
 
-        .AgentReposDialog__path {
+        .AgentProjectsPanel__path {
             flex: 1;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             overflow: hidden;
@@ -48,7 +48,7 @@
         // Said on the entry rather than only in the add form: which board a
         // project belongs to is invisible otherwise, and "why is it here"
         // becomes a question with no answer on screen.
-        .AgentReposDialog__global {
+        .AgentProjectsPanel__global {
             font-size: 12px;
             white-space: nowrap;
             padding: 1px 8px;
@@ -57,7 +57,7 @@
             color: rgba(var(--center-channel-color-rgb), 0.72);
         }
 
-        .AgentReposDialog__globalToggle {
+        .AgentProjectsPanel__globalToggle {
             display: flex;
             align-items: center;
             gap: 6px;
@@ -66,7 +66,7 @@
             color: rgba(var(--center-channel-color-rgb), 0.72);
         }
 
-        .AgentReposDialog__nameInput {
+        .AgentProjectsPanel__nameInput {
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             border-radius: var(--radius-sm);
             padding: 4px 8px;
@@ -75,28 +75,20 @@
         }
     }
 
-    .AgentReposDialog__actions {
+    .AgentProjectsPanel__actions {
         padding-top: 4px;
     }
 
-    .AgentReposDialog__sync {
+    .AgentProjectsPanel__sync {
         display: flex;
         align-items: center;
         gap: 8px;
         margin-top: 16px;
         padding-top: 12px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-
-        select {
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            border-radius: var(--radius-sm);
-            padding: 4px 8px;
-            background: rgb(var(--surface-bg-rgb));
-            color: rgb(var(--center-channel-color-rgb));
-        }
     }
 
-    .AgentReposDialog__error {
+    .AgentProjectsPanel__error {
         color: rgb(var(--error-text-rgb, 210, 75, 78));
         padding-top: 8px;
     }

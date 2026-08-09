@@ -199,13 +199,13 @@ reports `waiting_permission` meanwhile, and an unanswered question does not stal
 for ever: cancelling the session, or the app closing, is a refusal, and the agent
 carries on without what it asked for.
 
-The question shows up as `acp:attention` with reason `question` — the amber dot on
-the card's face, and, unless turned off in the settings menu, a notification
-carrying the question itself, since the options *are* the answer and there is
-nothing to navigate to. It is answered in either place through `AnswerQuestion`, and
-the card keeps the exchange in its comments like everything else a session does. The
-other reason is `quiet`, from a terminal, below; `components/acp/attention.ts` is
-the one subscription behind both.
+The question shows up as `acp:attention` — the amber dot on the card's face, and,
+unless turned off in the settings menu, a notification carrying the question
+itself, since the options *are* the answer and there is nothing to navigate to.
+It is answered in either place through `AnswerQuestion`, and the card keeps the
+exchange in its comments like everything else a session does. This is the only
+thing that raises attention: a terminal used to be a second reason and no longer
+is (below). `components/acp/attention.ts` is the one subscription behind it.
 
 The automation around sessions is untouched by that: columns say what happens when a
 card lands in them, flows join columns into routes, deploys publish a branch to
@@ -224,6 +224,48 @@ properties (`acpColumns`, `acpFlows`, `acpSetup`), which is where a board made
 from it will read them. `automation.ts` holds the types and every pure helper,
 which is what keeps the two containers from growing their own answers.
 `docs/templates.md` is the template half written for somebody using it.
+
+And a board's automation **lives on the board** — `acpColumns`/`acpFlows` in the
+board's own properties, in the board database, which is why a live board and a
+template are the same two keys and why a template can carry automation at all.
+`internal/acp` keeps the registry in memory because the engine reads it on every
+card move, but every edit is written through to the board it belongs to
+(`persistBoardLocked` in `boardseed.go`), and `config.json` keeps only what the
+machine owns. An install that predates this moves over once, at startup
+(`moveAutomationToBoards`); a board that refuses the write keeps its entries in
+the file until one gets through, which is what makes the move safe to retry.
+
+**A setting lives where its owner does**, and that is the rule the whole
+settings surface is sorted by. The registries are the machine's — agents,
+deploy targets, proxies, the tailnet, what a card-less conversation opens
+saying — so they are `machineSettingsDialog.tsx`, one dialog of panels opened
+from `sidebarSettingsMenu.tsx`, reachable with no board open. What a board runs
+— columns, routes, its folders, and what its agents are told first
+(`boardPrompts`, keyed by board id) — is `automationDialog.tsx`. The board's ⋯
+menu keeps only export and "save as a template". Registering an agent needs
+neither: `agentQuickAdd.tsx` is the two-field form, used by the card, the
+column's crew list and the setup wizard alike, and `agentSync.ts` is what makes
+a registered agent nameable on a board — called where a board exists, since the
+machine's own settings have none.
+
+**A card names its agent by whom it is assigned to**, and by nothing else. Each
+registered agent is a member of the board under its own name (`SyncAgentUsers`),
+so «Кто занимается» answers the question the whole board already asks with that
+field. There used to be a second one — an «Agent» select `agentSync.ts` kept in
+step with the registry — and two fields for one question meant a rule about
+which of them wins and a field that said nothing on a board where nobody had
+registered an agent. `retireAgentProperty` takes it off a board the first time
+one is opened, and `resolveSessionAgent` no longer reads select options at all —
+that match outlived the field as a rule with nothing behind it, where any option
+anywhere on the board spelled like an agent quietly decided who worked the card.
+`humanAssignee` is what keeps "assigned to a person" and "assigned to an agent"
+opposite answers rather than the same one. A card property named `agent` went
+with them, and for the same reason: nothing in this app creates one, so it was a
+third answer only a hand-built board could give.
+
+Folders belong to **running an agent**, not to having a board: a board with no
+`agent`/`test` column is never asked for one, never grows a «Проекты» property,
+and a project marked global joins only boards that already have that property.
 
 ### An agent talks back through MCP, not through its output
 
@@ -301,13 +343,14 @@ CLI exits saying what it left on the branch. Terminals outlive their window and
 resume — every one is recorded, so the next terminal on that card returns to the
 same worktree with `claude --continue`.
 
-A window nobody is looking at is also where an agent asks its questions, so
-**silence is read as a question**: a CLI that has printed nothing for
-`terminalQuietFor` is waiting for a person, and typing ends the wait. That
-heuristic holds only because a working agent prints continuously — spinner, tool
-output, tokens — and it is used *only here*, where there is no protocol to ask
-through (an ACP agent has no TUI, which is the whole reason a terminal is not a
-session).
+A terminal **raises nothing**, and that is a decision. There is no protocol to
+ask through in a pty — an agent CLI draws a TUI — so the only signal available
+was silence, and silence could not be told from a CLI sitting at its prompt with
+nothing asked: opening a terminal and leaving it announced "needs you" five
+seconds later, every time, including after the window was closed. A signal that
+is wrong more often than right is worse than none, and the window is in front of
+whoever opened it. **Only the protocol asks** (`question.go`), which is why
+`acp:attention` now has one reason instead of two.
 
 ## Conventions
 

@@ -680,6 +680,7 @@ exports[`components/cardDialog > return cardDialog menu content 1`] = `
                       aria-label="Delete"
                       class="MenuOption TextOption menu-option"
                       role="button"
+                      tabindex="-1"
                     >
                       <div
                         class="d-flex"
@@ -710,6 +711,7 @@ exports[`components/cardDialog > return cardDialog menu content 1`] = `
                       aria-label="Copy link"
                       class="MenuOption TextOption menu-option"
                       role="button"
+                      tabindex="-1"
                     >
                       <div
                         class="d-flex"
@@ -740,6 +742,7 @@ exports[`components/cardDialog > return cardDialog menu content 1`] = `
                       aria-label="New template from card"
                       class="MenuOption TextOption menu-option"
                       role="button"
+                      tabindex="-1"
                     >
                       <div
                         class="d-flex"

@@ -30,6 +30,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu
             aria-label="Status"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -51,6 +52,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu
             aria-label="Property 1"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -72,6 +74,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu
             aria-label="Property 2"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -93,6 +96,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu
             aria-label="Property 3"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -114,6 +118,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu
             aria-label="Comments and description"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -201,6 +206,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu
             aria-label="Title"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -222,6 +228,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu
             aria-label="Status"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -243,6 +250,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu
             aria-label="Property 1"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -264,6 +272,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu
             aria-label="Property 2"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -285,6 +294,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu
             aria-label="Property 3"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -306,6 +316,7 @@ exports[`components/viewHeader/viewHeaderPropertiesMenu > return properties menu
             aria-label="Comments and description"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"

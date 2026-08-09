@@ -108,7 +108,13 @@
     }
 
     .AutomationEditor__panel {
-        flex: 0 0 280px;
+        flex: 0 0 320px;
+
+        // Without this the panel is only as narrow as its widest select, and a
+        // long column name in one of them pushed its content half again past
+        // the edge — the panel is where a column is actually configured, so it
+        // is the last place that may overflow.
+        min-width: 0;
         max-height: 460px;
         overflow-y: auto;
         padding: 12px;
@@ -116,11 +122,16 @@
         border-radius: var(--radius-sm);
         background: rgba(var(--center-channel-color-rgb), 0.03);
 
-        // Native selects and inputs arrive in the browser's own white, which
-        // on the dark board reads as holes in the panel. Same recipe as the
-        // other dialogs' forms: the board's surface, the board's ink.
+        // Inputs arrive in the browser's own white, which on the dark board
+        // reads as holes in the panel. Same recipe as the other dialogs'
+        // forms: the board's surface, the board's ink. The dropdown is ours
+        // (widgets/select) and only needs the panel's sizing.
         input,
-        select {
+        .Select__trigger {
+            // A control is as wide as its longest line unless it is told
+            // otherwise, and these are column names somebody chose.
+            min-width: 0;
+            max-width: 100%;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             border-radius: var(--radius-sm);
             padding: 5px 8px;
@@ -133,10 +144,6 @@
                 border-color: rgba(var(--button-bg-rgb), 0.64);
                 outline: none;
             }
-        }
-
-        select {
-            cursor: pointer;
         }
 
         input[type='checkbox'] {
@@ -209,7 +216,7 @@
         align-items: center;
         gap: 4px;
 
-        select {
+        .Select {
             flex: 1 1 0;
             min-width: 0;
         }
@@ -226,7 +233,7 @@
         align-items: center;
         gap: 4px;
 
-        select {
+        .Select {
             flex: 1 1 0;
             min-width: 0;
         }
@@ -291,8 +298,73 @@
     .AutomationEditor__hint {
         @include prose;
 
+        margin: 0;
         font-size: 12px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        // A hint is prose in a narrow panel: a long word or a path must break
+        // rather than widen everything around it.
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .AutomationEditor__addAgent {
+        appearance: none;
+        border: none;
+        background: transparent;
+        padding: 0;
+        font-size: 12px;
+        text-align: left;
+        text-decoration: underline;
+        cursor: pointer;
+        color: rgb(var(--button-bg-rgb));
+    }
+
+    // The app's own window opens at 1024 wide, and there the three columns are
+    // a bad bargain: the palette and the panel take 452px between them, the
+    // canvas is left with 507, and the canvas answers by drawing the route at
+    // 38% — a picture of the board nobody can read. So under this width the
+    // canvas takes the whole row, the palette becomes a strip above it and the
+    // panel a section under it. The panel is further away for a click; the
+    // route is legible, which is what the screen is for.
+    @media (max-width: 1200px) {
+        .AutomationEditor__body {
+            flex-direction: column;
+        }
+
+        .AutomationEditor__palette {
+            flex: 0 0 auto;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
+
+            // The strip's own caption gets a line to itself rather than a place
+            // in the row: four blocks and a sentence come to just over the
+            // width, and the one thing a flex row will not do is give any of it
+            // back — the caption was pushed out through the left edge instead.
+            > .AutomationEditor__label {
+                flex: 0 0 100%;
+            }
+        }
+
+        .AutomationEditor__block {
+            flex: 0 1 auto;
+            min-width: 0;
+            flex-direction: row;
+            align-items: baseline;
+            gap: 6px;
+            padding: 4px 8px;
+        }
+
+        .AutomationEditor__panel {
+            flex: 0 0 auto;
+
+            // It is no longer a column of its own height, so it scrolls with
+            // the dialog rather than inside itself — a scrollbar inside a
+            // scrollbar is how a form loses its own buttons.
+            max-height: none;
+            overflow-y: visible;
+        }
     }
 
     .AutomationEditor__warning {

@@ -7,25 +7,23 @@ import {Accessor, createMemo, createSignal, onCleanup, onMount} from 'solid-js'
 
 import {UserSettings} from '../../userSettings'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 import {onAgentEvent} from './agentEvents'
 
 // Which cards are waiting for a person.
 //
-// An agent working in a terminal asks its questions on its own screen, in a
-// window that is usually not the one being looked at — so without this the card
-// looks exactly like a card whose agent is busy, and the answer waits until
-// somebody happens to open the window. The Go side turns "the CLI has gone
-// quiet" into acp:attention (internal/acp/terminal.go); this keeps what it says
-// in one place, so every card on the board shares one subscription and one
-// initial load rather than asking for itself.
+// A card whose agent is waiting looks exactly like a card whose agent is busy,
+// and the answer waits until somebody happens to look. This keeps what the Go
+// side says in one place, so every card on the board shares one subscription
+// and one initial load rather than asking for itself.
 
-// The two ways an agent asks for a person, and they are answered in different
-// places: 'question' is ACP itself — the session asked for a tool it was not
-// given, or sent an elicitation, and its turn is open until somebody answers —
-// and 'quiet' is a terminal, where there is no protocol and silence is the
-// signal, answered by typing in that window.
-export type AttentionReason = 'question' | 'quiet'
+// The one way an agent asks for a person: ACP itself — the session asked for a
+// tool it was not given, or sent an elicitation, and its turn is open until
+// somebody answers. A terminal used to be the second way, through silence, and
+// silence could not be told from a CLI sitting at its prompt: a terminal opened
+// and left alone announced itself five seconds later. The window is in front of
+// whoever opened it; only the protocol asks now.
+export type AttentionReason = 'question'
 
 export type QuestionOption = {
     id: string
@@ -145,46 +143,15 @@ export async function answerQuestion(target: Attention, optionId: string, text: 
     await bindings.AnswerQuestion(target.questionId, optionId, text)
 }
 
-// openAttention takes the person to the terminal a silent CLI is waiting in:
-// the window if the desktop app has one, a tab otherwise. A terminal that has
-// since exited starts a new one on the card, which is what a person clicking
-// would have wanted anyway.
-export async function openAttention(target: Attention): Promise<void> {
-    const bindings = agentBindings()
-    let handle: {url?: string, windowed?: boolean} | undefined
-    try {
-        if (target.terminalId && bindings?.ShowTerminal) {
-            handle = JSON.parse(await bindings.ShowTerminal(target.terminalId))
-        }
-    } catch {
-        handle = undefined
-    }
-    if (!handle && target.cardId && bindings?.OpenCardTerminal) {
-        handle = JSON.parse(await bindings.OpenCardTerminal(target.cardId, '', ''))
-    }
-    if (handle && !handle.windowed && handle.url) {
-        window.open(handle.url, '_blank', 'noopener')
-    }
-}
-
 type Formatter = {
     formatMessage: (descriptor: {id: string, defaultMessage: string}, values?: Record<string, string>) => string
 }
 
 // attentionHeading is the one sentence a wait is worth, wherever it is shown —
-// the dot's tooltip, the notification, the card. The two reasons do not say the
-// same thing: one agent is sitting at a prompt, the other was stopped by a tool
-// it is not allowed to use and has already given up.
+// the dot's tooltip, the notification, the card.
 export function attentionHeading(intl: Formatter, target: Attention): string {
     const agent = target.agent || ''
-    if (target.reason === 'question') {
-        return agent ?
-            intl.formatMessage({id: 'Attention.asking-agent', defaultMessage: '{agent} is asking'}, {agent}) :
-            intl.formatMessage({id: 'Attention.asking', defaultMessage: 'The agent is asking'})
-    }
-    return agent ?
-        intl.formatMessage({id: 'Attention.heading-agent', defaultMessage: '{agent} is waiting for your answer'}, {agent}) :
-        intl.formatMessage({id: 'Attention.heading', defaultMessage: 'The agent is waiting for your answer'})
+    return agent ? intl.formatMessage({id: 'Attention.asking-agent', defaultMessage: '{agent} is asking'}, {agent}) : intl.formatMessage({id: 'Attention.asking', defaultMessage: 'The agent is asking'})
 }
 
 // Whether being told about it at all is wanted. The indicator on a card is

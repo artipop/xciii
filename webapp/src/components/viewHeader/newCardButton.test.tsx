@@ -48,6 +48,7 @@ describe('components/viewHeader/newCardButton', () => {
             wrapIntl(() =>
                 <AppStoreProvider store={store}>
                     <NewCardButton
+                        board={board}
                         addCard={vi.fn()}
                         addCardTemplate={vi.fn()}
                         addCardFromTemplate={vi.fn()}
@@ -65,6 +66,7 @@ describe('components/viewHeader/newCardButton', () => {
             wrapIntl(() =>
                 <AppStoreProvider store={store}>
                     <NewCardButton
+                        board={board}
                         addCard={mockFunction}
                         addCardTemplate={vi.fn()}
                         addCardFromTemplate={vi.fn()}
@@ -85,6 +87,7 @@ describe('components/viewHeader/newCardButton', () => {
             wrapIntl(() =>
                 <AppStoreProvider store={store}>
                     <NewCardButton
+                        board={board}
                         addCard={vi.fn()}
                         addCardTemplate={mockFunction}
                         addCardFromTemplate={vi.fn()}
@@ -99,5 +102,51 @@ describe('components/viewHeader/newCardButton', () => {
         const buttonAddTemplate = screen.getByRole('button', {name: 'New template'})
         userEvent.click(buttonAddTemplate)
         expect(mockFunction).toHaveBeenCalledTimes(1)
+    })
+
+    // Talking a task over with an agent is a way of making cards, so it is
+    // offered where cards are made rather than among the board's settings,
+    // which is where it used to be and where nobody looking for it would go.
+    describe('talking a task over with an agent', () => {
+        const anyWindow = window as any
+
+        const openMenu = () => {
+            render(() =>
+                wrapIntl(() =>
+                    <AppStoreProvider store={store}>
+                        <NewCardButton
+                            board={board}
+                            addCard={vi.fn()}
+                            addCardTemplate={vi.fn()}
+                            addCardFromTemplate={vi.fn()}
+                            editCardTemplate={vi.fn()}
+                        />
+                    </AppStoreProvider>,
+                ),
+            )
+            userEvent.click(screen.getByRole('button', {name: 'menuwrapper'}))
+        }
+
+        afterEach(() => {
+            delete anyWindow.go
+        })
+
+        test('is offered beside the card templates when an agent can be opened', () => {
+            anyWindow.go = {main: {App: {
+                OpenPlanningTerminal: vi.fn(),
+                ListTerminals: vi.fn().mockResolvedValue('[]'),
+                ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+                ListAgents: vi.fn().mockResolvedValue('[]'),
+            }}}
+            openMenu()
+            expect(screen.getByRole('button', {name: 'Talk it over with an agent…'})).toBeInTheDocument()
+        })
+
+        // A browser build has no CLI to open, and an entry that cannot do
+        // anything is worse than no entry.
+        test('is absent where there is no agent to open', () => {
+            openMenu()
+            expect(screen.queryByRole('button', {name: 'Talk it over with an agent…'})).toBeNull()
+        })
     })
 })

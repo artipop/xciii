@@ -691,20 +691,20 @@ func (a *App) SetTailnetAccess(entryJSON string) (string, error) {
 	return string(out), nil
 }
 
-// GetAgentSystemPrompt returns the board/column-level system prompt.
-func (a *App) GetAgentSystemPrompt() (string, error) {
+// GetBoardPrompt returns what every session of this board is told first.
+func (a *App) GetBoardPrompt(boardID string) (string, error) {
 	if a.mgr == nil {
 		return "", nil
 	}
-	return a.mgr.SystemPrompt(), nil
+	return a.mgr.BoardPrompt(boardID), nil
 }
 
-// SetAgentSystemPrompt stores the board/column-level system prompt.
-func (a *App) SetAgentSystemPrompt(text string) error {
+// SetBoardPrompt stores that instruction for one board.
+func (a *App) SetBoardPrompt(boardID, text string) error {
 	if a.mgr == nil {
 		return errACPDisabled
 	}
-	return a.mgr.SetSystemPrompt(text)
+	return a.mgr.SetBoardPrompt(boardID, text)
 }
 
 // GetPlanningPrompt returns the instructions a planning terminal is opened

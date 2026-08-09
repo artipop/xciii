@@ -30,6 +30,7 @@ exports[`components/viewHeader/viewHeaderSortMenu > return sort menu 1`] = `
             aria-label="Manual"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -56,6 +57,7 @@ exports[`components/viewHeader/viewHeaderSortMenu > return sort menu 1`] = `
             aria-label="Revert"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -85,6 +87,7 @@ exports[`components/viewHeader/viewHeaderSortMenu > return sort menu 1`] = `
             aria-label="Name"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -111,6 +114,7 @@ exports[`components/viewHeader/viewHeaderSortMenu > return sort menu 1`] = `
             aria-label="Status"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -137,6 +141,7 @@ exports[`components/viewHeader/viewHeaderSortMenu > return sort menu 1`] = `
             aria-label="Property 1"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -172,6 +177,7 @@ exports[`components/viewHeader/viewHeaderSortMenu > return sort menu 1`] = `
             aria-label="Property 2"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -198,6 +204,7 @@ exports[`components/viewHeader/viewHeaderSortMenu > return sort menu 1`] = `
             aria-label="Property 3"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"

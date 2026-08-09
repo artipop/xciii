@@ -54,6 +54,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot 1`
                 aria-label="Viewer"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -84,6 +85,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot 1`
                 aria-label="Commenter"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -114,6 +116,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot 1`
                 aria-label="Editor"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -144,6 +147,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot 1`
                 aria-label="Admin"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -183,6 +187,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot 1`
                 aria-label="Remove member"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -302,6 +307,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in
                 aria-label="Viewer"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -332,6 +338,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in
                 aria-label="Commenter"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -362,6 +369,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in
                 aria-label="Editor"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -392,6 +400,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in
                 aria-label="Admin"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -431,6 +440,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in
                 aria-label="Remove member"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -550,6 +560,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in
                 aria-label="Viewer"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -580,6 +591,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in
                 aria-label="Editor"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -610,6 +622,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in
                 aria-label="Admin"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -649,6 +662,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in
                 aria-label="Remove member"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -776,6 +790,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot-ad
                 aria-label="Viewer"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -806,6 +821,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot-ad
                 aria-label="Commenter"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -836,6 +852,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot-ad
                 aria-label="Editor"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -866,6 +883,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot-ad
                 aria-label="Admin"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex menu-option__check"
@@ -905,6 +923,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot-ad
                 aria-label="Remove member"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"

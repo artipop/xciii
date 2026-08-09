@@ -120,6 +120,7 @@ exports[`/components/viewMenu > should match snapshot 1`] = `
                 aria-label="Duplicate view"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -150,6 +151,7 @@ exports[`/components/viewMenu > should match snapshot 1`] = `
                 aria-label="Delete view"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -179,6 +181,7 @@ exports[`/components/viewMenu > should match snapshot 1`] = `
               <div
                 class="MenuOption SubMenuOption menu-option"
                 id="__addView"
+                tabindex="-1"
               >
                 <div
                   class="menu-option__icon"
@@ -352,6 +355,7 @@ exports[`/components/viewMenu > should match snapshot 1`] = `
               aria-label="Duplicate view"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -382,6 +386,7 @@ exports[`/components/viewMenu > should match snapshot 1`] = `
               aria-label="Delete view"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -411,6 +416,7 @@ exports[`/components/viewMenu > should match snapshot 1`] = `
             <div
               class="MenuOption SubMenuOption menu-option"
               id="__addView"
+              tabindex="-1"
             >
               <div
                 class="menu-option__icon"

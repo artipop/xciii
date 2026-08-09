@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {For, Show, createMemo, createSignal} from 'solid-js'
+import {For, Show, createEffect, createMemo, createSignal} from 'solid-js'
 
 import {useIntl, IntlShape} from '../../intl'
 
 import {IPropertyTemplate} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
+import Select from '../../widgets/select'
 
 import FlowDiagram, {BLOCK_DRAG_TYPE, NODE_HEIGHT, NODE_WIDTH, StageCount, condLabel, edgeId, edgeIndexOf} from './flowDiagram'
 import {
@@ -89,6 +90,11 @@ type Props = {
     // it with. Without one, the route is drawn and never taken.
     onAddRouteOption?: (flow: Flow) => void
     routeOptionMissing?: (flow: Flow) => boolean
+
+    // Registering an agent is the container's business — this editor knows
+    // nothing about Go. Left out where there is nothing to register into: a
+    // template is edited on a machine it will never run on.
+    onAddAgent?: () => void
 }
 
 type Selection = {kind: 'node' | 'edge', id: string} | null
@@ -111,6 +117,14 @@ const PALETTE = ['agent', 'deploy', 'test', 'none']
 const AutomationEditor = (props: Props) => {
     const intl = useIntl()
     const [route, setRoute] = createSignal(COLUMNS_VIEW)
+
+    // Whether the tab on screen is the one somebody asked for. Until it is, the
+    // editor may still move off the columns view by itself (below).
+    const [picked, setPicked] = createSignal(false)
+    const showRoute = (name: string) => {
+        setPicked(true)
+        setRoute(name)
+    }
     const [selected, setSelected] = createSignal<Selection>(
         props.focusColumnId ? {kind: 'node', id: props.focusColumnId} : null,
     )
@@ -142,6 +156,19 @@ const AutomationEditor = (props: Props) => {
     })
 
     const edges = () => flow()?.edges || []
+
+    // The screen opens on a route rather than on the bare columns, once the
+    // routes have arrived. The arrows are what somebody came here to read, and
+    // ten boxes with nothing drawn between them read as a route that failed to
+    // draw rather than as a different view of the same board. The columns are
+    // one tab away — and they are still what a click on a column's own badge
+    // opens, because that click is about one column and not about a route.
+    createEffect(() => {
+        const first = flows()[0]
+        if (first && !picked() && !props.focusColumnId) {
+            setRoute(first.name)
+        }
+    })
 
     // Columns the route does not go through are still on the canvas — faded.
     const spare = createMemo(() => (flow() ? props.columns.filter((c) => !nodeFor(flow(), c)) : []))
@@ -340,18 +367,18 @@ const AutomationEditor = (props: Props) => {
             edges: [],
         }
         props.onChange({...props.automation, flows: [...flows(), working ? withColumn(blank, working) : blank]})
-        setRoute(unique)
+        showRoute(unique)
         setSelected(null)
     }
 
     const renameRoute = (from: string, to: string) => {
         props.onChange({...props.automation, flows: flows().map((f) => (f.name === from ? {...f, name: to} : f))})
-        setRoute(to)
+        showRoute(to)
     }
 
     const removeRoute = (name: string) => {
         props.onChange({...props.automation, flows: flows().filter((f) => f.name !== name)})
-        setRoute(COLUMNS_VIEW)
+        showRoute(COLUMNS_VIEW)
         setSelected(null)
     }
 
@@ -409,49 +436,39 @@ const AutomationEditor = (props: Props) => {
         return (
             <div class='AutomationEditor__cond'>
                 <Show when={edge.on !== CARD_CHANGED}>
-                    <select
+                    <Select
                         value={kind()}
-                        onChange={(e) => setKind(e.currentTarget.value)}
-                    >
-                        <option value='always'>{intl.formatMessage({id: 'Automation.cond-always', defaultMessage: 'always'})}</option>
-                        <option value='property'>{intl.formatMessage({id: 'Automation.cond-property', defaultMessage: 'only if the card has…'})}</option>
-                        <Show when={isOutcome}>
-                            <option value='comment'>{intl.formatMessage({id: 'Automation.cond-comment', defaultMessage: 'only if the agent wrote…'})}</option>
-                        </Show>
-                    </select>
+                        options={[
+                            {value: 'always', label: intl.formatMessage({id: 'Automation.cond-always', defaultMessage: 'always'})},
+                            {value: 'property', label: intl.formatMessage({id: 'Automation.cond-property', defaultMessage: 'only if the card has…'})},
+                            ...(isOutcome ? [{value: 'comment', label: intl.formatMessage({id: 'Automation.cond-comment', defaultMessage: 'only if the agent wrote…'})}] : []),
+                        ]}
+                        onChange={setKind}
+                        label={intl.formatMessage({id: 'Automation.cond-when', defaultMessage: 'Condition'})}
+                    />
                 </Show>
 
                 <Show when={kind() === 'property' || edge.on === CARD_CHANGED}>
                     <div class='AutomationEditor__condFields'>
-                        <select
+                        <Select
                             value={cond?.property || ''}
-                            onChange={(e) => patchEdge(index, {if: {property: e.currentTarget.value, value: ''}})}
-                        >
-                            <option value=''>{intl.formatMessage({id: 'Automation.cond-pick-property', defaultMessage: '— property —'})}</option>
-                            <For each={condProperties()}>
-                                {(p) => (
-                                    <option
-                                        value={p.name}
-                                        selected={cond?.property === p.name}
-                                    >{p.name}</option>
-                                )}
-                            </For>
-                        </select>
+                            options={[
+                                {value: '', label: intl.formatMessage({id: 'Automation.cond-pick-property', defaultMessage: '— property —'})},
+                                ...condProperties().map((p) => ({value: p.name, label: p.name})),
+                            ]}
+                            onChange={(next) => patchEdge(index, {if: {property: next, value: ''}})}
+                            label={intl.formatMessage({id: 'Automation.cond-pick-property', defaultMessage: '— property —'})}
+                        />
                         <span class='AutomationEditor__arrow'>{'='}</span>
-                        <select
+                        <Select
                             value={cond?.value || ''}
-                            onChange={(e) => patchEdge(index, {if: {property: cond?.property || '', value: e.currentTarget.value}})}
-                        >
-                            <option value=''>{intl.formatMessage({id: 'Automation.cond-pick-value', defaultMessage: '— value —'})}</option>
-                            <For each={condProperty()?.options || []}>
-                                {(o) => (
-                                    <option
-                                        value={o.value}
-                                        selected={cond?.value === o.value}
-                                    >{o.value}</option>
-                                )}
-                            </For>
-                        </select>
+                            options={[
+                                {value: '', label: intl.formatMessage({id: 'Automation.cond-pick-value', defaultMessage: '— value —'})},
+                                ...(condProperty()?.options || []).map((o) => ({value: o.value, label: o.value})),
+                            ]}
+                            onChange={(next) => patchEdge(index, {if: {property: cond?.property || '', value: next}})}
+                            label={intl.formatMessage({id: 'Automation.cond-pick-value', defaultMessage: '— value —'})}
+                        />
                     </div>
                 </Show>
 
@@ -473,7 +490,7 @@ const AutomationEditor = (props: Props) => {
                     type='button'
                     class={`AutomationEditor__route${route() === COLUMNS_VIEW ? ' AutomationEditor__route--active' : ''}`}
                     onClick={() => {
-                        setRoute(COLUMNS_VIEW)
+                        showRoute(COLUMNS_VIEW)
                         setSelected(null)
                     }}
                 >
@@ -485,7 +502,7 @@ const AutomationEditor = (props: Props) => {
                             type='button'
                             class={`AutomationEditor__route${route() === f.name ? ' AutomationEditor__route--active' : ''}`}
                             onClick={() => {
-                                setRoute(f.name)
+                                showRoute(f.name)
                                 setSelected(null)
                             }}
                         >
@@ -502,25 +519,18 @@ const AutomationEditor = (props: Props) => {
                 </button>
 
                 <Show when={props.properties.length > 1}>
-                    <select
+                    <Select
                         class='AutomationEditor__property'
                         value={props.property?.name || ''}
-                        onChange={(e) => {
-                            const next = props.properties.find((p) => p.name === e.currentTarget.value)
+                        options={props.properties.map((p) => ({value: p.name, label: p.name}))}
+                        onChange={(name) => {
+                            const next = props.properties.find((p) => p.name === name)
                             if (next) {
                                 props.onPropertyChange?.(next)
                             }
                         }}
-                    >
-                        <For each={props.properties}>
-                            {(p) => (
-                                <option
-                                    value={p.name}
-                                    selected={props.property?.name === p.name}
-                                >{p.name}</option>
-                            )}
-                        </For>
-                    </select>
+                        label={intl.formatMessage({id: 'Automation.property', defaultMessage: 'Columns are'})}
+                    />
                 </Show>
             </div>
 
@@ -591,19 +601,12 @@ const AutomationEditor = (props: Props) => {
 
                                 <label>
                                     {intl.formatMessage({id: 'Automation.on-arrival', defaultMessage: 'When a card lands here'})}
-                                    <select
+                                    <Select
                                         value={specOf(node())?.action || 'none'}
-                                        onChange={(e) => updateNodeSpec(node(), {action: e.currentTarget.value})}
-                                    >
-                                        <For each={ACTIONS}>
-                                            {(a) => (
-                                                <option
-                                                    value={a}
-                                                    selected={(specOf(node())?.action || 'none') === a}
-                                                >{actionLabel(intl, a)}</option>
-                                            )}
-                                        </For>
-                                    </select>
+                                        options={ACTIONS.map((a) => ({value: a, label: actionLabel(intl, a)}))}
+                                        onChange={(action) => updateNodeSpec(node(), {action})}
+                                        label={intl.formatMessage({id: 'Automation.on-arrival', defaultMessage: 'When a card lands here'})}
+                                    />
                                 </label>
 
                                 <Show when={(specOf(node())?.action || 'none') !== 'none'}>
@@ -613,8 +616,22 @@ const AutomationEditor = (props: Props) => {
                                         </span>
                                         <Show when={props.agents.length === 0}>
                                             <span class='AutomationEditor__hint'>
-                                                {intl.formatMessage({id: 'Automation.no-agents', defaultMessage: 'No agents registered yet — see “Agents…” in the board menu.'})}
+                                                {intl.formatMessage({id: 'Automation.no-agents', defaultMessage: 'No agents registered yet.'})}
                                             </span>
+                                        </Show>
+
+                                        {/* Registering one is two answers, and
+                                            asking them here beats sending
+                                            somebody to the settings and back
+                                            with the column half-configured. */}
+                                        <Show when={props.onAddAgent}>
+                                            <button
+                                                type='button'
+                                                class='AutomationEditor__addAgent'
+                                                onClick={() => props.onAddAgent?.()}
+                                            >
+                                                {intl.formatMessage({id: 'Automation.add-agent', defaultMessage: 'Add an agent…'})}
+                                            </button>
                                         </Show>
                                         <For each={props.agents}>
                                             {(a) => (
@@ -653,20 +670,15 @@ const AutomationEditor = (props: Props) => {
                                 <Show when={specOf(node())?.action === 'deploy'}>
                                     <label>
                                         {intl.formatMessage({id: 'Automation.deploy', defaultMessage: 'Deploy target'})}
-                                        <select
+                                        <Select
                                             value={specOf(node())?.deployName || ''}
-                                            onChange={(e) => updateNodeSpec(node(), {deployName: e.currentTarget.value})}
-                                        >
-                                            <option value=''>{intl.formatMessage({id: 'Automation.deploy-default', defaultMessage: '— the card’s own —'})}</option>
-                                            <For each={props.deploys}>
-                                                {(d) => (
-                                                    <option
-                                                        value={d.name}
-                                                        selected={specOf(node())?.deployName === d.name}
-                                                    >{d.name}</option>
-                                                )}
-                                            </For>
-                                        </select>
+                                            options={[
+                                                {value: '', label: intl.formatMessage({id: 'Automation.deploy-default', defaultMessage: '— the card’s own —'})},
+                                                ...props.deploys.map((d) => ({value: d.name, label: d.name})),
+                                            ]}
+                                            onChange={(deployName) => updateNodeSpec(node(), {deployName})}
+                                            label={intl.formatMessage({id: 'Automation.deploy', defaultMessage: 'Deploy target'})}
+                                        />
                                     </label>
                                 </Show>
 
@@ -679,33 +691,19 @@ const AutomationEditor = (props: Props) => {
                                             {({edge, index}) => (
                                                 <div class='AutomationEditor__transition'>
                                                     <div class='AutomationEditor__transitionRow'>
-                                                        <select
+                                                        <Select
                                                             value={edge.on}
-                                                            onChange={(e) => patchEdge(index, {on: e.currentTarget.value})}
-                                                        >
-                                                            <For each={props.triggers}>
-                                                                {(t) => (
-                                                                    <option
-                                                                        value={t.kind}
-                                                                        selected={edge.on === t.kind}
-                                                                    >{t.label}</option>
-                                                                )}
-                                                            </For>
-                                                        </select>
+                                                            options={props.triggers.map((t) => ({value: t.kind, label: t.label}))}
+                                                            onChange={(on) => patchEdge(index, {on})}
+                                                            label={intl.formatMessage({id: 'Automation.transition-on', defaultMessage: 'When'})}
+                                                        />
                                                         <span class='AutomationEditor__arrow'>{'→'}</span>
-                                                        <select
+                                                        <Select
                                                             value={edge.to}
-                                                            onChange={(e) => patchEdge(index, {to: e.currentTarget.value})}
-                                                        >
-                                                            <For each={stageTargets()}>
-                                                                {(n) => (
-                                                                    <option
-                                                                        value={n.id}
-                                                                        selected={edge.to === n.id}
-                                                                    >{n.column}</option>
-                                                                )}
-                                                            </For>
-                                                        </select>
+                                                            options={stageTargets().map((n) => ({value: n.id, label: n.column}))}
+                                                            onChange={(to) => patchEdge(index, {to})}
+                                                            label={intl.formatMessage({id: 'Automation.transition-to', defaultMessage: 'The card moves to'})}
+                                                        />
                                                         <button
                                                             type='button'
                                                             class='AutomationEditor__remove'
@@ -748,20 +746,15 @@ const AutomationEditor = (props: Props) => {
                                         open={Boolean(node().action)}
                                     >
                                         <summary>{intl.formatMessage({id: 'Automation.override', defaultMessage: 'Only on this route…'})}</summary>
-                                        <select
+                                        <Select
                                             value={node().action || ''}
-                                            onChange={(e) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {action: e.currentTarget.value}))}
-                                        >
-                                            <option value=''>{intl.formatMessage({id: 'Automation.override-none', defaultMessage: '— whatever the column does —'})}</option>
-                                            <For each={ACTIONS}>
-                                                {(a) => (
-                                                    <option
-                                                        value={a}
-                                                        selected={node().action === a}
-                                                    >{actionLabel(intl, a)}</option>
-                                                )}
-                                            </For>
-                                        </select>
+                                            options={[
+                                                {value: '', label: intl.formatMessage({id: 'Automation.override-none', defaultMessage: '— whatever the column does —'})},
+                                                ...ACTIONS.map((a) => ({value: a, label: actionLabel(intl, a)})),
+                                            ]}
+                                            onChange={(action) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {action}))}
+                                            label={intl.formatMessage({id: 'Automation.override', defaultMessage: 'Only on this route…'})}
+                                        />
                                     </details>
                                 </Show>
                             </div>
@@ -779,36 +772,22 @@ const AutomationEditor = (props: Props) => {
                                 </div>
                                 <label>
                                     {intl.formatMessage({id: 'Automation.transition-on', defaultMessage: 'When'})}
-                                    <select
+                                    <Select
                                         value={edge().on}
-                                        onChange={(e) => patchEdge(selectedEdgeIndex(), {on: e.currentTarget.value})}
-                                    >
-                                        <For each={props.triggers}>
-                                            {(t) => (
-                                                <option
-                                                    value={t.kind}
-                                                    selected={edge().on === t.kind}
-                                                >{t.label}</option>
-                                            )}
-                                        </For>
-                                    </select>
+                                        options={props.triggers.map((t) => ({value: t.kind, label: t.label}))}
+                                        onChange={(on) => patchEdge(selectedEdgeIndex(), {on})}
+                                        label={intl.formatMessage({id: 'Automation.transition-on', defaultMessage: 'When'})}
+                                    />
                                 </label>
                                 {condEditor(selectedEdgeIndex(), edge())}
                                 <label>
                                     {intl.formatMessage({id: 'Automation.transition-to', defaultMessage: 'The card moves to'})}
-                                    <select
+                                    <Select
                                         value={edge().to}
-                                        onChange={(e) => patchEdge(selectedEdgeIndex(), {to: e.currentTarget.value})}
-                                    >
-                                        <For each={nodes().filter((n) => n.id !== edge().from)}>
-                                            {(n) => (
-                                                <option
-                                                    value={n.id}
-                                                    selected={edge().to === n.id}
-                                                >{n.column}</option>
-                                            )}
-                                        </For>
-                                    </select>
+                                        options={nodes().filter((n) => n.id !== edge().from).map((n) => ({value: n.id, label: n.column}))}
+                                        onChange={(to) => patchEdge(selectedEdgeIndex(), {to})}
+                                        label={intl.formatMessage({id: 'Automation.transition-to', defaultMessage: 'The card moves to'})}
+                                    />
                                 </label>
                                 <Button onClick={() => dropEdge(selectedEdgeIndex())}>
                                     {intl.formatMessage({id: 'Automation.remove-transition', defaultMessage: 'Remove'})}
@@ -862,10 +841,15 @@ const AutomationEditor = (props: Props) => {
                         )}
                     </Show>
 
+                    {/* One sentence, so not a `__section`: that class is a
+                        column flex container, and a bare string inside one is
+                        laid out at its full one-line width rather than wrapped
+                        — which is what pushed the panel's content half again
+                        past its own edge. */}
                     <Show when={!selectedNode() && !selectedEdge() && !flow()}>
-                        <div class='AutomationEditor__section AutomationEditor__hint'>
+                        <p class='AutomationEditor__hint'>
                             {intl.formatMessage({id: 'Automation.empty-panel', defaultMessage: 'A column says what is done. A route says where the card goes afterwards. Pick a column to start.'})}
-                        </div>
+                        </p>
                     </Show>
                 </div>
             </div>

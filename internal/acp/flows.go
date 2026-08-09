@@ -518,7 +518,7 @@ func (m *Manager) AddFlow(f FlowEntry) (FlowEntry, error) {
 		}
 	}
 	m.cfg.Flows = append(m.cfg.Flows, f)
-	return f, m.persistConfigLocked()
+	return f, m.saveBoardsLocked(f.BoardID)
 }
 
 // UpdateFlow replaces an existing route (matched by board and name) and
@@ -536,7 +536,7 @@ func (m *Manager) UpdateFlow(f FlowEntry) (FlowEntry, error) {
 			// registry held for every board becomes this board's own the moment
 			// this board edits it, and the other boards keep what they had.
 			m.cfg.Flows[i] = f
-			return f, m.persistConfigLocked()
+			return f, m.saveBoardsLocked(e.BoardID, f.BoardID)
 		}
 	}
 	return FlowEntry{}, fmt.Errorf("флоу %q не найден", f.Name)
@@ -551,7 +551,7 @@ func (m *Manager) RemoveFlow(boardID, name string) error {
 	for i, e := range m.cfg.Flows {
 		if sameFlow(e, target) {
 			m.cfg.Flows = append(m.cfg.Flows[:i], m.cfg.Flows[i+1:]...)
-			return m.persistConfigLocked()
+			return m.saveBoardsLocked(e.BoardID, boardID)
 		}
 	}
 	return fmt.Errorf("флоу %q не найден", name)

@@ -114,6 +114,7 @@ exports[`components/sidebarBoardItem > sidebar board item 1`] = `
                 <div
                   class="MenuOption SubMenuOption menu-option boardMoveToCategorySubmenu"
                   id="moveBlock"
+                  tabindex="-1"
                 >
                   <div
                     class="menu-option__icon"
@@ -136,6 +137,7 @@ exports[`components/sidebarBoardItem > sidebar board item 1`] = `
                   aria-label="Duplicate board"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -166,6 +168,7 @@ exports[`components/sidebarBoardItem > sidebar board item 1`] = `
                   aria-label="New template from board"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -196,6 +199,7 @@ exports[`components/sidebarBoardItem > sidebar board item 1`] = `
                   aria-label="Export board archive"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -226,6 +230,7 @@ exports[`components/sidebarBoardItem > sidebar board item 1`] = `
                   aria-label="Hide board"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -256,6 +261,7 @@ exports[`components/sidebarBoardItem > sidebar board item 1`] = `
                   aria-label="Delete board"
                   class="MenuOption TextOption menu-option text-danger"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -398,6 +404,7 @@ exports[`components/sidebarBoardItem > sidebar board item for guest 1`] = `
                 <div
                   class="MenuOption SubMenuOption menu-option boardMoveToCategorySubmenu"
                   id="moveBlock"
+                  tabindex="-1"
                 >
                   <div
                     class="menu-option__icon"
@@ -420,6 +427,7 @@ exports[`components/sidebarBoardItem > sidebar board item for guest 1`] = `
                   aria-label="Export board archive"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -450,6 +458,7 @@ exports[`components/sidebarBoardItem > sidebar board item for guest 1`] = `
                   aria-label="Hide board"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -480,6 +489,7 @@ exports[`components/sidebarBoardItem > sidebar board item for guest 1`] = `
                   aria-label="Delete board"
                   class="MenuOption TextOption menu-option text-danger"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"

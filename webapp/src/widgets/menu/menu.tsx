@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {For, children} from 'solid-js'
+import {For, children, createEffect} from 'solid-js'
 import type {Component, JSX} from 'solid-js'
 
 import {useIntl} from '../../intl'
@@ -14,7 +14,7 @@ import LabelOption from './labelOption'
 
 import './menu.scss'
 import textInputOption from './textInputOption'
-import MenuUtil, {AnchorRef} from './menuUtil'
+import MenuUtil, {AnchorRef, menuOptions} from './menuUtil'
 
 type Props = {
     children: JSX.Element
@@ -54,10 +54,70 @@ const Menu: Component<Props> & {
         // No need to do anything, as click bubbled up to MenuWrapper, which closes
     }
 
+    // A menu is walked with the arrow keys, which is the only way to reach it
+    // without a pointer: an option is a div with a role, not a button, so it is
+    // neither in the tab order nor activated by Enter on its own. Focus moves
+    // between the options and Tab leaves the menu entirely — the ARIA menu
+    // pattern, and the same thing a native dropdown does.
+    //
+    // Opening the menu does not move focus, and that is deliberate: a menu
+    // often stands inside something that is editing — a property value, a card
+    // title — and that something closes when focus leaves it. The keyboard is
+    // taken in by the arrow key that asks for it (menuWrapper.tsx), not by the
+    // menu appearing.
+    let root: HTMLDivElement | undefined
+
+    // Focusable, but none of them tabbable: tabbing out is how a menu is left.
+    createEffect(() => {
+        resolved()
+        for (const option of menuOptions(root)) {
+            option.setAttribute('tabindex', '-1')
+        }
+    })
+
+    const onKeyDown = (e: KeyboardEvent) => {
+        const options = menuOptions(root)
+        if (options.length === 0) {
+            return
+        }
+        const at = options.indexOf(document.activeElement as HTMLElement)
+        const moveTo = (next: number) => {
+            e.preventDefault()
+            options[(next + options.length) % options.length].focus()
+        }
+
+        switch (e.key) {
+        case 'ArrowDown':
+            moveTo(at + 1)
+            break
+        case 'ArrowUp':
+            // Nothing focused yet means the walk starts at the end, which is
+            // what somebody reaching upwards is asking for.
+            moveTo(at <= 0 ? options.length - 1 : at - 1)
+            break
+        case 'Home':
+            moveTo(0)
+            break
+        case 'End':
+            moveTo(options.length - 1)
+            break
+        case 'Enter':
+        case ' ':
+            if (at >= 0) {
+                e.preventDefault()
+                options[at].click()
+            }
+            break
+        default:
+        }
+    }
+
     return (
         <div
+            ref={root}
             class={`Menu noselect ${props.position || 'bottom'} ${props.fixed ? ' fixed' : ''}`}
             style={style()}
+            onKeyDown={onKeyDown}
         >
             <div class='menu-contents'>
                 <div class='menu-options'>

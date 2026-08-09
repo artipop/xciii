@@ -7,7 +7,7 @@ import {createResource, type Resource} from 'solid-js'
 
 import {Board} from '../../blocks/board'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 
 // What a board needs answered before its automation can run is resolved on the
 // Go side (internal/acp/setup.go) out of what the board asks for, what its

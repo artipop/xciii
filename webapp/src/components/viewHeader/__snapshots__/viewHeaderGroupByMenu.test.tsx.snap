@@ -36,6 +36,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Hide 1 empty groups"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -68,6 +69,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Ungroup"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -97,6 +99,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Status"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -129,6 +132,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Property 1"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -155,6 +159,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Property 2"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -181,6 +186,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Property 3"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -279,6 +285,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Show 1 hidden groups"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -311,6 +318,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Ungroup"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -340,6 +348,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Status"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -372,6 +381,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Property 1"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -398,6 +408,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Property 2"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -424,6 +435,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
             aria-label="Property 3"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -522,6 +534,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu 1`] =
             aria-label="Status"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -554,6 +567,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu 1`] =
             aria-label="Property 1"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -580,6 +594,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu 1`] =
             aria-label="Property 2"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -606,6 +621,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu 1`] =
             aria-label="Property 3"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -732,6 +748,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu, hide
             aria-label="Hide 1 empty groups"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -764,6 +781,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu, hide
             aria-label="Show 1 hidden groups"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -796,6 +814,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu, hide
             aria-label="Ungroup"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -825,6 +844,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu, hide
             aria-label="Status"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -857,6 +877,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu, hide
             aria-label="Property 1"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -883,6 +904,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu, hide
             aria-label="Property 2"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"
@@ -909,6 +931,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu, hide
             aria-label="Property 3"
             class="MenuOption TextOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="d-flex"

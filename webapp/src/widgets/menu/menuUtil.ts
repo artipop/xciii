@@ -44,6 +44,26 @@ function openUp(anchorRef: AnchorRef, forceBottom = false, menuMargin = 40): {op
     return ret
 }
 
+// The options a keyboard walks, in the order they are on screen: the ones a
+// click does something to. A heading, a separator, a text box and the phone's
+// own «Cancel» are not steps on that walk, and neither is anything inside a
+// submenu — that menu walks itself.
+//
+// Lives here because both halves need it and neither owns it: the menu moves
+// between them, and the wrapper around it is what puts the keyboard inside in
+// the first place.
+export function menuOptions(root: HTMLElement | undefined): HTMLElement[] {
+    if (!root) {
+        return []
+    }
+    return [...root.querySelectorAll<HTMLElement>('.menu-options > .menu-option')].filter((option) =>
+        !option.closest('.SubMenu') &&
+        !option.classList.contains('LabelOption') &&
+        !option.classList.contains('menu-textbox') &&
+        !option.classList.contains('menu-cancel') &&
+        !option.classList.contains('menu-option--disabled'))
+}
+
 const MenuUtil = {openUp}
 
 export default MenuUtil

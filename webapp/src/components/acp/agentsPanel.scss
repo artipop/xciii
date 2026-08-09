@@ -1,28 +1,26 @@
-.AgentsDialog {
-    .AgentsDialog__content {
+.AgentsPanel {
+    .AgentsPanel__content {
         display: flex;
         flex-direction: column;
         gap: 8px;
-        padding: 0 24px 24px;
-        min-width: 520px;
     }
 
-    .AgentsDialog__empty {
+    .AgentsPanel__empty {
         color: rgba(var(--center-channel-color-rgb), 0.64);
         padding: 8px 0;
     }
 
-    .AgentsDialog__row {
+    .AgentsPanel__row {
         display: flex;
         align-items: center;
         gap: 12px;
 
-        .AgentsDialog__name {
+        .AgentsPanel__name {
             font-weight: 600;
             white-space: nowrap;
         }
 
-        .AgentsDialog__kind {
+        .AgentsPanel__kind {
             flex: 1;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             text-transform: uppercase;
@@ -31,7 +29,7 @@
         }
     }
 
-    .AgentsDialog__form {
+    .AgentsPanel__form {
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -48,7 +46,7 @@
         }
 
         input,
-        select,
+        .Select__trigger,
         textarea {
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             border-radius: var(--radius-sm);
@@ -64,19 +62,19 @@
         }
     }
 
-    .AgentsDialog__hint {
+    .AgentsPanel__hint {
         color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 12px;
     }
 
-    .AgentsDialog__formActions,
-    .AgentsDialog__actions {
+    .AgentsPanel__formActions,
+    .AgentsPanel__actions {
         display: flex;
         gap: 8px;
         padding-top: 4px;
     }
 
-    .AgentsDialog__proxies {
+    .AgentsPanel__proxies {
         margin-top: 16px;
         padding-top: 12px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
@@ -89,7 +87,7 @@
     }
 
     // The prompt itself is PromptField's; this is only where it sits.
-    .AgentsDialog__systemPrompt {
+    .AgentsPanel__systemPrompt {
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -99,7 +97,7 @@
     }
 
     // Whether the chosen kind can start at all, said next to the choice.
-    .AgentsDialog__adapter {
+    .AgentsPanel__adapter {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -117,7 +115,7 @@
 
     // What this agent says it can be configured with. Set apart from the launch
     // fields above it, because it is answered by the agent rather than typed.
-    .AgentsDialog__options {
+    .AgentsPanel__options {
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -126,13 +124,13 @@
         border-radius: var(--radius-sm);
         background: rgba(var(--center-channel-color-rgb), 0.04);
 
-        .AgentsDialog__hint {
+        .AgentsPanel__hint {
             font-weight: 400;
         }
     }
 
     // A switch reads across, not down like the rest of the form's labels.
-    .AgentsDialog__form label.AgentsDialog__checkbox {
+    .AgentsPanel__form label.AgentsPanel__checkbox {
         flex-direction: row;
         align-items: center;
         gap: 8px;
@@ -143,13 +141,13 @@
         }
     }
 
-    .AgentsDialog__option {
+    .AgentsPanel__option {
         display: flex;
         flex-direction: column;
         gap: 4px;
     }
 
-    .AgentsDialog__optionsHeader {
+    .AgentsPanel__optionsHeader {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -157,7 +155,7 @@
         font-weight: 600;
     }
 
-    .AgentsDialog__error {
+    .AgentsPanel__error {
         color: rgb(var(--error-text-rgb, 210, 75, 78));
         padding-top: 8px;
     }

@@ -226,6 +226,27 @@ func (b *EventsBackend) BoardProperties(_ context.Context, boardID string) (map[
 	return board.Properties, nil
 }
 
+// SetBoardProperties writes the named properties onto the board and leaves the
+// rest alone, which is how a board's own automation is saved (acp.BoardProp*).
+//
+// The write is the system user's, not the person's at the keyboard: it is the
+// app recording what the app was told, and attributing it to whoever happened
+// to have the dialog open would put their name on a board they may only be
+// looking at.
+func (b *EventsBackend) SetBoardProperties(_ context.Context, boardID string, props map[string]any) error {
+	b.mu.Lock()
+	a := b.app
+	b.mu.Unlock()
+	if a == nil {
+		return fmt.Errorf("board app is not ready")
+	}
+	patch := &model.BoardPatch{UpdatedProperties: props}
+	if _, err := a.PatchBoard(patch, boardID, model.SystemUserID); err != nil {
+		return fmt.Errorf("patch board %s: %w", boardID, err)
+	}
+	return nil
+}
+
 // IsBoardTemplate says the board is one to copy rather than to work in.
 func (b *EventsBackend) IsBoardTemplate(_ context.Context, boardID string) (bool, error) {
 	b.mu.Lock()

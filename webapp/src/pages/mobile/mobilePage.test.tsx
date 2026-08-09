@@ -35,17 +35,6 @@ const askedOnCard = {
     since: '2026-08-06T11:00:00Z',
 }
 
-const quietOnCard = {
-    key: 'term-1',
-    terminalId: 'term-1',
-    cardId: 'card-1',
-    title: 'Починить логин',
-    agent: 'clauuus',
-    reason: 'quiet',
-    awaiting: true,
-    since: '2026-08-06T10:00:00Z',
-}
-
 function bindings(waiting: any[] = [], terminals: any[] = []) {
     return {
         ListAttention: vi.fn().mockResolvedValue(JSON.stringify(waiting)),
@@ -97,25 +86,11 @@ describe('pages/mobile/mobilePage', () => {
         await waitFor(() => expect(app.AnswerQuestion).toHaveBeenCalledWith('q-1', 'allow', ''))
     })
 
-    // A silent CLI is answered by typing in it, so the phone goes to the
-    // terminal — by address, without asking Go to open a window on a desktop
-    // nobody is sitting at.
-    it('opens a waiting terminal in the page rather than a window', async () => {
-        const app = bindings([quietOnCard])
-        anyWindow.go = {main: {App: app}}
-
-        renderPage()
-
-        await userEvent.click(await screen.findByText('Open the terminal'))
-
-        expect(app.ShowTerminal).not.toHaveBeenCalled()
-    })
-
     // The phone app puts one tab per machine around this page, and the number
     // on a tab is the only thing it can learn about the frame behind it: a
     // person has to see which desktop is asking without opening its tab.
     it('tells the app around it how many things are waiting', async () => {
-        anyWindow.go = {main: {App: bindings([askedOnCard, quietOnCard])}}
+        anyWindow.go = {main: {App: bindings([askedOnCard, {...askedOnCard, key: 'q:q-2', questionId: 'q-2', cardId: 'card-2'}])}}
 
         const parent = {postMessage: vi.fn()}
         const original = Object.getOwnPropertyDescriptor(window, 'parent')

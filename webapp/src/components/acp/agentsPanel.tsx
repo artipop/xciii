@@ -7,22 +7,15 @@ import {For, Show, createSignal, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
-import {Board, IPropertyTemplate, IPropertyOption} from '../../blocks/board'
-import mutator from '../../mutator'
-import {Utils, IDType} from '../../utils'
 import Button from '../../widgets/buttons/button'
-import Dialog from '../dialog'
+import Select from '../../widgets/select'
 import {sendFlashMessage} from '../flashMessages'
 
-import {agentBindings} from './agentProjectsDialog'
-import ProxiesPanel, {ProxyEntry, isProxiesAvailable} from './proxiesPanel'
+import {agentBindings} from './bindings'
+import {ProxyEntry} from './proxiesPanel'
 import PromptField from './promptField'
 
-import './agentsDialog.scss'
-
-// The dedicated card property whose (single-)select option names route a card
-// to a registered agent. Synced by "Sync to board"; matched in resolveAgent.
-const AGENT_PROPERTY_NAME = 'Agent'
+import './agentsPanel.scss'
 
 // The standard MCP client shape, so a server can be pasted straight from its
 // README: a name mapped to the command that starts it.
@@ -299,18 +292,12 @@ export function keptOptions(
 
 const emptyForm: AgentEntry = {name: '', kind: 'claude'}
 
-type Props = {
-    board: Board
-    onClose: () => void
-}
-
-const AgentsDialog = (props: Props) => {
+const AgentsPanel = () => {
     const intl = useIntl()
     const bindings = agentBindings()
 
     const [agents, setAgents] = createSignal<AgentEntry[]>([])
     const [proxies, setProxies] = createSignal<ProxyEntry[]>([])
-    const [systemPrompt, setSystemPrompt] = createSignal('')
     const [form, setForm] = createSignal<AgentEntry | null>(null)
     const [envText, setEnvText] = createSignal('')
     const [serversText, setServersText] = createSignal('')
@@ -342,40 +329,11 @@ const AgentsDialog = (props: Props) => {
             if (bindings.ListProxies) {
                 setProxies(JSON.parse(await bindings.ListProxies()) || [])
             }
-            if (bindings.GetAgentSystemPrompt) {
-                setSystemPrompt(await bindings.GetAgentSystemPrompt())
-            }
 
             // Whether the chosen kind can start at all is knowable here, and
             // the alternative is finding out on a card an hour later.
             if (bindings.ListAgentAdapters) {
                 setAdapters(JSON.parse(await bindings.ListAgentAdapters()) || [])
-            }
-        } catch (e) {
-            setError(String(e))
-            return
-        }
-
-        // Every registered agent is kept assignable on the board being looked
-        // at: the accounts and memberships are created here, so a person field
-        // can name an agent. Idempotent, so it rides along with every refresh —
-        // opening the dialog, adding, editing or removing an agent — and stays
-        // quiet unless an account actually appears. A failure is reported but
-        // never hides the registry itself.
-        if (!bindings.SyncAgentUsers) {
-            return
-        }
-        try {
-            const synced = (JSON.parse(await bindings.SyncAgentUsers(props.board.id)) || []) as Array<{created?: boolean}>
-            const created = synced.filter((u) => u.created).length
-            if (created > 0) {
-                sendFlashMessage({
-                    content: intl.formatMessage(
-                        {id: 'Agents.users-synced', defaultMessage: 'Created {created} agent account(s); agents can now be assigned to cards'},
-                        {created},
-                    ),
-                    severity: 'normal',
-                })
             }
         } catch (e) {
             setError(String(e))
@@ -566,66 +524,6 @@ const AgentsDialog = (props: Props) => {
         }
     }
 
-    const saveSystemPrompt = async () => {
-        if (!bindings?.SetAgentSystemPrompt) {
-            return
-        }
-        setError('')
-        try {
-            await bindings.SetAgentSystemPrompt(systemPrompt())
-            sendFlashMessage({content: intl.formatMessage({id: 'Agents.system-prompt-saved', defaultMessage: 'Saved board system prompt'}), severity: 'normal'})
-        } catch (e) {
-            setError(String(e))
-        }
-    }
-
-    // syncToBoard adds every registered agent name as an option of the board's
-    // "Agent" (single-)select property, creating the property when absent.
-    // Add-only: existing options (which cards may reference) are never removed.
-    const syncToBoard = async () => {
-        setError('')
-        try {
-            const board = props.board
-            const newProperties: IPropertyTemplate[] = board.cardProperties.map((p) => ({
-                ...p,
-                options: [...p.options],
-            }))
-            let property = newProperties.find((p) =>
-                p.name.trim().toLowerCase() === AGENT_PROPERTY_NAME.toLowerCase() &&
-                (p.type === 'select' || p.type === 'multiSelect'))
-            if (!property) {
-                property = {
-                    id: Utils.createGuid(IDType.BlockID),
-                    name: AGENT_PROPERTY_NAME,
-                    type: 'select',
-                    options: [],
-                }
-                newProperties.push(property)
-            }
-
-            const existing = new Set(property.options.map((o: IPropertyOption) => o.value.trim().toLowerCase()))
-            const missing = agents().filter((a) => !existing.has(a.name.trim().toLowerCase()))
-            for (const agent of missing) {
-                property.options.push({
-                    id: Utils.createGuid(IDType.BlockID),
-                    value: agent.name,
-                    color: 'propColorDefault',
-                })
-            }
-
-            await mutator.updateBoardCardProperties(board.id, board.cardProperties, newProperties, 'sync agents')
-            sendFlashMessage({
-                content: intl.formatMessage(
-                    {id: 'Agents.options-added', defaultMessage: 'Synced {count} agent option(s) to "{property}"'},
-                    {count: missing.length, property: AGENT_PROPERTY_NAME},
-                ),
-                severity: 'normal',
-            })
-        } catch (e) {
-            setError(String(e))
-        }
-    }
-
     const updateForm = (patch: Partial<AgentEntry>) => setForm((f) => (f ? {...f, ...patch} : f))
 
     // The model is asked for by the field above, so it is not asked for twice.
@@ -639,15 +537,13 @@ const AgentsDialog = (props: Props) => {
         setCliArgsText(joinArgv(withRemoteControl(splitArgv(cliArgsText()), on, name)))
 
     return (
-        <Dialog
-            class='AgentsDialog'
-            title={<span>{intl.formatMessage({id: 'Agents.title', defaultMessage: 'Agents'})}</span>}
-            subtitle={<span>{intl.formatMessage({id: 'Agents.subtitle', defaultMessage: 'Register coding agents (Claude, Codex, Antigravity, GitHub Copilot, JetBrains Junie or any other ACP agent) with their own prompt, model, launch command, environment and proxy. Cards route to an agent by their assignee or the "Agent" field.'})}</span>}
-            onClose={props.onClose}
-        >
-            <div class='AgentsDialog__content'>
+        <div class='AgentsPanel'>
+            <div class='AgentsPanel__subtitle'>
+                {intl.formatMessage({id: 'Agents.subtitle', defaultMessage: 'Register coding agents (Claude, Codex, Antigravity, GitHub Copilot, JetBrains Junie or any other ACP agent) with their own prompt, model, launch command, environment and proxy. A card goes to the agent it is assigned to.'})}
+            </div>
+            <div class='AgentsPanel__content'>
                 <Show when={agents().length === 0 && !form()}>
-                    <div class='AgentsDialog__empty'>
+                    <div class='AgentsPanel__empty'>
                         {intl.formatMessage({id: 'Agents.empty', defaultMessage: 'No agents registered yet.'})}
                     </div>
                 </Show>
@@ -655,10 +551,10 @@ const AgentsDialog = (props: Props) => {
                 <For each={agents()}>
                     {(agent) => (
                         <div
-                            class='AgentsDialog__row'
+                            class='AgentsPanel__row'
                         >
-                            <span class='AgentsDialog__name'>{agent.name}</span>
-                            <span class='AgentsDialog__kind'>{agent.kind}</span>
+                            <span class='AgentsPanel__name'>{agent.name}</span>
+                            <span class='AgentsPanel__kind'>{agent.kind}</span>
                             <Button onClick={() => startEdit(agent)}>
                                 {intl.formatMessage({id: 'Agents.edit', defaultMessage: 'Edit'})}
                             </Button>
@@ -670,34 +566,27 @@ const AgentsDialog = (props: Props) => {
                 </For>
 
                 <Show when={form()}>
-                    <div class='AgentsDialog__form'>
+                    <div class='AgentsPanel__form'>
                         <label>
                             {intl.formatMessage({id: 'Agents.name', defaultMessage: 'Name'})}
                             <input
                                 value={form()!.name}
                                 disabled={Boolean(editingName())}
-                                placeholder={intl.formatMessage({id: 'Agents.name-placeholder', defaultMessage: 'Name (matches the "Agent" option)'})}
+                                placeholder={intl.formatMessage({id: 'Agents.name-placeholder', defaultMessage: 'Name'})}
                                 onInput={(e) => updateForm({name: e.currentTarget.value})}
                             />
                         </label>
                         <label>
                             {intl.formatMessage({id: 'Agents.kind', defaultMessage: 'Kind'})}
-                            <select
+                            <Select
                                 value={form()!.kind}
-                                onChange={(e) => changeKind(e.currentTarget.value)}
-                            >
-                                <For each={AGENT_KINDS}>
-                                    {(kind) => (
-                                        <option
-                                            value={kind.value}
-                                            selected={form()!.kind === kind.value}
-                                        >{kind.label}</option>
-                                    )}
-                                </For>
-                            </select>
+                                options={AGENT_KINDS}
+                                onChange={changeKind}
+                                label={intl.formatMessage({id: 'Agents.kind', defaultMessage: 'Kind'})}
+                            />
                         </label>
                         <Show when={adapter() && (!adapter()!.ready || adapter()!.viaNpx)}>
-                            <div class={`AgentsDialog__adapter${adapter()!.ready ? '' : ' AgentsDialog__adapter--missing'}`}>
+                            <div class={`AgentsPanel__adapter${adapter()!.ready ? '' : ' AgentsPanel__adapter--missing'}`}>
                                 <span>{adapter()!.detail}</span>
                                 <Show when={adapter()!.package && bindings?.InstallAgentAdapter}>
                                     <Button
@@ -716,11 +605,11 @@ const AgentsDialog = (props: Props) => {
                                 one said it has. */}
                             <input
                                 value={form()!.model || ''}
-                                list={modelOption() ? 'AgentsDialog__models' : undefined}
+                                list={modelOption() ? 'AgentsPanel__models' : undefined}
                                 onInput={(e) => updateForm({model: e.currentTarget.value})}
                             />
                             <Show when={modelOption()}>
-                                <datalist id='AgentsDialog__models'>
+                                <datalist id='AgentsPanel__models'>
                                     <For each={modelOption()!.values || []}>
                                         {(value) => (
                                             <option
@@ -750,8 +639,8 @@ const AgentsDialog = (props: Props) => {
                         {/* What this agent can be told beyond the task, asked
                             of the agent itself. Nothing is drawn for an agent
                             that declares nothing — there is no choice to make. */}
-                        <div class='AgentsDialog__options'>
-                            <div class='AgentsDialog__optionsHeader'>
+                        <div class='AgentsPanel__options'>
+                            <div class='AgentsPanel__optionsHeader'>
                                 <span>{intl.formatMessage({id: 'Agents.options', defaultMessage: 'Agent settings'})}</span>
                                 <Show when={bindings?.AgentOptions}>
                                     <Button
@@ -765,51 +654,44 @@ const AgentsDialog = (props: Props) => {
                             <For each={tunableOptions()}>
                                 {(option) => (
                                     <div
-                                        class='AgentsDialog__option'
+                                        class='AgentsPanel__option'
                                     >
                                         <label>
                                             {option.name || option.id}
-                                            <select
+                                            <Select
                                                 value={form()!.options?.[option.id] || ''}
-                                                onChange={(e) => updateForm({options: {...form()!.options, [option.id]: e.currentTarget.value}})}
-                                            >
-                                                <option
-                                                    value=''
-                                                    selected={!form()!.options?.[option.id]}
-                                                >
-                                                    {intl.formatMessage(
-                                                        {id: 'Agents.option-default', defaultMessage: 'As the agent has it ({current})'},
-                                                        {current: optionValueLabel(option, option.current)},
-                                                    )}
-                                                </option>
-                                                <For each={optionValues(option)}>
-                                                    {(value) => (
-                                                        <option
-                                                            value={value.value}
-                                                            selected={(form()!.options?.[option.id] || '') === value.value}
-                                                        >{value.name || value.value}</option>
-                                                    )}
-                                                </For>
-                                            </select>
+                                                options={[
+                                                    {
+                                                        value: '',
+                                                        label: intl.formatMessage(
+                                                            {id: 'Agents.option-default', defaultMessage: 'As the agent has it ({current})'},
+                                                            {current: optionValueLabel(option, option.current)},
+                                                        ),
+                                                    },
+                                                    ...optionValues(option).map((value) => ({value: value.value, label: value.name || value.value})),
+                                                ]}
+                                                onChange={(next) => updateForm({options: {...form()!.options, [option.id]: next}})}
+                                                label={option.name || option.id}
+                                            />
                                         </label>
                                         <Show when={option.description}>
-                                            <div class='AgentsDialog__hint'>{option.description}</div>
+                                            <div class='AgentsPanel__hint'>{option.description}</div>
                                         </Show>
                                     </div>
                                 )}
                             </For>
                             <Show when={probing() && tunableOptions().length === 0}>
-                                <div class='AgentsDialog__hint'>
+                                <div class='AgentsPanel__hint'>
                                     {intl.formatMessage({id: 'Agents.options-asking', defaultMessage: 'Starting the agent to ask what it supports…'})}
                                 </div>
                             </Show>
                             <Show when={probed() && !probing() && tunableOptions().length === 0}>
-                                <div class='AgentsDialog__hint'>
+                                <div class='AgentsPanel__hint'>
                                     {intl.formatMessage({id: 'Agents.options-none', defaultMessage: 'This agent has no settings of its own.'})}
                                 </div>
                             </Show>
                             <Show when={probeError() && !probing()}>
-                                <div class='AgentsDialog__hint'>
+                                <div class='AgentsPanel__hint'>
                                     {intl.formatMessage({id: 'Agents.options-failed', defaultMessage: 'Could not ask the agent what it supports: {error}'}, {error: probeError()})}
                                 </div>
                             </Show>
@@ -820,11 +702,11 @@ const AgentsDialog = (props: Props) => {
                             adapter passes arguments on: for the rest the agent
                             is the CLI, and "Extra CLI args" already reaches it. */}
                         <Show when={CLI_HANDOFF_KINDS.includes(form()!.kind)}>
-                            <div class='AgentsDialog__options'>
-                                <div class='AgentsDialog__optionsHeader'>
+                            <div class='AgentsPanel__options'>
+                                <div class='AgentsPanel__optionsHeader'>
                                     <span>{intl.formatMessage({id: 'Agents.cli', defaultMessage: 'What the protocol has no word for'})}</span>
                                 </div>
-                                <label class='AgentsDialog__checkbox'>
+                                <label class='AgentsPanel__checkbox'>
                                     <input
                                         type='checkbox'
                                         checked={remoteControl().on}
@@ -835,9 +717,15 @@ const AgentsDialog = (props: Props) => {
                                 <Show when={remoteControl().on}>
                                     <label>
                                         {intl.formatMessage({id: 'Agents.remote-control-name', defaultMessage: 'Session name prefix in claude.ai (optional)'})}
+
+                                        {/* The board's title used to stand in
+                                            here, back when this was opened from
+                                            a board. The agent belongs to the
+                                            machine, so its own name is the
+                                            honest default. */}
                                         <input
                                             value={remoteControl().name}
-                                            placeholder={props.board.title}
+                                            placeholder={form()!.name}
                                             onInput={(e) => setRemoteControl(true, e.currentTarget.value)}
                                         />
                                     </label>
@@ -850,7 +738,7 @@ const AgentsDialog = (props: Props) => {
                                         onInput={(e) => setCliArgsText(e.currentTarget.value)}
                                     />
                                 </label>
-                                <div class='AgentsDialog__hint'>
+                                <div class='AgentsPanel__hint'>
                                     {intl.formatMessage({id: 'Agents.cli-args-hint', defaultMessage: 'Handed to the CLI at session start. An argument it does not know shows up here as its own error when the agent is rechecked, not later on a card.'})}
                                 </div>
                             </div>
@@ -864,31 +752,19 @@ const AgentsDialog = (props: Props) => {
                         />
                         <label>
                             {intl.formatMessage({id: 'Agents.proxyName', defaultMessage: 'Proxy configuration'})}
-                            <select
+                            <Select
                                 value={form()!.proxyName || ''}
-                                onChange={(e) => updateForm({proxyName: e.currentTarget.value})}
-                            >
-                                <option
-                                    value=''
-                                    selected={!form()!.proxyName}
-                                >
-                                    {intl.formatMessage({id: 'Agents.proxy-none', defaultMessage: 'No proxy (inherit the app environment)'})}
-                                </option>
-                                <For each={proxies()}>
-                                    {(p) => (
-                                        <option
-                                            value={p.name}
-                                            selected={(form()!.proxyName || '') === p.name}
-                                        >
-                                            {p.proxy ? `${p.name} — ${p.proxy}` : p.name}
-                                        </option>
-                                    )}
-                                </For>
-                            </select>
+                                options={[
+                                    {value: '', label: intl.formatMessage({id: 'Agents.proxy-none', defaultMessage: 'No proxy (inherit the app environment)'})},
+                                    ...proxies().map((p) => ({value: p.name, label: p.proxy ? `${p.name} — ${p.proxy}` : p.name})),
+                                ]}
+                                onChange={(next) => updateForm({proxyName: next})}
+                                label={intl.formatMessage({id: 'Agents.proxyName', defaultMessage: 'Proxy configuration'})}
+                            />
                         </label>
                         <Show when={proxies().length === 0}>
-                            <div class='AgentsDialog__hint'>
-                                {intl.formatMessage({id: 'Agents.proxy-hint', defaultMessage: 'Configurations are added under "Proxy configurations" at the bottom of this dialog.'})}
+                            <div class='AgentsPanel__hint'>
+                                {intl.formatMessage({id: 'Agents.proxy-hint', defaultMessage: 'Configurations are added under "Proxy configurations", beside this section.'})}
                             </div>
                         </Show>
                         <label>
@@ -909,7 +785,7 @@ const AgentsDialog = (props: Props) => {
                                 onInput={(e) => setServersText(e.currentTarget.value)}
                             />
                         </label>
-                        <div class='AgentsDialog__hint'>
+                        <div class='AgentsPanel__hint'>
                             {intl.formatMessage({id: 'Agents.mcp-servers-hint', defaultMessage: 'Their tools run without asking: wiring a server here is consent to use it. A browser server (Playwright, say) is what the "To Test" column runs on.'})}
                         </div>
                         <label>
@@ -920,7 +796,7 @@ const AgentsDialog = (props: Props) => {
                                 onInput={(e) => setArgsText(e.currentTarget.value)}
                             />
                         </label>
-                        <div class='AgentsDialog__formActions'>
+                        <div class='AgentsPanel__formActions'>
                             <Button
                                 emphasis='primary'
                                 onClick={saveForm}
@@ -935,57 +811,31 @@ const AgentsDialog = (props: Props) => {
                 </Show>
 
                 <Show when={!form()}>
-                    <div class='AgentsDialog__actions'>
+                    <div class='AgentsPanel__actions'>
                         <Button
                             emphasis='primary'
                             onClick={startAdd}
                         >
                             {intl.formatMessage({id: 'Agents.add', defaultMessage: 'Add agent…'})}
                         </Button>
-                        <Show when={agents().length > 0}>
-                            <Button onClick={syncToBoard}>
-                                {intl.formatMessage({id: 'Agents.sync', defaultMessage: 'Sync to board'})}
-                            </Button>
-                        </Show>
                     </div>
                 </Show>
 
-                <Show when={!form() && agents().length > 0 && Boolean(bindings?.SyncAgentUsers)}>
-                    <div class='AgentsDialog__hint'>
-                        {intl.formatMessage({id: 'Agents.assignable-hint', defaultMessage: 'Every agent above is a member of this board under its own name, so you can pick it in a person field such as "Assignee".'})}
+                {/* Where these become usable is a board, and a board is not
+                    open here — so this says where that happens rather than
+                    offering a button that would need one. */}
+                <Show when={!form() && agents().length > 0}>
+                    <div class='AgentsPanel__hint'>
+                        {intl.formatMessage({id: 'Agents.assignable-hint', defaultMessage: 'A board picks these up on its own: each agent becomes a member of it under its own name, so a card can be assigned to one the way it is assigned to anybody.'})}
                     </div>
-                </Show>
-
-                <div class='AgentsDialog__systemPrompt'>
-                    <PromptField
-                        label={intl.formatMessage({id: 'Agents.system-prompt', defaultMessage: 'Board system prompt (prepended to every agent prompt)'})}
-                        value={systemPrompt()}
-                        rows={6}
-                        onInput={setSystemPrompt}
-                    >
-                        <Button onClick={saveSystemPrompt}>
-                            {intl.formatMessage({id: 'Agents.save-system-prompt', defaultMessage: 'Save system prompt'})}
-                        </Button>
-                    </PromptField>
-                </div>
-
-                {/* Proxies exist only to be referenced by an agent, so they live
-                    here, folded away until someone needs one. */}
-                <Show when={isProxiesAvailable()}>
-                    <details class='AgentsDialog__proxies'>
-                        <summary>
-                            {intl.formatMessage({id: 'Proxies.title', defaultMessage: 'Proxy configurations'})}
-                        </summary>
-                        <ProxiesPanel onChange={refresh}/>
-                    </details>
                 </Show>
 
                 <Show when={error()}>
-                    <div class='AgentsDialog__error'>{error()}</div>
+                    <div class='AgentsPanel__error'>{error()}</div>
                 </Show>
             </div>
-        </Dialog>
+        </div>
     )
 }
 
-export default AgentsDialog
+export default AgentsPanel

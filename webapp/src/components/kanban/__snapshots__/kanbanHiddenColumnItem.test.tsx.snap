@@ -60,6 +60,7 @@ exports[`src/components/kanban/kanbanHiddenColumnItem > return kanbanHiddenColum
               aria-label="Show"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -171,6 +172,7 @@ exports[`src/components/kanban/kanbanHiddenColumnItem > return kanbanHiddenColum
               aria-label="Show"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"

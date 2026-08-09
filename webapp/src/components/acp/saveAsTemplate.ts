@@ -7,7 +7,7 @@ import {Board} from '../../blocks/board'
 import mutator from '../../mutator'
 import {IntlShape} from '../../intl'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 import {Automation, boardAutomationProperties, readBoardSetup} from './automation'
 
 // Turning a board somebody has built into a template other boards can start

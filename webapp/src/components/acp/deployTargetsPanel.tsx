@@ -8,11 +8,10 @@ import {For, Show, createSignal, onMount} from 'solid-js'
 import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
-import Dialog from '../dialog'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 
-import './deployTargetsDialog.scss'
+import './deployTargetsPanel.scss'
 
 // One Dokku destination: a host, and nothing else that is not about reaching
 // it. A card moved into the deploy column is published as <baseApp>-<branch
@@ -44,11 +43,7 @@ function previewHost(t: DeployTarget): string {
     return `${t.baseApp || 'reponame'}-my-branch.${t.baseDomain || t.sshHost || 'dokku.example.com'}`
 }
 
-type Props = {
-    onClose: () => void
-}
-
-const DeployTargetsDialog = (props: Props) => {
+const DeployTargetsPanel = () => {
     const intl = useIntl()
     const bindings = agentBindings()
 
@@ -121,15 +116,13 @@ const DeployTargetsDialog = (props: Props) => {
     const updateForm = (patch: Partial<DeployTarget>) => setForm((f) => (f ? {...f, ...patch} : f))
 
     return (
-        <Dialog
-            class='DeployTargetsDialog'
-            title={<span>{intl.formatMessage({id: 'DeployTargets.title', defaultMessage: 'Deploy targets'})}</span>}
-            subtitle={<span>{intl.formatMessage({id: 'DeployTargets.subtitle', defaultMessage: 'Dokku hosts a card\'s branch is published to when it moves into the Deploy column. One branch becomes one app of its own, at “project-branch.base-domain”.'})}</span>}
-            onClose={props.onClose}
-        >
-            <div class='DeployTargetsDialog__content'>
+        <div class='DeployTargetsPanel'>
+            <div class='DeployTargetsPanel__subtitle'>
+                {intl.formatMessage({id: 'DeployTargets.subtitle', defaultMessage: 'Dokku hosts a card\'s branch is published to when it moves into the Deploy column. One branch becomes one app of its own, at “project-branch.base-domain”.'})}
+            </div>
+            <div class='DeployTargetsPanel__content'>
                 <Show when={targets().length === 0 && !form()}>
-                    <div class='DeployTargetsDialog__empty'>
+                    <div class='DeployTargetsPanel__empty'>
                         {intl.formatMessage({id: 'DeployTargets.empty', defaultMessage: 'No deploy targets yet.'})}
                     </div>
                 </Show>
@@ -137,10 +130,10 @@ const DeployTargetsDialog = (props: Props) => {
                 <For each={targets()}>
                     {(entry) => (
                         <div
-                            class='DeployTargetsDialog__row'
+                            class='DeployTargetsPanel__row'
                         >
-                            <span class='DeployTargetsDialog__name'>{entry.name}</span>
-                            <span class='DeployTargetsDialog__where'>{`${entry.sshUser || 'dokku'}@${entry.sshHost} → *.${entry.baseDomain || entry.sshHost}`}</span>
+                            <span class='DeployTargetsPanel__name'>{entry.name}</span>
+                            <span class='DeployTargetsPanel__where'>{`${entry.sshUser || 'dokku'}@${entry.sshHost} → *.${entry.baseDomain || entry.sshHost}`}</span>
                             <Button onClick={() => startEdit(entry)}>
                                 {intl.formatMessage({id: 'DeployTargets.edit', defaultMessage: 'Edit'})}
                             </Button>
@@ -152,7 +145,7 @@ const DeployTargetsDialog = (props: Props) => {
                 </For>
 
                 <Show when={form()}>
-                    <div class='DeployTargetsDialog__form'>
+                    <div class='DeployTargetsPanel__form'>
                         <label>
                             {intl.formatMessage({id: 'DeployTargets.name', defaultMessage: 'Name'})}
                             <input
@@ -210,13 +203,13 @@ const DeployTargetsDialog = (props: Props) => {
                                 onInput={(e) => updateForm({baseApp: e.currentTarget.value})}
                             />
                         </label>
-                        <div class='DeployTargetsDialog__hint'>
+                        <div class='DeployTargetsPanel__hint'>
                             {intl.formatMessage(
                                 {id: 'DeployTargets.hostname', defaultMessage: 'A branch is served at {host}'},
                                 {host: previewHost(form()!)},
                             )}
                         </div>
-                        <div class='DeployTargetsDialog__formActions'>
+                        <div class='DeployTargetsPanel__formActions'>
                             <Button
                                 emphasis='primary'
                                 onClick={saveForm}
@@ -231,7 +224,7 @@ const DeployTargetsDialog = (props: Props) => {
                 </Show>
 
                 <Show when={!form()}>
-                    <div class='DeployTargetsDialog__actions'>
+                    <div class='DeployTargetsPanel__actions'>
                         <Button
                             emphasis='primary'
                             onClick={startAdd}
@@ -242,11 +235,11 @@ const DeployTargetsDialog = (props: Props) => {
                 </Show>
 
                 <Show when={error()}>
-                    <div class='DeployTargetsDialog__error'>{error()}</div>
+                    <div class='DeployTargetsPanel__error'>{error()}</div>
                 </Show>
             </div>
-        </Dialog>
+        </div>
     )
 }
 
-export default DeployTargetsDialog
+export default DeployTargetsPanel

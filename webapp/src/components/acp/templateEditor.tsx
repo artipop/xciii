@@ -13,7 +13,7 @@ import {Utils, IDType} from '../../utils'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 import AutomationEditor from './automationEditor'
 import {
     Automation,

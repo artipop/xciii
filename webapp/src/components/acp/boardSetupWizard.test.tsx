@@ -12,6 +12,8 @@ import {SetupPlan, SetupStep, SetupStepKind} from './boardSetup'
 
 import BoardSetupWizard, {readRegistry} from './boardSetupWizard'
 
+vi.mock('../../mutator')
+
 const anyWindow = window as any
 
 // One board for the whole file: its id is what the wizard reports a skip
@@ -46,6 +48,7 @@ function stubBindings(overrides: Record<string, unknown> = {}) {
         ListAgentProjects: vi.fn().mockResolvedValue('[]'),
         ListAgents: vi.fn().mockResolvedValue('[]'),
         PickDirectory: vi.fn().mockResolvedValue('/Users/me/src/webapp'),
+        ListAgentAdapters: vi.fn().mockResolvedValue('[]'),
         AddAgentProject: vi.fn().mockResolvedValue('{}'),
         AddAgent: vi.fn().mockResolvedValue('{}'),
         UpdateAgent: vi.fn().mockResolvedValue('{}'),
@@ -117,15 +120,23 @@ describe('components/acp/boardSetupWizard', () => {
                 plan([{kind: 'project', status: 'done'}, {kind: 'agent'}, {kind: 'done'}]),
             ),
         })
+
+        // Registered, so the registry has it from then on — which is what makes
+        // it assignable on the board.
+        bindings.AddAgent.mockImplementation(async () => {
+            bindings.ListAgents.mockResolvedValue(JSON.stringify([{name: 'claude', kind: 'claude'}]))
+            return '{}'
+        })
         renderWizard()
 
-        // The project is answered, so the wizard opens on the question that is not.
+        // The project is answered, so the wizard opens on the question that is
+        // not — asked by the same short form a card offers.
         await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
 
-        userEvent.click(screen.getByRole('button', {name: 'Next'}))
+        userEvent.click(screen.getByRole('button', {name: 'Add'}))
         await waitFor(() => expect(bindings.AddAgent).toHaveBeenCalled())
         expect(JSON.parse(bindings.AddAgent.mock.calls[0][0])).toEqual({name: 'claude', kind: 'claude'})
-        expect(bindings.SyncAgentUsers).toHaveBeenCalled()
+        await waitFor(() => expect(bindings.SyncAgentUsers).toHaveBeenCalledWith(testBoard.id))
         await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'agent', 'done'))
     })
 
@@ -149,7 +160,9 @@ describe('components/acp/boardSetupWizard', () => {
         await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'project', 'done'))
         expect(bindings.AddAgentProject).not.toHaveBeenCalled()
 
-        await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
+        // The machine already has an agent, so the step says so and offers Next
+        // rather than a form. ("claude" is the agent; the project is "webapp".)
+        await waitFor(() => expect(screen.getByText('Already registered: claude')).toBeInTheDocument())
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
         await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'agent', 'done'))
         expect(bindings.AddAgent).not.toHaveBeenCalled()
@@ -206,7 +219,11 @@ describe('components/acp/boardSetupWizard', () => {
         expect(screen.queryByText('Testing')).toBeNull()
 
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
-        await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
+        await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'project', 'done'))
+
+        // The machine already has an agent, so this step says so rather than
+        // asking again. ("claude" is the agent; the project is "notes".)
+        await waitFor(() => expect(screen.getByText('Already registered: claude')).toBeInTheDocument())
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
 
         // Straight to the end, and the end names this board's own column.

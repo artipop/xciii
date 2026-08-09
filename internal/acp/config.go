@@ -47,12 +47,11 @@ func (p ProjectEntry) OfferedOn(boardID string) bool {
 func (p ProjectEntry) Attached() bool { return p.Global || p.BoardID != "" }
 
 // AgentEntry is one named coding agent in the registry. A card is mapped to an
-// agent when one of its select option names (e.g. an "Agent" field option)
-// matches the entry name. Its Env is injected per-process at spawn time, which
+// agent when its assignee matches the entry name. Its Env is injected per-process at spawn time, which
 // is how several agents (e.g. two Codex accounts) coexist on one machine: give
 // each its own CODEX_HOME/OPENAI_API_KEY (or CLAUDE_CONFIG_DIR/ANTHROPIC_API_KEY).
 type AgentEntry struct {
-	Name    string            `json:"name"`              // registry key; matches the card "Agent" option
+	Name    string            `json:"name"`              // registry key; matches the card's assignee
 	Kind    string            `json:"kind"`              // "claude" | "codex" | "antigravity" | "copilot" | "junie" | "acp"
 	BinPath string            `json:"binPath,omitempty"` // overrides adapter discovery
 	Model   string            `json:"model,omitempty"`   // the model the adapter is asked for
@@ -583,8 +582,8 @@ type Config struct {
 	Projects []ProjectEntry `json:"projects"`
 
 	// Agents is the registry of named coding agents (claude/codex, with their
-	// own prompt, model and env). A card is mapped to an agent when one of its
-	// select option names (the "Agent" field) matches an entry name. When empty,
+	// own prompt, model and env). A card is mapped to an agent by its assignee,
+	// each agent being a member of the board under its own name. When empty,
 	// AgentMode below drives the (single) built-in agent for backward compat.
 	Agents []AgentEntry `json:"agents"`
 
@@ -608,10 +607,20 @@ type Config struct {
 	// behaviour. See flows.go.
 	Flows []FlowEntry `json:"flows"`
 
-	// SystemPrompt is the board/column-level instruction prepended to every
-	// triggered session's prompt (before the agent's own system prompt and the
-	// card task). One trigger column today; may become a per-column map later.
-	SystemPrompt string `json:"systemPrompt"`
+	// SystemPrompt was the instruction prepended to every triggered session's
+	// prompt, for every board at once. It is kept only as the source the
+	// migration below reads: a board is what a prompt is about, and one
+	// setting shared by the household board and the code board was a setting
+	// nobody could fill in. Nothing reads it after LoadConfig.
+	//
+	// Deprecated: use BoardPrompts.
+	SystemPrompt string `json:"systemPrompt,omitempty"`
+
+	// BoardPrompts is that instruction, per board: the text prepended to every
+	// prompt a session of that board is given, before the agent's own system
+	// prompt and the card task. Keyed by board id, empty for a board that
+	// never set one.
+	BoardPrompts map[string]string `json:"boardPrompts,omitempty"`
 
 	// DeployPrompt is what a deploy session is told to do; the concrete facts
 	// (project, branch, target, expected URL) are appended to it.
@@ -863,7 +872,40 @@ func LoadConfig(path, dataDir string) (Config, error) {
 		// given then; a fresh one gets them from its board instead.
 		cfg = withTemplateFlows(cfg)
 	}
+	cfg = withBoardPrompts(cfg)
 	return cfg, nil
+}
+
+// withBoardPrompts moves the one prompt every board used to share onto the
+// boards that actually run something. It runs once: the global field is blanked
+// afterwards, so the next load finds nothing to move.
+//
+// Every board named by a column or a route gets the text, because those are the
+// boards the prompt was reaching — a board with neither never ran a session and
+// so never saw it. Boards the user has since deleted leave a key behind, which
+// costs a line of JSON and is cheaper than reaching into the store from here.
+func withBoardPrompts(cfg Config) Config {
+	text := strings.TrimSpace(cfg.SystemPrompt)
+	if text == "" || len(cfg.BoardPrompts) > 0 {
+		cfg.SystemPrompt = ""
+		return cfg
+	}
+	prompts := map[string]string{}
+	for _, c := range cfg.Columns {
+		if c.BoardID != "" {
+			prompts[c.BoardID] = cfg.SystemPrompt
+		}
+	}
+	for _, f := range cfg.Flows {
+		if f.BoardID != "" {
+			prompts[f.BoardID] = cfg.SystemPrompt
+		}
+	}
+	if len(prompts) > 0 {
+		cfg.BoardPrompts = prompts
+	}
+	cfg.SystemPrompt = ""
+	return cfg
 }
 
 // withColumns fills the column registry from the trigger-column keys the config

@@ -5,7 +5,12 @@
 .FlowDiagram {
     height: 320px;
     width: 100%;
-    margin: 4px 0 8px;
+
+    // No top margin: the canvas is the middle of three columns — palette,
+    // canvas, panel — and 4px here dropped its frame below the other two, which
+    // reads as the palette sitting slightly too high. The space below stays,
+    // it separates the canvas from the hint under it.
+    margin: 0 0 8px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     border-radius: var(--radius-sm);
     background: rgba(var(--center-channel-color-rgb), 0.04);

@@ -80,21 +80,27 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
         expect(mockedCsvExporter.exportTableCsv).toHaveBeenCalledTimes(1)
     })
 
-    // The registries are per machine, but what a board needs from them is not:
-    // offering a Dokku host to a board of household chores is offering a setting
-    // that can never do anything.
-    describe('the board decides which registries are worth opening', () => {
+    // This menu is about the board and nothing else. The registries it used to
+    // open belong to the machine and live in the sidebar's settings, where they
+    // are reachable with no board open — which is the whole point of moving
+    // them, and is exactly what a regression here would undo.
+    describe('the menu holds what is true of this board', () => {
         const anyWindow = window as any
-        const openMenuFor = (steps: Array<{kind: string}>) => {
-            const themed = TestBlockFactory.createBoard()
-            anyWindow.go.main.App.BoardSetupPlan = vi.fn().mockResolvedValue(
-                JSON.stringify({boardId: themed.id, steps, declared: true, automated: true}),
-            )
+
+        beforeEach(() => {
+            anyWindow.go = {main: {App: {
+                ListAgents: vi.fn(),
+                ListDeployTargets: vi.fn(),
+                ListAgentProjects: vi.fn(),
+                ListFlows: vi.fn(),
+                ExportBoardAutomation: vi.fn(),
+                BoardSetupPlan: vi.fn().mockResolvedValue('{"steps":[]}'),
+            }}}
             render(() =>
                 wrapIntl(() =>
                     <AppStoreProvider store={store}>
                         <ViewHeaderActionsMenu
-                            board={themed}
+                            board={board}
                             activeView={activeView}
                             cards={[card]}
                         />
@@ -102,32 +108,19 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
                 ),
             )
             userEvent.click(screen.getByRole('button', {name: 'View header menu'}))
-        }
-
-        beforeEach(() => {
-            anyWindow.go = {main: {App: {
-                ListDeployTargets: vi.fn(),
-                ListAgentProjects: vi.fn(),
-                BoardSetupPlan: vi.fn().mockResolvedValue('{"steps":[]}'),
-            }}}
         })
         afterEach(() => {
             delete anyWindow.go
         })
 
-        test('a board that publishes is offered somewhere to publish to', async () => {
-            openMenuFor([{kind: 'project'}, {kind: 'deploy'}])
-            await waitFor(() => expect(screen.getByRole('button', {name: 'Deploy targets…'})).toBeInTheDocument())
+        test('the one screen that says what this board does is offered', async () => {
+            await waitFor(() => expect(screen.getByRole('button', {name: 'How this board works…'})).toBeInTheDocument())
         })
 
-        test('a board that only runs an agent is not', async () => {
-            openMenuFor([{kind: 'project'}, {kind: 'agent'}])
-
-            // The registries it does use are still there…
-            await waitFor(() => expect(screen.getByRole('button', {name: 'Projects…'})).toBeInTheDocument())
-
-            // …and the one it would never fill is not.
-            expect(screen.queryByRole('button', {name: 'Deploy targets…'})).toBeNull()
+        test('the machine registries are not', () => {
+            for (const gone of ['Agents…', 'Deploy targets…', 'Projects…', 'Set up this board…', 'Plan a task…']) {
+                expect(screen.queryByRole('button', {name: gone})).toBeNull()
+            }
         })
     })
 

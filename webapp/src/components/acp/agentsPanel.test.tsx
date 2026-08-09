@@ -4,20 +4,13 @@ import {fireEvent, render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
-import {wrapIntl} from '../../testUtils'
-import {TestBlockFactory} from '../../test/testBlockFactory'
-import mutator from '../../mutator'
+import {chooseOption, optionsOf, wrapIntl} from '../../testUtils'
 
-import AgentsDialog, {isAgentsAvailable, textToServers, keptOptions, remoteControlOf, withRemoteControl} from './agentsDialog'
-
-vi.mock('../../mutator')
-const mockedMutator = vi.mocked(mutator)
+import AgentsPanel, {isAgentsAvailable, textToServers, keptOptions, remoteControlOf, withRemoteControl} from './agentsPanel'
 
 const anyWindow = window as any
 
-describe('components/acp/agentsDialog', () => {
-    const board = TestBlockFactory.createBoard()
-
+describe('components/acp/agentsPanel', () => {
     afterEach(() => {
         delete anyWindow.go
         vi.clearAllMocks()
@@ -40,20 +33,17 @@ describe('components/acp/agentsDialog', () => {
         expect(isAgentsAvailable()).toBe(true)
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(screen.getByText('default-agent')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Add agent…'}))
 
-        // Two selects in the form: the agent kind, then the proxy configuration.
-        await waitFor(() => expect(screen.getAllByRole('combobox')).toHaveLength(2))
+        // Two dropdowns in the form: the agent kind, then the proxy configuration.
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Kind'})).toBeInTheDocument())
 
-        userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'codex')
-        userEvent.type(screen.getByPlaceholderText('Name (matches the "Agent" option)'), 'codex-a')
+        chooseOption(screen.getByRole('button', {name: 'Kind'}), 'Codex')
+        userEvent.type(screen.getByPlaceholderText('Name'), 'codex-a')
         userEvent.type(screen.getByPlaceholderText('CODEX_HOME=/Users/me/.codex-work'), 'CODEX_HOME=/tmp/x')
 
         userEvent.click(screen.getByRole('button', {name: 'Save'}))
@@ -77,17 +67,14 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(screen.getByRole('button', {name: 'Add agent…'})).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Add agent…'}))
-        await waitFor(() => expect(screen.getAllByRole('combobox')).toHaveLength(2))
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Kind'})).toBeInTheDocument())
 
-        userEvent.type(screen.getByPlaceholderText('Name (matches the "Agent" option)'), 'proxied')
+        userEvent.type(screen.getByPlaceholderText('Name'), 'proxied')
 
         // The launch command is offered for claude too, and quoted arguments
         // stay a single argv element.
@@ -95,7 +82,7 @@ describe('components/acp/agentsDialog', () => {
 
         // The network settings themselves live in the proxy registry; the agent
         // only names one.
-        userEvent.selectOptions(screen.getAllByRole('combobox')[1], 'office')
+        chooseOption(screen.getByRole('button', {name: 'Proxy configuration'}), 'office — http://proxy.example.com:8080')
 
         userEvent.click(screen.getByRole('button', {name: 'Save'}))
         await waitFor(() => expect(bindings.AddAgent).toHaveBeenCalled())
@@ -128,10 +115,7 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(bindings.ListAgentAdapters).toHaveBeenCalled())
 
@@ -144,7 +128,7 @@ describe('components/acp/agentsDialog', () => {
         await waitFor(() => expect(bindings.InstallAgentAdapter).toHaveBeenCalledWith('claude'))
 
         // An installed kind says nothing at all.
-        userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'codex')
+        chooseOption(screen.getByRole('button', {name: 'Kind'}), 'Codex')
         await waitFor(() => expect(screen.queryByText('не найден claude-agent-acp')).not.toBeInTheDocument())
     })
 
@@ -160,22 +144,18 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(screen.getByRole('button', {name: 'Add agent…'})).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Add agent…'}))
-        await waitFor(() => expect(screen.getAllByRole('combobox')).toHaveLength(2))
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Kind'})).toBeInTheDocument())
 
-        const kindSelect = screen.getAllByRole('combobox')[0]
-        expect(Array.from(kindSelect.querySelectorAll('option')).map((o) => o.value)).
-            toEqual(['claude', 'codex', 'antigravity', 'copilot', 'junie', 'acp'])
+        const kind = screen.getByRole('button', {name: 'Kind'})
+        expect(optionsOf(kind)).toEqual(['Claude', 'Codex', 'Antigravity', 'GitHub Copilot', 'JetBrains Junie', 'ACP (other)'])
 
-        userEvent.selectOptions(kindSelect, 'junie')
-        userEvent.type(screen.getByPlaceholderText('Name (matches the "Agent" option)'), 'junie-a')
+        chooseOption(kind, 'JetBrains Junie')
+        userEvent.type(screen.getByPlaceholderText('Name'), 'junie-a')
 
         // The kind carries its own default launch flags, so the command input
         // only shows them as a placeholder and stays empty.
@@ -185,128 +165,6 @@ describe('components/acp/agentsDialog', () => {
         await waitFor(() => expect(bindings.AddAgent).toHaveBeenCalled())
         const payload = JSON.parse(bindings.AddAgent.mock.calls[0][0])
         expect(payload).toMatchObject({name: 'junie-a', kind: 'junie', command: []})
-    })
-
-    test('keeps every agent assignable without being asked', async () => {
-        const bindings = {
-            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'Codex Acct1', kind: 'codex'}])),
-            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: vi.fn(),
-            AddAgent: vi.fn().mockResolvedValue(JSON.stringify({name: 'claude', kind: 'claude'})),
-            UpdateAgent: vi.fn(),
-            RemoveAgent: vi.fn().mockResolvedValue(undefined),
-            SyncAgentUsers: vi.fn().mockResolvedValue(JSON.stringify([
-                {name: 'Codex Acct1', username: 'codex-acct1', userId: 'uid-1', created: true},
-            ])),
-        }
-        anyWindow.go = {main: {App: bindings}}
-
-        render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
-        ))
-
-        // Opening the dialog is enough: the accounts and board memberships are
-        // provisioned for the board being looked at.
-        await waitFor(() => expect(bindings.SyncAgentUsers).toHaveBeenCalledWith(board.id))
-        await waitFor(() => expect(screen.getByText('Codex Acct1')).toBeInTheDocument())
-
-        // And a newly registered agent is provisioned right after it is saved.
-        userEvent.click(screen.getByRole('button', {name: 'Add agent…'}))
-        await waitFor(() => expect(screen.getAllByRole('combobox')).toHaveLength(2))
-        userEvent.type(screen.getByPlaceholderText('Name (matches the "Agent" option)'), 'claude')
-        userEvent.click(screen.getByRole('button', {name: 'Save'}))
-
-        await waitFor(() => expect(bindings.AddAgent).toHaveBeenCalled())
-        await waitFor(() => expect(bindings.SyncAgentUsers).toHaveBeenCalledTimes(2))
-    })
-
-    test('carries the proxy registry in a folded-away section', async () => {
-        const bindings = {
-            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'codex-a', kind: 'codex'}])),
-            ListProxies: vi.fn().mockResolvedValue(JSON.stringify([{name: 'office', proxy: 'http://proxy.example.com:8080'}])),
-            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: vi.fn(),
-            AddAgent: vi.fn(),
-            UpdateAgent: vi.fn(),
-            RemoveAgent: vi.fn(),
-            AddProxy: vi.fn(),
-            UpdateProxy: vi.fn(),
-            RemoveProxy: vi.fn(),
-        }
-        anyWindow.go = {main: {App: bindings}}
-
-        render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
-        ))
-        await waitFor(() => expect(screen.getByText('codex-a')).toBeInTheDocument())
-
-        // The proxies live behind a summary, in the dialog that references them.
-        const proxies = screen.getByText('Proxy configurations')
-        expect(proxies.tagName.toLowerCase()).toBe('summary')
-        await waitFor(() => expect(screen.getByText('office')).toBeInTheDocument())
-        expect(screen.getByRole('button', {name: 'Add configuration…'})).toBeInTheDocument()
-    })
-
-    test('shows the registry even when provisioning fails', async () => {
-        const bindings = {
-            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'codex-a', kind: 'codex'}])),
-            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: vi.fn(),
-            AddAgent: vi.fn(),
-            UpdateAgent: vi.fn(),
-            RemoveAgent: vi.fn(),
-            SyncAgentUsers: vi.fn().mockRejectedValue('board app is not ready'),
-        }
-        anyWindow.go = {main: {App: bindings}}
-
-        render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
-        ))
-
-        await waitFor(() => expect(screen.getByText('codex-a')).toBeInTheDocument())
-        await waitFor(() => expect(screen.getByText('board app is not ready')).toBeInTheDocument())
-    })
-
-    test('creates an Agent select field and adds missing options', async () => {
-        const bindings = {
-            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([
-                {name: 'claude', kind: 'claude'},
-                {name: 'codex-a', kind: 'codex'},
-            ])),
-            GetAgentSystemPrompt: vi.fn().mockResolvedValue(''),
-            SetAgentSystemPrompt: vi.fn(),
-            AddAgent: vi.fn(),
-            UpdateAgent: vi.fn(),
-            RemoveAgent: vi.fn(),
-        }
-        anyWindow.go = {main: {App: bindings}}
-        mockedMutator.updateBoardCardProperties.mockResolvedValue()
-
-        render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
-        ))
-        await waitFor(() => expect(screen.getByText('codex-a')).toBeInTheDocument())
-
-        userEvent.click(screen.getByRole('button', {name: 'Sync to board'}))
-        await waitFor(() => expect(mockedMutator.updateBoardCardProperties).toHaveBeenCalledTimes(1))
-
-        const newProps = mockedMutator.updateBoardCardProperties.mock.calls[0][2]
-        const agentProp = newProps.find((p) => p.name === 'Agent')!
-        expect(agentProp).toBeDefined()
-        expect(agentProp.type).toBe('select')
-        expect(agentProp.options.map((o) => o.value)).toEqual(['claude', 'codex-a'])
     })
 
     test('wires an MCP server of the agent\'s own and reloads it for editing', async () => {
@@ -322,16 +180,13 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(screen.getByRole('button', {name: 'Add agent…'})).toBeInTheDocument())
         userEvent.click(screen.getByRole('button', {name: 'Add agent…'}))
-        await waitFor(() => expect(screen.getByPlaceholderText('Name (matches the "Agent" option)')).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByPlaceholderText('Name')).toBeInTheDocument())
 
-        userEvent.type(screen.getByPlaceholderText('Name (matches the "Agent" option)'), 'jojo')
+        userEvent.type(screen.getByPlaceholderText('Name'), 'jojo')
 
         // Pasted the way a server's own README gives it, wrapper and all.
         const field = screen.getByRole('textbox', {name: /MCP servers/})
@@ -367,16 +222,13 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(screen.getByRole('button', {name: 'Add agent…'})).toBeInTheDocument())
         userEvent.click(screen.getByRole('button', {name: 'Add agent…'}))
-        await waitFor(() => expect(screen.getByPlaceholderText('Name (matches the "Agent" option)')).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByPlaceholderText('Name')).toBeInTheDocument())
 
-        userEvent.type(screen.getByPlaceholderText('Name (matches the "Agent" option)'), 'jojo')
+        userEvent.type(screen.getByPlaceholderText('Name'), 'jojo')
         fireEvent.input(screen.getByRole('textbox', {name: /MCP servers/}), {target: {value: 'playwright = npx'}})
         userEvent.click(screen.getByRole('button', {name: 'Save'}))
 
@@ -400,10 +252,7 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(screen.getByText('jojo')).toBeInTheDocument())
         userEvent.click(screen.getAllByRole('button', {name: 'Edit'})[0])
@@ -440,10 +289,7 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(screen.getByText('clyde')).toBeInTheDocument())
         userEvent.click(screen.getAllByRole('button', {name: 'Edit'})[0])
@@ -452,10 +298,10 @@ describe('components/acp/agentsDialog', () => {
         expect(bindings.AgentOptions.mock.calls[0][1]).toBe(false)
 
         // The model is asked for by its own field, so it is not asked twice.
-        const fast = await screen.findByRole('combobox', {name: 'Fast mode'})
-        expect(screen.queryByRole('combobox', {name: 'Model'})).not.toBeInTheDocument()
+        const fast = await screen.findByRole('button', {name: 'Fast mode'})
+        expect(screen.queryByRole('button', {name: 'Model'})).not.toBeInTheDocument()
 
-        userEvent.selectOptions(fast, 'on')
+        chooseOption(fast, 'On')
         userEvent.click(screen.getByRole('button', {name: 'Save'}))
         await waitFor(() => expect(bindings.UpdateAgent).toHaveBeenCalled())
         expect(JSON.parse(bindings.UpdateAgent.mock.calls[0][0]).options).toEqual({fast: 'on'})
@@ -475,10 +321,7 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(screen.getByText('plain')).toBeInTheDocument())
         userEvent.click(screen.getAllByRole('button', {name: 'Edit'})[0])
@@ -486,7 +329,8 @@ describe('components/acp/agentsDialog', () => {
         await waitFor(() => expect(screen.getByText('This agent has no settings of its own.')).toBeInTheDocument())
 
         // Only the two the form always has: the kind and the proxy.
-        expect(screen.getAllByRole('combobox')).toHaveLength(2)
+        expect(screen.getByRole('button', {name: 'Kind'})).toBeInTheDocument()
+        expect(screen.getByRole('button', {name: 'Proxy configuration'})).toBeInTheDocument()
     })
 
     // The answer is cached, so "Recheck" is how an agent is asked again after
@@ -505,10 +349,7 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(screen.getByText('clyde')).toBeInTheDocument())
         userEvent.click(screen.getAllByRole('button', {name: 'Edit'})[0])
@@ -545,10 +386,7 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(screen.getByText('clyde')).toBeInTheDocument())
         userEvent.click(screen.getAllByRole('button', {name: 'Edit'})[0])
@@ -583,10 +421,7 @@ describe('components/acp/agentsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentsDialog
-                board={board}
-                onClose={vi.fn()}
-            />,
+            <AgentsPanel/>,
         ))
         await waitFor(() => expect(screen.getByText('cx')).toBeInTheDocument())
         userEvent.click(screen.getAllByRole('button', {name: 'Edit'})[0])

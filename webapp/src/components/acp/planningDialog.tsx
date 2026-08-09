@@ -7,16 +7,17 @@ import {For, Show, createSignal, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
+import {Board} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
+import Select from '../../widgets/select'
 import Dialog from '../dialog'
 
-import {agentBindings} from './agentProjectsDialog'
-import PromptField from './promptField'
+import {agentBindings} from './bindings'
 
 import './planningDialog.scss'
 
-// Planning a task before it exists: the agent's own CLI, in the project, in
-// a window.
+// Talking a task through before it exists: the agent's own CLI, in the project,
+// in a window.
 //
 // This dialog used to hold the conversation itself — a transcript, a prompt box
 // and a "create task" turn that boiled the discussion down into a card. The
@@ -24,6 +25,11 @@ import './planningDialog.scss'
 // terminal, so what is left here is choosing where to open it and finding the
 // ones already open: a terminal outlives its window, and one with no card
 // behind it has nothing else to be found through.
+//
+// What such a terminal opens saying used to be edited here too, which made a
+// setting of the machine look like part of the act of opening one. It is in
+// Settings → This machine now, with the other things that are true of the
+// install rather than of a board.
 
 type NamedEntry = {name: string}
 type LiveTerminal = {id: string, agent: string, cwd: string}
@@ -49,8 +55,6 @@ const PlanningDialog = (props: Props) => {
     const [projectName, setProjectName] = createSignal('')
     const [agentName, setAgentName] = createSignal('')
     const [terminals, setTerminals] = createSignal<LiveTerminal[]>([])
-    const [prompt, setPrompt] = createSignal('')
-    const [savedPrompt, setSavedPrompt] = createSignal('')
     const [busy, setBusy] = createSignal(false)
     const [error, setError] = createSignal('')
 
@@ -72,13 +76,7 @@ const PlanningDialog = (props: Props) => {
             return
         }
         try {
-            if (bindings.GetPlanningPrompt) {
-                const stored = await bindings.GetPlanningPrompt()
-                setPrompt(stored)
-                setSavedPrompt(stored)
-            }
-
-            // Planning is about a project, not about the board it was opened
+            // The conversation is about a project, not about the board it was
             // from, so every project on the machine is offered. The board
             // bounds only where the cards may land.
             const [repoList, agentList] = await Promise.all([
@@ -110,26 +108,6 @@ const PlanningDialog = (props: Props) => {
         }
     }
 
-    // The prompt is stored before the terminal starts rather than sent with it:
-    // what a planning terminal opens with is a setting, and one edited in the
-    // moment is still the one the next terminal should get.
-    const savePrompt = async () => {
-        if (!bindings?.SetPlanningPrompt || prompt() === savedPrompt()) {
-            return
-        }
-        await bindings.SetPlanningPrompt(prompt())
-        setSavedPrompt(prompt())
-    }
-
-    const saveOnly = async () => {
-        setError('')
-        try {
-            await savePrompt()
-        } catch (e: any) {
-            setError(String(e?.message || e))
-        }
-    }
-
     const start = async () => {
         if (!bindings?.OpenPlanningTerminal) {
             return
@@ -137,7 +115,6 @@ const PlanningDialog = (props: Props) => {
         setError('')
         setBusy(true)
         try {
-            await savePrompt()
             openWindow(JSON.parse(await bindings.OpenPlanningTerminal(projectName(), agentName(), props.board.id)))
             await refreshTerminals()
         } catch (e: any) {
@@ -163,7 +140,7 @@ const PlanningDialog = (props: Props) => {
         <Dialog
             onClose={props.onClose}
             class='PlanningDialog'
-            title={<div>{intl.formatMessage({id: 'Planning.title', defaultMessage: 'Plan a task'})}</div>}
+            title={<div>{intl.formatMessage({id: 'Planning.title', defaultMessage: 'Talk it over with an agent'})}</div>}
         >
             <div class='PlanningDialog__body'>
                 <p class='PlanningDialog__hint'>
@@ -175,38 +152,28 @@ const PlanningDialog = (props: Props) => {
 
                 <div class='PlanningDialog__pickers'>
                     <label>
-                        {intl.formatMessage({id: 'Planning.project', defaultMessage: 'Project'})}
-                        <select
+                        {intl.formatMessage({id: 'Planning.project', defaultMessage: 'Folder'})}
+                        <Select
                             value={projectName()}
-                            onChange={(e) => setProjectName(e.currentTarget.value)}
-                        >
-                            <option value=''>{intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})}</option>
-                            <For each={projects()}>
-                                {(r) => (
-                                    <option
-                                        value={r.name}
-                                        selected={projectName() === r.name}
-                                    >{r.name}</option>
-                                )}
-                            </For>
-                        </select>
+                            options={[
+                                {value: '', label: intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})},
+                                ...projects().map((r) => ({value: r.name, label: r.name})),
+                            ]}
+                            onChange={setProjectName}
+                            label={intl.formatMessage({id: 'Planning.project', defaultMessage: 'Folder'})}
+                        />
                     </label>
                     <label>
                         {intl.formatMessage({id: 'Planning.agent', defaultMessage: 'Agent'})}
-                        <select
+                        <Select
                             value={agentName()}
-                            onChange={(e) => setAgentName(e.currentTarget.value)}
-                        >
-                            <option value=''>{intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})}</option>
-                            <For each={agents()}>
-                                {(a) => (
-                                    <option
-                                        value={a.name}
-                                        selected={agentName() === a.name}
-                                    >{a.name}</option>
-                                )}
-                            </For>
-                        </select>
+                            options={[
+                                {value: '', label: intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})},
+                                ...agents().map((a) => ({value: a.name, label: a.name})),
+                            ]}
+                            onChange={setAgentName}
+                            label={intl.formatMessage({id: 'Planning.agent', defaultMessage: 'Agent'})}
+                        />
                     </label>
                     <Button
                         filled={true}
@@ -216,28 +183,6 @@ const PlanningDialog = (props: Props) => {
                         {intl.formatMessage({id: 'Planning.start-terminal', defaultMessage: 'Open a terminal'})}
                     </Button>
                 </div>
-
-                <Show when={Boolean(bindings?.GetPlanningPrompt)}>
-                    <PromptField
-                        label={intl.formatMessage({
-                            id: 'Planning.prompt',
-                            defaultMessage: 'What the agent is told to begin with (the board system prompt and the agent\'s own come before it, the project after)',
-                        })}
-                        value={prompt()}
-
-                        // Ten rows: the default instructions are eight lines,
-                        // and a box that cuts off its own default reads as a
-                        // bug rather than as a setting.
-                        rows={10}
-                        onInput={setPrompt}
-                    >
-                        <Show when={prompt() !== savedPrompt()}>
-                            <Button onClick={saveOnly}>
-                                {intl.formatMessage({id: 'Planning.save-prompt', defaultMessage: 'Save the instructions'})}
-                            </Button>
-                        </Show>
-                    </PromptField>
-                </Show>
 
                 <Show when={error()}>
                     <div class='PlanningDialog__error'>{error()}</div>

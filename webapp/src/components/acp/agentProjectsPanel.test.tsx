@@ -8,14 +8,14 @@ import {wrapIntl} from '../../testUtils'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import mutator from '../../mutator'
 
-import AgentProjectsDialog, {isAgentProjectsAvailable} from './agentProjectsDialog'
+import AgentProjectsPanel, {isAgentProjectsAvailable} from './agentProjectsPanel'
 
 vi.mock('../../mutator')
 const mockedMutator = vi.mocked(mutator)
 
 const anyWindow = window as any
 
-describe('components/acp/agentProjectsDialog', () => {
+describe('components/acp/agentProjectsPanel', () => {
     const board = TestBlockFactory.createBoard()
 
     afterEach(() => {
@@ -38,7 +38,7 @@ describe('components/acp/agentProjectsDialog', () => {
         expect(isAgentProjectsAvailable()).toBe(true)
 
         render(() => wrapIntl(() =>
-            <AgentProjectsDialog
+            <AgentProjectsPanel
                 board={board}
                 onClose={vi.fn()}
             />,
@@ -72,7 +72,7 @@ describe('components/acp/agentProjectsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentProjectsDialog
+            <AgentProjectsPanel
                 board={board}
                 onClose={vi.fn()}
             />,
@@ -96,7 +96,7 @@ describe('components/acp/agentProjectsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentProjectsDialog
+            <AgentProjectsPanel
                 board={board}
                 onClose={vi.fn()}
             />,
@@ -125,7 +125,7 @@ describe('components/acp/agentProjectsDialog', () => {
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
 
         render(() => wrapIntl(() =>
-            <AgentProjectsDialog
+            <AgentProjectsPanel
                 board={board}
                 onClose={vi.fn()}
             />,
@@ -164,7 +164,7 @@ describe('components/acp/agentProjectsDialog', () => {
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
 
         render(() => wrapIntl(() =>
-            <AgentProjectsDialog
+            <AgentProjectsPanel
                 board={boardWithProjects}
                 onClose={vi.fn()}
             />,
@@ -200,7 +200,7 @@ describe('components/acp/agentProjectsDialog', () => {
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
 
         render(() => wrapIntl(() =>
-            <AgentProjectsDialog
+            <AgentProjectsPanel
                 board={boardFromBefore}
                 onClose={vi.fn()}
             />,
@@ -233,7 +233,7 @@ describe('components/acp/agentProjectsDialog', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentProjectsDialog
+            <AgentProjectsPanel
                 board={boardWithProjects}
                 onClose={vi.fn()}
             />,

@@ -241,6 +241,7 @@ exports[`src/components/gallery/Gallery > should match snapshot 1`] = `
                 aria-label="Delete"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -271,6 +272,7 @@ exports[`src/components/gallery/Gallery > should match snapshot 1`] = `
                 aria-label="Duplicate"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -301,6 +303,7 @@ exports[`src/components/gallery/Gallery > should match snapshot 1`] = `
                 aria-label="Copy link"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"
@@ -449,6 +452,7 @@ exports[`src/components/gallery/Gallery > should match snapshot without permissi
                 aria-label="Copy link"
                 class="MenuOption TextOption menu-option"
                 role="button"
+                tabindex="-1"
               >
                 <div
                   class="d-flex"

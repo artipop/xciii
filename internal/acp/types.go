@@ -133,8 +133,9 @@ type AgentUser struct {
 
 // BoardUsers keeps the board-side accounts in step with the agent registry, so
 // an agent can be picked in a person property ("Assignee") like any other
-// member — and stops being offered once it is unregistered. Optional: without
-// it the "Agent" select field remains the only routing mechanism.
+// member — and stops being offered once it is unregistered. Optional, but a
+// board without it has no way left to name an agent on a card: assigning one
+// is the way.
 type BoardUsers interface {
 	EnsureAgentUsers(ctx context.Context, boardID string, agents []AgentUser) ([]AgentUser, error)
 	// RetireAgentUser drops the account's board memberships and reports how

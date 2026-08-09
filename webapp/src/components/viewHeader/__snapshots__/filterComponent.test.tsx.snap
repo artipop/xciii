@@ -53,6 +53,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent 1`] = `
                   aria-label="Title"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -79,6 +80,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent 1`] = `
                   aria-label="Status"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -105,6 +107,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent 1`] = `
                   aria-label="Property 1"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -131,6 +134,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent 1`] = `
                   aria-label="Property 2"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -157,6 +161,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent 1`] = `
                   aria-label="Property 3"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -333,6 +338,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and add 
                   aria-label="Title"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -359,6 +365,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and add 
                   aria-label="Status"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -385,6 +392,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and add 
                   aria-label="Property 1"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -411,6 +419,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and add 
                   aria-label="Property 2"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -437,6 +446,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and add 
                   aria-label="Property 3"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -630,6 +640,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and clic
                   aria-label="includes"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -656,6 +667,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and clic
                   aria-label="doesn't include"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -682,6 +694,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and clic
                   aria-label="is empty"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -708,6 +721,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and clic
                   aria-label="is not empty"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -867,6 +881,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and filt
                   aria-label="Title"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -893,6 +908,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and filt
                   aria-label="Status"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -919,6 +935,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and filt
                   aria-label="Property 1"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -945,6 +962,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and filt
                   aria-label="Property 2"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"
@@ -971,6 +989,7 @@ exports[`components/viewHeader/filterComponent > return filterComponent and filt
                   aria-label="Property 3"
                   class="MenuOption TextOption menu-option"
                   role="button"
+                  tabindex="-1"
                 >
                   <div
                     class="d-flex"

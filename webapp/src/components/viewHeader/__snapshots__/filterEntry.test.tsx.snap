@@ -33,6 +33,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry 1`] = `
               aria-label="Title"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -59,6 +60,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry 1`] = `
               aria-label="Status"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -85,6 +87,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry 1`] = `
               aria-label="Property 1"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -111,6 +114,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry 1`] = `
               aria-label="Property 2"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -137,6 +141,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry 1`] = `
               aria-label="Property 3"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -297,6 +302,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on del
               aria-label="includes"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -323,6 +329,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on del
               aria-label="doesn't include"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -349,6 +356,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on del
               aria-label="is empty"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -375,6 +383,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on del
               aria-label="is not empty"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -501,6 +510,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
               aria-label="Title"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -527,6 +537,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
               aria-label="Status"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -553,6 +564,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
               aria-label="Property 1"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -579,6 +591,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
               aria-label="Property 2"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -605,6 +618,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
               aria-label="Property 3"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -748,6 +762,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
               aria-label="Title"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -774,6 +789,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
               aria-label="Status"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -800,6 +816,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
               aria-label="Property 1"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -826,6 +843,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
               aria-label="Property 2"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -852,6 +870,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on dif
               aria-label="Property 3"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -996,6 +1015,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on doe
               aria-label="includes"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1022,6 +1042,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on doe
               aria-label="doesn't include"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1048,6 +1069,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on doe
               aria-label="is empty"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1074,6 +1096,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on doe
               aria-label="is not empty"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1217,6 +1240,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on inc
               aria-label="includes"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1243,6 +1267,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on inc
               aria-label="doesn't include"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1269,6 +1294,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on inc
               aria-label="is empty"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1295,6 +1321,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on inc
               aria-label="is not empty"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1438,6 +1465,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on is 
               aria-label="includes"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1464,6 +1492,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on is 
               aria-label="doesn't include"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1490,6 +1519,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on is 
               aria-label="is empty"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1516,6 +1546,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on is 
               aria-label="is not empty"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1659,6 +1690,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on is 
               aria-label="includes"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1685,6 +1717,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on is 
               aria-label="doesn't include"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1711,6 +1744,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on is 
               aria-label="is empty"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1737,6 +1771,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on is 
               aria-label="is not empty"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1863,6 +1898,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on sta
               aria-label="Title"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1889,6 +1925,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on sta
               aria-label="Status"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1915,6 +1952,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on sta
               aria-label="Property 1"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1941,6 +1979,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on sta
               aria-label="Property 2"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1967,6 +2006,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry and click on sta
               aria-label="Property 3"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2168,6 +2208,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for boolean fiel
               aria-label="is set"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2194,6 +2235,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for boolean fiel
               aria-label="is not set"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2392,6 +2434,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for date field 2
               aria-label="is"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2418,6 +2461,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for date field 2
               aria-label="is before"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2444,6 +2488,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for date field 2
               aria-label="is after"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2470,6 +2515,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for date field 2
               aria-label="is set"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2496,6 +2542,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for date field 2
               aria-label="is not set"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2698,6 +2745,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for text field 2
               aria-label="is"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2724,6 +2772,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for text field 2
               aria-label="contains"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2750,6 +2799,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for text field 2
               aria-label="doesn't contain"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2776,6 +2826,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for text field 2
               aria-label="starts with"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2802,6 +2853,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for text field 2
               aria-label="doesn't start with"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2828,6 +2880,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for text field 2
               aria-label="ends with"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -2854,6 +2907,7 @@ exports[`components/viewHeader/filterEntry > return filterEntry for text field 2
               aria-label="doesn't end with"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"

@@ -35,6 +35,7 @@ exports[`components/viewHeader/newCardButton > return NewCardButton 1`] = `
               aria-label="Empty card"
               class="MenuOption TextOption menu-option bold-menu-text"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -88,6 +89,7 @@ exports[`components/viewHeader/newCardButton > return NewCardButton 1`] = `
               aria-label="New template"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -190,6 +192,7 @@ exports[`components/viewHeader/newCardButton > return NewCardButton and addCard 
               aria-label="Empty card"
               class="MenuOption TextOption menu-option bold-menu-text"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -243,6 +246,7 @@ exports[`components/viewHeader/newCardButton > return NewCardButton and addCard 
               aria-label="New template"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -345,6 +349,7 @@ exports[`components/viewHeader/newCardButton > return NewCardButton and addCardT
               aria-label="Empty card"
               class="MenuOption TextOption menu-option bold-menu-text"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -398,6 +403,7 @@ exports[`components/viewHeader/newCardButton > return NewCardButton and addCardT
               aria-label="New template"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"

@@ -208,11 +208,11 @@ func (m *Manager) SaveColumn(c ColumnSpec) (ColumnSpec, error) {
 	for i, existing := range m.cfg.Columns {
 		if sameColumn(existing, c) {
 			m.cfg.Columns[i] = c
-			return c, m.persistConfigLocked()
+			return c, m.saveBoardsLocked(existing.BoardID, c.BoardID)
 		}
 	}
 	m.cfg.Columns = append(m.cfg.Columns, c)
-	return c, m.persistConfigLocked()
+	return c, m.saveBoardsLocked(c.BoardID)
 }
 
 // RemoveColumn forgets a column's settings. The column itself stays on the
@@ -224,7 +224,7 @@ func (m *Manager) RemoveColumn(boardID, optionID, column string) error {
 	for i, existing := range m.cfg.Columns {
 		if sameColumn(existing, target) {
 			m.cfg.Columns = append(m.cfg.Columns[:i], m.cfg.Columns[i+1:]...)
-			return m.persistConfigLocked()
+			return m.saveBoardsLocked(existing.BoardID, boardID)
 		}
 	}
 	return fmt.Errorf("настройки колонки не найдены")

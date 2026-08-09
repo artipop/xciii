@@ -33,6 +33,7 @@ exports[`components/cardDetail/cardDetailContentsMenu > return cardDetailContent
               aria-label="text"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -69,6 +70,7 @@ exports[`components/cardDetail/cardDetailContentsMenu > return cardDetailContent
               aria-label="image"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -105,6 +107,7 @@ exports[`components/cardDetail/cardDetailContentsMenu > return cardDetailContent
               aria-label="divider"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -141,6 +144,7 @@ exports[`components/cardDetail/cardDetailContentsMenu > return cardDetailContent
               aria-label="checkbox"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -247,6 +251,7 @@ exports[`components/cardDetail/cardDetailContentsMenu > return cardDetailContent
               aria-label="text"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -283,6 +288,7 @@ exports[`components/cardDetail/cardDetailContentsMenu > return cardDetailContent
               aria-label="image"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -319,6 +325,7 @@ exports[`components/cardDetail/cardDetailContentsMenu > return cardDetailContent
               aria-label="divider"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -355,6 +362,7 @@ exports[`components/cardDetail/cardDetailContentsMenu > return cardDetailContent
               aria-label="checkbox"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"

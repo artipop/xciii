@@ -12,6 +12,8 @@ import {Utils, IDType} from '../../utils'
 import mutator from '../../mutator'
 
 import Label from '../../widgets/label'
+import IconButton from '../../widgets/buttons/iconButton'
+import CloseIcon from '../../widgets/icons/close'
 import ValueSelector from '../../widgets/valueSelector'
 
 import {PropertyProps} from '../types'
@@ -48,6 +50,12 @@ const MultiSelectProperty = (props: PropertyProps): JSX.Element => {
 
     const values = () => (Array.isArray(props.propertyValue) && props.propertyValue.length > 0 ? props.propertyValue.map((v) => props.propertyTemplate.options.find((o) => o!.id === v)).filter((v): v is IPropertyOption => Boolean(v)) : [])
 
+    // On the card, each value is something that can be taken off — the same
+    // chip the people a card is assigned to are shown as. Elsewhere (a table
+    // cell, a kanban badge) it is being read, and a cross on every value is
+    // noise; `showEmptyPlaceholder` is set on the card and nowhere else.
+    const clearable = () => isEditable() && props.showEmptyPlaceholder
+
     return (
         <Show
             when={isEditable() && open()}
@@ -61,7 +69,19 @@ const MultiSelectProperty = (props: PropertyProps): JSX.Element => {
                     <For each={values()}>
                         {(v) => (
                             <Label color={v.color}>
-                                {v.value}
+                                <span class='Label-text'>{v.value}</span>
+                                <Show when={clearable()}>
+                                    <IconButton
+                                        icon={<CloseIcon/>}
+                                        title={intl.formatMessage({id: 'PropertyValueElement.clear', defaultMessage: 'Clear'})}
+                                        class='margin-left delete-value'
+                                        onClick={(e) => {
+                                            // The chip itself opens the selector.
+                                            e.stopPropagation()
+                                            onDeleteValue(v, values())
+                                        }}
+                                    />
+                                </Show>
                             </Label>
                         )}
                     </For>

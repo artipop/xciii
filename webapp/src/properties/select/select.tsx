@@ -8,6 +8,8 @@ import {useIntl} from '../../intl'
 import {IPropertyOption} from '../../blocks/board'
 
 import Label from '../../widgets/label'
+import IconButton from '../../widgets/buttons/iconButton'
+import CloseIcon from '../../widgets/icons/close'
 import {Utils, IDType} from '../../utils'
 import mutator from '../../mutator'
 import ValueSelector from '../../widgets/valueSelector'
@@ -42,6 +44,17 @@ const SelectProperty = (props: PropertyProps) => {
     const displayValue = () => option()?.value
     const finalDisplayValue = () => displayValue() || emptyDisplayValue()
 
+    // The card's own property list shows what is chosen as something that can
+    // be taken off, the way it shows the people a card is assigned to. Anywhere
+    // else — a cell in a table, a badge on a kanban card — the value is being
+    // read and a row of crosses is noise; `showEmptyPlaceholder` is what tells
+    // the two apart, and it is set on the card and nowhere else.
+    //
+    // Without this, clearing meant opening the selector and finding the cross
+    // inside it. The only thing that looked like a way out was «Удалить» in the
+    // option's own menu, which deletes the option from the whole board.
+    const clearable = () => isEditable() && props.showEmptyPlaceholder && Boolean(option())
+
     return (
         <Show
             when={isEditable() && open()}
@@ -54,6 +67,18 @@ const SelectProperty = (props: PropertyProps) => {
                 >
                     <Label color={displayValue() ? (option()?.color || '') : 'empty'}>
                         <span class='Label-text'>{finalDisplayValue()}</span>
+                        <Show when={clearable()}>
+                            <IconButton
+                                icon={<CloseIcon/>}
+                                title={intl.formatMessage({id: 'PropertyValueElement.clear', defaultMessage: 'Clear'})}
+                                class='margin-left delete-value'
+                                onClick={(e) => {
+                                    // The chip itself opens the selector.
+                                    e.stopPropagation()
+                                    onDeleteValue()
+                                }}
+                            />
+                        </Show>
                     </Label>
                 </div>
             }

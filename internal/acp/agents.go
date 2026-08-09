@@ -8,8 +8,8 @@ import (
 
 // Agent registry: named coding agents (claude/codex with their own prompt,
 // model and env), edited from the desktop UI and persisted into the config
-// file. Cards are mapped to an agent when one of their select option names
-// (the "Agent" field) matches an entry name — mirroring the project registry.
+// file. A card goes to the agent it is assigned to: an agent is a member of the
+// board under its own name, so «Кто занимается» is the whole of the question.
 
 // Agents returns a snapshot of the registry.
 func (m *Manager) Agents() []AgentEntry {
@@ -211,18 +211,32 @@ func (m *Manager) SyncAgentUsers(ctx context.Context, boardID string) ([]AgentUs
 	return m.users.EnsureAgentUsers(ctx, boardID, agents)
 }
 
-// SystemPrompt returns the board/column-level system prompt.
-func (m *Manager) SystemPrompt() string {
+// BoardPrompt returns what every session of this board is told before the
+// agent's own system prompt and the card task. Empty for a board that never
+// said anything, which is most of them.
+func (m *Manager) BoardPrompt(boardID string) string {
 	m.cfgMu.RLock()
 	defer m.cfgMu.RUnlock()
-	return m.cfg.SystemPrompt
+	return m.cfg.BoardPrompts[boardID]
 }
 
-// SetSystemPrompt stores the board/column-level system prompt and persists.
-func (m *Manager) SetSystemPrompt(text string) error {
+// SetBoardPrompt stores that instruction for one board and persists. Empty text
+// removes the key rather than storing a blank, so a board that has said nothing
+// and a board that unsaid it are the same board.
+func (m *Manager) SetBoardPrompt(boardID, text string) error {
+	if strings.TrimSpace(boardID) == "" {
+		return fmt.Errorf("не указана доска")
+	}
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
-	m.cfg.SystemPrompt = text
+	if strings.TrimSpace(text) == "" {
+		delete(m.cfg.BoardPrompts, boardID)
+	} else {
+		if m.cfg.BoardPrompts == nil {
+			m.cfg.BoardPrompts = map[string]string{}
+		}
+		m.cfg.BoardPrompts[boardID] = text
+	}
 	return m.persistConfigLocked()
 }
 
@@ -330,8 +344,8 @@ func (m *Manager) resolveAgent(ev CardMoved) (AgentEntry, error) {
 // the developer the card is assigned to), and a column with no crew leaves the
 // choice to the card exactly as before:
 //
-//  1. the card's own choice — the `agent` property, an assignee, an "Agent"
-//     option — narrowed to the crew when there is one;
+//  1. the card's own choice — its assignee — narrowed to the crew when there
+//     is one;
 //  2. the crew itself: the first member with nothing else running;
 //  3. the single registered agent, when exactly one exists;
 //  4. a synthesized entry from the global AgentMode (backward compat: the
@@ -359,26 +373,15 @@ func (m *Manager) resolveSessionAgent(ev CardMoved, roster []string) (AgentEntry
 		return AgentEntry{}, false
 	}
 
-	if explicit := strings.TrimSpace(ev.Props["agent"]); explicit != "" {
-		if a, ok := find(explicit); ok {
-			return a, false, nil
-		}
-		if len(roster) == 0 {
-			return AgentEntry{}, false, fmt.Errorf("агент %q из свойства карточки не найден в реестре (%s)", explicit, agentNames(agents))
-		}
-		m.log.Info("acp: card agent is not on the column's crew, the crew decides",
-			"card", ev.CardID, "agent", explicit)
-	}
-
-	// An assignee is a deliberate choice on the card, so it outranks the tags.
+	// The assignee is how a card names its agent, and the only way it does.
+	// There were three ways once — a property named `agent`, an option of the
+	// board's «Agent» field, and the assignee — which is three answers to one
+	// question and a rule about which of them wins. The two that went were the
+	// two nobody could see: a property nothing in this app creates, and any
+	// select option anywhere on the board that happened to be spelled like an
+	// agent.
 	for _, person := range ev.PersonNames {
 		if a, ok := find(person); ok {
-			return a, false, nil
-		}
-	}
-
-	for _, opt := range ev.OptionNames {
-		if a, ok := find(opt); ok {
 			return a, false, nil
 		}
 	}
@@ -394,7 +397,7 @@ func (m *Manager) resolveSessionAgent(ev CardMoved, roster []string) (AgentEntry
 		return agents[0], false, nil
 	}
 	if len(agents) > 1 {
-		return AgentEntry{}, false, fmt.Errorf("не удалось выбрать агента: назначьте агента исполнителем карточки, задайте поле \"Agent\" или укажите состав колонки (доступно: %s)", agentNames(agents))
+		return AgentEntry{}, false, fmt.Errorf("не удалось выбрать агента: назначьте агента исполнителем карточки или укажите состав колонки (доступно: %s)", agentNames(agents))
 	}
 
 	// Empty registry: fall back to the global AgentMode.

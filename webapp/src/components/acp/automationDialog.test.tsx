@@ -4,7 +4,7 @@ import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
-import {wrapIntl} from '../../testUtils'
+import {chooseOption, wrapIntl} from '../../testUtils'
 import {setupReactFlowEnvironment} from '../../test/reactFlowEnvironment'
 import {Board, createBoard} from '../../blocks/board'
 
@@ -102,8 +102,7 @@ describe('components/acp/automationDialog', () => {
             />
         )))
 
-        const action = await screen.findByRole('combobox', {name: /When a card lands here/})
-        userEvent.selectOptions(action, 'test')
+        chooseOption(await screen.findByRole('button', {name: 'When a card lands here'}), 'test the preview')
         userEvent.click(screen.getByRole('button', {name: 'Save'}))
 
         await waitFor(() => expect(bindings.SaveBoardColumn).toHaveBeenCalledTimes(1))
@@ -151,8 +150,7 @@ describe('components/acp/automationDialog', () => {
             />
         )))
 
-        const action = await screen.findByRole('combobox', {name: /When a card lands here/})
-        userEvent.selectOptions(action, 'agent')
+        chooseOption(await screen.findByRole('button', {name: 'When a card lands here'}), 'an agent works on the card')
         userEvent.click(screen.getByRole('button', {name: 'Save'}))
 
         await waitFor(() => expect(screen.getByText(/не найден в реестре/)).toBeInTheDocument())

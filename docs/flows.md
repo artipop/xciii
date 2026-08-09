@@ -11,7 +11,7 @@ moves the card on. Written for a person using the board; the code is in
 |---|---|---|
 | **Column** | board menu → *«Как работает эта доска…»*, or the column's own menu | what happens when a card lands here, who works it, how many at once |
 | **Flow (route)** | the same editor, a route tab | where the card goes next, and on what event |
-| **Registries** | board menu → *Проекты…*, *Агенты…*, *Цели деплоя…* | the machine: which agents exist, which projects, where to deploy |
+| **Registries** | sidebar → *«Настройки → Эта машина…»*; folders in the board's own screen | the machine: which agents exist, where to deploy, how they reach the network |
 
 The split is worth holding onto: a **column says what is done**, a **route says
 where the card goes afterwards**. A board with columns but no route still works
@@ -22,6 +22,34 @@ The registries live on the machine, the columns and routes belong to a board. A
 board made from any of the offered templates brings its own columns and routes;
 the first time it is opened on a machine with empty registries, the setup wizard
 asks for the rest.
+
+## Where a setting lives
+
+Three kinds of thing get set up, and each is edited where it belongs:
+
+| What | Where | Why there |
+|---|---|---|
+| Which agents are installed, where they deploy, how they reach the network, whether the board is on your tailnet | *«Настройки → Эта машина…»* in the sidebar | none of it is about a board, so none of it needs one open |
+| What each column does, where a card goes next, which folders this board's agents work in, what they are told first | *«Как работает эта доска…»* in the board's ⋯ menu | all of it is this board's, and changing it changes only this board |
+| Which folder and which agent *this card* uses | the card itself | asked when a terminal is opened and the answer is not already known |
+
+Карточка называет своего агента **исполнителем** — каждый зарегистрированный
+агент становится участником доски под своим именем, так что «Кто занимается»
+отвечает на этот вопрос тем же полем, которым доска и так пользуется. Отдельного
+поля «Agent» больше нет: два поля на один вопрос — это два ответа, и правило о
+том, какой из них главнее. Доска, у которой это поле ещё осталось, теряет его
+при первом же открытии.
+
+The board's menu holds nothing else: export, this screen, and saving the board
+as a template. Registering an agent or a folder does not need the settings —
+both are offered where the choice is made, on a card and in the column's «Кем
+делается», and take a name and a kind. Everything more about an agent — model,
+environment, MCP servers, proxy, CLI arguments — is in the machine's settings
+and has a working default until you go there.
+
+Folders are part of *running an agent*, not part of having a board. A board with
+no agent column is never asked for one, gets no «Проекты» field, and shows no
+«Проекты» section.
 
 ## Where both halves are edited
 
@@ -88,15 +116,17 @@ edited, and the button beside it adds the option.
 
 A **project** is the exception, and deliberately: it belongs to the board it was
 added on, and only that board offers it. The folder of household notes has no
-business on the board about code, and vice versa — before this, opening
-*Проекты…* anywhere copied every project anybody had ever added into that
+business on the board about code, and vice versa — before this, opening the
+projects list anywhere copied every project anybody had ever added into that
 board's «Проекты» field. One checkout worked from several boards is a real case,
 so the add form has **«На всех досках»** for it, and such a project is marked as
-everyone's in the list.
+everyone's in the list. Such a project is still not pushed onto a board that
+knows nothing about folders: it joins the «Проекты» field of a board that has
+one already, and creates that field for nobody.
 
 A project registered before boards owned them belongs to none of them, so no
 board offers it — that is the whole point, and "it used to be everywhere" is the
-state being fixed. It is not lost either: *Проекты…* lists such entries under
+state being fixed. It is not lost either: the «Проекты» section lists them under
 **«Пока ни на одной доске»**, and one click makes them the board's. That click
 is also the only way back in, since adding their folder again would be refused
 as a duplicate path.
@@ -108,7 +138,7 @@ and «Тестирование». The other two are the same machinery pointed a
 reading as examples, because they show what is left when deploys and browser
 tests are taken away: one column where an agent works, and a route that waits
 for a person. There the agent writes into a folder of household notes — an
-ordinary folder, added under *Проекты…*, with nothing to set up in it and no
+ordinary folder, added on the card or in «Проекты», with nothing to set up in it and no
 git anywhere near it: a plan for the cleaning, a menu and a shopping list for
 the week. When it is done the card moves itself to the
 stage where somebody looks, and no further: «На проверке» and «Проверить список»
@@ -133,7 +163,7 @@ flowchart TD
     C -- yes --> Z2["Nothing starts.<br/>The card says why and waits for them"]
     C -- no --> D{"Column full?<br/>crew busy or limit reached"}
     D -- yes --> Q["Card waits in the queue.<br/>Starts by itself when a place frees up"]
-    D -- no --> E["Pick an agent:<br/>card property → assignee → Agent option<br/>→ the column's crew → the only one registered"]
+    D -- no --> E["Pick an agent:<br/>assignee → the column's crew<br/>→ the only one registered"]
     E --> F["Find the project:<br/>project_path → Проекты option → source column name"]
     F --> G{"worktreeMode"}
     G -- always, the default --> H["Create a git worktree<br/>on a new branch acp/card-title-abcd1234"]
@@ -291,7 +321,7 @@ is not worth having by accident.
 Agents differ in what they can be told beyond the task: Claude has **Fast mode**,
 an **effort** level and a permission **mode**; Codex has a mode and a model and
 neither of the other two. Nothing about that is written down on our side — the
-*Agents…* dialog starts the agent you are editing, asks it what it supports and
+*«Эта машина…» → «Агенты»* panel starts the agent you are editing, asks it what it supports and
 shows exactly that. So an agent without Fast mode has no Fast mode switch, and an
 agent that gains a setting shows it after *Recheck* without an update here.
 
@@ -358,7 +388,7 @@ adapters have no such channel.
 | "Колонка занята" | The crew is busy or the limit is reached; it starts by itself later |
 | "не задан ни project_path…" | The card matched no project: check the **Проекты** field against the registry |
 | Card never leaves *In Review* | Nobody is watching its branch — see [which branch is followed](#which-branch-is-followed), or the route has no edge for what happened |
-| Test stage refuses to start | The agent has no browser MCP server (*Agents…* → MCP servers) |
+| Test stage refuses to start | The agent has no browser MCP server (*«Эта машина…» → «Агенты»* → MCP servers) |
 
 Everything a session does is written to the card as comments, and the card shows
 its route, the stage it is on and what that stage is waiting for.
@@ -374,8 +404,17 @@ by hand:
 | `maxConcurrent` | how many sessions run at once on this machine (3) |
 | `sessionTimeoutMinutes` / `testTimeoutMinutes` | one turn (15) and one browser pass (30) |
 | `sessionIdleMinutes` | how long a console session sits between turns (30) |
+| `boardPrompts` | what each board tells its agents first, keyed by board id — written by *«Как работает эта доска…»*, not by hand |
 | `vcsPollSeconds` / `gitRemote` / `githubToken` | watching projects |
 | `autoAllowTools` | what an agent may do without asking. A card-triggered session has nobody to ask, so anything not on the list is refused |
 | `artifactsDir` | screenshots and verdicts of test runs |
+
+Колонок и маршрутов в этом файле нет: **автоматика доски лежит на самой доске**,
+в её собственных свойствах `acpColumns` и `acpFlows`, вместе со всем остальным,
+что доске принадлежит. Поэтому она уезжает вместе с доской в экспорт архива и в
+шаблон, копируется вместе с копией доски и исчезает вместе с удалённой — а файл
+рядом с приложением хранит только машинное: агентов, папки, цели деплоя,
+промпты. Установка, сделанная до этого, переносит своё на доски один раз, при
+запуске.
 
 See also [README.md](../README.md) for building and running the app.

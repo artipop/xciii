@@ -11,10 +11,11 @@ import {Board, IPropertyTemplate, IPropertyOption} from '../../blocks/board'
 import mutator from '../../mutator'
 import {Utils, IDType} from '../../utils'
 import Button from '../../widgets/buttons/button'
-import Dialog from '../dialog'
 import {sendFlashMessage} from '../flashMessages'
 
-import './agentProjectsDialog.scss'
+import {agentBindings} from './bindings'
+
+import './agentProjectsPanel.scss'
 
 // The dedicated card property the registry syncs into. Cards are mapped to a
 // project by an option of this (multiSelect) property.
@@ -41,22 +42,19 @@ export type AgentProject = {
     global?: boolean
 }
 
-// agentBindings returns the Wails-injected ACP bindings, or undefined in
-// browser/plugin deployments (mirrors the webSocketBaseURL guard pattern).
-export function agentBindings() {
-    return (window as unknown as import('../../types').IAppWindow).go?.main?.App
-}
-
 export function isAgentProjectsAvailable(): boolean {
     return Boolean(agentBindings()?.ListAgentProjects)
 }
 
 type Props = {
     board: Board
-    onClose: () => void
+
+    // Fired after the registry changes, so the screen around it can decide
+    // again whether this section is worth showing at all.
+    onChange?: () => void
 }
 
-const AgentProjectsDialog = (props: Props) => {
+const AgentProjectsPanel = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
 
@@ -87,8 +85,19 @@ const AgentProjectsDialog = (props: Props) => {
         }
         const board = props.board
         const property = findProjectProperty(board.cardProperties)
+
+        // A project marked "on every board" is offered to every board, and
+        // syncing it would give a board of shopping lists a "Projects" field it
+        // never asked for. Such a project only reaches a board that already
+        // knows about folders — one that has the field, because a project of
+        // its own put it there.
+        const mine = registry.filter((r) => !r.global || property)
+        if (mine.length === 0) {
+            return
+        }
+
         const existing = new Set((property?.options || []).map((o: IPropertyOption) => o.value.trim().toLowerCase()))
-        const missing = registry.filter((r) => !existing.has(r.name.trim().toLowerCase()))
+        const missing = mine.filter((r) => !existing.has(r.name.trim().toLowerCase()))
         const needsRename = Boolean(property) && property?.name !== PROJECT_PROPERTY_NAME
         if (property && missing.length === 0 && !needsRename) {
             return
@@ -163,6 +172,7 @@ const AgentProjectsDialog = (props: Props) => {
         // The board's "Projects" field is kept in step on its own, so a project
         // this board has is selectable on a card without a second step.
         await syncToBoard(registry)
+        props.onChange?.()
     }
 
     onMount(() => {
@@ -228,15 +238,13 @@ const AgentProjectsDialog = (props: Props) => {
     }
 
     return (
-        <Dialog
-            class='AgentProjectsDialog'
-            title={<span>{intl.formatMessage({id: 'AgentProjects.title', defaultMessage: 'Projects'})}</span>}
-            subtitle={<span>{intl.formatMessage({id: 'AgentProjects.subtitle', defaultMessage: 'Projects on your machine an agent can work in. A card is matched to one by its "Projects" field.'})}</span>}
-            onClose={props.onClose}
-        >
-            <div class='AgentReposDialog__content'>
+        <div class='AgentProjectsPanel'>
+            <div class='AgentProjectsPanel__subtitle'>
+                {intl.formatMessage({id: 'AgentProjects.subtitle', defaultMessage: 'Folders on your machine an agent can work in. A card is matched to one by its "Projects" field. A board that runs no agents needs none of this.'})}
+            </div>
+            <div class='AgentProjectsPanel__content'>
                 <Show when={projects().length === 0 && !pendingPath()}>
-                    <div class='AgentReposDialog__empty'>
+                    <div class='AgentProjectsPanel__empty'>
                         {intl.formatMessage({id: 'AgentProjects.empty', defaultMessage: 'No projects registered yet.'})}
                     </div>
                 </Show>
@@ -244,15 +252,15 @@ const AgentProjectsDialog = (props: Props) => {
                 <For each={projects()}>
                     {(project) => (
                         <div
-                            class='AgentReposDialog__row'
+                            class='AgentProjectsPanel__row'
                         >
-                            <span class='AgentReposDialog__name'>{project.name}</span>
+                            <span class='AgentProjectsPanel__name'>{project.name}</span>
                             <Show when={project.global}>
-                                <span class='AgentReposDialog__global'>
+                                <span class='AgentProjectsPanel__global'>
                                     {intl.formatMessage({id: 'AgentProjects.global-badge', defaultMessage: 'all boards'})}
                                 </span>
                             </Show>
-                            <span class='AgentReposDialog__path'>{project.path}</span>
+                            <span class='AgentProjectsPanel__path'>{project.path}</span>
                             <Button
                                 onClick={() => removeRepo(project.name)}
                                 title={intl.formatMessage({id: 'AgentProjects.remove', defaultMessage: 'Remove'})}
@@ -267,15 +275,15 @@ const AgentProjectsDialog = (props: Props) => {
                     them, and their folders cannot simply be added again — the
                     path is taken — so this is the way back into use. */}
                 <Show when={orphans().length > 0}>
-                    <div class='AgentReposDialog__orphans'>
-                        <span class='AgentReposDialog__orphansTitle'>
+                    <div class='AgentProjectsPanel__orphans'>
+                        <span class='AgentProjectsPanel__orphansTitle'>
                             {intl.formatMessage({id: 'AgentProjects.unattached', defaultMessage: 'Not on any board yet'})}
                         </span>
                         <For each={orphans()}>
                             {(project) => (
-                                <div class='AgentReposDialog__row'>
-                                    <span class='AgentReposDialog__name'>{project.name}</span>
-                                    <span class='AgentReposDialog__path'>{project.path}</span>
+                                <div class='AgentProjectsPanel__row'>
+                                    <span class='AgentProjectsPanel__name'>{project.name}</span>
+                                    <span class='AgentProjectsPanel__path'>{project.path}</span>
                                     <Button
                                         emphasis='primary'
                                         onClick={() => attach(project.name)}
@@ -292,18 +300,18 @@ const AgentProjectsDialog = (props: Props) => {
                 </Show>
 
                 <Show when={pendingPath()}>
-                    <div class='AgentReposDialog__row AgentReposDialog__row--pending'>
+                    <div class='AgentProjectsPanel__row AgentProjectsPanel__row--pending'>
                         <input
-                            class='AgentReposDialog__nameInput'
+                            class='AgentProjectsPanel__nameInput'
                             value={pendingName()}
                             placeholder={intl.formatMessage({id: 'AgentProjects.name-placeholder', defaultMessage: 'Name (matches the "Projects" option)'})}
                             onInput={(e) => setPendingName(e.currentTarget.value)}
                         />
-                        <span class='AgentReposDialog__path'>{pendingPath()}</span>
+                        <span class='AgentProjectsPanel__path'>{pendingPath()}</span>
                         {/* A project belongs to this board unless it is said to
                             belong to all of them — one checkout worked from
                             several boards is a real case, but it is the rare one. */}
-                        <label class='AgentReposDialog__globalToggle'>
+                        <label class='AgentProjectsPanel__globalToggle'>
                             <input
                                 type='checkbox'
                                 checked={pendingGlobal()}
@@ -324,7 +332,7 @@ const AgentProjectsDialog = (props: Props) => {
                 </Show>
 
                 <Show when={!pendingPath()}>
-                    <div class='AgentReposDialog__actions'>
+                    <div class='AgentProjectsPanel__actions'>
                         <Button
                             emphasis='primary'
                             onClick={pickDirectory}
@@ -335,7 +343,7 @@ const AgentProjectsDialog = (props: Props) => {
                 </Show>
 
                 <Show when={projects().length > 0}>
-                    <div class='AgentReposDialog__sync'>
+                    <div class='AgentProjectsPanel__sync'>
                         <span>
                             {intl.formatMessage({id: 'AgentProjects.sync-hint', defaultMessage: 'Every project above is an option of this board’s "Projects" field, so a card picks one there. A project added here belongs to this board unless it says otherwise.'})}
                         </span>
@@ -343,11 +351,11 @@ const AgentProjectsDialog = (props: Props) => {
                 </Show>
 
                 <Show when={error()}>
-                    <div class='AgentReposDialog__error'>{error()}</div>
+                    <div class='AgentProjectsPanel__error'>{error()}</div>
                 </Show>
             </div>
-        </Dialog>
+        </div>
     )
 }
 
-export default AgentProjectsDialog
+export default AgentProjectsPanel

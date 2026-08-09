@@ -50,6 +50,7 @@ exports[`components/viewHeader/filterValue > return filterValue 1`] = `
             aria-label="Status"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -137,6 +138,7 @@ exports[`components/viewHeader/filterValue > return filterValue and click Status
             aria-label="Status"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"
@@ -224,6 +226,7 @@ exports[`components/viewHeader/filterValue > return filterValue and click Status
             aria-label="Status"
             class="MenuOption SwitchOption menu-option"
             role="button"
+            tabindex="-1"
           >
             <div
               class="noicon"

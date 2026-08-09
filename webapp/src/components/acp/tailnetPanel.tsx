@@ -9,11 +9,10 @@ import {useIntl} from '../../intl'
 import {IAppWindow} from '../../types'
 
 import Button from '../../widgets/buttons/button'
-import Dialog from '../dialog'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 
-import './tailnetDialog.scss'
+import './tailnetPanel.scss'
 
 // The login URL points outside, and the webview cannot navigate there — the
 // desktop app hands such links to the system browser.
@@ -41,11 +40,7 @@ export function isTailnetAvailable(): boolean {
     return Boolean(agentBindings()?.GetTailnetAccess)
 }
 
-type Props = {
-    onClose: () => void
-}
-
-const TailnetDialog = (props: Props) => {
+const TailnetPanel = () => {
     const intl = useIntl()
     const bindings = agentBindings()
 
@@ -118,18 +113,16 @@ const TailnetDialog = (props: Props) => {
     }
 
     return (
-        <Dialog
-            class='TailnetDialog'
-            title={<span>{intl.formatMessage({id: 'Tailnet.title', defaultMessage: 'Access from a phone'})}</span>}
-            subtitle={<span>{intl.formatMessage({id: 'Tailnet.subtitle', defaultMessage: 'The app joins your own Tailscale network and serves the board there — to your devices, and to nobody else. Nothing is published to the internet.'})}</span>}
-            onClose={props.onClose}
-        >
-            <div class='TailnetDialog__content'>
-                <div class={`TailnetDialog__status TailnetDialog__status--${state()?.status || 'off'}`}>
+        <div class='TailnetPanel'>
+            <div class='TailnetPanel__subtitle'>
+                {intl.formatMessage({id: 'Tailnet.subtitle', defaultMessage: 'The app joins your own Tailscale network and serves the board there — to your devices, and to nobody else. Nothing is published to the internet.'})}
+            </div>
+            <div class='TailnetPanel__content'>
+                <div class={`TailnetPanel__status TailnetPanel__status--${state()?.status || 'off'}`}>
                     {statusText()}
                 </div>
 
-                <label class='TailnetDialog__field'>
+                <label class='TailnetPanel__field'>
                     <span>{intl.formatMessage({id: 'Tailnet.hostname', defaultMessage: 'Name of this machine in the network'})}</span>
                     <input
                         type='text'
@@ -140,8 +133,8 @@ const TailnetDialog = (props: Props) => {
                 </label>
 
                 <Show when={state()?.status === 'on' && state()?.url}>
-                    <div class='TailnetDialog__address'>
-                        <span class='TailnetDialog__addressLabel'>
+                    <div class='TailnetPanel__address'>
+                        <span class='TailnetPanel__addressLabel'>
                             {intl.formatMessage({id: 'Tailnet.address', defaultMessage: 'Open this on your phone'})}
                         </span>
                         <code>{state()?.url}</code>
@@ -149,14 +142,14 @@ const TailnetDialog = (props: Props) => {
                             {intl.formatMessage({id: 'Tailnet.copy', defaultMessage: 'Copy'})}
                         </Button>
                     </div>
-                    <p class='TailnetDialog__hint'>
+                    <p class='TailnetPanel__hint'>
                         {intl.formatMessage({id: 'Tailnet.hint-phone', defaultMessage: 'The phone needs the Tailscale app, signed in as you. The address works nowhere else.'})}
                     </p>
                 </Show>
 
                 <Show when={state()?.status === 'login' && state()?.loginUrl}>
-                    <div class='TailnetDialog__address'>
-                        <span class='TailnetDialog__addressLabel'>
+                    <div class='TailnetPanel__address'>
+                        <span class='TailnetPanel__addressLabel'>
                             {intl.formatMessage({id: 'Tailnet.login-link', defaultMessage: 'Log this machine in'})}
                         </span>
                         <code>{state()?.loginUrl}</code>
@@ -167,16 +160,16 @@ const TailnetDialog = (props: Props) => {
                 </Show>
 
                 <Show when={state()?.status === 'error'}>
-                    <p class='TailnetDialog__hint'>
+                    <p class='TailnetPanel__hint'>
                         {intl.formatMessage({id: 'Tailnet.hint-https', defaultMessage: 'If it says there is no certificate domain, turn on MagicDNS and HTTPS Certificates in the Tailscale admin console, then switch this on again.'})}
                     </p>
                 </Show>
 
                 <Show when={error()}>
-                    <div class='TailnetDialog__error'>{error()}</div>
+                    <div class='TailnetPanel__error'>{error()}</div>
                 </Show>
 
-                <div class='TailnetDialog__actions'>
+                <div class='TailnetPanel__actions'>
                     <Show
                         when={state()?.enabled}
                         fallback={
@@ -199,15 +192,15 @@ const TailnetDialog = (props: Props) => {
                     </Show>
                 </div>
 
-                <p class='TailnetDialog__hint'>
+                <p class='TailnetPanel__hint'>
                     {intl.formatMessage(
                         {id: 'Tailnet.hint-file', defaultMessage: 'An auth key, or letting somebody else in, is edited by hand in {path}.'},
                         {path: state()?.path || ''},
                     )}
                 </p>
             </div>
-        </Dialog>
+        </div>
     )
 }
 
-export default TailnetDialog
+export default TailnetPanel

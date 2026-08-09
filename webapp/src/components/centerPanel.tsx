@@ -61,6 +61,7 @@ import {BoardTourSteps, FINISHED, TOUR_BOARD, TOUR_CARD} from './onboardingTour'
 import ShareBoardTourStep from './onboardingTour/shareBoard/shareBoard'
 import BoardSetupWizard from './acp/boardSetupWizard'
 import {createSetupPlan, markSetupOffered, setupNeeded, shouldOfferSetup} from './acp/boardSetup'
+import {retireAgentProperty} from './acp/agentSync'
 
 type Props = {
     clientConfig?: ClientConfig
@@ -97,6 +98,16 @@ const CenterPanel = (props: Props) => {
             setShowSetup(true)
         }
     })
+
+    // The «Agent» field this app used to keep is gone: who works a card is the
+    // assignee, and one question with two fields is a question with two
+    // answers. A board that still carries it loses it here — on being opened,
+    // so a board somebody rarely visits is not left with a field the rest have
+    // lost. It writes only when the field is actually there.
+    createEffect(() => {
+        retireAgentProperty(props.board).catch(() => undefined)
+    })
+
     const [cardIdToFocusOnRender, setCardIdToFocusOnRender] = createSignal('')
     const [showHiddenCardCountNotification, setShowHiddenCardCountNotification] = createSignal(false)
 

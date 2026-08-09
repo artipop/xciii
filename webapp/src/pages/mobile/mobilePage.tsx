@@ -7,7 +7,7 @@ import {For, Show, createEffect, createSignal, onCleanup, onMount} from 'solid-j
 import {useNavigate} from '@solidjs/router'
 
 import {useIntl} from '../../intl'
-import {agentBindings} from '../../components/acp/agentProjectsDialog'
+import {agentBindings} from '../../components/acp/bindings'
 import {onAgentEvent} from '../../components/acp/agentEvents'
 import {
     Attention,
@@ -175,16 +175,6 @@ const MobilePage = () => {
                                             </button>
                                         </form>
                                     </Show>
-                                </Show>
-
-                                <Show when={target.reason === 'quiet' && target.terminalId}>
-                                    <button
-                                        type='button'
-                                        class='MobilePage__action'
-                                        onClick={() => openTerminal(target.terminalId as string)}
-                                    >
-                                        {intl.formatMessage({id: 'Attention.open', defaultMessage: 'Open the terminal'})}
-                                    </button>
                                 </Show>
                             </article>
                         )}

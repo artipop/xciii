@@ -6,7 +6,7 @@ import '@testing-library/jest-dom'
 
 import {wrapIntl} from '../../testUtils'
 
-import TailnetDialog, {isTailnetAvailable} from './tailnetDialog'
+import TailnetPanel, {isTailnetAvailable} from './tailnetPanel'
 
 const anyWindow = window as any
 
@@ -27,9 +27,9 @@ function bindings(state: Record<string, unknown>) {
     }
 }
 
-const renderDialog = () => render(() => wrapIntl(() => <TailnetDialog onClose={() => undefined}/>))
+const renderDialog = () => render(() => wrapIntl(() => <TailnetPanel onClose={() => undefined}/>))
 
-describe('components/acp/tailnetDialog', () => {
+describe('components/acp/tailnetPanel', () => {
     beforeEach(() => vi.clearAllMocks())
 
     afterEach(() => {

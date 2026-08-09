@@ -27,6 +27,7 @@ exports[`components/sidebar/SidebarSettingsMenu > imports menu open should match
             <div
               class="MenuOption SubMenuOption menu-option menu-option-active"
               id="import"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -245,6 +246,7 @@ exports[`components/sidebar/SidebarSettingsMenu > imports menu open should match
               aria-label="Export archive"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -270,6 +272,7 @@ exports[`components/sidebar/SidebarSettingsMenu > imports menu open should match
             <div
               class="MenuOption SubMenuOption menu-option"
               id="lang"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -287,6 +290,7 @@ exports[`components/sidebar/SidebarSettingsMenu > imports menu open should match
             <div
               class="MenuOption SubMenuOption menu-option"
               id="theme"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -305,6 +309,7 @@ exports[`components/sidebar/SidebarSettingsMenu > imports menu open should match
               aria-label="Notify me when an agent is waiting"
               class="MenuOption SwitchOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -391,6 +396,7 @@ exports[`components/sidebar/SidebarSettingsMenu > languages menu open should mat
             <div
               class="MenuOption SubMenuOption menu-option"
               id="import"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -409,6 +415,7 @@ exports[`components/sidebar/SidebarSettingsMenu > languages menu open should mat
               aria-label="Export archive"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -434,6 +441,7 @@ exports[`components/sidebar/SidebarSettingsMenu > languages menu open should mat
             <div
               class="MenuOption SubMenuOption menu-option menu-option-active"
               id="lang"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -943,6 +951,7 @@ exports[`components/sidebar/SidebarSettingsMenu > languages menu open should mat
             <div
               class="MenuOption SubMenuOption menu-option"
               id="theme"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -961,6 +970,7 @@ exports[`components/sidebar/SidebarSettingsMenu > languages menu open should mat
               aria-label="Notify me when an agent is waiting"
               class="MenuOption SwitchOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -1069,6 +1079,7 @@ exports[`components/sidebar/SidebarSettingsMenu > settings menu open should matc
             <div
               class="MenuOption SubMenuOption menu-option"
               id="import"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -1087,6 +1098,7 @@ exports[`components/sidebar/SidebarSettingsMenu > settings menu open should matc
               aria-label="Export archive"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1112,6 +1124,7 @@ exports[`components/sidebar/SidebarSettingsMenu > settings menu open should matc
             <div
               class="MenuOption SubMenuOption menu-option"
               id="lang"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -1129,6 +1142,7 @@ exports[`components/sidebar/SidebarSettingsMenu > settings menu open should matc
             <div
               class="MenuOption SubMenuOption menu-option"
               id="theme"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -1147,6 +1161,7 @@ exports[`components/sidebar/SidebarSettingsMenu > settings menu open should matc
               aria-label="Notify me when an agent is waiting"
               class="MenuOption SwitchOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -1233,6 +1248,7 @@ exports[`components/sidebar/SidebarSettingsMenu > theme menu open should match s
             <div
               class="MenuOption SubMenuOption menu-option"
               id="import"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -1251,6 +1267,7 @@ exports[`components/sidebar/SidebarSettingsMenu > theme menu open should match s
               aria-label="Export archive"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -1276,6 +1293,7 @@ exports[`components/sidebar/SidebarSettingsMenu > theme menu open should match s
             <div
               class="MenuOption SubMenuOption menu-option"
               id="lang"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -1293,6 +1311,7 @@ exports[`components/sidebar/SidebarSettingsMenu > theme menu open should match s
             <div
               class="MenuOption SubMenuOption menu-option menu-option-active"
               id="theme"
+              tabindex="-1"
             >
               <div
                 class="noicon"
@@ -1439,6 +1458,7 @@ exports[`components/sidebar/SidebarSettingsMenu > theme menu open should match s
               aria-label="Notify me when an agent is waiting"
               class="MenuOption SwitchOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="noicon"

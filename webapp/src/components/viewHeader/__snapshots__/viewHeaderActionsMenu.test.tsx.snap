@@ -31,6 +31,7 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu 1`] = `
               aria-label="Export to CSV"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -57,6 +58,7 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu 1`] = `
               aria-label="Export board archive"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -151,6 +153,7 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify ca
               aria-label="Export to CSV"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -177,6 +180,7 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify ca
               aria-label="Export board archive"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -271,6 +275,7 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify ca
               aria-label="Export to CSV"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
@@ -297,6 +302,7 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify ca
               aria-label="Export board archive"
               class="MenuOption TextOption menu-option"
               role="button"
+              tabindex="-1"
             >
               <div
                 class="d-flex"
