@@ -39,3 +39,6 @@ mobile/mobile
 # git worktree, where the relative replace of the server module does not resolve.
 go.work
 go.work.sum
+
+# Finder leaves these in every directory it has been asked to draw.
+.DS_Store
