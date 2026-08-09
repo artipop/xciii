@@ -253,6 +253,22 @@ because otherwise every plugin would invent its own filter syntax.
 a webhook — a route on the front door guarded by a per-source token.
 `docs/sources.md` is the whole design.
 
+**An MCP server is the second kind of plugin, and it needs no code at all.**
+What MCP has no word for is "the feed" — its tools are described for a model —
+so a manifest says which tool to call, with what arguments, and how to read one
+row of the answer as an item (`internal/sources/mcpsource.go`, mapped with the
+same `text/template` a rule's properties use). Past `dialPlugin` nothing knows
+which protocol the process speaks. Manifests are files in
+`<dataDir>/sources/manifests/*.json` rather than something compiled in, because
+one names an absolute path on this machine; `kaiten/` is the first, and adding
+a second service is a JSON file beside it.
+
+The system's «Поделиться» is a source too (`internal/sources/share.go`,
+`share.go`, `pages/share/`): the share extension in the .app opens
+`xciii://share?url=…`, a small window asks which board, and the link goes down
+the same pipeline. It is the one entry allowed to name its own board
+(`PickBoard`), because a person is looking at the dialog when it happens.
+
 **Everything a source brings lands in «Входящие» unless a rule says otherwise**,
 and that is the one column the app will put on a board itself
 (`boardadapter.Writer.EnsureColumn`, add-only). The templates carry it, but a
