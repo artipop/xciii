@@ -73,3 +73,24 @@ func TestNamedPropertiesSurvivesUnresolvableUsers(t *testing.T) {
 		t.Errorf("person names = %v, want none", names)
 	}
 }
+
+// A source's account is named after the source, because the board shows the
+// username wherever it names an author — the inbox's own group headings among
+// them — and a prefixed one would read as machinery rather than as «почта».
+func TestASourceAccountIsNamedAfterTheSource(t *testing.T) {
+	cases := map[string]string{
+		"почта":          "почта",
+		"  Телефон  ":    "телефон",
+		"home assistant": "home-assistant",
+		"gmail_work":     "gmail-work",
+		// Anything a username may not hold is dropped rather than encoded: what
+		// is left still names the source, and what was there is not a name.
+		"почта (личная)": "почта-личная",
+		"":               "",
+	}
+	for source, want := range cases {
+		if got := sourceUsername(source); got != want {
+			t.Errorf("sourceUsername(%q) = %q, want %q", source, got, want)
+		}
+	}
+}

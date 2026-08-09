@@ -459,6 +459,20 @@ func (w *Writer) CreateCard(ctx context.Context, boardID string, spec CardSpec) 
 		return "", fmt.Errorf("parse property schema of board %s: %w", boardID, err)
 	}
 
+	// The card is authored by whatever brought it, so the board's own "created
+	// by" answers where it came from — and the inbox groups by that. A card
+	// nobody outside made stays the single user's.
+	author := model.SingleUser
+	if spec.Source != "" {
+		// A source that could not be given an account still gets its card,
+		// under this app's own name: losing the author is a smaller loss than
+		// losing what arrived, and a name already taken by an agent is the one
+		// way this fails.
+		if id, err := w.EnsureSourceUser(ctx, boardID, spec.Source); err == nil && id != "" {
+			author = id
+		}
+	}
+
 	properties := cardProperties(schema, spec.Properties)
 	if properties == nil {
 		properties = map[string]any{}
@@ -477,7 +491,7 @@ func (w *Writer) CreateCard(ctx context.Context, boardID string, spec CardSpec) 
 		ContentOrder: []string{},
 		Properties:   properties,
 	}
-	created, err := w.app.CreateCard(card, boardID, model.SingleUser, true)
+	created, err := w.app.CreateCard(card, boardID, author, true)
 	if err != nil {
 		return "", fmt.Errorf("create card on board %s: %w", boardID, err)
 	}

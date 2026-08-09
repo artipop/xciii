@@ -270,6 +270,13 @@ other views. That is where somebody looks for a part of a board, and it keeps
 what nobody has read yet out of the middle of the work. A board with no source
 gets neither the column nor the view, because nothing arrives on it.
 
+The inbox is **grouped by what brought the card**, and that needs no property of
+ours: a source has a board account, exactly as an agent does and for the same
+reason (`EnsureSourceUser` beside `EnsureAgentUsers`), so the card is *authored*
+by its source and the board groups by "created by" out of the box. What a person
+typed stays theirs. The account is named after the source rather than prefixed,
+because the board shows the username wherever it names an author.
+
 A card can then be carried onto another board — from the card's own menu, or
 from «Входящие» on a phone — and that is a **real move** — same card id, so comments come with it and everything outside
 the board that remembers the card by id still finds it. It lives in the server

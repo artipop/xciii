@@ -158,9 +158,15 @@ func TestAnItemBecomesACardInTheColumnItsRuleNames(t *testing.T) {
 	if board.boardIDs()[0] != "board1" {
 		t.Fatalf("the card went to the wrong board: %q", board.boardIDs()[0])
 	}
+	// The way back to the original is a property; where it came from is not —
+	// the card is authored by the source, which is the board's own answer and
+	// the one the inbox groups by.
 	props := board.cards()[0].Properties
-	if props["Ссылка"] != "https://example.com/1" || props["Источник"] != "телефон" {
+	if props["Ссылка"] != "https://example.com/1" {
 		t.Fatalf("properties: %+v", props)
+	}
+	if board.cards()[0].Source != "телефон" {
+		t.Fatalf("the card should be authored by its source: %+v", board.cards()[0])
 	}
 	// The move is what the automation sees: a card created straight into a
 	// working column would start nothing, because the trigger fires on a change.

@@ -317,14 +317,17 @@ func (m *Manager) createCard(ctx context.Context, entry SourceEntry, it Item, re
 		// whether the item was claimed, not whether it is shown.
 		column = entry.InboxOr()
 	}
+	spec.Source = entry.Name
 	if entry.Name != "" {
 		if spec.Properties == nil {
 			spec.Properties = map[string]string{}
 		}
-		// What the card came from, for a person looking at it. The pipeline
-		// never reads these back — the truth is in source_item — so a person
-		// may change them freely.
-		setIfAbsent(spec.Properties, "Источник", entry.Name)
+		// The way back to the original, for a person looking at the card. Where
+		// it came from is not among these: the card is authored by the source,
+		// which is the board's own answer and the one the inbox groups by — a
+		// property saying it again would be a second answer to one question.
+		// The pipeline never reads these back — the truth is in source_item —
+		// so a person may change them freely.
 		if u := strings.TrimSpace(it.URL); u != "" {
 			setIfAbsent(spec.Properties, "Ссылка", u)
 		}

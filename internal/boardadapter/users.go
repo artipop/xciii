@@ -5,6 +5,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"strings"
+	"unicode"
 
 	"github.com/mattermost/focalboard/server/model"
 
@@ -86,6 +88,81 @@ func (b *EventsBackend) EnsureAgentUsers(ctx context.Context, boardID string, ag
 		out = append(out, agent)
 	}
 	return out, nil
+}
+
+// sourceEmailDomain is the reserved (RFC 2606) domain a source's account is
+// created under, for the reason the agents' one is: it can never collide with
+// a real address.
+const sourceEmailDomain = "sources.invalid"
+
+// EnsureSourceUser gives a source a board account so that a card it left is
+// *authored* by it — the board's own answer to "who made this", rather than a
+// property of ours saying the same thing beside it.
+//
+// This is the agents' arrangement applied to sources, and for the same reason:
+// the board already knows how to name whoever created a card and how to group
+// by it, so a source that is a user needs no machinery of its own. What a
+// person makes stays theirs; what arrived is the source's.
+//
+// Idempotent, and the account is never deleted: a card can still name a source
+// long after its registry entry is gone.
+func (w *Writer) EnsureSourceUser(ctx context.Context, boardID, source string) (string, error) {
+	if source == "" {
+		return "", nil
+	}
+	username := sourceUsername(source)
+	user, err := w.app.GetUserByUsername(username)
+	if err != nil {
+		return "", fmt.Errorf("поиск пользователя %q: %w", username, err)
+	}
+	if user == nil {
+		password, err := randomPassword()
+		if err != nil {
+			return "", err
+		}
+		// The account exists to be named, not to be logged into.
+		if err := w.app.RegisterUser(username, username+"@"+sourceEmailDomain, password); err != nil {
+			return "", fmt.Errorf("создание пользователя %q: %w", username, err)
+		}
+		if user, err = w.app.GetUserByUsername(username); err != nil || user == nil {
+			return "", fmt.Errorf("пользователь %q создан, но не найден: %w", username, err)
+		}
+	}
+
+	// Membership is what makes the name resolve on the board rather than
+	// showing as somebody nobody here knows.
+	member := &model.BoardMember{
+		BoardID:         boardID,
+		UserID:          user.ID,
+		SchemeCommenter: true,
+		SchemeViewer:    true,
+	}
+	if _, err := w.app.AddMemberToBoard(member); err != nil {
+		return "", fmt.Errorf("добавление %q в участники доски: %w", username, err)
+	}
+	return user.ID, nil
+}
+
+// sourceUsername is the account name a source gets: its own name, reduced to
+// what a username may hold. Its own name and not a prefixed one, because the
+// board shows the username wherever it names the author — the group headings of
+// the inbox among them — and «source-почта» is not what the source is called.
+//
+// This is the agents' arrangement again: an agent's account is its own name
+// too. Two of them called the same thing would share an identity, which is why
+// the card write below treats a refused account as no author at all rather than
+// as a failure.
+func sourceUsername(source string) string {
+	var b strings.Builder
+	for _, r := range strings.ToLower(strings.TrimSpace(source)) {
+		switch {
+		case unicode.IsLetter(r) || unicode.IsDigit(r):
+			b.WriteRune(r)
+		case r == ' ' || r == '-' || r == '_':
+			b.WriteByte('-')
+		}
+	}
+	return b.String()
 }
 
 // RetireAgentUser takes an unregistered agent off every board it belongs to, so

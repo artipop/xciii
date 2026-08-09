@@ -58,9 +58,13 @@ func (it Item) WithFallbackID() Item {
 // identified: a source knows it wants «Ссылка» filled in and cannot know the id
 // the board gave it.
 type CardSpec struct {
-	Title      string
-	Icon       string
-	Body       string
+	Title string
+	Icon  string
+	Body  string
+	// Source is what brought the item, and it becomes the card's author: the
+	// board's own answer to "who made this", which is also what it groups the
+	// inbox by. Empty means a card nobody outside made.
+	Source     string
 	Properties map[string]string
 }
 
