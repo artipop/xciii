@@ -10,7 +10,7 @@ import {IntlShape} from './intl'
 import {BlockIcons} from './blockIcons'
 import {Block, BlockPatch, createPatchesFromBlocks} from './blocks/block'
 import {Board, BoardMember, BoardsAndBlocks, IPropertyOption, IPropertyTemplate, PropertyTypeEnum, createBoard, createPatchesFromBoards, createPatchesFromBoardsAndBlocks, createCardPropertiesPatches} from './blocks/board'
-import {BoardView, ISortOption, createBoardView, KanbanCalculationFields} from './blocks/boardView'
+import {BoardView, ICalendarSpan, ISortOption, createBoardView, KanbanCalculationFields} from './blocks/boardView'
 import {Card, createCard} from './blocks/card'
 import {ContentBlock} from './blocks/contentBlock'
 import {CommentBlock} from './blocks/commentBlock'
@@ -825,6 +825,14 @@ class Mutator {
             'display by',
             this.undoDisplayId,
         )
+    }
+
+    // Week or month on a calendar. Not undoable and not part of the undo group
+    // the other view settings share: it is a way of looking at the board, like
+    // scrolling, and «undo» after changing it should still undo whatever was
+    // last done to the cards.
+    async changeViewCalendarSpan(boardId: string, viewId: string, calendarSpan: ICalendarSpan): Promise<void> {
+        await octoClient.patchBlock(boardId, viewId, {updatedFields: {calendarSpan}})
     }
 
     async changeViewVisiblePropertiesOrder(boardId: string, view: BoardView, template: IPropertyTemplate, destIndex: number, description = 'change property order'): Promise<void> {

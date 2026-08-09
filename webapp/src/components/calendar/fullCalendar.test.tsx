@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {render} from '@solidjs/testing-library'
+import {render, waitFor} from '@solidjs/testing-library'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import '@testing-library/jest-dom'
 import {mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 import {IPropertyTemplate} from '../../blocks/board'
+
+import mutator from '../../mutator'
 
 import CalendarView from './fullCalendar'
 
@@ -130,5 +132,65 @@ describe('components/calendar/toolbar', () => {
             ),
         )
         expect(container).toMatchSnapshot()
+    })
+
+    // Week or month is the view's own answer, so it comes back with the view
+    // — on the next screen, and after the app has been closed. It lived
+    // nowhere at all before this: every mount opened on the month.
+    test('opens on the span the view remembers', () => {
+        const weekly = TestBlockFactory.createBoardView(board)
+        weekly.fields.viewType = 'calendar'
+        weekly.fields.calendarSpan = 'dayGridWeek'
+
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
+                    <CalendarView
+                        board={board}
+                        activeView={weekly}
+                        cards={[card]}
+                        readonly={false}
+                        showCard={mockShow}
+                        addCard={mockAdd}
+                        initialDate={new Date(fifth)}
+                    />
+                </AppStoreProvider>,
+            ),
+        )
+
+        expect(container.querySelector('.fc-dayGridWeek-view')).not.toBeNull()
+        expect(container.querySelector('.fc-dayGridMonth-view')).toBeNull()
+    })
+
+    // Choosing one writes it to the view, which is what makes it survive
+    // anything. Every prev/next reports the span too, and writing on those
+    // would put the board in the way of somebody just looking around.
+    test('records the span when it changes, and only then', async () => {
+        const mockedMutator = vi.mocked(mutator)
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <AppStoreProvider store={store}>
+                    <CalendarView
+                        board={board}
+                        activeView={view}
+                        cards={[card]}
+                        readonly={false}
+                        showCard={mockShow}
+                        addCard={mockAdd}
+                        initialDate={new Date(fifth)}
+                    />
+                </AppStoreProvider>,
+            ),
+        )
+
+        // Mounting on the month it already shows writes nothing.
+        expect(mockedMutator.changeViewCalendarSpan).not.toHaveBeenCalled()
+        mockedMutator.changeViewCalendarSpan.mockResolvedValue()
+
+        const week = container.querySelector('.fc-dayGridWeek-button') as HTMLButtonElement
+        week.click()
+
+        await waitFor(() => expect(mockedMutator.changeViewCalendarSpan).
+            toHaveBeenCalledWith(board.id, view.id, 'dayGridWeek'))
     })
 })
