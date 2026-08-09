@@ -134,6 +134,7 @@ func dialMCP(ctx context.Context, entry SourceEntry, manifest Manifest, cred plu
 
 	client, err := mcp.Dial(ctx, mcp.Spec{
 		Command:    manifest.Argv(),
+		Dir:        manifest.Dir,
 		Env:        env,
 		ClientName: "XCIII",
 	})
@@ -222,14 +223,23 @@ func (s MCPSpec) renderArguments(entry SourceEntry) (map[string]any, error) {
 			// in, and a tool asked for board "" answers for no board at all.
 			continue
 		}
-		// Numbers arrive as strings from a form and a tool that declared a
-		// number will refuse a string, so what looks like a number is sent as
-		// one. Anything else is what it says.
-		if n, err := strconv.ParseFloat(value, 64); err == nil && !strings.ContainsAny(value, " \t") {
-			out[name] = n
-			continue
+		// A form has only strings in it, and a tool that declared a number or a
+		// boolean refuses one — MCP tools are schema-checked on the server's
+		// side, so "77" where 77 was declared is a refusal and not a coercion.
+		// What looks like a number or a boolean is therefore sent as one;
+		// anything else is what it says.
+		switch {
+		case strings.EqualFold(value, "true"):
+			out[name] = true
+		case strings.EqualFold(value, "false"):
+			out[name] = false
+		default:
+			if n, err := strconv.ParseFloat(value, 64); err == nil && !strings.ContainsAny(value, " \t") {
+				out[name] = n
+			} else {
+				out[name] = value
+			}
 		}
-		out[name] = value
 	}
 	return out, nil
 }

@@ -906,6 +906,47 @@ func (a *App) ListSources(boardID string) (string, error) {
 	return string(out), nil
 }
 
+// ListSourcePlugins is what a source can be made *of*: the manifests this
+// machine knows, from the registry and from <dataDir>/sources/manifests. The
+// dialog builds its form out of one of these — the fields to ask for, and
+// whether the service wants a token.
+func (a *App) ListSourcePlugins() (string, error) {
+	if a.sources == nil {
+		return "[]", nil
+	}
+	out, err := json.Marshal(a.sources.Plugins())
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// SetSourceCredential stores the token a source has to *present* — an API key
+// somebody pasted, which for an MCP server is the whole of its authorization.
+//
+// Not to be confused with ResetSourceToken below, which is the other direction:
+// that one authorizes what is sent *to* a source over the ingest route, and is
+// kept as a hash because it is only ever checked.
+func (a *App) SetSourceCredential(name, token string) error {
+	if a.sources == nil {
+		return errSourcesDisabled
+	}
+	return a.sources.SetToken(name, token)
+}
+
+// SourceStatuses is what each source is doing — running, failed, waiting to be
+// connected — for the strip of text that makes a silent integration debuggable.
+func (a *App) SourceStatuses() (string, error) {
+	if a.sources == nil {
+		return "[]", nil
+	}
+	out, err := json.Marshal(a.sources.Statuses())
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
 // AddSource registers a source from a JSON-encoded entry and returns it with
 // its ingest token — the one time the token is ever shown, since only its hash
 // is kept.

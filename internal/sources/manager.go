@@ -22,6 +22,10 @@ type Manager struct {
 	store  *Store
 	writer BoardWriter
 	log    *slog.Logger
+	// catalog is the manifests read from <dataDir>/sources/manifests. Kept
+	// beside the registry rather than in it: the registry is what a person
+	// configured, and this is a directory that is read again on every start.
+	catalog []Manifest
 
 	// The running half: one goroutine per source that names a plugin, under a
 	// context the app cancels, and what each of them is currently doing.
@@ -30,6 +34,9 @@ type Manager struct {
 	wg      sync.WaitGroup
 	dial    dialer
 	status  map[string]*Status
+	// running is the cancel of each source's loop, so one can be restarted
+	// after it was added or edited without taking the others down.
+	running map[string]context.CancelFunc
 	// secrets is where the credentials a plugin has to present are kept. Not
 	// where an inbound ingest token lives: that one is only ever checked, so it
 	// is a hash on the entry itself.
@@ -96,6 +103,10 @@ func (m *Manager) AddSource(entry SourceEntry) (SourceEntry, error) {
 	// Outside the lock on purpose: this one writes to the board, and holding
 	// the registry while waiting on board I/O would stall every reader of it.
 	m.ensureInbox(valid)
+	// A source with a plugin is a process, and it starts now rather than at the
+	// next launch: "add the source, then restart the app" is not a feature that
+	// works. Does nothing for an ingest source, which has no process.
+	m.Restart(valid.Name)
 	return valid, nil
 }
 
@@ -177,6 +188,10 @@ func (m *Manager) UpdateSource(entry SourceEntry) (SourceEntry, error) {
 		return SourceEntry{}, err
 	}
 	m.ensureInbox(valid)
+	// The entry it was running under is gone: whatever changed — the interval,
+	// the config a plugin is started with, whether it is enabled at all — takes
+	// effect now.
+	m.Restart(valid.Name)
 	return valid, nil
 }
 
@@ -194,6 +209,11 @@ func (m *Manager) replaceEntry(valid SourceEntry) error {
 
 // RemoveSource deletes a source and everything it remembered.
 func (m *Manager) RemoveSource(name string) error {
+	// The process goes with the entry, and it is stopped before the lock: the
+	// stop takes the same lock, and a deferred stop under a held one is a
+	// deadlock — which is exactly how this was written the first time.
+	m.stopSource(name)
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for i, s := range m.cfg.Sources {

@@ -17,6 +17,7 @@ import (
 
 	"github.com/artipop/xciii/internal/acp"
 	"github.com/artipop/xciii/internal/boardadapter"
+	"github.com/artipop/xciii/internal/secrets"
 	"github.com/artipop/xciii/internal/sources"
 )
 
@@ -194,6 +195,28 @@ func main() {
 		ingest.SetManager(sourceMgr)
 		app.sources = sourceMgr
 		sourcesReady = func() bool { return len(sourceMgr.Sources()) > 0 }
+		// Manifests are a directory rather than something compiled in: a source
+		// is a plugin, and with MCP a manifest is the whole adapter, so adding a
+		// service somebody else already wrote a server for is a JSON file. A bad
+		// one is reported and skipped — the app has to come up to be able to say
+		// what was wrong with it.
+		manifests, errs := sources.LoadManifests(filepath.Join(dir, sources.ManifestsDir))
+		for _, err := range errs {
+			log.Printf("sources: манифест не прочитан: %v", err)
+		}
+		sourceMgr.SetCatalog(manifests)
+		if len(manifests) > 0 {
+			log.Printf("sources: %d манифест(ов) из %s", len(manifests), filepath.Join(dir, sources.ManifestsDir))
+		}
+		// Where a credential the app has to *present* is kept — an MCP server's
+		// API token, an OAuth access token. The environment comes first so a
+		// token given from outside wins over a stored one without anybody
+		// having to delete anything; the file behind it is what the app writes
+		// when somebody pastes a token into the source dialog.
+		sourceMgr.SetSecrets(secrets.Chain{
+			secrets.Env{Prefix: "XCIII_SECRET_"},
+			secrets.NewFileStore(filepath.Join(dir, "secrets.json")),
+		})
 		// Plugins come up here and go down in shutdown below. A source fed over
 		// ingest needs none of this; a source with a plugin is a process, and
 		// this is where it starts.

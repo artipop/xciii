@@ -214,14 +214,19 @@ type AuthSpec struct {
 // for. It is meant to be pasted whole, the way an MCP server is pasted into an
 // agent from its README.
 type Manifest struct {
-	Name            string            `json:"name"`
-	Title           string            `json:"title,omitempty"`
-	ProtocolVersion int               `json:"protocolVersion,omitempty"`
-	Command         string            `json:"command"`
-	Args            []string          `json:"args,omitempty"`
-	Env             map[string]string `json:"env,omitempty"`
-	Auth            *AuthSpec         `json:"auth,omitempty"`
-	Fields          []Field           `json:"fields,omitempty"`
+	Name            string   `json:"name"`
+	Title           string   `json:"title,omitempty"`
+	ProtocolVersion int      `json:"protocolVersion,omitempty"`
+	Command         string   `json:"command"`
+	Args            []string `json:"args,omitempty"`
+	// Dir is where the command runs. It matters for the ordinary case of an
+	// MCP server that is a file on this machine — `bun run server.ts` finds
+	// nothing from another directory — and a manifest naming an absolute path
+	// is why manifests live in the data directory and not in this repository.
+	Dir    string            `json:"dir,omitempty"`
+	Env    map[string]string `json:"env,omitempty"`
+	Auth   *AuthSpec         `json:"auth,omitempty"`
+	Fields []Field           `json:"fields,omitempty"`
 
 	// Kind is what the command speaks: this project's own plugin protocol by
 	// default, or MCP. A second kind rather than a second registry, because

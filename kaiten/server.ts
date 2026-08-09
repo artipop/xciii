@@ -3,7 +3,11 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
 
-const KAITEN_BASE_URL = 'https://vinokurov.kaiten.ru/api/latest'
+// The site this talks to. An environment variable with the current default,
+// because the host is the one thing that differs between two people running
+// this same server, and it is not worth a fork.
+const KAITEN_SITE = (process.env.KAITEN_SITE ?? 'https://vinokurov.kaiten.ru').replace(/\/+$/, '')
+const KAITEN_BASE_URL = `${KAITEN_SITE}/api/latest`
 const SERVER_VERSION = '0.1.0'
 
 const server = new McpServer({
@@ -17,15 +21,14 @@ function errorResult(text: string): ToolResult {
   return { content: [{ type: 'text', text }], isError: true }
 }
 
-async function kaitenRequest(path: string, init: RequestInit = {}): Promise<ToolResult> {
+// kaitenFetch is the request itself, returning what the API said. Tools that
+// hand a card straight to the model use kaitenRequest below; the ones that have
+// to combine several answers need the data, not a block of text.
+async function kaitenFetch(path: string, init: RequestInit = {}): Promise<any> {
   const token = process.env.KAITEN_TOKEN
   if (!token) {
-    return errorResult('Error: KAITEN_TOKEN is not set')
+    throw new Error('KAITEN_TOKEN is not set')
   }
-
-  console.error(
-    `[kaiten] using token ${token.slice(0, 4)}...${token.slice(-4)} (len=${token.length})`
-  )
 
   const response = await fetch(`${KAITEN_BASE_URL}${path}`, {
     ...init,
@@ -41,15 +44,99 @@ async function kaitenRequest(path: string, init: RequestInit = {}): Promise<Tool
 
   if (!response.ok) {
     const body = await response.text()
-    return errorResult(`Error: API returned HTTP ${response.status} ${body ?? ''}`)
+    throw new Error(`API returned HTTP ${response.status} ${body ?? ''}`)
   }
 
   const raw = await response.text()
-  if (!raw) {
-    return { content: [{ type: 'text', text: 'OK' }] }
-  }
-  return { content: [{ type: 'text', text: JSON.stringify(JSON.parse(raw), null, 2) }] }
+  return raw ? JSON.parse(raw) : null
 }
+
+async function kaitenRequest(path: string, init: RequestInit = {}): Promise<ToolResult> {
+  try {
+    const data = await kaitenFetch(path, init)
+    if (data === null) {
+      return { content: [{ type: 'text', text: 'OK' }] }
+    }
+    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] }
+  } catch (e: any) {
+    return errorResult(`Error: ${e?.message ?? e}`)
+  }
+}
+
+// The one tool XCIII reads as a feed: what is assigned to me right now.
+//
+// It is here rather than in the app because MCP has no notion of a feed — the
+// app's side of the bridge names a tool and maps its rows, and something has to
+// be there to name. Kaiten has no single "assigned to me" filter either:
+// «ответственный» and «участник» are different fields, so this asks twice and
+// merges, which is what a person means by the phrase.
+async function currentUserId(): Promise<number> {
+  const me = await kaitenFetch('/users/current')
+  if (!me?.id) {
+    throw new Error('could not tell who the token belongs to')
+  }
+  return me.id
+}
+
+server.registerTool(
+  'list_my_cards',
+  {
+    description:
+      'List the cards assigned to the authenticated user — as responsible and, unless asked otherwise, as a member',
+    inputSchema: {
+      boardId: z.number().optional().describe('Only cards on this board'),
+      spaceId: z.number().optional().describe('Only cards in this space'),
+      responsibleOnly: z
+        .boolean()
+        .optional()
+        .describe('Only cards where the user is responsible, ignoring membership'),
+      includeArchived: z.boolean().optional().describe('Include archived cards (default false)'),
+      limit: z.number().positive().max(500).optional().describe('How many cards at most (default 100)')
+    }
+  },
+  async ({ boardId, spaceId, responsibleOnly, includeArchived, limit }) => {
+    try {
+      const userId = await currentUserId()
+      const base = new URLSearchParams()
+      if (boardId !== undefined) base.set('board_id', String(boardId))
+      if (spaceId !== undefined) base.set('space_id', String(spaceId))
+      base.set('limit', String(limit ?? 100))
+      // condition=1 is Kaiten's "live" — a done card is not something to be
+      // handed again tomorrow, and archived ones are asked for separately.
+      if (!includeArchived) {
+        base.set('condition', '1')
+        base.set('archived', 'false')
+      }
+
+      const queries = [`responsible_id=${userId}`]
+      if (!responsibleOnly) {
+        queries.push(`member_ids=${userId}`)
+      }
+
+      const seen = new Map<number, any>()
+      for (const filter of queries) {
+        const cards = await kaitenFetch(`/cards?${base.toString()}&${filter}`)
+        for (const card of Array.isArray(cards) ? cards : []) {
+          // The same card can be both, and a card is one card.
+          if (!seen.has(card.id)) {
+            seen.set(card.id, {
+              ...card,
+              // The address a person would open. The API does not carry one,
+              // and a card in an inbox without a way back to it is a card you
+              // have to search for.
+              url: `${KAITEN_SITE}/space/${card.board?.space_id ?? spaceId ?? ''}/card/${card.id}`
+            })
+          }
+        }
+      }
+
+      const cards = [...seen.values()]
+      return { content: [{ type: 'text', text: JSON.stringify({ cards }, null, 2) }] }
+    } catch (e: any) {
+      return errorResult(`Error: ${e?.message ?? e}`)
+    }
+  }
+)
 
 server.registerTool(
   'get_card',

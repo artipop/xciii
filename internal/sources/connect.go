@@ -187,3 +187,42 @@ func (m *Manager) secretStore() secrets.Store {
 	defer m.mu.RUnlock()
 	return m.secrets
 }
+
+// SetToken stores a credential somebody pasted, for a service that issues one
+// rather than running an OAuth flow — which is most of them, and all of the MCP
+// servers here: an MCP server reads a token out of its environment, and where
+// that token comes from is this side's business.
+//
+// It is not the ingest token (SourceEntry.TokenHash): that one authorizes what
+// is sent *to* a source and is only ever checked, so a hash is enough. This one
+// the app has to present, so it is kept whole and in the keychain.
+func (m *Manager) SetToken(name, token string) error {
+	entry, ok := m.Source(name)
+	if !ok {
+		return fmt.Errorf("источник %q не найден", name)
+	}
+	if strings.TrimSpace(token) == "" {
+		return fmt.Errorf("пустой токен")
+	}
+	store := m.secretStore()
+	if store == nil {
+		return fmt.Errorf("негде хранить токен")
+	}
+	ref := secretRefFor(entry.Name)
+	if err := store.Set(ref, strings.TrimSpace(token)); err != nil {
+		return err
+	}
+	if entry.SecretRef == ref {
+		// Already pointed at this secret, so the entry does not change — but
+		// what is behind it just did, and a plugin started with the old one has
+		// to be started again.
+		m.Restart(entry.Name)
+		return nil
+	}
+	// The entry only ever holds the name of the secret, never the secret.
+	entry.SecretRef = ref
+	if _, err := m.UpdateSource(entry); err != nil {
+		return err
+	}
+	return nil
+}

@@ -100,6 +100,7 @@ func dialPlugin(ctx context.Context, entry SourceEntry, manifest Manifest, cred 
 	}
 	return plugin.Dial(ctx, plugin.Spec{
 		Command:     manifest.Argv(),
+		Dir:         manifest.Dir,
 		Env:         env,
 		Source:      plugin.SourceInfo{Name: entry.Name, Config: entry.Config},
 		Credentials: cred,
@@ -153,15 +154,65 @@ func (m *Manager) Stop(grace time.Duration) {
 // run starts one source's loop.
 func (m *Manager) run(entry SourceEntry) {
 	m.setStatus(entry.Name, func(s *Status) { s.State = StateStarting })
+
+	// One cancel per source, so a source that has just been added, edited or
+	// given a token can be started — and an older loop for the same name
+	// stopped — without restarting the app. Adding a source and being told to
+	// come back after a restart is not a feature that works.
+	m.mu.Lock()
+	root := m.rootCtx
+	if root == nil {
+		// Nothing is running yet: Start will bring this one up with the rest.
+		m.mu.Unlock()
+		return
+	}
+	if stop, ok := m.running[entry.Name]; ok {
+		stop()
+	}
+	ctx, stop := context.WithCancel(root)
+	if m.running == nil {
+		m.running = map[string]context.CancelFunc{}
+	}
+	m.running[entry.Name] = stop
+	m.mu.Unlock()
+
 	m.wg.Add(1)
 	go func() {
 		defer m.wg.Done()
-		m.loop(entry)
+		defer stop()
+		m.loop(ctx, entry)
 	}()
 }
 
-func (m *Manager) loop(entry SourceEntry) {
-	ctx := m.rootContext()
+// Restart brings one source up again under whatever the registry now says: a
+// source that was just added, an entry that was edited, a token that has only
+// now been pasted. A source that is disabled is stopped instead.
+func (m *Manager) Restart(name string) {
+	entry, ok := m.Source(name)
+	if !ok {
+		m.stopSource(name)
+		return
+	}
+	if !entry.Enabled || strings.TrimSpace(entry.Plugin) == "" {
+		// Not a running kind of source: an ingest source is fed from outside
+		// and has no process at all.
+		m.stopSource(name)
+		return
+	}
+	m.run(entry)
+}
+
+func (m *Manager) stopSource(name string) {
+	m.mu.Lock()
+	stop, ok := m.running[name]
+	delete(m.running, name)
+	m.mu.Unlock()
+	if ok {
+		stop()
+	}
+}
+
+func (m *Manager) loop(ctx context.Context, entry SourceEntry) {
 	manifest, ok := m.Plugin(entry.Plugin)
 	if !ok {
 		m.fail(entry.Name, fmt.Errorf("плагин %q не зарегистрирован", entry.Plugin))
@@ -414,23 +465,57 @@ func (s SourceEntry) interval() time.Duration {
 	return d
 }
 
-// Plugin returns a manifest by name.
+// Statuses is every source's state at once, which is what a dialog listing
+// them needs: one call rather than one per row.
+func (m *Manager) Statuses() []Status {
+	m.mu.RLock()
+	entries := append([]SourceEntry(nil), m.cfg.Sources...)
+	m.mu.RUnlock()
+
+	out := make([]Status, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, m.Status(entry.Name))
+	}
+	return out
+}
+
+// Plugin returns a manifest by name. What a person typed into the registry
+// wins over a file dropped in the manifests directory: it is more likely to be
+// what they meant.
 func (m *Manager) Plugin(name string) (Manifest, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	for _, p := range m.cfg.Plugins {
-		if strings.EqualFold(p.Name, name) {
-			return p, true
+	for _, list := range [][]Manifest{m.cfg.Plugins, m.catalog} {
+		for _, p := range list {
+			if strings.EqualFold(p.Name, name) {
+				return p, true
+			}
 		}
 	}
 	return Manifest{}, false
 }
 
-// Plugins returns a snapshot of the manifests.
+// Plugins returns every manifest there is, the registry's and the catalogue's,
+// which is what the dialog offers when a source is being made.
 func (m *Manager) Plugins() []Manifest {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	return append([]Manifest(nil), m.cfg.Plugins...)
+	out := append([]Manifest(nil), m.cfg.Plugins...)
+	for _, p := range m.catalog {
+		if !hasManifest(out, p.Name) {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+func hasManifest(list []Manifest, name string) bool {
+	for _, p := range list {
+		if strings.EqualFold(p.Name, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // AddPlugin registers a manifest.

@@ -103,7 +103,7 @@ func fakeMCPManifest(mode string) Manifest {
 		Env:     map[string]string{mcpModeEnv: mode},
 		MCP: &MCPSpec{
 			Tool:      "list_my_cards",
-			Arguments: map[string]string{"boardId": "{{.Config.boardId}}", "mine": "true"},
+			Arguments: map[string]string{"boardId": "{{.Config.boardId}}", "mine": "true", "column": "3 очередь"},
 			ItemsAt:   "cards",
 			Item: ItemTemplate{
 				ID:      "{{.id}}",
@@ -205,13 +205,19 @@ func TestTheToolIsCalledWithWhatTheSourceWasConfiguredWith(t *testing.T) {
 	if err := json.Unmarshal(first.Raw, &row); err != nil {
 		t.Fatal(err)
 	}
-	// A number typed into a form is a string, and a tool that declared a number
-	// refuses a string — so what looks like a number is sent as one.
+	// A form has only strings in it, and an MCP tool is schema-checked on the
+	// server's side — "77" where a number was declared is a refusal, not a
+	// coercion. So what looks like a number or a boolean is sent as one.
 	if row.Arguments["boardId"] != float64(77) {
 		t.Fatalf("boardId: %#v", row.Arguments["boardId"])
 	}
-	if row.Arguments["mine"] != "true" {
-		t.Fatalf("arguments: %+v", row.Arguments)
+	if row.Arguments["mine"] != true {
+		t.Fatalf("mine: %#v", row.Arguments["mine"])
+	}
+	// And everything else stays the string it was, including what merely starts
+	// with a digit.
+	if row.Arguments["column"] != "3 очередь" {
+		t.Fatalf("column: %#v", row.Arguments["column"])
 	}
 }
 

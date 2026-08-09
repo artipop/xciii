@@ -53,6 +53,12 @@ func (f *fakePlugin) Close() {
 	f.closed = true
 }
 
+func (f *fakePlugin) isClosed() bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.closed
+}
+
 func (f *fakePlugin) pollCount() int {
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -317,4 +323,48 @@ func waitFor(t *testing.T, cond func() bool) {
 		time.Sleep(5 * time.Millisecond)
 	}
 	t.Fatal("не дождались")
+}
+
+// A source that has just been added has to start now. "Add the source, then
+// restart the app" is not a feature that works, and the same goes for a token
+// pasted a minute after the source was made — which is the ordinary order,
+// since a token is fetched from the service in another window.
+func TestASourceAddedWhileRunningStartsWithoutARestart(t *testing.T) {
+	fake := &fakePlugin{caps: plugin.Capabilities{Poll: true}}
+	m, _ := runnerManager(t, SourceEntry{
+		Name: "уже был", Plugin: "телефон-плагин", BoardID: "board1", Enabled: true,
+		IntervalSeconds: 60,
+	}, fake)
+
+	m.Start(context.Background())
+	defer m.Stop(time.Second)
+
+	added := pluginSource()
+	added.Name = "новый"
+	if _, err := m.AddSource(added); err != nil {
+		t.Fatal(err)
+	}
+
+	// Both are the same fake, so what is being watched is the *second* dial:
+	// one poll is the source that was there, two is the one just added.
+	waitFor(t, func() bool { return fake.pollCount() >= 2 })
+	if got := m.Status("новый").State; got != StateRunning {
+		t.Fatalf("state: %q", got)
+	}
+}
+
+// Removing a source stops its process: an entry nobody can see must not leave
+// something running that keeps writing cards.
+func TestRemovingASourceStopsIt(t *testing.T) {
+	fake := &fakePlugin{caps: plugin.Capabilities{Poll: true}}
+	m, _ := runnerManager(t, pluginSource(), fake)
+
+	m.Start(context.Background())
+	defer m.Stop(time.Second)
+	waitFor(t, func() bool { return fake.pollCount() >= 1 })
+
+	if err := m.RemoveSource("телефон"); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, func() bool { return fake.isClosed() })
 }
