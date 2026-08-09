@@ -26,12 +26,11 @@ const (
 // Actions lists every accepted action, in the order the UI offers them.
 var Actions = []string{ActionCard, ActionComment, ActionDrop}
 
-// DefaultProperty is the card property columns live in, the same default the
-// agent integration uses.
-const DefaultProperty = "Status"
-
-// DefaultInbox is where an item that matched no rule lands on a source that is
-// not noisy.
+// DefaultInbox is the column an item lands in when no rule sent it anywhere
+// else. There is no matching default for the *property* those columns belong
+// to: that one is asked of the board (BoardWriter.ColumnProperty), because a
+// constant here was "Status" while every board this app ships says «Статус»,
+// and the mismatch filed nothing anywhere.
 const DefaultInbox = "Входящие"
 
 // Match is what a rule looks at. An empty Match matches everything, which is
@@ -151,12 +150,10 @@ func (s SourceEntry) OfferedOn(boardID string) bool {
 	return s.BoardID == boardID
 }
 
-// PropertyOr is the column property this source writes to.
-func (s SourceEntry) PropertyOr() string {
-	if p := strings.TrimSpace(s.Property); p != "" {
-		return p
-	}
-	return DefaultProperty
+// PinnedProperty is the column property this source was told to write to, or
+// empty to let the board answer for itself.
+func (s SourceEntry) PinnedProperty() string {
+	return strings.TrimSpace(s.Property)
 }
 
 // InboxOr is the column an unmatched item lands in.

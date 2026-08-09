@@ -22,6 +22,11 @@ type fakeBoard struct {
 	moves    []string // "cardID:property:column"
 	nextID   int
 	failNext error
+
+	// property is what the board answers when asked what its columns are. The
+	// Russian name is the point: a board of this app's own says «Статус», and
+	// the pipeline used to assume "Status" and miss every column.
+	property string
 }
 
 func (f *fakeBoard) CreateCard(_ context.Context, boardID string, spec CardSpec) (string, error) {
@@ -50,6 +55,15 @@ func (f *fakeBoard) MoveCardByOptionName(_ context.Context, cardID, property, co
 	defer f.mu.Unlock()
 	f.moves = append(f.moves, cardID+":"+property+":"+column)
 	return nil
+}
+
+func (f *fakeBoard) ColumnProperty(_ context.Context, _ string) (string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.property == "" {
+		return "Статус", nil
+	}
+	return f.property, nil
 }
 
 // The readers a test uses. Snapshots rather than the slices themselves, so a
@@ -136,7 +150,9 @@ func TestAnItemBecomesACardInTheColumnItsRuleNames(t *testing.T) {
 	}
 	// The move is what the automation sees: a card created straight into a
 	// working column would start nothing, because the trigger fires on a change.
-	if len(board.moveLines()) != 1 || board.moveLines()[0] != "card1:Status:Сегодня" {
+	// The property is the board's own answer, not a constant: this board calls
+	// its columns «Статус», and a source that assumed "Status" moved nothing.
+	if len(board.moveLines()) != 1 || board.moveLines()[0] != "card1:Статус:Сегодня" {
 		t.Fatalf("moves: %+v", board.moveLines())
 	}
 }
@@ -222,8 +238,26 @@ func TestOnAQuietSourceWhatMatchedNothingGoesToTheInbox(t *testing.T) {
 	if res.Created != 1 || len(board.moveLines()) != 1 {
 		t.Fatalf("result: %+v, moves: %+v", res, board.moveLines())
 	}
-	if board.moveLines()[0] != "card1:Status:Входящие" {
+	if board.moveLines()[0] != "card1:Статус:Входящие" {
 		t.Fatalf("it should have gone to the inbox: %+v", board.moveLines())
+	}
+}
+
+// A source may pin the property its columns live in, and then the board is not
+// asked. This is the only way a board whose columns are not what it groups by
+// can be fed at all.
+func TestAPinnedColumnPropertyWinsOverTheBoard(t *testing.T) {
+	entry := phoneSource()
+	entry.Property = "Этап"
+	m, board, _ := testManager(t, entry)
+
+	if _, err := m.Deliver(context.Background(), "телефон", []Item{{
+		ExternalID: "n1", Title: "Доставка", Props: map[string]string{"app": "delivery"},
+	}}); err != nil {
+		t.Fatal(err)
+	}
+	if len(board.moveLines()) != 1 || board.moveLines()[0] != "card1:Этап:Сегодня" {
+		t.Fatalf("moves: %+v", board.moveLines())
 	}
 }
 

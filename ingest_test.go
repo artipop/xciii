@@ -27,6 +27,9 @@ func (b *recordingBoard) AddComment(context.Context, string, string) error { ret
 func (b *recordingBoard) MoveCardByOptionName(context.Context, string, string, string) error {
 	return nil
 }
+func (b *recordingBoard) ColumnProperty(context.Context, string) (string, error) {
+	return "Статус", nil
+}
 
 const testToken = "test-token"
 

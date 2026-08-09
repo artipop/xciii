@@ -89,3 +89,36 @@ func TestAppendContentOrder(t *testing.T) {
 		t.Fatalf("the original order was mutated: %+v", fields["contentOrder"])
 	}
 }
+
+// Which property is "the columns" is the board's answer, not a constant: the
+// boards this app ships call it «Статус» and the upstream ones "Status", so a
+// source that assumed either name filed nothing on half the boards there are.
+func TestTheColumnPropertyIsWhatTheBoardGroupsBy(t *testing.T) {
+	board := testBoard()
+	board.CardProperties = append(board.CardProperties, map[string]any{
+		"id": "prop-stage", "name": "Этап", "type": "select",
+		"options": []any{map[string]any{"id": "opt-inbox", "value": "Входящие"}},
+	})
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	view := &model.Block{Type: model.TypeView, Fields: map[string]any{"groupById": "prop-stage"}}
+	if name, ok := columnPropertyName(board, schema, []*model.Block{view}); !ok || name != "Этап" {
+		t.Fatalf("got %q, ok=%v", name, ok)
+	}
+
+	// A board whose views group by nothing falls back to its first select
+	// property, in the board's own order — which is what a new kanban view
+	// would have grouped by anyway.
+	if name, ok := columnPropertyName(board, schema, nil); !ok || name != "Status" {
+		t.Fatalf("fallback: got %q, ok=%v", name, ok)
+	}
+
+	// Grouping by a text property is not grouping by a column.
+	byText := &model.Block{Type: model.TypeView, Fields: map[string]any{"groupById": "prop-project"}}
+	if name, ok := columnPropertyName(board, schema, []*model.Block{byText}); !ok || name != "Status" {
+		t.Fatalf("a text property is not a column: got %q, ok=%v", name, ok)
+	}
+}

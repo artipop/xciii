@@ -112,6 +112,58 @@ func (w *Writer) MoveCardByOptionName(ctx context.Context, cardID, propertyName,
 	return err
 }
 
+// ColumnProperty is the name of the property whose options are this board's
+// columns. It is asked of the board rather than assumed, because a constant
+// default can only ever be right for boards in one language: ours say
+// «Статус», the upstream templates say "Status", and a source pointed at the
+// wrong name files nothing anywhere.
+//
+// The answer is the property the board itself groups by — what a person sees as
+// the columns — and a board whose views group by nothing falls back to its
+// first select property, which is what a kanban view would have picked too.
+func (w *Writer) ColumnProperty(ctx context.Context, boardID string) (string, error) {
+	board, err := w.app.GetBoard(boardID)
+	if err != nil {
+		return "", fmt.Errorf("get board %s: %w", boardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return "", err
+	}
+	views, err := w.app.GetBlocks(boardID, boardID, model.TypeView)
+	if err != nil {
+		return "", fmt.Errorf("get views of board %s: %w", boardID, err)
+	}
+	name, ok := columnPropertyName(board, schema, views)
+	if !ok {
+		return "", fmt.Errorf("на доске %s нет свойства-колонок", boardID)
+	}
+	return name, nil
+}
+
+// columnPropertyName picks the property whose options a person reads as the
+// board's columns: what a view groups by, or failing that the board's first
+// select property, which is what a new kanban view would have grouped by too.
+func columnPropertyName(board *model.Board, schema model.PropSchema, views []*model.Block) (string, bool) {
+	for _, view := range views {
+		groupBy, _ := view.Fields["groupById"].(string)
+		if def, ok := schema[groupBy]; ok && def.Type == "select" {
+			return def.Name, true
+		}
+	}
+	// CardProperties keeps the board's own order and schema is a map, so the
+	// fallback is read off the ordered half — otherwise "the first select
+	// property" would be a different one on every call.
+	for _, prop := range board.CardProperties {
+		if id, ok := prop["id"].(string); ok {
+			if def, ok := schema[id]; ok && def.Type == "select" {
+				return def.Name, true
+			}
+		}
+	}
+	return "", false
+}
+
 // findSelectOption resolves a (property name, option name) pair to the ids the
 // card actually stores. Matching is case-insensitive, like the trigger columns.
 func findSelectOption(schema model.PropSchema, propertyName, optionName string) (propID, optionID string, ok bool) {

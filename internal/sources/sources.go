@@ -71,4 +71,10 @@ type BoardWriter interface {
 	CreateCard(ctx context.Context, boardID string, spec CardSpec) (string, error)
 	AddComment(ctx context.Context, cardID, text string) error
 	MoveCardByOptionName(ctx context.Context, cardID, propertyName, optionName string) error
+
+	// ColumnProperty names the property whose options are the board's columns.
+	// The pipeline asks rather than assumes: a board of ours says «Статус» and
+	// an upstream one says "Status", and a constant would be wrong for one of
+	// them.
+	ColumnProperty(ctx context.Context, boardID string) (string, error)
 }

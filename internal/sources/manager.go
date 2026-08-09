@@ -296,13 +296,32 @@ func (m *Manager) createCard(ctx context.Context, entry SourceEntry, it Item, re
 	if column == "" {
 		return nil
 	}
+	property, err := m.columnProperty(wctx, entry)
+	if err != nil {
+		return err
+	}
 	// The move, not the creation, is what the automation sees: the trigger
 	// fires on a change of the column property, and a card created straight
 	// into a working column starts nothing.
-	if err := m.writer.MoveCardByOptionName(wctx, cardID, entry.PropertyOr(), column); err != nil {
+	if err := m.writer.MoveCardByOptionName(wctx, cardID, property, column); err != nil {
 		return fmt.Errorf("перенос карточки %s в колонку %q: %w", cardID, column, err)
 	}
 	return nil
+}
+
+// columnProperty is the property this source's columns live in: what the entry
+// pins, or what the board itself says. Asking the board is the default because
+// no constant can be right for both a board that calls it «Статус» and one that
+// calls it "Status".
+func (m *Manager) columnProperty(ctx context.Context, entry SourceEntry) (string, error) {
+	if pinned := entry.PinnedProperty(); pinned != "" {
+		return pinned, nil
+	}
+	property, err := m.writer.ColumnProperty(ctx, entry.BoardID)
+	if err != nil {
+		return "", fmt.Errorf("свойство колонок доски %s: %w", entry.BoardID, err)
+	}
+	return property, nil
 }
 
 func setIfAbsent(props map[string]string, name, value string) {
