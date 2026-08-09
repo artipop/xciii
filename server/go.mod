@@ -116,3 +116,9 @@ require (
 	modernc.org/strutil v1.2.0 // indirect
 	modernc.org/token v1.1.0 // indirect
 )
+
+// See the note in the root go.mod: v2.0.3+incompatible is a 2019 tag that
+// outranks the live v1.14.x line under minimal version selection, so it has to
+// be replaced rather than upgraded. Kept here too so this module builds and
+// tests on the same driver as the app that embeds it.
+replace github.com/mattn/go-sqlite3 => github.com/mattn/go-sqlite3 v1.14.49

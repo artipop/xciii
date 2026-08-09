@@ -12,6 +12,16 @@ go 1.26.5
 // machine. A repository that cannot be cloned and built is not a project.
 replace github.com/mattermost/focalboard/server => ./server
 
+// mattn/go-sqlite3 v2.0.3 is a tag its author retracted in practice: the module
+// never declared a /v2 path, so Go treats it as +incompatible, and the code
+// behind it is from 2019 — older than everything on the live v1.14.x line. It
+// reaches us from upstream (focalboard/server and mattermost/server/v8 both
+// require it), and because +incompatible sorts above v1.14.x, minimal version
+// selection keeps choosing it and `go get -u` cannot move off it. Only a
+// replace can. We use the driver through database/sql alone — every import of
+// it in this tree is blank — so the version is free to move.
+replace github.com/mattn/go-sqlite3 => github.com/mattn/go-sqlite3 v1.14.49
+
 require (
 	github.com/aymanbagabas/go-pty v0.2.3
 	github.com/coder/acp-go-sdk v0.13.5
