@@ -332,9 +332,19 @@ func (p Manifest) Validate() (Manifest, error) {
 	return p, nil
 }
 
-// Argv is the command to start, ready for the process group.
-func (p Manifest) Argv() []string {
-	return append([]string{p.Command}, p.Args...)
+// Argv is the command to start, ready for the process group. SelfCommand is
+// resolved here — a manifest this app ships names the app itself, and where
+// that is, is only known at run time.
+func (p Manifest) Argv() ([]string, error) {
+	command := p.Command
+	if command == SelfCommand {
+		self, err := os.Executable()
+		if err != nil {
+			return nil, fmt.Errorf("плагин %q: не удалось найти путь к приложению: %w", p.Name, err)
+		}
+		command = self
+	}
+	return append([]string{command}, p.Args...), nil
 }
 
 func contains(list []string, value string) bool {

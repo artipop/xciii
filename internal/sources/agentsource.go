@@ -187,10 +187,14 @@ func (c *agentConn) Poll(ctx context.Context, _ string) (plugin.PollResult, erro
 				env[tokenEnv] = cred.Access
 			}
 		}
+		argv, err := c.manifest.Argv()
+		if err != nil {
+			return plugin.PollResult{}, err
+		}
 		servers = append(servers, AgentServer{
 			Name:    c.manifest.Name,
-			Command: c.manifest.Command,
-			Args:    c.manifest.Args,
+			Command: argv[0],
+			Args:    argv[1:],
 			Env:     env,
 		})
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -291,8 +292,59 @@ func TestAManifestHasToBeStartable(t *testing.T) {
 	if got.Fields[0].Type != "string" {
 		t.Errorf("a field with no type is text: %+v", got.Fields[0])
 	}
-	if argv := got.Argv(); len(argv) != 3 || argv[0] != "npx" {
-		t.Errorf("argv: %+v", argv)
+	argv, err := got.Argv()
+	if err != nil || len(argv) != 3 || argv[0] != "npx" {
+		t.Errorf("argv: %+v, err %v", argv, err)
+	}
+}
+
+// A manifest this app ships names the app itself rather than a path: a
+// packaged app has no checkout to point at, and nobody adding a source should
+// be asked where the program they are using lives.
+func TestAShippedManifestStartsThisApplication(t *testing.T) {
+	argv, err := Manifest{Name: "kaiten", Command: SelfCommand, Args: []string{"mcp", "kaiten"}}.Argv()
+	if err != nil {
+		t.Fatal(err)
+	}
+	self, err := os.Executable()
+	if err != nil {
+		t.Skip("не удалось определить путь к тестовому бинарю")
+	}
+	if len(argv) != 3 || argv[0] != self || argv[1] != "mcp" {
+		t.Fatalf("argv: %+v", argv)
+	}
+}
+
+// Kaiten is in the dialog on the first run, with nothing installed and no path
+// typed: that is the whole point of shipping a manifest.
+func TestTheShippedManifestsAreOfferedWithoutAnyFiles(t *testing.T) {
+	m, _ := runnerManager(t, pluginSource(), &fakePlugin{})
+	m.SetCatalog(nil)
+
+	var kaiten *Manifest
+	for _, manifest := range m.Plugins() {
+		if manifest.Name == "kaiten" {
+			found := manifest
+			kaiten = &found
+		}
+	}
+	if kaiten == nil {
+		t.Fatal("Kaiten должен предлагаться из коробки")
+	}
+	if kaiten.Auth == nil || kaiten.Auth.Type != "token" {
+		t.Fatalf("диалог должен спросить токен: %+v", kaiten.Auth)
+	}
+	// The fields the dialog builds its form from: without the site there is
+	// nothing to ask, since every Kaiten lives at its owner's own address.
+	names := map[string]bool{}
+	for _, field := range kaiten.Fields {
+		names[field.Key] = true
+	}
+	if !names["site"] || !names["boardId"] {
+		t.Fatalf("поля: %+v", kaiten.Fields)
+	}
+	if _, err := kaiten.MCPOr().Validate(); err != nil {
+		t.Fatalf("отображение: %v", err)
 	}
 }
 

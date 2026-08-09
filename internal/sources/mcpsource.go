@@ -133,8 +133,12 @@ func dialMCP(ctx context.Context, entry SourceEntry, manifest Manifest, cred plu
 		env[strings.TrimSpace(manifest.TokenEnv)] = cred.AccessToken
 	}
 
+	argv, err := manifest.Argv()
+	if err != nil {
+		return nil, err
+	}
 	client, err := mcp.Dial(ctx, mcp.Spec{
-		Command:    manifest.Argv(),
+		Command:    argv,
 		Dir:        manifest.Dir,
 		Env:        envList(env),
 		ClientName: "XCIII",

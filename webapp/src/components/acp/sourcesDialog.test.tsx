@@ -89,6 +89,11 @@ describe('components/acp/sourcesDialog', () => {
         expect(sent.plugin).toBe('kaiten')
         expect(sent.config).toEqual({boardId: '77'})
 
+        // A plugin fetches a list somebody asked for, so what it brings is
+        // wanted: with the noisy default left on and no rules written yet,
+        // every card would be dropped instead of filed.
+        expect(sent.noisy).toBe(false)
+
         // Stored against the source's name, and after it exists.
         await waitFor(() => expect(SetSourceCredential).toHaveBeenCalledWith('kaiten', 'kaiten-secret'))
 

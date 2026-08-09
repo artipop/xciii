@@ -364,6 +364,13 @@ const SourcesDialog = (props: Props) => {
                             onChange={(e) => {
                                 setPlugin(e.currentTarget.value)
                                 setConfig({})
+
+                                // A plugin fetches a list somebody asked for —
+                                // the cards assigned to them — so everything it
+                                // brings is wanted and the unmatched belongs in
+                                // the inbox. Only a stream nobody curated (a
+                                // phone's notifications) is noise by default.
+                                setNoisy(!e.currentTarget.value)
                             }}
                         >
                             <option value=''>

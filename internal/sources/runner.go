@@ -99,8 +99,12 @@ func dialPlugin(ctx context.Context, entry SourceEntry, manifest Manifest, cred 
 	if err != nil {
 		return nil, err
 	}
+	argv, err := manifest.Argv()
+	if err != nil {
+		return nil, err
+	}
 	return plugin.Dial(ctx, plugin.Spec{
-		Command:     manifest.Argv(),
+		Command:     argv,
 		Dir:         manifest.Dir,
 		Env:         envList(env),
 		Source:      plugin.SourceInfo{Name: entry.Name, Config: entry.Config},

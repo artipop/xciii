@@ -1,6 +1,7 @@
 package sources
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -8,6 +9,21 @@ import (
 	"sort"
 	"strings"
 )
+
+// Manifests this app ships. A service somebody else wrote an MCP server for is
+// a file in the data directory; a service *this* app carries a server for is a
+// file here, so it is in the dialog from the first run with nothing to install,
+// no path to type and no runtime to have. Today that is Kaiten (see
+// internal/sources/kaiten): its command is this binary re-invoked, which is
+// what SelfCommand stands for.
+//
+//go:embed manifests/*.json
+var builtinManifests embed.FS
+
+// SelfCommand is what a manifest writes instead of a path to this application.
+// A packaged app has no checkout to point at, and a person adding a source
+// should not be asked where the app they are using lives.
+const SelfCommand = "$self"
 
 // Where manifests come from.
 //
@@ -29,6 +45,39 @@ import (
 // ManifestsDir is where manifests are read from, under the sources data
 // directory.
 const ManifestsDir = "manifests"
+
+// Builtin returns the manifests this app ships. A file that does not validate
+// is a bug in this repository rather than in somebody's data directory, so it
+// is reported the same way and skipped the same way: the app has to come up.
+func Builtin() ([]Manifest, []error) {
+	entries, err := builtinManifests.ReadDir("manifests")
+	if err != nil {
+		return nil, []error{err}
+	}
+	var (
+		out  []Manifest
+		errs []error
+	)
+	for _, entry := range entries {
+		raw, err := builtinManifests.ReadFile("manifests/" + entry.Name())
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", entry.Name(), err))
+			continue
+		}
+		var manifest Manifest
+		if err := json.Unmarshal(raw, &manifest); err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", entry.Name(), err))
+			continue
+		}
+		valid, err := manifest.Validate()
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", entry.Name(), err))
+			continue
+		}
+		out = append(out, valid)
+	}
+	return out, errs
+}
 
 // LoadManifests reads every *.json in dir. A file that cannot be read or does
 // not validate is reported and skipped, never fatal: one bad manifest must not
@@ -78,9 +127,19 @@ func LoadManifests(dir string) ([]Manifest, []error) {
 	return out, errs
 }
 
-// SetCatalog hands over the manifests read from the manifests directory.
+// SetCatalog hands over the manifests read from the manifests directory. What
+// this app ships is added underneath them, so a file somebody wrote wins over a
+// built-in one of the same name — the way to change what a shipped manifest
+// does is to write your own beside it.
 func (m *Manager) SetCatalog(manifests []Manifest) {
+	own, _ := Builtin()
+	catalog := append([]Manifest(nil), manifests...)
+	for _, manifest := range own {
+		if !hasManifest(catalog, manifest.Name) {
+			catalog = append(catalog, manifest)
+		}
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.catalog = append([]Manifest(nil), manifests...)
+	m.catalog = catalog
 }

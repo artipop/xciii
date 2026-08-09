@@ -16,6 +16,7 @@ import (
 	"github.com/artipop/xciii/internal/dokku"
 	"github.com/artipop/xciii/internal/sources"
 	"github.com/artipop/xciii/internal/sources/inbox"
+	"github.com/artipop/xciii/internal/sources/kaiten"
 )
 
 // maybeRunMCP handles `<binary> mcp <server>`: the same executable doubles as
@@ -28,7 +29,7 @@ func maybeRunMCP(args []string) {
 		return
 	}
 	if len(args) < 2 {
-		fmt.Fprintf(os.Stderr, "usage: xciii mcp %s|%s\n", dokku.ServerName, inbox.ServerName)
+		fmt.Fprintf(os.Stderr, "usage: xciii mcp %s|%s|%s\n", dokku.ServerName, inbox.ServerName, kaiten.ServerName)
 		os.Exit(2)
 	}
 	var err error
@@ -37,8 +38,11 @@ func maybeRunMCP(args []string) {
 		err = runDokkuMCP()
 	case inbox.ServerName:
 		err = runInboxMCP()
+	case kaiten.ServerName:
+		err = runKaitenMCP()
 	default:
-		fmt.Fprintf(os.Stderr, "неизвестный MCP-сервер %q (есть %q и %q)\n", args[1], dokku.ServerName, inbox.ServerName)
+		fmt.Fprintf(os.Stderr, "неизвестный MCP-сервер %q (есть %q, %q и %q)\n",
+			args[1], dokku.ServerName, inbox.ServerName, kaiten.ServerName)
 		os.Exit(2)
 	}
 	if err != nil {
@@ -56,6 +60,16 @@ func runInboxMCP() error {
 		BaseURL: os.Getenv(sources.EnvInboxURL),
 		Source:  os.Getenv(sources.EnvInboxSource),
 		Token:   os.Getenv(sources.EnvInboxToken),
+	})
+}
+
+// runKaitenMCP is the source side of Kaiten: one tool, the cards assigned to
+// whoever the token belongs to. The site and the token arrive in the
+// environment, from the fields the source dialog asked for.
+func runKaitenMCP() error {
+	return kaiten.ServeStdio(context.Background(), kaiten.Config{
+		Site:  os.Getenv(kaiten.EnvSite),
+		Token: os.Getenv(kaiten.EnvToken),
 	})
 }
 
