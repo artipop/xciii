@@ -240,6 +240,22 @@ func findOptionByName(schema model.PropSchema, optionName string) (propID, optio
 	return "", "", false
 }
 
+// boardViews is every view of a board.
+//
+// Asked for by board and *not* by parent, which is the obvious way to ask and
+// the wrong one: a board made from a template keeps the template's board id in
+// its views' parentId, so "the views whose parent is this board" misses every
+// view a template brought — which is all of them on most boards here. That is
+// what hid the kanban from the inbox code: it looked for views, found none, and
+// carried on having done nothing.
+func (w *Writer) boardViews(boardID string) ([]*model.Block, error) {
+	views, err := w.app.GetBlocks(boardID, "", model.TypeView)
+	if err != nil {
+		return nil, fmt.Errorf("get views of board %s: %w", boardID, err)
+	}
+	return views, nil
+}
+
 // ColumnProperty is the name of the property whose options are this board's
 // columns. It is asked of the board rather than assumed, because a constant
 // default can only ever be right for boards in one language: ours say
@@ -258,9 +274,9 @@ func (w *Writer) ColumnProperty(ctx context.Context, boardID string) (string, er
 	if err != nil {
 		return "", err
 	}
-	views, err := w.app.GetBlocks(boardID, boardID, model.TypeView)
+	views, err := w.boardViews(boardID)
 	if err != nil {
-		return "", fmt.Errorf("get views of board %s: %w", boardID, err)
+		return "", err
 	}
 	name, ok := columnPropertyName(board, schema, views)
 	if !ok {
@@ -349,7 +365,9 @@ const InboxViewTitle = "Входящие"
 // The view is where the inbox lives for a person. The sidebar already lists a
 // board's views underneath it, so a filtered view is the inbox in the one place
 // a person looks for a part of a board — beside the calendar and the table,
-// rather than as a column in the middle of the work.
+// rather than as a column in the middle of the work. The column is hidden from
+// the kanban for the same reason: it is where a card stands, not where anybody
+// reads it.
 func (w *Writer) EnsureInbox(ctx context.Context, boardID, propertyName, optionName string) (string, error) {
 	optionID, err := w.EnsureColumn(ctx, boardID, propertyName, optionName)
 	if err != nil {
@@ -368,7 +386,72 @@ func (w *Writer) EnsureInbox(ctx context.Context, boardID, propertyName, optionN
 		// the log and not the card.
 		return optionID, fmt.Errorf("вид «%s» на доске %s: %w", InboxViewTitle, boardID, err)
 	}
+	// And off the kanban, where it is not the person's entry point: what has
+	// arrived is read in the view, and a column of unread things standing in
+	// the middle of the work is what the view exists instead of. The column
+	// itself has to stay — a card stands in one, and the automation fires on a
+	// change of it — so it is hidden rather than avoided.
+	if err := w.hideFromKanban(boardID, optionID); err != nil {
+		return optionID, fmt.Errorf("скрыть колонку «%s» на доске %s: %w", optionName, boardID, err)
+	}
 	return optionID, nil
+}
+
+// hideFromKanban takes one column out of every kanban view of a board, without
+// touching the rest of their order.
+//
+// A group named in neither list is drawn (webapp/src/boardUtils.ts), so hiding
+// is naming it in hiddenOptionIds — and taking it out of visibleOptionIds,
+// where a board made from an older template still has it.
+func (w *Writer) hideFromKanban(boardID, optionID string) error {
+	views, err := w.boardViews(boardID)
+	if err != nil {
+		return err
+	}
+	for _, view := range views {
+		if viewType, _ := view.Fields["viewType"].(string); viewType != "board" {
+			continue
+		}
+		visible, hadVisible := withoutOption(view.Fields["visibleOptionIds"], optionID)
+		hidden, hadHidden := withOption(view.Fields["hiddenOptionIds"], optionID)
+		if !hadVisible && hadHidden {
+			continue
+		}
+		patch := &model.BlockPatch{UpdatedFields: map[string]any{
+			"visibleOptionIds": visible,
+			"hiddenOptionIds":  hidden,
+		}}
+		if _, err := w.app.PatchBlockAndNotify(view.ID, patch, model.SingleUser, true); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// withoutOption is the list with the option taken out, and whether it was
+// there; withOption is the list with it put in, and whether it already was.
+func withoutOption(raw any, optionID string) ([]any, bool) {
+	list, _ := raw.([]any)
+	out := make([]any, 0, len(list))
+	found := false
+	for _, item := range list {
+		if id, ok := item.(string); ok && id == optionID {
+			found = true
+			continue
+		}
+		out = append(out, item)
+	}
+	return out, found
+}
+
+func withOption(raw any, optionID string) ([]any, bool) {
+	list, _ := raw.([]any)
+	for _, item := range list {
+		if id, ok := item.(string); ok && id == optionID {
+			return list, true
+		}
+	}
+	return append(append([]any{}, list...), optionID), false
 }
 
 // AuthorPropertyTitle is what the board calls "who made this card". It is the
@@ -455,9 +538,9 @@ func (w *Writer) ensureInboxView(boardID, propertyName, optionID, authorID strin
 		return fmt.Errorf("нет свойства %q", propertyName)
 	}
 
-	views, err := w.app.GetBlocks(boardID, boardID, model.TypeView)
+	views, err := w.boardViews(boardID)
 	if err != nil {
-		return fmt.Errorf("get views: %w", err)
+		return err
 	}
 	for _, view := range views {
 		if !strings.EqualFold(view.Title, InboxViewTitle) {

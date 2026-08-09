@@ -399,7 +399,11 @@ Where a person meets the inbox, though, is **a view of the board and not a
 column of it** (`boardadapter.Writer.EnsureInbox`): a table filtered to that
 column, called «Входящие», which the sidebar lists under the board beside its
 other views. That is where somebody looks for a part of a board, and it keeps
-what nobody has read yet out of the middle of the work. A board with no source
+what nobody has read yet out of the middle of the work — which is also why the
+column itself is hidden from the kanban (`hideFromKanban`, and
+`hiddenOptionIds` in the templates). The column has to exist, since a card
+stands in one and the automation fires on a change of it; it just is not where
+anybody reads. A board with no source
 gets neither the column nor the view, because nothing arrives on it.
 
 The inbox is **grouped by what brought the card**, and that needs no property of

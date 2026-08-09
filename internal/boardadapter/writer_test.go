@@ -207,3 +207,33 @@ func TestFindCardProperty(t *testing.T) {
 		t.Fatal("a property the board does not have must not resolve")
 	}
 }
+
+// The inbox column has to exist — a card stands in a column, and the automation
+// fires on a change of one — but it is not where anybody reads what arrived, so
+// it is taken off the kanban. A group named in neither list is drawn, so hiding
+// it means naming it in the hidden one and taking it out of the visible one.
+func TestHidingAColumnFromTheKanban(t *testing.T) {
+	visible, wasVisible := withoutOption([]any{"opt-inbox", "opt-todo"}, "opt-inbox")
+	if !wasVisible || len(visible) != 1 || visible[0] != "opt-todo" {
+		t.Fatalf("visible: %+v, was there: %v", visible, wasVisible)
+	}
+
+	hidden, wasHidden := withOption([]any{}, "opt-inbox")
+	if wasHidden || len(hidden) != 1 || hidden[0] != "opt-inbox" {
+		t.Fatalf("hidden: %+v, was there: %v", hidden, wasHidden)
+	}
+
+	// Already hidden: the lists come back untouched, which is what keeps the
+	// check from writing to every board on every delivery.
+	if _, wasVisible := withoutOption([]any{"opt-todo"}, "opt-inbox"); wasVisible {
+		t.Fatal("a column that is not visible was not taken out of anything")
+	}
+	if again, wasHidden := withOption(hidden, "opt-inbox"); !wasHidden || len(again) != 1 {
+		t.Fatalf("hiding twice: %+v, was there: %v", again, wasHidden)
+	}
+
+	// A view that has never been touched has no lists at all.
+	if list, found := withoutOption(nil, "opt-inbox"); found || len(list) != 0 {
+		t.Fatalf("empty view: %+v, found %v", list, found)
+	}
+}
