@@ -32,6 +32,11 @@ func StoreTestBlocksStore(t *testing.T, setup func(t *testing.T) (store.Store, f
 		defer tearDown()
 		testInsertBlocks(t, store)
 	})
+	t.Run("MoveBlocksToBoard", func(t *testing.T) {
+		store, tearDown := setup(t)
+		defer tearDown()
+		testMoveBlocksToBoard(t, store)
+	})
 	t.Run("PatchBlock", func(t *testing.T) {
 		store, tearDown := setup(t)
 		defer tearDown()
@@ -343,6 +348,54 @@ func testInsertBlocks(t *testing.T, store store.Store) {
 		// no blocks should have been inserted
 		require.Len(t, blocks, initialCount)
 	})
+}
+
+// A card carried to another board keeps its id, and so keeps everything that
+// refers to it by id. Re-inserting the blocks under the new board would have
+// looked like the same thing and done nothing at all: the update behind
+// InsertBlock matches on id *and* board_id.
+func testMoveBlocksToBoard(t *testing.T, store store.Store) {
+	userID := testUserID
+	fromBoardID := "board-from"
+	toBoardID := "board-to"
+
+	card := &model.Block{ID: "card-1", BoardID: fromBoardID, Type: model.TypeCard, Title: "письмо"}
+	text := &model.Block{ID: "text-1", BoardID: fromBoardID, ParentID: "card-1", Type: model.TypeText, Title: "тело"}
+	other := &model.Block{ID: "card-2", BoardID: fromBoardID, Type: model.TypeCard, Title: "не трогать"}
+	require.NoError(t, store.InsertBlocks([]*model.Block{card, text, other}, userID))
+
+	require.NoError(t, store.MoveBlocksToBoard([]string{card.ID, text.ID}, toBoardID, userID))
+
+	moved, err := store.GetBlocksForBoard(toBoardID)
+	require.NoError(t, err)
+	require.Len(t, moved, 2)
+	for _, block := range moved {
+		require.Equal(t, toBoardID, block.BoardID)
+		require.Equal(t, userID, block.ModifiedBy)
+	}
+
+	// The card's content came with it, and the board's other cards stayed.
+	left, err := store.GetBlocksForBoard(fromBoardID)
+	require.NoError(t, err)
+	require.Len(t, left, 1)
+	require.Equal(t, other.ID, left[0].ID)
+
+	// The block is still the same block, by the id everything outside the
+	// board remembers it by.
+	found, err := store.GetBlock(card.ID)
+	require.NoError(t, err)
+	require.Equal(t, toBoardID, found.BoardID)
+	require.Equal(t, "письмо", found.Title)
+
+	// History says where the block ended up, so "what did it look like then"
+	// still has an answer after a move.
+	history, err := store.GetBlockHistory(card.ID, model.QueryBlockHistoryOptions{Limit: 1, Descending: true})
+	require.NoError(t, err)
+	require.Len(t, history, 1)
+	require.Equal(t, toBoardID, history[0].BoardID)
+
+	// Moving nothing is not an error: a card with no content is a card.
+	require.NoError(t, store.MoveBlocksToBoard(nil, toBoardID, userID))
 }
 
 func testPatchBlock(t *testing.T, store store.Store) {

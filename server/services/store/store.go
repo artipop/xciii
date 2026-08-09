@@ -28,6 +28,8 @@ type Store interface {
 	// @withTransaction
 	InsertBlocks(blocks []*model.Block, userID string) error
 	// @withTransaction
+	MoveBlocksToBoard(blockIDs []string, boardID string, userID string) error
+	// @withTransaction
 	UndeleteBlock(blockID string, modifiedBy string) error
 	// @withTransaction
 	UndeleteBoard(boardID string, modifiedBy string) error

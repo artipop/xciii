@@ -25,6 +25,7 @@ func (a *API) registerCardsRoutes(r *mux.Router) {
 	r.HandleFunc("/boards/{boardID}/cards", a.sessionRequired(a.handleGetCards)).Methods("GET")
 	r.HandleFunc("/cards/{cardID}", a.sessionRequired(a.handlePatchCard)).Methods("PATCH")
 	r.HandleFunc("/cards/{cardID}", a.sessionRequired(a.handleGetCard)).Methods("GET")
+	r.HandleFunc("/cards/{cardID}/move", a.sessionRequired(a.handleMoveCard)).Methods("POST")
 }
 
 func (a *API) handleCreateCard(w http.ResponseWriter, r *http.Request) {
@@ -319,6 +320,115 @@ func (a *API) handlePatchCard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// response
+	jsonBytesResponse(w, http.StatusOK, data)
+
+	auditRec.Success()
+}
+
+// moveCardRequest names the board a card is being carried to. A body rather
+// than a query parameter, so the request reads the same as every other write
+// here.
+type moveCardRequest struct {
+	ToBoardID string `json:"toBoardId"`
+}
+
+func (a *API) handleMoveCard(w http.ResponseWriter, r *http.Request) {
+	// swagger:operation POST /cards/{cardID}/move moveCard
+	//
+	// Moves the specified card to another board, keeping its id.
+	//
+	// ---
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: cardID
+	//   in: path
+	//   description: Card ID
+	//   required: true
+	//   type: string
+	// - name: Body
+	//   in: body
+	//   description: the board to move the card to
+	//   required: true
+	//   schema:
+	//     type: object
+	//     properties:
+	//       toBoardId:
+	//         type: string
+	// security:
+	// - BearerAuth: []
+	// responses:
+	//   '200':
+	//     description: success
+	//     schema:
+	//       $ref: '#/definitions/Card'
+	//   default:
+	//     description: internal error
+	//     schema:
+	//       "$ref": "#/definitions/ErrorResponse"
+
+	userID := getUserID(r)
+	cardID := mux.Vars(r)["cardID"]
+
+	requestBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		a.errorResponse(w, r, err)
+		return
+	}
+
+	var req moveCardRequest
+	if err = json.Unmarshal(requestBody, &req); err != nil {
+		a.errorResponse(w, r, model.NewErrBadRequest(err.Error()))
+		return
+	}
+	if req.ToBoardID == "" {
+		a.errorResponse(w, r, model.NewErrBadRequest("toBoardId is required"))
+		return
+	}
+
+	card, err := a.app.GetCardByID(cardID)
+	if err != nil {
+		message := fmt.Sprintf("could not fetch card %s: %s", cardID, err)
+		a.errorResponse(w, r, model.NewErrBadRequest(message))
+		return
+	}
+
+	// Both boards are asked, because a move takes the card off one and puts it
+	// on the other: rights over the destination alone would be a way to help
+	// yourself to somebody else's card.
+	if !a.permissions.HasPermissionToBoard(userID, card.BoardID, model.PermissionManageBoardCards) {
+		a.errorResponse(w, r, model.NewErrPermission("access denied to move card"))
+		return
+	}
+	if !a.permissions.HasPermissionToBoard(userID, req.ToBoardID, model.PermissionManageBoardCards) {
+		a.errorResponse(w, r, model.NewErrPermission("access denied to the board the card is moved to"))
+		return
+	}
+
+	auditRec := a.makeAuditRecord(r, "moveCard", audit.Fail)
+	defer a.audit.LogRecord(audit.LevelModify, auditRec)
+	auditRec.AddMeta("cardID", card.ID)
+	auditRec.AddMeta("boardID", card.BoardID)
+	auditRec.AddMeta("toBoardID", req.ToBoardID)
+
+	moved, err := a.app.MoveCardToBoard(card.ID, req.ToBoardID, userID)
+	if err != nil {
+		a.errorResponse(w, r, err)
+		return
+	}
+
+	a.logger.Debug("MoveCard",
+		mlog.String("cardID", moved.ID),
+		mlog.String("boardID", moved.BoardID),
+		mlog.String("userID", userID),
+	)
+
+	data, err := json.Marshal(moved)
+	if err != nil {
+		a.errorResponse(w, r, err)
+		return
+	}
+
 	jsonBytesResponse(w, http.StatusOK, data)
 
 	auditRec.Success()

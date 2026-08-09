@@ -314,6 +314,56 @@ func (s *SQLStore) insertBlock(db sq.BaseRunner, block *model.Block, userID stri
 	return nil
 }
 
+// moveBlocksToBoard changes which board a set of blocks belongs to, keeping
+// their ids. It is how a card is carried to another board without becoming a
+// different card: comments stay attached, and anything outside the board that
+// remembers the card by id — an agent session, a source's record of the item it
+// came from — still points at it.
+//
+// insertBlock cannot do this. Its update branch matches on id *and* board_id,
+// so re-inserting a block under a new board updates no rows and reports
+// success, which is the silent half of a wrong answer.
+func (s *SQLStore) moveBlocksToBoard(db sq.BaseRunner, blockIDs []string, boardID string, userID string) error {
+	if len(blockIDs) == 0 {
+		return nil
+	}
+	blocks, err := s.getBlocksByIDs(db, blockIDs)
+	if err != nil {
+		return err
+	}
+
+	now := utils.GetMillis()
+	query := s.getQueryBuilder(db).
+		Update(s.tablePrefix+"blocks").
+		Set("board_id", boardID).
+		Set("modified_by", userID).
+		Set("update_at", now).
+		Where(sq.Eq{"id": blockIDs})
+	if _, err := query.Exec(); err != nil {
+		s.logger.Error(`moveBlocksToBoard error`, mlog.String("boardID", boardID), mlog.Err(err))
+		return err
+	}
+
+	// History records where each block ended up, not where it was: the history
+	// table is read as "what the block looked like at that moment", and the
+	// moment is after the move.
+	for _, block := range blocks {
+		fieldsJSON, err := json.Marshal(block.Fields)
+		if err != nil {
+			return err
+		}
+		insert := s.getQueryBuilder(db).Insert(s.tablePrefix+"blocks_history").
+			Columns("board_id", "id", "parent_id", s.escapeField("schema"), "type", "title",
+				"fields", "modified_by", "create_at", "update_at", "delete_at", "created_by").
+			Values(boardID, block.ID, block.ParentID, block.Schema, block.Type, block.Title,
+				fieldsJSON, userID, block.CreateAt, now, block.DeleteAt, block.CreatedBy)
+		if _, err := insert.Exec(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *SQLStore) patchBlock(db sq.BaseRunner, blockID string, blockPatch *model.BlockPatch, userID string) error {
 	existingBlock, err := s.getBlock(db, blockID)
 	if err != nil {

@@ -264,3 +264,61 @@ func modifyProps(m map[string]any) map[string]any {
 	}
 	return out
 }
+
+// A card carried to another board is described by that board's ids, and the
+// only thing the two boards share is the names a person reads. What the new
+// board cannot express is left behind rather than refused: losing a field is a
+// smaller loss than losing the move.
+func TestRemapCardProperties(t *testing.T) {
+	from := &model.Board{
+		ID: "board-from",
+		CardProperties: []map[string]any{
+			{"id": "from-status", "name": "Статус", "type": "select", "options": []any{
+				map[string]any{"id": "from-inbox", "value": "Входящие"},
+			}},
+			{"id": "from-link", "name": "Ссылка", "type": "text"},
+			{"id": "from-tags", "name": "Метки", "type": "multiSelect", "options": []any{
+				map[string]any{"id": "from-home", "value": "дом"},
+				map[string]any{"id": "from-work", "value": "работа"},
+			}},
+			{"id": "from-budget", "name": "Бюджет", "type": "number"},
+		},
+	}
+	to := &model.Board{
+		ID: "board-to",
+		CardProperties: []map[string]any{
+			{"id": "to-status", "name": "статус", "type": "select", "options": []any{
+				map[string]any{"id": "to-inbox", "value": "ВХОДЯЩИЕ"},
+			}},
+			{"id": "to-link", "name": "Ссылка", "type": "text"},
+			{"id": "to-tags", "name": "Метки", "type": "multiSelect", "options": []any{
+				map[string]any{"id": "to-home", "value": "дом"},
+			}},
+			// «Бюджет» is a date here, which is a different property that
+			// happens to share a name.
+			{"id": "to-budget", "name": "Бюджет", "type": "date"},
+		},
+	}
+	card := model.Card2Block(&model.Card{
+		ID:      "card-1",
+		BoardID: from.ID,
+		Properties: map[string]any{
+			"from-status": "from-inbox",
+			"from-link":   "https://example.com",
+			"from-tags":   []any{"from-home", "from-work"},
+			"from-budget": "1000",
+			"from-gone":   "whatever", // no such property on either board
+		},
+	})
+
+	got, err := remapCardProperties(from, to, card)
+	require.NoError(t, err)
+
+	// Names are matched the way every other name here is: ignoring case.
+	assert.Equal(t, "to-inbox", got["to-status"])
+	assert.Equal(t, "https://example.com", got["to-link"])
+	// The tag the new board has comes over; the one it has not is dropped.
+	assert.Equal(t, []any{"to-home"}, got["to-tags"])
+	assert.NotContains(t, got, "to-budget")
+	assert.Len(t, got, 3)
+}
