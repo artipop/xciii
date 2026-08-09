@@ -11,6 +11,8 @@ import Menu from '../../widgets/menu'
 import BoardPermissionGate from '../permissions/boardPermissionGate'
 import DuplicateIcon from '../../widgets/icons/duplicate'
 import LinkIcon from '../../widgets/icons/Link'
+import BoardIcon from '../../widgets/icons/board'
+import {openMoveCardToBoard} from '../moveCardToBoard'
 import {Utils} from '../../utils'
 import {Permission} from '../../constants'
 import {sendFlashMessage} from '../flashMessages'
@@ -59,6 +61,15 @@ export const CardActionsMenu: ParentComponent<Props> = (props): JSX.Element => {
                         onClick={handleDuplicateCard}
                     />
                 </Show>
+                {/* The dialog is not rendered here: this menu unmounts the
+                    moment it is clicked, and a dialog inside it would go with
+                    it. It is asked for instead, and mounted once in app.tsx. */}
+                <Menu.Text
+                    icon={<BoardIcon/>}
+                    id='moveToBoard'
+                    name={intl.formatMessage({id: 'CardActionsMenu.moveToBoard', defaultMessage: 'Move to a board…'})}
+                    onClick={() => openMoveCardToBoard(props.cardId)}
+                />
             </BoardPermissionGate>
             <Show when={me()?.id !== 'single-user'}>
                 <Menu.Text

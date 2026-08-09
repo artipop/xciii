@@ -8,6 +8,7 @@ import {getMessages} from './i18n'
 import {IntlProvider} from './intl'
 import {SortableProvider} from './hooks/sortable'
 import {FlashMessages} from './components/flashMessages'
+import MoveCardToBoard from './components/moveCardToBoard'
 import AttentionNotifications from './components/acp/attentionNotifications'
 import NewVersionBanner from './components/newVersionBanner'
 import {getMe} from './store/users'
@@ -46,6 +47,11 @@ const App: Component = () => {
                 {/* Outside the router: an agent waiting for an answer is worth
                     saying wherever in the app the person happens to be. */}
                 <AttentionNotifications/>
+
+                {/* Outside the router as well: the card menu that asks for it
+                    unmounts as soon as it is clicked, so the dialog cannot
+                    live inside the menu. */}
+                <MoveCardToBoard/>
                 <div id='frame'>
                     <div id='main'>
                         <NewVersionBanner/>

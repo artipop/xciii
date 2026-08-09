@@ -1066,6 +1066,55 @@ class Mutator {
         )
     }
 
+    // Carries a card to another board, and optionally drops it into a column
+    // there. The card keeps its id — this is a move and not a copy — so its
+    // comments come with it and anything outside the board that remembers the
+    // card still finds it.
+    //
+    // The column is set afterwards, through the ordinary property change, so a
+    // card carried into a column that runs an agent starts it exactly as it
+    // would if somebody had dragged the card there.
+    async moveCardToBoard(
+        card: Card,
+        toBoardId: string,
+        columnPropertyId?: string,
+        columnOptionId?: string,
+        description = 'move card to board',
+    ): Promise<Card | undefined> {
+        const fromBoardId = card.boardId
+        if (fromBoardId === toBoardId) {
+            return card
+        }
+        return undoManager.perform(
+            async () => {
+                await octoClient.moveCardToBoard(card.id, toBoardId)
+                const [moved] = await octoClient.getBlocksWithBlockID(card.id, toBoardId)
+                if (!moved) {
+                    Utils.log(`Unable to move card ${card.id}`)
+                    return undefined
+                }
+                updateAllBoardsAndBlocks([], [moved])
+                const movedCard = moved as Card
+                if (columnPropertyId && columnOptionId) {
+                    await this.changePropertyValue(toBoardId, movedCard, columnPropertyId, columnOptionId, description)
+                }
+                return movedCard
+            },
+            async () => {
+                // Moving it back is the whole undo: properties travel by name,
+                // so a round trip restores every one the original board still
+                // has a name for.
+                await octoClient.moveCardToBoard(card.id, fromBoardId)
+                const [back] = await octoClient.getBlocksWithBlockID(card.id, fromBoardId)
+                if (back) {
+                    updateAllBoardsAndBlocks([], [back])
+                }
+            },
+            description,
+            this.undoGroupId,
+        )
+    }
+
     async duplicateBoard(
         boardId: string,
         description = 'duplicate board',

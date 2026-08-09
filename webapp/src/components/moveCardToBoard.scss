@@ -1,0 +1,87 @@
+@import '../styles/typography';
+@import '../styles/z-index';
+
+// Written in the board's own language, not in a dialect of its own: the three
+// voices from `_typography.scss`, the two border weights, and the columns drawn
+// with the very Label the board draws them with.
+.MoveCardToBoard {
+    .dialog {
+        // Above the card dialog it may have been opened from, which is a
+        // dialog-back too.
+        @include z-index(confirmation-dialog-box);
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 360px;
+        padding: 0 24px 24px;
+    }
+
+    // The machine naming a step, so: the label voice.
+    &__step {
+        @include label;
+
+        margin-bottom: 8px;
+        opacity: 0.7;
+    }
+
+    &__option {
+        @include prose;
+
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 36px;
+        padding: 6px 10px;
+        border: 0;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: rgb(var(--ink-rgb));
+        font-size: var(--text-body);
+        text-align: left;
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--ink-rgb), 0.08);
+        }
+
+        &:disabled {
+            cursor: default;
+            opacity: 0.5;
+        }
+
+        // A column is a Label with its own margins, so the row does not add
+        // padding of its own around it.
+        &--column {
+            padding: 2px 8px;
+        }
+
+        // Not a board and not a column: the way out of the second step.
+        &--plain {
+            @include label;
+
+            margin-top: 8px;
+            opacity: 0.7;
+        }
+    }
+
+    &__icon {
+        font-size: var(--text-lead);
+    }
+
+    &__empty {
+        @include prose;
+
+        padding: 6px 10px;
+        opacity: 0.6;
+    }
+
+    &__error {
+        @include data;
+
+        margin-top: 12px;
+        color: var(--error-text);
+    }
+}

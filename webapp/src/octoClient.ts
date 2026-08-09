@@ -371,6 +371,18 @@ class OctoClient {
         return response
     }
 
+    // A move, not a copy: the card keeps its id, so its comments and anything
+    // outside the board that remembers it — an agent session, the item a source
+    // made it from — still point at it.
+    async moveCardToBoard(cardId: string, toBoardId: string): Promise<Response> {
+        Utils.log(`moveCardToBoard: ${cardId} to board ${toBoardId}`)
+        return fetch(`${this.getBaseURL()}/api/v2/cards/${encodeURIComponent(cardId)}/move`, {
+            method: 'POST',
+            headers: this.headers(),
+            body: JSON.stringify({toBoardId}),
+        })
+    }
+
     async deleteBlock(boardId: string, blockId: string): Promise<Response> {
         Utils.log(`deleteBlock: ${blockId} on board ${boardId}`)
         return fetch(`${this.getBaseURL()}/api/v2/boards/${boardId}/blocks/${encodeURIComponent(blockId)}`, {
