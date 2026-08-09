@@ -95,6 +95,53 @@
         }
     }
 
+    // What a plugin source shows where an ingest source shows its address:
+    // which plugin it is and whether it is working. A plugin has nothing to
+    // curl, so this line is the only place a failure to start is visible.
+    .SourcesDialog__state {
+        @include label;
+
+        font-size: var(--text-small);
+        opacity: 0.8;
+    }
+
+    .SourcesDialog__plugin {
+        padding: 8px 10px;
+        border: 1px solid var(--border-strong);
+        border-radius: 4px;
+        background: rgb(var(--surface-rgb));
+        color: rgb(var(--ink-rgb));
+        font-family: inherit;
+        font-size: var(--text-body);
+    }
+
+    // A field a manifest asked for. The form is built from the manifest, so
+    // this has to look right for anything from a board id to a password.
+    .SourcesDialog__field {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: var(--text-small);
+
+        span {
+            @include label;
+
+            flex: 0 0 40%;
+            opacity: 0.8;
+        }
+
+        input[type='text'],
+        input[type='password'] {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid var(--border-strong);
+            border-radius: 4px;
+            background: rgb(var(--surface-rgb));
+            color: rgb(var(--ink-rgb));
+            font-size: var(--text-body);
+        }
+    }
+
     .SourcesDialog__noisy {
         @include prose;
 

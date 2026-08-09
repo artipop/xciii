@@ -51,6 +51,72 @@ describe('components/acp/sourcesDialog', () => {
         expect(screen.getByText(`${window.location.origin}/sources/ingest/phone`)).toBeInTheDocument()
     })
 
+    // A source made of a plugin: the form comes from the manifest, the token
+    // goes to the keychain rather than into the entry, and the ingest address
+    // is not shown at all — a plugin fetches, nobody feeds it.
+    it('makes a source out of a plugin, with the form its manifest asks for', async () => {
+        const AddSource = vi.fn().mockResolvedValue(JSON.stringify({
+            name: 'kaiten', boardId: 'board1', enabled: true, plugin: 'kaiten', token: 'ingest-token',
+        }))
+        const SetSourceCredential = vi.fn().mockResolvedValue(undefined)
+        anyWindow.go = {main: {App: {
+            ListSources: vi.fn().mockResolvedValue('[]'),
+            ListSourcePlugins: vi.fn().mockResolvedValue(JSON.stringify([{
+                name: 'kaiten',
+                title: 'Kaiten',
+                kind: 'mcp',
+                auth: {type: 'token'},
+                fields: [{key: 'boardId', title: 'Доска Kaiten (id)', type: 'number'}],
+            }])),
+            SourceStatuses: vi.fn().mockResolvedValue('[]'),
+            AddSource,
+            SetSourceCredential,
+            SourceEvents: vi.fn().mockResolvedValue('[]'),
+        }}}
+
+        renderDialog()
+
+        await userEvent.type(await screen.findByPlaceholderText(/Name of the source/), 'kaiten')
+        await userEvent.selectOptions(await screen.findByRole('combobox'), 'kaiten')
+
+        // The field the manifest declared, and the token the service issues.
+        await userEvent.type(await screen.findByLabelText('Доска Kaiten (id)'), '77')
+        await userEvent.type(screen.getByLabelText('Token from the service'), 'kaiten-secret')
+        await userEvent.click(screen.getByText('Add'))
+
+        await waitFor(() => expect(AddSource).toHaveBeenCalled())
+        const sent = JSON.parse(AddSource.mock.calls[0][0])
+        expect(sent.plugin).toBe('kaiten')
+        expect(sent.config).toEqual({boardId: '77'})
+
+        // Stored against the source's name, and after it exists.
+        await waitFor(() => expect(SetSourceCredential).toHaveBeenCalledWith('kaiten', 'kaiten-secret'))
+
+        // The ingest token belongs to a source that is fed from outside, and
+        // showing it here would be an address nobody should use.
+        expect(screen.queryByText('ingest-token')).not.toBeInTheDocument()
+    })
+
+    // A plugin that will not start is the failure this integration has: it has
+    // no address to test with, so the dialog has to say what it is doing.
+    it('says what a plugin source is doing instead of showing an address', async () => {
+        anyWindow.go = {main: {App: {
+            ListSources: vi.fn().mockResolvedValue(JSON.stringify([
+                {name: 'kaiten', boardId: 'board1', enabled: true, plugin: 'kaiten'},
+            ])),
+            ListSourcePlugins: vi.fn().mockResolvedValue('[]'),
+            SourceStatuses: vi.fn().mockResolvedValue(JSON.stringify([
+                {source: 'kaiten', state: 'error', error: 'у MCP-сервера нет инструмента list_my_cards'},
+            ])),
+        }}}
+
+        renderDialog()
+
+        expect(await screen.findByText(/failed/)).toBeInTheDocument()
+        expect(screen.getByText(/list_my_cards/)).toBeInTheDocument()
+        expect(screen.queryByText(new RegExp('/sources/ingest/kaiten'))).not.toBeInTheDocument()
+    })
+
     // The token is kept as a hash, so the moment it is issued is the only
     // moment it can be read. A dialog that failed to show it would leave a
     // source nothing can ever send to.

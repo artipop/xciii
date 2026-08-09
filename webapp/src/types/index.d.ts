@@ -105,6 +105,15 @@ export interface IAppWindow extends Window {
                 RemoveSource?(name: string): Promise<void>
                 SourceEvents?(name: string, limit: number): Promise<string>
 
+                // What a source can be made *of*: the manifests this machine
+                // knows. With MCP a manifest is the whole adapter, so a new
+                // service is a JSON file in <dataDir>/sources/manifests.
+                ListSourcePlugins?(): Promise<string>
+                // The token a source has to *present* — the other direction
+                // from ResetSourceToken, which authorizes what is sent to it.
+                SetSourceCredential?(name: string, token: string): Promise<void>
+                SourceStatuses?(): Promise<string>
+
                 // The board as the page at /m reads it. That page is served
                 // the bindings and the event socket and no board API of its
                 // own, which is what lets it work through the tailnet door
