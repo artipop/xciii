@@ -305,8 +305,9 @@ func (m *Manager) Deliver(ctx context.Context, sourceName string, items []Item) 
 	}
 
 	var res Result
+	scope := newDelivery()
 	for _, it := range items {
-		if err := m.deliverOne(ctx, entry, it, &res); err != nil {
+		if err := m.deliverOne(ctx, scope, entry, it, &res); err != nil {
 			res.Failed++
 			m.log.Warn("sources: не удалось обработать элемент",
 				"source", entry.Name, "item", it.ExternalID, "err", err)
@@ -317,7 +318,21 @@ func (m *Manager) Deliver(ctx context.Context, sourceName string, items []Item) 
 	return res, nil
 }
 
-func (m *Manager) deliverOne(ctx context.Context, entry SourceEntry, it Item, res *Result) error {
+// delivery is what stays true for the length of one batch: a batch is one poll,
+// and a board does not rename its columns or lose its inbox halfway through it.
+// Without this a source bringing fifty cards asked the board fifty times what
+// its column property is called and made sure of the same inbox fifty times —
+// four board reads per card, every one of them the same answer.
+type delivery struct {
+	property map[string]string // board id → what it calls its columns
+	ensured  map[string]bool   // board id + "\x00" + column → the inbox is there
+}
+
+func newDelivery() *delivery {
+	return &delivery{property: map[string]string{}, ensured: map[string]bool{}}
+}
+
+func (m *Manager) deliverOne(ctx context.Context, d *delivery, entry SourceEntry, it Item, res *Result) error {
 	state, cardID, err := m.stateOf(entry.Name, it)
 	if err != nil {
 		return err
@@ -332,7 +347,7 @@ func (m *Manager) deliverOne(ctx context.Context, entry SourceEntry, it Item, re
 	case state == ItemChanged && cardID != "":
 		return m.updateCard(ctx, entry, it, cardID, res)
 	}
-	return m.createCard(ctx, entry, it, res)
+	return m.createCard(ctx, d, entry, it, res)
 }
 
 // updateCard is what a changed item does to the card it already has: a comment,
@@ -353,7 +368,7 @@ func (m *Manager) updateCard(ctx context.Context, entry SourceEntry, it Item, ca
 	return m.remember(entry.Name, it, cardID)
 }
 
-func (m *Manager) createCard(ctx context.Context, entry SourceEntry, it Item, res *Result) error {
+func (m *Manager) createCard(ctx context.Context, d *delivery, entry SourceEntry, it Item, res *Result) error {
 	rule, matched := FirstMatch(entry.Rules, it)
 	switch {
 	case matched && rule.Then == ActionDrop:
@@ -435,16 +450,20 @@ func (m *Manager) createCard(ctx context.Context, entry SourceEntry, it Item, re
 	m.record(EventRecord{Source: entry.Name, ExternalID: it.ExternalID,
 		Rule: rule.Name, Outcome: outcome, CardID: cardID})
 
-	property, err := m.columnProperty(wctx, entry, boardID)
+	property, err := m.columnProperty(wctx, d, entry, boardID)
 	if err != nil {
 		return err
 	}
 	// The inbox is made if the board has not got it. A board made before the
-	// inbox shipped has neither the column nor the view, and templates only
-	// ever reach boards that do not exist yet — so without this the very item
-	// the inbox exists for would be the one that fails to land.
-	if _, err := m.writer.EnsureInbox(wctx, boardID, property, column); err != nil {
-		return fmt.Errorf("колонка %q на доске %s: %w", column, boardID, err)
+	// inbox shipped has neither the column nor the view, and a template only
+	// ever reaches a board that does not exist yet — so without this the very
+	// item the inbox exists for would be the one that fails to land. Once per
+	// board per batch: see the comment on delivery.
+	if key := boardID + "\x00" + column; !d.ensured[key] {
+		if _, err := m.writer.EnsureInbox(wctx, boardID, property, column); err != nil {
+			return fmt.Errorf("колонка %q на доске %s: %w", column, boardID, err)
+		}
+		d.ensured[key] = true
 	}
 	// The move, not the creation, is what the automation sees: the trigger
 	// fires on a change of the column property, and a card created straight
@@ -477,14 +496,18 @@ func boardFor(entry SourceEntry, it Item) (string, error) {
 // pins, or what the board itself says. Asking the board is the default because
 // no constant can be right for both a board that calls it «Статус» and one that
 // calls it "Status".
-func (m *Manager) columnProperty(ctx context.Context, entry SourceEntry, boardID string) (string, error) {
+func (m *Manager) columnProperty(ctx context.Context, d *delivery, entry SourceEntry, boardID string) (string, error) {
 	if pinned := entry.PinnedProperty(); pinned != "" {
 		return pinned, nil
+	}
+	if known, ok := d.property[boardID]; ok {
+		return known, nil
 	}
 	property, err := m.writer.ColumnProperty(ctx, boardID)
 	if err != nil {
 		return "", fmt.Errorf("свойство колонок доски %s: %w", boardID, err)
 	}
+	d.property[boardID] = property
 	return property, nil
 }
 

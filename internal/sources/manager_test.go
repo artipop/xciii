@@ -24,6 +24,9 @@ type fakeBoard struct {
 	nextID   int
 	failNext error
 
+	// asked counts how often the board was asked what its columns are called:
+	// once per batch is the whole point of the delivery scope.
+	asked int
 	// property is what the board answers when asked what its columns are. The
 	// Russian name is the point: a board of this app's own says «Статус», and
 	// the pipeline used to assume "Status" and miss every column.
@@ -61,6 +64,7 @@ func (f *fakeBoard) MoveCardByOptionName(_ context.Context, cardID, property, co
 func (f *fakeBoard) ColumnProperty(_ context.Context, _ string) (string, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+	f.asked++
 	if f.property == "" {
 		return "Статус", nil
 	}
@@ -98,6 +102,12 @@ func (f *fakeBoard) moveLines() []string {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return append([]string(nil), f.moves...)
+}
+
+func (f *fakeBoard) propertyAsks() int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.asked
 }
 
 func (f *fakeBoard) ensuredLines() []string {
@@ -394,5 +404,38 @@ func TestRemovingASourceForgetsWhatItBrought(t *testing.T) {
 	}
 	if res.Created != 1 || len(board.cards()) != 2 {
 		t.Fatalf("result: %+v, created: %+v", res, board.cards())
+	}
+}
+
+// A batch is one poll, and a board does not rename its columns halfway through
+// it. Asking once is not only cheaper — it is four board reads per card that a
+// source bringing fifty cards no longer does.
+func TestABatchAsksTheBoardOnce(t *testing.T) {
+	entry := phoneSource()
+	entry.Noisy = false
+	entry.Rules = nil
+	m, board, _ := testManager(t, entry)
+
+	res, err := m.Deliver(context.Background(), "телефон", []Item{
+		{ExternalID: "n1", Title: "Первое"},
+		{ExternalID: "n2", Title: "Второе"},
+		{ExternalID: "n3", Title: "Третье"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Created != 3 {
+		t.Fatalf("result: %+v", res)
+	}
+	// Three cards, three moves — and one look at what the board calls its
+	// columns and one making sure of the inbox.
+	if len(board.moveLines()) != 3 {
+		t.Fatalf("moves: %+v", board.moveLines())
+	}
+	if got := board.ensuredLines(); len(got) != 1 {
+		t.Fatalf("инбокс должен заводиться раз на партию: %+v", got)
+	}
+	if got := board.propertyAsks(); got != 1 {
+		t.Fatalf("свойство колонок должно спрашиваться раз на партию, спросили %d раз", got)
 	}
 }

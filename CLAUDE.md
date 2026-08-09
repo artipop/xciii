@@ -374,10 +374,12 @@ What MCP has no word for is "the feed" — its tools are described for a model �
 so a manifest says which tool to call, with what arguments, and how to read one
 row of the answer as an item (`internal/sources/mcpsource.go`, mapped with the
 same `text/template` a rule's properties use). Past `dialPlugin` nothing knows
-which protocol the process speaks. Manifests are files in
-`<dataDir>/sources/manifests/*.json` rather than something compiled in, because
-one names an absolute path on this machine; `kaiten/` is the first, and adding
-a second service is a JSON file beside it.
+which protocol the process speaks. Manifests come from two places: the ones
+this app ships (`internal/sources/manifests`, embedded — Kaiten is one, and its
+server is this binary re-invoked, `internal/sources/kaiten`), and the ones
+somebody drops in `<dataDir>/sources/manifests/*.json`, which win by name. A
+service with a server of its own is the second kind, since a manifest then
+names a path on that machine.
 
 The system's «Поделиться» is a source too (`internal/sources/share.go`,
 `share.go`, `pages/share/`): the share extension in the .app opens
