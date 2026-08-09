@@ -7,8 +7,16 @@
 // out is 0×0, so without these the canvas throws instead of rendering. Kept
 // here rather than in a global setup file because faking element sizes for the
 // whole suite would change what other tests see.
+
+import {installPolyfills} from '../polyfills'
+
 export function setupReactFlowEnvironment(): void {
     const anyGlobal = global as any
+
+    // requestIdleCallback is missing from jsdom for the same reason it is
+    // missing from the app's own webview, so the app's shim is what tests get
+    // rather than a second one that could drift from it.
+    installPolyfills()
 
     if (!window.matchMedia) {
         window.matchMedia = (query: string): MediaQueryList => ({
@@ -21,14 +29,6 @@ export function setupReactFlowEnvironment(): void {
             removeListener: () => {},
             dispatchEvent: () => false,
         } as MediaQueryList)
-    }
-
-    // Node internals are re-measured off the critical path; a timeout is idle
-    // enough for a test.
-    if (!window.requestIdleCallback) {
-        window.requestIdleCallback = (cb: IdleRequestCallback): number =>
-            window.setTimeout(() => cb({didTimeout: false, timeRemaining: () => 50}), 0)
-        window.cancelIdleCallback = (id: number): void => window.clearTimeout(id)
     }
 
     if (!anyGlobal.ResizeObserver) {

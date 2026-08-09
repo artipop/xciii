@@ -4,24 +4,45 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
+	"strings"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
-// What the app remembers between launches, which is one thing: where the board
-// is. There is no config file on a phone, so it goes in the store the platform
+// What the app remembers between launches, which is one thing: where the boards
+// are. There is no config file on a phone, so it goes in the store the platform
 // gives us — the Keychain on iOS, EncryptedSharedPreferences on Android — and
-// that store is the right one for it anyway: the address names a machine on a
+// that store is the right one for it anyway: an address names a machine on a
 // private network, and is a fact about the person's tailnet.
+//
+// It is a list because a person has more than one desktop, and each of them
+// publishes its own front door on the tailnet under its own name. The app shows
+// one tab per machine and one frame behind each tab, so the machines stay what
+// they are — separate boards on separate origins, each talking to its own
+// desktop — rather than being merged into something neither of them serves.
 
-// addressKey is what the address is stored under. It is read on every launch,
-// so the name is part of the app's compatibility surface.
-const addressKey = "xciii.board.address"
+// machinesKey is what the list is stored under, and addressKey is the single
+// address earlier versions kept. Both are read on launch, so both names are
+// part of the app's compatibility surface.
+const (
+	machinesKey = "xciii.board.machines"
+	addressKey  = "xciii.board.address"
+)
 
-// Settings is the service the setup page calls. Its methods are the whole
-// surface: what is saved, save this, forget it.
+// Machine is one board, as the page needs it: what was typed (which is what a
+// person recognises and what removing one names), the address to load, and the
+// word on the tab.
+type Machine struct {
+	Address string `json:"address"`
+	URL     string `json:"url"`
+	Label   string `json:"label"`
+}
+
+// Settings is the service the app's own page calls. Its methods are the whole
+// surface: which boards there are, add this one, forget that one.
 type Settings struct {
 	store  secureStore
 	window *application.WebviewWindow
@@ -29,67 +50,112 @@ type Settings struct {
 
 func newSettings() *Settings { return &Settings{store: platformStore{}} }
 
-// attach hands the service the window it navigates. main creates the window
-// with the address already known, so this only matters afterwards — when
-// somebody connects, or disconnects.
+// attach hands the service the window, and arranges the way back.
 //
-// It also arranges the way back. Once the window is on the board, the setup
-// page is unreachable — it is a different origin, and a phone has no address
-// bar — so an address typed wrong would strand the app on a blank screen for
-// good. A navigation that fails returns to the setup page, which is also the
-// right answer when the desktop is simply asleep: the field comes back filled
-// in, and connecting again is one tap.
+// The window stays on the app's own page for good now — the boards are frames
+// inside it — so a failed navigation is no longer the ordinary way to a wrong
+// address. It is kept because a frame is still allowed to navigate the window
+// that holds it, and a window taken somewhere it cannot load would be an app
+// with no address bar and no way home.
 func (s *Settings) attach(window *application.WebviewWindow) {
 	s.window = window
 	window.OnWindowEvent(events.IOS.WebViewDidFailNavigation, func(*application.WindowEvent) {
-		log.Printf("the board could not be opened; back to the setup page")
+		log.Printf("navigation failed; back to the app's own page")
 		window.SetURL("/")
 	})
 }
 
-// startURL is what the window opens with: the board if we know where it is, and
-// the setup page if we do not. An empty string leaves the window on the app's
-// own assets, which is where the setup page lives.
-func (s *Settings) startURL() string {
-	saved := s.store.get(addressKey)
-	if saved == "" {
-		return ""
+// Machines is the list the page draws, oldest first. An address that no longer
+// parses is left out rather than failing the call: the rest of the machines are
+// still reachable, and the setup panel is where a broken one is dealt with.
+func (s *Settings) Machines() string {
+	stored := s.stored()
+	machines := make([]Machine, 0, len(stored))
+	for _, address := range stored {
+		url, err := boardURL(address)
+		if err != nil {
+			continue
+		}
+		machines = append(machines, Machine{Address: address, URL: url, Label: machineLabel(address)})
 	}
-	url, err := boardURL(saved)
+	payload, err := json.Marshal(machines)
 	if err != nil {
-		// A stored address that no longer parses is not worth failing over:
-		// the setup page asks for it again.
-		return ""
+		return "[]"
 	}
-	return url
+	return string(payload)
 }
 
-// Address is what the setup page fills its field with, so a person correcting a
-// typo does not retype the whole name.
-func (s *Settings) Address() string { return s.store.get(addressKey) }
-
-// Connect saves the address and takes the window to the board. The address is
-// stored as typed rather than as a URL: it is what the field shows next time,
-// and the URL is derived from it every launch anyway.
-func (s *Settings) Connect(address string) (string, error) {
+// Add remembers a machine and returns the list it joined. Adding one twice is
+// not an error — it is a person who does not remember whether they had — so it
+// is the same list back, and the tab they wanted is already on it.
+func (s *Settings) Add(address string) (string, error) {
 	url, err := boardURL(address)
 	if err != nil {
 		return "", err
 	}
-	s.store.set(addressKey, address)
-	if s.window != nil {
-		s.window.SetURL(url)
+	stored := s.stored()
+	for _, existing := range stored {
+		if same, err := boardURL(existing); err == nil && same == url {
+			return s.Machines(), nil
+		}
 	}
-	return url, nil
+	if err := s.save(append(stored, strings.TrimSpace(address))); err != nil {
+		return "", err
+	}
+	return s.Machines(), nil
 }
 
-// Forget drops the address and returns to the setup page — the way back from a
-// board that has moved, or one that was typed wrong and saved.
-func (s *Settings) Forget() error {
-	s.store.delete(addressKey)
-	if s.window != nil {
-		s.window.SetURL("/")
+// Remove drops a machine. It matches on the address it loads rather than on the
+// characters typed, so a machine added as "board" is removed by "board" or by
+// "https://board/" alike — and an entry that no longer parses is still removable
+// by the string it was stored as, which is the only handle a broken one has.
+func (s *Settings) Remove(address string) (string, error) {
+	target, targetErr := boardURL(address)
+	kept := make([]string, 0)
+	for _, existing := range s.stored() {
+		if existing == address {
+			continue
+		}
+		if same, err := boardURL(existing); targetErr == nil && err == nil && same == target {
+			continue
+		}
+		kept = append(kept, existing)
 	}
+	if err := s.save(kept); err != nil {
+		return "", err
+	}
+	return s.Machines(), nil
+}
+
+// stored is the list as it is kept, with the one address earlier versions saved
+// counted as a list of one. That migration happens on a read rather than on a
+// launch because a read is the only place both keys are known to be needed —
+// and it is idempotent: the first write drops the old key.
+func (s *Settings) stored() []string {
+	raw := s.store.get(machinesKey)
+	if raw == "" {
+		if single := strings.TrimSpace(s.store.get(addressKey)); single != "" {
+			return []string{single}
+		}
+		return nil
+	}
+	var list []string
+	if err := json.Unmarshal([]byte(raw), &list); err != nil {
+		// A store that no longer holds a list holds nothing we can use, and
+		// asking for the addresses again is better than an app that will not
+		// start.
+		return nil
+	}
+	return list
+}
+
+func (s *Settings) save(list []string) error {
+	payload, err := json.Marshal(list)
+	if err != nil {
+		return err
+	}
+	s.store.set(machinesKey, string(payload))
+	s.store.delete(addressKey)
 	return nil
 }
 

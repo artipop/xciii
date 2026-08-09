@@ -71,7 +71,6 @@ exports[`src/component/kanban/kanban > return kanban and change title on KanbanC
             class="CompassIcon icon-plus AddIcon"
           />
         </button>
-        
       </div>
       <div
         class="octo-board-header-cell KanbanColumnHeader"
@@ -129,7 +128,6 @@ exports[`src/component/kanban/kanban > return kanban and change title on KanbanC
             class="CompassIcon icon-plus AddIcon"
           />
         </button>
-        
       </div>
       <div
         class="octo-board-header-cell narrow"
@@ -319,6 +317,7 @@ exports[`src/component/kanban/kanban > return kanban and change title on KanbanC
         
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -566,7 +565,6 @@ exports[`src/component/kanban/kanban > return kanban and click on KanbanCalculat
             class="CompassIcon icon-plus AddIcon"
           />
         </button>
-        
       </div>
       <div
         class="octo-board-header-cell KanbanColumnHeader"
@@ -624,7 +622,6 @@ exports[`src/component/kanban/kanban > return kanban and click on KanbanCalculat
             class="CompassIcon icon-plus AddIcon"
           />
         </button>
-        
       </div>
       <div
         class="octo-board-header-cell narrow"
@@ -814,6 +811,7 @@ exports[`src/component/kanban/kanban > return kanban and click on KanbanCalculat
         
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -883,7 +881,6 @@ exports[`src/component/kanban/kanban > should match snapshot 1`] = `
             class="CompassIcon icon-plus AddIcon"
           />
         </button>
-        
       </div>
       <div
         class="octo-board-header-cell KanbanColumnHeader"
@@ -941,7 +938,6 @@ exports[`src/component/kanban/kanban > should match snapshot 1`] = `
             class="CompassIcon icon-plus AddIcon"
           />
         </button>
-        
       </div>
       <div
         class="octo-board-header-cell narrow"
@@ -1131,6 +1127,7 @@ exports[`src/component/kanban/kanban > should match snapshot 1`] = `
         
       </div>
     </div>
+    
   </div>
 </div>
 `;
@@ -1181,7 +1178,6 @@ exports[`src/component/kanban/kanban > should match snapshot without permissions
           class="octo-spacer"
         />
         
-        
       </div>
       <div
         class="octo-board-header-cell KanbanColumnHeader"
@@ -1219,7 +1215,6 @@ exports[`src/component/kanban/kanban > should match snapshot without permissions
         <div
           class="octo-spacer"
         />
-        
         
       </div>
       <div
@@ -1380,6 +1375,7 @@ exports[`src/component/kanban/kanban > should match snapshot without permissions
         
       </div>
     </div>
+    
   </div>
 </div>
 `;

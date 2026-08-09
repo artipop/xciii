@@ -53,6 +53,61 @@ type BoardWriter interface {
 	// AttachFile adds a file to the card's content — how a test run's
 	// screenshots reach the person reading the result.
 	AttachFile(ctx context.Context, cardID, filename, mime string, data []byte) error
+	// CreateCard puts a new card on a board. This is the one way work gets onto
+	// the board from outside a person's hands, and it exists for the planning
+	// conversation: it ends in tasks, and until now somebody had to retype them.
+	CreateCard(ctx context.Context, card NewCard) (string, error)
+	// UpdateCard changes an existing card: its title, its select values, the
+	// column it stands in. Alone among the writes here it is *not* silent — see
+	// CardEdit for why.
+	UpdateCard(ctx context.Context, cardID string, edit CardEdit) error
+}
+
+// NewCard is a card asked for from outside the board — by an agent through the
+// board MCP server today. The board is not a field an agent fills in: it comes
+// from the grant its tools were started with, so a conversation about one board
+// cannot leave cards on another.
+type NewCard struct {
+	BoardID string
+	Title   string
+	Body    string
+	// Column is the name of the option in the board's trigger property. It is
+	// what decides whether anything happens to the card next, so a card asked
+	// for without one lands wherever a card with no column lands.
+	Property string
+	Column   string
+	// Options are the card's other select values by option name — a project, an
+	// agent, a route. Which property each belongs to is the board's business,
+	// not the caller's: that is already how a card is read back (CardMoved
+	// carries OptionNames, and project/agent/flow resolution matches against
+	// them without caring which property they came from).
+	Options []string
+}
+
+// CardEdit is a change to a card asked for from outside the board — by an agent
+// through the board MCP server today. Every field is empty-means-unchanged, so a
+// caller that only knows the column does not have to send the title back with it.
+//
+// The rest of BoardWriter writes with notifications off, because those writes
+// are the integration's own bookkeeping and must not re-trigger the agent that
+// produced them. This one is the opposite: an agent asking for a card to move is
+// somebody asking the board for something, exactly as a person dragging it is,
+// and the automation has to see it or the request means nothing.
+//
+// The card's description is deliberately not here. It is a person's content —
+// arbitrary blocks a person wrote — and an agent that has something to say about
+// a card says it in a comment, which is where everything else a session says
+// already goes.
+type CardEdit struct {
+	Title string
+	// Property/Column name the column the card should stand in, the way the
+	// config names it rather than by option id.
+	Property string
+	Column   string
+	// Options are the card's other select values by option name — a project, a
+	// route, the answer a stage is waiting for. Which property each belongs to
+	// is the board's business, as it is for NewCard.
+	Options []string
 }
 
 // BoardReader reads a card on demand, so a session can be opened from the UI
@@ -60,6 +115,10 @@ type BoardWriter interface {
 // returned event carries no columns — nothing was moved.
 type BoardReader interface {
 	CardByID(ctx context.Context, cardID string) (CardMoved, error)
+	// CardsForBoard is every card on a board. The events it returns carry no
+	// Body: reading one costs a query per card, and a list is read to pick a
+	// card out, not to work from it — CardByID is what answers about one card.
+	CardsForBoard(ctx context.Context, boardID string) ([]CardMoved, error)
 }
 
 // AgentUser is a registry entry seen as a board account: the user an agent is
@@ -74,8 +133,9 @@ type AgentUser struct {
 
 // BoardUsers keeps the board-side accounts in step with the agent registry, so
 // an agent can be picked in a person property ("Assignee") like any other
-// member — and stops being offered once it is unregistered. Optional: without
-// it the "Agent" select field remains the only routing mechanism.
+// member — and stops being offered once it is unregistered. Optional, but a
+// board without it has no way left to name an agent on a card: assigning one
+// is the way.
 type BoardUsers interface {
 	EnsureAgentUsers(ctx context.Context, boardID string, agents []AgentUser) ([]AgentUser, error)
 	// RetireAgentUser drops the account's board memberships and reports how

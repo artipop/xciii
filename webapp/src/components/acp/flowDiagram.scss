@@ -1,9 +1,16 @@
-// The route as a canvas. React Flow needs a sized container: without a height
+@import '../../styles/typography';
+
+// The route as a canvas. The canvas needs a sized container: without a height
 // the graph renders into nothing.
 .FlowDiagram {
     height: 320px;
     width: 100%;
-    margin: 4px 0 8px;
+
+    // No top margin: the canvas is the middle of three columns — palette,
+    // canvas, panel — and 4px here dropped its frame below the other two, which
+    // reads as the palette sitting slightly too high. The space below stays,
+    // it separates the canvas from the hint under it.
+    margin: 0 0 8px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     border-radius: var(--radius-sm);
     background: rgba(var(--center-channel-color-rgb), 0.04);
@@ -34,9 +41,35 @@
         border-left-color: rgba(var(--online-indicator-rgb), 1);
     }
 
+    // A column the route does not go through: on the canvas because it is on
+    // the board, faded because nothing happens to a card there on this route.
+    // Clicking it, or drawing an arrow to it, is what joins it.
+    .FlowDiagram__stage--spare {
+        border-style: dashed;
+        border-left-width: 1px;
+        opacity: 0.55;
+        cursor: copy;
+    }
+
+    .FlowDiagram__stage--spare:hover {
+        opacity: 1;
+    }
+
+    .FlowDiagram__stage--selected {
+        border-color: rgba(var(--button-bg-rgb), 1);
+        box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.24);
+    }
+
+    .FlowDiagram__crew {
+        color: rgba(var(--center-channel-color-rgb), 0.4);
+    }
+
+    // A column is something the system names, so it is spoken in the label
+    // voice — the same one the board's own column headers use.
     .FlowDiagram__column {
-        font-size: 13px;
-        font-weight: 600;
+        @include label;
+
+        font-size: 12px;
         color: rgba(var(--center-channel-color-rgb), 1);
         white-space: nowrap;
         overflow: hidden;
@@ -68,16 +101,19 @@
         color: rgba(var(--center-channel-color-rgb), 0.56);
     }
 
-    // React Flow's own chrome follows the board's theme rather than its
-    // built-in light one.
+    // Solid Flow's own chrome follows the board's theme rather than its
+    // built-in light one. These are the library's class names and not React
+    // Flow's, which is what they were until the arrows went missing and the
+    // handles turned up on a canvas nobody can draw on: a stale prefix styles
+    // nothing and says nothing about it.
     // A route being read has no outputs to pull from; one being built shows
     // them, and their colour is what the arrow will be.
-    .react-flow__handle {
+    .solid-flow__handle {
         opacity: 0;
     }
 
     &.FlowDiagram--editable {
-        .react-flow__handle {
+        .solid-flow__handle {
             opacity: 1;
             width: 8px;
             height: 8px;
@@ -96,21 +132,20 @@
             background: rgba(var(--center-channel-color-rgb), 0.4);
         }
 
-        .react-flow__handle-left {
+        .solid-flow__handle-left {
             background: rgba(var(--center-channel-color-rgb), 0.32);
         }
     }
 
-    .react-flow__edge-textbg {
-        fill: rgba(var(--center-channel-bg-rgb), 1);
-    }
-
-    .react-flow__edge-text {
-        fill: rgba(var(--center-channel-color-rgb), 0.72);
+    // The label of an awaited event. It is an HTML box over the canvas rather
+    // than SVG text, so it is painted, not filled.
+    .solid-flow__edge-label {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        background: rgb(var(--surface-bg-rgb));
         font-size: 10px;
     }
 
-    .react-flow__controls-button {
+    .solid-flow__controls-button {
         background: rgb(var(--surface-bg-rgb));
         border-bottom-color: rgba(var(--center-channel-color-rgb), 0.12);
 
@@ -119,7 +154,7 @@
         }
     }
 
-    .react-flow__attribution {
+    .solid-flow__attribution {
         background: transparent;
 
         a {

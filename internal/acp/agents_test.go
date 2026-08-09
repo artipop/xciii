@@ -224,32 +224,28 @@ func TestAgentSpawnEnvProxy(t *testing.T) {
 	}
 }
 
-func TestResolveAgentByOption(t *testing.T) {
+// Who works a card is what the card says under «Кто занимается», and nothing
+// else on it gets a vote. There used to be two other voters, and both were
+// invisible: a property named `agent`, and any select option anywhere on the
+// board spelled like an agent.
+func TestNothingButTheAssigneeChoosesTheAgent(t *testing.T) {
 	m := agentManager(t, "",
 		AgentEntry{Name: "claude", Kind: "claude"},
 		AgentEntry{Name: "codex-acct1", Kind: "codex"},
 	)
 
-	got, err := m.resolveAgent(CardMoved{OptionNames: []string{"urgent", "codex-acct1"}, Props: map[string]string{}})
-	if err != nil || got.Name != "codex-acct1" {
-		t.Fatalf("option match failed: got=%+v err=%v", got, err)
+	if _, err := m.resolveAgent(CardMoved{OptionNames: []string{"urgent", "codex-acct1"}}); err == nil {
+		t.Error("a select option should not choose the agent")
+	}
+	if _, err := m.resolveAgent(CardMoved{Props: map[string]string{"agent": "codex-acct1"}}); err == nil {
+		t.Error("a property named agent should not choose the agent")
 	}
 
-	// Explicit `agent` property wins.
-	got, err = m.resolveAgent(CardMoved{OptionNames: []string{"codex-acct1"}, Props: map[string]string{"agent": "claude"}})
-	if err != nil || got.Name != "claude" {
-		t.Fatalf("explicit agent property failed: got=%+v err=%v", got, err)
-	}
-
-	// Unknown explicit agent errors, listing the registry.
-	_, err = m.resolveAgent(CardMoved{Props: map[string]string{"agent": "nope"}})
+	// Ambiguous (several registered, none assigned) errors, and the message
+	// says what to do about it.
+	_, err := m.resolveAgent(CardMoved{Props: map[string]string{}})
 	if err == nil || !strings.Contains(err.Error(), "codex-acct1") {
-		t.Errorf("expected error listing agents, got %v", err)
-	}
-
-	// Ambiguous (multiple agents, no selection) errors.
-	if _, err := m.resolveAgent(CardMoved{Props: map[string]string{}}); err == nil {
-		t.Error("ambiguous agent selection should error")
+		t.Errorf("expected an error listing the registry, got %v", err)
 	}
 }
 
@@ -266,23 +262,23 @@ func TestResolveAgentByAssignee(t *testing.T) {
 		t.Fatalf("assignee match failed: got=%+v err=%v", got, err)
 	}
 
-	// An assignee outranks a tag: it is the more deliberate choice.
+	// A tag beside the assignee changes nothing: the assignee is the answer.
 	got, err = m.resolveAgent(CardMoved{
 		PersonNames: []string{"claude"},
 		OptionNames: []string{"Codex Acct1"},
 		Props:       map[string]string{},
 	})
 	if err != nil || got.Name != "claude" {
-		t.Fatalf("assignee should win over the option: got=%+v err=%v", got, err)
+		t.Fatalf("the assignee should decide: got=%+v err=%v", got, err)
 	}
 
-	// The explicit property still wins over both.
+	// A property named `agent` beside the assignee changes nothing either.
 	got, err = m.resolveAgent(CardMoved{
 		PersonNames: []string{"claude"},
 		Props:       map[string]string{"agent": "codex-acct1"},
 	})
-	if err != nil || got.Name != "Codex Acct1" {
-		t.Fatalf("explicit agent property should win: got=%+v err=%v", got, err)
+	if err != nil || got.Name != "claude" {
+		t.Fatalf("the assignee should decide: got=%+v err=%v", got, err)
 	}
 
 	// A human assignee is simply not an agent.
@@ -468,6 +464,52 @@ func TestLoadConfigMigratesLegacyTriggerColumn(t *testing.T) {
 	// …but a column the user picked is theirs.
 	if got := write("Ready for agent").TriggerColumn; got != "Ready for agent" {
 		t.Errorf("custom column was rewritten to %q", got)
+	}
+}
+
+// A prompt used to be one string for the whole machine, which meant the board
+// of household chores and the board of code shared it and so nobody could write
+// anything useful in it. Installs that did write something must not lose it: it
+// moves to the boards it was actually reaching, and the global field goes.
+func TestLoadConfigMovesTheOldPromptOntoTheBoardsThatRunSomething(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(t.TempDir(), "config.json")
+	old := `{"systemPrompt":"Отвечай по-русски.",
+		"columns":[{"boardId":"board1","property":"Статус","column":"В работе","action":"agent"}],
+		"flows":[{"boardId":"board2","name":"Фича","nodes":[],"edges":[]}]}`
+	if err := os.WriteFile(path, []byte(old), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := LoadConfig(path, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, board := range []string{"board1", "board2"} {
+		if got := cfg.BoardPrompts[board]; got != "Отвечай по-русски." {
+			t.Errorf("%s prompt = %q, want the migrated text", board, got)
+		}
+	}
+	if cfg.SystemPrompt != "" {
+		t.Errorf("the global prompt survived as %q", cfg.SystemPrompt)
+	}
+
+	// Saved back and reloaded, the migration finds nothing to do — so a board
+	// that later empties its prompt does not have the old text handed to it
+	// again on the next launch.
+	if err := SaveConfig(path, cfg); err != nil {
+		t.Fatal(err)
+	}
+	cfg.BoardPrompts = nil
+	if err := SaveConfig(path, cfg); err != nil {
+		t.Fatal(err)
+	}
+	again, err := LoadConfig(path, dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(again.BoardPrompts) != 0 {
+		t.Errorf("emptied prompts came back as %v", again.BoardPrompts)
 	}
 }
 

@@ -26,215 +26,206 @@ exports[`components/viewHeader/viewHeaderSortMenu > return sort menu 1`] = `
         <div
           class="menu-options"
         >
-          <div>
+          <div
+            aria-label="Manual"
+            class="MenuOption TextOption menu-option"
+            role="button"
+            tabindex="-1"
+          >
             <div
-              aria-label="Manual"
-              class="MenuOption TextOption menu-option"
-              role="button"
+              class="d-flex"
             >
-              <div
-                class="d-flex"
-              >
-                <div
-                  class="noicon"
-                />
-              </div>
-              <div
-                class="menu-option__content"
-              >
-                <div
-                  class="menu-name"
-                >
-                  Manual
-                </div>
-                
-              </div>
               <div
                 class="noicon"
               />
             </div>
-          </div>
-          <div>
             <div
-              aria-label="Revert"
-              class="MenuOption TextOption menu-option"
-              role="button"
+              class="menu-option__content"
             >
               <div
-                class="d-flex"
+                class="menu-name"
               >
-                <div
-                  class="noicon"
-                />
+                Manual
               </div>
-              <div
-                class="menu-option__content"
-              >
-                <div
-                  class="menu-name"
-                >
-                  Revert
-                </div>
-                
-              </div>
-              <div
-                class="noicon"
-              />
+              
             </div>
-          </div>
-          <div>
             <div
-              class="MenuOption MenuSeparator menu-separator"
+              class="noicon"
             />
           </div>
-          <div>
+          <div
+            aria-label="Revert"
+            class="MenuOption TextOption menu-option"
+            role="button"
+            tabindex="-1"
+          >
             <div
-              aria-label="Name"
-              class="MenuOption TextOption menu-option"
-              role="button"
+              class="d-flex"
             >
-              <div
-                class="d-flex"
-              >
-                <div
-                  class="noicon"
-                />
-              </div>
-              <div
-                class="menu-option__content"
-              >
-                <div
-                  class="menu-name"
-                >
-                  Name
-                </div>
-                
-              </div>
               <div
                 class="noicon"
               />
             </div>
-          </div>
-          <div>
             <div
-              aria-label="Status"
-              class="MenuOption TextOption menu-option"
-              role="button"
+              class="menu-option__content"
             >
               <div
-                class="d-flex"
+                class="menu-name"
               >
-                <div
-                  class="noicon"
-                />
+                Revert
               </div>
-              <div
-                class="menu-option__content"
-              >
-                <div
-                  class="menu-name"
-                >
-                  Status
-                </div>
-                
-              </div>
+              
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+          <div
+            class="MenuOption MenuSeparator menu-separator"
+          />
+          <div
+            aria-label="Name"
+            class="MenuOption TextOption menu-option"
+            role="button"
+            tabindex="-1"
+          >
+            <div
+              class="d-flex"
+            >
               <div
                 class="noicon"
               />
             </div>
-          </div>
-          <div>
             <div
-              aria-label="Property 1"
-              class="MenuOption TextOption menu-option"
-              role="button"
+              class="menu-option__content"
             >
               <div
-                class="d-flex"
+                class="menu-name"
               >
-                <div
-                  class="noicon"
-                />
+                Name
               </div>
-              <div
-                class="menu-option__content"
-              >
-                <div
-                  class="menu-name"
-                >
-                  Property 1
-                </div>
-                
-              </div>
-              <svg
-                class="SortDownIcon Icon"
-                viewBox="0 0 100 100"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <polyline
-                  points="50,20 50,80"
-                />
-                <polyline
-                  points="30,60 50,80 70,60"
-                />
-              </svg>
+              
             </div>
-          </div>
-          <div>
             <div
-              aria-label="Property 2"
-              class="MenuOption TextOption menu-option"
-              role="button"
+              class="noicon"
+            />
+          </div>
+          <div
+            aria-label="Status"
+            class="MenuOption TextOption menu-option"
+            role="button"
+            tabindex="-1"
+          >
+            <div
+              class="d-flex"
             >
-              <div
-                class="d-flex"
-              >
-                <div
-                  class="noicon"
-                />
-              </div>
-              <div
-                class="menu-option__content"
-              >
-                <div
-                  class="menu-name"
-                >
-                  Property 2
-                </div>
-                
-              </div>
               <div
                 class="noicon"
               />
             </div>
-          </div>
-          <div>
             <div
-              aria-label="Property 3"
-              class="MenuOption TextOption menu-option"
-              role="button"
+              class="menu-option__content"
             >
               <div
-                class="d-flex"
+                class="menu-name"
               >
-                <div
-                  class="noicon"
-                />
+                Status
               </div>
-              <div
-                class="menu-option__content"
-              >
-                <div
-                  class="menu-name"
-                >
-                  Property 3
-                </div>
-                
-              </div>
+              
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+          <div
+            aria-label="Property 1"
+            class="MenuOption TextOption menu-option"
+            role="button"
+            tabindex="-1"
+          >
+            <div
+              class="d-flex"
+            >
               <div
                 class="noicon"
               />
             </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Property 1
+              </div>
+              
+            </div>
+            <svg
+              class="SortDownIcon Icon"
+              viewBox="0 0 100 100"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polyline
+                points="50,20 50,80"
+              />
+              <polyline
+                points="30,60 50,80 70,60"
+              />
+            </svg>
+          </div>
+          <div
+            aria-label="Property 2"
+            class="MenuOption TextOption menu-option"
+            role="button"
+            tabindex="-1"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Property 2
+              </div>
+              
+            </div>
+            <div
+              class="noicon"
+            />
+          </div>
+          <div
+            aria-label="Property 3"
+            class="MenuOption TextOption menu-option"
+            role="button"
+            tabindex="-1"
+          >
+            <div
+              class="d-flex"
+            >
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              class="menu-option__content"
+            >
+              <div
+                class="menu-name"
+              >
+                Property 3
+              </div>
+              
+            </div>
+            <div
+              class="noicon"
+            />
           </div>
         </div>
         <div

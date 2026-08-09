@@ -17,14 +17,18 @@ import {Utils} from '../../utils'
 
 import ModalWrapper from '../modalWrapper'
 import {sendFlashMessage} from '../flashMessages'
-import AgentProjectsDialog, {isAgentProjectsAvailable} from '../acp/agentProjectsDialog'
-import AgentsDialog, {isAgentsAvailable} from '../acp/agentsDialog'
-import DeployTargetsDialog, {isDeployTargetsAvailable} from '../acp/deployTargetsDialog'
-import WorkflowsDialog, {isWorkflowsAvailable} from '../acp/workflowsDialog'
-import PlanningDialog, {isPlanningAvailable} from '../acp/planningDialog'
+import AutomationDialog, {isAutomationAvailable} from '../acp/automationDialog'
 import SourcesDialog, {isSourcesAvailable} from '../acp/sourcesDialog'
-import BoardSetupWizard from '../acp/boardSetupWizard'
-import {createSetupPlan, isBoardSetupAvailable, planHasStep} from '../acp/boardSetup'
+import TemplateEditor from '../acp/templateEditor'
+import {isSaveAsTemplateAvailable, saveBoardAsTemplate} from '../acp/saveAsTemplate'
+
+// What this menu holds is what is true of *this board*, and only that. The
+// registries it used to open — agents, where to deploy, how to reach the
+// network — belong to the machine and are in the sidebar's settings, where they
+// can be reached with no board open at all. Talking a task over with an agent
+// is a way of making cards and lives on the "New" button. Setting the board up
+// is offered by the board's own title while it is unanswered, and by the screen
+// below afterwards.
 
 type Props = {
     board: Board
@@ -52,14 +56,20 @@ function onExportCsvTrigger(board: Board, activeView: BoardView, cards: Card[], 
 
 const ViewHeaderActionsMenu = (props: Props) => {
     const intl = useIntl()
-    const [plan] = createSetupPlan(() => props.board)
-    const [showAgentRepos, setShowAgentRepos] = createSignal(false)
-    const [showAgents, setShowAgents] = createSignal(false)
-    const [showDeployTargets, setShowDeployTargets] = createSignal(false)
     const [showWorkflows, setShowWorkflows] = createSignal(false)
-    const [showPlanning, setShowPlanning] = createSignal(false)
-    const [showSetup, setShowSetup] = createSignal(false)
     const [showSources, setShowSources] = createSignal(false)
+
+    // The template a board was saved as, held so the editor opens on it: it is
+    // a board of its own and the page has not navigated to it.
+    const [template, setTemplate] = createSignal<Board | null>(null)
+
+    const saveAsTemplate = async () => {
+        try {
+            setTemplate(await saveBoardAsTemplate(props.board, intl))
+        } catch (e) {
+            sendFlashMessage({content: String(e), severity: 'high'})
+        }
+    }
 
     return (
         <ModalWrapper>
@@ -77,46 +87,19 @@ const ViewHeaderActionsMenu = (props: Props) => {
                             name={intl.formatMessage({id: 'ViewHeader.export-board-archive', defaultMessage: 'Export board archive'})}
                             onClick={() => Archiver.exportBoardArchive(props.board)}
                         />
-                        <Show when={isPlanningAvailable()}>
+                        <Show when={isAutomationAvailable()}>
                             <Menu.Text
-                                id='planTask'
-                                name={intl.formatMessage({id: 'ViewHeader.plan-task', defaultMessage: 'Plan a task…'})}
-                                onClick={() => setShowPlanning(true)}
-                            />
-                        </Show>
-                        <Show when={isBoardSetupAvailable()}>
-                            <Menu.Text
-                                id='boardSetup'
-                                name={intl.formatMessage({id: 'ViewHeader.board-setup', defaultMessage: 'Set up this board…'})}
-                                onClick={() => setShowSetup(true)}
-                            />
-                        </Show>
-                        <Show when={isAgentProjectsAvailable()}>
-                            <Menu.Text
-                                id='agentRepos'
-                                name={intl.formatMessage({id: 'ViewHeader.agent-projects', defaultMessage: 'Projects…'})}
-                                onClick={() => setShowAgentRepos(true)}
-                            />
-                        </Show>
-                        <Show when={isAgentsAvailable()}>
-                            <Menu.Text
-                                id='agents'
-                                name={intl.formatMessage({id: 'ViewHeader.agents', defaultMessage: 'Agents…'})}
-                                onClick={() => setShowAgents(true)}
+                                id='workflows'
+                                name={intl.formatMessage({id: 'ViewHeader.automation', defaultMessage: 'How this board works…'})}
+                                onClick={() => setShowWorkflows(true)}
                             />
                         </Show>
 
-                        {/* The registries are per machine, but the questions
-                            are per board, and the board's own setup plan is
-                            where that is decided — one answer, the same one the
-                            wizard walks. */}
-                        <Show when={isDeployTargetsAvailable() && planHasStep(plan(), 'deploy')}>
-                            <Menu.Text
-                                id='deployTargets'
-                                name={intl.formatMessage({id: 'ViewHeader.deploy-targets', defaultMessage: 'Deploy targets…'})}
-                                onClick={() => setShowDeployTargets(true)}
-                            />
-                        </Show>
+                        {/* Sources stay in this menu while the registries left
+                            it: what feeds a board is true of *that board* — a
+                            source belongs to the board it was made on and is
+                            offered nowhere else — where an agent or a deploy
+                            target belongs to the machine. */}
                         <Show when={isSourcesAvailable()}>
                             <Menu.Text
                                 id='sources'
@@ -124,11 +107,15 @@ const ViewHeaderActionsMenu = (props: Props) => {
                                 onClick={() => setShowSources(true)}
                             />
                         </Show>
-                        <Show when={isWorkflowsAvailable()}>
+
+                        {/* A board that has been set up the way somebody wants
+                            it is the best template there is, and until now the
+                            only way to make one was to build it twice. */}
+                        <Show when={isSaveAsTemplateAvailable() && !props.board.isTemplate}>
                             <Menu.Text
-                                id='workflows'
-                                name={intl.formatMessage({id: 'ViewHeader.workflows', defaultMessage: 'Workflows…'})}
-                                onClick={() => setShowWorkflows(true)}
+                                id='saveAsTemplate'
+                                name={intl.formatMessage({id: 'ViewHeader.save-as-template', defaultMessage: 'Save as a template…'})}
+                                onClick={saveAsTemplate}
                             />
                         </Show>
                     </Menu>
@@ -136,33 +123,10 @@ const ViewHeaderActionsMenu = (props: Props) => {
             >
                 <IconButton icon={<OptionsIcon/>}/>
             </MenuWrapper>
-            <Show when={showAgentRepos()}>
-                <AgentProjectsDialog
-                    board={props.board}
-                    onClose={() => setShowAgentRepos(false)}
-                />
-            </Show>
-            <Show when={showAgents()}>
-                <AgentsDialog
-                    board={props.board}
-                    onClose={() => setShowAgents(false)}
-                />
-            </Show>
-            <Show when={showDeployTargets()}>
-                <DeployTargetsDialog
-                    onClose={() => setShowDeployTargets(false)}
-                />
-            </Show>
             <Show when={showWorkflows()}>
-                <WorkflowsDialog
+                <AutomationDialog
                     board={props.board}
                     onClose={() => setShowWorkflows(false)}
-                />
-            </Show>
-            <Show when={showSetup()}>
-                <BoardSetupWizard
-                    board={props.board}
-                    onClose={() => setShowSetup(false)}
                 />
             </Show>
             <Show when={showSources()}>
@@ -171,10 +135,13 @@ const ViewHeaderActionsMenu = (props: Props) => {
                     onClose={() => setShowSources(false)}
                 />
             </Show>
-            <Show when={showPlanning()}>
-                <PlanningDialog
-                    onClose={() => setShowPlanning(false)}
-                />
+            <Show when={template()}>
+                {(saved) => (
+                    <TemplateEditor
+                        board={saved()}
+                        onClose={() => setTemplate(null)}
+                    />
+                )}
             </Show>
         </ModalWrapper>
     )

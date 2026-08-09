@@ -11,7 +11,7 @@ import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 
 import '@xterm/xterm/css/xterm.css'
 import './terminalPage.scss'

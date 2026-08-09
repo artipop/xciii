@@ -264,10 +264,40 @@ func TestCardFlowDescribesWhereTheCardStands(t *testing.T) {
 
 // fakeBoardMeta is a board that carries its own automation, the way the
 // template does.
-type fakeBoardMeta struct{ props map[string]any }
+type fakeBoardMeta struct {
+	props    map[string]any
+	template bool
+
+	// written is what each board was told to keep, by board id — the board
+	// database stands in for itself here.
+	written map[string]map[string]any
+	fail    error
+}
 
 func (f *fakeBoardMeta) BoardProperties(context.Context, string) (map[string]any, error) {
 	return f.props, nil
+}
+
+func (f *fakeBoardMeta) SetBoardProperties(_ context.Context, boardID string, props map[string]any) error {
+	if f.fail != nil {
+		return f.fail
+	}
+	if f.written == nil {
+		f.written = map[string]map[string]any{}
+	}
+	board := f.written[boardID]
+	if board == nil {
+		board = map[string]any{}
+		f.written[boardID] = board
+	}
+	for k, v := range props {
+		board[k] = v
+	}
+	return nil
+}
+
+func (f *fakeBoardMeta) IsBoardTemplate(context.Context, string) (bool, error) {
+	return f.template, nil
 }
 
 // A board made from the template works before anything is configured: it brings
@@ -437,10 +467,16 @@ func TestAssignedCardIsStillDeployed(t *testing.T) {
 		t.Fatalf("an agent stage should be vetoed: %v", err)
 	}
 
-	// An explicit agent property is a direct instruction and wins over it.
+	// Assigning the agent instead is how the card says an agent should work it,
+	// and it is the only thing that says so: a property named `agent` used to
+	// override the veto invisibly.
 	ev.Props["agent"] = "claude-1"
-	_, err = m.startSession(ev, startOptions{})
-	if errors.As(err, &mine) {
-		t.Fatalf("an explicit agent property should win: %v", err)
+	if _, err = m.startSession(ev, startOptions{}); !errors.As(err, &mine) {
+		t.Fatalf("a property named agent should not lift the veto: %v", err)
+	}
+
+	ev.PersonNames = []string{"claude-1"}
+	if _, err = m.startSession(ev, startOptions{}); errors.As(err, &mine) {
+		t.Fatalf("a card assigned to an agent is not somebody's own: %v", err)
 	}
 }

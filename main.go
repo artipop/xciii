@@ -135,7 +135,9 @@ func main() {
 	// The UI event socket beside them: what the agents are doing, sent to every
 	// page rather than only to the windows this application owns.
 	uiEvents := newEventRoutes()
-	acpSockets := newACPSockets(terminals, uiEvents)
+	// The board tools an agent calls back through, on the same subtree.
+	boardTools := newBoardToolRoutes()
+	acpSockets := newACPSockets(terminals, uiEvents, boardTools.Handler())
 	// The ingest endpoint, on the same terms: it is a route on the front door,
 	// and it is handed its manager once the board exists.
 	ingest := newSourceRoutes()
@@ -191,7 +193,7 @@ func main() {
 		sourceStore = nil
 	} else {
 		sourceMgr := sources.NewManager(cfg, filepath.Join(dir, "sources.json"),
-			sourceStore, boardadapter.NewWriter(srv.App()), nil)
+			sourceStore, boardadapter.NewSourceWriter(srv.App()), nil)
 		ingest.SetManager(sourceMgr)
 		app.sources = sourceMgr
 		sourcesReady = func() bool { return len(sourceMgr.Sources()) > 0 }
@@ -258,6 +260,7 @@ func main() {
 			} else {
 				app.mgr = mgr
 				terminals.SetManager(mgr)
+				boardTools.SetManager(mgr)
 				// A source may be read by an agent rather than by a mapping —
 				// the service's MCP server plus one tool of ours to file
 				// through. The two registries stay independent: sources works
@@ -326,6 +329,11 @@ func main() {
 	// startup hook to wait for before an event can be delivered.
 	app.SetApplication(wapp)
 	app.SetOrigin(front.url())
+	if mgr != nil {
+		// Where an agent's board tools call back to. Known only now: the front
+		// door picks its port when it binds.
+		mgr.SetOrigin(front.url())
+	}
 	emitter.SetApplication(wapp)
 
 	front.start()

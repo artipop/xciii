@@ -33,6 +33,11 @@ func (m *Manager) handleEvent(ev CardMoved) {
 	if m.handleFlowMove(ev) {
 		return
 	}
+	// Not a move on the route's column — but a parked card may be waiting for
+	// exactly this: an option set on the card itself.
+	if m.handleCardChanged(ev) {
+		return
+	}
 	to, entered := m.columnFor(ev.BoardID, ev.ToColumn)
 	if entered && to.Action != FlowActionNone {
 		m.handleEnter(ev, to)

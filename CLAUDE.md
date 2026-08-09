@@ -75,7 +75,7 @@ installers are native-tool jobs (AppImage shells out to `ldd`, NSIS is `makensis
 
 ## Architecture
 
-Six ideas hold this together. Read them before changing anything structural.
+Seven ideas hold this together. Read them before changing anything structural.
 
 ### The front door owns the origin
 
@@ -155,12 +155,16 @@ board's catch-all route is `/:boardId?/…`, which `/m` fits.
 `mobile/` is the phone app itself, and it is **a second Go module on purpose**:
 `wails3 ios overlay:gen` compiles `package main` from the module root, and this
 root's main is a board server with cgo SQLite, git and a pty. The phone runs
-none of that — the app is a window pointed at `https://<machine>.<tailnet>/m`,
-which is what the desktop's own window is too. It keeps the address in the
-platform's secure store, and a failed navigation returns to its setup page,
-because once the window is on the board there is no address bar to type in.
+none of that — the app is a window onto `https://<machine>.<tailnet>/m`, which
+is what the desktop's own window is too. It keeps the machines in the platform's
+secure store, because a person has more than one desktop and each publishes its
+own board: the window holds **a tab per machine and a frame behind each tab**,
+which is what keeps every board same-origin with its own front door and costs
+the desktop side nothing. Two things cross that boundary — a `postMessage` with
+the number waiting there, so a tab can carry it, and a `no-cors` probe of the
+machine's own page, since a frame's failure is not readable from outside it.
 `mobile/README.md` has the build commands; `go test ./...` there covers the
-address rules.
+address rules and the machine list.
 
 ### The page is Solid, and its state is a store rather than Redux
 
@@ -221,19 +225,131 @@ reports `waiting_permission` meanwhile, and an unanswered question does not stal
 for ever: cancelling the session, or the app closing, is a refusal, and the agent
 carries on without what it asked for.
 
-The question shows up as `acp:attention` with reason `question` — the amber dot on
-the card's face, and, unless turned off in the settings menu, a notification
-carrying the question itself, since the options *are* the answer and there is
-nothing to navigate to. It is answered in either place through `AnswerQuestion`, and
-the card keeps the exchange in its comments like everything else a session does. The
-other reason is `quiet`, from a terminal, below; `components/acp/attention.ts` is
-the one subscription behind both.
+The question shows up as `acp:attention` — the amber dot on the card's face, and,
+unless turned off in the settings menu, a notification carrying the question
+itself, since the options *are* the answer and there is nothing to navigate to.
+It is answered in either place through `AnswerQuestion`, and the card keeps the
+exchange in its comments like everything else a session does. This is the only
+thing that raises attention: a terminal used to be a second reason and no longer
+is (below). `components/acp/attention.ts` is the one subscription behind it.
 
 The automation around sessions is untouched by that: columns say what happens when a
 card lands in them, flows join columns into routes, deploys publish a branch to
 Dokku through our own MCP server, and the test column drives a browser through an
 MCP server the agent carries. `docs/flows.md` is that machinery written for somebody
 using the board.
+
+Both halves are edited over **the board's own columns**: `components/acp/
+automationEditor.tsx` draws every option of the board's column property as a box,
+and a route is that same set of boxes with arrows over it — a stage that is not a
+column is a stage no card can stand on, so there is no way to make one. The
+editor is source-agnostic and the container decides what it edits: `automation
+Dialog.tsx` points it at the registry of a live board (saving through
+`SaveBoardColumn`/`AddFlow`/…), `templateEditor.tsx` at a template board's own
+properties (`acpColumns`, `acpFlows`, `acpSetup`), which is where a board made
+from it will read them. `automation.ts` holds the types and every pure helper,
+which is what keeps the two containers from growing their own answers.
+`docs/templates.md` is the template half written for somebody using it.
+
+And a board's automation **lives on the board** — `acpColumns`/`acpFlows` in the
+board's own properties, in the board database, which is why a live board and a
+template are the same two keys and why a template can carry automation at all.
+`internal/acp` keeps the registry in memory because the engine reads it on every
+card move, but every edit is written through to the board it belongs to
+(`persistBoardLocked` in `boardseed.go`), and `config.json` keeps only what the
+machine owns. An install that predates this moves over once, at startup
+(`moveAutomationToBoards`); a board that refuses the write keeps its entries in
+the file until one gets through, which is what makes the move safe to retry.
+
+**A setting lives where its owner does**, and that is the rule the whole
+settings surface is sorted by. The registries are the machine's — agents,
+deploy targets, proxies, the tailnet, what a card-less conversation opens
+saying — so they are `machineSettingsDialog.tsx`, one dialog of panels opened
+from `sidebarSettingsMenu.tsx`, reachable with no board open. What a board runs
+— columns, routes, its folders, and what its agents are told first
+(`boardPrompts`, keyed by board id) — is `automationDialog.tsx`. The board's ⋯
+menu keeps only export and "save as a template". Registering an agent needs
+neither: `agentQuickAdd.tsx` is the two-field form, used by the card, the
+column's crew list and the setup wizard alike, and `agentSync.ts` is what makes
+a registered agent nameable on a board — called where a board exists, since the
+machine's own settings have none.
+
+**A card names its agent by whom it is assigned to**, and by nothing else. Each
+registered agent is a member of the board under its own name (`SyncAgentUsers`),
+so «Кто занимается» answers the question the whole board already asks with that
+field. There used to be a second one — an «Agent» select `agentSync.ts` kept in
+step with the registry — and two fields for one question meant a rule about
+which of them wins and a field that said nothing on a board where nobody had
+registered an agent. `retireAgentProperty` takes it off a board the first time
+one is opened, and `resolveSessionAgent` no longer reads select options at all —
+that match outlived the field as a rule with nothing behind it, where any option
+anywhere on the board spelled like an agent quietly decided who worked the card.
+`humanAssignee` is what keeps "assigned to a person" and "assigned to an agent"
+opposite answers rather than the same one. A card property named `agent` went
+with them, and for the same reason: nothing in this app creates one, so it was a
+third answer only a hand-built board could give.
+
+Folders belong to **running an agent**, not to having a board: a board with no
+`agent`/`test` column is never asked for one, never grows a «Проекты» property,
+and a project marked global joins only boards that already have that property.
+
+### An agent talks back through MCP, not through its output
+
+Everything above is us talking to an agent. `internal/boardmcp` is the way back:
+an MCP server giving an agent the board as tools. It is what planning ends with —
+a conversation about what to do leaves the cards on the board itself, where before
+a person read the screen and retyped them — and it is what finishing ends with
+too, since a card carries what happens to it next in its own column.
+
+The surface is the board in the vocabulary a person uses: read it
+(`list_columns`, `list_flows`, `list_cards`, `get_card`), put work on it
+(`create_card`, `create_cards`), change it (`update_card`, `comment_card`), and
+carry a card on (`move_card`). Everything is **named, never identified** — a
+column, a project, a route, an answer a stage waits for — because names are what
+a person typed and ids are what the board's own REST API would have made an agent
+learn. A **card id** is the one exception, and it has a default: empty means the
+card the run stands on (the grant carries it), which is the card an agent working
+on one always means.
+
+`move_card` is `update_card` with a column in it, and the split is for the model
+rather than for the code: moving is the call whose *consequence* is the point.
+Which is why `acp.CardEdit` is the one write in `BoardWriter` that lets the board
+notify — the rest are the integration's own bookkeeping and must not re-trigger
+the agent that produced them, but a card moved because an agent asked for it has
+to set the column's automation off, exactly as a person's drag does. The card's
+**description is not editable**: it is a person's content, and what an agent has
+to say about a card goes where everything else a session says already goes.
+
+**The app serves it, over HTTP, on the front door** (`/acp/board/mcp`,
+`boardapi.go`). The other two MCP servers are subprocesses of the agent because
+they do work of their own — dokku talks ssh, webtest drives a browser — but this
+one *is* the app: the board lives in this process, and the app is already a
+separate process from the agent, already listening on an origin it can reach. A
+subprocess in between would have been a proxy of ours to ourselves with the tool
+schema written twice. It is not the board's own REST API either, because what it
+offers is ours: a column that means something, a project by name.
+
+The server carries **a grant token, not a board id**
+(`internal/acp/boardtools.go`): the token names the board, is minted per agent
+run and dies with it, so an agent cannot leave cards anywhere else, and one found
+later opens nothing — the same bargain the dokku server takes, where the model
+picks steps and never targets. The handler is **stateless**, so every request
+carries the grant and no session id outlives the check. Now that the tools reach
+existing cards, every call that names one is checked against the grant's board
+(`grantedCard`): a card id is something an agent can read anywhere, and without
+that check one board's grant would edit every other board's cards.
+
+A session declares MCP servers in `session/new`, where ACP has a field for HTTP
+ones. A **terminal** has no such field, so it gets a config file its CLI is
+pointed at — `cliMCPArgs` in the kind table, beside `cliBin`. A kind that has not
+filled that column in simply runs without the tools, which is better than
+guessing a flag and failing to open the window.
+
+A session could take the same server through `session/new` and does not yet: a
+card's own agent creating cards — or moving its own card into the column that
+starts it — is a loop with nothing to stop it, and that wants a decision before
+it wants code. A terminal is a person watching, which is what stands in for that
+decision today.
 
 ### A source brings cards in, and the app decides what they become
 
@@ -320,13 +436,14 @@ CLI exits saying what it left on the branch. Terminals outlive their window and
 resume — every one is recorded, so the next terminal on that card returns to the
 same worktree with `claude --continue`.
 
-A window nobody is looking at is also where an agent asks its questions, so
-**silence is read as a question**: a CLI that has printed nothing for
-`terminalQuietFor` is waiting for a person, and typing ends the wait. That
-heuristic holds only because a working agent prints continuously — spinner, tool
-output, tokens — and it is used *only here*, where there is no protocol to ask
-through (an ACP agent has no TUI, which is the whole reason a terminal is not a
-session).
+A terminal **raises nothing**, and that is a decision. There is no protocol to
+ask through in a pty — an agent CLI draws a TUI — so the only signal available
+was silence, and silence could not be told from a CLI sitting at its prompt with
+nothing asked: opening a terminal and leaving it announced "needs you" five
+seconds later, every time, including after the window was closed. A signal that
+is wrong more often than right is worse than none, and the window is in front of
+whoever opened it. **Only the protocol asks** (`question.go`), which is why
+`acp:attention` now has one reason instead of two.
 
 ## Conventions
 

@@ -3,7 +3,7 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import {agentBindings} from '../../components/acp/agentProjectsDialog'
+import {agentBindings} from '../../components/acp/bindings'
 
 // What the share dialog needs from Go, beyond the board list it shares with the
 // phone (bindings/boards.ts): the send, and the way to close the window it was

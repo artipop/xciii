@@ -6,6 +6,7 @@ import type {Component} from 'solid-js'
 import {FormattedMessage, useIntl} from '../../intl'
 
 import {BindingBoard, BindingCard} from '../../bindings/boards'
+
 import MobileMoveSheet from './mobileMoveSheet'
 
 // What arrived and nobody has looked at yet: the cards a source left in the

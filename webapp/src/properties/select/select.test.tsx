@@ -197,4 +197,52 @@ describe('properties/select', () => {
         expect(mockedMutator.insertPropertyOption).toHaveBeenCalledWith(board.id, board.cardProperties, propertyTemplate, expect.objectContaining({value: newOption}), 'add property option')
         expect(mockedMutator.changePropertyValue).toHaveBeenCalledWith(board.id, card, propertyTemplate.id, 'option-3')
     })
+
+    // On the card the chosen option is a chip you can take off, the way the
+    // people a card is assigned to are. Before this the only visible way out
+    // was «Delete» in the option's own menu, which takes the option away from
+    // the whole board.
+    it('is cleared from the card by the cross on the chip', () => {
+        const propertyTemplate = selectPropertyTemplate()
+        const option = propertyTemplate.options[0]
+
+        render(() => wrapIntl(() =>
+            <Select
+                property={new SelectProperty()}
+                board={{...board}}
+                card={{...card}}
+                propertyTemplate={propertyTemplate}
+                propertyValue={option.id}
+                showEmptyPlaceholder={true}
+                readOnly={false}
+            />,
+        ))
+
+        userEvent.click(clearButton()!)
+
+        expect(mockedMutator.changePropertyValue).toHaveBeenCalledWith(board.id, card, propertyTemplate.id, '')
+
+        // And the chip did not also open the selector on the way out.
+        expect(screen.queryByRole('combobox', {name: /value selector/i})).not.toBeInTheDocument()
+    })
+
+    // Everywhere the value is only being read — a table cell, a badge on a
+    // kanban card — a cross on every value is noise.
+    it('offers no cross outside the card', () => {
+        const propertyTemplate = selectPropertyTemplate()
+
+        render(() => wrapIntl(() =>
+            <Select
+                property={new SelectProperty()}
+                board={{...board}}
+                card={{...card}}
+                propertyTemplate={propertyTemplate}
+                propertyValue={propertyTemplate.options[0].id}
+                showEmptyPlaceholder={false}
+                readOnly={false}
+            />,
+        ))
+
+        expect(clearButton()).not.toBeInTheDocument()
+    })
 })

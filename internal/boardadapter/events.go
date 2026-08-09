@@ -34,6 +34,7 @@ type EventsBackend struct {
 var (
 	_ notify.Backend  = (*EventsBackend)(nil)
 	_ acp.BoardEvents = (*EventsBackend)(nil)
+	_ acp.BoardReader = (*EventsBackend)(nil)
 )
 
 // NewEventsBackend creates the backend. Pass it into server.Params.NotifyBackends.
@@ -143,6 +144,69 @@ func (b *EventsBackend) CardByID(ctx context.Context, cardID string) (acp.CardMo
 	}, nil
 }
 
+// cardListLimit is how many cards one listing reads. A board is a person's
+// working set, not an archive, and an agent given a thousand cards would spend
+// its context on them rather than on the work.
+const cardListLimit = 500
+
+// CardsForBoard lists a board's cards, which is how an agent finds the card it
+// has to act on: everything else it can do to one takes an id, and an id is not
+// something a conversation carries.
+//
+// Bodies are left out on purpose (see acp.BoardReader): each one is a query of
+// its own, and a listing is read to pick a card, not to work from it.
+func (b *EventsBackend) CardsForBoard(ctx context.Context, boardID string) ([]acp.CardMoved, error) {
+	b.mu.Lock()
+	a := b.app
+	b.mu.Unlock()
+	if a == nil {
+		return nil, fmt.Errorf("board app is not ready")
+	}
+	board, err := a.GetBoard(boardID)
+	if err != nil {
+		return nil, fmt.Errorf("get board %s: %w", boardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return nil, fmt.Errorf("parse board schema: %w", err)
+	}
+	// The card blocks rather than app.GetCardsForBoard, and for the same reason
+	// CardByID reads a block: the board's Card type is a lossy view that refuses
+	// a card whose fields it does not recognise, and one such card would fail
+	// the whole listing. A block is what a card is; everything below reads it
+	// exactly as the trigger does.
+	blocks, err := a.GetBlocks(boardID, "", string(model.TypeCard))
+	if err != nil {
+		return nil, fmt.Errorf("get cards of board %s: %w", boardID, err)
+	}
+
+	resolver := newUserResolver(b.appUserLookup())
+	out := make([]acp.CardMoved, 0, len(blocks))
+	for _, block := range blocks {
+		if block == nil || block.DeleteAt != 0 {
+			continue
+		}
+		if isTemplate, _ := block.Fields["isTemplate"].(bool); isTemplate {
+			continue
+		}
+		props := rawProperties(block)
+		out = append(out, acp.CardMoved{
+			EventID:     uuid.NewString(),
+			CardID:      block.ID,
+			BoardID:     board.ID,
+			Title:       block.Title,
+			Props:       namedProperties(block, schema, resolver),
+			OptionNames: selectedOptionNames(props, schema),
+			PersonNames: personNames(props, schema, resolver),
+			At:          time.UnixMilli(block.UpdateAt),
+		})
+		if len(out) >= cardListLimit {
+			break
+		}
+	}
+	return out, nil
+}
+
 // BoardProperties returns the board's own free-form properties, where a
 // template leaves the automation it ships (see acp.BoardPropColumns/Flows).
 func (b *EventsBackend) BoardProperties(_ context.Context, boardID string) (map[string]any, error) {
@@ -160,6 +224,42 @@ func (b *EventsBackend) BoardProperties(_ context.Context, boardID string) (map[
 		return nil, nil
 	}
 	return board.Properties, nil
+}
+
+// SetBoardProperties writes the named properties onto the board and leaves the
+// rest alone, which is how a board's own automation is saved (acp.BoardProp*).
+//
+// The write is the system user's, not the person's at the keyboard: it is the
+// app recording what the app was told, and attributing it to whoever happened
+// to have the dialog open would put their name on a board they may only be
+// looking at.
+func (b *EventsBackend) SetBoardProperties(_ context.Context, boardID string, props map[string]any) error {
+	b.mu.Lock()
+	a := b.app
+	b.mu.Unlock()
+	if a == nil {
+		return fmt.Errorf("board app is not ready")
+	}
+	patch := &model.BoardPatch{UpdatedProperties: props}
+	if _, err := a.PatchBoard(patch, boardID, model.SystemUserID); err != nil {
+		return fmt.Errorf("patch board %s: %w", boardID, err)
+	}
+	return nil
+}
+
+// IsBoardTemplate says the board is one to copy rather than to work in.
+func (b *EventsBackend) IsBoardTemplate(_ context.Context, boardID string) (bool, error) {
+	b.mu.Lock()
+	a := b.app
+	b.mu.Unlock()
+	if a == nil {
+		return false, fmt.Errorf("board app is not ready")
+	}
+	board, err := a.GetBoard(boardID)
+	if err != nil {
+		return false, fmt.Errorf("get board %s: %w", boardID, err)
+	}
+	return board != nil && board.IsTemplate, nil
 }
 
 func column(def model.PropDef, optionID string) acp.Column {

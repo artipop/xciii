@@ -40,139 +40,135 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot 1`
             <div
               class="menu-options"
             >
-              <div>
+              <div
+                aria-label="Editor"
+                class="MenuOption TextOption menu-option"
+                role="button"
+                tabindex="-1"
+              >
                 <div
-                  aria-label="Editor"
-                  class="MenuOption TextOption menu-option"
-                  role="button"
+                  class="d-flex menu-option__check"
                 >
                   <div
-                    class="d-flex menu-option__check"
+                    class="menu-option__icon"
                   >
                     <div
-                      class="menu-option__icon"
-                    >
-                      <div
-                        class="empty-icon"
-                      />
-                    </div>
+                      class="empty-icon"
+                    />
                   </div>
-                  <div
-                    class="menu-option__content"
-                  >
-                    <div
-                      class="menu-name"
-                    >
-                      Editor
-                    </div>
-                    
-                  </div>
-                  <div
-                    class="noicon"
-                  />
                 </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Editor
+                  </div>
+                  
+                </div>
+                <div
+                  class="noicon"
+                />
               </div>
-              <div>
+              <div
+                aria-label="Commenter"
+                class="MenuOption TextOption menu-option"
+                role="button"
+                tabindex="-1"
+              >
                 <div
-                  aria-label="Commenter"
-                  class="MenuOption TextOption menu-option"
-                  role="button"
+                  class="d-flex"
                 >
                   <div
-                    class="d-flex"
+                    class="menu-option__icon"
                   >
                     <div
-                      class="menu-option__icon"
-                    >
-                      <div
-                        class="empty-icon"
-                      />
-                    </div>
+                      class="empty-icon"
+                    />
                   </div>
-                  <div
-                    class="menu-option__content"
-                  >
-                    <div
-                      class="menu-name"
-                    >
-                      Commenter
-                    </div>
-                    
-                  </div>
-                  <div
-                    class="noicon"
-                  />
                 </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Commenter
+                  </div>
+                  
+                </div>
+                <div
+                  class="noicon"
+                />
               </div>
-              <div>
+              <div
+                aria-label="Viewer"
+                class="MenuOption TextOption menu-option"
+                role="button"
+                tabindex="-1"
+              >
                 <div
-                  aria-label="Viewer"
-                  class="MenuOption TextOption menu-option"
-                  role="button"
+                  class="d-flex"
                 >
                   <div
-                    class="d-flex"
+                    class="menu-option__icon"
                   >
                     <div
-                      class="menu-option__icon"
-                    >
-                      <div
-                        class="empty-icon"
-                      />
-                    </div>
+                      class="empty-icon"
+                    />
                   </div>
-                  <div
-                    class="menu-option__content"
-                  >
-                    <div
-                      class="menu-name"
-                    >
-                      Viewer
-                    </div>
-                    
-                  </div>
-                  <div
-                    class="noicon"
-                  />
                 </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Viewer
+                  </div>
+                  
+                </div>
+                <div
+                  class="noicon"
+                />
               </div>
-              <div>
+              <div
+                aria-label="None"
+                class="MenuOption TextOption menu-option"
+                role="button"
+                tabindex="-1"
+              >
                 <div
-                  aria-label="None"
-                  class="MenuOption TextOption menu-option"
-                  role="button"
+                  class="d-flex menu-option__check"
                 >
                   <div
-                    class="d-flex menu-option__check"
+                    class="menu-option__icon"
                   >
-                    <div
-                      class="menu-option__icon"
+                    <svg
+                      class="CheckIcon Icon"
+                      viewBox="0 0 100 100"
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      <svg
-                        class="CheckIcon Icon"
-                        viewBox="0 0 100 100"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <polyline
-                          points="20,60 40,80 80,40"
-                        />
-                      </svg>
-                    </div>
+                      <polyline
+                        points="20,60 40,80 80,40"
+                      />
+                    </svg>
                   </div>
-                  <div
-                    class="menu-option__content"
-                  >
-                    <div
-                      class="menu-name"
-                    >
-                      None
-                    </div>
-                    
-                  </div>
-                  <div
-                    class="noicon"
-                  />
                 </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    None
+                  </div>
+                  
+                </div>
+                <div
+                  class="noicon"
+                />
               </div>
             </div>
             <div
@@ -257,139 +253,135 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot in
             <div
               class="menu-options"
             >
-              <div>
+              <div
+                aria-label="Editor"
+                class="MenuOption TextOption menu-option"
+                role="button"
+                tabindex="-1"
+              >
                 <div
-                  aria-label="Editor"
-                  class="MenuOption TextOption menu-option"
-                  role="button"
+                  class="d-flex menu-option__check"
                 >
                   <div
-                    class="d-flex menu-option__check"
+                    class="menu-option__icon"
                   >
                     <div
-                      class="menu-option__icon"
-                    >
-                      <div
-                        class="empty-icon"
-                      />
-                    </div>
+                      class="empty-icon"
+                    />
                   </div>
-                  <div
-                    class="menu-option__content"
-                  >
-                    <div
-                      class="menu-name"
-                    >
-                      Editor
-                    </div>
-                    
-                  </div>
-                  <div
-                    class="noicon"
-                  />
                 </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Editor
+                  </div>
+                  
+                </div>
+                <div
+                  class="noicon"
+                />
               </div>
-              <div>
+              <div
+                aria-label="Commenter"
+                class="MenuOption TextOption menu-option"
+                role="button"
+                tabindex="-1"
+              >
                 <div
-                  aria-label="Commenter"
-                  class="MenuOption TextOption menu-option"
-                  role="button"
+                  class="d-flex"
                 >
                   <div
-                    class="d-flex"
+                    class="menu-option__icon"
                   >
                     <div
-                      class="menu-option__icon"
-                    >
-                      <div
-                        class="empty-icon"
-                      />
-                    </div>
+                      class="empty-icon"
+                    />
                   </div>
-                  <div
-                    class="menu-option__content"
-                  >
-                    <div
-                      class="menu-name"
-                    >
-                      Commenter
-                    </div>
-                    
-                  </div>
-                  <div
-                    class="noicon"
-                  />
                 </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Commenter
+                  </div>
+                  
+                </div>
+                <div
+                  class="noicon"
+                />
               </div>
-              <div>
+              <div
+                aria-label="Viewer"
+                class="MenuOption TextOption menu-option"
+                role="button"
+                tabindex="-1"
+              >
                 <div
-                  aria-label="Viewer"
-                  class="MenuOption TextOption menu-option"
-                  role="button"
+                  class="d-flex"
                 >
                   <div
-                    class="d-flex"
+                    class="menu-option__icon"
                   >
                     <div
-                      class="menu-option__icon"
-                    >
-                      <div
-                        class="empty-icon"
-                      />
-                    </div>
+                      class="empty-icon"
+                    />
                   </div>
-                  <div
-                    class="menu-option__content"
-                  >
-                    <div
-                      class="menu-name"
-                    >
-                      Viewer
-                    </div>
-                    
-                  </div>
-                  <div
-                    class="noicon"
-                  />
                 </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Viewer
+                  </div>
+                  
+                </div>
+                <div
+                  class="noicon"
+                />
               </div>
-              <div>
+              <div
+                aria-label="None"
+                class="MenuOption TextOption menu-option"
+                role="button"
+                tabindex="-1"
+              >
                 <div
-                  aria-label="None"
-                  class="MenuOption TextOption menu-option"
-                  role="button"
+                  class="d-flex menu-option__check"
                 >
                   <div
-                    class="d-flex menu-option__check"
+                    class="menu-option__icon"
                   >
-                    <div
-                      class="menu-option__icon"
+                    <svg
+                      class="CheckIcon Icon"
+                      viewBox="0 0 100 100"
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      <svg
-                        class="CheckIcon Icon"
-                        viewBox="0 0 100 100"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <polyline
-                          points="20,60 40,80 80,40"
-                        />
-                      </svg>
-                    </div>
+                      <polyline
+                        points="20,60 40,80 80,40"
+                      />
+                    </svg>
                   </div>
-                  <div
-                    class="menu-option__content"
-                  >
-                    <div
-                      class="menu-name"
-                    >
-                      None
-                    </div>
-                    
-                  </div>
-                  <div
-                    class="noicon"
-                  />
                 </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    None
+                  </div>
+                  
+                </div>
+                <div
+                  class="noicon"
+                />
               </div>
             </div>
             <div
@@ -474,76 +466,73 @@ exports[`src/components/shareBoard/teamPermissionsRow > should match snapshot in
             <div
               class="menu-options"
             >
-              <div />
-              <div>
+              <div
+                aria-label="Viewer"
+                class="MenuOption TextOption menu-option"
+                role="button"
+                tabindex="-1"
+              >
                 <div
-                  aria-label="Viewer"
-                  class="MenuOption TextOption menu-option"
-                  role="button"
+                  class="d-flex"
                 >
                   <div
-                    class="d-flex"
+                    class="menu-option__icon"
                   >
                     <div
-                      class="menu-option__icon"
-                    >
-                      <div
-                        class="empty-icon"
-                      />
-                    </div>
+                      class="empty-icon"
+                    />
                   </div>
-                  <div
-                    class="menu-option__content"
-                  >
-                    <div
-                      class="menu-name"
-                    >
-                      Viewer
-                    </div>
-                    
-                  </div>
-                  <div
-                    class="noicon"
-                  />
                 </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    Viewer
+                  </div>
+                  
+                </div>
+                <div
+                  class="noicon"
+                />
               </div>
-              <div>
+              <div
+                aria-label="None"
+                class="MenuOption TextOption menu-option"
+                role="button"
+                tabindex="-1"
+              >
                 <div
-                  aria-label="None"
-                  class="MenuOption TextOption menu-option"
-                  role="button"
+                  class="d-flex menu-option__check"
                 >
                   <div
-                    class="d-flex menu-option__check"
+                    class="menu-option__icon"
                   >
-                    <div
-                      class="menu-option__icon"
+                    <svg
+                      class="CheckIcon Icon"
+                      viewBox="0 0 100 100"
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      <svg
-                        class="CheckIcon Icon"
-                        viewBox="0 0 100 100"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <polyline
-                          points="20,60 40,80 80,40"
-                        />
-                      </svg>
-                    </div>
+                      <polyline
+                        points="20,60 40,80 80,40"
+                      />
+                    </svg>
                   </div>
-                  <div
-                    class="menu-option__content"
-                  >
-                    <div
-                      class="menu-name"
-                    >
-                      None
-                    </div>
-                    
-                  </div>
-                  <div
-                    class="noicon"
-                  />
                 </div>
+                <div
+                  class="menu-option__content"
+                >
+                  <div
+                    class="menu-name"
+                  >
+                    None
+                  </div>
+                  
+                </div>
+                <div
+                  class="noicon"
+                />
               </div>
             </div>
             <div

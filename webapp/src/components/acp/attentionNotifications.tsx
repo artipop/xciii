@@ -10,7 +10,6 @@ import {
     answerQuestion,
     attentionHeading,
     keyOf,
-    openAttention,
     useAttention,
 } from './attention'
 
@@ -24,9 +23,6 @@ import './attentionNotifications.scss'
 // only seen by somebody already looking at the board — so the question says
 // itself, here, and is answered here too. Its turn is open the whole time; the
 // agent carries on the moment an answer arrives.
-//
-// A terminal that has gone quiet is the other case, and there is nothing to
-// answer in place: the CLI has its own screen, so that one opens the window.
 //
 // It is a setting because it interrupts: a person who would rather find out by
 // looking turns it off, and the card keeps its dot.
@@ -47,9 +43,7 @@ const AttentionNotifications = () => {
     const [typed, setTyped] = createSignal<Record<string, string>>({})
     const [busy, setBusy] = createSignal('')
 
-    const pending = createMemo(() => (agentNotificationsOn() ?
-        waiting().filter((a) => !dismissed().includes(waitKey(a))) :
-        []))
+    const pending = createMemo(() => (agentNotificationsOn() ? waiting().filter((a) => !dismissed().includes(waitKey(a))) : []))
     const shown = createMemo(() => pending().slice(0, stackLimit))
     const hidden = createMemo(() => Math.max(0, pending().length - stackLimit))
 
@@ -69,11 +63,6 @@ const AttentionNotifications = () => {
         } finally {
             setBusy('')
         }
-    }
-
-    const open = async (target: Attention) => {
-        dismiss(target)
-        await openAttention(target)
     }
 
     return (
@@ -133,16 +122,6 @@ const AttentionNotifications = () => {
                                             </button>
                                         </form>
                                     </Show>
-                                </Show>
-
-                                <Show when={target.reason === 'quiet'}>
-                                    <button
-                                        type='button'
-                                        class='AttentionNotifications__action'
-                                        onClick={() => open(target)}
-                                    >
-                                        {intl.formatMessage({id: 'Attention.open', defaultMessage: 'Open the terminal'})}
-                                    </button>
                                 </Show>
                             </div>
                             <button

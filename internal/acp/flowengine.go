@@ -194,6 +194,13 @@ func (m *Manager) runNodeAction(ev CardMoved, flow FlowEntry, node FlowNode) {
 
 // advanceFlow moves a card along the edge matching an event.
 func (m *Manager) advanceFlow(cardID, on, detail string) {
+	m.advanceFlowWith(cardID, on, detail, "")
+}
+
+// advanceFlowWith is advanceFlow carrying the agent's closing words, which is
+// what a comment condition on an outcome edge is asked about. Everything else
+// passes "" — there was no agent speaking.
+func (m *Manager) advanceFlowWith(cardID, on, detail, agentText string) {
 	st, ok, err := m.flowState(cardID)
 	if err != nil || !ok {
 		return
@@ -208,14 +215,39 @@ func (m *Manager) advanceFlow(cardID, on, detail string) {
 		m.commentCard(cardID, fmt.Sprintf("Флоу «%s»: стадия %q исчезла из маршрута — карточка осталась на месте.", flow.Name, st.NodeID))
 		return
 	}
-	next, ok := flow.Next(node.ID, on)
-	if !ok {
+	if !flow.HasEdge(node.ID, on) {
 		// A missing edge for an outcome is worth saying out loud: the route
 		// stops here and somebody has to know why. VCS events are only polled
 		// for where an edge exists, so silence is correct for them.
-		if !IsVCSTrigger(on) {
+		if !IsVCSTrigger(on) && on != TriggerCardChanged {
 			m.commentCard(cardID, fmt.Sprintf("Флоу «%s»: у стадии «%s» нет перехода по событию «%s» — карточка осталась на месте.",
 				flow.Name, node.Column, TriggerLabel(on)))
+		}
+		return
+	}
+
+	// The card is read before the edge is chosen: a conditional edge asks
+	// about the card as it is now, not as it was when it parked here.
+	if m.reader == nil {
+		m.log.Warn("acp: no board reader, cannot advance flow", "card", cardID)
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ev, err := m.reader.CardByID(ctx, cardID)
+	cancel()
+	if err != nil {
+		m.log.Warn("acp: cannot read card for flow transition", "card", cardID, "err", err)
+		return
+	}
+
+	next, cond, ok := flow.Next(node.ID, on, ev.Props, agentText)
+	if !ok {
+		// Edges exist for this event, but no condition held and there is no
+		// fallback. That is a decision the route made, and worth recording —
+		// once per parking, not per poll: a VCS event repeats every interval.
+		if !IsVCSTrigger(on) {
+			m.commentCard(cardID, fmt.Sprintf("Флоу «%s»: событие «%s» пришло, но ни одно условие стадии «%s» не выполнено — карточка осталась на месте.",
+				flow.Name, TriggerLabel(on), node.Column))
 		}
 		return
 	}
@@ -229,21 +261,54 @@ func (m *Manager) advanceFlow(cardID, on, detail string) {
 		return
 	}
 
-	if m.reader == nil {
-		m.log.Warn("acp: no board reader, cannot advance flow", "card", cardID)
-		return
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	ev, err := m.reader.CardByID(ctx, cardID)
-	cancel()
-	if err != nil {
-		m.log.Warn("acp: cannot read card for flow transition", "card", cardID, "err", err)
-		return
-	}
 	if detail == "" {
 		detail = TriggerLabel(on)
 	}
+	if desc := cond.Describe(); desc != "" {
+		detail += ", " + desc
+	}
 	m.enterNode(ev, flow, next, true, on, detail)
+}
+
+// handleCardChanged advances a parked card when a select option set on it is
+// what its stage waits for. The event is any select change that was not a move
+// on the route's own column — the trigger loop hands those here.
+//
+// Only edges whose condition names the changed property react: setting
+// «Приоритет» must not wake a stage waiting on «Одобрено», and must not leave a
+// "nothing matched" comment either — the change was simply not addressed to it.
+func (m *Manager) handleCardChanged(ev CardMoved) bool {
+	if ev.ToColumn.Name == "" {
+		return false // an option was cleared, not chosen
+	}
+	st, ok, err := m.flowState(ev.CardID)
+	if err != nil || !ok {
+		return false
+	}
+	flow, ok := m.FlowByName(st.Flow)
+	if !ok {
+		return false
+	}
+	watched := false
+	for _, e := range flow.Edges {
+		if e.From == st.NodeID && e.On == TriggerCardChanged && e.If != nil &&
+			strings.EqualFold(e.If.Property, ev.ToColumn.PropertyName) {
+			watched = true
+			break
+		}
+	}
+	if !watched {
+		return false
+	}
+
+	// A person marking an option on a working card is a person intervening: the
+	// route is about to move it, so whatever ran here is over. A cancelled
+	// session produces no outcome, so the two paths cannot double-move.
+	m.CancelSessionForCard(ev.CardID, "на карточке выбрана опция, по которой стадия едет дальше")
+
+	detail := fmt.Sprintf("на карточке выбрано «%s» = «%s»", ev.ToColumn.PropertyName, ev.ToColumn.Name)
+	m.advanceFlow(ev.CardID, TriggerCardChanged, detail)
+	return true
 }
 
 // flowAfterSession is called once a session has fully released its resources:
@@ -257,7 +322,7 @@ func (m *Manager) flowAfterSession(s *Session) {
 	if outcome == "" {
 		return
 	}
-	m.advanceFlow(s.CardID, outcome, detail)
+	m.advanceFlowWith(s.CardID, outcome, detail, s.agentFinalText())
 }
 
 // waitForCardIdle waits until the card has no live session, so the next stage

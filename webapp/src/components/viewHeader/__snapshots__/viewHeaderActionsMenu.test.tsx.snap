@@ -27,69 +27,60 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu 1`] = `
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="Export to CSV"
+              class="MenuOption TextOption menu-option"
+              role="button"
+              tabindex="-1"
+            >
               <div
-                aria-label="Export to CSV"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Export to CSV
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="Export board archive"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  Export to CSV
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Export board archive
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="Export board archive"
+              class="MenuOption TextOption menu-option"
+              role="button"
+              tabindex="-1"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Export board archive
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -158,69 +149,60 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify ca
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="Export to CSV"
+              class="MenuOption TextOption menu-option"
+              role="button"
+              tabindex="-1"
+            >
               <div
-                aria-label="Export to CSV"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Export to CSV
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="Export board archive"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  Export to CSV
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Export board archive
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="Export board archive"
+              class="MenuOption TextOption menu-option"
+              role="button"
+              tabindex="-1"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Export board archive
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"
@@ -289,69 +271,60 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify ca
           <div
             class="menu-options"
           >
-            <div>
+            <div
+              aria-label="Export to CSV"
+              class="MenuOption TextOption menu-option"
+              role="button"
+              tabindex="-1"
+            >
               <div
-                aria-label="Export to CSV"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="d-flex"
               >
-                <div
-                  class="d-flex"
-                >
-                  <div
-                    class="noicon"
-                  />
-                </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Export to CSV
-                  </div>
-                  
-                </div>
                 <div
                   class="noicon"
                 />
               </div>
-            </div>
-            <div>
               <div
-                aria-label="Export board archive"
-                class="MenuOption TextOption menu-option"
-                role="button"
+                class="menu-option__content"
               >
                 <div
-                  class="d-flex"
+                  class="menu-name"
                 >
-                  <div
-                    class="noicon"
-                  />
+                  Export to CSV
                 </div>
-                <div
-                  class="menu-option__content"
-                >
-                  <div
-                    class="menu-name"
-                  >
-                    Export board archive
-                  </div>
-                  
-                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
+            </div>
+            <div
+              aria-label="Export board archive"
+              class="MenuOption TextOption menu-option"
+              role="button"
+              tabindex="-1"
+            >
+              <div
+                class="d-flex"
+              >
                 <div
                   class="noicon"
                 />
               </div>
+              <div
+                class="menu-option__content"
+              >
+                <div
+                  class="menu-name"
+                >
+                  Export board archive
+                </div>
+                
+              </div>
+              <div
+                class="noicon"
+              />
             </div>
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
           </div>
           <div
             class="menu-spacer hideOnWidescreen"

@@ -7,7 +7,7 @@ import {wrapIntl} from '../../testUtils'
 import {setupReactFlowEnvironment} from '../../test/reactFlowEnvironment'
 
 import FlowDiagram, {depths, layout, edgeKind, connectEdge, HANDLE_EVENT, HANDLE_FAILURE, HANDLE_SUCCESS, NODE_WIDTH} from './flowDiagram'
-import {SUCCESS, FAILURE} from './workflowsDialog'
+import {SUCCESS, FAILURE} from './automation'
 
 setupReactFlowEnvironment()
 
@@ -96,6 +96,26 @@ describe('components/acp/flowDiagram', () => {
         // events are worth a label.
         expect(screen.getByText('ветка влита в основную')).toBeInTheDocument()
         expect(screen.queryByText('шаг прошёл')).not.toBeInTheDocument()
+    })
+
+    // The arrows are the route: without them the picture is a row of boxes in
+    // no order. They went missing once to a path of NaNs, which a browser draws
+    // as nothing at all and reports nowhere, so the geometry is asserted rather
+    // than the presence of an element.
+    test('every transition is drawn as a line with real coordinates', () => {
+        const {container} = render(() => wrapIntl(() =>
+            <FlowDiagram
+                nodes={nodes}
+                edges={edges}
+                triggers={triggers}
+            />,
+        ))
+
+        const paths = [...container.querySelectorAll('.solid-flow__edge-path')]
+        expect(paths.length).toBe(edges.length)
+        for (const path of paths) {
+            expect(path.getAttribute('d')).not.toMatch(/NaN/)
+        }
     })
 
     test('an empty route draws nothing at all', () => {

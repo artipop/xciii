@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {Show, createContext, createEffect, createSignal, onMount, useContext} from 'solid-js'
-import type {Accessor, JSX} from 'solid-js'
+import {Show, createSignal, onMount} from 'solid-js'
+import type {JSX} from 'solid-js'
 
 import {useIntl} from '../../intl'
 import CompassIcon from '../../widgets/icons/compassIcon'
@@ -11,10 +11,6 @@ import MenuUtil from './menuUtil'
 import TextOption from './textOption'
 
 import './subMenuOption.scss'
-
-// The value is an accessor: the menu wraps every option and flips this when
-// the pointer moves between wrappers.
-export const HoveringContext = createContext<Accessor<boolean>>(() => false)
 
 type SubMenuOptionProps = {
     id: string
@@ -28,13 +24,8 @@ type SubMenuOptionProps = {
 function SubMenuOption(props: SubMenuOptionProps): JSX.Element {
     const intl = useIntl()
     const [isOpen, setIsOpen] = createSignal(false)
-    const isHovering = useContext(HoveringContext)
 
     const openLeftClass = () => (props.position === 'left' || props.position === 'left-bottom' ? ' open-left' : '')
-
-    createEffect(() => {
-        setIsOpen(isHovering())
-    })
 
     let ref: HTMLDivElement | undefined
 
@@ -58,10 +49,23 @@ function SubMenuOption(props: SubMenuOptionProps): JSX.Element {
         <div
             id={props.id}
             class={`MenuOption SubMenuOption menu-option${openLeftClass()}${isOpen() ? ' menu-option-active' : ''}${props.class ? ' ' + props.class : ''}`}
+
+            // The submenu is drawn inside this option and flush against it, so
+            // the pointer never leaves on its way in: entering opens it, and
+            // leaving — for the option below, or off the menu — closes it.
+            onMouseEnter={() => setIsOpen(true)}
+            onMouseLeave={() => setIsOpen(false)}
+
+            // A tap opens it too, because a phone has no pointer to hover with
+            // and this menu is on the phone as well. It opens rather than
+            // toggles: with a pointer the entering already opened it, and a
+            // click that closed what hovering had just opened is what a person
+            // does the moment they decide to click the thing they are pointing
+            // at. Closing is leaving it, or closing the menu around it.
             onClick={(e: MouseEvent) => {
                 e.preventDefault()
                 e.stopPropagation()
-                setIsOpen((open) => !open)
+                setIsOpen(true)
             }}
             ref={ref}
         >

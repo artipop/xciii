@@ -14,12 +14,13 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// The board templates this app offers are ours, and they live here. The server
+// The board templates this app ships are ours, and they live here. The server
 // module ships its own — a sales pipeline, a retrospective — and those are the
 // upstream's examples: they know nothing about columns that run an agent, so a
 // board made from one arrives with no automation at all. Ours carry it, which
-// is the whole reason the selector offers these four and hides the rest
-// (VISIBLE_TEMPLATE_TITLES in the webapp).
+// is why the selector offers these and hides the upstream ones
+// (VISIBLE_TEMPLATE_SLUGS in the webapp). A template the user made is offered
+// whatever it carries — it is theirs, and they can see what is in it.
 //
 // The format is what the board server imports, one board per file: the first
 // line is the board, the rest its cards, views and content. Authoring one by

@@ -111,188 +111,182 @@ exports[`components/sidebarBoardItem > sidebar board item 1`] = `
               <div
                 class="menu-options"
               >
-                <div>
+                <div
+                  class="MenuOption SubMenuOption menu-option boardMoveToCategorySubmenu"
+                  id="moveBlock"
+                  tabindex="-1"
+                >
                   <div
-                    class="MenuOption SubMenuOption menu-option boardMoveToCategorySubmenu"
-                    id="moveBlock"
+                    class="menu-option__icon"
+                  >
+                    <i
+                      class="CompassIcon icon-folder-plus-outline CreateNewFolderIcon"
+                    />
+                  </div>
+                  <div
+                    class="menu-name"
+                  >
+                    Move To...
+                  </div>
+                  <i
+                    class="CompassIcon icon-chevron-right"
+                  />
+                  
+                </div>
+                <div
+                  aria-label="Duplicate board"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <div
+                    class="d-flex"
                   >
                     <div
                       class="menu-option__icon"
                     >
                       <i
-                        class="CompassIcon icon-folder-plus-outline CreateNewFolderIcon"
+                        class="CompassIcon icon-content-copy content-copy"
                       />
                     </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
                     <div
                       class="menu-name"
                     >
-                      Move To...
+                      Duplicate board
                     </div>
-                    <i
-                      class="CompassIcon icon-chevron-right"
-                    />
                     
                   </div>
-                </div>
-                <div>
                   <div
-                    aria-label="Duplicate board"
-                    class="MenuOption TextOption menu-option"
-                    role="button"
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  aria-label="New template from board"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <div
+                    class="d-flex"
                   >
                     <div
-                      class="d-flex"
+                      class="menu-option__icon"
                     >
-                      <div
-                        class="menu-option__icon"
-                      >
-                        <i
-                          class="CompassIcon icon-content-copy content-copy"
-                        />
-                      </div>
+                      <i
+                        class="CompassIcon icon-plus AddIcon"
+                      />
                     </div>
-                    <div
-                      class="menu-option__content"
-                    >
-                      <div
-                        class="menu-name"
-                      >
-                        Duplicate board
-                      </div>
-                      
-                    </div>
-                    <div
-                      class="noicon"
-                    />
                   </div>
-                </div>
-                <div>
                   <div
-                    aria-label="New template from board"
-                    class="MenuOption TextOption menu-option"
-                    role="button"
+                    class="menu-option__content"
                   >
                     <div
-                      class="d-flex"
+                      class="menu-name"
                     >
-                      <div
-                        class="menu-option__icon"
-                      >
-                        <i
-                          class="CompassIcon icon-plus AddIcon"
-                        />
-                      </div>
+                      New template from board
                     </div>
-                    <div
-                      class="menu-option__content"
-                    >
-                      <div
-                        class="menu-name"
-                      >
-                        New template from board
-                      </div>
-                      
-                    </div>
-                    <div
-                      class="noicon"
-                    />
+                    
                   </div>
-                </div>
-                <div>
                   <div
-                    aria-label="Export board archive"
-                    class="MenuOption TextOption menu-option"
-                    role="button"
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  aria-label="Export board archive"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <div
+                    class="d-flex"
                   >
                     <div
-                      class="d-flex"
+                      class="menu-option__icon"
                     >
-                      <div
-                        class="menu-option__icon"
-                      >
-                        <i
-                          class="CompassIcon icon-export-variant"
-                        />
-                      </div>
+                      <i
+                        class="CompassIcon icon-export-variant"
+                      />
                     </div>
-                    <div
-                      class="menu-option__content"
-                    >
-                      <div
-                        class="menu-name"
-                      >
-                        Export board archive
-                      </div>
-                      
-                    </div>
-                    <div
-                      class="noicon"
-                    />
                   </div>
-                </div>
-                <div>
                   <div
-                    aria-label="Hide board"
-                    class="MenuOption TextOption menu-option"
-                    role="button"
+                    class="menu-option__content"
                   >
                     <div
-                      class="d-flex"
+                      class="menu-name"
                     >
-                      <div
-                        class="menu-option__icon"
-                      >
-                        <i
-                          class="CompassIcon icon-close CloseIcon"
-                        />
-                      </div>
+                      Export board archive
                     </div>
-                    <div
-                      class="menu-option__content"
-                    >
-                      <div
-                        class="menu-name"
-                      >
-                        Hide board
-                      </div>
-                      
-                    </div>
-                    <div
-                      class="noicon"
-                    />
+                    
                   </div>
-                </div>
-                <div>
                   <div
-                    aria-label="Delete board"
-                    class="MenuOption TextOption menu-option text-danger"
-                    role="button"
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  aria-label="Hide board"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <div
+                    class="d-flex"
                   >
                     <div
-                      class="d-flex"
+                      class="menu-option__icon"
                     >
-                      <div
-                        class="menu-option__icon"
-                      >
-                        <i
-                          class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
-                        />
-                      </div>
+                      <i
+                        class="CompassIcon icon-close CloseIcon"
+                      />
                     </div>
-                    <div
-                      class="menu-option__content"
-                    >
-                      <div
-                        class="menu-name"
-                      >
-                        Delete board
-                      </div>
-                      
-                    </div>
-                    <div
-                      class="noicon"
-                    />
                   </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Hide board
+                    </div>
+                    
+                  </div>
+                  <div
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  aria-label="Delete board"
+                  class="MenuOption TextOption menu-option text-danger"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <div
+                    class="d-flex"
+                  >
+                    <div
+                      class="menu-option__icon"
+                    >
+                      <i
+                        class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Delete board
+                    </div>
+                    
+                  </div>
+                  <div
+                    class="noicon"
+                  />
                 </div>
               </div>
               <div
@@ -407,125 +401,120 @@ exports[`components/sidebarBoardItem > sidebar board item for guest 1`] = `
               <div
                 class="menu-options"
               >
-                <div>
+                <div
+                  class="MenuOption SubMenuOption menu-option boardMoveToCategorySubmenu"
+                  id="moveBlock"
+                  tabindex="-1"
+                >
                   <div
-                    class="MenuOption SubMenuOption menu-option boardMoveToCategorySubmenu"
-                    id="moveBlock"
+                    class="menu-option__icon"
+                  >
+                    <i
+                      class="CompassIcon icon-folder-plus-outline CreateNewFolderIcon"
+                    />
+                  </div>
+                  <div
+                    class="menu-name"
+                  >
+                    Move To...
+                  </div>
+                  <i
+                    class="CompassIcon icon-chevron-right"
+                  />
+                  
+                </div>
+                <div
+                  aria-label="Export board archive"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <div
+                    class="d-flex"
                   >
                     <div
                       class="menu-option__icon"
                     >
                       <i
-                        class="CompassIcon icon-folder-plus-outline CreateNewFolderIcon"
+                        class="CompassIcon icon-export-variant"
                       />
                     </div>
+                  </div>
+                  <div
+                    class="menu-option__content"
+                  >
                     <div
                       class="menu-name"
                     >
-                      Move To...
+                      Export board archive
                     </div>
-                    <i
-                      class="CompassIcon icon-chevron-right"
-                    />
                     
                   </div>
-                </div>
-                <div />
-                <div>
                   <div
-                    aria-label="Export board archive"
-                    class="MenuOption TextOption menu-option"
-                    role="button"
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  aria-label="Hide board"
+                  class="MenuOption TextOption menu-option"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <div
+                    class="d-flex"
                   >
                     <div
-                      class="d-flex"
+                      class="menu-option__icon"
                     >
-                      <div
-                        class="menu-option__icon"
-                      >
-                        <i
-                          class="CompassIcon icon-export-variant"
-                        />
-                      </div>
+                      <i
+                        class="CompassIcon icon-close CloseIcon"
+                      />
                     </div>
-                    <div
-                      class="menu-option__content"
-                    >
-                      <div
-                        class="menu-name"
-                      >
-                        Export board archive
-                      </div>
-                      
-                    </div>
-                    <div
-                      class="noicon"
-                    />
                   </div>
-                </div>
-                <div>
                   <div
-                    aria-label="Hide board"
-                    class="MenuOption TextOption menu-option"
-                    role="button"
+                    class="menu-option__content"
                   >
                     <div
-                      class="d-flex"
+                      class="menu-name"
                     >
-                      <div
-                        class="menu-option__icon"
-                      >
-                        <i
-                          class="CompassIcon icon-close CloseIcon"
-                        />
-                      </div>
+                      Hide board
                     </div>
-                    <div
-                      class="menu-option__content"
-                    >
-                      <div
-                        class="menu-name"
-                      >
-                        Hide board
-                      </div>
-                      
-                    </div>
-                    <div
-                      class="noicon"
-                    />
+                    
                   </div>
-                </div>
-                <div>
                   <div
-                    aria-label="Delete board"
-                    class="MenuOption TextOption menu-option text-danger"
-                    role="button"
+                    class="noicon"
+                  />
+                </div>
+                <div
+                  aria-label="Delete board"
+                  class="MenuOption TextOption menu-option text-danger"
+                  role="button"
+                  tabindex="-1"
+                >
+                  <div
+                    class="d-flex"
                   >
                     <div
-                      class="d-flex"
+                      class="menu-option__icon"
                     >
-                      <div
-                        class="menu-option__icon"
-                      >
-                        <i
-                          class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
-                        />
-                      </div>
+                      <i
+                        class="CompassIcon icon-trash-can-outline DeleteIcon trash-can-outline"
+                      />
                     </div>
-                    <div
-                      class="menu-option__content"
-                    >
-                      <div
-                        class="menu-name"
-                      >
-                        Delete board
-                      </div>
-                      
-                    </div>
-                    <div
-                      class="noicon"
-                    />
                   </div>
+                  <div
+                    class="menu-option__content"
+                  >
+                    <div
+                      class="menu-name"
+                    >
+                      Delete board
+                    </div>
+                    
+                  </div>
+                  <div
+                    class="noicon"
+                  />
                 </div>
               </div>
               <div

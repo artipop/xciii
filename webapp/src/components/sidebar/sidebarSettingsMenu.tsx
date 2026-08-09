@@ -16,7 +16,6 @@ import Menu from '../../widgets/menu'
 import MenuWrapper from '../../widgets/menuWrapper'
 import {useAppSelector, useAppStore} from '../../store/hooks'
 import {getCurrentTeam, Team} from '../../store/teams'
-import {UserSettings} from '../../userSettings'
 
 import './sidebarSettingsMenu.scss'
 import CheckIcon from '../../widgets/icons/check'
@@ -24,7 +23,7 @@ import {Constants} from '../../constants'
 
 import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../../telemetry/telemetryClient'
 import {agentNotificationsOn, setAgentNotifications} from '../acp/attention'
-import TailnetDialog, {isTailnetAvailable} from '../acp/tailnetDialog'
+import MachineSettingsDialog, {isMachineSettingsAvailable} from '../acp/machineSettingsDialog'
 
 type Props = {
     activeTheme: string
@@ -45,16 +44,11 @@ const SidebarSettingsMenu = (props: Props) => {
         setThemeName(name)
     }
 
-    // Where the board is reachable from is a property of this machine, not of
-    // the board somebody happens to have open — so it lives here, with the
-    // theme and the language, rather than in a board's own menu.
-    const [showTailnet, setShowTailnet] = createSignal(false)
-
-    const [randomIcons, setRandomIcons] = createSignal(UserSettings.prefillRandomIcons)
-    const toggleRandomIcons = () => {
-        UserSettings.prefillRandomIcons = !UserSettings.prefillRandomIcons
-        setRandomIcons(!randomIcons())
-    }
+    // Which agents are installed, where they deploy, how they reach the network
+    // and where the board is reachable from are all properties of this machine,
+    // not of the board somebody happens to have open — so they live here, with
+    // the theme and the language, rather than in a board's own menu.
+    const [showMachine, setShowMachine] = createSignal(false)
 
     const themes: Array<{id: ThemeName, displayName: string}> = [
         {id: lightThemeName, displayName: 'Light theme'},
@@ -144,20 +138,13 @@ const SidebarSettingsMenu = (props: Props) => {
                             onClick={async () => setAgentNotifications(!agentNotificationsOn())}
                             suppressItemClicked={true}
                         />
-                        <Show when={isTailnetAvailable()}>
+                        <Show when={isMachineSettingsAvailable()}>
                             <Menu.Text
-                                id='tailnet'
-                                name={intl.formatMessage({id: 'Sidebar.tailnet', defaultMessage: 'Access from a phone…'})}
-                                onClick={async () => setShowTailnet(true)}
+                                id='machine'
+                                name={intl.formatMessage({id: 'Sidebar.machine', defaultMessage: 'This machine…'})}
+                                onClick={async () => setShowMachine(true)}
                             />
                         </Show>
-                        <Menu.Switch
-                            id='random-icons'
-                            name={intl.formatMessage({id: 'Sidebar.random-icons', defaultMessage: 'Random icons'})}
-                            isOn={randomIcons()}
-                            onClick={async () => toggleRandomIcons()}
-                            suppressItemClicked={true}
-                        />
                     </Menu>
                 }
             >
@@ -168,8 +155,8 @@ const SidebarSettingsMenu = (props: Props) => {
                     />
                 </div>
             </MenuWrapper>
-            <Show when={showTailnet()}>
-                <TailnetDialog onClose={() => setShowTailnet(false)}/>
+            <Show when={showMachine()}>
+                <MachineSettingsDialog onClose={() => setShowMachine(false)}/>
             </Show>
         </div>
     )

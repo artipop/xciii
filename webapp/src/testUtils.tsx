@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 import type {JSX, ParentComponent} from 'solid-js'
 import {MemoryRouter, Route, createMemoryHistory} from '@solidjs/router'
+import {fireEvent, within} from '@solidjs/testing-library'
 
 import {IntlProvider} from './intl'
 import {SortableProvider} from './hooks/sortable'
@@ -113,4 +114,26 @@ export function blocksById<BlockType extends Block>(blocks: BlockType[]): Blocks
         res[block.id] = block
         return res
     }, {} as BlocksById<BlockType>)
+}
+
+// A dropdown of ours (widgets/select) is a menu behind a field, not a native
+// <select>, so choosing is two clicks rather than one `selectOptions` call:
+// the field opens the menu, the option is a button in it. Both are found by
+// their accessible name — the field's is the label it was given, an option's
+// is the text it shows.
+export function chooseOption(field: HTMLElement, option: string): void {
+    fireEvent.click(field)
+    fireEvent.click(within(field).getByRole('button', {name: option}))
+}
+
+// optionsOf reads back what a dropdown offers, in order. The menu only exists
+// while it is open, so this opens it, reads it and shuts it again — leaving it
+// open would make the next chooseOption toggle it closed instead.
+export function optionsOf(field: HTMLElement): string[] {
+    fireEvent.click(field)
+    const names = Array.from(field.querySelectorAll('.MenuOption')).
+        map((option) => option.getAttribute('aria-label') || '').
+        filter((name) => name !== 'Cancel')
+    fireEvent.click(field)
+    return names
 }

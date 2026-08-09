@@ -173,6 +173,14 @@ type SetupStepState struct {
 func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 	plan := SetupPlan{BoardID: boardID}
 
+	// A template is not a board being run, it is a board being written: what a
+	// copy of it will need depends on the copy, and the wizard would be asking
+	// about a board that does not exist yet. Nothing to set up, so nothing is
+	// asked and nothing opens by itself.
+	if m.isBoardTemplate(boardID) {
+		return plan
+	}
+
 	declared, columns, flows := m.boardSetupSources(boardID)
 	plan.Automated = len(columns) > 0 || len(flows) > 0
 
@@ -462,6 +470,27 @@ func (m *Manager) RecordSetupStep(boardID, step, status string) error {
 		return nil
 	}
 	return m.store.SaveSetupStep(SetupStepState{BoardID: boardID, Step: step, Status: status})
+}
+
+// isBoardTemplate reports whether the board is a template. A build with no
+// board reader wired answers "no": that is what every board was before this was
+// asked, and a false "yes" would silence the wizard everywhere.
+func (m *Manager) isBoardTemplate(boardID string) bool {
+	if boardID == "" || m.meta == nil {
+		return false
+	}
+	parent := m.rootCtx
+	if parent == nil {
+		parent = context.Background()
+	}
+	ctx, cancel := context.WithTimeout(parent, 10*time.Second)
+	defer cancel()
+	isTemplate, err := m.meta.IsBoardTemplate(ctx, boardID)
+	if err != nil {
+		m.log.Warn("acp: cannot tell whether the board is a template", "board", boardID, "err", err)
+		return false
+	}
+	return isTemplate
 }
 
 // boardProperties reads a board's own settings, or nothing if there is no board

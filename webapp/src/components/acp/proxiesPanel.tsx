@@ -9,7 +9,7 @@ import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 
 import './proxiesPanel.scss'
 
@@ -40,13 +40,7 @@ export function isProxiesAvailable(): boolean {
 
 const emptyForm: ProxyEntry = {name: ''}
 
-// onChange fires after the registry is edited, so the agent form's proxy list —
-// the only place these entries are used — updates with it.
-type Props = {
-    onChange?: () => void
-}
-
-const ProxiesPanel = (props: Props) => {
+const ProxiesPanel = () => {
     const intl = useIntl()
     const bindings = agentBindings()
 
@@ -96,7 +90,6 @@ const ProxiesPanel = (props: Props) => {
             }
             setForm(null)
             await refresh()
-            props.onChange?.()
         } catch (e) {
             setError(String(e))
         }
@@ -112,7 +105,6 @@ const ProxiesPanel = (props: Props) => {
         try {
             await bindings.RemoveProxy(name)
             await refresh()
-            props.onChange?.()
         } catch (e) {
             setError(String(e))
         }

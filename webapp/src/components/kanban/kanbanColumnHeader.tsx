@@ -25,8 +25,8 @@ import {useSortable} from '../../hooks/sortable'
 
 import BoardPermissionGate from '../permissions/boardPermissionGate'
 
-import ColumnBadge, {invalidateBoardColumns} from '../acp/columnBadge'
-import ColumnSettingsDialog, {isColumnSettingsAvailable} from '../acp/columnSettingsDialog'
+import ColumnBadge from '../acp/columnBadge'
+import {isAutomationAvailable} from '../acp/automationDialog'
 
 import {KanbanCalculation} from './calculation/calculation'
 
@@ -40,6 +40,12 @@ type Props = {
     addCard: (groupByOptionId?: string, show?: boolean) => Promise<void>
     propertyNameChanged: (option: IPropertyOption, text: string) => Promise<void>
     onDropToColumn: (srcOption: IPropertyOption, card?: Card, dstOption?: IPropertyOption) => void
+
+    // Opening the automation editor is the parent's job: the dialog cannot live
+    // in this header, because a board edit made from inside it (a palette
+    // block dropping a new column, say) re-creates every header and would take
+    // the dialog down with it.
+    onOpenSettings: (optionId: string) => void
     calculationMenuOpen: boolean
     onCalculationMenuOpen: () => void
     onCalculationMenuClose: () => void
@@ -54,8 +60,6 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
     const [groupTitle, setGroupTitle] = createSignal(props.group.option.value)
     const canEditBoardProperties = useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
     const canEditOption = () => props.groupByProperty?.type !== 'person' && props.group.option.id
-
-    const [showColumnSettings, setShowColumnSettings] = createSignal(false)
 
     const [isDragging, isOver, headerRef] = useSortable(
         'column',
@@ -170,11 +174,15 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                                     name={props.intl.formatMessage({id: 'BoardComponent.hide', defaultMessage: 'Hide'})}
                                     onClick={() => mutator.hideViewColumn(props.board.id, props.activeView, props.group.option.id || '')}
                                 />
-                                <Show when={canEditOption() && isColumnSettingsAvailable()}>
+                                {/* A column's settings are a panel of the
+                                    board's automation now, so this opens the
+                                    whole picture with this column selected
+                                    rather than a dialog of its own. */}
+                                <Show when={canEditOption() && isAutomationAvailable()}>
                                     <Menu.Text
                                         id='columnAgents'
-                                        name={props.intl.formatMessage({id: 'BoardComponent.column-agents', defaultMessage: 'Agents in this column…'})}
-                                        onClick={() => setShowColumnSettings(true)}
+                                        name={props.intl.formatMessage({id: 'BoardComponent.column-agents', defaultMessage: 'What happens in this column…'})}
+                                        onClick={() => props.onOpenSettings(props.group.option.id)}
                                     />
                                 </Show>
                                 <Show when={canEditOption()}>
@@ -209,15 +217,6 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
                         }}
                     />
                 </BoardPermissionGate>
-            </Show>
-            <Show when={showColumnSettings() && props.groupByProperty}>
-                <ColumnSettingsDialog
-                    boardId={props.board.id}
-                    property={props.groupByProperty!}
-                    option={props.group.option}
-                    onClose={() => setShowColumnSettings(false)}
-                    onSaved={invalidateBoardColumns}
-                />
             </Show>
         </div>
     )

@@ -21,6 +21,20 @@
             padding: 10px;
             color: rgb(var(--center-channel-color-rgb));
             font-weight: bold;
+
+            // The way from "this is a template" to the part of a template that
+            // is not on the board: its columns' behaviour, its routes and what
+            // it asks for when a board is made from it.
+            .banner__action {
+                margin-left: 10px;
+                padding: 2px 10px;
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
+                border-radius: var(--radius-md);
+                background: transparent;
+                color: inherit;
+                font: inherit;
+                cursor: pointer;
+            }
         }
     }
 }

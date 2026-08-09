@@ -14,7 +14,7 @@ info:
   description: "Boards with coding agents"
   copyright: "Copyright (c) 2026 Artem"
   comments: "The board on a phone, over your own tailnet"
-  version: "0.0.0"
+  version: "1.0.0"
   # cfBundleIconName: "appicon" # The macOS icon name in Assets.car icon bundles (optional)
   #                               # Should match the name of your .icon file without the extension
   #                               # If not set and Assets.car exists, defaults to "appicon"

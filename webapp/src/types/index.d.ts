@@ -65,15 +65,18 @@ export interface IAppWindow extends Window {
                 ListSetupSteps(): Promise<string>
                 AddFlow(entryJSON: string): Promise<string>
                 UpdateFlow(entryJSON: string): Promise<string>
-                RemoveFlow(name: string): Promise<void>
-                GetAgentSystemPrompt(): Promise<string>
-                SetAgentSystemPrompt(text: string): Promise<void>
+                RemoveFlow(boardId: string, name: string): Promise<void>
+                ExportBoardAutomation?(boardId: string): Promise<string>
+                GetBoardPrompt?(boardId: string): Promise<string>
+                SetBoardPrompt?(boardId: string, text: string): Promise<void>
+                GetPlanningPrompt?(): Promise<string>
+                SetPlanningPrompt?(text: string): Promise<void>
                 StartCardDeploy(cardId: string, branch: string): Promise<string>
 
                 // Terminal windows: the agent's own CLI on a card, opened in a
                 // window of the desktop app (absent in browser builds).
                 OpenCardTerminal?(cardId: string, projectName: string, agentName: string): Promise<string>
-                OpenPlanningTerminal?(projectName: string, agentName: string): Promise<string>
+                OpenPlanningTerminal?(projectName: string, agentName: string, boardId: string): Promise<string>
                 GetTerminalInfo?(terminalId: string): Promise<string>
                 GetCardAgent?(cardId: string): Promise<string>
                 CancelSession(cardId: string): Promise<boolean>

@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/server"
 	"github.com/mattermost/focalboard/server/services/config"
+	"github.com/mattermost/focalboard/server/services/notify"
 	"github.com/mattermost/focalboard/server/services/permissions/localpermissions"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -23,6 +24,14 @@ import (
 // server against a temporary database and looks.
 
 func newTestApp(t *testing.T) *app.App {
+	t.Helper()
+	return newTestAppWith(t)
+}
+
+// newTestAppWith is the same board server with notify backends registered, which
+// is what a test needs when it cares whether a write is heard — a card moving is
+// only a card moving if the trigger sees it.
+func newTestAppWith(t *testing.T, backends ...notify.Backend) *app.App {
 	t.Helper()
 	dir := t.TempDir()
 	dsn := filepath.Join(dir, "board.db") + "?_busy_timeout=5000&_journal_mode=WAL"
@@ -61,6 +70,7 @@ func newTestApp(t *testing.T) *app.App {
 		SingleUserToken:    "test-token",
 		DBStore:            store,
 		Logger:             logger,
+		NotifyBackends:     backends,
 		PermissionsService: localpermissions.New(store, logger),
 	})
 	if err != nil {

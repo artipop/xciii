@@ -248,3 +248,106 @@ func TestRouteFollowsTheBranchTheAgentWorkedOn(t *testing.T) {
 		t.Fatalf("a deploy would publish %q instead of %q", branch, worked)
 	}
 }
+
+// A route can fork on the card itself: the same outcome goes one way for an
+// urgent card and another for the rest. The conditional edge is checked against
+// the card as it is at transition time, and the unconditional one is the
+// fallback wherever the editor put it.
+func TestConditionalEdgeRoutesByCardProperty(t *testing.T) {
+	flow := sampleFlow()
+	flow.Nodes = append(flow.Nodes, FlowNode{ID: "fast", Column: "Fast Lane", Action: FlowActionNone})
+	flow.Edges = []FlowEdge{
+		// The fallback deliberately comes first: order must not decide.
+		{From: "work", To: "review", On: TriggerSuccess},
+		{From: "work", To: "fast", On: TriggerSuccess, If: &EdgeCond{Property: "Приоритет", Value: "Высокий"}},
+		{From: "work", To: "blocked", On: TriggerFailure},
+	}
+	m, writer, events, project := flowManager(t, fakeClaudeHappy, flow)
+	m.SetBoardReader(&fakeReader{ev: CardMoved{
+		BoardID: "board1",
+		Title:   "Test task",
+		Props:   map[string]string{"repo_path": project, "branch": flowTestBranch, "приоритет": "Высокий"},
+	}})
+
+	events.ch <- flowEvent("cardUrgent", project, "Backlog", "To Agent")
+
+	waitFor(t, 20*time.Second, "the urgent card takes the fast lane", func() bool {
+		moves := writer.cardMoves()
+		return len(moves) == 1 && moves[0].option == "Fast Lane"
+	})
+
+	// The card is told which condition sent it there.
+	comments := strings.Join(writer.cardComments("cardUrgent"), "\n")
+	if !strings.Contains(comments, "«Приоритет» = «Высокий»") {
+		t.Fatalf("the transition comment does not name the condition: %s", comments)
+	}
+}
+
+// The agent itself can route the card: an edge conditional on the words it
+// signed off with. The fake agent says "fake work done".
+func TestAgentWordsRouteTheCard(t *testing.T) {
+	flow := sampleFlow()
+	flow.Nodes = append(flow.Nodes, FlowNode{ID: "ship", Column: "Ship", Action: FlowActionNone})
+	flow.Edges = []FlowEdge{
+		{From: "work", To: "review", On: TriggerSuccess},
+		{From: "work", To: "ship", On: TriggerSuccess, If: &EdgeCond{CommentContains: "WORK DONE"}},
+	}
+	_, writer, events, project := flowManager(t, fakeClaudeHappy, flow)
+
+	events.ch <- flowEvent("cardShip", project, "Backlog", "To Agent")
+
+	waitFor(t, 20*time.Second, "the agent's words send the card to Ship", func() bool {
+		moves := writer.cardMoves()
+		return len(moves) == 1 && moves[0].option == "Ship"
+	})
+}
+
+// A parked card moves when a person sets the option its stage waits for — and
+// only that option: marking anything else on the card is not addressed to the
+// route and does nothing.
+func TestCardChangedAdvancesAParkedCard(t *testing.T) {
+	flow := sampleFlow()
+	flow.Nodes = append(flow.Nodes, FlowNode{ID: "done", Column: "Done", Action: FlowActionNone})
+	flow.Edges = append(flow.Edges,
+		FlowEdge{From: "review", To: "done", On: TriggerCardChanged, If: &EdgeCond{Property: "Одобрено", Value: "Да"}})
+	m, writer, events, project := flowManager(t, fakeClaudeHappy, flow)
+	m.SetBoardReader(&fakeReader{ev: CardMoved{
+		BoardID: "board1",
+		Title:   "Test task",
+		Props:   map[string]string{"repo_path": project, "branch": flowTestBranch, "одобрено": "Да"},
+	}})
+
+	events.ch <- flowEvent("cardWait", project, "Backlog", "To Agent")
+	waitFor(t, 20*time.Second, "card parked on Review", func() bool {
+		st, ok, _ := m.store.FlowStateForCard("cardWait")
+		return ok && st.NodeID == "review"
+	})
+
+	// An unrelated select set on the card: the stage is not watching it.
+	other := flowEvent("cardWait", project, "", "Высокий")
+	other.FromColumn.PropertyName, other.ToColumn.PropertyName = "Приоритет", "Приоритет"
+	events.ch <- other
+	time.Sleep(300 * time.Millisecond)
+	if moves := writer.cardMoves(); len(moves) != 1 {
+		t.Fatalf("an unrelated option moved the card: %+v", moves)
+	}
+
+	// The watched option: the card moves on, and the comment says why.
+	approve := flowEvent("cardWait", project, "", "Да")
+	approve.FromColumn.PropertyName, approve.ToColumn.PropertyName = "Одобрено", "Одобрено"
+	events.ch <- approve
+
+	waitFor(t, 10*time.Second, "the approval moves the card to Done", func() bool {
+		moves := writer.cardMoves()
+		return len(moves) == 2 && moves[1].option == "Done"
+	})
+	comments := strings.Join(writer.cardComments("cardWait"), "\n")
+	if !strings.Contains(comments, "на карточке выбрано «Одобрено» = «Да»") {
+		t.Fatalf("the transition comment does not name the option: %s", comments)
+	}
+
+	// A board-pushed trigger is not something the VCS watcher should poll for.
+	if targets := m.FlowTargets(); len(targets) != 0 {
+		t.Fatalf("card.changed must not become a poll target: %+v", targets)
+	}
+}

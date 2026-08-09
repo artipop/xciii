@@ -51,6 +51,20 @@ func TestValidateFlow(t *testing.T) {
 		"неизвестный проект": func(f *FlowEntry) { f.ProjectName = "nosuchproject" },
 		"неизвестный агент":       func(f *FlowEntry) { f.Nodes[0].AgentName = "nosuchagent" },
 		"неизвестная цель":        func(f *FlowEntry) { f.Nodes[0].DeployName = "nosuchtarget" },
+		"пустое условие":          func(f *FlowEntry) { f.Edges[0].If = &EdgeCond{} },
+		"условие про оба сразу": func(f *FlowEntry) {
+			f.Edges[0].If = &EdgeCond{Property: "Приоритет", Value: "Высокий", CommentContains: "готово"}
+		},
+		"условие без значения": func(f *FlowEntry) { f.Edges[0].If = &EdgeCond{Property: "Приоритет"} },
+		"ответ агента на VCS-переходе": func(f *FlowEntry) {
+			f.Edges[2].If = &EdgeCond{CommentContains: "готово"} // pr.closed: агент там не говорил
+		},
+		"card.changed без опции": func(f *FlowEntry) {
+			f.Edges = append(f.Edges, FlowEdge{From: "review", To: "blocked", On: TriggerCardChanged})
+		},
+		"два безусловных перехода по одному событию": func(f *FlowEntry) {
+			f.Edges = append(f.Edges, FlowEdge{From: "work", To: "blocked", On: TriggerSuccess})
+		},
 	}
 	for name, break_ := range cases {
 		f := sampleFlow()
@@ -77,6 +91,17 @@ func TestValidateFlow(t *testing.T) {
 	}
 	if len(got.Nodes[0].AgentNames) != 1 || got.Nodes[0].AgentNames[0] != "claude-1" || got.Nodes[0].AgentName != "" {
 		t.Fatalf("the old single agent was not folded into the crew: %+v", got.Nodes[0])
+	}
+
+	// Several conditional edges on one event are the point of conditions: the
+	// fork. They are told apart by their conditions, and one fallback is fine.
+	f = sampleFlow()
+	f.Edges = append(f.Edges,
+		FlowEdge{From: "work", To: "blocked", On: TriggerSuccess, If: &EdgeCond{Property: "Приоритет", Value: "Низкий"}},
+		FlowEdge{From: "work", To: "review", On: TriggerSuccess, If: &EdgeCond{CommentContains: "READY"}},
+	)
+	if _, err := validateFlow(f, projects, agents, deploys); err != nil {
+		t.Fatalf("a fork of conditional edges was rejected: %v", err)
 	}
 }
 
@@ -108,11 +133,69 @@ func TestAddUpdateRemoveFlowPersists(t *testing.T) {
 		t.Fatalf("config did not persist the update: %+v", loaded.Flows)
 	}
 
-	if err := m.RemoveFlow("FEATURE"); err != nil {
+	if err := m.RemoveFlow("", "FEATURE"); err != nil {
 		t.Fatal(err)
 	}
 	if len(m.Flows()) != 0 {
 		t.Fatalf("flow not removed: %+v", m.Flows())
+	}
+}
+
+// Two boards each name their route «Фича» and mean different things by it, so
+// the registry is keyed by the board as well as the name — otherwise the second
+// board cannot even save its own.
+func TestFlowsAreScopedToTheirBoard(t *testing.T) {
+	m := agentManager(t, filepath.Join(t.TempDir(), "config.json"))
+
+	first := sampleFlow()
+	first.BoardID = "board-1"
+	if _, err := m.AddFlow(first); err != nil {
+		t.Fatal(err)
+	}
+	second := sampleFlow()
+	second.BoardID = "board-2"
+	second.Nodes[1].Column = "Ревью"
+	if _, err := m.AddFlow(second); err != nil {
+		t.Fatalf("another board cannot have a route of the same name: %v", err)
+	}
+	if _, err := m.AddFlow(second); err == nil {
+		t.Error("the same board took the same name twice")
+	}
+
+	// Editing and deleting reach that board's route and leave the other's alone.
+	edited := second
+	edited.Nodes[0].Column = "В работе 2"
+	if _, err := m.UpdateFlow(edited); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.RemoveFlow("board-2", edited.Name); err != nil {
+		t.Fatal(err)
+	}
+	left := m.Flows()
+	if len(left) != 1 || left[0].BoardID != "board-1" {
+		t.Fatalf("removing one board's route took another's: %+v", left)
+	}
+}
+
+// A board's automation is read back out of the registry to become a template:
+// the option ids survive (a copy keeps its card properties) and the board id
+// does not (the copy is a different board).
+func TestBoardAutomationIsExportedWithoutTheBoard(t *testing.T) {
+	m := agentManager(t, "")
+	m.cfg.Columns = []ColumnSpec{
+		{BoardID: "board-1", OptionID: "opt-1", Property: "Статус", Column: "В работе", Action: FlowActionAgent},
+		{BoardID: "board-2", OptionID: "opt-9", Property: "Статус", Column: "Чужая", Action: FlowActionAgent},
+	}
+	flow := sampleFlow()
+	flow.BoardID = "board-1"
+	m.cfg.Flows = []FlowEntry{flow}
+
+	got := m.BoardAutomation("board-1")
+	if len(got.Columns) != 1 || got.Columns[0].BoardID != "" || got.Columns[0].OptionID != "opt-1" {
+		t.Fatalf("columns exported wrong: %+v", got.Columns)
+	}
+	if len(got.Flows) != 1 || got.Flows[0].BoardID != "" {
+		t.Fatalf("routes exported wrong: %+v", got.Flows)
 	}
 }
 
@@ -155,10 +238,10 @@ func TestFlowGraphLookups(t *testing.T) {
 	if n, ok := f.NodeByColumn("to agent"); !ok || n.ID != "work" {
 		t.Fatalf("column lookup is case-sensitive: %+v", n)
 	}
-	if n, ok := f.Next("work", TriggerSuccess); !ok || n.ID != "review" {
+	if n, _, ok := f.Next("work", TriggerSuccess, nil, ""); !ok || n.ID != "review" {
 		t.Fatalf("success edge: %+v", n)
 	}
-	if _, ok := f.Next("review", TriggerSuccess); ok {
+	if _, _, ok := f.Next("review", TriggerSuccess, nil, ""); ok {
 		t.Fatal("a node without an edge must not resolve one")
 	}
 	// Only the VCS triggers make a node worth polling for.
@@ -222,18 +305,18 @@ func TestTemplateFlowsUseTheConfigsOwnColumns(t *testing.T) {
 	if n, ok := feature.NodeByColumn("К агенту"); !ok || n.Action != FlowActionAgent {
 		t.Fatalf("agent stage: %+v", n)
 	}
-	if n, ok := feature.Next("test", TriggerSuccess); !ok || n.Column != "Проверено" {
+	if n, _, ok := feature.Next("test", TriggerSuccess, nil, ""); !ok || n.Column != "Проверено" {
 		t.Fatalf("test success edge: %+v", n)
 	}
 	// A failed check goes back to the agent rather than to a person.
-	if n, ok := feature.Next("test", TriggerFailure); !ok || n.Column != "К агенту" {
+	if n, _, ok := feature.Next("test", TriggerFailure, nil, ""); !ok || n.Column != "К агенту" {
 		t.Fatalf("test failure edge: %+v", n)
 	}
 	// Waiting for the merge needs no token: it is the local git watcher.
 	if !IsVCSTrigger(TriggerBranchMerged) || IsGitHubTrigger(TriggerBranchMerged) {
 		t.Fatal("the seeded routes must work without GitHub credentials")
 	}
-	if n, ok := feature.Next("review", TriggerBranchMerged); !ok || n.Column != cfg.DeployColumn {
+	if n, _, ok := feature.Next("review", TriggerBranchMerged, nil, ""); !ok || n.Column != cfg.DeployColumn {
 		t.Fatalf("review edge: %+v", n)
 	}
 

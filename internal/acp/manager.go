@@ -21,7 +21,7 @@ import (
 // and policies, and reports results back to the board and the UI.
 type Manager struct {
 	cfg   Config
-	cfgMu sync.RWMutex // guards the UI-mutable parts of cfg (Projects, Agents, SystemPrompt)
+	cfgMu sync.RWMutex // guards the UI-mutable parts of cfg (Projects, Agents, BoardPrompts)
 	// registryProbes answer for registries another package owns — see
 	// SetRegistryProbe. Guarded by cfgMu, since they are read where the config
 	// is.
@@ -51,12 +51,25 @@ type Manager struct {
 	seededMu sync.Mutex
 	seeded   map[string]bool // boards whose own settings have been imported
 
+	// boardStored are the boards that now hold their own columns and routes
+	// (boardseed.go). Guarded by cfgMu, because it is exactly what decides
+	// which of them still go into config.json.
+	boardStored map[string]bool
+
 	// questions are what agents are waiting to hear back on: one entry per open
 	// question, keyed by its id (question.go). Its own lock — a question is
 	// registered from an agent's inbound request and answered from the UI, and
 	// neither should queue behind whatever holds mu.
 	questionsMu sync.Mutex
 	questions   map[string]*pendingQuestion
+
+	// grants are the open permissions to write to a board through the board
+	// tools (boardtools.go), one per agent run, and origin is the address the
+	// tool server reaches us at. Their own lock: a tool call arrives on an
+	// HTTP handler and must not queue behind a session starting.
+	grantsMu sync.RWMutex
+	grants   map[string]BoardGrant
+	origin   string
 
 	// What an agent says it can be configured with, keyed by how it is
 	// launched. Asking costs an agent startup, and the dialog asks whenever a
@@ -77,7 +90,8 @@ type Manager struct {
 func (m *Manager) SetBoardReader(r BoardReader) { m.reader = r }
 
 // SetBoardUsers supplies account provisioning, which "assign a card to an
-// agent" needs. Optional: without it only the "Agent" field routes cards.
+// agent" needs. Optional: without it a card can only reach an agent through
+// its column's crew.
 func (m *Manager) SetBoardUsers(u BoardUsers) { m.users = u }
 
 // NewManager wires the manager. cfgPath is where project-registry edits are
@@ -129,6 +143,10 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 			m.log.Warn("acp: agent is configured in a way that will not work", "agent", a.Name, "err", err)
 		}
 	}
+
+	// Before anything can edit either side: whatever automation the file still
+	// carries goes onto the boards that own it (boardseed.go).
+	m.moveAutomationToBoards()
 
 	m.recover()
 	PruneStale(m.rootCtx, m.cfg.ProjectWhitelist)
@@ -209,10 +227,11 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	// Asked before anything is resolved: a card somebody took for themselves is
 	// theirs, and there is no point working out which project an agent would
 	// not be using. Deploy and test are unaffected — that is machine work, not
-	// the assignee's — and an explicit `agent` property still wins, since it is
-	// a direct instruction. Somebody who wants to work the card *with* an agent
-	// opens a terminal on it, which is not a session and not vetoed here.
-	if !opts.deploy && !opts.test && strings.TrimSpace(ev.Props["agent"]) == "" {
+	// the assignee's. Somebody who wants to work the card *with* an agent opens
+	// a terminal on it, which is not a session and not vetoed here; somebody
+	// who wants an agent to work it assigns the agent, which humanAssignee
+	// reads as the opposite answer.
+	if !opts.deploy && !opts.test {
 		m.cfgMu.RLock()
 		known := append([]AgentEntry(nil), m.cfg.Agents...)
 		m.cfgMu.RUnlock()
@@ -296,7 +315,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	}
 
 	m.cfgMu.RLock()
-	systemPrompt, deployPrompt, testPrompt := m.cfg.SystemPrompt, m.cfg.DeployPrompt, m.cfg.TestPrompt
+	systemPrompt, deployPrompt, testPrompt := m.cfg.BoardPrompts[ev.BoardID], m.cfg.DeployPrompt, m.cfg.TestPrompt
 	m.cfgMu.RUnlock()
 	prompt := composePrompt(ev, agent, systemPrompt, worktreeAvailable)
 	switch {
@@ -677,10 +696,15 @@ func resolveArgv0(argv []string) []string {
 	return out
 }
 
-// planningPrompt opens a planning conversation: the board/agent system prompts,
-// then what this session is for. It is deliberately explicit that nothing is to
-// be changed — the tool policy enforces it, but the agent should not try.
-func planningPrompt(systemPrompt string, agent AgentEntry, project ProjectEntry) string {
+// planningPrompt is what a planning terminal is opened with: the board's system
+// prompt, the agent's own, the planning instructions a person can edit, and the
+// one fact nobody should have to type — which project the CLI is standing in.
+//
+// It reaches the CLI as the terminal's task text, pasted by the button on the
+// terminal page, rather than as an argv flag: what a CLI is told at startup is
+// its own business (terminalCommand says why), and this is the same road a
+// card's task already travels.
+func planningPrompt(systemPrompt, planning string, agent AgentEntry, project ProjectEntry) string {
 	var b []byte
 	if p := strings.TrimSpace(systemPrompt); p != "" {
 		b = fmt.Appendf(b, "%s\n\n", p)
@@ -688,18 +712,12 @@ func planningPrompt(systemPrompt string, agent AgentEntry, project ProjectEntry)
 	if p := strings.TrimSpace(agent.Prompt); p != "" {
 		b = fmt.Appendf(b, "%s\n\n", p)
 	}
-	if project.Path == "" {
-		b = fmt.Appendf(b, "Мы планируем новую задачу. Репозиторий не выбран, кода под рукой нет — ")
-		b = fmt.Appendf(b, "опирайся на то, что расскажет пользователь, и не пытайся ничего искать в файлах.\n\n")
-		b = fmt.Appendf(b, "Начни с короткого вопроса о том, что нужно сделать.")
-		return string(b)
+	if p := strings.TrimSpace(planning); p == "" {
+		b = fmt.Appendf(b, "%s\n\n", DefaultPlanningPrompt)
+	} else {
+		b = fmt.Appendf(b, "%s\n\n", p)
 	}
-	b = fmt.Appendf(b, "Мы планируем новую задачу по проекту `%s` (%s).\n", project.Name, project.Path)
-	b = fmt.Appendf(b, "Код у тебя есть — читай файлы, ищи по ним, смотри историю git: ")
-	b = fmt.Appendf(b, "чтение и безопасные команды осмотра разрешены, опирайся на код, а не на догадки.\n")
-	b = fmt.Appendf(b, "Не меняй ничего: ни файлов, ни состояния. Это обсуждение, а не выполнение. ")
-	b = fmt.Appendf(b, "Если для ответа всё же нужна команда, меняющая состояние, — попроси, у пользователя спросят подтверждение.\n\n")
-	b = fmt.Appendf(b, "Начни с короткого вопроса о том, что нужно сделать.")
+	b = fmt.Appendf(b, "Проект: `%s` (%s).", project.Name, project.Path)
 	return string(b)
 }
 

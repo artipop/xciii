@@ -44,3 +44,20 @@ func boardURL(typed string) (string, error) {
 	}
 	return parsed.String(), nil
 }
+
+// machineLabel is what a tab is called. Machines on one tailnet differ in their
+// first label and agree on everything after it — "board.tail1234.ts.net" beside
+// "laptop.tail1234.ts.net" — and a tab on a phone has room for one word, so the
+// first label is the name and the rest is noise.
+func machineLabel(typed string) string {
+	host := strings.TrimSpace(typed)
+	host = strings.TrimPrefix(strings.TrimPrefix(host, "https://"), "http://")
+	host = strings.TrimSuffix(host, "/")
+	if at := strings.IndexByte(host, ':'); at != -1 {
+		host = host[:at]
+	}
+	if at := strings.IndexByte(host, '.'); at != -1 && at > 0 {
+		host = host[:at]
+	}
+	return host
+}

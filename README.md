@@ -218,6 +218,31 @@ the one thing a rewrite must not quietly drop.
   replaces an installed copy with an edited one. Authoring is not by hand:
   build the board in the app, *Export board archive*, unzip, keep the
   `board.jsonl`.
+- **Where a setting lives is decided by whose it is.** The registries are the
+  machine's — which agents are installed, where they deploy, how they reach the
+  network, whether the board is published on the tailnet — so they are one
+  dialog opened from the sidebar's *«Настройки → Эта машина…»*, beside the theme
+  and the language, and are reachable with no board open at all. What a board
+  runs — its columns, its routes, the folders its agents work in, and what those
+  agents are told first — is one screen, *«Как работает эта доска…»*. The board's
+  ⋯ menu holds nothing else but export and *«Сохранить как шаблон…»*: it used to
+  be the only door to all of the above, which made machine settings look like a
+  property of whichever board happened to be open.
+  Registering an agent or a folder does not require going there — the card's
+  terminal and the column's crew list both offer the short form (a name and a
+  kind) where the choice is being made, and the full form stays in the
+  settings. **Folders are part of running an agent, not of having a board**: a
+  board with no agent column is never asked for one and never grows a «Проекты»
+  field, and a project marked "on every board" joins only boards that already
+  have that field.
+- **What a board tells its agents first is the board's** (`boardPrompts` in the
+  config, keyed by board id, edited in *«Как работает эта доска…»*). It was one
+  string shared by every board on the machine, labelled "board system prompt"
+  while being nothing of the kind — which meant the household board and the code
+  board shared it and so nobody could write anything useful in it. An install
+  that had written something keeps it: on first load the old `systemPrompt` is
+  spread over every board named by a column or a route, and the global field is
+  blanked.
 - **First run**: a board made from a template opens a setup wizard by itself
   when the registries are still empty — a project and an agent are asked for
   (nothing runs without them), Dokku and a browser MCP server are offered and
@@ -245,16 +270,18 @@ the one thing a rewrite must not quietly drop.
   as "already registered" with one click to pass it). Reading them as the answer
   is what made every board after the first appear fully set up and get created
   in silence. The page renders that plan and works nothing out for itself; the
-  board menu reads the same one, which is why *Deploy targets…* is absent from a
-  board that never deploys. The wizard opens itself once per board — closing it
-  half-way answers nothing, so the header goes on saying *«Доска ещё не
-  настроена»* until every question that board asks has an answer, and that
-  button is the way back in (*Set up this board…* in the board menu too).
+  wizard walks exactly what the plan lists, which is why a board that never
+  deploys is never asked where to. The wizard opens itself once per board —
+  closing it half-way answers nothing, so the header goes on saying *«Доска ещё
+  не настроена»* until every question that board asks has an answer, and that
+  button is the way back in (*«Пройти настройку заново…»* in *«Как работает эта
+  доска…»* afterwards).
   Having been offered it is remembered in the store, not in the page: the app
   publishes itself on a fresh port every launch, so `localStorage` is keyed by
   an origin that does not survive a restart — anything the page has to remember
   between runs has to be asked of Go.
-- **Columns** (column menu → *Agents in this column…*) say what happens when a
+- **Columns** (column menu → *«Что происходит в этой колонке…»*, or the board
+  menu's *«Как работает эта доска…»*) say what happens when a
   card lands in one: the action, the crew of agents who work it, and how many of
   them at once. A card without an agent of its own goes to whoever of the crew is
   free; when they are all busy, or the limit is reached, the card waits in place
@@ -267,7 +294,7 @@ the one thing a rewrite must not quietly drop.
   the card keeps its place on the route and waits for you to move it on. Deploy
   and test still run, since that is machine work; assigning a registered agent,
   or nobody, hands the card back to automation.
-- **Flows** (board "…" menu → *Workflows*) join those columns into a route and
+- **Flows** (board "…" menu → *«Как работает эта доска…»*) join those columns into a route and
   move cards along it. Repository events are polled from the branches parked
   cards wait on: plain git needs nothing, while `pr.*`, `review.approved` and
   `checks.*` call the GitHub API and want a token in `githubToken` (or
@@ -285,11 +312,40 @@ the one thing a rewrite must not quietly drop.
   and what that stage is waiting for. Routes belong to the board they were made
   on, and a board made from the «Разработка» template arrives with them:
   the template carries its columns and routes in the board's own properties, and
-  the first card moved on it takes them into the registry. The Workflows dialog
-  is both the map and the builder: it draws each route with the number of cards
-  standing on every stage, and editing one turns the same canvas into the place
-  the graph is drawn — stages are dragged, and pulling from a stage's right edge
-  joins it to another.
+  the first card moved on it — or opening the editor — takes them into the
+  registry.
+- **One editor for both halves** (board menu → *«Как работает эта доска…»*).
+  The canvas is the board: every column of the chosen select property is a box
+  on it, and choosing a route draws that route's arrows over the same boxes,
+  fading the columns it does not use — clicking one, or drawing an arrow to it,
+  is what puts it on the route. There is no "add a stage, then pick its column".
+  The panel beside the canvas is about whatever is selected: a column (what
+  happens there, the crew, the limit, the deploy target — the whole of what used
+  to be a dialog of its own) or a transition (which event, and where it leads).
+  What a card names its route with is checked too: a route with no option of its
+  name is one no card can ever take, and the editor says so and offers the click
+  that adds it. A palette beside the canvas holds the blocks a route is built
+  from — «Агент», «Деплой», «Тест», a plain column — and dropping one makes a
+  real column of the board where it landed, already doing what the block says.
+- **Rules on the arrows.** A transition can be conditional on the card — «по
+  успеху → Деплой, но только если Приоритет = Высокий», with the unconditional
+  arrow as the fallback — or on the words the agent signed off with («ГОТОВО К
+  ДЕПЛОЮ»), which is how the agent itself routes the card. A stage can also wait
+  for an option set on the card («Одобрено = Да») and move the moment a person
+  marks it — pushed by the board, nothing polled. The conditions are drawn on
+  the arrows, spelled out in the card's flow strip, and the set is closed: the
+  board picks from what the engine implements, nothing is a script.
+- **Templates** (*«Сохранить как шаблон…»* in the board menu, the pencil in the
+  template picker, or *«Колонки, маршруты и настройка…»* on the banner of a
+  template being edited). A template is a board that has not been made yet, and
+  what makes it worth choosing is not on the board: the same editor writes its
+  columns and routes into the template's own properties, and below it the
+  template names the questions a new board should ask about this machine — the
+  closed set of setup steps, each with a line of the template's own and a "cannot
+  be skipped" flag. Saving a working board as a template reads its automation
+  back out of the registry into the copy, so the template arrives with the
+  columns *doing* something rather than merely drawn. Templates somebody made
+  are offered beside the ones the install ships.
 
 ## Develop
 
@@ -392,8 +448,12 @@ window-position autosave.
 
 ## Documentation
 
+- [docs/guide/](docs/guide/README.md) — руководство пользователя, по-русски:
+  как этим пользоваться, а не как это устроено.
 - [docs/flows.md](docs/flows.md) — how a card gets worked on, for somebody using the
   board rather than working on it.
+- [docs/templates.md](docs/templates.md) — what a template carries, how it is edited,
+  and how a working board becomes one.
 - [docs/plan.md](docs/plan.md) — what is done, what is left, and the open decisions
   this repository starts with.
 - [docs/local-and-shared-state.md](docs/local-and-shared-state.md) — which of the

@@ -5,11 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>XCIII</title>
     <!--
-        The only page this app carries of its own: where is the board.
-        Everything after this is the board's own page, served by the front
-        door over the tailnet — so this is deliberately one field, and it is
-        written in plain HTML rather than pulling a framework onto a phone to
-        ask one question.
+        The only page this app carries of its own: which machines, and which of
+        them you are looking at. Everything else is the board's own page, served
+        by the front door of each desktop over the tailnet and shown in a frame.
+
+        A frame rather than a navigation, because a machine's page has to stay
+        on that machine's origin: inside the frame the board is same-origin with
+        its own front door, so the bindings, the event socket and the terminal
+        socket all work untouched, and nothing on the desktop side has to be
+        opened up to another machine's origin. It is also the only way back —
+        the tabs live here, in a page that never leaves.
+
+        Plain HTML: pulling a framework onto a phone to draw two tabs would be
+        absurd.
     -->
     <style>
         :root {
@@ -22,18 +30,104 @@
 
         * { box-sizing: border-box; }
 
+        html, body { height: 100%; }
+
         body {
             margin: 0;
-            min-height: 100vh;
-            padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            gap: 20px;
             background: var(--canvas);
             color: var(--ink);
             font-family: ui-sans-serif, -apple-system, system-ui, sans-serif;
         }
+
+        /* The boards, stacked: every tab that has been opened keeps its frame,
+           and switching hides one and shows another. */
+        #frames {
+            position: relative;
+            flex: 1;
+            min-height: 0;
+        }
+
+        #frames iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        #frames iframe[hidden] { display: none; }
+
+        /* The tabs sit at the bottom: that is where a thumb is, and the board's
+           own page puts its heading at the top. */
+        #tabs {
+            display: flex;
+            gap: 2px;
+            padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+            background: var(--surface);
+            border-top: 1px solid rgba(233, 233, 236, 0.12);
+        }
+
+        #tabs:empty { display: none; }
+
+        .tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 44px;
+            padding: 8px 10px;
+            border: 0;
+            border-radius: 2px;
+            background: transparent;
+            color: var(--ink);
+            font: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            opacity: 0.55;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tab--active {
+            background: rgba(233, 233, 236, 0.08);
+            opacity: 1;
+        }
+
+        .tab--add { flex: 0 0 52px; font-size: 20px; letter-spacing: 0; }
+
+        /* A machine that does not answer says so on its own tab: the frame
+           behind it shows the webview's error page, which is not ours to read. */
+        .tab--offline { text-decoration: line-through; opacity: 0.3; }
+
+        .dot {
+            min-width: 20px;
+            padding: 0 6px;
+            border-radius: 10px;
+            background: var(--accent);
+            color: #08080a;
+            font-size: 12px;
+            line-height: 20px;
+            letter-spacing: 0;
+        }
+
+        #setup {
+            position: absolute;
+            inset: 0;
+            overflow-y: auto;
+            padding: calc(24px + env(safe-area-inset-top)) 24px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: var(--canvas);
+        }
+
+        #setup[hidden] { display: none; }
 
         h1 {
             margin: 0;
@@ -59,7 +153,7 @@
             opacity: 0.7;
         }
 
-        input, button {
+        input, .primary {
             width: 100%;
             min-height: 48px;
             padding: 12px 14px;
@@ -74,7 +168,7 @@
             color: var(--ink);
         }
 
-        button {
+        .primary {
             margin-top: 12px;
             border: 0;
             background: var(--accent);
@@ -84,25 +178,60 @@
             letter-spacing: 0.16em;
         }
 
-        button:disabled { opacity: 0.5; }
+        .primary:disabled { opacity: 0.5; }
 
         .error {
             min-height: 20px;
             color: #ff8ca0;
             font-size: 13px;
         }
+
+        #known { display: flex; flex-direction: column; gap: 8px; }
+
+        .known {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 2px;
+            background: var(--surface);
+        }
+
+        .known span {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .known button {
+            border: 0;
+            background: transparent;
+            color: #ff8ca0;
+            font: inherit;
+            font-size: 13px;
+            padding: 4px 0;
+        }
     </style>
 </head>
 <body>
-    <h1>XCIII</h1>
-    <p>Введите имя машины в вашем tailnet — то, под которым доска опубликована. Телефон должен быть подключён к Tailscale.</p>
+    <div id="frames">
+        <section id="setup" hidden>
+            <h1>XCIII</h1>
+            <p>Введите имя машины в вашем tailnet — то, под которым доска опубликована. Телефон должен быть подключён к Tailscale.</p>
 
-    <form id="connect">
-        <label for="address">Адрес доски</label>
-        <input id="address" name="address" type="text" inputmode="url" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="board.tail1234.ts.net">
-        <button type="submit">Подключиться</button>
-    </form>
-    <div class="error" id="error"></div>
+            <form id="connect">
+                <label for="address">Адрес доски</label>
+                <input id="address" name="address" type="text" inputmode="url" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="board.tail1234.ts.net">
+                <button type="submit" class="primary">Добавить</button>
+            </form>
+            <div class="error" id="error"></div>
+
+            <div id="known"></div>
+        </section>
+    </div>
+    <nav id="tabs"></nav>
 
     <script type="module">
         // The bindings are reached the same way the board reaches them: the v3
@@ -111,29 +240,245 @@
         const {Call} = await import('/wails/runtime.js')
         const settings = (name, ...args) => Call.ByName(`main.Settings.${name}`, ...args)
 
+        const tabs = document.getElementById('tabs')
+        const frames = document.getElementById('frames')
+        const setup = document.getElementById('setup')
+        const known = document.getElementById('known')
         const field = document.getElementById('address')
-        const error = document.getElementById('error')
         const form = document.getElementById('connect')
+        const error = document.getElementById('error')
 
-        try {
-            field.value = await settings('Address')
-        } catch (e) {
-            // A first launch has nothing saved, which is not worth saying.
+        // 'setup' is a tab like any other, so there is exactly one thing on
+        // screen and one place that decides what it is.
+        const SETUP = 'setup'
+        const ACTIVE_KEY = 'xciii.active'
+
+        // Which tab you were last on. Written through a try: this page is served
+        // by the app itself, and a webview is allowed to refuse storage on such
+        // an origin by throwing — which would take the whole page with it, and
+        // remembering a tab is not worth an app that does not open.
+        const remembered = () => {
+            try {
+                return localStorage.getItem(ACTIVE_KEY) || ''
+            } catch (e) {
+                return ''
+            }
         }
-        field.focus()
+        const remember = (value) => {
+            try {
+                localStorage.setItem(ACTIVE_KEY, value)
+            } catch (e) {
+                // Then the app opens on the first machine next time.
+            }
+        }
+
+        let machines = []
+        let active = remembered() || SETUP
+
+        // What each machine last said about itself, keyed by origin — the only
+        // thing a frame is allowed to tell this page, and the only thing this
+        // page can find out about a frame it cannot read.
+        const waiting = new Map()
+        const reachable = new Map()
+
+        const originOf = (url) => {
+            try {
+                return new URL(url).origin
+            } catch (e) {
+                return ''
+            }
+        }
+
+        function render() {
+            for (const frame of frames.querySelectorAll('iframe')) {
+                frame.hidden = frame.dataset.address !== active
+            }
+            setup.hidden = active !== SETUP
+
+            tabs.replaceChildren()
+            if (machines.length === 0) {
+                // One machine and no way to add a second would be a tab bar
+                // saying nothing; the setup panel is the whole app until then.
+                return
+            }
+            for (const machine of machines) {
+                const origin = originOf(machine.url)
+                const tab = document.createElement('button')
+                tab.type = 'button'
+                tab.className = 'tab'
+                if (machine.address === active) {
+                    tab.classList.add('tab--active')
+                }
+                if (reachable.get(origin) === false) {
+                    tab.classList.add('tab--offline')
+                }
+                tab.append(machine.label)
+
+                const count = waiting.get(origin) || 0
+                if (count > 0) {
+                    const dot = document.createElement('span')
+                    dot.className = 'dot'
+                    dot.textContent = String(count)
+                    tab.append(dot)
+                }
+
+                tab.addEventListener('click', () => open(machine.address))
+                tabs.append(tab)
+            }
+
+            const add = document.createElement('button')
+            add.type = 'button'
+            add.className = 'tab tab--add'
+            if (active === SETUP) {
+                add.classList.add('tab--active')
+            }
+            add.textContent = '+'
+            add.setAttribute('aria-label', 'Машины')
+            add.addEventListener('click', () => open(SETUP))
+            tabs.append(add)
+        }
+
+        // A tab keeps its page once it has been opened: the event socket, the
+        // scroll and a half-typed answer all live in the frame, and building it
+        // again on every switch would throw all three away.
+        function open(next) {
+            active = next
+            if (next !== SETUP) {
+                remember(next)
+                const machine = machines.find((m) => m.address === next)
+                if (machine && !frames.querySelector(`iframe[data-address="${CSS.escape(next)}"]`)) {
+                    const frame = document.createElement('iframe')
+                    frame.dataset.address = machine.address
+                    frame.src = machine.url
+                    frames.append(frame)
+                }
+            }
+            render()
+        }
+
+        async function load() {
+            try {
+                machines = JSON.parse(await settings('Machines')) || []
+            } catch (e) {
+                machines = []
+            }
+
+            for (const frame of [...frames.querySelectorAll('iframe')]) {
+                if (!machines.some((m) => m.address === frame.dataset.address)) {
+                    frame.remove()
+                }
+            }
+            if (active !== SETUP && !machines.some((m) => m.address === active)) {
+                active = machines.length > 0 ? machines[0].address : SETUP
+            }
+            if (active === SETUP && machines.length > 0 && !remembered()) {
+                active = machines[0].address
+            }
+
+            known.replaceChildren()
+            for (const machine of machines) {
+                const row = document.createElement('div')
+                row.className = 'known'
+                const name = document.createElement('span')
+                name.textContent = machine.address
+                const forget = document.createElement('button')
+                forget.type = 'button'
+                forget.textContent = 'Забыть'
+                forget.addEventListener('click', async () => {
+                    await settings('Remove', machine.address)
+                    await load()
+                })
+                row.append(name, forget)
+                known.append(row)
+            }
+
+            open(active)
+            machines.forEach(probe)
+        }
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault()
             error.textContent = ''
-            form.querySelector('button').disabled = true
+            const button = form.querySelector('button')
+            button.disabled = true
             try {
-                await settings('Connect', field.value)
+                await settings('Add', field.value)
+                const added = field.value
+                field.value = ''
+                await load()
+                const machine = machines.find((m) => m.address === added.trim())
+                if (machine) {
+                    open(machine.address)
+                }
             } catch (e) {
                 error.textContent = String(e?.message || e)
             } finally {
-                form.querySelector('button').disabled = false
+                button.disabled = false
             }
         })
+
+        // What a board says about itself. The frame is cross-origin, so this is
+        // the only thing it can tell us — and all we want: how many things over
+        // there are waiting for a person, so the tab can carry the number.
+        window.addEventListener('message', (event) => {
+            const data = event.data
+            if (!data || data.type !== 'xciii:waiting') {
+                return
+            }
+            // Only from a board we put on screen ourselves. Anything else is
+            // some other page in some other frame, and it does not get a tab.
+            if (!machines.some((m) => originOf(m.url) === event.origin)) {
+                return
+            }
+            waiting.set(event.origin, Number(data.count) || 0)
+            reachable.set(event.origin, true)
+            render()
+        })
+
+        // Whether the desktop is up at all. A frame's failure is not readable
+        // from here — cross-origin, and onerror stays silent — so the machine
+        // is asked directly. The board's own page is guarded by nothing but the
+        // tailnet gate and the Host check, so a no-cors GET is enough: an
+        // opaque response means it answered, a rejection means it did not.
+        async function probe(machine) {
+            const origin = originOf(machine.url)
+            const was = reachable.get(origin)
+            const stop = new AbortController()
+            const timer = setTimeout(() => stop.abort(), 5000)
+            try {
+                await fetch(machine.url, {mode: 'no-cors', cache: 'no-store', signal: stop.signal})
+                reachable.set(origin, true)
+                // A desktop that has woken up leaves the frame on the error
+                // page the webview drew when it was asleep, and nothing else
+                // would ever replace it.
+                const frame = frames.querySelector(`iframe[data-address="${CSS.escape(machine.address)}"]`)
+                if (was === false && frame) {
+                    frame.src = machine.url
+                }
+            } catch (e) {
+                reachable.set(origin, false)
+                // A machine we cannot reach is not a machine with nothing
+                // waiting on it, and a stale zero would read as the second.
+                waiting.delete(origin)
+            } finally {
+                clearTimeout(timer)
+            }
+            render()
+        }
+
+        // Phones sleep, tailnets come and go, desktops are closed for the
+        // night: what was true when the app opened is not true an hour later.
+        setInterval(() => machines.forEach(probe), 30000)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                machines.forEach(probe)
+            }
+        })
+
+        await load()
+        if (active === SETUP) {
+            field.focus()
+        }
     </script>
 </body>
 </html>

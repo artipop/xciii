@@ -1,0 +1,53 @@
+.AgentQuickAdd {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: 4px;
+
+    .AgentQuickAdd__field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+
+        // The dropdown is a control of ours now, so it is sized here and the
+        // box comes from widgets/select — same as the input beside it.
+        > input,
+        > .Select .Select__trigger {
+            font-size: 14px;
+            color: rgb(var(--center-channel-color-rgb));
+            padding: 6px 8px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 4px;
+            background: transparent;
+        }
+    }
+
+    .AgentQuickAdd__warning {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 12px;
+        color: rgb(var(--error-text-rgb));
+    }
+
+    .AgentQuickAdd__actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .AgentQuickAdd__hint {
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .AgentQuickAdd__error {
+        font-size: 12px;
+        color: rgb(var(--error-text-rgb));
+    }
+}

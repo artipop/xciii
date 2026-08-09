@@ -258,7 +258,6 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview > should 
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
@@ -316,7 +315,6 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview > should 
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         <div
           class="octo-board-header-cell KanbanColumnHeader"
@@ -374,7 +372,6 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview > should 
               class="CompassIcon icon-plus AddIcon"
             />
           </button>
-          
         </div>
         
         <div
@@ -481,6 +478,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview > should 
         </div>
         
       </div>
+      
     </div>
   </div>
 </div>

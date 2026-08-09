@@ -20,19 +20,8 @@ function attentionBindings(waiting: any[] = []) {
     }
 }
 
-const waitingOnCard = {
-    key: 'term-1',
-    terminalId: 'term-1',
-    cardId: 'card-1',
-    title: 'Починить логин',
-    agent: 'clauuus',
-    reason: 'quiet',
-    awaiting: true,
-    since: '2026-08-05T10:00:00Z',
-}
-
-// What ACP itself sends: the agent asked, its turn is still open, and the
-// answer goes straight back to it. No terminal is involved at all.
+// What ACP sends, and the only thing that raises a notification: the agent
+// asked, its turn is still open, and the answer goes straight back to it.
 const askedOnCard = {
     key: 'card:card-2',
     cardId: 'card-2',
@@ -89,23 +78,10 @@ describe('components/acp/attentionNotifications', () => {
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention'](waitingOnCard)
+        handlers['acp:attention'](askedOnCard)
 
-        expect(await screen.findByText('clauuus is waiting for your answer')).toBeInTheDocument()
-        expect(screen.getByText('Починить логин')).toBeInTheDocument()
-    })
-
-    it('opens the terminal the agent is waiting in', async () => {
-        const bindings = attentionBindings()
-        anyWindow.go = {main: {App: bindings}}
-
-        render(() => wrapIntl(() => <AttentionNotifications/>))
-        await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention'](waitingOnCard)
-
-        await userEvent.click(await screen.findByText('Open the terminal'))
-        await waitFor(() => expect(bindings.ShowTerminal).toHaveBeenCalledWith('term-1'))
-        expect(screen.queryByRole('alert')).toBeNull()
+        expect(await screen.findByText('clauuus is asking')).toBeInTheDocument()
+        expect(screen.getByText('Выкатить релиз')).toBeInTheDocument()
     })
 
     // An answered question is not something to be told about any more, and
@@ -115,10 +91,10 @@ describe('components/acp/attentionNotifications', () => {
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention'](waitingOnCard)
+        handlers['acp:attention'](askedOnCard)
         expect(await screen.findByRole('alert')).toBeInTheDocument()
 
-        handlers['acp:attention']({...waitingOnCard, awaiting: false})
+        handlers['acp:attention']({...askedOnCard, awaiting: false})
         await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
     })
 
@@ -179,24 +155,24 @@ describe('components/acp/attentionNotifications', () => {
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention'](waitingOnCard)
+        handlers['acp:attention'](askedOnCard)
 
         await userEvent.click(await screen.findByLabelText('Dismiss'))
         expect(screen.queryByRole('alert')).toBeNull()
 
-        handlers['acp:attention']({...waitingOnCard, awaiting: false})
-        handlers['acp:attention']({...waitingOnCard, since: '2026-08-05T10:30:00Z'})
+        handlers['acp:attention']({...askedOnCard, awaiting: false})
+        handlers['acp:attention']({...askedOnCard, key: 'q:q-2', questionId: 'q-2', since: '2026-08-05T11:30:00Z'})
 
         expect(await screen.findByRole('alert')).toBeInTheDocument()
     })
 
     it('interrupts nobody who turned notifications off', async () => {
-        anyWindow.go = {main: {App: attentionBindings([waitingOnCard])}}
+        anyWindow.go = {main: {App: attentionBindings([askedOnCard])}}
         setAgentNotifications(false)
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention'](waitingOnCard)
+        handlers['acp:attention'](askedOnCard)
 
         expect(screen.queryByRole('alert')).toBeNull()
         setAgentNotifications(true)
@@ -205,10 +181,10 @@ describe('components/acp/attentionNotifications', () => {
     // A page opened after the agent stopped has no event to hear: the list is
     // what it starts from.
     it('starts from what is already waiting', async () => {
-        anyWindow.go = {main: {App: attentionBindings([waitingOnCard])}}
+        anyWindow.go = {main: {App: attentionBindings([askedOnCard])}}
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
 
-        expect(await screen.findByText('Починить логин')).toBeInTheDocument()
+        expect(await screen.findByText('Выкатить релиз')).toBeInTheDocument()
     })
 })

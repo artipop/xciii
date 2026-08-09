@@ -1,0 +1,162 @@
+.AgentsPanel {
+    .AgentsPanel__content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .AgentsPanel__empty {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        padding: 8px 0;
+    }
+
+    .AgentsPanel__row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .AgentsPanel__name {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .AgentsPanel__kind {
+            flex: 1;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.04em;
+        }
+    }
+
+    .AgentsPanel__form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 8px 0;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-md);
+
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-weight: 600;
+        }
+
+        input,
+        .Select__trigger,
+        textarea {
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: var(--radius-sm);
+            padding: 6px 8px;
+            background: rgb(var(--surface-bg-rgb));
+            color: rgb(var(--center-channel-color-rgb));
+            font-weight: 400;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+    }
+
+    .AgentsPanel__hint {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+    }
+
+    .AgentsPanel__formActions,
+    .AgentsPanel__actions {
+        display: flex;
+        gap: 8px;
+        padding-top: 4px;
+    }
+
+    .AgentsPanel__proxies {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        > summary {
+            cursor: pointer;
+            font-weight: 600;
+            list-style-position: outside;
+        }
+    }
+
+    // The prompt itself is PromptField's; this is only where it sits.
+    .AgentsPanel__systemPrompt {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    // Whether the chosen kind can start at all, said next to the choice.
+    .AgentsPanel__adapter {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: var(--radius-sm);
+        background: rgba(var(--center-channel-color-rgb), 0.06);
+        font-size: 12px;
+
+        &--missing {
+            color: rgb(var(--error-text-rgb, 210, 75, 78));
+            background: rgba(var(--error-text-rgb, 210, 75, 78), 0.08);
+        }
+    }
+
+    // What this agent says it can be configured with. Set apart from the launch
+    // fields above it, because it is answered by the agent rather than typed.
+    .AgentsPanel__options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-sm);
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+
+        .AgentsPanel__hint {
+            font-weight: 400;
+        }
+    }
+
+    // A switch reads across, not down like the rest of the form's labels.
+    .AgentsPanel__form label.AgentsPanel__checkbox {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+
+        input {
+            width: auto;
+            flex: none;
+        }
+    }
+
+    .AgentsPanel__option {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .AgentsPanel__optionsHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-weight: 600;
+    }
+
+    .AgentsPanel__error {
+        color: rgb(var(--error-text-rgb, 210, 75, 78));
+        padding-top: 8px;
+    }
+}

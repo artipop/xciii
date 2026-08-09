@@ -1,0 +1,96 @@
+// The dialog is wide because the canvas inside it is: a route read across a
+// narrow column is a route nobody reads.
+.AutomationDialog {
+    // Both classes, because the base dialog's own width rule is `.Dialog
+    // .dialog` and a single class here loses the tie and leaves the canvas
+    // 975px wide — narrow enough to push the inspector off screen.
+    &.dialog-back .dialog {
+        max-width: 1320px;
+        width: min(1320px, 96vw);
+
+        // Taller than the base dialog too: the canvas, the panel beside it and
+        // the two folded sections under it do not fit in 144px of margin.
+        height: calc(100% - 96px);
+        margin: 48px auto;
+    }
+
+    .AutomationDialog__content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 4px 0;
+
+        // The base dialog gives every direct child `flex-shrink: 0`, which is
+        // right for a toolbar and wrong for the only part meant to give way:
+        // without this the content keeps its full height and pushes Save out
+        // through the bottom of the dialog.
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+
+        // …and nothing inside it shrinks. A flex child squeezed below its own
+        // content does not lengthen the scroll, so the prompt's textarea came
+        // out flattened and drawn through the bottom of the dialog with no way
+        // to scroll down to it. This column scrolls; it does not compress.
+        > * {
+            flex: 0 0 auto;
+        }
+    }
+
+    .AutomationDialog__ready {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    // Save stays where it is while the rest scrolls: the engine checks the whole
+    // picture when it is pressed, so it is the one control that must never be
+    // somewhere below the fold.
+    .AutomationDialog__actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: auto;
+        padding: 10px 0 4px;
+        background: rgb(var(--surface-bg-rgb));
+        box-shadow: 0 -8px 12px -8px rgb(var(--surface-bg-rgb));
+    }
+
+    // Folded away, both of them: what a column does is the point of this
+    // screen, and these two are answered once and then left alone.
+    .AutomationDialog__projects {
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        padding-top: 8px;
+
+        > summary {
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .AgentProjectsPanel__subtitle {
+            font-size: 12px;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            margin: 6px 0;
+        }
+    }
+
+    .AutomationDialog__prompt {
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        padding-top: 8px;
+    }
+
+    .AutomationDialog__hint {
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .AutomationDialog__error {
+        white-space: pre-wrap;
+        color: rgb(var(--error-text-rgb));
+        font-size: 12px;
+    }
+}

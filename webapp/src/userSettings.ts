@@ -132,12 +132,13 @@ export class UserSettings {
         UserSettings.set(UserSettingKey.AgentNotifications, JSON.stringify(newValue))
     }
 
+    // Off unless somebody turns it on by hand. A card gets an emoji nobody
+    // chose, and on a board of case files it reads as noise: the icon is a
+    // thing a person picks when it means something. Nothing in the interface
+    // switches it any more — the icon picker still has «Random» for one card —
+    // so this is read, and never written.
     static get prefillRandomIcons(): boolean {
-        return UserSettings.get(UserSettingKey.RandomIcons) !== 'false'
-    }
-
-    static set prefillRandomIcons(newValue: boolean) {
-        UserSettings.set(UserSettingKey.RandomIcons, JSON.stringify(newValue))
+        return UserSettings.get(UserSettingKey.RandomIcons) === 'true'
     }
 
     static getEmojiMartSetting(key: string): any {

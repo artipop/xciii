@@ -533,13 +533,28 @@ func (a *App) UpdateFlow(entryJSON string) (string, error) {
 	return string(out), nil
 }
 
-// RemoveFlow deletes a route by name. Cards standing on it simply stop moving
-// by themselves.
-func (a *App) RemoveFlow(name string) error {
+// RemoveFlow deletes a board's route by name. Cards standing on it simply stop
+// moving by themselves.
+func (a *App) RemoveFlow(boardID, name string) error {
 	if a.mgr == nil {
 		return errACPDisabled
 	}
-	return a.mgr.RemoveFlow(name)
+	return a.mgr.RemoveFlow(boardID, name)
+}
+
+// ExportBoardAutomation returns what a board runs — its columns and its routes
+// — in the shape a template carries them in its own properties. It is how a
+// board somebody has built by hand becomes a template: the registry is Go's, so
+// only this side can read it out.
+func (a *App) ExportBoardAutomation(boardID string) (string, error) {
+	if a.mgr == nil {
+		return "", errACPDisabled
+	}
+	out, err := json.Marshal(a.mgr.BoardAutomation(boardID))
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }
 
 // ListBoardColumns returns what each configured column of a board does: the
@@ -685,20 +700,37 @@ func (a *App) SetTailnetAccess(entryJSON string) (string, error) {
 	return string(out), nil
 }
 
-// GetAgentSystemPrompt returns the board/column-level system prompt.
-func (a *App) GetAgentSystemPrompt() (string, error) {
+// GetBoardPrompt returns what every session of this board is told first.
+func (a *App) GetBoardPrompt(boardID string) (string, error) {
 	if a.mgr == nil {
 		return "", nil
 	}
-	return a.mgr.SystemPrompt(), nil
+	return a.mgr.BoardPrompt(boardID), nil
 }
 
-// SetAgentSystemPrompt stores the board/column-level system prompt.
-func (a *App) SetAgentSystemPrompt(text string) error {
+// SetBoardPrompt stores that instruction for one board.
+func (a *App) SetBoardPrompt(boardID, text string) error {
 	if a.mgr == nil {
 		return errACPDisabled
 	}
-	return a.mgr.SetSystemPrompt(text)
+	return a.mgr.SetBoardPrompt(boardID, text)
+}
+
+// GetPlanningPrompt returns the instructions a planning terminal is opened
+// with, falling back to the default when the config has none.
+func (a *App) GetPlanningPrompt() (string, error) {
+	if a.mgr == nil {
+		return acp.DefaultPlanningPrompt, nil
+	}
+	return a.mgr.PlanningPrompt(), nil
+}
+
+// SetPlanningPrompt stores the instructions a planning terminal is opened with.
+func (a *App) SetPlanningPrompt(text string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	return a.mgr.SetPlanningPrompt(text)
 }
 
 // StartCardDeploy publishes a card's branch to its Dokku target without moving
@@ -749,12 +781,14 @@ func (a *App) OpenCardTerminal(cardID, projectName, agentName string) (string, e
 }
 
 // OpenPlanningTerminal opens the CLI with no card behind it — the terminal half
-// of "Plan a task".
-func (a *App) OpenPlanningTerminal(projectName, agentName string) (string, error) {
+// of "Plan a task". boardID is the board the dialog was opened from: the
+// conversation has no card, but it may leave cards, and that is the only board
+// it may leave them on.
+func (a *App) OpenPlanningTerminal(projectName, agentName, boardID string) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
-	t, err := a.mgr.StartPlanningTerminal(projectName, agentName)
+	t, err := a.mgr.StartPlanningTerminal(projectName, agentName, boardID)
 	if err != nil {
 		return "", err
 	}

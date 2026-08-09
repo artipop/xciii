@@ -5,6 +5,10 @@ import {Block, createBlock} from './block'
 import {FilterGroup, createFilterGroup} from './filterGroup'
 
 type IViewType = 'board' | 'table' | 'gallery' | 'calendar'
+
+// What a calendar view shows at a time. FullCalendar's own names, because they
+// are what it is told and what it reports back.
+type ICalendarSpan = 'dayGridWeek' | 'dayGridMonth'
 type ISortOption = { propertyId: '__title' | string, reversed: boolean }
 
 type KanbanCalculationFields = {
@@ -15,6 +19,11 @@ type KanbanCalculationFields = {
 type BoardViewFields = {
     viewType: IViewType
     groupById?: string
+
+    // Week or month, for a calendar. It belongs to the view rather than to the
+    // browser: it is a thing about this calendar, so it should be the same
+    // calendar on the next screen and after a restart.
+    calendarSpan?: ICalendarSpan
     dateDisplayPropertyId?: string
     sortOptions: ISortOption[]
     visiblePropertyIds: string[]
@@ -40,6 +49,7 @@ function createBoardView(block?: Block): BoardView {
         fields: {
             viewType: block?.fields.viewType || 'board',
             groupById: block?.fields.groupById,
+            calendarSpan: block?.fields.calendarSpan,
             dateDisplayPropertyId: block?.fields.dateDisplayPropertyId,
             sortOptions: block?.fields.sortOptions?.map((o: ISortOption) => ({...o})) || [],
             visiblePropertyIds: block?.fields.visiblePropertyIds?.slice() || [],
@@ -63,4 +73,4 @@ function sortBoardViewsAlphabetically(views: BoardView[]): BoardView[] {
     }).sort((v1, v2) => v1.title.localeCompare(v2.title)).map((v) => v.view)
 }
 
-export {type BoardView, type IViewType, type ISortOption, sortBoardViewsAlphabetically, createBoardView, type KanbanCalculationFields}
+export {type BoardView, type IViewType, type ICalendarSpan, type ISortOption, sortBoardViewsAlphabetically, createBoardView, type KanbanCalculationFields}

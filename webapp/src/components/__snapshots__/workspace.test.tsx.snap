@@ -63,16 +63,6 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                     <span>
                       XCIII
                     </span>
-                    <div
-                      class="versionFrame"
-                    >
-                      <div
-                        class="version"
-                        title="v1.0.0"
-                      >
-                        v1.0.0
-                      </div>
-                    </div>
                   </div>
                 </div>
                 
@@ -492,7 +482,6 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                   class="CompassIcon icon-plus AddIcon"
                 />
               </button>
-              
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
@@ -550,7 +539,6 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                   class="CompassIcon icon-plus AddIcon"
                 />
               </button>
-              
             </div>
             
             <div
@@ -734,6 +722,7 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
             </div>
             
           </div>
+          
         </div>
         
       </div>
@@ -925,7 +914,6 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
                 class="octo-spacer"
               />
               
-              
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
@@ -963,7 +951,6 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
               <div
                 class="octo-spacer"
               />
-              
               
             </div>
             
@@ -1078,6 +1065,7 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
             />
             
           </div>
+          
         </div>
         
       </div>
@@ -1166,16 +1154,6 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                     <span>
                       XCIII
                     </span>
-                    <div
-                      class="versionFrame"
-                    >
-                      <div
-                        class="version"
-                        title="v1.0.0"
-                      >
-                        v1.0.0
-                      </div>
-                    </div>
                   </div>
                 </div>
                 
@@ -1649,7 +1627,6 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                   class="CompassIcon icon-plus AddIcon"
                 />
               </button>
-              
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
@@ -1707,7 +1684,6 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                   class="CompassIcon icon-plus AddIcon"
                 />
               </button>
-              
             </div>
             
             <div
@@ -1891,6 +1867,7 @@ exports[`src/components/workspace > should match snapshot 1`] = `
             </div>
             
           </div>
+          
         </div>
         
       </div>
@@ -2082,7 +2059,6 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
                 class="octo-spacer"
               />
               
-              
             </div>
             <div
               class="octo-board-header-cell KanbanColumnHeader"
@@ -2120,7 +2096,6 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
               <div
                 class="octo-spacer"
               />
-              
               
             </div>
             
@@ -2235,6 +2210,7 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
             />
             
           </div>
+          
         </div>
         
       </div>

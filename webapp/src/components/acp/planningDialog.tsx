@@ -7,15 +7,17 @@ import {For, Show, createSignal, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
+import {Board} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
+import Select from '../../widgets/select'
 import Dialog from '../dialog'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 
 import './planningDialog.scss'
 
-// Planning a task before it exists: the agent's own CLI, in the project, in
-// a window.
+// Talking a task through before it exists: the agent's own CLI, in the project,
+// in a window.
 //
 // This dialog used to hold the conversation itself — a transcript, a prompt box
 // and a "create task" turn that boiled the discussion down into a card. The
@@ -23,6 +25,11 @@ import './planningDialog.scss'
 // terminal, so what is left here is choosing where to open it and finding the
 // ones already open: a terminal outlives its window, and one with no card
 // behind it has nothing else to be found through.
+//
+// What such a terminal opens saying used to be edited here too, which made a
+// setting of the machine look like part of the act of opening one. It is in
+// Settings → This machine now, with the other things that are true of the
+// install rather than of a board.
 
 type NamedEntry = {name: string}
 type LiveTerminal = {id: string, agent: string, cwd: string}
@@ -32,6 +39,10 @@ export function isPlanningAvailable(): boolean {
 }
 
 type Props = {
+
+    // The board the dialog was opened from. Planning has no card, but it may
+    // leave cards — and this is the only board it may leave them on.
+    board: Board
     onClose: () => void
 }
 
@@ -65,8 +76,9 @@ const PlanningDialog = (props: Props) => {
             return
         }
         try {
-            // Planning has no card and no board behind it, so it offers every
-            // project on the machine rather than one board's.
+            // The conversation is about a project, not about the board it was
+            // from, so every project on the machine is offered. The board
+            // bounds only where the cards may land.
             const [repoList, agentList] = await Promise.all([
                 bindings.ListAgentProjects(''),
                 bindings.ListAgents(),
@@ -103,7 +115,7 @@ const PlanningDialog = (props: Props) => {
         setError('')
         setBusy(true)
         try {
-            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(projectName(), agentName())))
+            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(projectName(), agentName(), props.board.id)))
             await refreshTerminals()
         } catch (e: any) {
             setError(String(e?.message || e))
@@ -128,50 +140,40 @@ const PlanningDialog = (props: Props) => {
         <Dialog
             onClose={props.onClose}
             class='PlanningDialog'
-            title={<div>{intl.formatMessage({id: 'Planning.title', defaultMessage: 'Plan a task'})}</div>}
+            title={<div>{intl.formatMessage({id: 'Planning.title', defaultMessage: 'Talk it over with an agent'})}</div>}
         >
             <div class='PlanningDialog__body'>
                 <p class='PlanningDialog__hint'>
                     {intl.formatMessage({
                         id: 'Planning.hint-terminal',
-                        defaultMessage: 'Opens the agent\'s CLI in the project. Nothing is committed for you and no card is created — this is a place to think out loud.',
+                        defaultMessage: 'Opens the agent\'s CLI in the project. This is a place to think out loud: nothing is committed for you, and the cards you agree on the agent can put on this board itself.',
                     })}
                 </p>
 
                 <div class='PlanningDialog__pickers'>
                     <label>
-                        {intl.formatMessage({id: 'Planning.project', defaultMessage: 'Project'})}
-                        <select
+                        {intl.formatMessage({id: 'Planning.project', defaultMessage: 'Folder'})}
+                        <Select
                             value={projectName()}
-                            onChange={(e) => setProjectName(e.currentTarget.value)}
-                        >
-                            <option value=''>{intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})}</option>
-                            <For each={projects()}>
-                                {(r) => (
-                                    <option
-                                        value={r.name}
-                                        selected={projectName() === r.name}
-                                    >{r.name}</option>
-                                )}
-                            </For>
-                        </select>
+                            options={[
+                                {value: '', label: intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})},
+                                ...projects().map((r) => ({value: r.name, label: r.name})),
+                            ]}
+                            onChange={setProjectName}
+                            label={intl.formatMessage({id: 'Planning.project', defaultMessage: 'Folder'})}
+                        />
                     </label>
                     <label>
                         {intl.formatMessage({id: 'Planning.agent', defaultMessage: 'Agent'})}
-                        <select
+                        <Select
                             value={agentName()}
-                            onChange={(e) => setAgentName(e.currentTarget.value)}
-                        >
-                            <option value=''>{intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})}</option>
-                            <For each={agents()}>
-                                {(a) => (
-                                    <option
-                                        value={a.name}
-                                        selected={agentName() === a.name}
-                                    >{a.name}</option>
-                                )}
-                            </For>
-                        </select>
+                            options={[
+                                {value: '', label: intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})},
+                                ...agents().map((a) => ({value: a.name, label: a.name})),
+                            ]}
+                            onChange={setAgentName}
+                            label={intl.formatMessage({id: 'Planning.agent', defaultMessage: 'Agent'})}
+                        />
                     </label>
                     <Button
                         filled={true}

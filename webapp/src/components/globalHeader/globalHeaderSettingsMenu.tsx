@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import {For, Show, createSignal} from 'solid-js'
+import {For, Show} from 'solid-js'
 
 import {useNavigate} from '@solidjs/router'
 
@@ -14,7 +14,6 @@ import {getMe} from '../../store/users'
 import {getCurrentTeam, Team} from '../../store/teams'
 import {IUser, UserConfigPatch} from '../../user'
 import octoClient from '../../octoClient'
-import {UserSettings} from '../../userSettings'
 import CheckIcon from '../../widgets/icons/check'
 import SettingsIcon from '../../widgets/icons/settings'
 
@@ -29,12 +28,6 @@ const GlobalHeaderSettingsMenu = () => {
     const currentTeam = useAppSelector<Team|null>(getCurrentTeam)
     const {actions} = useAppStore()
     const navigate = useNavigate()
-
-    const [randomIcons, setRandomIcons] = createSignal(UserSettings.prefillRandomIcons)
-    const toggleRandomIcons = () => {
-        UserSettings.prefillRandomIcons = !UserSettings.prefillRandomIcons
-        setRandomIcons(!randomIcons())
-    }
 
     return (
         <div class='GlobalHeaderSettingsMenu'>
@@ -83,13 +76,6 @@ const GlobalHeaderSettingsMenu = () => {
                                 )}
                             </For>
                         </Menu.SubMenu>
-                        <Menu.Switch
-                            id='random-icons'
-                            name={intl.formatMessage({id: 'Sidebar.random-icons', defaultMessage: 'Random icons'})}
-                            isOn={randomIcons()}
-                            onClick={async () => toggleRandomIcons()}
-                            suppressItemClicked={true}
-                        />
                         <Show when={me()?.is_guest !== true}>
                             <Menu.Text
                                 id='product-tour'

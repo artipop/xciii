@@ -206,7 +206,7 @@ describe('components/boardTemplateSelector/boardTemplateSelectorItem', () => {
         ))
         userEvent.click(container.querySelector('.BoardTemplateSelectorItem .EditIcon')!)
         expect(onEdit).toHaveBeenCalledTimes(1)
-        expect(onEdit).toHaveBeenCalledWith(template.id)
+        expect(onEdit).toHaveBeenCalledWith(template)
         expect(onSelect).not.toHaveBeenCalled()
         expect(onDelete).not.toHaveBeenCalled()
     })

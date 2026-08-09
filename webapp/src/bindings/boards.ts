@@ -3,7 +3,7 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import {agentBindings} from '../components/acp/agentProjectsDialog'
+import {agentBindings} from '../components/acp/bindings'
 
 // The board as the bindings expose it.
 //

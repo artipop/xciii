@@ -7,9 +7,9 @@ import {Accessor, Show, createMemo, createSignal, onCleanup, onMount} from 'soli
 
 import {useIntl} from '../../intl'
 
-import {agentBindings} from './agentProjectsDialog'
+import {agentBindings} from './bindings'
 import {onAgentEvent} from './agentEvents'
-import {ColumnSpec, specFor} from './columnSettingsDialog'
+import {ColumnSpec, specFor} from './automation'
 
 import './columnBadge.scss'
 
@@ -100,7 +100,7 @@ function actionIcon(action: string): string {
 const ColumnBadge = (props: Props) => {
     const intl = useIntl()
     const specs = useBoardColumns(props.boardId)
-    const spec = createMemo(() => specFor(specs(), props.optionId, props.columnName))
+    const spec = createMemo(() => specFor(specs(), {optionId: props.optionId, name: props.columnName}))
 
     const crew = () => spec()?.agents || []
     const limit = () => spec()?.maxRunning || 0

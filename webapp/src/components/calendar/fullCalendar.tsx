@@ -18,7 +18,7 @@ import {DatePropertyType} from '../../properties/types'
 import mutator from '../../mutator'
 
 import {Board, IPropertyTemplate} from '../../blocks/board'
-import {BoardView} from '../../blocks/boardView'
+import {BoardView, ICalendarSpan} from '../../blocks/boardView'
 import {Card} from '../../blocks/card'
 import {DateProperty} from '../../properties/date/date'
 import propsRegistry from '../../properties'
@@ -274,6 +274,18 @@ const CalendarFullView = (props: Props): JSX.Element => {
     let host: HTMLDivElement | undefined
     let calendar: Calendar | undefined
 
+    // Week or month is the view's own answer, kept in the view (calendarSpan)
+    // rather than in this browser: the same calendar is the same calendar on
+    // the next screen and after the app is closed. Written back only when it
+    // actually changes — FullCalendar reports the span on every prev/next too.
+    const span = (): ICalendarSpan => props.activeView.fields.calendarSpan || 'dayGridMonth'
+    const rememberSpan = (chosen: string) => {
+        if ((chosen !== 'dayGridWeek' && chosen !== 'dayGridMonth') || chosen === span()) {
+            return
+        }
+        mutator.changeViewCalendarSpan(props.board.id, props.activeView.id, chosen).catch(() => undefined)
+    }
+
     // Every content hook renders a Solid tree into detached nodes FullCalendar
     // adopts; the matching willUnmount hook is where those trees die.
     const eventDisposers = new Map<Element, () => void>()
@@ -289,7 +301,7 @@ const CalendarFullView = (props: Props): JSX.Element => {
     onMount(() => {
         calendar = new Calendar(host!, {
             plugins: [dayGridPlugin, interactionPlugin],
-            initialView: 'dayGridMonth',
+            initialView: span(),
             initialDate: initialDate(),
             dayMaxEventRows: 5,
             headerToolbar: toolbar,
@@ -301,6 +313,7 @@ const CalendarFullView = (props: Props): JSX.Element => {
             selectMirror: true,
             select: onNewEvent,
             eventChange,
+            datesSet: (arg) => rememberSpan(arg.view.type),
             eventContent: (arg: EventContentArg) => mountInto(() => <EventContent event={arg.event}/>, eventDisposers),
             eventWillUnmount: (arg) => {
                 for (const [node, dispose] of eventDisposers) {
@@ -347,6 +360,16 @@ const CalendarFullView = (props: Props): JSX.Element => {
         calendar.setOption('eventResizableFromStart', isEditable())
         calendar.setOption('selectable', isSelectable())
         calendar.setOption('buttonText', buttonText())
+    })
+
+    // …and the span itself, when it was changed somewhere else: another window
+    // on the same board, or this one coming back to a view it already had an
+    // answer for.
+    createEffect(() => {
+        const wanted = span()
+        if (calendar && calendar.view.type !== wanted) {
+            calendar.changeView(wanted)
+        }
     })
 
     return (

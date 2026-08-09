@@ -44,6 +44,12 @@ func newFrontDoor(wails, acp, ingest, board http.Handler, allowedHost string) ht
 	// The UI event socket is guarded the same way and for the same reason: it
 	// says what the agents are doing on this machine.
 	mux.Handle("/acp/events/ws", sameOrigin(acp, allowedHost))
+	// The board tools an agent calls (boardapi.go). Same origin guard — a page
+	// has no business calling these — on top of the grant token they actually
+	// authenticate with: the caller is a local process, and a local process
+	// sends no Origin, so the guard costs it nothing and still keeps a browser
+	// out.
+	mux.Handle("/acp/board/", sameOrigin(acp, allowedHost))
 	// The one route here that is *not* same-origin, and it cannot be: what
 	// posts to it is a script, a webhook or a phone, so its Origin is somebody
 	// else's or absent. Its own token is what stands in for the check — see

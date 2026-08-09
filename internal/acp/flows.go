@@ -39,6 +39,12 @@ const (
 	TriggerReviewApproved = "review.approved"
 	TriggerChecksPassed   = "checks.passed"
 	TriggerChecksFailed   = "checks.failed"
+
+	// TriggerCardChanged fires when a select option is set on the card while it
+	// stands on the stage — a person marking «Одобрено», say. Which option is
+	// the edge's own condition (If), so the trigger kind stays closed and the
+	// board decides only the vocabulary.
+	TriggerCardChanged = "card.changed"
 )
 
 // Trigger sources, which decide who can produce an event and what the watcher
@@ -47,6 +53,7 @@ const (
 	SourceOutcome = "outcome" // the node's own action finished
 	SourceGit     = "git"     // local project, no authentication
 	SourceGitHub  = "github"  // GitHub API, needs a token for private projects
+	SourceBoard   = "board"   // the card itself changed; no polling, the board pushes
 )
 
 // FlowTrigger describes one edge trigger. The list doubles as the editor's
@@ -70,6 +77,7 @@ var FlowTriggers = []FlowTrigger{
 	{Kind: TriggerReviewApproved, Source: SourceGitHub, Label: "ревью одобрено"},
 	{Kind: TriggerChecksPassed, Source: SourceGitHub, Label: "проверки прошли"},
 	{Kind: TriggerChecksFailed, Source: SourceGitHub, Label: "проверки упали"},
+	{Kind: TriggerCardChanged, Source: SourceBoard, Label: "на карточке выбрано"},
 }
 
 // FlowEntry is one named route in the registry.
@@ -142,6 +150,55 @@ type FlowEdge struct {
 	From string `json:"from"`
 	To   string `json:"to"`
 	On   string `json:"on"`
+
+	// If makes the transition conditional. Several conditional edges may share
+	// one (From, On) — the first whose condition holds wins, and an edge with
+	// no condition is the fallback. For TriggerCardChanged the condition is not
+	// a guard but the event itself: which option firing it means.
+	If *EdgeCond `json:"if,omitempty"`
+}
+
+// EdgeCond is what a conditional transition asks about, in exactly one of two
+// forms. Both are questions about the card, not scripts: a select property
+// having a value, or the words the stage's own agent signed off with.
+type EdgeCond struct {
+	// Property/Value: the card's select property carries this option.
+	Property string `json:"property,omitempty"`
+	Value    string `json:"value,omitempty"`
+
+	// CommentContains: the agent's closing comment contains this text — how a
+	// stage lets the agent itself route the card («READY TO DEPLOY»).
+	CommentContains string `json:"commentContains,omitempty"`
+}
+
+// holds evaluates the condition against the card and, for the comment form,
+// the agent's closing words. A nil condition always holds — an unconditional
+// edge is the fallback.
+func (c *EdgeCond) holds(props map[string]string, agentText string) bool {
+	if c == nil {
+		return true
+	}
+	if c.CommentContains != "" {
+		return containsFold(agentText, c.CommentContains)
+	}
+	got := props[strings.ToLower(strings.TrimSpace(c.Property))]
+	return strings.EqualFold(strings.TrimSpace(got), strings.TrimSpace(c.Value))
+}
+
+// Describe is the condition in the reader's language, for edge labels and card
+// comments.
+func (c *EdgeCond) Describe() string {
+	if c == nil {
+		return ""
+	}
+	if c.CommentContains != "" {
+		return fmt.Sprintf("в ответе агента есть «%s»", c.CommentContains)
+	}
+	return fmt.Sprintf("«%s» = «%s»", c.Property, c.Value)
+}
+
+func containsFold(haystack, needle string) bool {
+	return strings.Contains(strings.ToLower(haystack), strings.ToLower(needle))
 }
 
 // Trigger looks a trigger kind up in the closed set.
@@ -162,11 +219,12 @@ func TriggerLabel(kind string) string {
 	return kind
 }
 
-// IsVCSTrigger reports whether the trigger comes from the project rather
-// than from the node's own action — the ones the watcher has to poll for.
+// IsVCSTrigger reports whether the trigger comes from the project — the ones
+// the watcher has to poll for. Board triggers are pushed, not polled, so they
+// are deliberately not here.
 func IsVCSTrigger(kind string) bool {
 	t, ok := Trigger(kind)
-	return ok && t.Source != SourceOutcome
+	return ok && (t.Source == SourceGit || t.Source == SourceGitHub)
 }
 
 // IsGitHubTrigger reports whether the trigger needs the GitHub API.
@@ -200,14 +258,43 @@ func (f FlowEntry) NodeByColumn(column string) (FlowNode, bool) {
 	return FlowNode{}, false
 }
 
-// Next returns the node an event moves the card to.
-func (f FlowEntry) Next(nodeID, on string) (FlowNode, bool) {
-	for _, e := range f.Edges {
-		if e.From == nodeID && e.On == on {
-			return f.Node(e.To)
+// Next returns the node an event moves the card to: among the edges for this
+// event, the first whose condition holds against the card — and an edge with no
+// condition holds always, which makes it the fallback however the editor
+// ordered it.
+func (f FlowEntry) Next(nodeID, on string, props map[string]string, agentText string) (FlowNode, *EdgeCond, bool) {
+	var fallback *FlowEdge
+	for i, e := range f.Edges {
+		if e.From != nodeID || e.On != on {
+			continue
+		}
+		if e.If == nil {
+			if fallback == nil {
+				fallback = &f.Edges[i]
+			}
+			continue
+		}
+		if e.If.holds(props, agentText) {
+			node, ok := f.Node(e.To)
+			return node, e.If, ok
 		}
 	}
-	return FlowNode{}, false
+	if fallback != nil {
+		node, ok := f.Node(fallback.To)
+		return node, nil, ok
+	}
+	return FlowNode{}, nil, false
+}
+
+// HasEdge reports whether the node has any transition for an event at all —
+// what "this stage listens for X" means, before any condition is asked.
+func (f FlowEntry) HasEdge(nodeID, on string) bool {
+	for _, e := range f.Edges {
+		if e.From == nodeID && e.On == on {
+			return true
+		}
+	}
+	return false
 }
 
 // WaitsFor lists the VCS triggers a node has edges for. An empty result means
@@ -218,6 +305,23 @@ func (f FlowEntry) WaitsFor(nodeID string) []string {
 		if e.From == nodeID && IsVCSTrigger(e.On) {
 			out = append(out, e.On)
 		}
+	}
+	return out
+}
+
+// WaitDescriptions is what a parked card says it is waiting on, conditions
+// included — «на карточке выбрано «Одобрено» = «Да»», not just the kind.
+func (f FlowEntry) WaitDescriptions(nodeID string) []string {
+	var out []string
+	for _, e := range f.Edges {
+		if e.From != nodeID || e.On == TriggerSuccess || e.On == TriggerFailure || e.On == TriggerBlocked {
+			continue
+		}
+		label := TriggerLabel(e.On)
+		if desc := e.If.Describe(); desc != "" {
+			label += " " + desc
+		}
+		out = append(out, label)
 	}
 	return out
 }
@@ -327,7 +431,10 @@ func validateFlow(f FlowEntry, projects []ProjectEntry, agents []AgentEntry, dep
 		f.Nodes[i] = n
 	}
 
-	seenEdge := make(map[string]bool, len(f.Edges))
+	// Several conditional edges may share one (from, on) — the conditions tell
+	// them apart. What stays ambiguous, and refused, is two edges with nothing
+	// to tell them apart: two unconditional ones.
+	seenFallback := make(map[string]bool, len(f.Edges))
 	for i, e := range f.Edges {
 		e.From = strings.TrimSpace(e.From)
 		e.To = strings.TrimSpace(e.To)
@@ -338,17 +445,63 @@ func validateFlow(f FlowEntry, projects []ProjectEntry, agents []AgentEntry, dep
 		if !seenID[e.To] {
 			return FlowEntry{}, fmt.Errorf("переход из %q ведёт в несуществующую стадию %q", e.From, e.To)
 		}
-		if _, ok := Trigger(e.On); !ok {
+		trigger, ok := Trigger(e.On)
+		if !ok {
 			return FlowEntry{}, fmt.Errorf("неизвестное событие перехода %q", e.On)
 		}
-		key := e.From + "|" + e.On
-		if seenEdge[key] {
-			return FlowEntry{}, fmt.Errorf("у стадии %q два перехода по событию %q — куда ехать, непонятно", e.From, TriggerLabel(e.On))
+		if e.If != nil {
+			cond, err := validateEdgeCond(*e.If, trigger)
+			if err != nil {
+				return FlowEntry{}, fmt.Errorf("переход по событию %q: %w", TriggerLabel(e.On), err)
+			}
+			e.If = &cond
 		}
-		seenEdge[key] = true
+		if e.On == TriggerCardChanged && e.If == nil {
+			return FlowEntry{}, fmt.Errorf("переход «%s» должен говорить, какая опция его запускает", TriggerLabel(e.On))
+		}
+		if e.If == nil {
+			key := e.From + "|" + e.On
+			if seenFallback[key] {
+				return FlowEntry{}, fmt.Errorf("у стадии %q два перехода по событию %q без условий — куда ехать, непонятно", e.From, TriggerLabel(e.On))
+			}
+			seenFallback[key] = true
+		}
 		f.Edges[i] = e
 	}
 	return f, nil
+}
+
+// validateEdgeCond normalizes one condition and checks it makes sense on its
+// trigger: the agent's words exist only where an agent just spoke — on the
+// stage's own outcome.
+func validateEdgeCond(c EdgeCond, trigger FlowTrigger) (EdgeCond, error) {
+	c.Property = strings.TrimSpace(c.Property)
+	c.Value = strings.TrimSpace(c.Value)
+	c.CommentContains = strings.TrimSpace(c.CommentContains)
+
+	hasProp := c.Property != "" || c.Value != ""
+	hasComment := c.CommentContains != ""
+	switch {
+	case hasProp && hasComment:
+		return EdgeCond{}, fmt.Errorf("условие либо про свойство карточки, либо про ответ агента — не оба сразу")
+	case !hasProp && !hasComment:
+		return EdgeCond{}, fmt.Errorf("пустое условие")
+	case hasProp && (c.Property == "" || c.Value == ""):
+		return EdgeCond{}, fmt.Errorf("условию нужны и свойство, и значение")
+	case hasComment && trigger.Source != SourceOutcome:
+		return EdgeCond{}, fmt.Errorf("условие про ответ агента возможно только на исходе шага — здесь агент ничего не говорил")
+	}
+	return c, nil
+}
+
+// sameFlow reports whether two entries are one route of the registry: the same
+// name on the same board. A route tied to no board runs on every board, so it
+// collides with a board's own route of that name — the card would have two.
+// This is the predicate every edit is keyed on, which is what lets two boards
+// each have their own «Фича».
+func sameFlow(a, b FlowEntry) bool {
+	return strings.EqualFold(strings.TrimSpace(a.Name), strings.TrimSpace(b.Name)) &&
+		(a.BoardID == b.BoardID || a.BoardID == "" || b.BoardID == "")
 }
 
 // AddFlow registers a new route and persists the config.
@@ -360,15 +513,16 @@ func (m *Manager) AddFlow(f FlowEntry) (FlowEntry, error) {
 		return FlowEntry{}, err
 	}
 	for _, e := range m.cfg.Flows {
-		if strings.EqualFold(e.Name, f.Name) {
+		if sameFlow(e, f) {
 			return FlowEntry{}, fmt.Errorf("флоу с именем %q уже существует", e.Name)
 		}
 	}
 	m.cfg.Flows = append(m.cfg.Flows, f)
-	return f, m.persistConfigLocked()
+	return f, m.saveBoardsLocked(f.BoardID)
 }
 
-// UpdateFlow replaces an existing route (matched by name) and persists.
+// UpdateFlow replaces an existing route (matched by board and name) and
+// persists.
 func (m *Manager) UpdateFlow(f FlowEntry) (FlowEntry, error) {
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
@@ -377,23 +531,27 @@ func (m *Manager) UpdateFlow(f FlowEntry) (FlowEntry, error) {
 		return FlowEntry{}, err
 	}
 	for i, e := range m.cfg.Flows {
-		if strings.EqualFold(e.Name, f.Name) {
+		if sameFlow(e, f) {
+			// The board it belongs to is the editor's to state: a route the
+			// registry held for every board becomes this board's own the moment
+			// this board edits it, and the other boards keep what they had.
 			m.cfg.Flows[i] = f
-			return f, m.persistConfigLocked()
+			return f, m.saveBoardsLocked(e.BoardID, f.BoardID)
 		}
 	}
 	return FlowEntry{}, fmt.Errorf("флоу %q не найден", f.Name)
 }
 
-// RemoveFlow deletes a route by name and persists. Cards currently on it stop
-// moving by themselves; nothing else happens to them.
-func (m *Manager) RemoveFlow(name string) error {
+// RemoveFlow deletes a board's route by name and persists. Cards currently on
+// it stop moving by themselves; nothing else happens to them.
+func (m *Manager) RemoveFlow(boardID, name string) error {
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
+	target := FlowEntry{BoardID: boardID, Name: name}
 	for i, e := range m.cfg.Flows {
-		if strings.EqualFold(e.Name, name) {
+		if sameFlow(e, target) {
 			m.cfg.Flows = append(m.cfg.Flows[:i], m.cfg.Flows[i+1:]...)
-			return m.persistConfigLocked()
+			return m.saveBoardsLocked(e.BoardID, boardID)
 		}
 	}
 	return fmt.Errorf("флоу %q не найден", name)

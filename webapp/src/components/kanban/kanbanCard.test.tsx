@@ -246,7 +246,7 @@ describe('src/components/kanban/kanbanCard', () => {
     test('shows that the card agent is waiting for a person', async () => {
         const anyWindow = window as any
         anyWindow.go = {main: {App: {ListAttention: vi.fn().mockResolvedValue(JSON.stringify([
-            {terminalId: 'term-1', cardId: card.id, agent: 'clauuus', awaiting: true},
+            {key: 'q:q-1', questionId: 'q-1', cardId: card.id, agent: 'clauuus', reason: 'question', awaiting: true},
         ]))}}}
 
         render(() => wrapDNDIntl(() =>
@@ -267,7 +267,7 @@ describe('src/components/kanban/kanbanCard', () => {
             </AppStoreProvider>,
         ), {wrapper: TestRouter})
 
-        expect(await screen.findByTitle('clauuus is waiting for your answer')).toBeInTheDocument()
+        expect(await screen.findByTitle('clauuus is asking')).toBeInTheDocument()
         delete anyWindow.go
     })
 
