@@ -475,6 +475,23 @@ func (m *Manager) Status(source string) Status {
 	return Status{Source: source, State: StateOff}
 }
 
+// intervalFor is how often this source is asked. A source read by an agent is
+// asked far less often when nobody said otherwise: a plugin's poll is an HTTP
+// request, and an agent's is a conversation with a model that costs money every
+// time. What the person set always wins — this is only the default.
+func intervalFor(entry SourceEntry, manifest Manifest) time.Duration {
+	if entry.IntervalSeconds <= 0 && manifest.IsAgent() {
+		return agentInterval
+	}
+	return entry.interval()
+}
+
+// agentInterval is the default schedule of an agent source. Half an hour rather
+// than five minutes: what arrives from a tracker is not urgent, and the
+// difference is a session six times a day instead of a session every five
+// minutes.
+const agentInterval = 30 * time.Minute
+
 // interval is how often this source is asked, never faster than the floor: a
 // plugin that answers instantly would otherwise be asked in a tight loop.
 func (s SourceEntry) interval() time.Duration {

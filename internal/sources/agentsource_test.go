@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 )
 
 // The agent kind is dialled by the manager rather than by the dialler, so what
@@ -161,5 +162,26 @@ func TestAnAgentTurnIsGivenLongerThanAPluginPoll(t *testing.T) {
 	}
 	if got := pollTimeoutOf(conn); got <= pollTimeout {
 		t.Fatalf("timeout: %v", got)
+	}
+}
+
+// An agent's poll is a conversation with a model and costs money every time, so
+// a source nobody gave a schedule is asked far less often than a plugin would
+// be — and a schedule somebody did set is still theirs.
+func TestAnAgentSourceIsAskedRarelyUnlessToldOtherwise(t *testing.T) {
+	manifest := agentManifest()
+	if got := intervalFor(agentEntry(), manifest); got != agentInterval {
+		t.Fatalf("default: %v", got)
+	}
+
+	entry := agentEntry()
+	entry.IntervalSeconds = 120
+	if got := intervalFor(entry, manifest); got != 2*time.Minute {
+		t.Fatalf("what the person set: %v", got)
+	}
+
+	// A plugin keeps the schedule it always had.
+	if got := intervalFor(agentEntry(), Manifest{Name: "телефон"}); got != defaultInterval {
+		t.Fatalf("plugin default: %v", got)
 	}
 }
