@@ -222,6 +222,39 @@ type Manifest struct {
 	Env             map[string]string `json:"env,omitempty"`
 	Auth            *AuthSpec         `json:"auth,omitempty"`
 	Fields          []Field           `json:"fields,omitempty"`
+
+	// Kind is what the command speaks: this project's own plugin protocol by
+	// default, or MCP. A second kind rather than a second registry, because
+	// everything around a plugin — the schedule, the credentials, the rules,
+	// the log — is the same whichever way the process talks.
+	Kind string   `json:"kind,omitempty"` // "" | KindPlugin | KindMCP
+	MCP  *MCPSpec `json:"mcp,omitempty"`
+
+	// TokenEnv is the environment variable an MCP server reads its credential
+	// from. Named by the manifest because MCP has no place for a token and
+	// every server invents its own name for the variable: KAITEN_TOKEN,
+	// GITHUB_TOKEN, and so on. Our own plugins are handed credentials in the
+	// handshake and need none of this.
+	TokenEnv string `json:"tokenEnv,omitempty"`
+}
+
+// Plugin kinds.
+const (
+	KindPlugin = "plugin" // sources/protocol, the one a plugin author writes against
+	KindMCP    = "mcp"    // an MCP server, read through a mapping in the manifest
+)
+
+// IsMCP reports whether this manifest describes an MCP server.
+func (p Manifest) IsMCP() bool { return strings.EqualFold(p.Kind, KindMCP) }
+
+// MCPOr is the mapping, or an empty one — so a manifest that says kind "mcp"
+// and nothing else fails in Validate with a sentence about the missing tool,
+// rather than on a nil pointer.
+func (p Manifest) MCPOr() MCPSpec {
+	if p.MCP == nil {
+		return MCPSpec{}
+	}
+	return *p.MCP
 }
 
 // Validate normalizes a manifest and refuses what cannot be started or shown.
@@ -233,6 +266,22 @@ func (p Manifest) Validate() (Manifest, error) {
 	p.Command = strings.TrimSpace(p.Command)
 	if p.Command == "" {
 		return p, fmt.Errorf("плагин %q: не сказано, чем его запускать (command)", p.Name)
+	}
+	p.Kind = strings.ToLower(strings.TrimSpace(p.Kind))
+	switch p.Kind {
+	case "", KindPlugin:
+		p.Kind = ""
+		if p.MCP != nil {
+			return p, fmt.Errorf("плагин %q: mcp-отображение у плагина, говорящего на нашем протоколе", p.Name)
+		}
+	case KindMCP:
+		spec, err := p.MCPOr().Validate()
+		if err != nil {
+			return p, fmt.Errorf("плагин %q: %w", p.Name, err)
+		}
+		p.MCP = &spec
+	default:
+		return p, fmt.Errorf("плагин %q: непонятный вид %q (%s или %s)", p.Name, p.Kind, KindPlugin, KindMCP)
 	}
 	for i, f := range p.Fields {
 		if strings.TrimSpace(f.Key) == "" {

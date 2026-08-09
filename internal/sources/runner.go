@@ -85,7 +85,15 @@ func (m *Manager) credentialsFor(ctx context.Context, entry SourceEntry) plugin.
 
 // dialPlugin is the real one: spawn the manifest's command and hand it the
 // source it is being started for.
+//
+// Which protocol the process speaks is the manifest's business and nobody
+// else's: past this function the runner, the pipeline and the log cannot tell
+// an MCP server from a plugin written against sources/protocol, which is what
+// makes a new MCP source a JSON entry rather than a program.
 func dialPlugin(ctx context.Context, entry SourceEntry, manifest Manifest, cred plugin.Credentials, handler plugin.Handler) (conn, error) {
+	if manifest.IsMCP() {
+		return dialMCP(ctx, entry, manifest, cred, handler)
+	}
 	env := make([]string, 0, len(manifest.Env))
 	for k, v := range manifest.Env {
 		env = append(env, k+"="+v)
