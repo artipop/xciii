@@ -90,6 +90,15 @@ type SourceEntry struct {
 	// Update says what a changed item does to the card it already has.
 	Update string `json:"update,omitempty"` // comment (default) | ignore
 
+	// PickBoard lets an item name the board it goes to (Item.BoardID), instead
+	// of every card of this source landing on BoardID above. It is off by
+	// default and has to be asked for, because "the registry decides the board"
+	// is what keeps a plugin — code somebody else wrote — from writing wherever
+	// it likes. It is on for the share sheet, where a person is looking at the
+	// dialog and the board is the question being asked; there BoardID is only
+	// what the dialog offers first.
+	PickBoard bool `json:"pickBoard,omitempty"`
+
 	Config          map[string]string `json:"config,omitempty"`
 	IntervalSeconds int               `json:"intervalSeconds,omitempty"`
 	SecretRef       string            `json:"secretRef,omitempty"`

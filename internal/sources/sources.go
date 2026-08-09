@@ -28,14 +28,21 @@ type Item struct {
 	// Version identifies its state. A source reports what it can see rather
 	// than what changed, so without the pair every poll would create the whole
 	// world again.
-	ExternalID string            `json:"id"`
-	Version    string            `json:"version,omitempty"`
-	Title      string            `json:"title"`
-	Body       string            `json:"body,omitempty"`
-	URL        string            `json:"url,omitempty"`
-	At         time.Time         `json:"at,omitempty"`
-	Props      map[string]string `json:"props,omitempty"`
-	Labels     []string          `json:"labels,omitempty"`
+	ExternalID string    `json:"id"`
+	Version    string    `json:"version,omitempty"`
+	Title      string    `json:"title"`
+	Body       string    `json:"body,omitempty"`
+	URL        string    `json:"url,omitempty"`
+	At         time.Time `json:"at,omitempty"`
+	// BoardID is where this one item goes, overriding the source's own board.
+	// It is refused unless the entry allows it (SourceEntry.PickBoard), because
+	// the registry deciding the board is what keeps a plugin from writing
+	// wherever it likes. What it is for is the opposite case: a person who is
+	// present at the moment the item is made and picks the board then — the
+	// share sheet, where the board *is* the question being asked.
+	BoardID string            `json:"boardId,omitempty"`
+	Props   map[string]string `json:"props,omitempty"`
+	Labels  []string          `json:"labels,omitempty"`
 	// Raw is the payload as it arrived. It is kept because the day a source
 	// changes shape, the only way to find out what it now sends is to look at
 	// what it sent.

@@ -1114,3 +1114,46 @@ func (a *App) MoveCardToBoard(cardID, boardID, column string) error {
 	}
 	return a.board.MoveCardToBoard(context.Background(), cardID, boardID, column)
 }
+
+// The share sheet.
+//
+// What the system hands over when somebody presses «Поделиться» in another app
+// is a link and a title, and the only question left is which board. The dialog
+// that asks it is a page of ours (/share), so this is all it needs from Go:
+// the boards to offer are ListBoards above, and this is the send.
+//
+// It goes through the sources pipeline rather than writing a card directly,
+// because everything the inbox does is there already — the column, the view,
+// the author, the record that keeps a repeat from becoming a second card — and
+// because the phone's «Входящие» only lists boards that have a source.
+
+// ShareItem files a shared link on the board the person picked, and reports
+// what came of it in the same shape a delivery does, so the dialog can tell
+// «создана» from «уже была».
+func (a *App) ShareItem(boardID, title, url, note string) (string, error) {
+	if a.sources == nil {
+		return "", errors.New("источники недоступны")
+	}
+	if strings.TrimSpace(boardID) == "" {
+		return "", errors.New("не сказано, на какую доску")
+	}
+	if strings.TrimSpace(title) == "" && strings.TrimSpace(url) == "" {
+		return "", errors.New("нечего сохранять: ни ссылки, ни заголовка")
+	}
+	// Registered on first use: a person who shares a link has not been asked to
+	// set up a source, and should not have to be.
+	entry, err := a.sources.EnsureSource(sources.ShareSource(boardID))
+	if err != nil {
+		return "", err
+	}
+	res, err := a.sources.Deliver(context.Background(), entry.Name,
+		[]sources.Item{sources.ShareItem(boardID, title, url, note)})
+	if err != nil {
+		return "", err
+	}
+	out, err := json.Marshal(res)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}

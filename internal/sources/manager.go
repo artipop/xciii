@@ -99,6 +99,34 @@ func (m *Manager) AddSource(entry SourceEntry) (SourceEntry, error) {
 	return valid, nil
 }
 
+// EnsureSource registers a source the app itself needs and returns whatever
+// entry now carries that name — the existing one if there is one, untouched.
+//
+// It exists for the share sheet, which is a source nobody asked for in the
+// dialog: the first thing shared has to land somewhere, and asking a person to
+// register «Поделиться» before they can share anything would be a setup step
+// for a feature whose whole point is that there is no setup. Not overwriting is
+// the other half: once the entry exists it is the person's, rules and all.
+func (m *Manager) EnsureSource(entry SourceEntry) (SourceEntry, error) {
+	if existing, ok := m.Source(entry.Name); ok {
+		return existing, nil
+	}
+	valid, err := entry.Validate()
+	if err != nil {
+		return SourceEntry{}, err
+	}
+	if err := m.insertEntry(valid); err != nil {
+		// Lost the race with another caller: whoever won wrote the same entry,
+		// and theirs is as good as ours.
+		if existing, ok := m.Source(entry.Name); ok {
+			return existing, nil
+		}
+		return SourceEntry{}, err
+	}
+	m.ensureInbox(valid)
+	return valid, nil
+}
+
 func (m *Manager) insertEntry(valid SourceEntry) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -336,9 +364,14 @@ func (m *Manager) createCard(ctx context.Context, entry SourceEntry, it Item, re
 		setIfAbsent(spec.Properties, "Agent", rule.Agent)
 	}
 
+	boardID, err := boardFor(entry, it)
+	if err != nil {
+		return err
+	}
+
 	wctx, cancel := context.WithTimeout(ctx, boardWriteTimeout)
 	defer cancel()
-	cardID, err := m.writer.CreateCard(wctx, entry.BoardID, spec)
+	cardID, err := m.writer.CreateCard(wctx, boardID, spec)
 	if err != nil {
 		return fmt.Errorf("создание карточки: %w", err)
 	}
@@ -351,7 +384,7 @@ func (m *Manager) createCard(ctx context.Context, entry SourceEntry, it Item, re
 	m.record(EventRecord{Source: entry.Name, ExternalID: it.ExternalID,
 		Rule: rule.Name, Outcome: outcome, CardID: cardID})
 
-	property, err := m.columnProperty(wctx, entry)
+	property, err := m.columnProperty(wctx, entry, boardID)
 	if err != nil {
 		return err
 	}
@@ -359,8 +392,8 @@ func (m *Manager) createCard(ctx context.Context, entry SourceEntry, it Item, re
 	// inbox shipped has neither the column nor the view, and templates only
 	// ever reach boards that do not exist yet — so without this the very item
 	// the inbox exists for would be the one that fails to land.
-	if _, err := m.writer.EnsureInbox(wctx, entry.BoardID, property, column); err != nil {
-		return fmt.Errorf("колонка %q на доске %s: %w", column, entry.BoardID, err)
+	if _, err := m.writer.EnsureInbox(wctx, boardID, property, column); err != nil {
+		return fmt.Errorf("колонка %q на доске %s: %w", column, boardID, err)
 	}
 	// The move, not the creation, is what the automation sees: the trigger
 	// fires on a change of the column property, and a card created straight
@@ -371,17 +404,35 @@ func (m *Manager) createCard(ctx context.Context, entry SourceEntry, it Item, re
 	return nil
 }
 
+// boardFor is where one item's card goes: the source's own board, or the board
+// the item names when the entry allows an item to name one.
+//
+// A board named by an item that may not name one is refused rather than
+// ignored. Ignoring it would write the card to the source's board and report
+// success, and the person who picked a board would find their card on another
+// one — which is the failure this whole subsystem is meant not to have.
+func boardFor(entry SourceEntry, it Item) (string, error) {
+	chosen := strings.TrimSpace(it.BoardID)
+	if chosen == "" {
+		return entry.BoardID, nil
+	}
+	if !entry.PickBoard {
+		return "", fmt.Errorf("источник %q не выбирает доску, а элемент назвал %q", entry.Name, chosen)
+	}
+	return chosen, nil
+}
+
 // columnProperty is the property this source's columns live in: what the entry
 // pins, or what the board itself says. Asking the board is the default because
 // no constant can be right for both a board that calls it «Статус» and one that
 // calls it "Status".
-func (m *Manager) columnProperty(ctx context.Context, entry SourceEntry) (string, error) {
+func (m *Manager) columnProperty(ctx context.Context, entry SourceEntry, boardID string) (string, error) {
 	if pinned := entry.PinnedProperty(); pinned != "" {
 		return pinned, nil
 	}
-	property, err := m.writer.ColumnProperty(ctx, entry.BoardID)
+	property, err := m.writer.ColumnProperty(ctx, boardID)
 	if err != nil {
-		return "", fmt.Errorf("свойство колонок доски %s: %w", entry.BoardID, err)
+		return "", fmt.Errorf("свойство колонок доски %s: %w", boardID, err)
 	}
 	return property, nil
 }
