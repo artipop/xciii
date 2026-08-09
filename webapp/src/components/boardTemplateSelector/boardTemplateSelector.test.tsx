@@ -113,6 +113,13 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
                         properties: {
                             trackingTemplateId: 'template_id_2',
                         },
+
+                        // The version is what says the install put it there:
+                        // the importer stamps one on every template it writes,
+                        // and nothing stamps one a person made. Without it here
+                        // this fixture is not the upstream default it is
+                        // standing in for.
+                        templateVersion: 10,
                         createdBy: 'system',
                     },
                 ],
@@ -270,6 +277,34 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(screen.getByText(template1Title)).not.toBeNull()
 
             // what stays hidden is the install's own upstream ones
+            expect(screen.queryByText('Welcome to Boards!')).toBeNull()
+        })
+
+        // In this app the board's team *is* the global team, so the fetch that
+        // fills globalTemplates never runs and every template — the install's
+        // own and the user's alike — arrives with the board list instead.
+        // Reading only globalTemplates is how the picker came to offer nothing
+        // at all, on the one deployment the product actually ships as.
+        test('offers them when they arrive with the board list and no global fetch runs', () => {
+            const oneTeam = mockAppStore({
+                ...state,
+                boards: {
+                    ...state.boards,
+                    templates: [...state.boards.templates, ...state.globalTemplates.value],
+                },
+                globalTemplates: {value: []},
+            })
+
+            render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={oneTeam}>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
+                </AppStoreProvider>
+                ,
+            ), {wrapper: TestRouter})
+
+            expect(screen.getByText(globalTemplateTitle)).not.toBeNull()
+            expect(screen.getByText(householdTemplateTitle)).not.toBeNull()
+            expect(screen.getByText(template1Title)).not.toBeNull()
             expect(screen.queryByText('Welcome to Boards!')).toBeNull()
         })
 

@@ -74,6 +74,16 @@ function templateSlug(template: Board): string {
     return typeof marker === 'string' ? marker : ''
 }
 
+// shipped says the install put this template there rather than a person. The
+// version is the only thing that says so: the importer stamps one on every
+// template it writes, ours and the upstream examples alike, and a template made
+// in the app has none. The team does not tell them apart — here everything is
+// in the same team — and neither does `trackingTemplateId`, which "New
+// template" stamps on the user's own as readily as on the built-ins.
+function shipped(template: Board): boolean {
+    return Boolean(template.templateVersion)
+}
+
 const BoardTemplateSelector = (props: Props) => {
     const globalTemplates = useAppSelector<Board[]>(getGlobalTemplates)
     const currentBoardId = useAppSelector<string>(getCurrentBoardId)
@@ -115,21 +125,36 @@ const BoardTemplateSelector = (props: Props) => {
     }
 
     const unsortedTemplates = useAppSelector(getTemplates)
+
+    // Both sources into one pool, because which of them a template arrives in
+    // says nothing about the template — only about how the app is running. In
+    // this app the board's team *is* the global team, so the install's own
+    // templates come down with the board list and the fetch above never runs;
+    // under Mattermost they arrive only through that fetch. Reading one source
+    // is how the selector came to offer nothing at all here.
+    const pool = createMemo(() => {
+        const byId = new Map<string, Board>()
+        for (const template of [...(globalTemplates() || []), ...Object.values(unsortedTemplates())]) {
+            byId.set(template.id, template)
+        }
+        return [...byId.values()]
+    })
+
     const allTemplates = createMemo(() => {
         // The archive hands ours over in whatever order it was packed in, so
         // the list above is also the order they are offered in — and its first
         // entry is what the selector opens on.
-        const ours = (globalTemplates() || []).
+        const ours = pool().
             filter((template) => VISIBLE_TEMPLATE_SLUGS.includes(templateSlug(template))).
             sort((a: Board, b: Board) =>
                 VISIBLE_TEMPLATE_SLUGS.indexOf(templateSlug(a)) - VISIBLE_TEMPLATE_SLUGS.indexOf(templateSlug(b)))
 
         // Then the user's own, oldest first — a list that grows downwards is
-        // one where a template stays where it was put. A template of the global
-        // team is not theirs: that is where the install's own live, ours among
-        // the upstream ones the filter above leaves out.
-        const mine = Object.values(unsortedTemplates()).
-            filter((template: Board) => template.teamId !== Constants.globalTeamId).
+        // one where a template stays where it was put. What tells one from a
+        // template the install shipped is `shipped` below; the team does not,
+        // because here everything is in the same team.
+        const mine = pool().
+            filter((template: Board) => !shipped(template)).
             sort((a: Board, b: Board) => a.createAt - b.createAt)
         return [...ours, ...mine]
     })
