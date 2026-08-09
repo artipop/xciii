@@ -142,6 +142,11 @@ func main() {
 	emitter := newWailsEmitter(uiEvents)
 	app := NewApp(emitter)
 
+	// The board as the page at /m reads it. Set here rather than beside the
+	// sources registry because a phone lists boards and cards whether or not
+	// this machine has a source or an agent.
+	app.board = boardadapter.NewWriter(srv.App())
+
 	// The tailnet door publishes the same front door to the user's own tailnet,
 	// so a phone can reach the board. Off unless its settings file says
 	// otherwise; a bad settings file disables it rather than stopping the app,

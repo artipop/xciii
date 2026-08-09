@@ -7,12 +7,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sort"
 	"strings"
 	"sync"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 
 	"github.com/artipop/xciii/internal/acp"
+	"github.com/artipop/xciii/internal/boardadapter"
 	"github.com/artipop/xciii/internal/sources"
 )
 
@@ -35,6 +37,9 @@ type App struct {
 	// sources turns outside events into cards. Separate from mgr on purpose: a
 	// board of household chores wants cards from a phone and no agents at all.
 	sources *sources.Manager
+	// board is how the page at /m reads the board, since it is served the
+	// bindings and the event socket and no board API of its own.
+	board *boardadapter.Writer
 }
 
 func NewApp(emitter *wailsEmitter) *App {
@@ -996,4 +1001,116 @@ func (a *App) SourceEvents(name string, limit int) (string, error) {
 		return "", err
 	}
 	return string(out), nil
+}
+
+// errNoBoard is returned by the board bindings when this build has no board to
+// read — a server that failed to come up, or a test.
+var errNoBoard = errors.New("доска недоступна")
+
+// The board, as the page at /m reads it.
+//
+// A phone gets the bindings and the event socket and nothing else, which is
+// what lets the same page work through the tailnet door — so what it needs
+// from the board comes through here rather than through the board's own REST
+// API. What it needs is small: which boards there are, what is on one, what is
+// waiting in an inbox, and a way to carry a card from the inbox onto a board.
+
+// ListBoards returns the boards with the columns a card can be moved into.
+// Both are one call because the two questions are always asked together —
+// which board, then which column of it — and a phone should ask once.
+func (a *App) ListBoards() (string, error) {
+	if a.board == nil {
+		return "[]", nil
+	}
+	boards, err := a.board.Boards(context.Background())
+	if err != nil {
+		return "", err
+	}
+	out, err := json.Marshal(boards)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// ListBoardCards returns one board's cards, newest first.
+func (a *App) ListBoardCards(boardID string) (string, error) {
+	if a.board == nil {
+		return "[]", nil
+	}
+	if strings.TrimSpace(boardID) == "" {
+		return "", errors.New("не сказано, какая доска")
+	}
+	cards, err := a.board.BoardCards(context.Background(), boardID)
+	if err != nil {
+		return "", err
+	}
+	out, err := json.Marshal(cards)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// ListInbox returns what has arrived and nobody has looked at yet: the cards
+// standing in the inbox column of every board that has a source.
+//
+// Which column that is comes from the registry rather than from a name, which
+// is the same answer the pipeline gives when it files a card. A board with no
+// source therefore contributes nothing — it has no inbox, because nothing
+// arrives on it.
+func (a *App) ListInbox() (string, error) {
+	if a.board == nil || a.sources == nil {
+		return "[]", nil
+	}
+	inboxes := map[string]map[string]bool{} // board id → lowercased column names
+	for _, source := range a.sources.Sources() {
+		if source.BoardID == "" {
+			continue
+		}
+		columns, ok := inboxes[source.BoardID]
+		if !ok {
+			columns = map[string]bool{}
+			inboxes[source.BoardID] = columns
+		}
+		columns[strings.ToLower(source.InboxOr())] = true
+	}
+	if len(inboxes) == 0 {
+		return "[]", nil
+	}
+
+	waiting := make([]boardadapter.CardSummary, 0, 8)
+	for boardID, columns := range inboxes {
+		cards, err := a.board.BoardCards(context.Background(), boardID)
+		if err != nil {
+			// One board that cannot be read must not cost the others: the
+			// inbox is the screen a person opens to find out what arrived, and
+			// half of it is worth more than an error.
+			continue
+		}
+		for _, card := range cards {
+			if columns[strings.ToLower(card.Column)] {
+				waiting = append(waiting, card)
+			}
+		}
+	}
+	sort.SliceStable(waiting, func(i, j int) bool { return waiting[i].UpdateAt > waiting[j].UpdateAt })
+	out, err := json.Marshal(waiting)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// MoveCardToBoard carries a card to another board and, when a column is named,
+// puts it there. It is the phone's half of the card menu's «Переместить на
+// доску…», and it is the same move: the card keeps its id.
+func (a *App) MoveCardToBoard(cardID, boardID, column string) error {
+	if a.board == nil {
+		return errNoBoard
+	}
+	if strings.TrimSpace(cardID) == "" || strings.TrimSpace(boardID) == "" {
+		return errors.New("не сказано, какую карточку и куда переносить")
+	}
+	return a.board.MoveCardToBoard(context.Background(), cardID, boardID, column)
 }

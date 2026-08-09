@@ -104,6 +104,15 @@ export interface IAppWindow extends Window {
                 ResetSourceToken?(name: string): Promise<string>
                 RemoveSource?(name: string): Promise<void>
                 SourceEvents?(name: string, limit: number): Promise<string>
+
+                // The board as the page at /m reads it. That page is served
+                // the bindings and the event socket and no board API of its
+                // own, which is what lets it work through the tailnet door
+                // exactly as it does in the window.
+                ListBoards?(): Promise<string>
+                ListBoardCards?(boardId: string): Promise<string>
+                ListInbox?(): Promise<string>
+                MoveCardToBoard?(cardId: string, boardId: string, column: string): Promise<void>
             }
         }
     }
