@@ -5,12 +5,25 @@ import {useNavigate} from '@solidjs/router'
 
 import {getBoards, getCurrentBoardId} from '../../store/boards'
 import {getCurrentBoardViews} from '../../store/views'
+import type {BoardView} from '../../blocks/boardView'
 import {useAppSelector, useAppStore} from '../../store/hooks'
 import {useRouteMatch} from '../../hooks/routerMatch'
 import {UserSettings} from '../../userSettings'
 import {Utils} from '../../utils'
 import {getSidebarCategories} from '../../store/sidebar'
 import {Constants} from '../../constants'
+
+// oldestView is the view a board was made with: the ties are broken by id so
+// two views written in the same millisecond still resolve to the same one every
+// time, rather than to whichever the store happened to list first.
+export function oldestView(views: BoardView[]): BoardView {
+    return views.reduce((oldest, view) => {
+        if (view.createAt !== oldest.createAt) {
+            return view.createAt < oldest.createAt ? view : oldest
+        }
+        return view.id < oldest.id ? view : oldest
+    })
+}
 
 const TeamToBoardAndViewRedirect = (): null => {
     const boardId = useAppSelector(getCurrentBoardId)
@@ -71,8 +84,12 @@ const TeamToBoardAndViewRedirect = (): null => {
                 UserSettings.setLastViewId(boardID, viewID)
                 actions.views.setCurrent(viewID)
             } else if (boardViews().length > 0) {
-                // if most recent view is unavailable, pick the first view
-                viewID = boardViews()[0].id
+                // If there is no most recent view, open the board's oldest one
+                // — the view it was made with. The list is sorted by title for
+                // the sidebar, and picking its first entry meant which view a
+                // board opened on depended on the alphabet: a view added later
+                // and named «Входящие» took the board over from «Дела».
+                viewID = oldestView(boardViews()).id
                 UserSettings.setLastViewId(boardID, viewID)
                 actions.views.setCurrent(viewID)
             }
