@@ -164,6 +164,257 @@ func columnPropertyName(board *model.Board, schema model.PropSchema, views []*mo
 	return "", false
 }
 
+// EnsureColumn returns the id of the named option of the named select property,
+// adding the option if the board does not have it yet.
+//
+// This is how the inbox reaches a board that already existed. Bumping
+// TemplateVersion re-imports the *template* boards; boards already made from
+// one are never touched again, so a column that only ships in a template would
+// exist for new boards and for nobody else.
+//
+// Add-only, like the property sync of the project registry: an option somebody
+// renamed stays renamed and nothing here removes one, because cards refer to
+// options by id and a removed option is a card that lost its column.
+func (w *Writer) EnsureColumn(ctx context.Context, boardID, propertyName, optionName string) (string, error) {
+	board, err := w.app.GetBoard(boardID)
+	if err != nil {
+		return "", fmt.Errorf("get board %s: %w", boardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return "", err
+	}
+	if _, optionID, ok := findSelectOption(schema, propertyName, optionName); ok {
+		return optionID, nil
+	}
+	prop, ok := findCardProperty(board.CardProperties, propertyName)
+	if !ok {
+		// The property itself is not invented: a board with no column property
+		// has no columns to file anything into, and guessing one would put the
+		// card somewhere nobody looks.
+		return "", fmt.Errorf("на доске %s нет свойства %q", boardID, propertyName)
+	}
+	optionID := utils.NewID(utils.IDTypeBlock)
+	options, _ := prop["options"].([]any)
+	prop["options"] = append(options, map[string]any{
+		"id":    optionID,
+		"value": optionName,
+		"color": "propColorGray",
+	})
+	patch := &model.BoardPatch{UpdatedCardProperties: []map[string]any{prop}}
+	if _, err := w.app.PatchBoard(patch, boardID, model.SingleUser); err != nil {
+		return "", fmt.Errorf("add column %q to board %s: %w", optionName, boardID, err)
+	}
+	return optionID, nil
+}
+
+// InboxViewTitle is what the board calls the view that shows only what has
+// arrived. It is matched by title when deciding whether the view is already
+// there, so renaming it means the next check makes a second one — which is the
+// same bargain every other name here strikes, and the alternative is a marker
+// field on a block the board server knows nothing about.
+const InboxViewTitle = "Входящие"
+
+// EnsureInbox makes a board's inbox exist: the column things arrive in, and the
+// view that shows only them.
+//
+// The view is where the inbox lives for a person. The sidebar already lists a
+// board's views underneath it, so a filtered view is the inbox in the one place
+// a person looks for a part of a board — beside the calendar and the table,
+// rather than as a column in the middle of the work.
+func (w *Writer) EnsureInbox(ctx context.Context, boardID, propertyName, optionName string) (string, error) {
+	optionID, err := w.EnsureColumn(ctx, boardID, propertyName, optionName)
+	if err != nil {
+		return "", err
+	}
+	// The inbox is grouped by who made the card, which for what arrived is the
+	// source that brought it. The property has to exist for a view to group by
+	// it, and a board of ours may not have one.
+	authorID, err := w.ensureAuthorProperty(boardID)
+	if err != nil {
+		return optionID, err
+	}
+	if err := w.ensureInboxView(boardID, propertyName, optionID, authorID); err != nil {
+		// The column is what the pipeline cannot do without; the view is how a
+		// person finds what landed in it. Losing the second is worth a line in
+		// the log and not the card.
+		return optionID, fmt.Errorf("вид «%s» на доске %s: %w", InboxViewTitle, boardID, err)
+	}
+	return optionID, nil
+}
+
+// AuthorPropertyTitle is what the board calls "who made this card". It is the
+// name the developer template already uses, so a board made from it keeps the
+// property it had rather than growing a second one saying the same thing.
+const AuthorPropertyTitle = "Автор"
+
+// ensureAuthorProperty returns the id of the board's createdBy property, adding
+// one if it has none. Add-only, like every other write to a board's schema
+// here: nothing is removed and an existing one is reused whatever it is called.
+func (w *Writer) ensureAuthorProperty(boardID string) (string, error) {
+	board, err := w.app.GetBoard(boardID)
+	if err != nil {
+		return "", fmt.Errorf("get board %s: %w", boardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return "", err
+	}
+	if id, ok := arrivedAuthor(board, schema); ok {
+		return id, nil
+	}
+	propID := utils.NewID(utils.IDTypeBlock)
+	prop := map[string]any{
+		"id":      propID,
+		"name":    AuthorPropertyTitle,
+		"type":    "createdBy",
+		"options": []any{},
+	}
+	patch := &model.BoardPatch{UpdatedCardProperties: []map[string]any{prop}}
+	if _, err := w.app.PatchBoard(patch, boardID, model.SingleUser); err != nil {
+		return "", fmt.Errorf("add the author property to board %s: %w", boardID, err)
+	}
+	return propID, nil
+}
+
+// arrivedAuthor finds the board's own createdBy property, in the board's order
+// so the answer is the same on every call.
+func arrivedAuthor(board *model.Board, schema model.PropSchema) (string, bool) {
+	for _, prop := range board.CardProperties {
+		id, ok := prop["id"].(string)
+		if !ok {
+			continue
+		}
+		if def, ok := schema[id]; ok && def.Type == "createdBy" {
+			return id, true
+		}
+	}
+	return "", false
+}
+
+// arrivedProperty is the board's own "created" property, if it has one. In the
+// inbox it is the column worth seeing beside the title: what a table of arrived
+// things is read for is what arrived and when.
+func arrivedProperty(schema model.PropSchema) (string, bool) {
+	for id, def := range schema {
+		if def.Type == "createdTime" {
+			return id, true
+		}
+	}
+	return "", false
+}
+
+// ensureInboxView adds the view if the board has not got one already, and
+// teaches an older one to group — a view made before the inbox grouped by
+// anything would otherwise be the one board where it does not.
+func (w *Writer) ensureInboxView(boardID, propertyName, optionID, authorID string) error {
+	board, err := w.app.GetBoard(boardID)
+	if err != nil {
+		return fmt.Errorf("get board %s: %w", boardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return err
+	}
+	propID := ""
+	for id, def := range schema {
+		if def.Type == "select" && strings.EqualFold(def.Name, propertyName) {
+			propID = id
+			break
+		}
+	}
+	if propID == "" {
+		return fmt.Errorf("нет свойства %q", propertyName)
+	}
+
+	views, err := w.app.GetBlocks(boardID, boardID, model.TypeView)
+	if err != nil {
+		return fmt.Errorf("get views: %w", err)
+	}
+	for _, view := range views {
+		if !strings.EqualFold(view.Title, InboxViewTitle) {
+			continue
+		}
+		if groupBy, _ := view.Fields["groupById"].(string); groupBy == authorID {
+			return nil
+		}
+		patch := &model.BlockPatch{UpdatedFields: map[string]any{"groupById": authorID}}
+		_, err := w.app.PatchBlockAndNotify(view.ID, patch, model.SingleUser, true)
+		return err
+	}
+
+	visible := []any{}
+	widths := map[string]any{"__title": 420}
+	if arrived, ok := arrivedProperty(schema); ok {
+		visible = append(visible, arrived)
+		widths[arrived] = 160
+	}
+
+	now := utils.GetMillis()
+	block := &model.Block{
+		ID:       utils.NewID(utils.IDTypeView),
+		BoardID:  boardID,
+		ParentID: boardID,
+		Type:     model.TypeView,
+		Title:    InboxViewTitle,
+		Fields: map[string]any{
+			// A table and not a kanban: an inbox is a list of what came in, and
+			// a board of one column is a board pretending to be a list.
+			"viewType": "table",
+			// Grouped by who made the card: for what arrived that is the source
+			// that brought it, and for the rest it is whoever typed it.
+			"groupById": authorID,
+			"filter": map[string]any{
+				"operation": "and",
+				"filters": []any{map[string]any{
+					"propertyId": propID,
+					"condition":  "includes",
+					"values":     []any{optionID},
+				}},
+			},
+			// The title, and when it arrived if the board keeps that. Nothing
+			// else: a source's own «Источник» and «Ссылка» are not properties
+			// these boards have, and a table of empty columns says less than
+			// none. The title is given a real width, since a column left to
+			// the minimum is what makes a one-column table look broken.
+			"visiblePropertyIds": visible,
+			"columnWidths":       widths,
+			"sortOptions": []any{map[string]any{
+				"propertyId": "__title",
+				"reversed":   false,
+			}},
+			"visibleOptionIds":   []any{},
+			"hiddenOptionIds":    []any{},
+			"collapsedOptionIds": []any{},
+			"cardOrder":          []any{},
+			"columnCalculations": map[string]any{},
+			"kanbanCalculations": map[string]any{},
+			"defaultTemplateId":  "",
+		},
+		CreatedBy: model.SingleUser,
+		CreateAt:  now,
+		UpdateAt:  now,
+	}
+	_, err = w.app.InsertBlocksAndNotify([]*model.Block{block}, model.SingleUser, true)
+	return err
+}
+
+// findCardProperty returns the board's raw definition of a property, which is
+// what a patch replaces. The parsed schema cannot be used for this: it drops
+// everything the board wrote that we do not read, and patching with it would
+// silently delete those fields.
+func findCardProperty(props []map[string]any, name string) (map[string]any, bool) {
+	for _, prop := range props {
+		if propType, _ := prop["type"].(string); propType != "select" {
+			continue
+		}
+		if propName, _ := prop["name"].(string); strings.EqualFold(propName, name) {
+			return prop, true
+		}
+	}
+	return nil, false
+}
+
 // findSelectOption resolves a (property name, option name) pair to the ids the
 // card actually stores. Matching is case-insensitive, like the trigger columns.
 func findSelectOption(schema model.PropSchema, propertyName, optionName string) (propID, optionID string, ok bool) {

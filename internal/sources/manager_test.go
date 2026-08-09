@@ -20,6 +20,7 @@ type fakeBoard struct {
 	boards   []string
 	comments []string
 	moves    []string // "cardID:property:column"
+	ensured  []string // "boardID:property:column"
 	nextID   int
 	failNext error
 
@@ -66,6 +67,13 @@ func (f *fakeBoard) ColumnProperty(_ context.Context, _ string) (string, error) 
 	return f.property, nil
 }
 
+func (f *fakeBoard) EnsureInbox(_ context.Context, boardID, property, column string) (string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.ensured = append(f.ensured, boardID+":"+property+":"+column)
+	return "option-" + column, nil
+}
+
 // The readers a test uses. Snapshots rather than the slices themselves, so a
 // test cannot read one while the runner appends to it.
 func (f *fakeBoard) cards() []CardSpec {
@@ -90,6 +98,12 @@ func (f *fakeBoard) moveLines() []string {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return append([]string(nil), f.moves...)
+}
+
+func (f *fakeBoard) ensuredLines() []string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]string(nil), f.ensured...)
 }
 
 func (f *fakeBoard) refuseOnce(err error) {
@@ -240,6 +254,41 @@ func TestOnAQuietSourceWhatMatchedNothingGoesToTheInbox(t *testing.T) {
 	}
 	if board.moveLines()[0] != "card1:Статус:Входящие" {
 		t.Fatalf("it should have gone to the inbox: %+v", board.moveLines())
+	}
+	// The inbox is made first — the column and the view of it. A board from
+	// before the inbox existed has neither, and the move would have had
+	// nowhere to land.
+	if len(board.ensuredLines()) != 1 || board.ensuredLines()[0] != "board1:Статус:Входящие" {
+		t.Fatalf("the inbox should have been ensured: %+v", board.ensuredLines())
+	}
+}
+
+// A rule decides whether the item was claimed, not whether it is shown. One
+// that names no column used to leave the card with its column property unset —
+// standing outside every column of the board, where only somebody who thought
+// to look for it would ever find it.
+func TestARuleThatNamesNoColumnStillFilesTheCard(t *testing.T) {
+	entry := phoneSource()
+	entry.Rules[0].Column = ""
+	m, board, _ := testManager(t, entry)
+
+	res, err := m.Deliver(context.Background(), "телефон", []Item{{
+		ExternalID: "n1", Title: "Доставка", Props: map[string]string{"app": "delivery"},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Created != 1 {
+		t.Fatalf("result: %+v", res)
+	}
+	if len(board.moveLines()) != 1 || board.moveLines()[0] != "card1:Статус:Входящие" {
+		t.Fatalf("it should have gone to the inbox: %+v", board.moveLines())
+	}
+	// The rule did claim it, so the event says the rule created a card. Where
+	// it stands and who asked for it are separate answers.
+	events, err := m.Events("телефон", 10)
+	if err != nil || len(events) != 1 || events[0].Outcome != OutcomeCreated {
+		t.Fatalf("events: %+v, %v", events, err)
 	}
 }
 

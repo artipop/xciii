@@ -122,3 +122,21 @@ func TestTheColumnPropertyIsWhatTheBoardGroupsBy(t *testing.T) {
 		t.Fatalf("a text property is not a column: got %q, ok=%v", name, ok)
 	}
 }
+
+// A patch replaces a whole card property, so the definition it is given has to
+// be the board's own — the parsed schema drops everything we do not read, and
+// patching with it would delete those fields.
+func TestFindCardProperty(t *testing.T) {
+	board := testBoard()
+
+	prop, ok := findCardProperty(board.CardProperties, "status")
+	if !ok || prop["id"] != "prop-status" {
+		t.Fatalf("got %+v, ok=%v", prop, ok)
+	}
+	if _, ok := findCardProperty(board.CardProperties, "repo_path"); ok {
+		t.Fatal("only a select property can hold columns")
+	}
+	if _, ok := findCardProperty(board.CardProperties, "Этап"); ok {
+		t.Fatal("a property the board does not have must not resolve")
+	}
+}

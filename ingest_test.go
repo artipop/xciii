@@ -30,6 +30,9 @@ func (b *recordingBoard) MoveCardByOptionName(context.Context, string, string, s
 func (b *recordingBoard) ColumnProperty(context.Context, string) (string, error) {
 	return "Статус", nil
 }
+func (b *recordingBoard) EnsureInbox(_ context.Context, _, _, column string) (string, error) {
+	return "option-" + column, nil
+}
 
 const testToken = "test-token"
 

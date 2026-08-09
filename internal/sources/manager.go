@@ -90,13 +90,53 @@ func (m *Manager) AddSource(entry SourceEntry) (SourceEntry, error) {
 	if err != nil {
 		return SourceEntry{}, err
 	}
+	if err := m.insertEntry(valid); err != nil {
+		return SourceEntry{}, err
+	}
+	// Outside the lock on purpose: this one writes to the board, and holding
+	// the registry while waiting on board I/O would stall every reader of it.
+	m.ensureInbox(valid)
+	return valid, nil
+}
+
+func (m *Manager) insertEntry(valid SourceEntry) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if _, exists := findSource(m.cfg.Sources, valid.Name); exists {
-		return SourceEntry{}, fmt.Errorf("источник %q уже есть", valid.Name)
+		return fmt.Errorf("источник %q уже есть", valid.Name)
 	}
 	m.cfg.Sources = append(m.cfg.Sources, valid)
-	return valid, m.persistLocked()
+	return m.persistLocked()
+}
+
+// ensureInbox puts the source's inbox column on its board as soon as the source
+// exists, so somebody who has just registered one can see where its cards will
+// land instead of finding out when the first item arrives.
+//
+// It is best-effort: a board that refuses the column is a board that takes its
+// cards without one, and refusing to register the source over it would be a
+// worse answer than a line in the log. The pipeline ensures the column again
+// before it writes, which is what actually has to succeed.
+func (m *Manager) ensureInbox(entry SourceEntry) {
+	if m.writer == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), boardWriteTimeout)
+	defer cancel()
+	property := entry.PinnedProperty()
+	if property == "" {
+		found, err := m.writer.ColumnProperty(ctx, entry.BoardID)
+		if err != nil {
+			m.log.Warn("sources: не удалось узнать свойство колонок",
+				"source", entry.Name, "board", entry.BoardID, "err", err)
+			return
+		}
+		property = found
+	}
+	if _, err := m.writer.EnsureInbox(ctx, entry.BoardID, property, entry.InboxOr()); err != nil {
+		m.log.Warn("sources: не удалось завести «Входящие»",
+			"source", entry.Name, "board", entry.BoardID, "err", err)
+	}
 }
 
 // UpdateSource replaces an existing source, matched by name.
@@ -105,15 +145,23 @@ func (m *Manager) UpdateSource(entry SourceEntry) (SourceEntry, error) {
 	if err != nil {
 		return SourceEntry{}, err
 	}
+	if err := m.replaceEntry(valid); err != nil {
+		return SourceEntry{}, err
+	}
+	m.ensureInbox(valid)
+	return valid, nil
+}
+
+func (m *Manager) replaceEntry(valid SourceEntry) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for i, s := range m.cfg.Sources {
 		if strings.EqualFold(s.Name, valid.Name) {
 			m.cfg.Sources[i] = valid
-			return valid, m.persistLocked()
+			return m.persistLocked()
 		}
 	}
-	return SourceEntry{}, fmt.Errorf("источник %q не найден", valid.Name)
+	return fmt.Errorf("источник %q не найден", valid.Name)
 }
 
 // RemoveSource deletes a source and everything it remembered.
@@ -259,8 +307,15 @@ func (m *Manager) createCard(ctx context.Context, entry SourceEntry, it Item, re
 		// inbox rather than being lost. A lost item is what makes an
 		// integration impossible to debug.
 		spec = CardFor(Rule{}, it)
-		column = entry.InboxOr()
 		outcome = OutcomeInbox
+	}
+	if column == "" {
+		// A rule that names no column means the inbox as well. Leaving the
+		// column property unset would put the card outside every column of the
+		// board — visible only to somebody who thought to look there — and that
+		// is the same loss the inbox exists to prevent. What the rule decides is
+		// whether the item was claimed, not whether it is shown.
+		column = entry.InboxOr()
 	}
 	if entry.Name != "" {
 		if spec.Properties == nil {
@@ -293,12 +348,16 @@ func (m *Manager) createCard(ctx context.Context, entry SourceEntry, it Item, re
 	m.record(EventRecord{Source: entry.Name, ExternalID: it.ExternalID,
 		Rule: rule.Name, Outcome: outcome, CardID: cardID})
 
-	if column == "" {
-		return nil
-	}
 	property, err := m.columnProperty(wctx, entry)
 	if err != nil {
 		return err
+	}
+	// The inbox is made if the board has not got it. A board made before the
+	// inbox shipped has neither the column nor the view, and templates only
+	// ever reach boards that do not exist yet — so without this the very item
+	// the inbox exists for would be the one that fails to land.
+	if _, err := m.writer.EnsureInbox(wctx, entry.BoardID, property, column); err != nil {
+		return fmt.Errorf("колонка %q на доске %s: %w", column, entry.BoardID, err)
 	}
 	// The move, not the creation, is what the automation sees: the trigger
 	// fires on a change of the column property, and a card created straight

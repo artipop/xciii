@@ -77,4 +77,9 @@ type BoardWriter interface {
 	// an upstream one says "Status", and a constant would be wrong for one of
 	// them.
 	ColumnProperty(ctx context.Context, boardID string) (string, error)
+	// EnsureInbox makes the board's inbox exist — the column things arrive in
+	// and the view that shows only them — and returns the column's id. A board
+	// made before the inbox shipped has neither, and templates only ever reach
+	// boards that do not exist yet.
+	EnsureInbox(ctx context.Context, boardID, propertyName, optionName string) (string, error)
 }
