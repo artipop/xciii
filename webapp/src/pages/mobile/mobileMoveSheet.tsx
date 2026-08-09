@@ -6,22 +6,22 @@ import type {Component} from 'solid-js'
 import {FormattedMessage, useIntl} from '../../intl'
 import Label from '../../widgets/label'
 
-import {MobileBoard, MobileCard, moveCardToBoard} from './mobileBoards'
+import {BindingBoard, BindingCard, moveCardToBoard} from '../../bindings/boards'
 
 // Where a card from the inbox goes: a board, then a column of it. A sheet from
 // the bottom rather than a dialog, because the two lists are long and a thumb
 // reaches the bottom of a phone and not the middle of it.
 
 type Props = {
-    card: MobileCard
-    boards: MobileBoard[]
+    card: BindingCard
+    boards: BindingBoard[]
     onDone: () => void
     onClose: () => void
 }
 
 const MobileMoveSheet: Component<Props> = (props) => {
     const intl = useIntl()
-    const [target, setTarget] = createSignal<MobileBoard|undefined>(undefined)
+    const [target, setTarget] = createSignal<BindingBoard|undefined>(undefined)
     const [busy, setBusy] = createSignal(false)
     const [error, setError] = createSignal('')
 

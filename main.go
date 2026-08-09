@@ -262,6 +262,19 @@ func main() {
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
+		// The share extension shares by launching us with a URL, so a second
+		// launch has to reach the instance that already has the board rather
+		// than start a second one beside it. Wails catches the URL that
+		// launched the second process — macOS delivers it as an Apple Event and
+		// not in argv — and passes it here in Args.
+		SingleInstance: &application.SingleInstanceOptions{
+			UniqueID: "io.deffun.xciii",
+			OnSecondInstanceLaunch: func(data application.SecondInstanceData) {
+				if req, ok := shareURLFrom(data.Args); ok {
+					app.openShare(req)
+				}
+			},
+		},
 		// A desktop build hands Wails the front door as its transport, which is
 		// what lets the front door serve the assets. A server build leaves both
 		// empty and points Wails' own server at a private loopback port.
@@ -278,7 +291,15 @@ func main() {
 	emitter.SetApplication(wapp)
 
 	front.start()
-	newMainWindow(wapp, front.url())
+
+	// A share that started the app rather than reaching a running one: the URL
+	// is on our own command line, and the dialog is the only window that should
+	// open — somebody who shared a link did not ask to be shown their board.
+	if req, ok := shareURLFrom(os.Args); ok {
+		app.openShare(req)
+	} else {
+		newMainWindow(wapp, front.url())
+	}
 
 	if err := wapp.Run(); err != nil {
 		shutdown()

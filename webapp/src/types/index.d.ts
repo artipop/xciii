@@ -113,6 +113,11 @@ export interface IAppWindow extends Window {
                 ListBoardCards?(boardId: string): Promise<string>
                 ListInbox?(): Promise<string>
                 MoveCardToBoard?(cardId: string, boardId: string, column: string): Promise<void>
+
+                // The system's «Поделиться»: a link arrives from another app,
+                // the /share dialog asks which board, and this files it.
+                ShareItem?(boardId: string, title: string, url: string, note: string): Promise<string>
+                CloseShareWindow?(): Promise<void>
             }
         }
     }

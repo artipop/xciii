@@ -3,17 +3,18 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import {agentBindings} from '../../components/acp/agentProjectsDialog'
+import {agentBindings} from '../components/acp/agentProjectsDialog'
 
-// The board as a phone reads it.
+// The board as the bindings expose it.
 //
 // Every call here is a binding rather than the board's own REST API, which is
-// what keeps this page working through the tailnet door exactly as it does in
-// the window: the front door serves main.App.* to a phone, and the store, the
-// websocket and the whole board client are not carried onto a screen that
-// shows a list and moves one card.
+// what keeps the pages built on it working through the tailnet door exactly as
+// they do in the window: the front door serves main.App.* to a phone, and the
+// store, the websocket and the whole board client are not carried onto a screen
+// that shows a list and files one card. Two pages read the board this way — the
+// phone (/m) and the share dialog (/share) — and both are small on purpose.
 
-export type MobileBoard = {
+export type BindingBoard = {
     id: string
     title: string
     icon?: string
@@ -23,17 +24,17 @@ export type MobileBoard = {
     // it. They come with the board because the two questions are always asked
     // together — which board, then which column of it.
     property?: string
-    columns?: MobileColumn[]
+    columns?: BindingColumn[]
 }
 
 // A column as the board keeps it: the name a person reads and the colour it is
 // drawn in, so a phone can draw it the way the board does.
-export type MobileColumn = {
+export type BindingColumn = {
     value: string
     color?: string
 }
 
-export type MobileCard = {
+export type BindingCard = {
     id: string
     boardId: string
     title: string
@@ -60,22 +61,22 @@ async function readList<T>(call?: () => Promise<string>): Promise<T[]> {
     }
 }
 
-export function listBoards(): Promise<MobileBoard[]> {
+export function listBoards(): Promise<BindingBoard[]> {
     const bindings = agentBindings()
-    return readList<MobileBoard>(bindings?.ListBoards && (() => bindings.ListBoards!()))
+    return readList<BindingBoard>(bindings?.ListBoards && (() => bindings.ListBoards!()))
 }
 
-export function listInbox(): Promise<MobileCard[]> {
+export function listInbox(): Promise<BindingCard[]> {
     const bindings = agentBindings()
-    return readList<MobileCard>(bindings?.ListInbox && (() => bindings.ListInbox!()))
+    return readList<BindingCard>(bindings?.ListInbox && (() => bindings.ListInbox!()))
 }
 
-export function listBoardCards(boardId: string): Promise<MobileCard[]> {
+export function listBoardCards(boardId: string): Promise<BindingCard[]> {
     const bindings = agentBindings()
     if (!boardId) {
         return Promise.resolve([])
     }
-    return readList<MobileCard>(bindings?.ListBoardCards && (() => bindings.ListBoardCards!(boardId)))
+    return readList<BindingCard>(bindings?.ListBoardCards && (() => bindings.ListBoardCards!(boardId)))
 }
 
 // moveCardToBoard is the phone's half of the card menu's «Переместить на

@@ -1,0 +1,151 @@
+@import '../../styles/typography';
+
+// A window the size of the question it asks. It opens over whatever the person
+// was reading, is answered with one tap and goes away, so everything on it is
+// one column and the button that finishes it is the last thing in the column —
+// where a hand already is.
+//
+// The same three voices as the rest of the dossier: the system labels in caps,
+// the address in mono because it is a machine's string and not prose, and what
+// a person types set as text.
+.SharePage {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 100%;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+    background: rgb(var(--canvas-rgb));
+    color: rgb(var(--ink-rgb));
+
+    &__heading {
+        @include label;
+
+        margin: 0;
+        font-size: var(--text-h3);
+    }
+
+    &__label {
+        @include label;
+
+        margin: 6px 0 0;
+        opacity: 0.7;
+    }
+
+    &__title {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--border-strong);
+        border-radius: 4px;
+        background: rgb(var(--surface-rgb));
+        color: rgb(var(--ink-rgb));
+        font-size: var(--text-body);
+    }
+
+    &__url {
+        margin: 0;
+        overflow: hidden;
+        color: rgba(var(--ink-rgb), 0.6);
+        font-family: var(--font-mono);
+        font-size: var(--text-small);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__note {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--border-strong);
+        border-radius: 4px;
+        background: rgb(var(--surface-rgb));
+        color: rgb(var(--ink-rgb));
+        font-family: inherit;
+        font-size: var(--text-small);
+        resize: none;
+    }
+
+    &__boards {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        overflow-y: auto;
+
+        // The list is the only part that may grow, so a machine with twenty
+        // boards gets a scrolling list and not a window taller than the screen.
+        max-height: 40vh;
+    }
+
+    &__board {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--border-strong);
+        border-radius: 4px;
+        background: rgb(var(--surface-rgb));
+        color: rgb(var(--ink-rgb));
+        font-size: var(--text-body);
+        text-align: left;
+        cursor: pointer;
+
+        &--picked {
+            border-color: rgb(var(--accent-rgb));
+            box-shadow: inset 0 0 0 1px rgb(var(--accent-rgb));
+        }
+    }
+
+    &__icon {
+        font-size: 18px;
+    }
+
+    &__empty,
+    &__error {
+        margin: 0;
+        font-size: var(--text-small);
+    }
+
+    &__error {
+        color: var(--error-text);
+    }
+
+    &__actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: auto;
+        padding-top: 6px;
+    }
+
+    &__cancel,
+    &__send {
+        padding: 9px 16px;
+        border: 1px solid var(--border-strong);
+        border-radius: 4px;
+        background: transparent;
+        color: rgb(var(--ink-rgb));
+        font-size: var(--text-body);
+        cursor: pointer;
+    }
+
+    &__send {
+        border-color: rgb(var(--accent-rgb));
+        background: rgb(var(--accent-rgb));
+        color: rgb(var(--canvas-rgb));
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+    }
+
+    // The window closes on its own a moment later, so what it says here is the
+    // whole receipt: it has to be readable at a glance and centred, because
+    // there is nothing else on the screen to read.
+    &__done {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--text-h3);
+        text-align: center;
+    }
+}

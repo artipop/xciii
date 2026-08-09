@@ -5,7 +5,7 @@ import type {Component} from 'solid-js'
 
 import {FormattedMessage, useIntl} from '../../intl'
 
-import {MobileBoard, MobileCard} from './mobileBoards'
+import {BindingBoard, BindingCard} from '../../bindings/boards'
 import MobileMoveSheet from './mobileMoveSheet'
 
 // What arrived and nobody has looked at yet: the cards a source left in the
@@ -22,14 +22,14 @@ import MobileMoveSheet from './mobileMoveSheet'
 // that stops working on the board where it matters most.
 
 type Props = {
-    cards: MobileCard[]
-    boards: MobileBoard[]
+    cards: BindingCard[]
+    boards: BindingBoard[]
     onMoved: () => void
 }
 
 const MobileInbox: Component<Props> = (props) => {
     const intl = useIntl()
-    const [moving, setMoving] = createSignal<MobileCard|undefined>(undefined)
+    const [moving, setMoving] = createSignal<BindingCard|undefined>(undefined)
 
     const moved = () => {
         setMoving(undefined)

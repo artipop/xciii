@@ -18,7 +18,7 @@ import {
     useAttention,
 } from '../../components/acp/attention'
 
-import {MobileBoard, MobileCard, listBoards, listInbox} from './mobileBoards'
+import {BindingBoard, BindingCard, listBoards, listInbox} from '../../bindings/boards'
 import MobileInbox from './mobileInbox'
 import MobileCards from './mobileCards'
 
@@ -45,7 +45,7 @@ import './mobilePage.scss'
 // It needs nothing from the board's own API: everything on it comes from the
 // bindings, which the front door serves to a phone exactly as it serves them to
 // the window (main.App.* over /wails/runtime) — including the board itself, see
-// mobileBoards.ts. What it does need besides is the event socket, since the
+// bindings/boards.ts. What it does need besides is the event socket, since the
 // Wails bus does not leave the machine — see components/acp/agentEvents.
 
 type Tab = 'inbox' | 'cards' | 'waiting' | 'terminals'
@@ -72,8 +72,8 @@ const MobilePage = () => {
     // shows them, because the number on a tab has to be right before anybody
     // opens it — a tab that only counts once you are looking at it counts
     // nothing. The boards are read once and lent to both tabs that need them.
-    const [inbox, setInbox] = createSignal<MobileCard[]>([])
-    const [boards, setBoards] = createSignal<MobileBoard[]>([])
+    const [inbox, setInbox] = createSignal<BindingCard[]>([])
+    const [boards, setBoards] = createSignal<BindingBoard[]>([])
 
     const refreshInbox = async () => setInbox(await listInbox())
 

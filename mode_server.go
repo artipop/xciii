@@ -140,6 +140,16 @@ func newMainWindow(_ *application.App, url string) {
 // the page that asked opens a browser tab at the same address instead.
 func openTerminalWindow(_ *application.App, _ acp.TerminalInfo, _ string) bool { return false }
 
+// openShareWindow has no window to open. A server build is reached with a
+// browser, and the share dialog is a URL like any other page of it.
+func openShareWindow(_ *application.App, url string) {
+	log.Printf("server mode: no window; open %s in a browser", url)
+}
+
+// closeShareWindow has nothing to close: the dialog is a browser tab, and the
+// page says what happened instead.
+func closeShareWindow(_ *application.App) {}
+
 // pickDirectory has no native dialog to open. Saying so is the point: an empty
 // path would reach the UI as a cancelled picker and look like a bug.
 func pickDirectory(_ *application.App, _ string) (string, error) {

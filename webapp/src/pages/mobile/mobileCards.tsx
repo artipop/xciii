@@ -5,7 +5,7 @@ import type {Component} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
-import {MobileBoard, listBoardCards} from './mobileBoards'
+import {BindingBoard, listBoardCards} from '../../bindings/boards'
 
 // The board's cards on a phone: one board at a time, newest first, each with
 // the column it stands in.
@@ -15,7 +15,7 @@ import {MobileBoard, listBoardCards} from './mobileBoards'
 // out where something got to without walking to the desk.
 
 type Props = {
-    boards: MobileBoard[]
+    boards: BindingBoard[]
 }
 
 const MobileCards: Component<Props> = (props) => {

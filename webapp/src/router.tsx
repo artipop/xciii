@@ -25,6 +25,11 @@ const TerminalPage = lazy(() => import('./components/acp/terminalPage'))
 // and a browser build should not carry them.
 const MobilePage = lazy(() => import('./pages/mobile/mobilePage'))
 
+// The dialog the system's «Поделиться» opens: a link, and the one question of
+// which board it goes on. Lazy like the other two — the board itself never
+// shows it, and it is opened by the app in a window of its own.
+const SharePage = lazy(() => import('./pages/share/sharePage'))
+
 const UUID_REGEX = new RegExp(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
 
 // The pre-teams URL scheme survives in bookmarks: resolve the board, then
@@ -118,6 +123,15 @@ const AppRouter: Component = () => {
                     </Suspense>
                 )}
             />
+            <FBRoute
+                path='/share'
+                component={() => (
+                    <Suspense fallback={null}>
+                        <SharePage/>
+                    </Suspense>
+                )}
+            />
+
             <FBRoute
                 path='/m/terminal/:terminalId'
                 component={() => (

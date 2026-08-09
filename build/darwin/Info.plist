@@ -26,5 +26,20 @@
 		<string>true</string>
 		<key>NSHumanReadableCopyright</key>
 		<string>Copyright (c) 2026 Artem</string>
+		<!-- The scheme the share extension opens: it is a separate, sandboxed
+		     process, and opening a URL is the one thing it can do without an
+		     address, a token and a developer team behind it. See share.go and
+		     docs/sources.md §24. -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleURLName</key>
+				<string>io.deffun.xciii.share</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>xciii</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>

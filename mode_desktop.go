@@ -139,6 +139,39 @@ func openTerminalWindow(wapp *application.App, info acp.TerminalInfo, url string
 	return true
 }
 
+// openShareWindow opens the share dialog: a small window, on top of whatever
+// the person was reading when they pressed «Поделиться», and named so that a
+// second share focuses the one already open rather than stacking dialogs.
+//
+// It is deliberately not the main window: the app may not be running visibly at
+// all, and showing somebody their whole board because they shared a link would
+// be answering a question they did not ask.
+func openShareWindow(wapp *application.App, url string) {
+	if existing, ok := wapp.Window.GetByName(shareWindowName); ok {
+		existing.SetURL(url)
+		existing.Show()
+		existing.Focus()
+		return
+	}
+	wapp.Window.NewWithOptions(application.WebviewWindowOptions{
+		Name:             shareWindowName,
+		Title:            "Сохранить на доску",
+		Width:            420,
+		Height:           520,
+		DisableResize:    true,
+		AlwaysOnTop:      true,
+		BackgroundColour: application.NewRGB(12, 12, 14),
+		URL:              url,
+	})
+}
+
+// closeShareWindow shuts the dialog once it has said what happened.
+func closeShareWindow(wapp *application.App) {
+	if existing, ok := wapp.Window.GetByName(shareWindowName); ok {
+		existing.Close()
+	}
+}
+
 // pickDirectory opens the native folder picker.
 func pickDirectory(wapp *application.App, title string) (string, error) {
 	dialog := wapp.Dialog.OpenFileWithOptions(&application.OpenFileDialogOptions{
