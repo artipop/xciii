@@ -94,14 +94,15 @@ func dialPlugin(ctx context.Context, entry SourceEntry, manifest Manifest, cred 
 	if manifest.IsMCP() {
 		return dialMCP(ctx, entry, manifest, cred, handler)
 	}
-	env := make([]string, 0, len(manifest.Env))
-	for k, v := range manifest.Env {
-		env = append(env, k+"="+v)
+
+	env, err := manifest.RenderEnv(entry)
+	if err != nil {
+		return nil, err
 	}
 	return plugin.Dial(ctx, plugin.Spec{
 		Command:     manifest.Argv(),
 		Dir:         manifest.Dir,
-		Env:         env,
+		Env:         envList(env),
 		Source:      plugin.SourceInfo{Name: entry.Name, Config: entry.Config},
 		Credentials: cred,
 		Host:        plugin.HostInfo{Name: "XCIII"},
@@ -220,7 +221,17 @@ func (m *Manager) loop(ctx context.Context, entry SourceEntry) {
 	}
 
 	handler := &pluginHandler{mgr: m, source: entry.Name}
-	client, err := m.dial(ctx, entry, manifest, m.credentialsFor(ctx, entry), handler)
+	// The agent kind is dialled by the manager itself rather than by the
+	// dialler: what it needs — the agent runner, the ingest address, a token —
+	// belongs to the app and not to the manifest. Everything after this line
+	// treats it as any other plugin.
+	dial := m.dial
+	if manifest.IsAgent() {
+		dial = func(context.Context, SourceEntry, Manifest, plugin.Credentials, plugin.Handler) (conn, error) {
+			return m.newAgentConn(entry, manifest)
+		}
+	}
+	client, err := dial(ctx, entry, manifest, m.credentialsFor(ctx, entry), handler)
 	if err != nil {
 		m.fail(entry.Name, err)
 		return
@@ -287,6 +298,18 @@ func (m *Manager) loop(ctx context.Context, entry SourceEntry) {
 			wait = time.Duration(result.RetryAfterSeconds) * time.Second
 		}
 	}
+}
+
+// pollTimeoutOf is how long one poll may take. A plugin answers a question and
+// two minutes is generous; an agent holds a conversation with a model and says
+// so for itself.
+func pollTimeoutOf(c conn) time.Duration {
+	if slow, ok := c.(interface{ PollTimeout() time.Duration }); ok {
+		if d := slow.PollTimeout(); d > 0 {
+			return d
+		}
+	}
+	return pollTimeout
 }
 
 // afterPollError decides what a failed poll costs: how long to wait, and

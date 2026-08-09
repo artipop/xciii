@@ -211,15 +211,22 @@ func main() {
 		// Where a credential the app has to *present* is kept — an MCP server's
 		// API token, an OAuth access token. The environment comes first so a
 		// token given from outside wins over a stored one without anybody
-		// having to delete anything; the file behind it is what the app writes
-		// when somebody pastes a token into the source dialog.
-		sourceMgr.SetSecrets(secrets.Chain{
-			secrets.Env{Prefix: "XCIII_SECRET_"},
-			secrets.NewFileStore(filepath.Join(dir, "secrets.json")),
-		})
+		// having to delete anything, then the platform's own keychain, and the
+		// file only where there is no keychain to have: it keeps values in
+		// plain text at 0600 and says so.
+		store := secrets.Chain{secrets.Env{Prefix: "XCIII_SECRET_"}}
+		if keychain, ok := secrets.OpenKeychain("XCIII"); ok {
+			store = append(store, keychain)
+		} else {
+			store = append(store, secrets.NewFileStore(filepath.Join(dir, "secrets.json")))
+		}
+		sourceMgr.SetSecrets(store)
 		// Plugins come up here and go down in shutdown below. A source fed over
 		// ingest needs none of this; a source with a plugin is a process, and
 		// this is where it starts.
+		// Where an agent source files what it finds: this app's own front door,
+		// on the ingest route, with a token minted for the length of one turn.
+		sourceMgr.SetIngestURL(front.url())
 		sourceMgr.Start(context.Background())
 		sourcePlugins = sourceMgr
 		log.Printf("sources: enabled (%d registered)", len(cfg.Sources))
@@ -251,6 +258,14 @@ func main() {
 			} else {
 				app.mgr = mgr
 				terminals.SetManager(mgr)
+				// A source may be read by an agent rather than by a mapping —
+				// the service's MCP server plus one tool of ours to file
+				// through. The two registries stay independent: sources works
+				// with no agents at all, and this is the one thread between
+				// them, handed over rather than imported.
+				if sourcePlugins != nil {
+					sourcePlugins.SetAgentRunner(inboxAgentRunner{mgr})
+				}
 				log.Printf("acp: enabled (trigger %q/%q)", acpCfg.TriggerProperty, acpCfg.TriggerColumn)
 			}
 		}
@@ -328,4 +343,29 @@ func main() {
 		shutdown()
 		log.Fatalf("wails run error: %v", err)
 	}
+}
+
+// inboxAgentRunner is the one thread between the two registries: sources asks
+// for a turn, the ACP manager runs it. It is a type of its own rather than a
+// method on the manager so that internal/sources keeps naming only its own
+// interface — which is what lets it work with the agent integration switched
+// off entirely.
+type inboxAgentRunner struct{ mgr *acp.Manager }
+
+func (r inboxAgentRunner) RunForSource(ctx context.Context, run sources.AgentRun) (string, error) {
+	servers := make([]acp.InboxServer, 0, len(run.Servers))
+	for _, server := range run.Servers {
+		servers = append(servers, acp.InboxServer{
+			Name:    server.Name,
+			Command: server.Command,
+			Args:    server.Args,
+			Env:     server.Env,
+		})
+	}
+	return r.mgr.RunInbox(ctx, acp.InboxRun{
+		Agent:   run.Agent,
+		Dir:     run.Dir,
+		Prompt:  run.Prompt,
+		Servers: servers,
+	})
 }

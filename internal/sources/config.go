@@ -219,6 +219,12 @@ type Manifest struct {
 	ProtocolVersion int      `json:"protocolVersion,omitempty"`
 	Command         string   `json:"command"`
 	Args            []string `json:"args,omitempty"`
+	// Env is the environment the command runs with, and its values are
+	// templates over the source entry — `{"KAITEN_SITE": "{{.Config.site}}"}`.
+	// That is what makes one manifest serve two people: the site somebody's
+	// Kaiten lives at is theirs, not the manifest's, and the same goes for
+	// every self-hosted thing an MCP server talks to.
+	//
 	// Dir is where the command runs. It matters for the ordinary case of an
 	// MCP server that is a file on this machine — `bun run server.ts` finds
 	// nothing from another directory — and a manifest naming an absolute path
@@ -232,8 +238,9 @@ type Manifest struct {
 	// default, or MCP. A second kind rather than a second registry, because
 	// everything around a plugin — the schedule, the credentials, the rules,
 	// the log — is the same whichever way the process talks.
-	Kind string   `json:"kind,omitempty"` // "" | KindPlugin | KindMCP
-	MCP  *MCPSpec `json:"mcp,omitempty"`
+	Kind  string     `json:"kind,omitempty"` // "" | KindPlugin | KindMCP | KindAgent
+	MCP   *MCPSpec   `json:"mcp,omitempty"`
+	Agent *AgentSpec `json:"agent,omitempty"`
 
 	// TokenEnv is the environment variable an MCP server reads its credential
 	// from. Named by the manifest because MCP has no place for a token and
@@ -247,10 +254,24 @@ type Manifest struct {
 const (
 	KindPlugin = "plugin" // sources/protocol, the one a plugin author writes against
 	KindMCP    = "mcp"    // an MCP server, read through a mapping in the manifest
+	KindAgent  = "agent"  // an MCP server, read by an agent that files what it finds
 )
 
-// IsMCP reports whether this manifest describes an MCP server.
+// IsMCP reports whether this manifest is an MCP server read through a mapping.
 func (p Manifest) IsMCP() bool { return strings.EqualFold(p.Kind, KindMCP) }
+
+// IsAgent reports whether this manifest is an MCP server read by an agent.
+func (p Manifest) IsAgent() bool { return strings.EqualFold(p.Kind, KindAgent) }
+
+// AgentOr is the agent spec, or an empty one, so a manifest that says kind
+// "agent" and nothing else fails in Validate with a sentence rather than on a
+// nil pointer.
+func (p Manifest) AgentOr() AgentSpec {
+	if p.Agent == nil {
+		return AgentSpec{}
+	}
+	return *p.Agent
+}
 
 // MCPOr is the mapping, or an empty one — so a manifest that says kind "mcp"
 // and nothing else fails in Validate with a sentence about the missing tool,
@@ -276,8 +297,8 @@ func (p Manifest) Validate() (Manifest, error) {
 	switch p.Kind {
 	case "", KindPlugin:
 		p.Kind = ""
-		if p.MCP != nil {
-			return p, fmt.Errorf("плагин %q: mcp-отображение у плагина, говорящего на нашем протоколе", p.Name)
+		if p.MCP != nil || p.Agent != nil {
+			return p, fmt.Errorf("плагин %q: отображение mcp/agent у плагина, говорящего на нашем протоколе", p.Name)
 		}
 	case KindMCP:
 		spec, err := p.MCPOr().Validate()
@@ -285,8 +306,15 @@ func (p Manifest) Validate() (Manifest, error) {
 			return p, fmt.Errorf("плагин %q: %w", p.Name, err)
 		}
 		p.MCP = &spec
+	case KindAgent:
+		spec, err := p.AgentOr().Validate()
+		if err != nil {
+			return p, fmt.Errorf("плагин %q: %w", p.Name, err)
+		}
+		p.Agent = &spec
 	default:
-		return p, fmt.Errorf("плагин %q: непонятный вид %q (%s или %s)", p.Name, p.Kind, KindPlugin, KindMCP)
+		return p, fmt.Errorf("плагин %q: непонятный вид %q (%s, %s или %s)",
+			p.Name, p.Kind, KindPlugin, KindMCP, KindAgent)
 	}
 	for i, f := range p.Fields {
 		if strings.TrimSpace(f.Key) == "" {
@@ -431,4 +459,43 @@ func SaveConfig(path string, cfg Config) error {
 	}
 	// WriteFile's mode only applies when it creates the file.
 	return os.Chmod(path, 0o600)
+}
+
+// AgentSpec is a source brought in by an agent rather than by a mapping.
+//
+// The other kind of MCP source (MCPSpec) reads one tool through a mapping
+// somebody wrote. This one hands the same MCP server to an agent and asks it to
+// file what it finds — which is what a service with no list-shaped tool, or a
+// list that needs judgement, actually needs.
+//
+// The agent does not write to the board. It is given one tool of ours,
+// `file_item`, which posts to this source's own ingest route, so everything
+// that makes the inbox trustworthy is still in the way: the rules, «Входящие»,
+// the event log, and the (source, external id, version) key that makes filing
+// the same thing twice a no-op. That last one is why the prompt tells the agent
+// to file everything it sees rather than to work out what is new: deciding that
+// is what an LLM would get wrong, and the pipeline already knows.
+type AgentSpec struct {
+	// Agent names the registry entry to run — the same agents that work cards.
+	Agent string `json:"agent"`
+	// Task is what to ask it, over and above the standing instructions this
+	// side adds. It is where "cards assigned to me, board 77, not archived"
+	// belongs, in the words of whoever set the source up.
+	Task string `json:"task"`
+	// Dir is where the agent runs. A scratch directory by default: this agent
+	// reads a service and writes cards, and has no repository to be in.
+	Dir string `json:"dir,omitempty"`
+}
+
+// Validate refuses an agent source that cannot run.
+func (s AgentSpec) Validate() (AgentSpec, error) {
+	s.Agent = strings.TrimSpace(s.Agent)
+	if s.Agent == "" {
+		return s, fmt.Errorf("не сказано, каким агентом опрашивать (agent.agent)")
+	}
+	s.Task = strings.TrimSpace(s.Task)
+	if s.Task == "" {
+		return s, fmt.Errorf("не сказано, что спрашивать у сервиса (agent.task)")
+	}
+	return s, nil
 }

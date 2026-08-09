@@ -26,6 +26,11 @@ type Manager struct {
 	// beside the registry rather than in it: the registry is what a person
 	// configured, and this is a directory that is read again on every start.
 	catalog []Manifest
+	// agents runs an agent source's turn, and ingestURL is where that agent
+	// files what it found. Both are the app's to supply: this package keeps
+	// working with the agent integration switched off.
+	agents    AgentRunner
+	ingestURL string
 
 	// The running half: one goroutine per source that names a plugin, under a
 	// context the app cancels, and what each of them is currently doing.
@@ -205,6 +210,32 @@ func (m *Manager) replaceEntry(valid SourceEntry) error {
 		}
 	}
 	return fmt.Errorf("источник %q не найден", valid.Name)
+}
+
+// IssueToken mints a new ingest token for a source and returns it — the only
+// moment it can be read, since only its hash is kept.
+//
+// It writes the hash without going through UpdateSource on purpose: an entry
+// that is saved restarts whatever is running under it, and a token is reissued
+// *by* the thing that is running (an agent source mints one per turn), which
+// would restart it inside its own poll.
+func (m *Manager) IssueToken(name string) (string, error) {
+	token, err := GenerateToken()
+	if err != nil {
+		return "", err
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for i, s := range m.cfg.Sources {
+		if strings.EqualFold(s.Name, name) {
+			m.cfg.Sources[i].TokenHash = HashToken(token)
+			if err := m.persistLocked(); err != nil {
+				return "", err
+			}
+			return token, nil
+		}
+	}
+	return "", fmt.Errorf("источник %q не найден", name)
 }
 
 // RemoveSource deletes a source and everything it remembered.

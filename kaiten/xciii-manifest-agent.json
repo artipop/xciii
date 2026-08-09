@@ -1,0 +1,22 @@
+{
+  "name": "kaiten-агентом",
+  "title": "Kaiten (агентом)",
+  "kind": "agent",
+  "command": "bun",
+  "args": ["run", "server.ts"],
+  "dir": "ПУТЬ/К/ЭТОМУ/КАТАЛОГУ",
+  "tokenEnv": "KAITEN_TOKEN",
+  "env": {
+    "KAITEN_SITE": "{{.Config.site}}"
+  },
+  "auth": {"type": "token"},
+  "fields": [
+    {"key": "site", "title": "Адрес Kaiten", "type": "string", "default": "https://ваш-домен.kaiten.ru"},
+    {"key": "boardId", "title": "Доска Kaiten (id)", "type": "number"},
+    {"key": "spaceId", "title": "Пространство (id)", "type": "number"}
+  ],
+  "agent": {
+    "agent": "",
+    "task": "Найди в Kaiten карточки, назначенные на меня — где я ответственный или участник, — не архивные и не завершённые. Если в настройках указана доска или пространство, ограничься ими. Для каждой найденной вызови inbox/file_item: id — числовой id карточки Kaiten, version — поле updated, title — заголовок, url — ссылка на карточку, body — описание."
+  }
+}

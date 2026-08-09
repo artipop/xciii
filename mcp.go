@@ -14,6 +14,8 @@ import (
 	"syscall"
 
 	"github.com/artipop/xciii/internal/dokku"
+	"github.com/artipop/xciii/internal/sources"
+	"github.com/artipop/xciii/internal/sources/inbox"
 )
 
 // maybeRunMCP handles `<binary> mcp <server>`: the same executable doubles as
@@ -26,15 +28,17 @@ func maybeRunMCP(args []string) {
 		return
 	}
 	if len(args) < 2 {
-		fmt.Fprintf(os.Stderr, "usage: xciii mcp %s\n", dokku.ServerName)
+		fmt.Fprintf(os.Stderr, "usage: xciii mcp %s|%s\n", dokku.ServerName, inbox.ServerName)
 		os.Exit(2)
 	}
 	var err error
 	switch args[1] {
 	case dokku.ServerName:
 		err = runDokkuMCP()
+	case inbox.ServerName:
+		err = runInboxMCP()
 	default:
-		fmt.Fprintf(os.Stderr, "неизвестный MCP-сервер %q (есть только %q)\n", args[1], dokku.ServerName)
+		fmt.Fprintf(os.Stderr, "неизвестный MCP-сервер %q (есть %q и %q)\n", args[1], dokku.ServerName, inbox.ServerName)
 		os.Exit(2)
 	}
 	if err != nil {
@@ -42,6 +46,17 @@ func maybeRunMCP(args []string) {
 		os.Exit(1)
 	}
 	os.Exit(0)
+}
+
+// runInboxMCP is the server an agent source files through. Everything it may
+// touch — which app, which source, with what token — arrives in the
+// environment, so the model chooses what to file and never where.
+func runInboxMCP() error {
+	return inbox.ServeStdio(context.Background(), inbox.Config{
+		BaseURL: os.Getenv(sources.EnvInboxURL),
+		Source:  os.Getenv(sources.EnvInboxSource),
+		Token:   os.Getenv(sources.EnvInboxToken),
+	})
 }
 
 func runDokkuMCP() error {

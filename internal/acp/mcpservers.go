@@ -44,6 +44,10 @@ func sessionMCPServers(s *Session, _ Config) ([]mcpServerSpec, error) {
 	// column started it: they are part of how that agent works, not of what
 	// this particular card is for.
 	specs := agentMCPServers(s)
+	// What this run was handed: a source's agent gets the service it reads and
+	// the tool it files through, and neither belongs to the agent's registry
+	// entry — the next source would want different ones.
+	specs = append(specs, s.extraMCP...)
 	if s.Deploy != nil {
 		self, err := os.Executable()
 		if err != nil {

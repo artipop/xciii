@@ -7,10 +7,11 @@
   "dir": "ПУТЬ/К/ЭТОМУ/КАТАЛОГУ",
   "tokenEnv": "KAITEN_TOKEN",
   "env": {
-    "KAITEN_SITE": "https://ваш-домен.kaiten.ru"
+    "KAITEN_SITE": "{{.Config.site}}"
   },
   "auth": {"type": "token"},
   "fields": [
+    {"key": "site", "title": "Адрес Kaiten", "type": "string", "default": "https://ваш-домен.kaiten.ru"},
     {"key": "boardId", "title": "Доска Kaiten (id)", "type": "number"},
     {"key": "spaceId", "title": "Пространство (id)", "type": "number"},
     {"key": "responsibleOnly", "title": "Только где я ответственный", "type": "bool"}

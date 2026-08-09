@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -120,22 +121,22 @@ func dialMCP(ctx context.Context, entry SourceEntry, manifest Manifest, cred plu
 	if err != nil {
 		return nil, err
 	}
-	env := make([]string, 0, len(manifest.Env)+1)
-	for k, v := range manifest.Env {
-		env = append(env, k+"="+v)
+	env, err := manifest.RenderEnv(entry)
+	if err != nil {
+		return nil, err
 	}
 	// The credential is handed over the way an MCP server takes one: an
 	// environment variable it names. There is nothing else — MCP has no place
 	// for a token — which is also why the variable is named by the manifest and
 	// not by us.
 	if cred.AccessToken != "" && strings.TrimSpace(manifest.TokenEnv) != "" {
-		env = append(env, strings.TrimSpace(manifest.TokenEnv)+"="+cred.AccessToken)
+		env[strings.TrimSpace(manifest.TokenEnv)] = cred.AccessToken
 	}
 
 	client, err := mcp.Dial(ctx, mcp.Spec{
 		Command:    manifest.Argv(),
 		Dir:        manifest.Dir,
-		Env:        env,
+		Env:        envList(env),
 		ClientName: "XCIII",
 	})
 	if err != nil {
@@ -359,4 +360,31 @@ func rowsAt(payload json.RawMessage, path string) ([]any, error) {
 	default:
 		return nil, fmt.Errorf("по пути %q не список записей", path)
 	}
+}
+
+// RenderEnv is the manifest's environment with its templates expanded over the
+// source entry, so a value a person typed into the source dialog — the address
+// of their own Kaiten, their own Jira — reaches the process.
+func (p Manifest) RenderEnv(entry SourceEntry) (map[string]string, error) {
+	out := make(map[string]string, len(p.Env)+1)
+	for name, tmpl := range p.Env {
+		value, err := renderOver(tmpl, entry)
+		if err != nil {
+			return nil, fmt.Errorf("переменная %q: %w", name, err)
+		}
+		if value = strings.TrimSpace(value); value != "" {
+			out[name] = value
+		}
+	}
+	return out, nil
+}
+
+// envList is the environment in the "KEY=value" shape a process takes.
+func envList(env map[string]string) []string {
+	out := make([]string, 0, len(env))
+	for name, value := range env {
+		out = append(out, name+"="+value)
+	}
+	sort.Strings(out) // a map has no order, and a command line should not change between runs
+	return out
 }

@@ -99,6 +99,11 @@ type Session struct {
 	cancelSent    bool
 	cancelPending bool // cancelled before a turn existed; the next one is stopped at once
 	allowTools    map[string]bool
+	// extraMCP are servers this particular run was handed — how a source's
+	// agent reaches the service it reads and the tool it files through. Empty
+	// for a card's session, which gets its servers from the agent and the
+	// column.
+	extraMCP      []mcpServerSpec
 	allowPrefixes []string // tool prefixes of MCP servers the user wired in
 	turnNo        int
 

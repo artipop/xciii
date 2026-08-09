@@ -3,16 +3,16 @@
 // *inbound* token lives: a token the app only ever checks is kept as a hash,
 // which cannot leak access at all (see internal/sources, TokenHash).
 //
-// The store the app should use is the operating system's own — Keychain,
-// Credential Manager, Secret Service. That implementation is not here yet, and
-// its absence is the one thing to know about this package: the file store below
-// is what a headless Linux would have fallen back to anyway, and it keeps
-// values in plain text, at 0600, and says so.
+// The store the app uses is the operating system's own where there is one:
+// Keychain on macOS (keychain_darwin.go). Credential Manager and the Secret
+// Service are the same shape of thing and are not written yet, so on Windows
+// and Linux this still falls back to the file store below — which keeps values
+// in plain text, at 0600, and says so.
 //
 // Encrypting that file with a key lying beside it on the same disk would be
 // theatre, and the app already keeps proxy passwords and a GitHub token in a
-// config file at 0600 — so this is not a new exposure, but it is not the
-// intended end state either.
+// config file at 0600 — so it is not a new exposure, but it is not the end
+// state either.
 package secrets
 
 import (
