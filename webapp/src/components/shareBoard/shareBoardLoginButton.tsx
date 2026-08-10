@@ -3,7 +3,7 @@
 
 import {useNavigate} from '@solidjs/router'
 
-import {FormattedMessage} from '../../intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
@@ -13,6 +13,7 @@ import {useRouteMatch} from '../../hooks/routerMatch'
 import './shareBoardLoginButton.scss'
 
 const ShareBoardLoginButton = () => {
+    const intl = useIntl()
     const match = useRouteMatch()
     const navigate = useNavigate()
 
@@ -29,7 +30,7 @@ const ShareBoardLoginButton = () => {
     return (
         <div class='ShareBoardLoginButton'>
             <Button
-                title='Login'
+                title={intl.formatMessage({id: 'CenterPanel.Login', defaultMessage: 'Login'})}
                 size='medium'
                 emphasis='primary'
                 onClick={() => onLoginClick()}

@@ -7,7 +7,7 @@ import type {JSX, ParentComponent} from 'solid-js'
 
 import {arrow, autoUpdate, computePosition, flip, offset, shift, type Placement} from '@floating-ui/dom'
 
-import {FormattedMessage} from '../../intl'
+import {FormattedMessage, useIntl} from '../../intl'
 
 import './tutorial_tour_tip.scss'
 
@@ -172,6 +172,7 @@ type Props = {
 }
 
 const TutorialTourTip = (props: Props): JSX.Element => {
+    const intl = useIntl()
     const stopPropagation = () => props.stopPropagation ?? true
     const preventDefault = () => props.preventDefault ?? true
     const width = () => props.width ?? (window.innerWidth > 2559 ? 500 : 320)
@@ -293,7 +294,7 @@ const TutorialTourTip = (props: Props): JSX.Element => {
                     <div class={'tutorial-tour-tip__btn-ctr'}>
                         <Show when={!hideNavButtons() && props.step !== 0}>
                             <Button
-                                title='Previous'
+                                title={intl.formatMessage({id: 'generic.previous', defaultMessage: 'Previous'})}
                                 size='small'
                                 emphasis='tertiary'
                                 onClick={handlePrevious}

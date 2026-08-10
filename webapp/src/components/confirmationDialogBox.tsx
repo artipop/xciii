@@ -41,7 +41,7 @@ export const ConfirmationDialogBox: Component<Props> = (props) => {
 
                 <div class='action-buttons'>
                     <Button
-                        title='Cancel'
+                        title={intl.formatMessage({id: 'ConfirmationDialog.cancel-action', defaultMessage: 'Cancel'})}
                         size='medium'
                         emphasis='tertiary'
                         onClick={props.dialogBox.onClose}
@@ -52,7 +52,7 @@ export const ConfirmationDialogBox: Component<Props> = (props) => {
                         />
                     </Button>
                     <Button
-                        title={props.dialogBox.confirmButtonText || 'Confirm'}
+                        title={props.dialogBox.confirmButtonText || intl.formatMessage({id: 'ConfirmationDialog.confirm-action', defaultMessage: 'Confirm'})}
                         size='medium'
                         submit={true}
                         danger={Boolean(props.dialogBox.destructive)}

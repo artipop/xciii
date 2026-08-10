@@ -5,6 +5,7 @@ import {render, waitFor} from '@solidjs/testing-library'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import '@testing-library/jest-dom'
 import {mockAppStore, wrapIntl} from '../../testUtils'
+import {IntlProvider} from '../../intl'
 import {AppStoreProvider} from '../../store'
 import {IPropertyTemplate} from '../../blocks/board'
 
@@ -192,5 +193,32 @@ describe('components/calendar/toolbar', () => {
 
         await waitFor(() => expect(mockedMutator.changeViewCalendarSpan).
             toHaveBeenCalledWith(board.id, view.id, 'dayGridWeek'))
+    })
+
+    // The month in the title, the weekday headings and «ещё N» are FullCalendar's
+    // own words, not message ids, and it ships knowing English alone — which is
+    // how a Russian board came to be headed "October 2021".
+    test('names the month in the language the app is set to', async () => {
+        const {container} = render(() => (
+            <IntlProvider
+                locale='ru'
+                messages={{}}
+            >
+                <AppStoreProvider store={store}>
+                    <CalendarView
+                        board={board}
+                        activeView={view}
+                        cards={[card]}
+                        readonly={false}
+                        showCard={mockShow}
+                        addCard={mockAdd}
+                        initialDate={new Date(fifth)}
+                    />
+                </AppStoreProvider>
+            </IntlProvider>
+        ))
+
+        await waitFor(() => expect(container.querySelector('.fc-toolbar-title')).toHaveTextContent('октябрь 2021'))
+        expect(container.querySelector('.fc-col-header-cell')).toHaveTextContent('пн')
     })
 })

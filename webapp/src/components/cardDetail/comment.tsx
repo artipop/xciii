@@ -15,6 +15,7 @@ import Menu from '../../widgets/menu'
 import MenuWrapper from '../../widgets/menuWrapper'
 import {getUser} from '../../store/users'
 import {useAppSelector} from '../../store/hooks'
+import useMomentLocale from '../../hooks/momentLocale'
 import Tooltip from '../../widgets/tooltip'
 import GuestBadge from '../../widgets/guestBadge'
 
@@ -32,6 +33,16 @@ const Comment: Component<Props> = (props: Props) => {
     const html = () => Utils.htmlFromMarkdown(props.comment.title)
     const user = useAppSelector((state) => getUser(props.userId)(state))
     const date = () => new Date(props.comment.createAt)
+
+    // «2 часа назад» is moment's phrasing, and moment only knows it once the
+    // locale definitions have arrived. Read the revision inside the same
+    // expression that formats, or the comment keeps the English it was first
+    // drawn with.
+    const momentRevision = useMomentLocale(() => intl.locale.toLowerCase())
+    const relativeDate = () => {
+        momentRevision()
+        return Utils.relativeDisplayDateTime(date(), intl)
+    }
 
     // A session's report is a log entry, not somebody talking; the Go side
     // marks the comments it writes so the card can say so.
@@ -51,7 +62,7 @@ const Comment: Component<Props> = (props: Props) => {
 
                 <Tooltip title={Utils.displayDateTime(date(), intl)}>
                     <div class='comment-date'>
-                        {Utils.relativeDisplayDateTime(date(), intl)}
+                        {relativeDate()}
                     </div>
                 </Tooltip>
 

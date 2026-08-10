@@ -294,7 +294,7 @@ const BoardPage = (props: Props): JSX.Element => {
                                 setMobileWarningClosed(true)
                             }}
                             icon={<CloseIcon/>}
-                            title='Close'
+                            title={intl.formatMessage({id: 'Modal.close', defaultMessage: 'Close'})}
                             class='margin-right'
                         />
                     </div>

@@ -32,7 +32,7 @@ const LoginPage = () => {
                 navigate('/')
             }
         } else {
-            setErrorMessage('Login failed')
+            setErrorMessage(intl.formatMessage({id: 'login.failed', defaultMessage: 'Login failed'}))
         }
     }
 

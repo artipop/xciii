@@ -104,7 +104,7 @@ const ValueSelectorLabel = (props: LabelProps): JSX.Element => {
                     <IconButton
                         onClick={() => props.onDeleteValue!(props.option)}
                         icon={<CloseIcon/>}
-                        title='Clear'
+                        title={intl.formatMessage({id: 'PropertyValueElement.clear', defaultMessage: 'Clear'})}
                         class='margin-left delete-value'
                     />
                 </Show>

@@ -50,10 +50,13 @@ const SidebarSettingsMenu = (props: Props) => {
     // the theme and the language, rather than in a board's own menu.
     const [showMachine, setShowMachine] = createSignal(false)
 
-    const themes: Array<{id: ThemeName, displayName: string}> = [
-        {id: lightThemeName, displayName: 'Light theme'},
-        {id: darkThemeName, displayName: 'Dark theme'},
-        {id: systemThemeName, displayName: 'System theme'},
+    // Spelled out rather than built as `Sidebar.${theme.id}`: a computed id is
+    // invisible to `npm run i18n-extract`, so these three never reached
+    // en.json and read as dead entries in every other catalogue.
+    const themes = (): Array<{id: ThemeName, displayName: string}> => [
+        {id: lightThemeName, displayName: intl.formatMessage({id: 'Sidebar.light-theme', defaultMessage: 'Light theme'})},
+        {id: darkThemeName, displayName: intl.formatMessage({id: 'Sidebar.dark-theme', defaultMessage: 'Dark theme'})},
+        {id: systemThemeName, displayName: intl.formatMessage({id: 'Sidebar.system-theme', defaultMessage: 'System theme'})},
     ]
 
     return (
@@ -118,11 +121,11 @@ const SidebarSettingsMenu = (props: Props) => {
                             name={intl.formatMessage({id: 'Sidebar.set-theme', defaultMessage: 'Set theme'})}
                             position='top'
                         >
-                            <For each={themes}>
+                            <For each={themes()}>
                                 {(theme) => (
                                     <Menu.Text
                                         id={theme.id}
-                                        name={intl.formatMessage({id: `Sidebar.${theme.id}`, defaultMessage: theme.displayName})}
+                                        name={theme.displayName}
                                         onClick={async () => updateTheme(theme.id)}
                                         rightIcon={themeName() === theme.id ? <CheckIcon/> : null}
                                     />

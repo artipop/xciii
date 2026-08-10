@@ -34,7 +34,7 @@ const RegisterPage = () => {
                 navigate('/')
             }
         } else if (response.code === 401) {
-            setErrorMessage('Invalid registration link, please contact your administrator')
+            setErrorMessage(intl.formatMessage({id: 'register.invalid-link', defaultMessage: 'Invalid registration link, please contact your administrator'}))
         } else {
             setErrorMessage(`${response.json?.error}`)
         }
@@ -87,7 +87,7 @@ const RegisterPage = () => {
                         filled={true}
                         submit={true}
                     >
-                        {'Register'}
+                        {intl.formatMessage({id: 'register.signup-button', defaultMessage: 'Register'})}
                     </Button>
                 </form>
                 <A href='/login'>
