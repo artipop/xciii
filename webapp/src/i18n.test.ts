@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createIntl} from '@formatjs/intl'
+
 import en from '../i18n/en.json'
 import ru from '../i18n/ru.json'
 
@@ -46,6 +48,31 @@ describe('the message catalogues', () => {
             filter((row) => row.en.join() !== row.ru.join())
 
         expect(mismatched).toEqual([])
+    })
+
+    // English inflects on one boundary and Russian on three, so a message that
+    // counts has to say so in both — a translation that spells the plural out
+    // by hand is right for "5 карточек" and wrong for every other number.
+    test('a message that counts in English counts in Russian too', () => {
+        const counting = Object.keys(en).filter((id) => en[id].includes(', plural,'))
+        const flat = counting.filter((id) => !ru[id].includes(', plural,'))
+
+        expect(counting.length).toBeGreaterThan(0)
+        expect(flat).toEqual([])
+    })
+
+    // 1, 2 and 5 are the three Russian forms, and 11 and 21 are where a rule
+    // written as "n === 1" gets it wrong: 21 takes the same form as 1, 11 does
+    // not. CLDR knows that and a hand-rolled ending does not.
+    test('Russian tells one from a few from many, including past twenty', () => {
+        const intl = createIntl({locale: 'ru', defaultLocale: 'en', messages: ru})
+        const say = (count: number) => intl.formatMessage({id: 'GroupBy.showHiddenGroups'}, {count})
+
+        expect(say(1)).toBe('Показать 1 скрытую группу')
+        expect(say(2)).toBe('Показать 2 скрытые группы')
+        expect(say(5)).toBe('Показать 5 скрытых групп')
+        expect(say(11)).toBe('Показать 11 скрытых групп')
+        expect(say(21)).toBe('Показать 21 скрытую группу')
     })
 
     // Every catalogue the language menu offers has to resolve to a catalogue,

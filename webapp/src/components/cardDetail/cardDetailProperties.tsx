@@ -76,12 +76,12 @@ const CardDetailProperties = (props: Props) => {
             heading: intl.formatMessage({id: 'CardDetailProperty.confirm-property-type-change', defaultMessage: 'Confirm property type change'}),
             subText: intl.formatMessage({
                 id: 'CardDetailProperty.confirm-property-name-change-subtext',
-                defaultMessage: 'Are you sure you want to change property "{propertyName}" {customText}? This will affect value(s) across {numOfCards} card(s) in this board, and can result in data loss.',
+                defaultMessage: 'Are you sure you want to change property "{propertyName}" {customText}? This will affect {numOfCards, plural, one {a value on # card} other {values across # cards}} in this board, and can result in data loss.',
             },
             {
                 propertyName: propertyTemplate.name,
                 customText: subTextString,
-                numOfCards: affectsNumOfCards,
+                numOfCards: Number(affectsNumOfCards),
             }),
 
             confirmButtonText: intl.formatMessage({id: 'CardDetailProperty.property-change-action-button', defaultMessage: 'Change property'}),

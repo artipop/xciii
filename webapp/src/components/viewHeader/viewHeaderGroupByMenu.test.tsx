@@ -144,13 +144,13 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
         userEvent.click(menuButton)
         expect(container).toMatchSnapshot()
 
-        const hideEmptyGroupsButton = screen.getByRole('button', {name: /Hide.+groups/i})
+        const hideEmptyGroupsButton = screen.getByRole('button', {name: /Hide.+group/i})
         expect(hideEmptyGroupsButton)
         userEvent.click(hideEmptyGroupsButton)
         expect(mockedMutator.hideViewColumns).toHaveBeenCalledTimes(1)
 
         userEvent.click(menuButton)
-        const showHiddenGroupsButton = screen.getByRole('button', {name: /Show.+groups/i})
+        const showHiddenGroupsButton = screen.getByRole('button', {name: /Show.+group/i})
         userEvent.click(showHiddenGroupsButton)
         expect(mockedMutator.unhideViewColumns).toHaveBeenCalledTimes(1)
 
@@ -179,10 +179,10 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
         userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
 
-        const hideEmptyGroupsButton = screen.queryByRole('button', {name: /Hide.+groups/i})
+        const hideEmptyGroupsButton = screen.queryByRole('button', {name: /Hide.+group/i})
         expect(hideEmptyGroupsButton).toBeInTheDocument()
 
-        const showHiddenGroupsButton = screen.queryByRole('button', {name: /Show.+groups/i})
+        const showHiddenGroupsButton = screen.queryByRole('button', {name: /Show.+group/i})
         expect(showHiddenGroupsButton).not.toBeInTheDocument()
     })
 
@@ -208,10 +208,10 @@ describe('components/viewHeader/viewHeaderGroupByMenu', () => {
         userEvent.click(buttonElement)
         expect(container).toMatchSnapshot()
 
-        const showHiddenGroupsButton = screen.queryByRole('button', {name: /Show.+groups/i})
+        const showHiddenGroupsButton = screen.queryByRole('button', {name: /Show.+group/i})
         expect(showHiddenGroupsButton).toBeInTheDocument()
 
-        const hideEmptyGroupsButton = screen.queryByRole('button', {name: /Hide.+groups/i})
+        const hideEmptyGroupsButton = screen.queryByRole('button', {name: /Hide.+group/i})
         expect(hideEmptyGroupsButton).not.toBeInTheDocument()
     })
 })

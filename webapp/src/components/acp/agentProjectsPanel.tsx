@@ -134,7 +134,7 @@ const AgentProjectsPanel = (props: Props) => {
             if (missing.length > 0) {
                 sendFlashMessage({
                     content: intl.formatMessage(
-                        {id: 'AgentProjects.options-added', defaultMessage: 'Added {count} project option(s) to "{property}"'},
+                        {id: 'AgentProjects.options-added', defaultMessage: 'Added {count, plural, one {# project option} other {# project options}} to "{property}"'},
                         {count: missing.length, property: PROJECT_PROPERTY_NAME},
                     ),
                     severity: 'normal',
