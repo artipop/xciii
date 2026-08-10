@@ -4,6 +4,7 @@ exports[`components/calculations/Calculation > should match snapshot - count 1`]
 <div>
   <div
     class="Calculation count fooClass  hovered"
+    style="width: 100px;"
     tabindex="0"
   >
     
@@ -26,6 +27,7 @@ exports[`components/calculations/Calculation > should match snapshot - countUniq
 <div>
   <div
     class="Calculation countUniqueValue fooClass  hovered"
+    style="width: 100px;"
     tabindex="0"
   >
     
@@ -48,6 +50,7 @@ exports[`components/calculations/Calculation > should match snapshot - countValu
 <div>
   <div
     class="Calculation countValue fooClass  hovered"
+    style="width: 100px;"
     tabindex="0"
   >
     
@@ -70,6 +73,7 @@ exports[`components/calculations/Calculation > should match snapshot - none 1`] 
 <div>
   <div
     class="Calculation none fooClass  hovered"
+    style="width: 100px;"
     tabindex="0"
   >
     
@@ -90,6 +94,7 @@ exports[`components/calculations/Calculation > should match snapshot - option ch
 <div>
   <div
     class="Calculation none fooClass menuOpen hovered"
+    style="width: 100px;"
     tabindex="0"
   >
     <div>

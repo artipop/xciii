@@ -41,6 +41,13 @@ const Calculation = (props: Props): JSX.Element => {
     const intl = useIntl()
     const columnResize = useColumnResize()
 
+    // The unit is not optional the way it was in React, which appended `px` to a
+    // bare number itself. Solid writes a style object through setProperty, and
+    // setProperty drops `280` as an invalid width — which left every cell of the
+    // footer sized by its own content, so a total sat well left of the column it
+    // counts while the rest of the table lined up.
+    const cellWidth = () => `${columnResize.width(props.property.id)}px`
+
     const option = () => (
         <props.optionsComponent
             value={value()}
@@ -61,7 +68,7 @@ const Calculation = (props: Props): JSX.Element => {
             onClick={() => (props.menuOpen ? props.onMenuClose() : props.onMenuOpen())}
             tabIndex={0}
             onBlur={props.onMenuClose}
-            style={{width: columnResize.width(props.property.id)}}
+            style={{width: cellWidth()}}
             ref={(ref) => columnResize.updateRef(Constants.tableCalculationId, props.property.id, ref)}
         >
             {

@@ -682,6 +682,7 @@ exports[`components/centerPanel > Clicking on the Hidden card count should open 
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -2049,6 +2050,7 @@ exports[`components/centerPanel > return centerPanel and > click on new card to 
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -2484,6 +2486,7 @@ exports[`components/centerPanel > return centerPanel and > press touch 1 with re
         >
           <div
             class="Calculation count octo-table-cell disabled  "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -3190,6 +3193,7 @@ exports[`components/centerPanel > return centerPanel and > press touch ctrl+d fo
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -3896,6 +3900,7 @@ exports[`components/centerPanel > return centerPanel and > press touch del for o
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -4602,6 +4607,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -5308,6 +5314,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -6014,6 +6021,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -6720,6 +6728,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -7426,6 +7435,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -8132,6 +8142,7 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -8838,6 +8849,7 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -10917,6 +10929,7 @@ exports[`components/centerPanel > should match snapshot for Table 1`] = `
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             

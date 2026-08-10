@@ -193,6 +193,20 @@
             .Label {
                 margin: 0 5px;
                 padding: 0 8px;
+
+                // A column is 100px wide until somebody widens it, and a status
+                // is written in the label voice — caps, tracked out — so it
+                // rarely fits. The ellipsis is on the text and not on the chip
+                // because the chip is a flex container and text-overflow does
+                // not reach a flex item; min-width is what lets that item
+                // shrink below its own text in the first place. Without this a
+                // status was cut through the middle of a letter, which reads as
+                // a broken render rather than as a narrow column.
+                .Label-text {
+                    min-width: 0;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
             }
         }
 
@@ -207,6 +221,16 @@
         .Person.octo-propertyvalue,
         .DateRange.octo-propertyvalue {
             overflow: unset;
+        }
+
+        // The same reasoning as the label above, for a name the app looked up
+        // rather than a value somebody picked: the text sits in a child of the
+        // value, so the value's own ellipsis never reaches it, and a login in
+        // the data voice is wider than the proportional one it replaced.
+        .Person-item,
+        .MultiPerson-item {
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     }
 

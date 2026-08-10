@@ -177,4 +177,39 @@ describe('components/calculations/Calculation', () => {
         expect(onMenuClose).toHaveBeenCalled()
         expect(onChange).toHaveBeenCalled()
     })
+
+    // The footer of a table is only readable if a total stands under the column
+    // it counts, and the width it is given carries a unit — a bare number is
+    // dropped as an invalid style and the whole row falls out of step with the
+    // table above it.
+    test('a total is as wide as the column it counts', () => {
+        const {container} = render(() =>
+            wrapIntl(() =>
+                <ColumnResizeProvider
+                    columnWidths={{property_2: 240}}
+                    onResizeColumn={vi.fn()}
+                >
+                    <Calculation
+                        class={'fooClass'}
+                        value={'count'}
+                        menuOpen={false}
+                        onMenuClose={() => {}}
+                        onMenuOpen={() => {}}
+                        onChange={() => {}}
+                        cards={[card, card2]}
+                        hovered={false}
+                        property={{
+                            id: 'property_2',
+                            name: '',
+                            type: 'text',
+                            options: [],
+                        }}
+                        optionsComponent={TableCalculationOptions}
+                    />
+                </ColumnResizeProvider>,
+            ),
+        )
+
+        expect((container.querySelector('.Calculation') as HTMLElement).style.width).toBe('240px')
+    })
 })
