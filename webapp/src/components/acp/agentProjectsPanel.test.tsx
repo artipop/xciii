@@ -178,11 +178,11 @@ describe('components/acp/agentProjectsPanel', () => {
         expect(projectProps[0].options.map((o) => o.value)).toEqual(['alpha', 'beta'])
     })
 
-    // A board made before projects were called projects has a "Repositories"
-    // field its cards point at. Creating a second one beside it would leave
-    // every existing card pointing at a field nothing reads, so the old one is
-    // renamed in place — same id, same options, only the label changes.
-    test('renames the field a board had before the rename instead of adding another', async () => {
+    // A board made before the field was recorded by id has one under a name
+    // this app used to give it. It is adopted — same id, same options, and the
+    // name left as it is, because the name is the board owner's — and the id is
+    // written down, so this is the last time a name decides anything.
+    test('adopts a field a board already had, by name, exactly once', async () => {
         const boardFromBefore = TestBlockFactory.createBoard()
         boardFromBefore.cardProperties.push({
             id: 'legacy-prop',
@@ -191,7 +191,10 @@ describe('components/acp/agentProjectsPanel', () => {
             options: [{id: 'o1', value: 'alpha', color: 'propColorDefault'}],
         })
         const bindings = {
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
+            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([
+                {name: 'alpha', path: '/tmp/alpha'},
+                {name: 'beta', path: '/tmp/beta'},
+            ])),
             PickDirectory: vi.fn(),
             AddAgentProject: vi.fn(),
             RemoveAgentProject: vi.fn(),
@@ -208,12 +211,17 @@ describe('components/acp/agentProjectsPanel', () => {
         await waitFor(() => expect(mockedMutator.updateBoardCardProperties).toHaveBeenCalledTimes(1))
 
         const newProps = mockedMutator.updateBoardCardProperties.mock.calls[0][2]
-        expect(newProps.filter((p) => p.name === 'Repositories')).toHaveLength(0)
+        expect(newProps.filter((p) => p.type === 'multiSelect')).toHaveLength(1)
 
-        const renamed = newProps.filter((p) => p.name === 'Проекты')
-        expect(renamed).toHaveLength(1)
-        expect(renamed[0].id).toBe('legacy-prop')
-        expect(renamed[0].options.map((o) => o.value)).toEqual(['alpha'])
+        const adopted = newProps.filter((p) => p.id === 'legacy-prop')
+        expect(adopted).toHaveLength(1)
+        expect(adopted[0].name).toBe('Repositories')
+        expect(adopted[0].options.map((o) => o.value)).toEqual(['alpha', 'beta'])
+
+        // And the board now knows which field it is, so its name never has to
+        // be recognised again.
+        await waitFor(() => expect(mockedMutator.updateBoard).toHaveBeenCalledTimes(1))
+        expect(mockedMutator.updateBoard.mock.calls[0][0].properties.acpProjectProperty).toBe('legacy-prop')
     })
 
     test('leaves the board alone when its field already lists every project', async () => {
@@ -240,8 +248,41 @@ describe('components/acp/agentProjectsPanel', () => {
         ))
         await waitFor(() => expect(screen.getByText('alpha')).toBeInTheDocument())
 
-        // Nothing to add: the board is not patched, so the undo history and the
-        // websocket stay quiet every time the dialog is opened.
+        // Nothing to add: the card properties are not touched, so the undo
+        // history and the websocket stay quiet every time the dialog is opened.
+        // The board is told once which field this is, and after that not at all.
         expect(mockedMutator.updateBoardCardProperties).not.toHaveBeenCalled()
+        await waitFor(() => expect(mockedMutator.updateBoard).toHaveBeenCalledTimes(1))
+    })
+
+    // Once the board carries the id, nothing here writes to it at all — and the
+    // field is found however it has since been renamed.
+    test('writes nothing to a board that already knows its field, whatever it is called', async () => {
+        const settled = TestBlockFactory.createBoard()
+        settled.cardProperties.push({
+            id: 'projectprop',
+            name: 'Мои папки',
+            type: 'multiSelect',
+            options: [{id: 'o1', value: 'alpha', color: 'propColorDefault'}],
+        })
+        settled.properties = {...settled.properties, acpProjectProperty: 'projectprop'}
+        const bindings = {
+            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
+            PickDirectory: vi.fn(),
+            AddAgentProject: vi.fn(),
+            RemoveAgentProject: vi.fn(),
+        }
+        anyWindow.go = {main: {App: bindings}}
+
+        render(() => wrapIntl(() =>
+            <AgentProjectsPanel
+                board={settled}
+                onClose={vi.fn()}
+            />,
+        ))
+        await waitFor(() => expect(screen.getByText('alpha')).toBeInTheDocument())
+
+        expect(mockedMutator.updateBoardCardProperties).not.toHaveBeenCalled()
+        expect(mockedMutator.updateBoard).not.toHaveBeenCalled()
     })
 })

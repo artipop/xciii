@@ -60,14 +60,14 @@ const MobileInbox: Component<Props> = (props) => {
                             <span class='MobilePage__card'>
                                 {card.icon ? `${card.icon} ` : ''}{card.title}
                             </span>
-                            <Show when={card.properties?.['Ссылка']}>
+                            <Show when={card.link}>
                                 <a
                                     class='MobilePage__link'
-                                    href={card.properties!['Ссылка']}
+                                    href={card.link}
                                     target='_blank'
                                     rel='noreferrer'
                                 >
-                                    {card.properties!['Ссылка']}
+                                    {card.link}
                                 </a>
                             </Show>
                             <button

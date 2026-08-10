@@ -79,6 +79,19 @@ func (w *SourceWriter) CreateCard(ctx context.Context, boardID string, spec Card
 		properties = map[string]any{}
 	}
 
+	// The link is the pipeline's own doing rather than a rule's, so it is not
+	// looked up by name among the properties above: the board's url property is
+	// found by type and made if the board has none. A rule that names a
+	// property of its own for the link still wins — it was written against this
+	// board by somebody looking at it.
+	if url := strings.TrimSpace(spec.URL); url != "" {
+		if id, err := w.ensureLinkProperty(boardID); err == nil {
+			if _, taken := properties[id]; !taken {
+				properties[id] = url
+			}
+		}
+	}
+
 	card := &model.Card{
 		Title: spec.Title,
 		Icon:  spec.Icon,

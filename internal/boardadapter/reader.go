@@ -63,10 +63,15 @@ type CardSummary struct {
 	// without a property of ours beside it.
 	Author string `json:"author,omitempty"`
 
-	// Properties are the card's own, by the names a person reads. A card an
-	// outside source left carries «Источник» and «Ссылка» among them, which is
-	// how the inbox says where a thing came from without a second query.
+	// Properties are the card's own, by the names a person reads — which is what
+	// they are for: showing. Nothing keys off them.
 	Properties map[string]string `json:"properties,omitempty"`
+
+	// Link is the way back to whatever brought the card, resolved here from the
+	// board's url property rather than guessed from a property name on the
+	// screen that reads it. A phone that looked for «Ссылка» showed a link on a
+	// Russian board and nothing on any other.
+	Link string `json:"link,omitempty"`
 
 	UpdateAt int64 `json:"updateAt,omitempty"`
 }
@@ -150,6 +155,7 @@ func (w *Writer) BoardCards(ctx context.Context, boardID string) ([]CardSummary,
 		return nil, fmt.Errorf("get views of board %s: %w", boardID, err)
 	}
 	property, _ := columnPropertyName(board, schema, views)
+	linkID, _ := propertyOfType(board, schema, "url")
 	authors := w.boardAuthors(boardID)
 	blocks, err := w.app.GetBlocks(boardID, "", model.TypeCard)
 	if err != nil {
@@ -172,6 +178,11 @@ func (w *Writer) BoardCards(ctx context.Context, boardID string) ([]CardSummary,
 			UpdateAt:   block.UpdateAt,
 		}
 		card.Column = card.Properties[property]
+		if linkID != "" {
+			if def, ok := schema[linkID]; ok {
+				card.Link = card.Properties[def.Name]
+			}
+		}
 		out = append(out, card)
 	}
 	// Newest first: a list on a phone is read from the top, and what changed

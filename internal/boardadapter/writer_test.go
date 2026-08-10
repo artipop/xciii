@@ -146,8 +146,8 @@ func TestCardPropertiesSkipWhatTheBoardDoesNotHave(t *testing.T) {
 	}
 
 	got := cardProperties(schema, map[string]string{
-		"Ссылка": "https://example.com", // no such property
-		"Status": "Tested",              // no such option
+		"Заметка": "что-то", // no such property
+		"Status":  "Tested", // no such option
 	})
 	if len(got) != 0 {
 		t.Fatalf("nothing should have resolved: %+v", got)
@@ -235,5 +235,60 @@ func TestHidingAColumnFromTheKanban(t *testing.T) {
 	// A view that has never been touched has no lists at all.
 	if list, found := withoutOption(nil, "opt-inbox"); found || len(list) != 0 {
 		t.Fatalf("empty view: %+v, found %v", list, found)
+	}
+}
+
+// The link a source brought is filed by what the property *is*, not by what it
+// is called: the app used to write a property literally named «Ссылка», so an
+// English board — or one whose owner renamed the field — lost every link
+// without saying so.
+func TestTheLinkPropertyIsFoundByTypeWhateverItIsCalled(t *testing.T) {
+	board := testBoard()
+	board.CardProperties = append(board.CardProperties, map[string]any{
+		"id": "prop-link", "name": "Source link", "type": "url",
+	})
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if id, ok := propertyOfType(board, schema, "url"); !ok || id != "prop-link" {
+		t.Fatalf("got %q, ok=%v", id, ok)
+	}
+
+	// A board that has none says so, which is what makes the caller add one
+	// rather than quietly drop what it was given.
+	if _, ok := propertyOfType(testBoard(), schema, "url"); ok {
+		t.Fatal("a board without a url property must not answer with one")
+	}
+}
+
+// The inbox view is told from the board's other views by what it shows, not by
+// what it is called: a person may rename a view, and matching «Входящие» by
+// title meant the next arriving card quietly built a second inbox beside it.
+func TestTheInboxViewIsFoundByWhatItFilters(t *testing.T) {
+	filtered := &model.Block{Type: model.TypeView, Title: "Что пришло", Fields: map[string]any{
+		"filter": map[string]any{"operation": "and", "filters": []any{map[string]any{
+			"propertyId": "prop-status",
+			"condition":  "includes",
+			"values":     []any{"opt-inbox"},
+		}}},
+	}}
+	if !isInboxView(filtered, "prop-status", "opt-inbox") {
+		t.Fatal("a renamed inbox must still be the inbox")
+	}
+	if isInboxView(filtered, "prop-status", "opt-agent") {
+		t.Fatal("a view filtered to another column is another view")
+	}
+
+	// A view whose filter somebody edited is still found by its title, so the
+	// one this app made is never duplicated either way.
+	byTitle := &model.Block{Type: model.TypeView, Title: InboxViewTitle, Fields: map[string]any{}}
+	if !isInboxView(byTitle, "prop-status", "opt-inbox") {
+		t.Fatal("the title is the fallback and has to work")
+	}
+	plain := &model.Block{Type: model.TypeView, Title: "Доска", Fields: map[string]any{}}
+	if isInboxView(plain, "prop-status", "opt-inbox") {
+		t.Fatal("an ordinary view is not the inbox")
 	}
 }

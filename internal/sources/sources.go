@@ -62,8 +62,8 @@ func (it Item) WithFallbackID() Item {
 }
 
 // CardSpec is a card the pipeline asks for. Properties are named rather than
-// identified: a source knows it wants «Ссылка» filled in and cannot know the id
-// the board gave it.
+// identified, because a rule is written by a person against the board in front
+// of them and cannot know the ids the board gave its properties.
 type CardSpec struct {
 	Title string
 	Icon  string
@@ -71,7 +71,13 @@ type CardSpec struct {
 	// Source is what brought the item, and it becomes the card's author: the
 	// board's own answer to "who made this", which is also what it groups the
 	// inbox by. Empty means a card nobody outside made.
-	Source     string
+	Source string
+	// URL is the way back to the original, and it is a field rather than one
+	// more entry in Properties because it is the pipeline's own doing and not a
+	// rule's. Which property on the board holds it is the board's business —
+	// this package cannot know, and naming one here would have meant every
+	// board being obliged to call it the same thing in the same language.
+	URL        string
 	Properties map[string]string
 }
 

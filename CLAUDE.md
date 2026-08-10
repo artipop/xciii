@@ -475,6 +475,18 @@ whoever opened it. **Only the protocol asks** (`question.go`), which is why
   `mockResolvedValue`, and the hook around it clears rather than resets.
 - Russian in user-facing strings and product docs, English in code, comments and
   commit messages.
+- **Russian is never a key.** A Russian word may be a label, a message, a
+  prompt, or the name a thing is *given* when this app creates it — and nothing
+  else. Nothing may find, match or branch on one: the board's column property is
+  whatever a view groups by, the author and link properties are found by their
+  *type*, the inbox view by what it filters, the projects field by an id the
+  board records (`acpProjectProperty`). Names that do decide something come from
+  the board or the registry — a rule's `Props`, a flow's stages — where a person
+  typed them against the board in front of them; they are data, not literals in
+  our code. A manifest field is the shape to copy: `key` is the id, `title` is
+  the Russian a person reads. The one deliberate exception is
+  `NormalizeVerdict`, which meets an agent's free text halfway in both languages
+  and maps it onto `pass`/`fail`/`blocked`.
 - **A feature a person uses is not finished until `docs/guide/` says how.**
   `docs/` is for whoever works on the code; `docs/guide/` is the other shelf —
   Russian, organised by screen or by task, for the person the thing was built

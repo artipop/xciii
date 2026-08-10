@@ -33,13 +33,14 @@ func TestASharedLinkGoesToTheBoardItNames(t *testing.T) {
 	if board.cards()[0].Source != ShareSourceName {
 		t.Fatalf("a shared card is authored by the share sheet: %+v", board.cards()[0])
 	}
-	// What was typed in the dialog is the card's text, and the link is both in
-	// the text and on the card as «Ссылка».
+	// What was typed in the dialog is the card's text, and the link travels
+	// beside it as the card's own — which property holds it is the board's
+	// business, not this side's.
 	card := board.cards()[0]
 	if !strings.Contains(card.Body, "почитать") || !strings.Contains(card.Body, "https://example.com/a") {
 		t.Fatalf("body: %q", card.Body)
 	}
-	if card.Properties["Ссылка"] != "https://example.com/a" {
+	if card.URL != "https://example.com/a" {
 		t.Fatalf("card: %+v", card)
 	}
 }

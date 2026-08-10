@@ -302,6 +302,12 @@ export const BOARD_PROP_COLUMNS = 'acpColumns'
 export const BOARD_PROP_FLOWS = 'acpFlows'
 export const BOARD_PROP_SETUP = 'acpSetup'
 
+// Which card property holds the projects, by id. A name would have been a
+// worse answer twice over: the field is a person's to rename, and the name
+// this app gives it is Russian, so a board in any other language could only
+// ever have been matched by luck.
+export const BOARD_PROP_PROJECT_PROPERTY = 'acpProjectProperty'
+
 // BoardSetupStep is one question the template asks the machine when a board is
 // made from it. Only the kind and the order are the template's to choose: what
 // each step does is the app's, so a template can never ask for something no

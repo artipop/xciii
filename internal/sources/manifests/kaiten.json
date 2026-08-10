@@ -28,10 +28,7 @@
       "version": "{{.updated}}",
       "title": "{{.title}}",
       "body": "{{.description}}",
-      "url": "{{.url}}",
-      "props": {
-        "Ссылка": "{{.url}}"
-      }
+      "url": "{{.url}}"
     }
   }
 }

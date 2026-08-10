@@ -14,6 +14,7 @@ import Button from '../../widgets/buttons/button'
 import {sendFlashMessage} from '../flashMessages'
 
 import {agentBindings} from './bindings'
+import {BOARD_PROP_PROJECT_PROPERTY} from './automation'
 
 import './agentProjectsPanel.scss'
 
@@ -23,14 +24,15 @@ import './agentProjectsPanel.scss'
 // A project is a git project, and the code still calls it one — that is what
 // it is. What a person sees is "проект", because the board is not only for
 // software: the thing a card sends an agent into happens to be a project.
-const PROJECT_PROPERTY_NAME = 'Проекты'
+const PROJECT_PROPERTY_TITLE = 'Проекты'
 
-// What the property was called before, so a board that already has one is
-// renamed rather than given a second. Only the name changes: the property keeps
-// its id and its options, and a card refers to an option by id, so nothing a
-// card points at moves. The Go side matches a card to a project by the option's
-// *value*, never by the property's name, so it is not affected either.
-const LEGACY_PROJECT_PROPERTY_NAMES = ['Repositories']
+// How a board that predates BOARD_PROP_PROJECT_PROPERTY is recognised once, so
+// it is adopted rather than given a second property. After that first sync the
+// board carries the id and these names answer nothing — which is the point:
+// «Проекты» is a label, and a label is a person's to change and this app's to
+// translate. The Go side never needed them at all, matching a card to a project
+// by the option's *value*.
+const PROJECT_PROPERTY_KNOWN_NAMES = [PROJECT_PROPERTY_TITLE, 'Projects', 'Repositories']
 
 export type AgentProject = {
     name: string
@@ -65,10 +67,17 @@ const AgentProjectsPanel = (props: Props) => {
     const [pendingGlobal, setPendingGlobal] = createSignal(false)
     const [error, setError] = createSignal('')
 
-    // The board's project property, under its current name or the one it had
-    // before the rename.
-    const findProjectProperty = (properties: IPropertyTemplate[]) => {
-        const names = [PROJECT_PROPERTY_NAME, ...LEGACY_PROJECT_PROPERTY_NAMES].map((n) => n.toLowerCase())
+    // The board's project property: the one it recorded by id, or — for a board
+    // made before it recorded anything — one recognised by name, the once.
+    const findProjectProperty = (board: Board, properties: IPropertyTemplate[]) => {
+        const recorded = board.properties?.[BOARD_PROP_PROJECT_PROPERTY]
+        if (typeof recorded === 'string' && recorded) {
+            const byId = properties.find((p: IPropertyTemplate) => p.id === recorded)
+            if (byId) {
+                return byId
+            }
+        }
+        const names = PROJECT_PROPERTY_KNOWN_NAMES.map((n) => n.toLowerCase())
         return properties.find((p: IPropertyTemplate) =>
             names.includes(p.name.trim().toLowerCase()) &&
             (p.type === 'select' || p.type === 'multiSelect'))
@@ -84,7 +93,7 @@ const AgentProjectsPanel = (props: Props) => {
             return
         }
         const board = props.board
-        const property = findProjectProperty(board.cardProperties)
+        const property = findProjectProperty(board, board.cardProperties)
 
         // A project marked "on every board" is offered to every board, and
         // syncing it would give a board of shopping lists a "Projects" field it
@@ -98,44 +107,53 @@ const AgentProjectsPanel = (props: Props) => {
 
         const existing = new Set((property?.options || []).map((o: IPropertyOption) => o.value.trim().toLowerCase()))
         const missing = mine.filter((r) => !existing.has(r.name.trim().toLowerCase()))
-        const needsRename = Boolean(property) && property?.name !== PROJECT_PROPERTY_NAME
-        if (property && missing.length === 0 && !needsRename) {
+        if (property && missing.length === 0 && board.properties?.[BOARD_PROP_PROJECT_PROPERTY] === property.id) {
             return
         }
 
         try {
-            const newProperties: IPropertyTemplate[] = board.cardProperties.map((p) => ({
-                ...p,
-                options: [...p.options],
-            }))
-            let target = findProjectProperty(newProperties)
-            if (target) {
-                // A board from before the rename keeps the property, its id and
-                // its options; only the label a person reads changes.
-                target.name = PROJECT_PROPERTY_NAME
-            } else {
-                target = {
-                    id: Utils.createGuid(IDType.BlockID),
-                    name: PROJECT_PROPERTY_NAME,
-                    type: 'multiSelect',
-                    options: [],
+            let target = property
+            if (!target || missing.length > 0) {
+                const newProperties: IPropertyTemplate[] = board.cardProperties.map((p) => ({
+                    ...p,
+                    options: [...p.options],
+                }))
+                target = findProjectProperty(board, newProperties)
+                if (!target) {
+                    target = {
+                        id: Utils.createGuid(IDType.BlockID),
+                        name: PROJECT_PROPERTY_TITLE,
+                        type: 'multiSelect',
+                        options: [],
+                    }
+                    newProperties.push(target)
                 }
-                newProperties.push(target)
-            }
-            for (const project of missing) {
-                target.options.push({
-                    id: Utils.createGuid(IDType.BlockID),
-                    value: project.name,
-                    color: 'propColorDefault',
-                })
+                for (const project of missing) {
+                    target.options.push({
+                        id: Utils.createGuid(IDType.BlockID),
+                        value: project.name,
+                        color: 'propColorDefault',
+                    })
+                }
+                await mutator.updateBoardCardProperties(board.id, board.cardProperties, newProperties, 'sync projects')
             }
 
-            await mutator.updateBoardCardProperties(board.id, board.cardProperties, newProperties, 'sync projects')
+            // Written after the property exists, and only when it is news. It is
+            // what makes the field findable without its name, so a board is
+            // adopted by name exactly once — and this runs on its own, so it
+            // must not touch the board on every open.
+            if (board.properties?.[BOARD_PROP_PROJECT_PROPERTY] !== target.id) {
+                await mutator.updateBoard(
+                    {...board, properties: {...board.properties, [BOARD_PROP_PROJECT_PROPERTY]: target.id}},
+                    board,
+                    'remember the projects field',
+                )
+            }
             if (missing.length > 0) {
                 sendFlashMessage({
                     content: intl.formatMessage(
                         {id: 'AgentProjects.options-added', defaultMessage: 'Added {count, plural, one {# project option} other {# project options}} to "{property}"'},
-                        {count: missing.length, property: PROJECT_PROPERTY_NAME},
+                        {count: missing.length, property: target.name},
                     ),
                     severity: 'normal',
                 })

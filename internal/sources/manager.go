@@ -411,22 +411,19 @@ func (m *Manager) createCard(ctx context.Context, d *delivery, entry SourceEntry
 		// whether the item was claimed, not whether it is shown.
 		column = entry.InboxOr()
 	}
+	// Where the card came from is not a property: the card is authored by the
+	// source, which is the board's own answer and the one the inbox groups by,
+	// and a property saying it again would be a second answer to one question.
+	// The way back to the original travels as CardSpec.URL, which the board
+	// side puts wherever that board keeps a link — this package knows no
+	// property names of its own.
 	spec.Source = entry.Name
-	if entry.Name != "" {
+	if rule.Agent != "" {
+		// RenderProps answers nil for a rule with no properties of its own, and
+		// a nil map is not something to write into.
 		if spec.Properties == nil {
 			spec.Properties = map[string]string{}
 		}
-		// The way back to the original, for a person looking at the card. Where
-		// it came from is not among these: the card is authored by the source,
-		// which is the board's own answer and the one the inbox groups by — a
-		// property saying it again would be a second answer to one question.
-		// The pipeline never reads these back — the truth is in source_item —
-		// so a person may change them freely.
-		if u := strings.TrimSpace(it.URL); u != "" {
-			setIfAbsent(spec.Properties, "Ссылка", u)
-		}
-	}
-	if rule.Agent != "" {
 		setIfAbsent(spec.Properties, "Agent", rule.Agent)
 	}
 

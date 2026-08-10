@@ -145,6 +145,7 @@ func CardFor(r Rule, it Item) CardSpec {
 	return CardSpec{
 		Title:      title,
 		Body:       body(it),
+		URL:        strings.TrimSpace(it.URL),
 		Properties: RenderProps(r.Props, it),
 	}
 }
