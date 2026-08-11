@@ -18,21 +18,16 @@ import {BOARD_PROP_PROJECT_PROPERTY} from './automation'
 
 import './agentProjectsPanel.scss'
 
-// The dedicated card property the registry syncs into. Cards are mapped to a
-// project by an option of this (multiSelect) property.
+// What the property is *called* when this app has to make one. It is a name
+// given at creation and never a key — the board records which property it is
+// (BOARD_PROP_PROJECT_PROPERTY), so a person may rename the field and a board
+// in another language is not obliged to spell it this way. The templates ship
+// the property and the id together, so a board made from one never gets here.
 //
 // A project is a git project, and the code still calls it one — that is what
 // it is. What a person sees is "проект", because the board is not only for
 // software: the thing a card sends an agent into happens to be a project.
 const PROJECT_PROPERTY_TITLE = 'Проекты'
-
-// How a board that predates BOARD_PROP_PROJECT_PROPERTY is recognised once, so
-// it is adopted rather than given a second property. After that first sync the
-// board carries the id and these names answer nothing — which is the point:
-// «Проекты» is a label, and a label is a person's to change and this app's to
-// translate. The Go side never needed them at all, matching a card to a project
-// by the option's *value*.
-const PROJECT_PROPERTY_KNOWN_NAMES = [PROJECT_PROPERTY_TITLE, 'Projects', 'Repositories']
 
 export type AgentProject = {
     name: string
@@ -67,20 +62,15 @@ const AgentProjectsPanel = (props: Props) => {
     const [pendingGlobal, setPendingGlobal] = createSignal(false)
     const [error, setError] = createSignal('')
 
-    // The board's project property: the one it recorded by id, or — for a board
-    // made before it recorded anything — one recognised by name, the once.
+    // The board's project property, and it is the one the board says it is.
+    // Nothing is matched by name: a board that has not recorded one has not got
+    // one, and one is made.
     const findProjectProperty = (board: Board, properties: IPropertyTemplate[]) => {
         const recorded = board.properties?.[BOARD_PROP_PROJECT_PROPERTY]
-        if (typeof recorded === 'string' && recorded) {
-            const byId = properties.find((p: IPropertyTemplate) => p.id === recorded)
-            if (byId) {
-                return byId
-            }
+        if (typeof recorded !== 'string' || !recorded) {
+            return undefined
         }
-        const names = PROJECT_PROPERTY_KNOWN_NAMES.map((n) => n.toLowerCase())
-        return properties.find((p: IPropertyTemplate) =>
-            names.includes(p.name.trim().toLowerCase()) &&
-            (p.type === 'select' || p.type === 'multiSelect'))
+        return properties.find((p: IPropertyTemplate) => p.id === recorded)
     }
 
     // syncToBoard mirrors the registry into that property, creating it when the
@@ -107,42 +97,39 @@ const AgentProjectsPanel = (props: Props) => {
 
         const existing = new Set((property?.options || []).map((o: IPropertyOption) => o.value.trim().toLowerCase()))
         const missing = mine.filter((r) => !existing.has(r.name.trim().toLowerCase()))
-        if (property && missing.length === 0 && board.properties?.[BOARD_PROP_PROJECT_PROPERTY] === property.id) {
+        if (property && missing.length === 0) {
             return
         }
 
         try {
-            let target = property
-            if (!target || missing.length > 0) {
-                const newProperties: IPropertyTemplate[] = board.cardProperties.map((p) => ({
-                    ...p,
-                    options: [...p.options],
-                }))
-                target = findProjectProperty(board, newProperties)
-                if (!target) {
-                    target = {
-                        id: Utils.createGuid(IDType.BlockID),
-                        name: PROJECT_PROPERTY_TITLE,
-                        type: 'multiSelect',
-                        options: [],
-                    }
-                    newProperties.push(target)
+            const newProperties: IPropertyTemplate[] = board.cardProperties.map((p) => ({
+                ...p,
+                options: [...p.options],
+            }))
+            let target = newProperties.find((p) => p.id === property?.id)
+            if (!target) {
+                target = {
+                    id: Utils.createGuid(IDType.BlockID),
+                    name: PROJECT_PROPERTY_TITLE,
+                    type: 'multiSelect',
+                    options: [],
                 }
-                for (const project of missing) {
-                    target.options.push({
-                        id: Utils.createGuid(IDType.BlockID),
-                        value: project.name,
-                        color: 'propColorDefault',
-                    })
-                }
-                await mutator.updateBoardCardProperties(board.id, board.cardProperties, newProperties, 'sync projects')
+                newProperties.push(target)
             }
+            for (const project of missing) {
+                target.options.push({
+                    id: Utils.createGuid(IDType.BlockID),
+                    value: project.name,
+                    color: 'propColorDefault',
+                })
+            }
+            await mutator.updateBoardCardProperties(board.id, board.cardProperties, newProperties, 'sync projects')
 
-            // Written after the property exists, and only when it is news. It is
-            // what makes the field findable without its name, so a board is
-            // adopted by name exactly once — and this runs on its own, so it
-            // must not touch the board on every open.
-            if (board.properties?.[BOARD_PROP_PROJECT_PROPERTY] !== target.id) {
+            // Written after the property exists, and only for a board that has
+            // just been given one — the templates ship the pair, and a board
+            // that already has it is never patched, so opening the dialog
+            // leaves the undo history and the websocket alone.
+            if (!property) {
                 await mutator.updateBoard(
                     {...board, properties: {...board.properties, [BOARD_PROP_PROJECT_PROPERTY]: target.id}},
                     board,

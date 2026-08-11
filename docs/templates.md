@@ -29,6 +29,16 @@ first time it is looked at. From then on they are the board's own: editing them
 there does not touch the template, and editing the template does not reach back
 into boards already made.
 
+A fourth key sits beside them: **`acpProjectProperty`** is the id of the card
+property that holds the projects. Making a board from a template duplicates it
+without renumbering the card properties, so the id the template writes is the id
+the new board has, and nothing has to recognise the field by what it is called —
+the person who owns the board may rename it to anything. A board that has not
+got the key has not got the field; the first project registered on it makes one
+and writes the id down. Adding a *new* property to a template is still
+hand-editing JSONL, which is what «[Свойства в шаблонах](plan.md)» in the plan
+is about.
+
 ## The questions
 
 A board of household chores has nowhere to deploy to and nothing to test, and a
