@@ -3,7 +3,6 @@ package model
 import (
 	"time"
 
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // NotificationHint provides a hint that a block has been modified and has subscribers that
@@ -67,8 +66,8 @@ func (s *NotificationHint) LogClone() interface{} {
 		BlockType:    s.BlockType,
 		BlockID:      s.BlockID,
 		ModifiedByID: s.ModifiedByID,
-		CreateAt:     utils.TimeFromMillis(s.CreateAt).Format(time.StampMilli),
-		NotifyAt:     utils.TimeFromMillis(s.NotifyAt).Format(time.StampMilli),
+		CreateAt:     GetTimeForMillis(s.CreateAt).Format(time.StampMilli),
+		NotifyAt:     GetTimeForMillis(s.NotifyAt).Format(time.StampMilli),
 	}
 }
 

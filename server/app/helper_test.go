@@ -18,7 +18,7 @@ import (
 	"github.com/artipop/xciii/server/ws"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
+	"github.com/artipop/xciii/server/services/filestore/mocks"
 )
 
 type TestHelper struct {

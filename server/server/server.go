@@ -33,7 +33,7 @@ import (
 	"github.com/oklog/run"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/artipop/xciii/server/services/filestore"
 )
 
 const (
@@ -80,24 +80,15 @@ func New(params Params) (*Server, error) {
 		wsAdapter = ws.NewServer(authenticator, params.SingleUserToken, params.Cfg.AuthMode == MattermostAuthMod, params.Logger, params.DBStore)
 	}
 
-	filesBackendSettings := filestore.FileBackendSettings{}
-	filesBackendSettings.DriverName = params.Cfg.FilesDriver
-	filesBackendSettings.Directory = params.Cfg.FilesPath
-	filesBackendSettings.AmazonS3AccessKeyId = params.Cfg.FilesS3Config.AccessKeyID
-	filesBackendSettings.AmazonS3SecretAccessKey = params.Cfg.FilesS3Config.SecretAccessKey
-	filesBackendSettings.AmazonS3Bucket = params.Cfg.FilesS3Config.Bucket
-	filesBackendSettings.AmazonS3PathPrefix = params.Cfg.FilesS3Config.PathPrefix
-	filesBackendSettings.AmazonS3Region = params.Cfg.FilesS3Config.Region
-	filesBackendSettings.AmazonS3Endpoint = params.Cfg.FilesS3Config.Endpoint
-	filesBackendSettings.AmazonS3SSL = params.Cfg.FilesS3Config.SSL
-	filesBackendSettings.AmazonS3SignV2 = params.Cfg.FilesS3Config.SignV2
-	filesBackendSettings.AmazonS3SSE = params.Cfg.FilesS3Config.SSE
-	filesBackendSettings.AmazonS3Trace = params.Cfg.FilesS3Config.Trace
-	filesBackendSettings.AmazonS3RequestTimeoutMilliseconds = params.Cfg.FilesS3Config.Timeout
-
-	filesBackend, appErr := filestore.NewFileBackend(filesBackendSettings)
-	if appErr != nil {
-		params.Logger.Error("Unable to initialize the files storage", mlog.Err(appErr))
+	// Attachments go on the disk, under the directory the config names. The S3
+	// settings the config still carries are upstream's and no longer reach
+	// anything: see services/filestore for why the bucket went.
+	filesBackend, fErr := filestore.New(filestore.Settings{
+		DriverName: params.Cfg.FilesDriver,
+		Directory:  params.Cfg.FilesPath,
+	})
+	if fErr != nil {
+		params.Logger.Error("Unable to initialize the files storage", mlog.Err(fErr))
 
 		return nil, errors.New("unable to initialize the files storage")
 	}

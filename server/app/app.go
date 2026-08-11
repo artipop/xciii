@@ -17,7 +17,7 @@ import (
 
 	mm_model "github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/artipop/xciii/server/services/filestore"
 )
 
 const (

@@ -15,8 +15,8 @@ import (
 	"github.com/artipop/xciii/server/model"
 	mm_model "github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
+	"github.com/artipop/xciii/server/services/filestore"
+	"github.com/artipop/xciii/server/services/filestore/mocks"
 )
 
 const (

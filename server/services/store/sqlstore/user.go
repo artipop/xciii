@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	mmModel "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -329,7 +328,7 @@ func (s *SQLStore) updateUserPreference(db sq.BaseRunner, preference mmModel.Pre
 	case model.SqliteDBType:
 		query = query.SuffixExpr(sq.Expr(" on conflict(userid, category, name) do update set value = excluded.value"))
 	default:
-		return store.NewErrNotImplemented("failed to update preference because of missing driver")
+		return model.NewErrNotImplemented("failed to update preference because of missing driver")
 	}
 
 	if _, err := query.Exec(); err != nil {
