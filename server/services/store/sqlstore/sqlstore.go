@@ -10,7 +10,6 @@ import (
 
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/services/store"
-	"github.com/mattermost/mattermost/server/public/pluginapi/cluster"
 
 	mmModel "github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -25,16 +24,11 @@ type SQLStore struct {
 	dbPingAttempts   int
 	isSingleUser     bool
 	logger           mlog.LoggerIFace
-	NewMutexFn       MutexFactory
 	servicesAPI      servicesAPI
 	isBinaryParam    bool
 	schemaName       string
 	configFn         func() *mmModel.Config
 }
-
-// MutexFactory is used by the store in plugin mode to generate
-// a cluster mutex.
-type MutexFactory func(name string) (*cluster.Mutex, error)
 
 // New creates a new SQL implementation of the store.
 func New(params Params) (*SQLStore, error) {
@@ -48,7 +42,6 @@ func New(params Params) (*SQLStore, error) {
 		connectionString: params.ConnectionString,
 		logger:           params.Logger,
 		isSingleUser:     params.IsSingleUser,
-		NewMutexFn:       params.NewMutexFn,
 		servicesAPI:      params.ServicesAPI,
 		configFn:         params.ConfigFn,
 	}

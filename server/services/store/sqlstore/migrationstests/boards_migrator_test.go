@@ -11,7 +11,6 @@ import (
 	migratepostgres "github.com/golang-migrate/migrate/v4/database/postgres"
 	migratesqlite "github.com/golang-migrate/migrate/v4/database/sqlite"
 
-	"github.com/mattermost/mattermost/server/public/pluginapi/cluster"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	mmSqlStore "github.com/mattermost/mattermost/server/public/utils/sql"
 
@@ -105,10 +104,7 @@ func (bm *BoardsMigrator) Setup() error {
 		TablePrefix:      tablePrefix,
 		Logger:           logger,
 		DB:               bm.db,
-		NewMutexFn: func(name string) (*cluster.Mutex, error) {
-			return nil, fmt.Errorf("not implemented")
-		},
-		SkipMigrations: true,
+		SkipMigrations:   true,
 	}
 	bm.store, err = sqlstore.New(storeParams)
 	if err != nil {

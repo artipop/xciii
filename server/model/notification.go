@@ -2,7 +2,6 @@ package model
 
 import (
 	"time"
-
 )
 
 // NotificationHint provides a hint that a block has been modified and has subscribers that

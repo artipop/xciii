@@ -1598,51 +1598,6 @@ func TestUpdateMember(t *testing.T) {
 		require.True(t, members[0].SchemeAdmin)
 	})
 
-	t.Run("should always disable the admin role on update member if the user is a guest", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-
-		newBoard := &model.Board{
-			Title:  "title",
-			Type:   model.BoardTypeOpen,
-			TeamID: teamID,
-		}
-		board, err := th.Server.App().CreateBoard(newBoard, userAdmin, true)
-		require.NoError(t, err)
-
-		newGuestMember := &model.BoardMember{
-			UserID:          userGuest,
-			BoardID:         board.ID,
-			SchemeViewer:    true,
-			SchemeCommenter: true,
-			SchemeEditor:    true,
-			SchemeAdmin:     false,
-		}
-		guestMember, err := th.Server.App().AddMemberToBoard(newGuestMember)
-		require.NoError(t, err)
-		require.NotNil(t, guestMember)
-		require.True(t, guestMember.SchemeViewer)
-		require.True(t, guestMember.SchemeCommenter)
-		require.True(t, guestMember.SchemeEditor)
-		require.False(t, guestMember.SchemeAdmin)
-
-		memberUpdate := &model.BoardMember{
-			UserID:          userGuest,
-			BoardID:         board.ID,
-			SchemeAdmin:     true,
-			SchemeViewer:    true,
-			SchemeCommenter: true,
-			SchemeEditor:    true,
-		}
-
-		updatedGuestMember, resp := clients.Admin.UpdateBoardMember(memberUpdate)
-		th.CheckOK(resp)
-		require.True(t, updatedGuestMember.SchemeViewer)
-		require.True(t, updatedGuestMember.SchemeCommenter)
-		require.True(t, updatedGuestMember.SchemeEditor)
-		require.False(t, updatedGuestMember.SchemeAdmin)
-	})
 }
 
 func TestDeleteMember(t *testing.T) {

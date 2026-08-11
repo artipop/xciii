@@ -10,9 +10,9 @@ import (
 	"github.com/artipop/xciii/server/model"
 	mm_model "github.com/mattermost/mattermost/server/public/model"
 
+	"github.com/artipop/xciii/server/services/filestore"
 	"github.com/artipop/xciii/server/utils"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/artipop/xciii/server/services/filestore"
 )
 
 const emptyString = "empty"

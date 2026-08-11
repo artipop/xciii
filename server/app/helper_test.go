@@ -10,15 +10,13 @@ import (
 	"github.com/artipop/xciii/server/auth"
 	"github.com/artipop/xciii/server/services/config"
 	"github.com/artipop/xciii/server/services/metrics"
-	"github.com/artipop/xciii/server/services/permissions/mmpermissions"
-	mmpermissionsMocks "github.com/artipop/xciii/server/services/permissions/mmpermissions/mocks"
 	permissionsMocks "github.com/artipop/xciii/server/services/permissions/mocks"
 	"github.com/artipop/xciii/server/services/store/mockstore"
 	"github.com/artipop/xciii/server/services/webhook"
 	"github.com/artipop/xciii/server/ws"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/artipop/xciii/server/services/filestore/mocks"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type TestHelper struct {
@@ -26,7 +24,11 @@ type TestHelper struct {
 	Store        *mockstore.MockStore
 	FilesBackend *mocks.FileBackend
 	logger       mlog.LoggerIFace
-	API          *mmpermissionsMocks.MockAPI
+	// The permissions service itself is mocked rather than built over a mocked
+	// plugin API: the service that consulted one went with the plugin mode, and
+	// what these tests were ever saying is "the answer to this permission is
+	// yes" — which is a sentence about the service.
+	API *permissionsMocks.MockPermissionsService
 }
 
 func SetupTestHelper(t *testing.T) (*TestHelper, func()) {
@@ -41,9 +43,7 @@ func SetupTestHelper(t *testing.T) (*TestHelper, func()) {
 	webhook := webhook.NewClient(&cfg, logger)
 	metricsService := metrics.NewMetrics(metrics.InstanceInfo{})
 
-	mockStore := permissionsMocks.NewMockStore(ctrl)
-	mockAPI := mmpermissionsMocks.NewMockAPI(ctrl)
-	permissions := mmpermissions.New(mockStore, mockAPI, mlog.CreateConsoleTestLogger(t))
+	permissions := permissionsMocks.NewMockPermissionsService(ctrl)
 
 	appServices := Services{
 		Auth:             auth,
@@ -69,6 +69,6 @@ func SetupTestHelper(t *testing.T) (*TestHelper, func()) {
 		Store:        store,
 		FilesBackend: filesBackend,
 		logger:       logger,
-		API:          mockAPI,
+		API:          permissions,
 	}, tearDown
 }

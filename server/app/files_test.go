@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/artipop/xciii/server/model"
-	mm_model "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/artipop/xciii/server/services/filestore"
 	"github.com/artipop/xciii/server/services/filestore/mocks"
+	mm_model "github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/mock"
 )
 
 const (

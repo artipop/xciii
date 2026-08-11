@@ -23,7 +23,6 @@ type Params struct {
 	Logger           mlog.LoggerIFace
 	DB               *sql.DB
 	IsSingleUser     bool
-	NewMutexFn       MutexFactory
 	ServicesAPI      servicesAPI
 	SkipMigrations   bool
 	ConfigFn         func() *mmModel.Config

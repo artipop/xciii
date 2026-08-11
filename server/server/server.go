@@ -32,8 +32,8 @@ import (
 	"github.com/artipop/xciii/server/ws"
 	"github.com/oklog/run"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/artipop/xciii/server/services/filestore"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (

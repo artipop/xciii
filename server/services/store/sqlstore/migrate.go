@@ -15,6 +15,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
+
 	// The SQLite migration driver runs on the connection it is handed, so which
 	// of the two golang-migrate ships is picked decides nothing about the SQL —
 	// only which driver the package registers on the side. This one registers

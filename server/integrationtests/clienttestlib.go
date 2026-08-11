@@ -14,7 +14,6 @@ import (
 	"github.com/artipop/xciii/server/services/auth"
 	"github.com/artipop/xciii/server/services/config"
 	"github.com/artipop/xciii/server/services/permissions/localpermissions"
-	"github.com/artipop/xciii/server/services/permissions/mmpermissions"
 	"github.com/artipop/xciii/server/services/store"
 	"github.com/artipop/xciii/server/services/store/sqlstore"
 	"github.com/artipop/xciii/server/utils"
@@ -188,42 +187,6 @@ func newTestServerWithLicense(singleUserToken string, licenseType LicenseType) *
 	return srv
 }
 
-func NewTestServerPluginMode() *server.Server {
-	cfg, err := getTestConfig()
-	if err != nil {
-		panic(err)
-	}
-	cfg.AuthMode = "mattermost"
-	cfg.EnablePublicSharedBoards = true
-
-	logger, _ := mlog.NewLogger()
-	if err = logger.Configure("", cfg.LoggingCfgJSON, nil); err != nil {
-		panic(err)
-	}
-	innerStore, err := server.NewStore(cfg, false, logger)
-	if err != nil {
-		panic(err)
-	}
-
-	db := NewPluginTestStore(innerStore)
-
-	permissionsService := mmpermissions.New(db, &FakePermissionPluginAPI{}, logger)
-
-	params := server.Params{
-		Cfg:                cfg,
-		DBStore:            db,
-		Logger:             logger,
-		PermissionsService: permissionsService,
-	}
-
-	srv, err := server.New(params)
-	if err != nil {
-		panic(err)
-	}
-
-	return srv
-}
-
 func newTestServerLocalMode() *server.Server {
 	cfg, err := getTestConfig()
 	if err != nil {
@@ -280,20 +243,6 @@ func SetupTestHelperWithToken(t *testing.T) *TestHelper {
 
 func SetupTestHelper(t *testing.T) *TestHelper {
 	return SetupTestHelperWithLicense(t, LicenseNone)
-}
-
-func SetupTestHelperPluginMode(t *testing.T) *TestHelper {
-	origUnitTesting := os.Getenv("FOCALBOARD_UNIT_TESTING")
-	os.Setenv("FOCALBOARD_UNIT_TESTING", "1")
-
-	th := &TestHelper{
-		T:                  t,
-		origEnvUnitTesting: origUnitTesting,
-	}
-
-	th.Server = NewTestServerPluginMode()
-	th.Start()
-	return th
 }
 
 func SetupTestHelperLocalMode(t *testing.T) *TestHelper {
