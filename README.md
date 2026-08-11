@@ -197,7 +197,7 @@ the one thing a rewrite must not quietly drop.
 - **Linux targets GTK 3** (`gtk3` build tag, webkit2gtk-4.1). Wails v3 defaults
   to GTK 4, but its GTK 4 code needs 4.10 — newer than several still-supported
   distributions ship. `GTK_TAG=` drops the tag where GTK 4 is new enough.
-- **Browser-testing sessions** (the «Тестирование» column) need a browser MCP server
+- **Browser-testing sessions** (the «QA» column) need a browser MCP server
   on the agent — under *Agents → MCP servers*, paste the same JSON any MCP
   client takes, e.g. `{"mcpServers": {"playwright": {"command": "npx", "args":
   ["-y", "@playwright/mcp@latest", "--headless"]}}}`. The app ships no

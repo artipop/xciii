@@ -83,8 +83,8 @@ func featureFlow(cfg Config) FlowEntry {
 	agent := b.node("agent", cfg.TriggerColumn, FlowActionAgent)
 	review := b.node("review", TemplateReviewColumn, FlowActionNone)
 	deploy := b.node("deploy", cfg.DeployColumn, FlowActionDeploy)
-	test := b.node("test", cfg.TestColumn, FlowActionTest)
-	tested := b.node("tested", cfg.TestPassColumn, FlowActionNone)
+	qa := b.node("qa", cfg.TestColumn, FlowActionTest)
+	qaPassed := b.node("qa-passed", cfg.TestPassColumn, FlowActionNone)
 	failed := b.node("failed", cfg.TestFailColumn, FlowActionNone)
 	blocked := b.node("blocked", TemplateBlockedColumn, FlowActionNone)
 
@@ -93,11 +93,11 @@ func featureFlow(cfg Config) FlowEntry {
 	// Merged rather than opened: the local git watcher sees it without a token,
 	// so the route works on any hosting and with no credentials at all.
 	b.edge(review, deploy, TriggerBranchMerged)
-	b.edge(deploy, test, TriggerSuccess)
+	b.edge(deploy, qa, TriggerSuccess)
 	b.edge(deploy, failed, TriggerFailure)
-	b.edge(test, tested, TriggerSuccess)
-	b.edge(test, agent, TriggerFailure)
-	b.edge(test, blocked, TriggerBlocked)
+	b.edge(qa, qaPassed, TriggerSuccess)
+	b.edge(qa, agent, TriggerFailure)
+	b.edge(qa, blocked, TriggerBlocked)
 	return b.flow
 }
 
