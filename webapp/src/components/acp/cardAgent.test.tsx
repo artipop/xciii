@@ -11,6 +11,13 @@ import CardAgent, {isCardAgentAvailable} from './cardAgent'
 
 vi.mock('../../mutator')
 
+// The panel behind the chevron is the terminal page itself. What it draws —
+// xterm on a socket — is terminalPage's own test; here it only has to be the
+// thing that appears, for the terminal it was given.
+vi.mock('./terminalPage', () => ({
+    default: (props: {terminalId?: string}) => <div data-testid='terminal'>{props.terminalId}</div>,
+}))
+
 const anyWindow = window as any
 
 function cardBindings(state: any = {}) {
@@ -47,7 +54,7 @@ describe('components/acp/cardAgent', () => {
         render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
 
         await waitFor(() => expect(bindings.ListAgents).toHaveBeenCalled())
-        expect(screen.queryByText('Open terminal')).toBeNull()
+        expect(screen.queryByRole('button', {name: 'Open terminal'})).toBeNull()
         expect(screen.queryByText('Agent')).toBeNull()
     })
 
@@ -62,17 +69,37 @@ describe('components/acp/cardAgent', () => {
 
         render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
 
-        expect(await screen.findByText('Resume in terminal')).toBeInTheDocument()
+        expect(await screen.findByRole('button', {name: 'Resume in terminal'})).toBeInTheDocument()
     })
 
-    it('opens a terminal on the card', async () => {
+    // The chevron is the whole control: it opens the terminal into the card and
+    // hides it again. There used to be a button that opened a window elsewhere
+    // and left the card looking exactly as it had.
+    it('opens the terminal inside the card and hides it again', async () => {
         const bindings = cardBindings()
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
 
-        await userEvent.click(await screen.findByText('Open terminal'))
-        await waitFor(() => expect(bindings.OpenCardTerminal).toHaveBeenCalledWith('card-1', '', ''))
+        await userEvent.click(await screen.findByRole('button', {name: 'Open terminal'}))
+        await waitFor(() => expect(bindings.OpenCardTerminal).toHaveBeenCalledWith('card-1', '', '', false))
+        expect(await screen.findByTestId('terminal')).toHaveTextContent('term-1')
+
+        await userEvent.click(screen.getByRole('button', {name: 'Hide terminal'}))
+        expect(screen.queryByTestId('terminal')).toBeNull()
+    })
+
+    // A window is the one thing the panel cannot be — a screen of its own — so
+    // it stays reachable, and it is the only thing that asks for one.
+    it('asks for a window only when the pop-out is pressed', async () => {
+        const bindings = cardBindings()
+        anyWindow.go = {main: {App: bindings}}
+
+        render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
+
+        await userEvent.click(await screen.findByRole('button', {name: 'Open terminal'}))
+        await userEvent.click(await screen.findByRole('button', {name: 'Open in a separate window'}))
+        await waitFor(() => expect(bindings.OpenCardTerminal).toHaveBeenLastCalledWith('card-1', '', '', true))
     })
 
     // The card knows the difference between "there is one running", "there is
@@ -80,12 +107,12 @@ describe('components/acp/cardAgent', () => {
     it('says whether a terminal is running or waiting to be continued', async () => {
         anyWindow.go = {main: {App: cardBindings({running: {id: 'term-1'}})}}
         const {unmount} = render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
-        expect(await screen.findByText('Show terminal')).toBeInTheDocument()
+        expect(await screen.findByRole('button', {name: 'Show terminal'})).toBeInTheDocument()
         unmount()
 
         anyWindow.go = {main: {App: cardBindings({resume: {available: true, cwd: '/wt/card-1'}})}}
         render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
-        expect(await screen.findByText('Resume in terminal')).toBeInTheDocument()
+        expect(await screen.findByRole('button', {name: 'Resume in terminal'})).toBeInTheDocument()
     })
 
     // The branch is what a card has to show: it is made in a worktree the card
@@ -155,7 +182,7 @@ describe('components/acp/cardAgent', () => {
 
         render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
 
-        await screen.findByText('Open terminal')
+        await screen.findByRole('button', {name: 'Open terminal'})
         expect(screen.queryByText('Choose a folder…')).toBeNull()
         expect(screen.queryByText('Choose an agent…')).toBeNull()
     })
@@ -167,7 +194,7 @@ describe('components/acp/cardAgent', () => {
 
         render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
 
-        await userEvent.click(await screen.findByText('Open terminal'))
+        await userEvent.click(await screen.findByRole('button', {name: 'Open terminal'}))
         expect(await screen.findByText(/не указывает репозиторий/)).toBeInTheDocument()
         expect(await screen.findByText('Choose a folder…')).toBeInTheDocument()
         expect(await screen.findByText('Choose an agent…')).toBeInTheDocument()
@@ -183,13 +210,13 @@ describe('components/acp/cardAgent', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
-        await userEvent.click(await screen.findByText('Open terminal'))
+        await userEvent.click(await screen.findByRole('button', {name: 'Open terminal'}))
 
         chooseOption(await screen.findByRole('button', {name: 'Folder'}), 'notes')
         chooseOption(screen.getByRole('button', {name: 'Agent'}), 'codex')
-        await userEvent.click(screen.getAllByText('Open terminal')[1])
+        await userEvent.click(screen.getByText('Start the terminal'))
 
-        await waitFor(() => expect(bindings.OpenCardTerminal).toHaveBeenLastCalledWith('card-1', 'notes', 'codex'))
+        await waitFor(() => expect(bindings.OpenCardTerminal).toHaveBeenLastCalledWith('card-1', 'notes', 'codex', false))
     })
 
     // Registering an agent is two answers, and having to leave the card for
@@ -208,7 +235,7 @@ describe('components/acp/cardAgent', () => {
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
-        await userEvent.click(await screen.findByText('Open terminal'))
+        await userEvent.click(await screen.findByRole('button', {name: 'Open terminal'}))
 
         await userEvent.click(await screen.findByRole('button', {name: 'Add an agent…'}))
 

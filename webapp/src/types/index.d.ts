@@ -73,9 +73,10 @@ export interface IAppWindow extends Window {
                 SetPlanningPrompt?(text: string): Promise<void>
                 StartCardDeploy(cardId: string, branch: string): Promise<string>
 
-                // Terminal windows: the agent's own CLI on a card, opened in a
-                // window of the desktop app (absent in browser builds).
-                OpenCardTerminal?(cardId: string, projectName: string, agentName: string): Promise<string>
+                // Terminals: the agent's own CLI on a card. `window` asks for a
+                // window of the desktop app; without it the card draws the
+                // terminal inside itself, which is what its chevron opens.
+                OpenCardTerminal?(cardId: string, projectName: string, agentName: string, window: boolean): Promise<string>
                 OpenPlanningTerminal?(projectName: string, agentName: string, boardId: string): Promise<string>
                 GetTerminalInfo?(terminalId: string): Promise<string>
                 GetCardAgent?(cardId: string): Promise<string>

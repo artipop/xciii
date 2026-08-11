@@ -14,6 +14,73 @@
         font-weight: 600;
     }
 
+    // The whole header line is the control, not a button beside it: what it
+    // opens is directly below, so the thing you press is the thing that moves.
+    &__toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 6px 2px 2px;
+        margin-left: -2px;
+        border: none;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &:disabled {
+            cursor: progress;
+            opacity: 0.6;
+        }
+    }
+
+    &__chevron {
+        display: inline-block;
+        width: 12px;
+        text-align: center;
+        opacity: 0.7;
+        transition: transform 120ms ease;
+
+        &--open {
+            transform: rotate(90deg);
+        }
+    }
+
+    &__popOut {
+        border: none;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        opacity: 0.7;
+        padding: 2px 6px;
+
+        &:hover {
+            opacity: 1;
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+    }
+
+    // The panel is the terminal page, drawn in the card. Its own layout is
+    // built for a window — height: 100vh — so the card is what gives it a size,
+    // and a drag handle for when the CLI needs more room than the card thought.
+    &__terminal {
+        height: 420px;
+        min-height: 160px;
+        overflow: hidden;
+        border-radius: var(--radius-md);
+        resize: vertical;
+
+        .AcpTerminalPage {
+            height: 100%;
+        }
+    }
+
     &__status {
         font-size: 12px;
         padding: 1px 8px;

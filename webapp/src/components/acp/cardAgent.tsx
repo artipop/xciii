@@ -3,7 +3,7 @@
 
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import {For, Show, createSignal, onCleanup, onMount} from 'solid-js'
+import {For, Show, Suspense, createSignal, lazy, onCleanup, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
@@ -23,13 +23,21 @@ import './cardAgent.scss'
 //
 // There used to be a console here: a transcript of the session, a box to type
 // follow-ups into, buttons answering the agent's permission prompts. All of it
-// is gone. A session run by the board reports itself in the card's comments,
-// and a person who wants to talk to the agent opens a terminal, where the agent
-// has a UI of its own and asks its own questions.
+// is gone. A session reports itself on the card when it ends, and a person who
+// wants to watch it or talk to it opens the terminal, where the agent has a UI
+// of its own and asks its own questions.
 //
-// What is left is what the card cannot get anywhere else: the terminal, the
-// branch the work is on with the button that deploys it, and — while the
-// automation is running — a way to stop it.
+// **The terminal is the panel**, and the chevron is what opens it. There was a
+// button here saying «Открыть терминал», which opened a window somewhere else
+// and left the card looking exactly as it had — so the one thing a person does
+// on a card with an agent on it read as a link to elsewhere. Now the row opens
+// downwards into the terminal itself, and the ⤢ beside it is the only way back
+// to a window. Nothing new is drawn for a running session: the session *is*
+// what the CLI is showing.
+//
+// What else is left is what the card cannot get anywhere else: the branch the
+// work is on with the button that deploys it, and — while the automation is
+// running — a way to stop it.
 //
 // Which agent and which folder is asked here too, but only when it has to be:
 // a card on an ordinary board has neither, and a row of empty dropdowns on
@@ -42,6 +50,10 @@ import './cardAgent.scss'
 // at all: an offer to open a terminal there is an offer to fail, since there is
 // nothing to open one with. A board of household chores is a board, and the
 // agent integration being compiled in is not a reason to put an agent on it.
+
+// Lazily, like the terminal's own route: xterm is a large chunk, and a card
+// that is never expanded should not pay for the emulator.
+const InlineTerminal = lazy(() => import('./terminalPage'))
 
 export function isCardAgentAvailable(): boolean {
     return Boolean(agentBindings()?.GetCardAgent)
@@ -76,6 +88,12 @@ const CardAgent = (props: Props) => {
     const [addingAgent, setAddingAgent] = createSignal(false)
     const [busy, setBusy] = createSignal(false)
     const [error, setError] = createSignal('')
+
+    // The terminal this card is showing, and whether it is showing it. The id
+    // is remembered from the moment it was started, because Go's answer arrives
+    // before the acp:terminal event that puts it into the card's state.
+    const [startedId, setStartedId] = createSignal('')
+    const [expanded, setExpanded] = createSignal(false)
     const [deployStatus, setDeployStatus] = createSignal('')
     const [answerText, setAnswerText] = createSignal('')
 
@@ -170,22 +188,29 @@ const CardAgent = (props: Props) => {
         }
     }
 
-    const start = async () => {
+    const terminalId = () => startedId() || state().running?.id || ''
+
+    // start hands back the terminal for this card — the live one, or a new one
+    // resumed in the same worktree. inWindow asks for a window of its own,
+    // which is the ⤢ and nothing else: the panel below draws it in the card.
+    const start = async (inWindow: boolean): Promise<string> => {
         if (!bindings?.OpenCardTerminal) {
-            return
+            return ''
         }
         setBusy(true)
         setError('')
         try {
-            const handle = JSON.parse(await bindings.OpenCardTerminal(props.cardId, projectName(), agentName()))
+            const handle = JSON.parse(await bindings.OpenCardTerminal(props.cardId, projectName(), agentName(), inWindow))
 
             // The desktop app has already opened the window by now; a server
             // build has no windows, so the browser opens a tab instead.
-            if (!handle.windowed && handle.url) {
+            if (inWindow && !handle.windowed && handle.url) {
                 window.open(handle.url, '_blank', 'noopener')
             }
             setChoosing(false)
+            setStartedId(handle.id || '')
             await refresh()
+            return handle.id || ''
         } catch (e: any) {
             setError(String(e?.message || e))
 
@@ -194,8 +219,27 @@ const CardAgent = (props: Props) => {
             // it is worth asking — not on every card that was ever opened.
             await offerChoices()
             setChoosing(true)
+            return ''
         } finally {
             setBusy(false)
+        }
+    }
+
+    // The chevron is the whole control: it opens the terminal if the card has
+    // none, and shows or hides it after that. There used to be a button saying
+    // «Открыть терминал», which opened a window somewhere else and left the
+    // card looking exactly as it had.
+    const toggle = async () => {
+        if (expanded()) {
+            setExpanded(false)
+
+            // Forgetting the id is what makes the next open a fresh `--continue`
+            // rather than a socket onto a CLI that has since exited.
+            setStartedId('')
+            return
+        }
+        if (terminalId() || await start(false)) {
+            setExpanded(true)
         }
     }
 
@@ -239,6 +283,9 @@ const CardAgent = (props: Props) => {
     const offersAgent = () => worked() || (registered() || 0) > 0
 
     const terminalLabel = () => {
+        if (expanded()) {
+            return intl.formatMessage({id: 'CardAgent.terminal-collapse', defaultMessage: 'Hide terminal'})
+        }
         if (state().running) {
             return intl.formatMessage({id: 'CardAgent.terminal-focus', defaultMessage: 'Show terminal'})
         }
@@ -252,9 +299,26 @@ const CardAgent = (props: Props) => {
         <Show when={offersAgent()}>
             <div class='CardAgent'>
                 <div class='CardAgent__row'>
-                    <span class='CardAgent__title'>
-                        {intl.formatMessage({id: 'CardAgent.title', defaultMessage: 'Agent'})}
-                    </span>
+                    <button
+                        type='button'
+                        class='CardAgent__toggle'
+                        aria-expanded={expanded()}
+                        aria-label={terminalLabel()}
+                        title={state().resume?.cwd || terminalLabel()}
+                        disabled={busy()}
+                        onClick={toggle}
+                    >
+                        <span
+                            class='CardAgent__chevron'
+                            classList={{'CardAgent__chevron--open': expanded()}}
+                            aria-hidden='true'
+                        >
+                            {'›'}
+                        </span>
+                        <span class='CardAgent__title'>
+                            {intl.formatMessage({id: 'CardAgent.title', defaultMessage: 'Agent'})}
+                        </span>
+                    </button>
                     <Show when={status()}>
                         <span class={`CardAgent__status CardAgent__status--${status()}`}>{status()}</span>
                     </Show>
@@ -267,13 +331,19 @@ const CardAgent = (props: Props) => {
                         </span>
                     </Show>
                     <div class='CardAgent__actions'>
-                        <Button
-                            onClick={start}
-                            disabled={busy()}
-                            title={state().resume?.cwd}
-                        >
-                            {terminalLabel()}
-                        </Button>
+                        {/* The window is the only thing the panel cannot be:
+                            a screen of its own, on a second monitor. */}
+                        <Show when={expanded()}>
+                            <button
+                                type='button'
+                                class='CardAgent__popOut'
+                                title={intl.formatMessage({id: 'CardAgent.terminal-window', defaultMessage: 'Open in a separate window'})}
+                                aria-label={intl.formatMessage({id: 'CardAgent.terminal-window', defaultMessage: 'Open in a separate window'})}
+                                onClick={() => start(true)}
+                            >
+                                {'⤢'}
+                            </button>
+                        </Show>
                         <Show when={working()}>
                             <Button onClick={cancel}>
                                 {intl.formatMessage({id: 'CardAgent.cancel', defaultMessage: 'Cancel session'})}
@@ -281,6 +351,20 @@ const CardAgent = (props: Props) => {
                         </Show>
                     </div>
                 </div>
+
+                {/* The session panel, and it is the terminal itself: the agent
+                    draws its own UI there, asks its own questions and answers
+                    them, which is a whole console we do not have to build or
+                    keep in step with the CLI. */}
+                <Show when={expanded() && terminalId()}>
+                    {(id) => (
+                        <div class='CardAgent__terminal'>
+                            <Suspense fallback={null}>
+                                <InlineTerminal terminalId={id()}/>
+                            </Suspense>
+                        </div>
+                    )}
+                </Show>
 
                 {/* The agent's question, on the card it is about. The same thing the
                     notification carries — answered in either place, whichever the
@@ -401,11 +485,15 @@ const CardAgent = (props: Props) => {
                             </Button>
                         </Show>
 
+                        {/* Named for the answers above it rather than for the
+                            chevron, which is the other way in and says the
+                            same thing: two controls reading «Открыть терминал»
+                            side by side is one question asked twice. */}
                         <Button
-                            onClick={start}
+                            onClick={toggle}
                             disabled={busy() || !projectName() || !agentName()}
                         >
-                            {intl.formatMessage({id: 'CardAgent.terminal-open', defaultMessage: 'Open terminal'})}
+                            {intl.formatMessage({id: 'CardAgent.terminal-start', defaultMessage: 'Start the terminal'})}
                         </Button>
                     </div>
 

@@ -55,6 +55,11 @@ const softKeys = [
 
 type TerminalProps = {
 
+    // Which terminal to draw. A window takes it from its own address; the card
+    // passes it in, because the panel behind the card's chevron is this same
+    // page drawn inside the card rather than in a window of its own.
+    terminalId?: string
+
     // Whether to draw the soft key row. It is for a phone: on a desktop the
     // keyboard already has these, and a row of buttons would only take screen
     // away from the CLI.
@@ -64,7 +69,7 @@ type TerminalProps = {
 const TerminalPage = (props: TerminalProps = {}): JSX.Element => {
     const intl = useIntl()
     const params = useParams<{terminalId: string}>()
-    const terminalId = params.terminalId
+    const terminalId = props.terminalId || params.terminalId
 
     let host: HTMLDivElement | undefined
     const [info, setInfo] = createSignal<TerminalInfo | null>(null)

@@ -442,8 +442,21 @@ Properties travel by **name**, since the two boards share nothing else.
 ### A terminal is how a person works with an agent
 
 `internal/acp/terminal.go` + `terminalws.go` run the agent's **own CLI** in a pty in
-the card's worktree, drawn by xterm.js in a second window of the app, wired over a
-WebSocket on the front door (`/acp/terminal/{id}/ws`).
+the card's worktree, drawn by xterm.js and wired over a WebSocket on the front door
+(`/acp/terminal/{id}/ws`).
+
+**Where it is drawn is the card**: `pages/…/terminalPage.tsx` takes its terminal id
+from the route when it is a window and from a prop when it is not, and the card's
+agent row opens it inline — a chevron that expands downwards into the CLI
+(`cardAgent.tsx`, lazily so a card that is never expanded does not pay for the
+emulator). There was a button saying «Открыть терминал» that opened a window
+somewhere else and left the card looking exactly as it had, which made the one
+thing a person does on a card with an agent on it read as a link away from it.
+The window survives as the ⤢ beside the panel — `OpenCardTerminal`'s `window`
+argument is what asks for one — because a screen of its own is the one thing a
+panel in a card cannot be. And **no session UI of ours was built to go beside
+it**: the terminal *is* what a session looks like, since the agent's own CLI
+already draws its work and asks its own questions.
 
 It is deliberately not an ACP session: an ACP agent speaks JSON-RPC on stdio and has
 no terminal UI, so one process cannot be both. What the two share is everything
@@ -453,8 +466,8 @@ is a column in the same table that knows the adapters (`cliBin`: `claude-agent-a
 → `claude`); `terminalCommand` on an entry replaces the argv outright.
 
 The card still hears about it, once: a comment when the CLI exits, saying what it
-left on the branch. Opening the terminal is not commented — the window is in front
-of whoever opened it. Terminals outlive their window and
+left on the branch. Opening the terminal is not commented — it is on the card, in
+front of whoever opened it. Terminals outlive the panel and the window and
 resume — every one is recorded, so the next terminal on that card returns to the
 same worktree with `claude --continue`.
 

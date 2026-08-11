@@ -172,6 +172,28 @@ describe('components/acp/terminalPage', () => {
         await waitFor(() => expect(screen.getByText('the CLI has exited — this window can be closed')).toBeInTheDocument())
     })
 
+    // The card draws the same page in the panel its chevron opens, where there
+    // is no route to read the terminal from — so it hands one in, and the page
+    // has to wire itself to that one rather than to the address bar.
+    it('draws the terminal it was handed when there is no route to read', async () => {
+        render(() =>
+            <IntlProvider
+                locale='en'
+                messages={{}}
+            >
+                <MemoryRouter history={createMemoryHistory()}>
+                    <Route
+                        path='/'
+                        component={() => <TerminalPage terminalId='term-42'/>}
+                    />
+                </MemoryRouter>
+            </IntlProvider>,
+        )
+
+        await waitFor(() => expect(FakeSocket.last).not.toBeNull())
+        expect(new URL(FakeSocket.last!.url).pathname).toBe('/acp/terminal/term-42/ws')
+    })
+
     it('pastes the card task into the prompt on request', async () => {
         renderPage()
         await waitFor(() => expect(screen.getByText('Paste the task')).toBeInTheDocument())

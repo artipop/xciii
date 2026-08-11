@@ -769,13 +769,22 @@ type terminalHandle struct {
 // OpenCardTerminal opens (or focuses) the agent CLI for a card and returns the
 // terminal as JSON. projectName/agentName may be empty, in which case the card
 // decides exactly as it does for a session.
-func (a *App) OpenCardTerminal(cardID, projectName, agentName string) (string, error) {
+//
+// window says whether it gets a window of its own. The card draws the terminal
+// inside itself now — the panel its chevron opens is the terminal — so a window
+// would be a second view of the same pty opening behind the one being looked
+// at. It is still what the ⤢ beside the panel asks for, and a screen of its own
+// is worth having.
+func (a *App) OpenCardTerminal(cardID, projectName, agentName string, window bool) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
 	t, err := a.mgr.StartCardTerminal(cardID, projectName, agentName)
 	if err != nil {
 		return "", err
+	}
+	if !window {
+		return terminalHandleJSON(a.terminalURL(t), false, t)
 	}
 	return a.terminalWindow(t)
 }
@@ -797,12 +806,21 @@ func (a *App) OpenPlanningTerminal(projectName, agentName, boardID string) (stri
 
 // terminalWindow opens the window for a terminal session and describes it.
 func (a *App) terminalWindow(t *acp.TerminalSession) (string, error) {
-	info := t.Info()
-	handle := terminalHandle{TerminalInfo: info, URL: a.originURL() + "acp/terminal/" + info.ID}
+	url := a.terminalURL(t)
+	windowed := false
 	if wapp := a.app(); wapp != nil {
-		handle.Windowed = openTerminalWindow(wapp, info, handle.URL)
+		windowed = openTerminalWindow(wapp, t.Info(), url)
 	}
-	out, err := json.Marshal(handle)
+	return terminalHandleJSON(url, windowed, t)
+}
+
+// terminalURL is the page that draws a terminal, wherever it is drawn.
+func (a *App) terminalURL(t *acp.TerminalSession) string {
+	return a.originURL() + "acp/terminal/" + t.Info().ID
+}
+
+func terminalHandleJSON(url string, windowed bool, t *acp.TerminalSession) (string, error) {
+	out, err := json.Marshal(terminalHandle{TerminalInfo: t.Info(), URL: url, Windowed: windowed})
 	if err != nil {
 		return "", err
 	}
