@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/web"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func routerWithAllRoutes(t *testing.T) *web.Router {

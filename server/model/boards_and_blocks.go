@@ -8,7 +8,7 @@ import (
 
 	"github.com/artipop/xciii/server/utils"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 var ErrNoBoardsInBoardsAndBlocks = errors.New("at least one board is required")

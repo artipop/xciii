@@ -8,8 +8,8 @@ package model
 import (
 	"database/sql"
 
+	"github.com/artipop/xciii/server/mlog"
 	mm_model "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (

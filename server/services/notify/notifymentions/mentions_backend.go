@@ -13,7 +13,7 @@ import (
 	"github.com/artipop/xciii/server/services/permissions"
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 const (

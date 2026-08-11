@@ -5,7 +5,7 @@ go 1.26.5
 // mattn/go-sqlite3 v2.0.3 is a tag its author retracted in practice: the module
 // never declared a /v2 path, so Go treats it as +incompatible, and the code
 // behind it is from 2019 — older than everything on the live v1.14.x line. It
-// reaches us from upstream (mattermost/server/v8 requires it), and because
+// reaches us from upstream (mattermost/server/public requires it), and because
 // +incompatible sorts above v1.14.x, minimal version
 // selection keeps choosing it and `go get -u` cannot move off it. Only a
 // replace can. We use the driver through database/sql alone — every import of
@@ -16,13 +16,13 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/aymanbagabas/go-pty v0.2.3
 	github.com/coder/acp-go-sdk v0.13.5
+	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
 	github.com/krolaw/zipstream v0.0.0-20180621105154-0a2661891f94
 	github.com/lib/pq v1.10.9
-	github.com/mattermost/logr/v2 v2.0.21
 	github.com/mattermost/mattermost/server/public v0.1.3
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mgdelacroix/foundation v0.0.0-20230510073833-0660207768ef
@@ -66,7 +66,6 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.7 // indirect
 	github.com/go-json-experiment/json v0.0.0-20260214004413-d219187c3433 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
-	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -90,6 +89,7 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404 // indirect
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956 // indirect
+	github.com/mattermost/logr/v2 v2.0.21 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/mdlayher/netlink v1.7.3-0.20250113171957-fbb4dce95f42 // indirect

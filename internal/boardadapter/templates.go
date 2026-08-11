@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // The board templates this app ships are ours, and they live here. The server

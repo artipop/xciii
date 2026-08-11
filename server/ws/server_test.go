@@ -7,7 +7,7 @@ import (
 	"github.com/artipop/xciii/server/auth"
 	"github.com/artipop/xciii/server/model"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"

@@ -4,7 +4,7 @@ import (
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/utils"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 func (a *App) CreateSubscription(sub *model.Subscription) (*model.Subscription, error) {

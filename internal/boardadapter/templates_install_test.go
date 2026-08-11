@@ -14,7 +14,7 @@ import (
 	"github.com/artipop/xciii/server/services/notify"
 	"github.com/artipop/xciii/server/services/permissions/localpermissions"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 // Installing the templates is the half nothing else covers: the files are

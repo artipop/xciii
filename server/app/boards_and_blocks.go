@@ -4,7 +4,7 @@ import (
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/services/notify"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 func (a *App) CreateBoardsAndBlocks(bab *model.BoardsAndBlocks, userID string, addMember bool) (*model.BoardsAndBlocks, error) {

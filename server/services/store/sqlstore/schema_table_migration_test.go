@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const migrationTestPrefix = "test_"

@@ -18,8 +18,8 @@ import (
 	"github.com/artipop/xciii/server/services/store/sqlstore"
 	"github.com/artipop/xciii/server/utils"
 
+	"github.com/artipop/xciii/server/mlog"
 	mmModel "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/stretchr/testify/require"
 )

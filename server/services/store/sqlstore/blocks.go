@@ -12,7 +12,7 @@ import (
 	"github.com/artipop/xciii/server/model"
 	_ "github.com/lib/pq" // postgres driver
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 const (

@@ -9,8 +9,8 @@ import (
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/web"
 
+	"github.com/artipop/xciii/server/mlog"
 	mm_model "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (

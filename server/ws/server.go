@@ -11,7 +11,7 @@ import (
 	"github.com/artipop/xciii/server/web"
 	"github.com/gorilla/websocket"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 func (wss *websocketSession) WriteJSON(v interface{}) error {

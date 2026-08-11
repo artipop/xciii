@@ -10,7 +10,7 @@ import (
 	"github.com/artipop/xciii/server/services/store"
 	"github.com/artipop/xciii/server/ws"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 type Params struct {

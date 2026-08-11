@@ -9,7 +9,7 @@ import (
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/services/config"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 // NotifyUpdate calls webhooks.

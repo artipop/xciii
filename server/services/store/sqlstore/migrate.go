@@ -6,11 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"text/template"
 
 	sq "github.com/Masterminds/squirrel"
 
+	mysqldriver "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
@@ -25,9 +27,7 @@ import (
 	// tag is for, and sqlite.go is where it is done.
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
 
-	mmModel "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	sqlUtils "github.com/mattermost/mattermost/server/public/utils/sql"
+	"github.com/artipop/xciii/server/mlog"
 
 	_ "github.com/lib/pq" // postgres driver
 
@@ -44,32 +44,45 @@ const (
 	deDuplicateCategoryBoards                = 35
 )
 
-// migrations in MySQL need to run with the multiStatements flag
-// enabled, so this method creates a new connection ensuring that it's
-// enabled.
+// getMigrationConnection opens the connection the migrations run on. MySQL
+// needs one of its own: several statements arrive in one round trip, which its
+// driver refuses unless the DSN says so, and a long migration must not be cut
+// short by the read timeout the app runs with.
 func (s *SQLStore) getMigrationConnection() (*sql.DB, error) {
 	connectionString := s.connectionString
 	if s.dbType == model.MysqlDBType {
-		var err error
-		connectionString, err = sqlUtils.ResetReadTimeout(connectionString)
+		cfg, err := mysqldriver.ParseDSN(connectionString)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("cannot read the database connection string: %w", err)
 		}
-
-		connectionString, err = sqlUtils.AppendMultipleStatementsFlag(connectionString)
-		if err != nil {
-			return nil, err
-		}
+		cfg.MultiStatements = true
+		cfg.ReadTimeout = 0
+		connectionString = cfg.FormatDSN()
 	}
 
-	var settings mmModel.SqlSettings
-	settings.SetDefaults(false)
-	if s.configFn != nil {
-		settings = s.configFn().SqlSettings
+	db, err := sql.Open(s.dbType, connectionString)
+	if err != nil {
+		return nil, err
 	}
-	*settings.DriverName = s.dbType
 
-	db, _ := sqlUtils.SetupConnection(s.logger, "master", connectionString, &settings, s.dbPingAttempts)
+	// The app has just opened this database on its own connection, so a ping
+	// that fails is a transient thing rather than a wrong address; it is still
+	// retried, because the store is given a number of attempts to use.
+	attempts := s.dbPingAttempts
+	if attempts < 1 {
+		attempts = 1
+	}
+	for i := 0; ; i++ {
+		if err = db.Ping(); err == nil {
+			break
+		}
+		if i >= attempts-1 {
+			db.Close()
+			return nil, fmt.Errorf("cannot reach the database for migrations: %w", err)
+		}
+		s.logger.Warn("Migration connection ping failed, retrying", mlog.Err(err))
+		time.Sleep(time.Second)
+	}
 
 	return db, nil
 }

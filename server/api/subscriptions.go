@@ -10,7 +10,7 @@ import (
 	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 func (a *API) registerSubscriptionsRoutes(r *web.Router) {

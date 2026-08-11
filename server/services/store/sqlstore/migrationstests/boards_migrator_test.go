@@ -11,8 +11,8 @@ import (
 	migratepostgres "github.com/golang-migrate/migrate/v4/database/postgres"
 	migratesqlite "github.com/golang-migrate/migrate/v4/database/sqlite"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	mmSqlStore "github.com/mattermost/mattermost/server/public/utils/sql"
+	"github.com/artipop/xciii/server/mlog"
+	mysqldriver "github.com/go-sql-driver/mysql"
 
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/services/store/sqlstore"
@@ -74,15 +74,13 @@ func (bm *BoardsMigrator) Setup() error {
 	}
 
 	if bm.driverName == model.MysqlDBType {
-		bm.connString, err = mmSqlStore.ResetReadTimeout(bm.connString)
-		if err != nil {
-			return err
+		cfg, pErr := mysqldriver.ParseDSN(bm.connString)
+		if pErr != nil {
+			return pErr
 		}
-
-		bm.connString, err = mmSqlStore.AppendMultipleStatementsFlag(bm.connString)
-		if err != nil {
-			return err
-		}
+		cfg.MultiStatements = true
+		cfg.ReadTimeout = 0
+		bm.connString = cfg.FormatDSN()
 	}
 
 	var dbErr error

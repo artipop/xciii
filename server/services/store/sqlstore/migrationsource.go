@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang-migrate/migrate/v4/source"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 
 	"github.com/artipop/xciii/server/model"
 )

@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestHello(t *testing.T) {

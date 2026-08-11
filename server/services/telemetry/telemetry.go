@@ -12,7 +12,7 @@ import (
 	"github.com/artipop/xciii/server/services/scheduler"
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 const (

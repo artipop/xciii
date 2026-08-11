@@ -15,9 +15,9 @@ import (
 	"github.com/artipop/xciii/server/utils"
 	"github.com/artipop/xciii/server/ws"
 
+	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/services/filestore"
 	mm_model "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (

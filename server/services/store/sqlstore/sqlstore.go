@@ -11,8 +11,8 @@ import (
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/services/store"
 
+	"github.com/artipop/xciii/server/mlog"
 	mmModel "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // SQLStore is a SQL database.

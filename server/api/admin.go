@@ -9,7 +9,7 @@ import (
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/services/audit"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 type AdminSetPasswordData struct {

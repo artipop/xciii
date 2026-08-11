@@ -17,7 +17,7 @@ import (
 	"github.com/artipop/xciii/server/services/notify"
 	"github.com/artipop/xciii/server/services/permissions/localpermissions"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 // getFreePort asks the kernel for a free open port that is ready to use.

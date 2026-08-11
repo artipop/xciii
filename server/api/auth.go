@@ -14,7 +14,7 @@ import (
 	"github.com/artipop/xciii/server/utils"
 	"github.com/artipop/xciii/server/web"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 func (a *API) registerAuthRoutes(r *web.Router) {

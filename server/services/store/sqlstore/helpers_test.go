@@ -8,7 +8,7 @@ import (
 	"github.com/artipop/xciii/server/services/store"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 func SetupTests(t *testing.T) (store.Store, func()) {

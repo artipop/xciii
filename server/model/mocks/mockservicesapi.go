@@ -8,9 +8,9 @@ import (
 	sql "database/sql"
 	reflect "reflect"
 
+	mlog "github.com/artipop/xciii/server/mlog"
 	gomock "github.com/golang/mock/gomock"
 	model "github.com/mattermost/mattermost/server/public/model"
-	mlog "github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 // MockServicesAPI is a mock of ServicesAPI interface.

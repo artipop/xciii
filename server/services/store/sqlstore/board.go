@@ -14,7 +14,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/artipop/xciii/server/model"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 func boardFields(tableAlias string) []string {

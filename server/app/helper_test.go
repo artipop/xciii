@@ -15,8 +15,8 @@ import (
 	"github.com/artipop/xciii/server/services/webhook"
 	"github.com/artipop/xciii/server/ws"
 
+	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/services/filestore/mocks"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type TestHelper struct {
