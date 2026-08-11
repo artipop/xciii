@@ -70,8 +70,10 @@ func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bo
 				flow.Name, node.Column, err))
 			return
 		}
-		m.commentCard(ev.CardID, fmt.Sprintf("Флоу «%s»: карточка переведена в «%s» — %s.",
-			flow.Name, node.Column, detail))
+		// A card that moved is a card that moved: the board shows it in the new
+		// column, and a comment saying so on every stage of every route turned
+		// the card into a log of its own route. Only a move that did *not*
+		// happen is worth a comment, which is the branch above.
 	}
 
 	projectPath, _ := m.resolveProject(ev)

@@ -196,19 +196,19 @@ func TestTerminalStreamsBothWaysAndReportsToTheCard(t *testing.T) {
 	var comments []string
 	for time.Now().Before(deadline) {
 		comments = writer.cardComments("card-term")
-		if len(comments) >= 2 {
+		if len(comments) >= 1 {
 			break
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	if len(comments) < 2 {
-		t.Fatalf("card was told %d things about its terminal, want an opening and a closing one: %v", len(comments), comments)
+	// One comment, and it is the closing report. Opening the terminal is not
+	// commented: the window is in front of whoever opened it, and what the
+	// card cannot see for itself is what was left on the branch.
+	if len(comments) != 1 {
+		t.Fatalf("card was told %d things about its terminal, want only the closing report: %v", len(comments), comments)
 	}
-	joined := strings.Join(comments, "\n")
-	for _, want := range []string{"Открыт терминал", "from the terminal"} {
-		if !strings.Contains(joined, want) {
-			t.Errorf("the card was not told %q:\n%s", want, joined)
-		}
+	if !strings.Contains(comments[0], "from the terminal") {
+		t.Errorf("the card was not told what the terminal left behind:\n%s", comments[0])
 	}
 	if m.Terminal(term.ID) != nil {
 		t.Error("a finished terminal is still listed as live")

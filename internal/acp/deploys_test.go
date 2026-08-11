@@ -353,16 +353,15 @@ func TestDeployColumnStartsASessionWithTheDokkuTools(t *testing.T) {
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusDone
 	})
 
-	comments := writer.cardComments("cardD")
-	if len(comments) == 0 || !strings.Contains(comments[0], "Деплой ветки `main`") {
-		t.Fatalf("expected a deploy start comment, got %v", comments)
-	}
-	if !strings.Contains(comments[0], "http://api-main.example.com") {
-		t.Errorf("start comment should announce the address: %q", comments[0])
-	}
-	all := strings.Join(comments, "\n")
+	// The card is told once, at the end: which branch went where and at what
+	// address. Announcing the deploy as it started said the same thing one
+	// paragraph earlier, before there was anything to report.
+	all := strings.Join(writer.cardComments("cardD"), "\n")
 	if !strings.Contains(all, "Сессия деплоя завершена") || !strings.Contains(all, "api-main") {
 		t.Errorf("comments should summarize the deployment: %q", all)
+	}
+	if !strings.Contains(all, "http://api-main.example.com") {
+		t.Errorf("the summary should carry the address: %q", all)
 	}
 	// The fake agent never calls deploy_branch, so nothing was published — and
 	// the card has to say so rather than let "the session finished" pass for

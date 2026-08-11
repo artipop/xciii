@@ -168,7 +168,7 @@ flowchart TD
     F --> G{"worktreeMode"}
     G -- always, the default --> H["Create a git worktree<br/>on a new branch acp/card-title-abcd1234"]
     G -- never --> I["Work in the project itself.<br/>A second card is refused while one is running"]
-    H --> J["Session runs: the agent works,<br/>progress and result land as card comments"]
+    H --> J["Session runs: the agent works,<br/>and the result lands as one card comment"]
     I --> J
     J --> K{"Is the card on a route?"}
     K -- no --> L["Card stays where it is.<br/>A person moves it on"]
@@ -353,7 +353,7 @@ Two things are worth knowing about the wait:
   stays in its column, marked as waiting for you rather than done;
 - nothing is decided for you by a timer. A question with no answer is answered when the session
   is cancelled or the app is closed, and "no answer" reaches the agent as a refusal — it then
-  finishes without whatever it asked for, and the card's comments say what that was.
+  finishes without whatever it asked for, and says so in the comment it closes with.
 
 If a particular tool should never be asked about, put it in the column's allow list instead — the
 agent stops asking and stops waiting.
@@ -390,8 +390,10 @@ adapters have no such channel.
 | Card never leaves *In Review* | Nobody is watching its branch — see [which branch is followed](#which-branch-is-followed), or the route has no edge for what happened |
 | Test stage refuses to start | The agent has no browser MCP server (*«Эта машина…» → «Агенты»* → MCP servers) |
 
-Everything a session does is written to the card as comments, and the card shows
-its route, the stage it is on and what that stage is waiting for.
+A session writes one comment, at the end: what the agent did, or why it could not.
+Everything else it does is shown rather than written down — the card carries its
+route, the stage it is on, what that stage is waiting for, and the branch the work
+is on.
 
 ## The knobs
 

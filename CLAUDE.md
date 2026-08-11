@@ -228,10 +228,23 @@ carries on without what it asked for.
 The question shows up as `acp:attention` — the amber dot on the card's face, and,
 unless turned off in the settings menu, a notification carrying the question
 itself, since the options *are* the answer and there is nothing to navigate to.
-It is answered in either place through `AnswerQuestion`, and the card keeps the
-exchange in its comments like everything else a session does. This is the only
-thing that raises attention: a terminal used to be a second reason and no longer
-is (below). `components/acp/attention.ts` is the one subscription behind it.
+It is answered in either place through `AnswerQuestion`, and leaves no comment
+behind: a question is live while it waits and the agent's business once it is
+answered. This is the only thing that raises attention: a terminal used to be a
+second reason and no longer is (below). `components/acp/attention.ts` is the one
+subscription behind it.
+
+**A session writes one comment, and writes it at the end**: what the agent did,
+or why it could not. There were a dozen once — started, cancelled, asked,
+answered, terminal opened, moved along the route — and a card whose comments are
+a log of the machinery is a card nobody reads, with the one thing worth reading
+buried in it. Everything that was narrated there is shown instead: the branch and
+the worktree on the card's stamp, the position on its route strip (whose reason
+is kept in the flow event record rather than on the card), the question on the
+card's face. What survives is what the card cannot show for itself — the agent's
+own summary, a failure, a stage that would not start, a card an agent refused
+because a person is assigned to it — and `comment_card`, which is the agent
+choosing to say something.
 
 The automation around sessions is untouched by that: columns say what happens when a
 card lands in them, flows join columns into routes, deploys publish a branch to
@@ -439,8 +452,9 @@ that is what `startTerminal` reuses. Which binary is the interactive half of a k
 is a column in the same table that knows the adapters (`cliBin`: `claude-agent-acp`
 → `claude`); `terminalCommand` on an entry replaces the argv outright.
 
-The card still hears about it: a comment when the terminal opens, and one when the
-CLI exits saying what it left on the branch. Terminals outlive their window and
+The card still hears about it, once: a comment when the CLI exits, saying what it
+left on the branch. Opening the terminal is not commented — the window is in front
+of whoever opened it. Terminals outlive their window and
 resume — every one is recorded, so the next terminal on that card returns to the
 same worktree with `claude --continue`.
 

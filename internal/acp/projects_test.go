@@ -146,8 +146,10 @@ func TestTriggerSessionViaTag(t *testing.T) {
 	if wt := sessions[0].WorktreePath; !strings.Contains(filepath.Base(wt), filepath.Base(project)) {
 		t.Errorf("expected a worktree of %q, got %q", project, wt)
 	}
-	if got := writer.cardComments("card10"); len(got) < 2 {
-		t.Errorf("expected comments, got %v", got)
+	// One comment, and it is what the session did. The card is not a log of
+	// the machinery that ran it.
+	if got := writer.cardComments("card10"); len(got) != 1 || !strings.Contains(got[0], "Агент завершил работу") {
+		t.Errorf("expected one closing comment, got %v", got)
 	}
 }
 

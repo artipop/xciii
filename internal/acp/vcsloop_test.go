@@ -70,11 +70,15 @@ func TestPollVCSMovesTheCardOnceAndOnlyWhereSomebodyWaits(t *testing.T) {
 		t.Fatalf("the branch is still merged, but the card must not move twice: %+v", moves)
 	}
 
-	// The comment says what moved the card, in the watcher's own words.
-	comments := writer.cardComments("cardV")
-	last := comments[len(comments)-1]
-	if !strings.Contains(last, "ветка влита в main") {
-		t.Fatalf("transition comment should carry the reason: %q", last)
+	// The route history says what moved the card, in the watcher's own words.
+	// It is not commented onto the card: the board shows the card in its new
+	// column, and the route strip is where a card says how it got there.
+	history, err := m.store.FlowEvents("cardV")
+	if err != nil || len(history) == 0 {
+		t.Fatalf("flow events: %v, %v", history, err)
+	}
+	if last := history[len(history)-1]; !strings.Contains(last.Detail, "ветка влита в main") {
+		t.Fatalf("the transition should carry the reason: %+v", last)
 	}
 }
 

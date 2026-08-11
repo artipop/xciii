@@ -272,13 +272,15 @@ func TestTriggerRunsSessionToDone(t *testing.T) {
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusDone
 	})
 
+	// One comment for the whole session, and it is what the agent did. The
+	// card used to be told the session had started as well, which is the
+	// ordinary case and says nothing the board does not show.
 	comments := writer.cardComments("card1")
-	if len(comments) < 2 {
-		t.Fatalf("expected start + result comments, got %v", comments)
+	if len(comments) != 1 {
+		t.Fatalf("expected one comment — the result, got %v", comments)
 	}
-	last := comments[len(comments)-1]
-	if !strings.Contains(last, "fake work done") {
-		t.Errorf("final comment lacks agent output: %q", last)
+	if !strings.Contains(comments[0], "fake work done") {
+		t.Errorf("final comment lacks agent output: %q", comments[0])
 	}
 
 	// The default gives the card its own worktree, on a branch named after the
@@ -293,8 +295,8 @@ func TestTriggerRunsSessionToDone(t *testing.T) {
 	if branch := sessions[0].Branch; !strings.HasPrefix(branch, "acp/test-task-") {
 		t.Errorf("branch %q is not named after the card", branch)
 	}
-	if !strings.Contains(last, sessions[0].WorktreePath) {
-		t.Errorf("final comment lacks the worktree: %q", last)
+	if !strings.Contains(comments[0], sessions[0].WorktreePath) {
+		t.Errorf("final comment lacks the worktree: %q", comments[0])
 	}
 }
 
@@ -537,10 +539,13 @@ func TestASessionAsksTheCardForAToolOutsideThePolicy(t *testing.T) {
 		t.Errorf("the UI was never told the question was answered: %v", got)
 	}
 
-	// The card carries the exchange, as it carries everything else a session does.
+	// The exchange leaves no comments behind. A question is answered where it
+	// is shown — the card's face, the notification, «Ждут» — and once answered
+	// it is the agent's business; the card keeps what the session did, not how
+	// it was conducted.
 	joined := strings.Join(writer.cardComments("cardAsk"), "\n")
-	if !strings.Contains(joined, "спрашивает") || !strings.Contains(joined, "Ответ агенту") {
-		t.Errorf("the card does not record the question and its answer:\n%s", joined)
+	if strings.Contains(joined, "спрашивает") || strings.Contains(joined, "Ответ агенту") {
+		t.Errorf("the question exchange should not be commented on the card:\n%s", joined)
 	}
 }
 

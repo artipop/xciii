@@ -281,7 +281,13 @@ func (m *Manager) runSession(s *Session) {
 	m.cleanupWorktree(s)
 }
 
-// prepareWorkdir sets up the session's working directory and announces it.
+// prepareWorkdir sets up the session's working directory.
+//
+// It used to announce it on the card as well — a comment saying the agent had
+// started, in which worktree, on which branch. Nothing read it: a session that
+// starts is the ordinary case, and where the work lives is on the card's own
+// stamp the moment the worktree exists. The card is left for the two things
+// only it can carry: what the agent did, and why it could not.
 func (m *Manager) prepareWorkdir(s *Session) error {
 	// Three kinds of session run in the project itself even under
 	// worktreeMode "always": a planning session only reads, so a worktree would
@@ -299,7 +305,6 @@ func (m *Manager) prepareWorkdir(s *Session) error {
 		if err := m.store.UpdateSession(s.ID, StatusRunning, "", wt.Path, wt.Path, wt.Branch, "", nil); err != nil {
 			m.log.Warn("acp: failed to persist worktree info", "session", s.ID, "err", err)
 		}
-		m.comment(s, fmt.Sprintf("Агент запущен.\nWorktree: `%s`\nВетка: `%s` (от `%s`)", wt.Path, wt.Branch, wt.BaseRef))
 		// The card shows the branch and offers to deploy it, and this is the
 		// first moment it exists.
 		m.emitSession(s, "")
@@ -309,16 +314,6 @@ func (m *Manager) prepareWorkdir(s *Session) error {
 	if err := m.store.UpdateSession(s.ID, StatusRunning, "", s.ProjectPath, "", s.recordedBranch(), "", nil); err != nil {
 		m.log.Warn("acp: failed to persist session cwd", "session", s.ID, "err", err)
 	}
-	if s.Deploy != nil {
-		m.comment(s, fmt.Sprintf("Деплой ветки `%s` → `%s`\nОжидаемый адрес: %s",
-			s.DeployBranch, s.Deploy.Name, s.Deploy.URL(dokku.AppSlug(s.DeployBranch))))
-		return nil
-	}
-	if s.Test != nil {
-		m.comment(s, fmt.Sprintf("Тестирую превью: %s", s.Test.URL))
-		return nil
-	}
-	m.comment(s, fmt.Sprintf("Агент запущен прямо в проекте `%s`.", s.ProjectPath))
 	return nil
 }
 
@@ -359,8 +354,9 @@ func (m *Manager) commentFirstTurn(s *Session, finalText string, err error) {
 		// Shutdown: runSession reports it.
 	case s.wasCancelled():
 		// A cancelled turn ends with StopReason "cancelled", not an error.
+		// Nothing is said on the card: somebody pressed the button a second
+		// ago and the card's own status says «отменена».
 		m.finishSession(s, StatusCancelled, "сессия отменена")
-		m.comment(s, cancelComment(s))
 	case err != nil:
 		m.finishSession(s, StatusFailed, err.Error())
 		// A test session reports even when its turn broke off: the screenshots
@@ -762,6 +758,13 @@ func (s *Session) wasCancelled() bool {
 }
 
 // ---- card comments ----
+//
+// A session leaves one, at its end, and there used to be a comment for every
+// step it took: started, cancelled, asked, answered, terminal opened, moved
+// along the route. A card whose comments are a log of the machinery is a card
+// nobody reads, and the one thing worth reading — what the agent actually did —
+// was buried in it. What is left is the summary the agent wrote, or the reason
+// there is no summary.
 
 func doneComment(s *Session, finalText string) string {
 	var b strings.Builder
@@ -806,26 +809,6 @@ func failComment(s *Session, reason string) string {
 		fmt.Fprintf(&b, "\nWorktree (если остался): `%s`", s.Worktree.Path)
 	}
 	return b.String()
-}
-
-func cancelComment(s *Session) string {
-	return "Сессия агента отменена."
-}
-
-// closeComment closes out an interactive session. Turns after the first are not
-// commented one by one, so this records how long the conversation ran.
-func closeComment(s *Session) string {
-	s.mu.Lock()
-	turns := s.turnNo
-	s.mu.Unlock()
-	if turns <= 1 {
-		return "Интерактивная сессия закрыта."
-	}
-	return fmt.Sprintf("Интерактивная сессия закрыта, ходов: %d.", turns)
-}
-
-func idleComment(s *Session, idle time.Duration) string {
-	return fmt.Sprintf("Сессия закрыта: без сообщений дольше %s.", idle)
 }
 
 func truncateRunes(s string, n int) string {

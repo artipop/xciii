@@ -413,13 +413,11 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 
 	m.log.Info("acp: terminal started", "terminal", id, "card", t.CardID, "agent", t.AgentName, "cwd", t.Cwd)
 	m.emitTerminal(t)
-	if t.CardID != "" {
-		where := t.Cwd
-		if t.Branch != "" {
-			where = fmt.Sprintf("%s\nВетка: `%s`", t.Cwd, t.Branch)
-		}
-		m.commentCard(t.CardID, fmt.Sprintf("Открыт терминал агента %s (`%s`).\nКаталог: `%s`", t.AgentName, strings.Join(argv, " "), where))
-	}
+
+	// Opening it is not commented on the card: the window is in front of
+	// whoever opened it, and the card's stamp says a terminal is open. What
+	// the card is told is what the terminal left behind — terminalReport, when
+	// the CLI exits.
 
 	go t.pump()
 	return t, nil

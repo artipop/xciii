@@ -109,9 +109,6 @@ func (m *Manager) ask(ctx context.Context, s *Session, q Question) Answer {
 	s.appendEvent(m, "question", map[string]any{
 		"questionId": q.ID, "kind": string(q.Kind), "text": q.Text, "tool": q.Tool,
 	})
-	// The card is the durable record of everything a session does, and a
-	// question is the one thing in it that was addressed to a person.
-	m.commentCard(q.CardID, questionComment(q))
 	m.setStatus(s, StatusWaitingPermission)
 	m.emitQuestion(q, true)
 	m.log.Info("acp: the agent is asking", "session", s.ID, "card", q.CardID, "kind", q.Kind, "tool", q.Tool)
@@ -133,10 +130,14 @@ func (m *Manager) ask(ctx context.Context, s *Session, q Question) Answer {
 
 	m.setStatus(s, StatusRunning)
 	m.emitQuestion(q, false)
+	// The exchange itself is not commented on the card. A question is live —
+	// it is on the card's face, in the notification and on «Ждут» while it
+	// waits, and it is answered in any of them. Once answered it is the
+	// agent's business, and the two comments it used to leave said nothing a
+	// person would come back for.
 	s.appendEvent(m, "answer", map[string]any{
 		"questionId": q.ID, "optionId": answer.OptionID, "declined": answer.Declined,
 	})
-	m.commentCard(q.CardID, answerComment(q, answer))
 	return answer
 }
 
@@ -220,36 +221,4 @@ func (q Question) attention() Attention {
 		Awaiting:   true,
 		Since:      q.AskedAt.Format(time.RFC3339),
 	}
-}
-
-func questionComment(q Question) string {
-	var b strings.Builder
-	b.WriteString(fmt.Sprintf("Агент %s спрашивает:\n\n%s", q.Agent, q.Text))
-	for _, opt := range q.Options {
-		b.WriteString("\n- " + opt.Label)
-		if opt.Description != "" {
-			b.WriteString(" — " + opt.Description)
-		}
-	}
-	return b.String()
-}
-
-func answerComment(q Question, ans Answer) string {
-	switch {
-	case ans.Declined || ans.empty():
-		return fmt.Sprintf("Вопрос агента %s остался без ответа — работа продолжена без него.", q.Agent)
-	case ans.Text != "":
-		return fmt.Sprintf("Ответ агенту %s: %s", q.Agent, ans.Text)
-	default:
-		return fmt.Sprintf("Ответ агенту %s: %s", q.Agent, optionLabel(q, ans.OptionID))
-	}
-}
-
-func optionLabel(q Question, optionID string) string {
-	for _, opt := range q.Options {
-		if opt.ID == optionID {
-			return opt.Label
-		}
-	}
-	return optionID
 }

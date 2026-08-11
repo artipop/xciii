@@ -59,10 +59,15 @@ func TestFlowAdvancesOnSessionSuccess(t *testing.T) {
 		t.Fatalf("move: %+v", move)
 	}
 
-	// The route says out loud why the card moved.
-	comments := strings.Join(writer.cardComments("card1"), "\n")
-	if !strings.Contains(comments, "Флоу «feature»") || !strings.Contains(comments, "Review") {
-		t.Fatalf("no transition comment: %s", comments)
+	// The route records why the card moved. It is not commented onto the card:
+	// the board shows the card in its new column, and a comment per stage of
+	// every route turned the card into a log of its own route.
+	history, err := m.store.FlowEvents("card1")
+	if err != nil || len(history) == 0 {
+		t.Fatalf("flow events: %v, %v", history, err)
+	}
+	if last := history[len(history)-1]; last.Flow != "feature" || last.ToNode != "review" {
+		t.Fatalf("the transition was not recorded: %+v", last)
 	}
 
 	// And the card's position is remembered, so the next event knows where it is.
@@ -276,10 +281,13 @@ func TestConditionalEdgeRoutesByCardProperty(t *testing.T) {
 		return len(moves) == 1 && moves[0].option == "Fast Lane"
 	})
 
-	// The card is told which condition sent it there.
-	comments := strings.Join(writer.cardComments("cardUrgent"), "\n")
-	if !strings.Contains(comments, "«Приоритет» = «Высокий»") {
-		t.Fatalf("the transition comment does not name the condition: %s", comments)
+	// The route history names the condition that sent it there.
+	history, err := m.store.FlowEvents("cardUrgent")
+	if err != nil || len(history) == 0 {
+		t.Fatalf("flow events: %v, %v", history, err)
+	}
+	if last := history[len(history)-1]; !strings.Contains(last.Detail, "«Приоритет» = «Высокий»") {
+		t.Fatalf("the transition does not name the condition: %+v", last)
 	}
 }
 
@@ -332,7 +340,7 @@ func TestCardChangedAdvancesAParkedCard(t *testing.T) {
 		t.Fatalf("an unrelated option moved the card: %+v", moves)
 	}
 
-	// The watched option: the card moves on, and the comment says why.
+	// The watched option: the card moves on, and the route says why.
 	approve := flowEvent("cardWait", project, "", "Да")
 	approve.FromColumn.PropertyName, approve.ToColumn.PropertyName = "Одобрено", "Одобрено"
 	events.ch <- approve
@@ -341,9 +349,12 @@ func TestCardChangedAdvancesAParkedCard(t *testing.T) {
 		moves := writer.cardMoves()
 		return len(moves) == 2 && moves[1].option == "Done"
 	})
-	comments := strings.Join(writer.cardComments("cardWait"), "\n")
-	if !strings.Contains(comments, "на карточке выбрано «Одобрено» = «Да»") {
-		t.Fatalf("the transition comment does not name the option: %s", comments)
+	history, err := m.store.FlowEvents("cardWait")
+	if err != nil || len(history) == 0 {
+		t.Fatalf("flow events: %v, %v", history, err)
+	}
+	if last := history[len(history)-1]; !strings.Contains(last.Detail, "на карточке выбрано «Одобрено» = «Да»") {
+		t.Fatalf("the transition does not name the option: %+v", last)
 	}
 
 	// A board-pushed trigger is not something the VCS watcher should poll for.
