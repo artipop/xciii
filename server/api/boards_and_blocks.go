@@ -6,18 +6,18 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/mattermost/focalboard/server/web"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-func (a *API) registerBoardsAndBlocksRoutes(r *mux.Router) {
+func (a *API) registerBoardsAndBlocksRoutes(r *web.Router) {
 	// BoardsAndBlocks APIs
-	r.HandleFunc("/boards-and-blocks", a.sessionRequired(a.handleCreateBoardsAndBlocks)).Methods("POST")
-	r.HandleFunc("/boards-and-blocks", a.sessionRequired(a.handlePatchBoardsAndBlocks)).Methods("PATCH")
-	r.HandleFunc("/boards-and-blocks", a.sessionRequired(a.handleDeleteBoardsAndBlocks)).Methods("DELETE")
+	r.HandleFunc("POST /boards-and-blocks", a.sessionRequired(a.handleCreateBoardsAndBlocks))
+	r.HandleFunc("PATCH /boards-and-blocks", a.sessionRequired(a.handlePatchBoardsAndBlocks))
+	r.HandleFunc("DELETE /boards-and-blocks", a.sessionRequired(a.handleDeleteBoardsAndBlocks))
 }
 
 func (a *API) handleCreateBoardsAndBlocks(w http.ResponseWriter, r *http.Request) {

@@ -3,14 +3,14 @@ package api
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/mattermost/focalboard/server/web"
 )
 
-func (a *API) registerContentBlocksRoutes(r *mux.Router) {
+func (a *API) registerContentBlocksRoutes(r *web.Router) {
 	// Blocks APIs
-	r.HandleFunc("/content-blocks/{blockID}/moveto/{where}/{dstBlockID}", a.sessionRequired(a.handleMoveBlockTo)).Methods("POST")
+	r.HandleFunc("POST /content-blocks/{blockID}/moveto/{where}/{dstBlockID}", a.sessionRequired(a.handleMoveBlockTo))
 }
 
 func (a *API) handleMoveBlockTo(w http.ResponseWriter, r *http.Request) {
@@ -53,9 +53,9 @@ func (a *API) handleMoveBlockTo(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	blockID := mux.Vars(r)["blockID"]
-	dstBlockID := mux.Vars(r)["dstBlockID"]
-	where := mux.Vars(r)["where"]
+	blockID := r.PathValue("blockID")
+	dstBlockID := r.PathValue("dstBlockID")
+	where := r.PathValue("where")
 	userID := getUserID(r)
 
 	block, err := a.app.GetBlockByID(blockID)

@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/mattermost/focalboard/server/web"
 )
 
-func (a *API) registerConfigRoutes(r *mux.Router) {
+func (a *API) registerConfigRoutes(r *web.Router) {
 	// Config APIs
-	r.HandleFunc("/clientConfig", a.getClientConfig).Methods("GET")
+	r.HandleFunc("GET /clientConfig", a.getClientConfig)
 }
 
 func (a *API) getClientConfig(w http.ResponseWriter, r *http.Request) {

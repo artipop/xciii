@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/mattermost/focalboard/server/web"
 
 	mm_model "github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-func (a *API) registerChannelsRoutes(r *mux.Router) {
-	r.HandleFunc("/teams/{teamID}/channels/{channelID}", a.sessionRequired(a.handleGetChannel)).Methods("GET")
+func (a *API) registerChannelsRoutes(r *web.Router) {
+	r.HandleFunc("GET /teams/{teamID}/channels/{channelID}", a.sessionRequired(a.handleGetChannel))
 }
 
 func (a *API) handleGetChannel(w http.ResponseWriter, r *http.Request) {
@@ -55,8 +55,8 @@ func (a *API) handleGetChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamID := mux.Vars(r)["teamID"]
-	channelID := mux.Vars(r)["channelID"]
+	teamID := r.PathValue("teamID")
+	channelID := r.PathValue("channelID")
 	userID := getUserID(r)
 
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {

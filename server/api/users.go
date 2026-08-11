@@ -5,20 +5,20 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/services/audit"
 	"github.com/mattermost/focalboard/server/utils"
+	"github.com/mattermost/focalboard/server/web"
 )
 
-func (a *API) registerUsersRoutes(r *mux.Router) {
+func (a *API) registerUsersRoutes(r *web.Router) {
 	// Users APIs
-	r.HandleFunc("/users", a.sessionRequired(a.handleGetUsersList)).Methods("POST")
-	r.HandleFunc("/users/me", a.sessionRequired(a.handleGetMe)).Methods("GET")
-	r.HandleFunc("/users/me/memberships", a.sessionRequired(a.handleGetMyMemberships)).Methods("GET")
-	r.HandleFunc("/users/{userID}", a.sessionRequired(a.handleGetUser)).Methods("GET")
-	r.HandleFunc("/users/{userID}/config", a.sessionRequired(a.handleUpdateUserConfig)).Methods(http.MethodPut)
-	r.HandleFunc("/users/me/config", a.sessionRequired(a.handleGetUserPreferences)).Methods(http.MethodGet)
+	r.HandleFunc("POST /users", a.sessionRequired(a.handleGetUsersList))
+	r.HandleFunc("GET /users/me", a.sessionRequired(a.handleGetMe))
+	r.HandleFunc("GET /users/me/memberships", a.sessionRequired(a.handleGetMyMemberships))
+	r.HandleFunc("GET /users/{userID}", a.sessionRequired(a.handleGetUser))
+	r.HandleFunc("PUT /users/{userID}/config", a.sessionRequired(a.handleUpdateUserConfig))
+	r.HandleFunc("GET /users/me/config", a.sessionRequired(a.handleGetUserPreferences))
 }
 
 func (a *API) handleGetUsersList(w http.ResponseWriter, r *http.Request) {
@@ -296,8 +296,7 @@ func (a *API) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	vars := mux.Vars(r)
-	userID := vars["userID"]
+	userID := r.PathValue("userID")
 
 	auditRec := a.makeAuditRecord(r, "postBlocks", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelRead, auditRec)
@@ -381,8 +380,7 @@ func (a *API) handleUpdateUserConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	userID := vars["userID"]
+	userID := r.PathValue("userID")
 
 	ctx := r.Context()
 	session := ctx.Value(sessionContextKey).(*model.Session)

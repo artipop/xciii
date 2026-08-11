@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/mattermost/focalboard/server/web"
 )
 
-func (a *API) registerSystemRoutes(r *mux.Router) {
+func (a *API) registerSystemRoutes(r *web.Router) {
 	// System APIs
-	r.HandleFunc("/hello", a.handleHello).Methods("GET")
-	r.HandleFunc("/ping", a.handlePing).Methods("GET")
+	r.HandleFunc("GET /hello", a.handleHello)
+	r.HandleFunc("GET /ping", a.handlePing)
 }
 
 func (a *API) handleHello(w http.ResponseWriter, r *http.Request) {

@@ -1,13 +1,15 @@
 module github.com/mattermost/focalboard/server
 
-go 1.21
-
-toolchain go1.21.8
+// 1.22 is the floor the routing needs: "GET /boards/{boardID}" is a plain path
+// pattern to an older module, wildcards and all, so the whole route table falls
+// through to 404 until this line says otherwise. It also brings the per-
+// iteration loop variable, which is why this is a build-and-test bump rather
+// than a one-line edit.
+go 1.24.0
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/golang/mock v1.6.0
-	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.1
 	github.com/krolaw/zipstream v0.0.0-20180621105154-0a2661891f94
 	github.com/lib/pq v1.10.9

@@ -15,8 +15,8 @@ import (
 
 	"github.com/mattermost/focalboard/server/app"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/focalboard/server/model"
+	"github.com/mattermost/focalboard/server/web"
 
 	"github.com/mattermost/focalboard/server/services/audit"
 
@@ -73,11 +73,11 @@ func FileInfoResponseFromJSON(data io.Reader) (*mmModel.FileInfo, error) {
 	return &fileInfo, nil
 }
 
-func (a *API) registerFilesRoutes(r *mux.Router) {
+func (a *API) registerFilesRoutes(r *web.Router) {
 	// Files API
-	r.HandleFunc("/files/teams/{teamID}/{boardID}/{filename}", a.attachSession(a.handleServeFile, false)).Methods("GET")
-	r.HandleFunc("/files/teams/{teamID}/{boardID}/{filename}/info", a.attachSession(a.getFileInfo, false)).Methods("GET")
-	r.HandleFunc("/teams/{teamID}/{boardID}/files", a.sessionRequired(a.handleUploadFile)).Methods("POST")
+	r.HandleFunc("GET /files/teams/{teamID}/{boardID}/{filename}", a.attachSession(a.handleServeFile, false))
+	r.HandleFunc("GET /files/teams/{teamID}/{boardID}/{filename}/info", a.attachSession(a.getFileInfo, false))
+	r.HandleFunc("POST /teams/{teamID}/{boardID}/files", a.sessionRequired(a.handleUploadFile))
 }
 
 func (a *API) handleServeFile(w http.ResponseWriter, r *http.Request) {
@@ -119,9 +119,8 @@ func (a *API) handleServeFile(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	vars := mux.Vars(r)
-	boardID := vars["boardID"]
-	filename := vars["filename"]
+	boardID := r.PathValue("boardID")
+	filename := r.PathValue("filename")
 	userID := getUserID(r)
 
 	hasValidReadToken := a.hasValidReadTokenForBoard(r, boardID)
@@ -280,10 +279,9 @@ func (a *API) getFileInfo(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	vars := mux.Vars(r)
-	boardID := vars["boardID"]
-	teamID := vars["teamID"]
-	filename := vars["filename"]
+	boardID := r.PathValue("boardID")
+	teamID := r.PathValue("teamID")
+	filename := r.PathValue("filename")
 	userID := getUserID(r)
 
 	hasValidReadToken := a.hasValidReadTokenForBoard(r, boardID)
@@ -357,8 +355,7 @@ func (a *API) handleUploadFile(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	vars := mux.Vars(r)
-	boardID := vars["boardID"]
+	boardID := r.PathValue("boardID")
 	userID := getUserID(r)
 
 	if !a.permissions.HasPermissionToBoard(userID, boardID, model.PermissionManageBoardCards) {

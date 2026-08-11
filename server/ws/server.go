@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/focalboard/server/auth"
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/utils"
+	"github.com/mattermost/focalboard/server/web"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -87,7 +87,7 @@ func NewServer(auth *auth.Auth, singleUserToken string, isMattermostAuth bool, l
 }
 
 // RegisterRoutes registers routes.
-func (ws *Server) RegisterRoutes(r *mux.Router) {
+func (ws *Server) RegisterRoutes(r *web.Router) {
 	r.HandleFunc("/ws", ws.handleWebSocket)
 }
 

@@ -6,18 +6,18 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/mattermost/focalboard/server/web"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-func (a *API) registerSubscriptionsRoutes(r *mux.Router) {
+func (a *API) registerSubscriptionsRoutes(r *web.Router) {
 	// Subscription APIs
-	r.HandleFunc("/subscriptions", a.sessionRequired(a.handleCreateSubscription)).Methods("POST")
-	r.HandleFunc("/subscriptions/{blockID}/{subscriberID}", a.sessionRequired(a.handleDeleteSubscription)).Methods("DELETE")
-	r.HandleFunc("/subscriptions/{subscriberID}", a.sessionRequired(a.handleGetSubscriptions)).Methods("GET")
+	r.HandleFunc("POST /subscriptions", a.sessionRequired(a.handleCreateSubscription))
+	r.HandleFunc("DELETE /subscriptions/{blockID}/{subscriberID}", a.sessionRequired(a.handleDeleteSubscription))
+	r.HandleFunc("GET /subscriptions/{subscriberID}", a.sessionRequired(a.handleGetSubscriptions))
 }
 
 // subscriptions
@@ -142,9 +142,8 @@ func (a *API) handleDeleteSubscription(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	session := ctx.Value(sessionContextKey).(*model.Session)
 
-	vars := mux.Vars(r)
-	blockID := vars["blockID"]
-	subscriberID := vars["subscriberID"]
+	blockID := r.PathValue("blockID")
+	subscriberID := r.PathValue("subscriberID")
 
 	auditRec := a.makeAuditRecord(r, "deleteSubscription", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelModify, auditRec)
@@ -201,8 +200,7 @@ func (a *API) handleGetSubscriptions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	session := ctx.Value(sessionContextKey).(*model.Session)
 
-	vars := mux.Vars(r)
-	subscriberID := vars["subscriberID"]
+	subscriberID := r.PathValue("subscriberID")
 
 	auditRec := a.makeAuditRecord(r, "getSubscriptions", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelRead, auditRec)

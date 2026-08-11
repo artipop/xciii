@@ -11,7 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/focalboard/server/api"
@@ -62,7 +61,7 @@ type Server struct {
 	notificationService    *notify.Service
 	servicesStartStopMutex sync.Mutex
 
-	localRouter     *mux.Router
+	localRouter     *web.Router
 	localModeServer *http.Server
 	api             *api.API
 	app             *app.App
@@ -146,7 +145,7 @@ func New(params Params) (*Server, error) {
 	focalboardAPI := api.NewAPI(app, params.SingleUserToken, params.Cfg.AuthMode, params.PermissionsService, params.Logger, auditService)
 
 	// Local router for admin APIs
-	localRouter := mux.NewRouter()
+	localRouter := web.NewRouter()
 	focalboardAPI.RegisterAdminRoutes(localRouter)
 
 	// Init team
@@ -436,7 +435,7 @@ func (s *Server) stopLocalModeServer() {
 	}
 }
 
-func (s *Server) GetRootRouter() *mux.Router {
+func (s *Server) GetRootRouter() *web.Router {
 	return s.webServer.Router()
 }
 

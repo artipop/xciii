@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/mattermost/focalboard/server/web"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -19,13 +19,13 @@ const (
 	defaultPerPage = "100"
 )
 
-func (a *API) registerCardsRoutes(r *mux.Router) {
+func (a *API) registerCardsRoutes(r *web.Router) {
 	// Cards APIs
-	r.HandleFunc("/boards/{boardID}/cards", a.sessionRequired(a.handleCreateCard)).Methods("POST")
-	r.HandleFunc("/boards/{boardID}/cards", a.sessionRequired(a.handleGetCards)).Methods("GET")
-	r.HandleFunc("/cards/{cardID}", a.sessionRequired(a.handlePatchCard)).Methods("PATCH")
-	r.HandleFunc("/cards/{cardID}", a.sessionRequired(a.handleGetCard)).Methods("GET")
-	r.HandleFunc("/cards/{cardID}/move", a.sessionRequired(a.handleMoveCard)).Methods("POST")
+	r.HandleFunc("POST /boards/{boardID}/cards", a.sessionRequired(a.handleCreateCard))
+	r.HandleFunc("GET /boards/{boardID}/cards", a.sessionRequired(a.handleGetCards))
+	r.HandleFunc("PATCH /cards/{cardID}", a.sessionRequired(a.handlePatchCard))
+	r.HandleFunc("GET /cards/{cardID}", a.sessionRequired(a.handleGetCard))
+	r.HandleFunc("POST /cards/{cardID}/move", a.sessionRequired(a.handleMoveCard))
 }
 
 func (a *API) handleCreateCard(w http.ResponseWriter, r *http.Request) {
@@ -66,7 +66,7 @@ func (a *API) handleCreateCard(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 
 	userID := getUserID(r)
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 
 	val := r.URL.Query().Get("disable_notify")
 	disableNotify := val == True
@@ -166,7 +166,7 @@ func (a *API) handleGetCards(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 	userID := getUserID(r)
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 
 	query := r.URL.Query()
 	strPage := query.Get("page")
@@ -266,7 +266,7 @@ func (a *API) handlePatchCard(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 
 	userID := getUserID(r)
-	cardID := mux.Vars(r)["cardID"]
+	cardID := r.PathValue("cardID")
 
 	val := r.URL.Query().Get("disable_notify")
 	disableNotify := val == True
@@ -368,7 +368,7 @@ func (a *API) handleMoveCard(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 
 	userID := getUserID(r)
-	cardID := mux.Vars(r)["cardID"]
+	cardID := r.PathValue("cardID")
 
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -461,7 +461,7 @@ func (a *API) handleGetCard(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 
 	userID := getUserID(r)
-	cardID := mux.Vars(r)["cardID"]
+	cardID := r.PathValue("cardID")
 
 	card, err := a.app.GetCardByID(cardID)
 	if err != nil {

@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	mux "github.com/gorilla/mux"
 	model "github.com/mattermost/mattermost/server/public/model"
 	mlog "github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -428,18 +427,6 @@ func (m *MockServicesAPI) PublishWebSocketEvent(arg0 string, arg1 map[string]int
 func (mr *MockServicesAPIMockRecorder) PublishWebSocketEvent(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishWebSocketEvent", reflect.TypeOf((*MockServicesAPI)(nil).PublishWebSocketEvent), arg0, arg1, arg2)
-}
-
-// RegisterRouter mocks base method.
-func (m *MockServicesAPI) RegisterRouter(arg0 *mux.Router) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "RegisterRouter", arg0)
-}
-
-// RegisterRouter indicates an expected call of RegisterRouter.
-func (mr *MockServicesAPIMockRecorder) RegisterRouter(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterRouter", reflect.TypeOf((*MockServicesAPI)(nil).RegisterRouter), arg0)
 }
 
 // UpdatePreferencesForUser mocks base method.

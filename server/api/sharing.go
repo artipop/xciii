@@ -6,19 +6,19 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/focalboard/server/model"
 	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/mattermost/focalboard/server/web"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 var ErrTurningOnSharing = errors.New("turning on sharing for board failed, see log for details")
 
-func (a *API) registerSharingRoutes(r *mux.Router) {
+func (a *API) registerSharingRoutes(r *web.Router) {
 	// Sharing APIs
-	r.HandleFunc("/boards/{boardID}/sharing", a.sessionRequired(a.handlePostSharing)).Methods("POST")
-	r.HandleFunc("/boards/{boardID}/sharing", a.sessionRequired(a.handleGetSharing)).Methods("GET")
+	r.HandleFunc("POST /boards/{boardID}/sharing", a.sessionRequired(a.handlePostSharing))
+	r.HandleFunc("GET /boards/{boardID}/sharing", a.sessionRequired(a.handleGetSharing))
 }
 
 func (a *API) handleGetSharing(w http.ResponseWriter, r *http.Request) {
@@ -49,8 +49,7 @@ func (a *API) handleGetSharing(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	vars := mux.Vars(r)
-	boardID := vars["boardID"]
+	boardID := r.PathValue("boardID")
 
 	userID := getUserID(r)
 	if !a.permissions.HasPermissionToBoard(userID, boardID, model.PermissionShareBoard) {
@@ -116,7 +115,7 @@ func (a *API) handlePostSharing(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 
 	userID := getUserID(r)
 	if !a.permissions.HasPermissionToBoard(userID, boardID, model.PermissionShareBoard) {
