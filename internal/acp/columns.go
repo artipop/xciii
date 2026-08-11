@@ -198,6 +198,7 @@ func validateColumn(c ColumnSpec, agents []AgentEntry, deploys []DeployEntry) (C
 // SaveColumn adds or replaces a column spec (matched by board+option, else by
 // names) and persists the config.
 func (m *Manager) SaveColumn(c ColumnSpec) (ColumnSpec, error) {
+	m.listenBeforeSpeaking(c.BoardID)
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
 
@@ -218,6 +219,7 @@ func (m *Manager) SaveColumn(c ColumnSpec) (ColumnSpec, error) {
 // RemoveColumn forgets a column's settings. The column itself stays on the
 // board — only what happens in it goes away.
 func (m *Manager) RemoveColumn(boardID, optionID, column string) error {
+	m.listenBeforeSpeaking(boardID)
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
 	target := ColumnSpec{BoardID: boardID, OptionID: optionID, Column: column}

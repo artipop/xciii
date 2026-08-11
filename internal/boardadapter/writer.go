@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/mattermost/focalboard/server/app"
@@ -19,11 +20,16 @@ import (
 // still updates the UI live.
 type Writer struct {
 	app *app.App
+	// log is for the writes that must not fail the caller — the bookkeeping
+	// this integration keeps on a card beside what a person filled in. The
+	// board's own logger is not reachable from here, and slog is what the rest
+	// of this app uses anyway.
+	log *slog.Logger
 }
 
 var _ acp.BoardWriter = (*Writer)(nil)
 
-func NewWriter(a *app.App) *Writer { return &Writer{app: a} }
+func NewWriter(a *app.App) *Writer { return &Writer{app: a, log: slog.Default()} }
 
 // cardBlock is the card every write here starts from. It reads the block rather
 // than the board's own Card view on purpose: Block2Card refuses a card whose

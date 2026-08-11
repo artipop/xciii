@@ -151,7 +151,7 @@ describe('components/acp/agentProjectsPanel', () => {
             type: 'multiSelect',
             options: [{id: 'o1', value: 'alpha', color: 'propColorDefault'}],
         })
-        boardWithProjects.properties = {...boardWithProjects.properties, acpProjectProperty: 'projectprop'}
+        boardWithProjects.properties = {...boardWithProjects.properties, xciiiProjectProperty: 'projectprop'}
         const bindings = {
             ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'alpha', path: '/tmp/alpha'}, // already an option
@@ -220,7 +220,7 @@ describe('components/acp/agentProjectsPanel', () => {
 
         // And the board is told which field it is, so it is never guessed again.
         await waitFor(() => expect(mockedMutator.updateBoard).toHaveBeenCalledTimes(1))
-        expect(mockedMutator.updateBoard.mock.calls[0][0].properties.acpProjectProperty).toBe(made.id)
+        expect(mockedMutator.updateBoard.mock.calls[0][0].properties.xciiiProjectProperty).toBe(made.id)
     })
 
     test('leaves the board alone when its field already lists every project', async () => {
@@ -231,6 +231,9 @@ describe('components/acp/agentProjectsPanel', () => {
             type: 'multiSelect',
             options: [{id: 'o1', value: 'alpha', color: 'propColorDefault'}],
         })
+
+        // Deliberately the key's old name: every board made before the rename
+        // carries it, and the panel has to go on finding the field.
         boardWithProjects.properties = {...boardWithProjects.properties, acpProjectProperty: 'projectprop'}
         const bindings = {
             ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),

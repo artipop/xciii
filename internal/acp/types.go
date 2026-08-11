@@ -121,6 +121,26 @@ type BoardReader interface {
 	CardsForBoard(ctx context.Context, boardID string) ([]CardMoved, error)
 }
 
+// BoardCardState keeps what this integration knows about one card on the card
+// itself, beside the properties a person filled in. Today that is where the
+// card stands on its route (FlowState).
+//
+// It is a separate interface from BoardWriter because it is not a write a
+// person asked for: it never notifies, so it cannot set off the automation that
+// produced it, and it never touches anything a person can see.
+//
+// Optional. A manager without it keeps the position in its own store only,
+// which is what every test that does not care about the board does.
+type BoardCardState interface {
+	CardFlow(ctx context.Context, cardID string) (FlowState, bool, error)
+	SetCardFlow(ctx context.Context, cardID string, st FlowState) error
+	ClearCardFlow(ctx context.Context, cardID string) error
+	// BoardCardFlows is every parked card of one board, which is how this
+	// machine refills its index for a board it has not seen before — an
+	// imported one, or one somebody else's machine has been moving.
+	BoardCardFlows(ctx context.Context, boardID string) ([]FlowState, error)
+}
+
 // AgentUser is a registry entry seen as a board account: the user an agent is
 // assigned as. Username is derived from Name (see AgentUsername); UserID and
 // Created are filled in by BoardUsers.

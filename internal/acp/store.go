@@ -212,6 +212,12 @@ func (s *Store) ClaimVCSEvent(project, branch, kind, marker string) (bool, error
 }
 
 // FlowState is where a card currently stands on its route.
+//
+// It lives on the card itself (BoardCardState) and is mirrored into the table
+// below, which is this machine's index: the VCS watcher asks "which cards are
+// parked and on what branch" every poll, and that is a question about all the
+// cards at once. The card is the truth — it is what an export carries and an
+// import renumbers — and the table is refilled from it.
 type FlowState struct {
 	CardID      string    `json:"cardId"`
 	BoardID     string    `json:"boardId"`
@@ -220,6 +226,12 @@ type FlowState struct {
 	Branch      string    `json:"branch"`
 	ProjectPath string    `json:"projectPath"`
 	EnteredAt   time.Time `json:"enteredAt"`
+	// Visited are the stages the card has already left, which is what "done"
+	// means on a route with a loop — the graph cannot say it, only the card's
+	// own history can. Kept here rather than derived from flow_event so that it
+	// travels with the card; flow_event stays as this machine's journal and is
+	// still what answers for a card that predates this.
+	Visited []string `json:"visited,omitempty"`
 }
 
 // FlowEventRecord is one transition, kept as the card's route history.

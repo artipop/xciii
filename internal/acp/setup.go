@@ -229,7 +229,7 @@ func (m *Manager) boardSetupSources(boardID string) (BoardSetup, []ColumnSpec, [
 
 	var declared BoardSetup
 	props := m.boardProperties(boardID)
-	if raw, ok := props[BoardPropSetup]; ok {
+	if raw, ok := boardProp(props, BoardPropSetup); ok {
 		if err := reinterpret(raw, &declared); err != nil {
 			m.log.Warn("acp: the board's setup steps are unreadable", "board", boardID, "err", err)
 			declared = BoardSetup{}

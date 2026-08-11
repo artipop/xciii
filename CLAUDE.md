@@ -246,12 +246,12 @@ column is a stage no card can stand on, so there is no way to make one. The
 editor is source-agnostic and the container decides what it edits: `automation
 Dialog.tsx` points it at the registry of a live board (saving through
 `SaveBoardColumn`/`AddFlow`/…), `templateEditor.tsx` at a template board's own
-properties (`acpColumns`, `acpFlows`, `acpSetup`), which is where a board made
+properties (`xciiiColumns`, `xciiiFlows`, `xciiiSetup`), which is where a board made
 from it will read them. `automation.ts` holds the types and every pure helper,
 which is what keeps the two containers from growing their own answers.
 `docs/templates.md` is the template half written for somebody using it.
 
-And a board's automation **lives on the board** — `acpColumns`/`acpFlows` in the
+And a board's automation **lives on the board** — `xciiiColumns`/`xciiiFlows` in the
 board's own properties, in the board database, which is why a live board and a
 template are the same two keys and why a template can carry automation at all.
 `internal/acp` keeps the registry in memory because the engine reads it on every
@@ -480,7 +480,7 @@ whoever opened it. **Only the protocol asks** (`question.go`), which is why
   else. Nothing may find, match or branch on one: the board's column property is
   whatever a view groups by, the author and link properties are found by their
   *type*, the inbox view by what it filters, the projects field by an id the
-  board records (`acpProjectProperty`). Names that do decide something come from
+  board records (`xciiiProjectProperty`). Names that do decide something come from
   the board or the registry — a rule's `Props`, a flow's stages — where a person
   typed them against the board in front of them; they are data, not literals in
   our code. A manifest field is the shape to copy: `key` is the id, `title` is

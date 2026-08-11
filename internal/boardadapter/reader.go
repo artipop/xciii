@@ -269,8 +269,18 @@ func propertyText(def model.PropDef, value any) string {
 // to start one, exactly as it would if the card had been dragged. Everything
 // else in this file is the integration's own bookkeeping and must stay quiet.
 func (w *Writer) MoveCardToBoard(ctx context.Context, cardID, toBoardID, column string) error {
+	// A move that reports failure may still have landed: the board records
+	// every card write in a history keyed by (id, insert_at) in whole
+	// milliseconds, so a move a millisecond after any other write to the same
+	// card fails on that key after the card has already changed hands. Asking
+	// the card where it is now is the only way to tell the two apart — and
+	// retrying is not, because the second attempt finds the card already there
+	// and answers with a different error entirely.
 	if _, err := w.app.MoveCardToBoard(cardID, toBoardID, model.SingleUser); err != nil {
-		return fmt.Errorf("перенос карточки %s на доску %s: %w", cardID, toBoardID, err)
+		card, readErr := w.cardBlock(cardID)
+		if readErr != nil || card.BoardID != toBoardID {
+			return fmt.Errorf("перенос карточки %s на доску %s: %w", cardID, toBoardID, err)
+		}
 	}
 	if strings.TrimSpace(column) == "" {
 		return nil
