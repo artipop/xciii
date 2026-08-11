@@ -24,8 +24,10 @@ build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 # depends on `common:generate:icons`, so both exist fresh by the time the
 # darwin package task copies them into the .app — Assets.car optionally, since
 # older Icon Composer inputs may not produce one; icons.icns unconditionally.
-build/darwin/Assets.car
-build/darwin/icons.icns
+# Written to match anywhere rather than at the root: the phone module carries
+# its own copy of these Taskfiles, generating its own pair from its own icon.
+**/build/darwin/Assets.car
+**/build/darwin/icons.icns
 
 # The phone app's generated project. `wails3 ios xcode:gen` writes the Xcode
 # project and the main.m shim from templates inside the CLI on every build, and
