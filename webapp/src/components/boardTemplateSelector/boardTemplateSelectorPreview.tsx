@@ -7,6 +7,7 @@ import {Card} from '../../blocks/card'
 import {BoardView} from '../../blocks/boardView'
 import octoClient from '../../octoClient'
 import {getVisibleAndHiddenGroups} from '../../boardUtils'
+import {oldestView} from '../../store/views'
 
 import ViewHeader from '../viewHeader/viewHeader'
 import ViewTitle from '../viewTitle'
@@ -34,9 +35,16 @@ const BoardTemplateSelectorPreview = (props: Props) => {
             octoClient.getAllBlocks(activeTemplate.id).then((blocks) => {
                 if (isSubscribed) {
                     const cards = blocks.filter((b) => b.type === 'card')
-                    const views = blocks.filter((b) => b.type === 'view').sort((a, b) => a.title.localeCompare(b.title))
+
+                    // The view the template was made with, which is the one a
+                    // board made from it opens on — not the one whose title
+                    // sorts first. Every template carries «Входящие» as well
+                    // now, and it sorts before «Дела», «Списки» and even
+                    // «Progress Tracker», so the preview of every template was
+                    // an empty inbox and said nothing about the template.
+                    const views = blocks.filter((b) => b.type === 'view') as BoardView[]
                     if (views.length > 0) {
-                        setActiveView(views[0] as BoardView)
+                        setActiveView(oldestView(views))
                     }
                     if (cards.length > 0) {
                         setActiveTemplateCards(cards as Card[])
