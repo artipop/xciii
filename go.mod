@@ -2,43 +2,49 @@ module github.com/artipop/xciii
 
 go 1.26.5
 
-// The board server lives in this repository, in server/. It keeps Focalboard's
-// import path because that is what its own thousands of files say; the path is
-// upstream's, the code is ours, and a rename would be a tree-wide edit that
-// buys nothing but the name.
-//
-// It was a checkout beside this one until it turned out that the branch the
-// build needed had never been published — so the project built on exactly one
-// machine. A repository that cannot be cloned and built is not a project.
-replace github.com/mattermost/focalboard/server => ./server
-
 // mattn/go-sqlite3 v2.0.3 is a tag its author retracted in practice: the module
 // never declared a /v2 path, so Go treats it as +incompatible, and the code
 // behind it is from 2019 — older than everything on the live v1.14.x line. It
-// reaches us from upstream (focalboard/server and mattermost/server/v8 both
-// require it), and because +incompatible sorts above v1.14.x, minimal version
+// reaches us from upstream (mattermost/server/v8 requires it), and because
+// +incompatible sorts above v1.14.x, minimal version
 // selection keeps choosing it and `go get -u` cannot move off it. Only a
 // replace can. We use the driver through database/sql alone — every import of
 // it in this tree is blank — so the version is free to move.
 replace github.com/mattn/go-sqlite3 => github.com/mattn/go-sqlite3 v1.14.49
 
 require (
+	github.com/Masterminds/squirrel v1.5.4
 	github.com/aymanbagabas/go-pty v0.2.3
 	github.com/coder/acp-go-sdk v0.13.5
+	github.com/golang-migrate/migrate/v4 v4.19.1
+	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
-	github.com/mattermost/focalboard/server v0.0.0-20230104182634-f909c2552e37
+	github.com/krolaw/zipstream v0.0.0-20180621105154-0a2661891f94
+	github.com/lib/pq v1.10.9
+	github.com/mattermost/logr/v2 v2.0.21
 	github.com/mattermost/mattermost/server/public v0.1.3
+	github.com/mattermost/mattermost/server/v8 v8.0.0-20240529104128-9d30a62c9471
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
+	github.com/mgdelacroix/foundation v0.0.0-20230510073833-0660207768ef
 	github.com/modelcontextprotocol/go-sdk v1.6.1
+	github.com/oklog/run v1.1.0
+	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.23.2
+	github.com/rivo/uniseg v0.4.7
+	github.com/rudderlabs/analytics-go v3.3.3+incompatible
+	github.com/sergi/go-diff v1.4.0
+	github.com/spf13/viper v1.18.2
+	github.com/stretchr/testify v1.11.1
 	github.com/wailsapp/wails/v3 v3.0.0-beta.2
+	github.com/wiggin77/merror v1.0.5
 	github.com/zalando/go-keyring v0.2.8
+	golang.org/x/crypto v0.54.0
 	tailscale.com v1.102.2
 )
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/adrg/xdg v0.5.3 // indirect
 	github.com/akutz/memconn v0.1.0 // indirect
 	github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa // indirect
@@ -64,7 +70,6 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
-	github.com/golang-migrate/migrate/v4 v4.19.1 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/btree v1.1.3 // indirect
@@ -79,18 +84,15 @@ require (
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
 	github.com/huin/goupnp v1.3.0 // indirect
 	github.com/jchv/go-winloader v0.0.0-20250406163304-c1995be93bd1 // indirect
+	github.com/jmoiron/sqlx v1.4.0 // indirect
 	github.com/jsimonetti/rtnetlink v1.4.1 // indirect
 	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
-	github.com/krolaw/zipstream v0.0.0-20180621105154-0a2661891f94 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
-	github.com/lib/pq v1.10.9 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404 // indirect
 	github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956 // indirect
-	github.com/mattermost/logr/v2 v2.0.21 // indirect
-	github.com/mattermost/mattermost/server/v8 v8.0.0-20240529104128-9d30a62c9471 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/mdlayher/netlink v1.7.3-0.20250113171957-fbb4dce95f42 // indirect
@@ -102,22 +104,17 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
-	github.com/oklog/run v1.1.0 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
 	github.com/pires/go-proxyproto v0.8.1 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.69.0 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/xid v1.5.0 // indirect
-	github.com/rudderlabs/analytics-go v3.3.3+incompatible // indirect
 	github.com/safchain/ethtool v0.3.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
@@ -129,9 +126,7 @@ require (
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/spf13/viper v1.18.2 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tailscale/certstore v0.1.1-0.20260409135935-3638fb84b77d // indirect
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55 // indirect
@@ -146,7 +141,6 @@ require (
 	github.com/u-root/u-root v0.16.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	github.com/wiggin77/merror v1.0.5 // indirect
 	github.com/wiggin77/srslog v1.0.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
@@ -155,7 +149,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go4.org/mem v0.0.0-20240501181205-ae6ca9944745 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect

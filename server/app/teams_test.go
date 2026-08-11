@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/artipop/xciii/server/model"
 	"github.com/golang/mock/gomock"
-	"github.com/mattermost/focalboard/server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

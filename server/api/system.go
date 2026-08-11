@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/focalboard/server/web"
+	"github.com/artipop/xciii/server/web"
 )
 
 func (a *API) registerSystemRoutes(r *web.Router) {

@@ -7,9 +7,9 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/utils"
 
 	"github.com/artipop/xciii/internal/acp"
 )

@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/artipop/xciii/server/auth"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/utils"
+	"github.com/artipop/xciii/server/web"
 	"github.com/gorilla/websocket"
-	"github.com/mattermost/focalboard/server/auth"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/utils"
-	"github.com/mattermost/focalboard/server/web"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )

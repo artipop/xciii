@@ -3,10 +3,10 @@ package app
 import (
 	"testing"
 
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/auth"
+	"github.com/artipop/xciii/server/utils"
 	"github.com/golang/mock/gomock"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/auth"
-	"github.com/mattermost/focalboard/server/utils"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )

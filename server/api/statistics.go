@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/web"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/web"
 	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 

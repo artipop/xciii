@@ -6,14 +6,14 @@ package storetests
 import (
 	"fmt"
 
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/utils"
 
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/focalboard/server/services/store"
+	"github.com/artipop/xciii/server/services/store"
 )
 
 func StoreTestTeamStore(t *testing.T, setup func(t *testing.T) (store.Store, func())) {

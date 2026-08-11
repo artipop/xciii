@@ -5,10 +5,10 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
-	"github.com/mattermost/focalboard/server/utils"
-	"github.com/mattermost/focalboard/server/web"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/utils"
+	"github.com/artipop/xciii/server/web"
 )
 
 func (a *API) registerUsersRoutes(r *web.Router) {

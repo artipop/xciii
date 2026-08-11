@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 

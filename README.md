@@ -11,13 +11,15 @@ the whole thing to a browser.
 Everything a build needs is in this repository: `webapp/` is the frontend, its
 own npm project built with Vite, and `server/` is the board server, a fork of
 Mattermost's Focalboard with our own patches (`GetUserByUsername` and two
-single-user endpoint fixes). `go.mod` `replace`s the module to `./server`, so
-**`git clone` and `go build ./...` is the whole of it** — there is no second
-checkout to place beside this one and no branch of somebody else's to be on.
+single-user endpoint fixes). It is one Go module — `server/` is a directory in
+it, not a module of its own — so **`git clone` and `go build ./...` is the whole
+of it**: no second checkout beside this one, no branch of somebody else's, and
+nothing to `replace`.
 
-`server/` keeps Focalboard's import path, `github.com/mattermost/focalboard/
-server`, because that is what its own thousands of files say. The path is
-upstream's; the code is ours.
+The board server's packages are `github.com/artipop/xciii/server/…`. They kept
+upstream's import path for a long time, on the grounds that a rename was a
+tree-wide edit buying nothing but the name; the name turned out to be worth it,
+and the edit was one pass over 209 files.
 
 ## How it works
 

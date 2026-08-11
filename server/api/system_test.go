@@ -7,8 +7,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 

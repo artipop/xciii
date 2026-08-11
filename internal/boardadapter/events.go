@@ -13,9 +13,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/notify"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/notify"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/artipop/xciii/internal/acp"

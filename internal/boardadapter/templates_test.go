@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 )
 
 // A template is JSON nobody compiles, embedded in the binary and read once on

@@ -11,7 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 )
 
 // migrationSource is where the migrations come from, and they do not come off

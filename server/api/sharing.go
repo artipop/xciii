@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
-	"github.com/mattermost/focalboard/server/web"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/web"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )

@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 )
 
 // The board as a phone reads it.

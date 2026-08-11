@@ -9,8 +9,8 @@ import (
 	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/store"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/store"
 )
 
 var ErrInvalidCardLimitValue = errors.New("card limit value is invalid")

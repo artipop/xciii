@@ -15,8 +15,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	mmSqlStore "github.com/mattermost/mattermost/server/public/utils/sql"
 
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/store/sqlstore"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/store/sqlstore"
 )
 
 var tablePrefix = "focalboard_"
