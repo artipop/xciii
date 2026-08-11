@@ -1,126 +1,107 @@
 package sqlstore
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/morph/models"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// EnsureSchemaMigrationFormat checks the schema migrations table
-// format and, if it's not using the new shape, it migrates the old
-// one's status before initializing the migrations engine.
-func (s *SQLStore) EnsureSchemaMigrationFormat() error {
-	migrationNeeded, err := s.isSchemaMigrationNeeded()
+// retiredSchemaTable is where the previous engine's record is kept while the
+// migrations run, so an install that fails halfway through this can still be
+// looked at. deleteOldSchemaMigrationTable drops it once they have finished.
+const retiredSchemaTableSuffix = "schema_migrations_old_temp"
+
+// legacyMigrationTables are the names the previous engine could have left its
+// record of applied migrations under, most likely first.
+//
+// There are two because that engine was configured for one and given the other.
+// It was told to keep its record in <prefix>schema_migrations — but the SQLite
+// path threw every engine option away to be rid of the locking it did not
+// support, and the table name went with them, so a board on somebody's desk
+// records its migrations in that engine's own default, `db_migrations`,
+// unprefixed. Both are looked for whatever the dialect, since the cost is one
+// query against a table that is not there.
+func (s *SQLStore) legacyMigrationTables() []string {
+	return []string{"db_migrations", s.tablePrefix + "schema_migrations"}
+}
+
+// EnsureSchemaMigrationFormat converts the record of applied migrations from the
+// shape the previous engine kept it in, and reports the version an existing
+// install had reached so the caller can hand it to the new one.
+//
+// The two shapes differ in what they record. The previous engine wrote a row per
+// applied migration — a version and the migration's name — while this one keeps
+// a single row: the version reached, and whether the migration that reached it
+// finished. Only the highest version carries over, and nothing is lost by that:
+// the migrations are numbered without gaps, so "reached 27" and "applied 1
+// through 27" are the same statement.
+//
+// A database with no such table has never been migrated by that engine — a fresh
+// install, or one already converted — and is left alone.
+func (s *SQLStore) EnsureSchemaMigrationFormat() (version uint32, converted bool, err error) {
+	table, err := s.legacyMigrationTable()
 	if err != nil {
-		return err
+		return 0, false, err
 	}
 
-	if !migrationNeeded {
+	if table == "" {
 		s.logger.Info("Schema migration table is correct format")
-		return nil
+		return 0, false, nil
 	}
 
-	s.logger.Info("Migrating schema migration to new format")
-
-	legacySchemaVersion, err := s.getLegacySchemaVersion()
+	version, err = s.getLegacySchemaVersion(table)
 	if err != nil {
-		return err
+		return 0, false, err
 	}
 
-	migrations, err := getEmbeddedMigrations()
-	if err != nil {
-		return err
-	}
-	filteredMigrations := filterMigrations(migrations, legacySchemaVersion)
+	s.logger.Info("Retiring the previous engine's migration table",
+		mlog.String("table", table), mlog.Uint("version", version))
 
-	if err := s.createTempSchemaTable(); err != nil {
-		return err
+	if err := s.retireLegacySchemaTable(table); err != nil {
+		return 0, false, err
 	}
 
-	s.logger.Info("Populating the temporal schema table", mlog.Uint("legacySchemaVersion", legacySchemaVersion), mlog.Int("migrations", len(filteredMigrations)))
-
-	if err := s.populateTempSchemaTable(filteredMigrations); err != nil {
-		return err
-	}
-
-	if err := s.useNewSchemaTable(); err != nil {
-		return err
-	}
-
-	return nil
+	return version, true, nil
 }
 
-// getEmbeddedMigrations returns a list of the embedded migrations
-// using the morph migration format. The migrations do not have the
-// contents set, as the goal is to obtain a list of them.
-func getEmbeddedMigrations() ([]*models.Migration, error) {
-	assetsList, err := Assets.ReadDir("migrations")
-	if err != nil {
-		return nil, err
-	}
-
-	migrations := []*models.Migration{}
-	for _, f := range assetsList {
-		m, err := models.NewMigration(io.NopCloser(&bytes.Buffer{}), f.Name())
+// legacyMigrationTable returns the table still holding the previous engine's
+// record, or the empty string if there is none. A `name` column is what tells
+// the two shapes apart: the engine now in use records a version and a dirty
+// flag, and never a name.
+func (s *SQLStore) legacyMigrationTable() (string, error) {
+	for _, table := range s.legacyMigrationTables() {
+		columns, err := s.tableColumns(table)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 
-		if m.Direction != models.Up {
-			continue
+		for _, column := range columns {
+			if strings.ToLower(column) == "name" {
+				return table, nil
+			}
 		}
-
-		migrations = append(migrations, m)
 	}
 
-	return migrations, nil
+	return "", nil
 }
 
-// filterMigrations takes the whole list of migrations parsed from the
-// embedded directory and returns a filtered list that only contains
-// one migration per version and those migrations that have already
-// run based on the legacySchemaVersion.
-func filterMigrations(migrations []*models.Migration, legacySchemaVersion uint32) []*models.Migration {
-	filteredMigrations := []*models.Migration{}
-	for _, migration := range migrations {
-		// we only take into account up migrations to avoid duplicates
-		if migration.Direction != models.Up {
-			continue
-		}
-
-		// we're only interested on registering migrations that
-		// already run, so we skip those above the legacy version
-		if migration.Version > legacySchemaVersion {
-			continue
-		}
-
-		filteredMigrations = append(filteredMigrations, migration)
-	}
-
-	return filteredMigrations
-}
-
-func (s *SQLStore) isSchemaMigrationNeeded() (bool, error) {
-	// Check if `name` column exists on schema version table.
-	// This column exists only for the new schema version table.
-
+// tableColumns names the columns of a table, and returns nothing at all for a
+// table that does not exist.
+func (s *SQLStore) tableColumns(tableName string) ([]string, error) {
 	// SQLite needs a bit of a special handling
 	if s.dbType == model.SqliteDBType {
-		return s.isSchemaMigrationNeededSQLite()
+		return s.tableColumnsSQLite(tableName)
 	}
 
 	query := s.getQueryBuilder(s.db).
 		Select("COLUMN_NAME").
 		From("information_schema.COLUMNS").
 		Where(sq.Eq{
-			"TABLE_NAME": s.tablePrefix + "schema_migrations",
+			"TABLE_NAME": tableName,
 		})
 
 	switch s.dbType {
@@ -132,49 +113,36 @@ func (s *SQLStore) isSchemaMigrationNeeded() (bool, error) {
 
 	rows, err := query.Query()
 	if err != nil {
-		s.logger.Error("failed to fetch columns in schema_migrations table", mlog.Err(err))
-		return false, err
+		s.logger.Error("failed to fetch columns in migration table", mlog.String("table", tableName), mlog.Err(err))
+		return nil, err
 	}
 
 	defer s.CloseRows(rows)
 
-	data := []string{}
+	columns := []string{}
 	for rows.Next() {
 		var columnName string
 
-		err := rows.Scan(&columnName)
-		if err != nil {
-			s.logger.Error("error scanning rows from schema_migrations table definition", mlog.Err(err))
-			return false, err
+		if err := rows.Scan(&columnName); err != nil {
+			s.logger.Error("error scanning rows from migration table definition", mlog.Err(err))
+			return nil, err
 		}
 
-		data = append(data, columnName)
+		columns = append(columns, columnName)
 	}
 
-	if len(data) == 0 {
-		// if no data then table does not exist and therefore a schema migration is not needed.
-		return false, nil
-	}
-
-	for _, columnName := range data {
-		// look for a column named 'name', if found then no migration is needed
-		if strings.ToLower(columnName) == "name" {
-			return false, nil
-		}
-	}
-
-	return true, nil
+	return columns, nil
 }
 
-func (s *SQLStore) isSchemaMigrationNeededSQLite() (bool, error) {
+func (s *SQLStore) tableColumnsSQLite(tableName string) ([]string, error) {
 	// the way to check presence of a column is different
 	// for SQLite. Hence, the separate function
-
-	query := fmt.Sprintf("PRAGMA table_info(\"%sschema_migrations\");", s.tablePrefix)
+	query := fmt.Sprintf("PRAGMA table_info(\"%s\");", tableName)
 	rows, err := s.db.Query(query)
 	if err != nil {
-		s.logger.Error("SQLite - failed to check for columns in schema_migrations table", mlog.Err(err))
-		return false, err
+		s.logger.Error("SQLite - failed to check for columns in migration table",
+			mlog.String("table", tableName), mlog.Err(err))
+		return nil, err
 	}
 
 	defer s.CloseRows(rows)
@@ -188,7 +156,7 @@ func (s *SQLStore) isSchemaMigrationNeededSQLite() (bool, error) {
 		idxPk
 	)
 
-	data := [][]*string{}
+	columns := []string{}
 	for rows.Next() {
 		// PRAGMA returns 6 columns
 		row := make([]*string, 6)
@@ -202,102 +170,56 @@ func (s *SQLStore) isSchemaMigrationNeededSQLite() (bool, error) {
 			&row[idxPk],
 		)
 		if err != nil {
-			s.logger.Error("error scanning rows from SQLite schema_migrations table definition", mlog.Err(err))
-			return false, err
+			s.logger.Error("error scanning rows from SQLite migration table definition", mlog.Err(err))
+			return nil, err
 		}
 
-		data = append(data, row)
-	}
-
-	if len(data) == 0 {
-		// if no data then table does not exist and therefore a schema migration is not needed.
-		return false, nil
-	}
-
-	for _, row := range data {
-		// look for a column named 'name', if found then no migration is needed
-		if len(row) >= 2 && strings.ToLower(*row[idxName]) == "name" {
-			return false, nil
+		if row[idxName] != nil {
+			columns = append(columns, *row[idxName])
 		}
 	}
 
-	return true, nil
+	return columns, nil
 }
 
-func (s *SQLStore) getLegacySchemaVersion() (uint32, error) {
+// getLegacySchemaVersion is the highest version the old table records. It kept a
+// row per applied migration, so the version reached is the largest of them.
+func (s *SQLStore) getLegacySchemaVersion(tableName string) (uint32, error) {
 	query := s.getQueryBuilder(s.db).
-		Select("version").
-		From(s.tablePrefix + "schema_migrations")
+		Select("MAX(version)").
+		From(tableName)
 
 	row := query.QueryRow()
 
-	var version uint32
+	// An empty table means no migration was ever recorded, which is a database
+	// standing on version zero.
+	var version *uint32
 	if err := row.Scan(&version); err != nil {
 		s.logger.Error("error fetching legacy schema version", mlog.Err(err))
-		return version, err
+		return 0, err
+	}
+	if version == nil {
+		return 0, nil
 	}
 
-	return version, nil
+	return *version, nil
 }
 
-func (s *SQLStore) createTempSchemaTable() error {
-	// squirrel doesn't support DDL query in query builder
-	// so, we need to use a plain old string
-	query := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (Version bigint NOT NULL, Name varchar(64) NOT NULL, PRIMARY KEY (Version))", s.tablePrefix+tempSchemaMigrationTableName)
-	if _, err := s.db.Exec(query); err != nil {
-		s.logger.Error("failed to create temporary schema migration table", mlog.Err(err))
-		s.logger.Error("createTempSchemaTable error  " + err.Error())
-		return err
-	}
+// retireLegacySchemaTable takes the name out of the old table's hands so the
+// migration engine can create its own, and keeps the contents under another name
+// until the migrations have finished.
+func (s *SQLStore) retireLegacySchemaTable(tableName string) error {
+	retired := s.tablePrefix + retiredSchemaTableSuffix
 
-	return nil
-}
-
-func (s *SQLStore) populateTempSchemaTable(migrations []*models.Migration) error {
-	query := s.getQueryBuilder(s.db).
-		Insert(s.tablePrefix+tempSchemaMigrationTableName).
-		Columns("Version", "Name")
-
-	for _, migration := range migrations {
-		s.logger.Info("-- Registering migration", mlog.Uint("version", migration.Version), mlog.String("name", migration.Name))
-		query = query.Values(migration.Version, migration.Name)
-	}
-
-	if _, err := query.Exec(); err != nil {
-		s.logger.Error("failed to insert migration records into temporary schema table", mlog.Err(err))
-		return err
-	}
-
-	return nil
-}
-
-func (s *SQLStore) useNewSchemaTable() error {
-	// first delete the old table, then
-	// rename the new table to old table's name
-
-	// renaming old schema migration table. Will delete later once the migration is
-	// complete, just in case.
 	var query string
 	if s.dbType == model.MysqlDBType {
-		query = fmt.Sprintf("RENAME TABLE `%sschema_migrations` TO `%sschema_migrations_old_temp`", s.tablePrefix, s.tablePrefix)
+		query = fmt.Sprintf("RENAME TABLE `%s` TO `%s`", tableName, retired)
 	} else {
-		query = fmt.Sprintf("ALTER TABLE %sschema_migrations RENAME TO %sschema_migrations_old_temp", s.tablePrefix, s.tablePrefix)
+		query = fmt.Sprintf("ALTER TABLE %s RENAME TO %s", tableName, retired)
 	}
 
 	if _, err := s.db.Exec(query); err != nil {
-		s.logger.Error("failed to rename old schema migration table", mlog.Err(err))
-		return err
-	}
-
-	// renaming new temp table to old table's name
-	if s.dbType == model.MysqlDBType {
-		query = fmt.Sprintf("RENAME TABLE `%s%s` TO `%sschema_migrations`", s.tablePrefix, tempSchemaMigrationTableName, s.tablePrefix)
-	} else {
-		query = fmt.Sprintf("ALTER TABLE %s%s RENAME TO %sschema_migrations", s.tablePrefix, tempSchemaMigrationTableName, s.tablePrefix)
-	}
-
-	if _, err := s.db.Exec(query); err != nil {
-		s.logger.Error("failed to rename temp schema table", mlog.Err(err))
+		s.logger.Error("failed to rename the previous engine's migration table", mlog.Err(err))
 		return err
 	}
 
@@ -305,7 +227,7 @@ func (s *SQLStore) useNewSchemaTable() error {
 }
 
 func (s *SQLStore) deleteOldSchemaMigrationTable() error {
-	query := "DROP TABLE IF EXISTS " + s.tablePrefix + "schema_migrations_old_temp"
+	query := "DROP TABLE IF EXISTS " + s.tablePrefix + retiredSchemaTableSuffix
 	if _, err := s.db.Exec(query); err != nil {
 		s.logger.Error("failed to delete old temp schema migrations table", mlog.Err(err))
 		return err
