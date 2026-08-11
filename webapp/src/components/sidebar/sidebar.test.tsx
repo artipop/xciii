@@ -33,9 +33,13 @@ describe('components/sidebarSidebar', () => {
     categoryAttribute1.name = 'Category 1'
     categoryAttribute1.boardMetadata = [{boardID: board.id, hidden: false}]
 
+    // The category the server makes for boards nobody has filed: it is the one
+    // of type 'system', and its name is the server's own English, which is why
+    // the fixture gives it a different one -- nothing may find it by name.
     const defaultCategory = TestBlockFactory.createCategoryBoards()
     defaultCategory.id = 'default_category'
-    defaultCategory.name = 'Boards'
+    defaultCategory.name = 'Whatever the server called it'
+    defaultCategory.type = 'system'
     defaultCategory.boardMetadata = []
 
     test('sidebar hidden', () => {
@@ -288,7 +292,7 @@ describe('components/sidebarSidebar', () => {
         expect(sidebarCollapsedCategory.length).toBe(1)
     })
 
-    test('should assign default category if current board doesnt have a category', () => {
+    test('a board in no category is filed under the default one, found by its type', () => {
         const board2 = TestBlockFactory.createBoard()
         board2.id = 'board2'
 

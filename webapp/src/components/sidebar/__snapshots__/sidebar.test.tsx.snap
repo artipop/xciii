@@ -1,214 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/sidebarSidebar > dont show hidden boards 1`] = `
-<div>
-  <div
-    class="Sidebar octo-sidebar"
-  >
-    <div
-      class="octo-sidebar-header"
-    >
-      <div
-        class="heading"
-      >
-        <div
-          class="SidebarUserMenu"
-        >
-          <div
-            class="ModalWrapper"
-          >
-            <div
-              aria-label="menuwrapper"
-              class="MenuWrapper"
-              role="button"
-            >
-              <div
-                class="logo"
-              >
-                <div
-                  class="logo-title"
-                >
-                  <svg
-                    class="AppLogoIcon Icon"
-                    version="1.1"
-                    viewBox="0 0 24 24"
-                    x="0px"
-                    y="0px"
-                  >
-                    <rect
-                      height="16"
-                      rx="1.5"
-                      width="5"
-                      x="2.5"
-                      y="4"
-                    />
-                    <rect
-                      height="11"
-                      rx="1.5"
-                      width="5"
-                      x="9.5"
-                      y="4"
-                    />
-                    <rect
-                      height="6"
-                      rx="1.5"
-                      width="5"
-                      x="16.5"
-                      y="4"
-                    />
-                  </svg>
-                  <span>
-                    XCIII
-                  </span>
-                </div>
-              </div>
-              
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="octo-spacer"
-      />
-      <div
-        class="sidebarSwitcher"
-      >
-        <button
-          class="IconButton"
-          type="button"
-        >
-          <svg
-            class="HideSidebarIcon Icon"
-            viewBox="0 0 100 100"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <polyline
-              points="80,20 50,50 80,80"
-            />
-            <polyline
-              points="50,20 20,50, 50,80"
-            />
-          </svg>
-        </button>
-      </div>
-    </div>
-    <div
-      class="WorkspaceTitle"
-    />
-    <div
-      class="BoardsSwitcherWrapper"
-    >
-      <div
-        class="BoardsSwitcher"
-      >
-        <i
-          class="CompassIcon icon-magnify MagnifyIcon"
-        />
-        <div>
-          <span>
-            Find Boards
-          </span>
-        </div>
-      </div>
-      
-      
-      
-    </div>
-    <div
-      class="octo-sidebar-list"
-    >
-      <div>
-        <div
-          class="SidebarCategory"
-        >
-          <div
-            class="categoryBoardsDroppableArea"
-          >
-            <div
-              class="octo-sidebar-item category expanded "
-            >
-              <div
-                class="octo-sidebar-title category-title"
-                title="Category 1"
-              >
-                <i
-                  class="CompassIcon icon-chevron-down ChevronDownIcon"
-                />
-                Category 1
-                <div
-                  class="sidebarCategoriesTour"
-                />
-              </div>
-              <div
-                class=""
-              >
-                
-                
-                <div
-                  aria-label="menuwrapper"
-                  class="MenuWrapper"
-                  role="button"
-                >
-                  <button
-                    class="IconButton"
-                    type="button"
-                  >
-                    <i
-                      class="CompassIcon icon-dots-horizontal OptionsIcon"
-                    />
-                  </button>
-                  
-                </div>
-              </div>
-            </div>
-            <div>
-              <div
-                class="octo-sidebar-item subitem no-views"
-              >
-                No boards inside
-              </div>
-              
-            </div>
-            
-            
-            
-            
-            
-            
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="octo-spacer"
-    />
-    <div
-      class="add-board"
-    >
-      + Add board
-    </div>
-    <div
-      class="SidebarSettingsMenu"
-    >
-      <div
-        aria-label="menuwrapper"
-        class="MenuWrapper"
-        role="button"
-      >
-        <div
-          class="menu-entry"
-        >
-          Settings
-        </div>
-        
-      </div>
-      
-    </div>
-  </div>
-</div>
-`;
-
-exports[`components/sidebarSidebar > should assign default category if current board doesnt have a category 1`] = `
+exports[`components/sidebarSidebar > a board in no category is filed under the default one, found by its type 1`] = `
 <div>
   <div
     class="Sidebar octo-sidebar"
@@ -397,6 +189,214 @@ exports[`components/sidebarSidebar > should assign default category if current b
                   class="CompassIcon icon-chevron-down ChevronDownIcon"
                 />
                 Boards
+                <div
+                  class="sidebarCategoriesTour"
+                />
+              </div>
+              <div
+                class=""
+              >
+                
+                
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper"
+                  role="button"
+                >
+                  <button
+                    class="IconButton"
+                    type="button"
+                  >
+                    <i
+                      class="CompassIcon icon-dots-horizontal OptionsIcon"
+                    />
+                  </button>
+                  
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                class="octo-sidebar-item subitem no-views"
+              >
+                No boards inside
+              </div>
+              
+            </div>
+            
+            
+            
+            
+            
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="octo-spacer"
+    />
+    <div
+      class="add-board"
+    >
+      + Add board
+    </div>
+    <div
+      class="SidebarSettingsMenu"
+    >
+      <div
+        aria-label="menuwrapper"
+        class="MenuWrapper"
+        role="button"
+      >
+        <div
+          class="menu-entry"
+        >
+          Settings
+        </div>
+        
+      </div>
+      
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/sidebarSidebar > dont show hidden boards 1`] = `
+<div>
+  <div
+    class="Sidebar octo-sidebar"
+  >
+    <div
+      class="octo-sidebar-header"
+    >
+      <div
+        class="heading"
+      >
+        <div
+          class="SidebarUserMenu"
+        >
+          <div
+            class="ModalWrapper"
+          >
+            <div
+              aria-label="menuwrapper"
+              class="MenuWrapper"
+              role="button"
+            >
+              <div
+                class="logo"
+              >
+                <div
+                  class="logo-title"
+                >
+                  <svg
+                    class="AppLogoIcon Icon"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    x="0px"
+                    y="0px"
+                  >
+                    <rect
+                      height="16"
+                      rx="1.5"
+                      width="5"
+                      x="2.5"
+                      y="4"
+                    />
+                    <rect
+                      height="11"
+                      rx="1.5"
+                      width="5"
+                      x="9.5"
+                      y="4"
+                    />
+                    <rect
+                      height="6"
+                      rx="1.5"
+                      width="5"
+                      x="16.5"
+                      y="4"
+                    />
+                  </svg>
+                  <span>
+                    XCIII
+                  </span>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="octo-spacer"
+      />
+      <div
+        class="sidebarSwitcher"
+      >
+        <button
+          class="IconButton"
+          type="button"
+        >
+          <svg
+            class="HideSidebarIcon Icon"
+            viewBox="0 0 100 100"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <polyline
+              points="80,20 50,50 80,80"
+            />
+            <polyline
+              points="50,20 20,50, 50,80"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div
+      class="WorkspaceTitle"
+    />
+    <div
+      class="BoardsSwitcherWrapper"
+    >
+      <div
+        class="BoardsSwitcher"
+      >
+        <i
+          class="CompassIcon icon-magnify MagnifyIcon"
+        />
+        <div>
+          <span>
+            Find Boards
+          </span>
+        </div>
+      </div>
+      
+      
+      
+    </div>
+    <div
+      class="octo-sidebar-list"
+    >
+      <div>
+        <div
+          class="SidebarCategory"
+        >
+          <div
+            class="categoryBoardsDroppableArea"
+          >
+            <div
+              class="octo-sidebar-item category expanded "
+            >
+              <div
+                class="octo-sidebar-title category-title"
+                title="Category 1"
+              >
+                <i
+                  class="CompassIcon icon-chevron-down ChevronDownIcon"
+                />
+                Category 1
                 <div
                   class="sidebarCategoriesTour"
                 />

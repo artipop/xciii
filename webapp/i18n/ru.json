@@ -553,6 +553,7 @@
   "Sidebar.agent-notifications": "Сообщать, когда агент ждёт ответа",
   "Sidebar.changePassword": "Изменить пароль",
   "Sidebar.dark-theme": "Тёмная",
+  "Sidebar.default-category": "Доски",
   "Sidebar.delete-board": "Удалить доску",
   "Sidebar.duplicate-board": "Дублировать доску",
   "Sidebar.export-archive": "Экспорт архива",

@@ -553,6 +553,7 @@
   "Sidebar.agent-notifications": "Notify me when an agent is waiting",
   "Sidebar.changePassword": "Change password",
   "Sidebar.dark-theme": "Dark theme",
+  "Sidebar.default-category": "Boards",
   "Sidebar.delete-board": "Delete board",
   "Sidebar.duplicate-board": "Duplicate board",
   "Sidebar.export-archive": "Export archive",

@@ -46,11 +46,6 @@ interface CategoryBoardsReorderData {
     boardsMetadata: CategoryBoardMetadata[]
 }
 
-export const DefaultCategory: CategoryBoards = {
-    id: '',
-    name: 'Boards',
-} as CategoryBoards
-
 export type SidebarState = {
     categoryAttributes: CategoryBoards[]
     hiddenBoardIDs: string[]
@@ -76,13 +71,22 @@ export const createSidebarActions = ({setState, deps}: StoreContext) => ({
                     // when category is deleted
                     categoryAttributes.splice(index, 1)
                 } else {
-                    // else all, update the category
-                    categoryAttributes[index] = {
-                        ...categoryAttributes[index],
-                        name: updatedCategory.name,
-                        updateAt: updatedCategory.updateAt,
-                        isNew: false,
-                    }
+                    // Written field by field rather than as a fresh object on
+                    // purpose. `For` keys a row by the identity of its item, so
+                    // replacing the object disposes the sidebar row and builds a
+                    // new one -- which threw away everything the row itself was
+                    // holding, collapsed among it. Every category update is an
+                    // echo of somebody's own click, so that happened on every
+                    // collapse: the boards went away and came back.
+                    //
+                    // `collapsed` is carried for the same reason it was missed:
+                    // it is the category's answer and not the row's, and it is
+                    // how a collapse made in another window reaches this one.
+                    const existing = categoryAttributes[index]
+                    existing.name = updatedCategory.name
+                    existing.collapsed = updatedCategory.collapsed
+                    existing.updateAt = updatedCategory.updateAt
+                    existing.isNew = false
                 }
             })
         }))
