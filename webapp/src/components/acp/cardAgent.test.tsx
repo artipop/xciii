@@ -37,6 +37,34 @@ describe('components/acp/cardAgent', () => {
         expect(isCardAgentAvailable()).toBe(false)
     })
 
+    // A board of household chores is a board. The agent integration being
+    // compiled in is not a reason to offer a session on a machine that has
+    // nobody to run one, where the offer can only end in a refusal.
+    it('says nothing about agents on a machine where none is registered', async () => {
+        const bindings = {...cardBindings(), ListAgents: vi.fn().mockResolvedValue('[]')}
+        anyWindow.go = {main: {App: bindings}}
+
+        render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
+
+        await waitFor(() => expect(bindings.ListAgents).toHaveBeenCalled())
+        expect(screen.queryByText('Open terminal')).toBeNull()
+        expect(screen.queryByText('Agent')).toBeNull()
+    })
+
+    // The card's own history outlives the registry: the branch is still there
+    // and the terminal is still resumable when the agent that made them has
+    // been deleted from the machine.
+    it('keeps the agent row on a card that has already been worked', async () => {
+        anyWindow.go = {main: {App: {
+            ...cardBindings({resume: {available: true, cwd: '/wt/card-1'}}),
+            ListAgents: vi.fn().mockResolvedValue('[]'),
+        }}}
+
+        render(() => wrapIntl(() => <CardAgent cardId='card-1' board={board}/>))
+
+        expect(await screen.findByText('Resume in terminal')).toBeInTheDocument()
+    })
+
     it('opens a terminal on the card', async () => {
         const bindings = cardBindings()
         anyWindow.go = {main: {App: bindings}}
@@ -165,11 +193,13 @@ describe('components/acp/cardAgent', () => {
     })
 
     // Registering an agent is two answers, and having to leave the card for
-    // them is how a two-field answer becomes an errand.
+    // them is how a two-field answer becomes an errand. The registry is not
+    // empty here because a card on a machine with no agents draws nothing at
+    // all — the first agent is registered where the machine's settings are.
     it('registers an agent from the card and picks it', async () => {
         const bindings = {
             ...cardBindings(),
-            ListAgents: vi.fn().mockResolvedValue('[]'),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'codex', kind: 'codex'}])),
             ListAgentAdapters: vi.fn().mockResolvedValue('[]'),
             AddAgent: vi.fn().mockResolvedValue(JSON.stringify({name: 'claude', kind: 'claude'})),
             SyncAgentUsers: vi.fn().mockResolvedValue('[]'),
