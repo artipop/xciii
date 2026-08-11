@@ -253,9 +253,15 @@ const CalendarFullView = (props: Props): JSX.Element => {
             >
                 {'+'}
             </div>
-            <div class='dateDisplay'>
-                {cellProps.dayNumberText}
-            </div>
+            {/* The week view writes the date in the column header instead, so
+                the cell's day number is empty there. The marker only exists to
+                carry that number — drawn anyway it became a filled accent
+                circle with nothing in it, one naked dot floating over today. */}
+            <Show when={cellProps.dayNumberText}>
+                <div class='dateDisplay'>
+                    {cellProps.dayNumberText}
+                </div>
+            </Show>
         </div>
     )
 

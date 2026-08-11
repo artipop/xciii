@@ -279,6 +279,7 @@ exports[`components/table/Table > limited card in table view 1`] = `
       >
         <div
           class="Calculation count octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -296,6 +297,7 @@ exports[`components/table/Table > limited card in table view 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -311,6 +313,7 @@ exports[`components/table/Table > limited card in table view 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -545,6 +548,7 @@ exports[`components/table/Table > should match snapshot 1`] = `
       >
         <div
           class="Calculation count octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -562,6 +566,7 @@ exports[`components/table/Table > should match snapshot 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -577,6 +582,7 @@ exports[`components/table/Table > should match snapshot 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -750,6 +756,7 @@ exports[`components/table/Table > should match snapshot with GroupBy 1`] = `
       >
         <div
           class="Calculation count octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -767,6 +774,7 @@ exports[`components/table/Table > should match snapshot with GroupBy 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -782,6 +790,7 @@ exports[`components/table/Table > should match snapshot with GroupBy 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -998,6 +1007,7 @@ exports[`components/table/Table > should match snapshot without permissions 1`] 
       >
         <div
           class="Calculation count octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -1015,6 +1025,7 @@ exports[`components/table/Table > should match snapshot without permissions 1`] 
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -1030,6 +1041,7 @@ exports[`components/table/Table > should match snapshot without permissions 1`] 
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -1246,6 +1258,7 @@ exports[`components/table/Table > should match snapshot, read-only 1`] = `
       >
         <div
           class="Calculation count octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -1263,6 +1276,7 @@ exports[`components/table/Table > should match snapshot, read-only 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -1278,6 +1292,7 @@ exports[`components/table/Table > should match snapshot, read-only 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -1702,6 +1717,7 @@ exports[`components/table/Table extended > should have Duplicate Button 1`] = `
       >
         <div
           class="Calculation count octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -1719,6 +1735,7 @@ exports[`components/table/Table extended > should have Duplicate Button 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -1734,6 +1751,7 @@ exports[`components/table/Table extended > should have Duplicate Button 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -1749,6 +1767,7 @@ exports[`components/table/Table extended > should have Duplicate Button 1`] = `
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -2105,6 +2124,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedAt 
       >
         <div
           class="Calculation count octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -2122,6 +2142,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedAt 
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -2137,6 +2158,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedAt 
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -2152,6 +2174,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedAt 
         </div>
         <div
           class="Calculation none octo-table-cell disabled  "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -2576,6 +2599,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedBy 
       >
         <div
           class="Calculation count octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -2593,6 +2617,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedBy 
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -2608,6 +2633,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedBy 
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -2623,6 +2649,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedBy 
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -3047,6 +3074,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedAt 
       >
         <div
           class="Calculation count octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -3064,6 +3092,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedAt 
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -3079,6 +3108,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedAt 
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -3094,6 +3124,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedAt 
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -3518,6 +3549,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedBy 
       >
         <div
           class="Calculation count octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -3535,6 +3567,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedBy 
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -3550,6 +3583,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedBy 
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
@@ -3565,6 +3599,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedBy 
         </div>
         <div
           class="Calculation none octo-table-cell   "
+          style="width: 100px;"
           tabindex="0"
         >
           
