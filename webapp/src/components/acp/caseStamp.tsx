@@ -1,5 +1,6 @@
 import {For, Show, onMount} from 'solid-js'
 
+import {agentBindings} from './bindings'
 import {cardAgentState, refreshCardAgent} from './cardAgentState'
 
 import './caseStamp.scss'
@@ -14,6 +15,10 @@ import './caseStamp.scss'
 //
 // It shows nothing at all until there is something to say. A card nobody has
 // run an agent on is not a case yet.
+
+export function isCaseStampAvailable(): boolean {
+    return Boolean(agentBindings()?.GetCardAgent)
+}
 
 type Props = {
     cardId: string

@@ -1,4 +1,4 @@
-import {Show, createSignal} from 'solid-js'
+import {Show, createSignal, onMount} from 'solid-js'
 import type {JSX} from 'solid-js'
 
 import {FormattedMessage, useIntl} from '../intl'
@@ -29,6 +29,10 @@ import {Permission} from '../constants'
 
 import BoardPermissionGate from './permissions/boardPermissionGate'
 
+import CardTerminal, {isCardTerminalAvailable} from './acp/cardTerminal'
+import {cardAgentState, refreshCardAgent} from './acp/cardAgentState'
+import {refreshRegisteredAgents, registeredAgents} from './acp/agentRegistry'
+
 import CardDetail from './cardDetail/cardDetail'
 import Dialog from './dialog'
 
@@ -56,6 +60,7 @@ const CardDialog = (props: Props): JSX.Element => {
     const isTemplate = () => card() && card()!.fields.isTemplate
 
     const [showConfirmationDialogBox, setShowConfirmationDialogBox] = createSignal<boolean>(false)
+    const [showTerminal, setShowTerminal] = createSignal<boolean>(false)
     const makeTemplateClicked = async () => {
         const currentCard = card()
         if (!currentCard) {
@@ -227,6 +232,38 @@ const CardDialog = (props: Props): JSX.Element => {
         )
     }
 
+    // The terminal is a panel beside the card, and this is what opens it. It
+    // sits in the dialog's own toolbar rather than in the card's body: the card
+    // is what a person wrote, and the machinery for working it belongs to the
+    // frame around it.
+    const agentState = cardAgentState(props.cardId)
+    onMount(() => {
+        if (isCardTerminalAvailable()) {
+            refreshRegisteredAgents()
+            refreshCardAgent(props.cardId)
+        }
+    })
+
+    // A card already worked keeps its terminal button whatever the registry
+    // says today — the worktree is still there to go back to. Everything else
+    // waits for there to be an agent to run at all.
+    const offersTerminal = () => isCardTerminalAvailable() && Boolean(card()) && !props.readonly && !card()?.limited &&
+        Boolean(agentState().running || agentState().resume?.available || (registeredAgents() || 0) > 0)
+
+    const terminalBtn = (): JSX.Element => (
+        <Show when={offersTerminal()}>
+            <Button
+                icon={<CompassIcon icon='console'/>}
+                class='cardFollowBtn cardFollowBtn--attach'
+                emphasis='gray'
+                size='medium'
+                onClick={() => setShowTerminal(!showTerminal())}
+            >
+                {intl.formatMessage({id: 'CardDialog.terminal', defaultMessage: 'Terminal'})}
+            </Button>
+        </Show>
+    )
+
     return (
         <>
             <Dialog
@@ -234,7 +271,7 @@ const CardDialog = (props: Props): JSX.Element => {
                 class='cardDialog'
                 onClose={props.onClose}
                 toolsMenu={!props.readonly && !card()?.limited && menu()}
-                toolbar={attachBtn()}
+                toolbar={<>{terminalBtn()}{attachBtn()}</>}
             >
                 <Show when={isTemplate()}>
                     <div class='banner'>
@@ -245,32 +282,49 @@ const CardDialog = (props: Props): JSX.Element => {
                     </div>
                 </Show>
 
-                <Show
-                    when={card()}
-                    fallback={
-                        <div class='banner error'>
-                            <FormattedMessage
-                                id='CardDialog.nocard'
-                                defaultMessage="This card doesn't exist or is inaccessible."
+                {/* Two panels: the card on one side, the terminal on the
+                    other. The card scrolls on its own so the terminal keeps
+                    the dialog's full height rather than travelling with the
+                    comments. */}
+                <div class='cardDialog__body'>
+                    <div class='cardDialog__main'>
+                        <Show
+                            when={card()}
+                            fallback={
+                                <div class='banner error'>
+                                    <FormattedMessage
+                                        id='CardDialog.nocard'
+                                        defaultMessage="This card doesn't exist or is inaccessible."
+                                    />
+                                </div>
+                            }
+                        >
+                            <CardDetail
+                                board={props.board}
+                                activeView={props.activeView}
+                                views={props.views}
+                                cards={props.cards}
+                                card={card()!}
+                                contents={contents()}
+                                comments={comments()}
+                                attachments={attachments()}
+                                readonly={props.readonly}
+                                onClose={props.onClose}
+                                onDelete={deleteBlock}
+                                addAttachment={addElement}
+                            />
+                        </Show>
+                    </div>
+
+                    <Show when={showTerminal() && offersTerminal()}>
+                        <div class='cardDialog__side'>
+                            <CardTerminal
+                                cardId={props.cardId}
+                                onClose={() => setShowTerminal(false)}
                             />
                         </div>
-                    }
-                >
-                    <CardDetail
-                        board={props.board}
-                        activeView={props.activeView}
-                        views={props.views}
-                        cards={props.cards}
-                        card={card()!}
-                        contents={contents()}
-                        comments={comments()}
-                        attachments={attachments()}
-                        readonly={props.readonly}
-                        onClose={props.onClose}
-                        onDelete={deleteBlock}
-                        addAttachment={addElement}
-                    />
-                </Show>
+                    </Show>
+                </div>
             </Dialog>
 
             <Show when={showConfirmationDialogBox()}>

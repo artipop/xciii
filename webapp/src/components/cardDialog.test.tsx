@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import {render, screen} from '@solidjs/testing-library'
+import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
 import mutator from '../mutator'
@@ -15,6 +15,19 @@ import CardDialog from './cardDialog'
 vi.mock('../mutator')
 vi.mock('../octoClient')
 vi.mock('../utils')
+
+// The panel beside the card is the terminal page itself. What it draws — xterm
+// on a socket — is terminalPage's own test; here it only has to be the thing
+// that appears, for the terminal it was given.
+vi.mock('./acp/terminalPage', () => ({
+    default: (props: {terminalId?: string}) => <div data-testid='terminal'>{props.terminalId}</div>,
+}))
+
+// The desktop bindings are global, and a test left holding them decides for
+// every test after it whether this app has an agent integration at all.
+afterEach(() => {
+    delete (window as any).go
+})
 
 const mockedUtils = vi.mocked(Utils)
 const mockedMutator = vi.mocked(mutator)
@@ -342,5 +355,72 @@ describe('components/cardDialog', () => {
             </AppStoreProvider>,
         ))
         expect(container).toMatchSnapshot()
+    })
+
+    // A board of household chores is a board. The agent integration being
+    // compiled in is not a reason to offer a terminal on a machine that has
+    // nobody to open one with.
+    it('offers no terminal on a machine where no agent is registered', async () => {
+        const bindings = {
+            GetCardAgent: vi.fn().mockResolvedValue('{}'),
+            OpenCardTerminal: vi.fn(),
+            ListAgents: vi.fn().mockResolvedValue('[]'),
+        };
+        (window as any).go = {main: {App: bindings}}
+
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
+                    readonly={false}
+                />
+            </AppStoreProvider>,
+        ))
+
+        await waitFor(() => expect(bindings.ListAgents).toHaveBeenCalled())
+        expect(screen.queryByRole('button', {name: 'Terminal'})).toBeNull()
+    })
+
+    // The terminal is beside the card rather than in it: the card is what a
+    // person wrote, and the dialog's toolbar is where the machinery lives.
+    it('opens the terminal in a panel beside the card', async () => {
+        const bindings = {
+            GetCardAgent: vi.fn().mockResolvedValue('{}'),
+            OpenCardTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-7'})),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
+        };
+        (window as any).go = {main: {App: bindings}}
+
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
+                    readonly={false}
+                />
+            </AppStoreProvider>,
+        ))
+
+        await userEvent.click(await screen.findByRole('button', {name: 'Terminal'}))
+
+        // The panel asks Go for this card's terminal as it opens: opening it is
+        // the whole request, and there is nothing else in it to look at first.
+        await waitFor(() => expect(bindings.OpenCardTerminal).toHaveBeenCalledWith(card.id, '', '', false))
+        expect(await screen.findByTestId('terminal')).toHaveTextContent('term-7')
+        expect(container.querySelector('.cardDialog__side')).not.toBeNull()
+
+        await userEvent.click(screen.getByRole('button', {name: 'Close the panel'}))
+        expect(container.querySelector('.cardDialog__side')).toBeNull()
     })
 })

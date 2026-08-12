@@ -469,18 +469,24 @@ Properties travel by **name**, since the two boards share nothing else.
 the card's worktree, drawn by xterm.js and wired over a WebSocket on the front door
 (`/acp/terminal/{id}/ws`).
 
-**Where it is drawn is the card**: `pages/…/terminalPage.tsx` takes its terminal id
-from the route when it is a window and from a prop when it is not, and the card's
-agent row opens it inline — a chevron that expands downwards into the CLI
-(`cardAgent.tsx`, lazily so a card that is never expanded does not pay for the
-emulator). There was a button saying «Открыть терминал» that opened a window
-somewhere else and left the card looking exactly as it had, which made the one
-thing a person does on a card with an agent on it read as a link away from it.
-The window survives as the ⤢ beside the panel — `OpenCardTerminal`'s `window`
-argument is what asks for one — because a screen of its own is the one thing a
-panel in a card cannot be. And **no session UI of ours was built to go beside
-it**: the terminal *is* what a session looks like, since the agent's own CLI
-already draws its work and asks its own questions.
+**Where it is drawn is beside the card, not in it**: `pages/…/terminalPage.tsx`
+takes its terminal id from the route when it is a window and from a prop when it
+is not, and `cardDialog.tsx` gives it a panel of its own next to the card
+(`cardTerminal.tsx`, lazily so a card whose panel is never opened does not pay
+for the emulator). What opens it is a button in the *dialog's* toolbar, beside
+«Attach», because the card's body is what a person wrote and everything of ours
+put in there was the machine talking in the middle of it. There was a row in the
+card once — the agent's name, the session status, the branch with a deploy
+button, a form asking which folder and which agent, and a chevron that expanded
+downwards — and the thing a person actually wanted, the terminal, was the part
+hardest to find in it. What replaced all of it is the terminal, the stamp under
+the title, and nothing else: **the folder and the agent are the machine's
+settings**, so a card that cannot work out either says so and points there
+rather than asking again. The window survives as the ⤢ in the panel's own head —
+`OpenCardTerminal`'s `window` argument is what asks for one — because a screen of
+its own is the one thing a panel beside a card cannot be. And **no session UI of
+ours was built to go beside it**: the terminal *is* what a session looks like,
+since the agent's own CLI already draws its work and asks its own questions.
 
 It is deliberately not an ACP session: an ACP agent speaks JSON-RPC on stdio and has
 no terminal UI, so one process cannot be both. What the two share is everything

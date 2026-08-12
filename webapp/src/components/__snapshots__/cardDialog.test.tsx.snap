@@ -70,150 +70,158 @@ exports[`components/cardDialog > already following card 1`] = `
           </div>
         </div>
         <div
-          class="CardDetail "
+          class="cardDialog__body"
         >
           <div
-            class="IconSelector"
+            class="cardDialog__main"
           >
             <div
-              aria-label="menuwrapper"
-              class="MenuWrapper"
-              role="button"
+              class="CardDetail "
             >
               <div
-                class="octo-icon size-l"
+                class="IconSelector"
               >
-                <span>
-                  i
-                </span>
-              </div>
-              
-            </div>
-          </div>
-          
-          <div
-            class="EditableAreaWrap"
-          >
-            <textarea
-              class="EditableArea Editable title"
-              placeholder="Untitled"
-              rows="1"
-              spellcheck="true"
-              title="title"
-            />
-            <div
-              class="EditableAreaContainer"
-            >
-              <textarea
-                aria-hidden="true"
-                class="EditableAreaReference Editable title"
-                dir="auto"
-                disabled=""
-                rows="1"
-              />
-            </div>
-          </div>
-          
-          
-          <div
-            class="octo-propertylist CardDetailProperties"
-          >
-            
-            
-            <div
-              class="octo-propertyname add-property"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  type="button"
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper"
+                  role="button"
                 >
+                  <div
+                    class="octo-icon size-l"
+                  >
+                    <span>
+                      i
+                    </span>
+                  </div>
                   
-                  <span>
-                    + Add a property
-                  </span>
-                  
-                </button>
-                
+                </div>
               </div>
               
-            </div>
-          </div>
-          
-          
-          
-          <hr />
-          <div
-            class="CommentsList"
-          >
-            <div
-              class="CommentsList__new"
-            >
-              <img
-                class="comment-avatar"
-              />
               <div
-                class="MarkdownEditor octo-editor newcomment "
+                class="EditableAreaWrap"
+              >
+                <textarea
+                  class="EditableArea Editable title"
+                  placeholder="Untitled"
+                  rows="1"
+                  spellcheck="true"
+                  title="title"
+                />
+                <div
+                  class="EditableAreaContainer"
+                >
+                  <textarea
+                    aria-hidden="true"
+                    class="EditableAreaReference Editable title"
+                    dir="auto"
+                    disabled=""
+                    rows="1"
+                  />
+                </div>
+              </div>
+              
+              
+              <div
+                class="octo-propertylist CardDetailProperties"
+              >
+                
+                
+                <div
+                  class="octo-propertyname add-property"
+                >
+                  <div
+                    aria-label="menuwrapper"
+                    class="MenuWrapper"
+                    role="button"
+                  >
+                    <button
+                      type="button"
+                    >
+                      
+                      <span>
+                        + Add a property
+                      </span>
+                      
+                    </button>
+                    
+                  </div>
+                  
+                </div>
+              </div>
+              
+              
+              <hr />
+              <div
+                class="CommentsList"
               >
                 <div
-                  class="octo-editor-preview octo-placeholder"
-                  data-testid="preview-element"
+                  class="CommentsList__new"
+                >
+                  <img
+                    class="comment-avatar"
+                  />
+                  <div
+                    class="MarkdownEditor octo-editor newcomment "
+                  >
+                    <div
+                      class="octo-editor-preview octo-placeholder"
+                      data-testid="preview-element"
+                    />
+                  </div>
+                  
+                  
+                </div>
+                
+                <hr
+                  class="CommentsList__divider"
                 />
               </div>
-              
-              
             </div>
-            
-            <hr
-              class="CommentsList__divider"
-            />
-          </div>
-        </div>
-        <div
-          class="CardDetail CardDetail--fullwidth content-blocks"
-        >
-          <div
-            class="octo-content CardDetailContents"
-          >
             <div
-              class="octo-block"
+              class="CardDetail CardDetail--fullwidth content-blocks"
             >
               <div
-                class="octo-block-margin"
-              />
-              <div
-                class="MarkdownEditor octo-editor  "
+                class="octo-content CardDetailContents"
               >
                 <div
-                  class="octo-editor-preview octo-placeholder"
-                  data-testid="preview-element"
-                />
+                  class="octo-block"
+                >
+                  <div
+                    class="octo-block-margin"
+                  />
+                  <div
+                    class="MarkdownEditor octo-editor  "
+                  >
+                    <div
+                      class="octo-editor-preview octo-placeholder"
+                      data-testid="preview-element"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="CardDetailContentsMenu content add-content"
+              >
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper"
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    
+                    <span>
+                      Add content
+                    </span>
+                    
+                  </button>
+                  
+                </div>
               </div>
             </div>
           </div>
-          <div
-            class="CardDetailContentsMenu content add-content"
-          >
-            <div
-              aria-label="menuwrapper"
-              class="MenuWrapper"
-              role="button"
-            >
-              <button
-                type="button"
-              >
-                
-                <span>
-                  Add content
-                </span>
-                
-              </button>
-              
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>
@@ -278,194 +286,202 @@ exports[`components/cardDialog > limited card shows hidden view (no toolbar) 1`]
           </div>
         </div>
         <div
-          class="CardDetail  CardDetail--is-limited"
+          class="cardDialog__body"
         >
           <div
-            class="IconSelector"
+            class="cardDialog__main"
           >
             <div
-              class="octo-icon size-l readonly"
+              class="CardDetail  CardDetail--is-limited"
             >
-              <span>
-                i
-              </span>
+              <div
+                class="IconSelector"
+              >
+                <div
+                  class="octo-icon size-l readonly"
+                >
+                  <span>
+                    i
+                  </span>
+                </div>
+              </div>
+              
+              <div
+                class="EditableAreaWrap"
+              >
+                <textarea
+                  class="EditableArea Editable readonly title"
+                  placeholder="Untitled"
+                  readonly=""
+                  rows="1"
+                  spellcheck="true"
+                  title="title"
+                />
+                <div
+                  class="EditableAreaContainer"
+                >
+                  <textarea
+                    aria-hidden="true"
+                    class="EditableAreaReference Editable readonly title"
+                    dir="auto"
+                    disabled=""
+                    rows="1"
+                  />
+                </div>
+              </div>
+              
+              <div
+                class="CardDetail__limited-wrapper"
+              >
+                <span
+                  class="CardDetail__limited-bg"
+                >
+                  <svg
+                    fill="none"
+                    height="521"
+                    viewBox="0 0 468 521"
+                    width="468"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect
+                      fill="#3F4350"
+                      fill-opacity="0.08"
+                      height="32"
+                      rx="4"
+                      width="156"
+                    />
+                    <rect
+                      fill="#3F4350"
+                      fill-opacity="0.08"
+                      height="32"
+                      rx="4"
+                      width="296"
+                      x="172"
+                    />
+                    <rect
+                      fill="#3F4350"
+                      fill-opacity="0.08"
+                      height="32"
+                      rx="4"
+                      width="156"
+                      y="48"
+                    />
+                    <rect
+                      fill="#3F4350"
+                      fill-opacity="0.08"
+                      height="32"
+                      rx="4"
+                      width="296"
+                      x="172"
+                      y="48"
+                    />
+                    <rect
+                      fill="#3F4350"
+                      fill-opacity="0.08"
+                      height="32"
+                      rx="4"
+                      width="156"
+                      y="96"
+                    />
+                    <rect
+                      fill="#3F4350"
+                      fill-opacity="0.08"
+                      height="32"
+                      rx="4"
+                      width="296"
+                      x="172"
+                      y="96"
+                    />
+                    <rect
+                      fill="#3F4350"
+                      fill-opacity="0.08"
+                      height="32"
+                      rx="4"
+                      width="156"
+                      y="144"
+                    />
+                    <rect
+                      fill="#3F4350"
+                      fill-opacity="0.08"
+                      height="32"
+                      rx="4"
+                      width="296"
+                      x="172"
+                      y="144"
+                    />
+                    <rect
+                      fill="#3D3C40"
+                      fill-opacity="0.16"
+                      height="1"
+                      width="468"
+                      y="192"
+                    />
+                    <rect
+                      fill="#3F4350"
+                      fill-opacity="0.08"
+                      height="32"
+                      rx="4"
+                      width="468"
+                      y="209"
+                    />
+                    <rect
+                      fill="#3F4350"
+                      fill-opacity="0.08"
+                      height="32"
+                      rx="4"
+                      width="468"
+                      y="257"
+                    />
+                    <rect
+                      fill="#3D3C40"
+                      fill-opacity="0.16"
+                      height="1"
+                      width="468"
+                      y="305"
+                    />
+                    <rect
+                      fill="#3F4350"
+                      fill-opacity="0.08"
+                      height="199"
+                      rx="4"
+                      width="468"
+                      y="322"
+                    />
+                  </svg>
+                </span>
+                <p
+                  class="CardDetail__limited-title"
+                >
+                  This card is hidden
+                </p>
+                <p
+                  class="CardDetail__limited-body"
+                >
+                  Upgrade to our Professional or Enterprise plan to view archived cards, have unlimited views per boards, unlimited cards and more.
+                  <br />
+                  <a
+                    class="CardDetail__limited-link"
+                    role="button"
+                  >
+                    Learn more about our plans.
+                  </a>
+                </p>
+                <button
+                  type="button"
+                >
+                  
+                  <span>
+                    Upgrade
+                  </span>
+                  
+                </button>
+              </div>
+              
+              
+              
+              
             </div>
           </div>
-          
-          <div
-            class="EditableAreaWrap"
-          >
-            <textarea
-              class="EditableArea Editable readonly title"
-              placeholder="Untitled"
-              readonly=""
-              rows="1"
-              spellcheck="true"
-              title="title"
-            />
-            <div
-              class="EditableAreaContainer"
-            >
-              <textarea
-                aria-hidden="true"
-                class="EditableAreaReference Editable readonly title"
-                dir="auto"
-                disabled=""
-                rows="1"
-              />
-            </div>
-          </div>
-          
-          <div
-            class="CardDetail__limited-wrapper"
-          >
-            <span
-              class="CardDetail__limited-bg"
-            >
-              <svg
-                fill="none"
-                height="521"
-                viewBox="0 0 468 521"
-                width="468"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect
-                  fill="#3F4350"
-                  fill-opacity="0.08"
-                  height="32"
-                  rx="4"
-                  width="156"
-                />
-                <rect
-                  fill="#3F4350"
-                  fill-opacity="0.08"
-                  height="32"
-                  rx="4"
-                  width="296"
-                  x="172"
-                />
-                <rect
-                  fill="#3F4350"
-                  fill-opacity="0.08"
-                  height="32"
-                  rx="4"
-                  width="156"
-                  y="48"
-                />
-                <rect
-                  fill="#3F4350"
-                  fill-opacity="0.08"
-                  height="32"
-                  rx="4"
-                  width="296"
-                  x="172"
-                  y="48"
-                />
-                <rect
-                  fill="#3F4350"
-                  fill-opacity="0.08"
-                  height="32"
-                  rx="4"
-                  width="156"
-                  y="96"
-                />
-                <rect
-                  fill="#3F4350"
-                  fill-opacity="0.08"
-                  height="32"
-                  rx="4"
-                  width="296"
-                  x="172"
-                  y="96"
-                />
-                <rect
-                  fill="#3F4350"
-                  fill-opacity="0.08"
-                  height="32"
-                  rx="4"
-                  width="156"
-                  y="144"
-                />
-                <rect
-                  fill="#3F4350"
-                  fill-opacity="0.08"
-                  height="32"
-                  rx="4"
-                  width="296"
-                  x="172"
-                  y="144"
-                />
-                <rect
-                  fill="#3D3C40"
-                  fill-opacity="0.16"
-                  height="1"
-                  width="468"
-                  y="192"
-                />
-                <rect
-                  fill="#3F4350"
-                  fill-opacity="0.08"
-                  height="32"
-                  rx="4"
-                  width="468"
-                  y="209"
-                />
-                <rect
-                  fill="#3F4350"
-                  fill-opacity="0.08"
-                  height="32"
-                  rx="4"
-                  width="468"
-                  y="257"
-                />
-                <rect
-                  fill="#3D3C40"
-                  fill-opacity="0.16"
-                  height="1"
-                  width="468"
-                  y="305"
-                />
-                <rect
-                  fill="#3F4350"
-                  fill-opacity="0.08"
-                  height="199"
-                  rx="4"
-                  width="468"
-                  y="322"
-                />
-              </svg>
-            </span>
-            <p
-              class="CardDetail__limited-title"
-            >
-              This card is hidden
-            </p>
-            <p
-              class="CardDetail__limited-body"
-            >
-              Upgrade to our Professional or Enterprise plan to view archived cards, have unlimited views per boards, unlimited cards and more.
-              <br />
-              <a
-                class="CardDetail__limited-link"
-                role="button"
-              >
-                Learn more about our plans.
-              </a>
-            </p>
-            <button
-              type="button"
-            >
-              
-              <span>
-                Upgrade
-              </span>
-              
-            </button>
-          </div>
-          
-          
-          
-          
           
         </div>
       </div>
@@ -531,79 +547,87 @@ exports[`components/cardDialog > return a cardDialog readonly 1`] = `
           </div>
         </div>
         <div
-          class="CardDetail "
+          class="cardDialog__body"
         >
           <div
-            class="IconSelector"
+            class="cardDialog__main"
           >
             <div
-              class="octo-icon size-l readonly"
-            >
-              <span>
-                i
-              </span>
-            </div>
-          </div>
-          
-          <div
-            class="EditableAreaWrap"
-          >
-            <textarea
-              class="EditableArea Editable readonly title"
-              placeholder="Untitled"
-              readonly=""
-              rows="1"
-              spellcheck="true"
-              title="title"
-            />
-            <div
-              class="EditableAreaContainer"
-            >
-              <textarea
-                aria-hidden="true"
-                class="EditableAreaReference Editable readonly title"
-                dir="auto"
-                disabled=""
-                rows="1"
-              />
-            </div>
-          </div>
-          
-          
-          <div
-            class="octo-propertylist CardDetailProperties"
-          >
-            
-            
-            
-          </div>
-          
-          
-          
-          <hr />
-          <div
-            class="CommentsList"
-          >
-            
-            
-            
-          </div>
-        </div>
-        <div
-          class="CardDetail CardDetail--fullwidth content-blocks"
-        >
-          <div
-            class="octo-content CardDetailContents"
-          >
-            <div
-              class="octo-block"
+              class="CardDetail "
             >
               <div
-                class="octo-block-margin"
-              />
+                class="IconSelector"
+              >
+                <div
+                  class="octo-icon size-l readonly"
+                >
+                  <span>
+                    i
+                  </span>
+                </div>
+              </div>
               
+              <div
+                class="EditableAreaWrap"
+              >
+                <textarea
+                  class="EditableArea Editable readonly title"
+                  placeholder="Untitled"
+                  readonly=""
+                  rows="1"
+                  spellcheck="true"
+                  title="title"
+                />
+                <div
+                  class="EditableAreaContainer"
+                >
+                  <textarea
+                    aria-hidden="true"
+                    class="EditableAreaReference Editable readonly title"
+                    dir="auto"
+                    disabled=""
+                    rows="1"
+                  />
+                </div>
+              </div>
+              
+              
+              <div
+                class="octo-propertylist CardDetailProperties"
+              >
+                
+                
+                
+              </div>
+              
+              
+              <hr />
+              <div
+                class="CommentsList"
+              >
+                
+                
+                
+              </div>
+            </div>
+            <div
+              class="CardDetail CardDetail--fullwidth content-blocks"
+            >
+              <div
+                class="octo-content CardDetailContents"
+              >
+                <div
+                  class="octo-block"
+                >
+                  <div
+                    class="octo-block-margin"
+                  />
+                  
+                </div>
+              </div>
             </div>
           </div>
+          
         </div>
       </div>
     </div>
@@ -865,150 +889,158 @@ exports[`components/cardDialog > return cardDialog menu content 1`] = `
           </div>
         </div>
         <div
-          class="CardDetail "
+          class="cardDialog__body"
         >
           <div
-            class="IconSelector"
+            class="cardDialog__main"
           >
             <div
-              aria-label="menuwrapper"
-              class="MenuWrapper"
-              role="button"
+              class="CardDetail "
             >
               <div
-                class="octo-icon size-l"
+                class="IconSelector"
               >
-                <span>
-                  i
-                </span>
-              </div>
-              
-            </div>
-          </div>
-          
-          <div
-            class="EditableAreaWrap"
-          >
-            <textarea
-              class="EditableArea Editable title"
-              placeholder="Untitled"
-              rows="1"
-              spellcheck="true"
-              title="title"
-            />
-            <div
-              class="EditableAreaContainer"
-            >
-              <textarea
-                aria-hidden="true"
-                class="EditableAreaReference Editable title"
-                dir="auto"
-                disabled=""
-                rows="1"
-              />
-            </div>
-          </div>
-          
-          
-          <div
-            class="octo-propertylist CardDetailProperties"
-          >
-            
-            
-            <div
-              class="octo-propertyname add-property"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  type="button"
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper"
+                  role="button"
                 >
+                  <div
+                    class="octo-icon size-l"
+                  >
+                    <span>
+                      i
+                    </span>
+                  </div>
                   
-                  <span>
-                    + Add a property
-                  </span>
-                  
-                </button>
-                
+                </div>
               </div>
               
-            </div>
-          </div>
-          
-          
-          
-          <hr />
-          <div
-            class="CommentsList"
-          >
-            <div
-              class="CommentsList__new"
-            >
-              <img
-                class="comment-avatar"
-              />
               <div
-                class="MarkdownEditor octo-editor newcomment "
+                class="EditableAreaWrap"
+              >
+                <textarea
+                  class="EditableArea Editable title"
+                  placeholder="Untitled"
+                  rows="1"
+                  spellcheck="true"
+                  title="title"
+                />
+                <div
+                  class="EditableAreaContainer"
+                >
+                  <textarea
+                    aria-hidden="true"
+                    class="EditableAreaReference Editable title"
+                    dir="auto"
+                    disabled=""
+                    rows="1"
+                  />
+                </div>
+              </div>
+              
+              
+              <div
+                class="octo-propertylist CardDetailProperties"
+              >
+                
+                
+                <div
+                  class="octo-propertyname add-property"
+                >
+                  <div
+                    aria-label="menuwrapper"
+                    class="MenuWrapper"
+                    role="button"
+                  >
+                    <button
+                      type="button"
+                    >
+                      
+                      <span>
+                        + Add a property
+                      </span>
+                      
+                    </button>
+                    
+                  </div>
+                  
+                </div>
+              </div>
+              
+              
+              <hr />
+              <div
+                class="CommentsList"
               >
                 <div
-                  class="octo-editor-preview octo-placeholder"
-                  data-testid="preview-element"
+                  class="CommentsList__new"
+                >
+                  <img
+                    class="comment-avatar"
+                  />
+                  <div
+                    class="MarkdownEditor octo-editor newcomment "
+                  >
+                    <div
+                      class="octo-editor-preview octo-placeholder"
+                      data-testid="preview-element"
+                    />
+                  </div>
+                  
+                  
+                </div>
+                
+                <hr
+                  class="CommentsList__divider"
                 />
               </div>
-              
-              
             </div>
-            
-            <hr
-              class="CommentsList__divider"
-            />
-          </div>
-        </div>
-        <div
-          class="CardDetail CardDetail--fullwidth content-blocks"
-        >
-          <div
-            class="octo-content CardDetailContents"
-          >
             <div
-              class="octo-block"
+              class="CardDetail CardDetail--fullwidth content-blocks"
             >
               <div
-                class="octo-block-margin"
-              />
-              <div
-                class="MarkdownEditor octo-editor  "
+                class="octo-content CardDetailContents"
               >
                 <div
-                  class="octo-editor-preview octo-placeholder"
-                  data-testid="preview-element"
-                />
+                  class="octo-block"
+                >
+                  <div
+                    class="octo-block-margin"
+                  />
+                  <div
+                    class="MarkdownEditor octo-editor  "
+                  >
+                    <div
+                      class="octo-editor-preview octo-placeholder"
+                      data-testid="preview-element"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="CardDetailContentsMenu content add-content"
+              >
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper"
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    
+                    <span>
+                      Add content
+                    </span>
+                    
+                  </button>
+                  
+                </div>
               </div>
             </div>
           </div>
-          <div
-            class="CardDetailContentsMenu content add-content"
-          >
-            <div
-              aria-label="menuwrapper"
-              class="MenuWrapper"
-              role="button"
-            >
-              <button
-                type="button"
-              >
-                
-                <span>
-                  Add content
-                </span>
-                
-              </button>
-              
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>
@@ -1086,150 +1118,158 @@ exports[`components/cardDialog > return cardDialog menu content and cancel delet
           </div>
         </div>
         <div
-          class="CardDetail "
+          class="cardDialog__body"
         >
           <div
-            class="IconSelector"
+            class="cardDialog__main"
           >
             <div
-              aria-label="menuwrapper"
-              class="MenuWrapper"
-              role="button"
+              class="CardDetail "
             >
               <div
-                class="octo-icon size-l"
+                class="IconSelector"
               >
-                <span>
-                  i
-                </span>
-              </div>
-              
-            </div>
-          </div>
-          
-          <div
-            class="EditableAreaWrap"
-          >
-            <textarea
-              class="EditableArea Editable title"
-              placeholder="Untitled"
-              rows="1"
-              spellcheck="true"
-              title="title"
-            />
-            <div
-              class="EditableAreaContainer"
-            >
-              <textarea
-                aria-hidden="true"
-                class="EditableAreaReference Editable title"
-                dir="auto"
-                disabled=""
-                rows="1"
-              />
-            </div>
-          </div>
-          
-          
-          <div
-            class="octo-propertylist CardDetailProperties"
-          >
-            
-            
-            <div
-              class="octo-propertyname add-property"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  type="button"
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper"
+                  role="button"
                 >
+                  <div
+                    class="octo-icon size-l"
+                  >
+                    <span>
+                      i
+                    </span>
+                  </div>
                   
-                  <span>
-                    + Add a property
-                  </span>
-                  
-                </button>
-                
+                </div>
               </div>
               
-            </div>
-          </div>
-          
-          
-          
-          <hr />
-          <div
-            class="CommentsList"
-          >
-            <div
-              class="CommentsList__new"
-            >
-              <img
-                class="comment-avatar"
-              />
               <div
-                class="MarkdownEditor octo-editor newcomment "
+                class="EditableAreaWrap"
+              >
+                <textarea
+                  class="EditableArea Editable title"
+                  placeholder="Untitled"
+                  rows="1"
+                  spellcheck="true"
+                  title="title"
+                />
+                <div
+                  class="EditableAreaContainer"
+                >
+                  <textarea
+                    aria-hidden="true"
+                    class="EditableAreaReference Editable title"
+                    dir="auto"
+                    disabled=""
+                    rows="1"
+                  />
+                </div>
+              </div>
+              
+              
+              <div
+                class="octo-propertylist CardDetailProperties"
+              >
+                
+                
+                <div
+                  class="octo-propertyname add-property"
+                >
+                  <div
+                    aria-label="menuwrapper"
+                    class="MenuWrapper"
+                    role="button"
+                  >
+                    <button
+                      type="button"
+                    >
+                      
+                      <span>
+                        + Add a property
+                      </span>
+                      
+                    </button>
+                    
+                  </div>
+                  
+                </div>
+              </div>
+              
+              
+              <hr />
+              <div
+                class="CommentsList"
               >
                 <div
-                  class="octo-editor-preview octo-placeholder"
-                  data-testid="preview-element"
+                  class="CommentsList__new"
+                >
+                  <img
+                    class="comment-avatar"
+                  />
+                  <div
+                    class="MarkdownEditor octo-editor newcomment "
+                  >
+                    <div
+                      class="octo-editor-preview octo-placeholder"
+                      data-testid="preview-element"
+                    />
+                  </div>
+                  
+                  
+                </div>
+                
+                <hr
+                  class="CommentsList__divider"
                 />
               </div>
-              
-              
             </div>
-            
-            <hr
-              class="CommentsList__divider"
-            />
-          </div>
-        </div>
-        <div
-          class="CardDetail CardDetail--fullwidth content-blocks"
-        >
-          <div
-            class="octo-content CardDetailContents"
-          >
             <div
-              class="octo-block"
+              class="CardDetail CardDetail--fullwidth content-blocks"
             >
               <div
-                class="octo-block-margin"
-              />
-              <div
-                class="MarkdownEditor octo-editor  "
+                class="octo-content CardDetailContents"
               >
                 <div
-                  class="octo-editor-preview octo-placeholder"
-                  data-testid="preview-element"
-                />
+                  class="octo-block"
+                >
+                  <div
+                    class="octo-block-margin"
+                  />
+                  <div
+                    class="MarkdownEditor octo-editor  "
+                  >
+                    <div
+                      class="octo-editor-preview octo-placeholder"
+                      data-testid="preview-element"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="CardDetailContentsMenu content add-content"
+              >
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper"
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    
+                    <span>
+                      Add content
+                    </span>
+                    
+                  </button>
+                  
+                </div>
               </div>
             </div>
           </div>
-          <div
-            class="CardDetailContentsMenu content add-content"
-          >
-            <div
-              aria-label="menuwrapper"
-              class="MenuWrapper"
-              role="button"
-            >
-              <button
-                type="button"
-              >
-                
-                <span>
-                  Add content
-                </span>
-                
-              </button>
-              
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>
@@ -1307,150 +1347,158 @@ exports[`components/cardDialog > should match snapshot 1`] = `
           </div>
         </div>
         <div
-          class="CardDetail "
+          class="cardDialog__body"
         >
           <div
-            class="IconSelector"
+            class="cardDialog__main"
           >
             <div
-              aria-label="menuwrapper"
-              class="MenuWrapper"
-              role="button"
+              class="CardDetail "
             >
               <div
-                class="octo-icon size-l"
+                class="IconSelector"
               >
-                <span>
-                  i
-                </span>
-              </div>
-              
-            </div>
-          </div>
-          
-          <div
-            class="EditableAreaWrap"
-          >
-            <textarea
-              class="EditableArea Editable title"
-              placeholder="Untitled"
-              rows="1"
-              spellcheck="true"
-              title="title"
-            />
-            <div
-              class="EditableAreaContainer"
-            >
-              <textarea
-                aria-hidden="true"
-                class="EditableAreaReference Editable title"
-                dir="auto"
-                disabled=""
-                rows="1"
-              />
-            </div>
-          </div>
-          
-          
-          <div
-            class="octo-propertylist CardDetailProperties"
-          >
-            
-            
-            <div
-              class="octo-propertyname add-property"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  type="button"
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper"
+                  role="button"
                 >
+                  <div
+                    class="octo-icon size-l"
+                  >
+                    <span>
+                      i
+                    </span>
+                  </div>
                   
-                  <span>
-                    + Add a property
-                  </span>
-                  
-                </button>
-                
+                </div>
               </div>
               
-            </div>
-          </div>
-          
-          
-          
-          <hr />
-          <div
-            class="CommentsList"
-          >
-            <div
-              class="CommentsList__new"
-            >
-              <img
-                class="comment-avatar"
-              />
               <div
-                class="MarkdownEditor octo-editor newcomment "
+                class="EditableAreaWrap"
+              >
+                <textarea
+                  class="EditableArea Editable title"
+                  placeholder="Untitled"
+                  rows="1"
+                  spellcheck="true"
+                  title="title"
+                />
+                <div
+                  class="EditableAreaContainer"
+                >
+                  <textarea
+                    aria-hidden="true"
+                    class="EditableAreaReference Editable title"
+                    dir="auto"
+                    disabled=""
+                    rows="1"
+                  />
+                </div>
+              </div>
+              
+              
+              <div
+                class="octo-propertylist CardDetailProperties"
+              >
+                
+                
+                <div
+                  class="octo-propertyname add-property"
+                >
+                  <div
+                    aria-label="menuwrapper"
+                    class="MenuWrapper"
+                    role="button"
+                  >
+                    <button
+                      type="button"
+                    >
+                      
+                      <span>
+                        + Add a property
+                      </span>
+                      
+                    </button>
+                    
+                  </div>
+                  
+                </div>
+              </div>
+              
+              
+              <hr />
+              <div
+                class="CommentsList"
               >
                 <div
-                  class="octo-editor-preview octo-placeholder"
-                  data-testid="preview-element"
+                  class="CommentsList__new"
+                >
+                  <img
+                    class="comment-avatar"
+                  />
+                  <div
+                    class="MarkdownEditor octo-editor newcomment "
+                  >
+                    <div
+                      class="octo-editor-preview octo-placeholder"
+                      data-testid="preview-element"
+                    />
+                  </div>
+                  
+                  
+                </div>
+                
+                <hr
+                  class="CommentsList__divider"
                 />
               </div>
-              
-              
             </div>
-            
-            <hr
-              class="CommentsList__divider"
-            />
-          </div>
-        </div>
-        <div
-          class="CardDetail CardDetail--fullwidth content-blocks"
-        >
-          <div
-            class="octo-content CardDetailContents"
-          >
             <div
-              class="octo-block"
+              class="CardDetail CardDetail--fullwidth content-blocks"
             >
               <div
-                class="octo-block-margin"
-              />
-              <div
-                class="MarkdownEditor octo-editor  "
+                class="octo-content CardDetailContents"
               >
                 <div
-                  class="octo-editor-preview octo-placeholder"
-                  data-testid="preview-element"
-                />
+                  class="octo-block"
+                >
+                  <div
+                    class="octo-block-margin"
+                  />
+                  <div
+                    class="MarkdownEditor octo-editor  "
+                  >
+                    <div
+                      class="octo-editor-preview octo-placeholder"
+                      data-testid="preview-element"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="CardDetailContentsMenu content add-content"
+              >
+                <div
+                  aria-label="menuwrapper"
+                  class="MenuWrapper"
+                  role="button"
+                >
+                  <button
+                    type="button"
+                  >
+                    
+                    <span>
+                      Add content
+                    </span>
+                    
+                  </button>
+                  
+                </div>
               </div>
             </div>
           </div>
-          <div
-            class="CardDetailContentsMenu content add-content"
-          >
-            <div
-              aria-label="menuwrapper"
-              class="MenuWrapper"
-              role="button"
-            >
-              <button
-                type="button"
-              >
-                
-                <span>
-                  Add content
-                </span>
-                
-              </button>
-              
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>
@@ -1516,79 +1564,87 @@ exports[`components/cardDialog > should match snapshot without permissions 1`] =
           </div>
         </div>
         <div
-          class="CardDetail "
+          class="cardDialog__body"
         >
           <div
-            class="IconSelector"
+            class="cardDialog__main"
           >
             <div
-              class="octo-icon size-l readonly"
-            >
-              <span>
-                i
-              </span>
-            </div>
-          </div>
-          
-          <div
-            class="EditableAreaWrap"
-          >
-            <textarea
-              class="EditableArea Editable readonly title"
-              placeholder="Untitled"
-              readonly=""
-              rows="1"
-              spellcheck="true"
-              title="title"
-            />
-            <div
-              class="EditableAreaContainer"
-            >
-              <textarea
-                aria-hidden="true"
-                class="EditableAreaReference Editable readonly title"
-                dir="auto"
-                disabled=""
-                rows="1"
-              />
-            </div>
-          </div>
-          
-          
-          <div
-            class="octo-propertylist CardDetailProperties"
-          >
-            
-            
-            
-          </div>
-          
-          
-          
-          <hr />
-          <div
-            class="CommentsList"
-          >
-            
-            
-            
-          </div>
-        </div>
-        <div
-          class="CardDetail CardDetail--fullwidth content-blocks"
-        >
-          <div
-            class="octo-content CardDetailContents"
-          >
-            <div
-              class="octo-block"
+              class="CardDetail "
             >
               <div
-                class="octo-block-margin"
-              />
+                class="IconSelector"
+              >
+                <div
+                  class="octo-icon size-l readonly"
+                >
+                  <span>
+                    i
+                  </span>
+                </div>
+              </div>
               
+              <div
+                class="EditableAreaWrap"
+              >
+                <textarea
+                  class="EditableArea Editable readonly title"
+                  placeholder="Untitled"
+                  readonly=""
+                  rows="1"
+                  spellcheck="true"
+                  title="title"
+                />
+                <div
+                  class="EditableAreaContainer"
+                >
+                  <textarea
+                    aria-hidden="true"
+                    class="EditableAreaReference Editable readonly title"
+                    dir="auto"
+                    disabled=""
+                    rows="1"
+                  />
+                </div>
+              </div>
+              
+              
+              <div
+                class="octo-propertylist CardDetailProperties"
+              >
+                
+                
+                
+              </div>
+              
+              
+              <hr />
+              <div
+                class="CommentsList"
+              >
+                
+                
+                
+              </div>
+            </div>
+            <div
+              class="CardDetail CardDetail--fullwidth content-blocks"
+            >
+              <div
+                class="octo-content CardDetailContents"
+              >
+                <div
+                  class="octo-block"
+                >
+                  <div
+                    class="octo-block-margin"
+                  />
+                  
+                </div>
+              </div>
             </div>
           </div>
+          
         </div>
       </div>
     </div>

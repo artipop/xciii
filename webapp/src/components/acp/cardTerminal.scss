@@ -1,0 +1,76 @@
+.CardTerminal {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    width: 100%;
+
+    &__head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border-subtle);
+        flex: 0 0 auto;
+    }
+
+    &__title {
+        font-weight: 600;
+    }
+
+    &__status {
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &__actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__button {
+        border: 0;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        line-height: 1;
+        padding: 4px 6px;
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &:disabled {
+            cursor: progress;
+            opacity: 0.6;
+        }
+    }
+
+    // The terminal takes whatever the panel has left. It is the only thing in
+    // here, so there is nothing to share the height with.
+    &__screen {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+
+        .AcpTerminalPage {
+            height: 100%;
+        }
+    }
+
+    &__error {
+        padding: 12px;
+        color: rgba(var(--error-text-rgb), 1);
+        font-size: var(--text-small);
+        white-space: pre-wrap;
+    }
+
+    &__hint {
+        margin-top: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+}

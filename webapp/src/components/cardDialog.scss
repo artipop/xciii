@@ -4,9 +4,29 @@
         top: 0;
         height: 100%;
 
+        // The card scrolls inside its own panel now, not as the whole dialog:
+        // a terminal that scrolled away with the comments would be a terminal
+        // nobody could type into.
+        overflow: hidden;
+
         @media (min-width: 975px) {
             height: calc(100% - 144px);
         }
+    }
+
+    // The card on one side, the agent's terminal on the other.
+    &__body {
+        display: flex;
+        align-items: stretch;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    &__main {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
 
         >.CardDetail {
             display: flex;
@@ -24,6 +44,29 @@
 
         >.CardDetail--fullwidth {
             padding-left: 78px;
+        }
+    }
+
+    &__side {
+        flex: 0 0 46%;
+        max-width: 640px;
+        min-width: 0;
+        display: flex;
+        border-left: 1px solid var(--border-subtle);
+    }
+
+    // Narrow enough and there is no beside: the panel goes under the card and
+    // takes a fixed slice of the height, since neither half can have all of it.
+    @media screen and (max-width: 975px) {
+        &__body {
+            flex-direction: column;
+        }
+
+        &__side {
+            flex: 0 0 50%;
+            max-width: none;
+            border-left: 0;
+            border-top: 1px solid var(--border-subtle);
         }
     }
 }

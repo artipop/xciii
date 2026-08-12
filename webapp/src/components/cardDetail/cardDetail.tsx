@@ -32,8 +32,7 @@ import {getClientConfig} from '../../store/clientConfig'
 import type {AppStore} from '../../store'
 
 import CardSkeleton from '../../svg/card-skeleton'
-import CardAgent, {isCardAgentAvailable} from '../acp/cardAgent'
-import CaseStamp from '../acp/caseStamp'
+import CaseStamp, {isCaseStampAvailable} from '../acp/caseStamp'
 import FlowStrip, {isFlowStripAvailable} from '../acp/flowStrip'
 
 import CommentsList from './commentsList'
@@ -252,7 +251,7 @@ const CardDetail = (props: Props): JSX.Element => {
                 />
 
                 {/* Where the work on this card lives, stamped under its name. */}
-                <Show when={!limited() && isCardAgentAvailable()}>
+                <Show when={!limited() && isCaseStampAvailable()}>
                     <CaseStamp cardId={props.card.id}/>
                 </Show>
 
@@ -325,23 +324,19 @@ const CardDetail = (props: Props): JSX.Element => {
                     />
                 </Show>
 
-                {/* The agent's half of the card: where it is on its route, and
-                    the row that runs one. Neither draws a rule of its own here,
-                    the way the attachments above do — both decide only once
-                    their data arrives whether they have anything to show, and a
-                    rule written beside them would stand alone on every card
-                    without a route or an agent. They carry it themselves, in
-                    flowStrip.scss and cardAgent.scss. */}
+                {/* Where the card is on its route — a fact about the card, like
+                    its properties above. The agent's own controls are not here
+                    and no longer anywhere in the card: the terminal is a panel
+                    beside it, opened from the dialog's toolbar.
+
+                    The strip draws no rule of its own here, the way the
+                    attachments above do: it decides only once its data arrives
+                    whether it has a route to show, and a rule written beside it
+                    would stand alone on every card without one. It carries it
+                    itself, in flowStrip.scss. */}
 
                 <Show when={!limited() && !props.readonly && isFlowStripAvailable()}>
                     <FlowStrip cardId={props.card.id}/>
-                </Show>
-
-                <Show when={!limited() && !props.readonly && isCardAgentAvailable()}>
-                    <CardAgent
-                        cardId={props.card.id}
-                        board={props.board}
-                    />
                 </Show>
 
                 {/* Comments */}

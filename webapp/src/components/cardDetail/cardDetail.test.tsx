@@ -129,15 +129,19 @@ describe('components/cardDetail/CardDetail', () => {
         expect(newCommentSection.length).toBe(1)
     })
 
-    // A rule across the card means a section starts here. The route strip and
-    // the agent row learn only after their data arrives whether they have
-    // anything to show, so rules written beside them in the card stood over
-    // nothing — three of them in a row above the comments on a board with no
-    // route and no agents.
-    test('draws no rule for an agent section it is not drawing', async () => {
+    // A rule across the card means a section starts here. The route strip
+    // learns only after its data arrives whether it has anything to show, so a
+    // rule written beside it in the card stood over nothing on every card
+    // without a route.
+    //
+    // The agent's own controls are not in the card at all any more — the
+    // terminal is a panel beside it, opened from the dialog's toolbar — so
+    // there is nothing here for them to draw a rule for either.
+    test('draws no rule for a section it is not drawing', async () => {
         const bindings = {
             GetCardAgent: vi.fn().mockResolvedValue('{}'),
             GetCardFlow: vi.fn().mockResolvedValue('null'),
+            OpenCardTerminal: vi.fn(),
             ListAgents: vi.fn().mockResolvedValue('[]'),
             ListAgentProjects: vi.fn().mockResolvedValue('[]'),
         };
@@ -193,10 +197,10 @@ describe('components/cardDetail/CardDetail', () => {
             </AppStoreProvider>
         ))
 
-        await waitFor(() => expect(bindings.ListAgents).toHaveBeenCalled())
+        await waitFor(() => expect(bindings.GetCardFlow).toHaveBeenCalled())
 
         expect(container.querySelector('.FlowStrip')).toBeNull()
-        expect(container.querySelector('.CardAgent')).toBeNull()
+        expect(container.querySelector('.CardTerminal')).toBeNull()
 
         // The comments are the only section under the properties, so the card
         // draws one rule. The second hr is the one CommentsList closes itself
