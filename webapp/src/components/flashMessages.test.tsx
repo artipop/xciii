@@ -85,6 +85,48 @@ describe('components/flashMessages', () => {
         expect(screen.queryByText('Mock Content')).toBeNull()
     })
 
+    // A notice outlives the mount-wide default: the wizard's parting note has a
+    // three-menu path in it, and 2 seconds is not enough to read one.
+    test('a notice stays up for its own time, not the default', () => {
+        render(() =>
+            wrapIntl(() => <FlashMessages milliseconds={200}/>),
+        )
+
+        sendFlashMessage({content: 'Come back any time', severity: 'normal', notice: true, milliseconds: 5000})
+
+        vi.advanceTimersByTime(1000)
+        expect(screen.getByText('Come back any time')).toBeVisible()
+
+        vi.advanceTimersByTime(4000)
+        expect(screen.queryByText('Come back any time')).toBeNull()
+    })
+
+    // The × is for whoever has already read it — the message must not make
+    // them wait the five seconds out.
+    test('a notice carries a close button that dismisses it', () => {
+        render(() =>
+            wrapIntl(() => <FlashMessages milliseconds={200}/>),
+        )
+
+        sendFlashMessage({content: 'Come back any time', severity: 'normal', notice: true, milliseconds: 5000})
+
+        userEvent.click(screen.getByRole('button', {name: 'Close'}))
+        vi.advanceTimersByTime(200)
+
+        expect(screen.queryByText('Come back any time')).toBeNull()
+    })
+
+    // The quick confirmations stay what they were: no close button on them.
+    test('a plain flash has no close button', () => {
+        render(() =>
+            wrapIntl(() => <FlashMessages milliseconds={200}/>),
+        )
+
+        sendFlashMessage({content: 'Copied!', severity: 'normal'})
+
+        expect(screen.queryByRole('button', {name: 'Close'})).toBeNull()
+    })
+
     test('renders a flash message with low severity and check onClick on flash works', () => {
         const {container} = render(() =>
             wrapIntl(() => <FlashMessages milliseconds={200}/>),

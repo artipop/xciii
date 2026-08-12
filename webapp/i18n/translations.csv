@@ -168,7 +168,6 @@
 "BoardSetup.done-how","Drag a card into ""{column}"" — creating it there does not start anything, the trigger is the move. Pick a route in the card’s route field, or the card will only be worked on where it stands.","Перетащите карточку в «{column}» — созданная прямо в колонке ничего не запустит, триггер именно перенос. Выберите маршрут в поле сценария, иначе карточку обработают там, где она стоит, и дальше она не поедет.","","","","","","","","","","","","","","",""
 "BoardSetup.finish","Done","Готово","","","","","","","","","","","","","","",""
 "BoardSetup.next","Next","Дальше","","","","","","","","","","","","","","",""
-"BoardSetup.pending","This board is not set up yet","Доска настроена не до конца","","","","","","","","","","","","","","",""
 "BoardSetup.pick-project","Choose a project folder","Выберите папку проекта","","","","","","","","","","","","","","",""
 "BoardSetup.project-git","This board publishes a branch or waits for one, so its project has to be under git. A board that does neither takes any folder.","Эта доска публикует ветку или ждёт её, поэтому её проект должен быть под git. Доске, которая ничего такого не делает, подойдёт любая папка.","","","","","","","","","","","","","","",""
 "BoardSetup.project-known","Already registered: {names}","Уже добавлены: {names}","","","","","","","","","","","","","","",""

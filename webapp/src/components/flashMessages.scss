@@ -19,6 +19,44 @@
     vertical-align: middle;
     border-radius: var(--radius-sm);
 
+    // The corner-card shape, borrowed deliberately from .AttentionNotifications:
+    // both are the app speaking from the corner, so they share one look — the
+    // card, the coloured edge, the ×. The edge is the button blue rather than
+    // the attention amber, because nothing here is asking for anything.
+    &.FlashMessages--notice {
+        left: auto;
+        right: 16px;
+        bottom: 16px;
+        margin-left: 0;
+        width: auto;
+        max-width: 360px;
+        min-height: 0;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 8px;
+        padding: 10px 8px 10px 12px;
+        font-size: 13px;
+        font-weight: 400;
+        text-align: left;
+        color: rgb(var(--center-channel-color-rgb));
+        background: rgb(var(--center-channel-bg-rgb));
+        box-shadow: rgba(var(--center-channel-color-rgb), 0.12) 0 0 0 1px,
+            rgba(0, 0, 0, 0.16) 0 4px 12px;
+        border-left: 3px solid rgb(var(--button-bg-rgb));
+        border-radius: 6px;
+    }
+
+    .FlashMessages__close {
+        border: 0;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        padding: 0;
+        flex: 0 0 auto;
+    }
+
     &.flashIn {
         visibility: visible;
         opacity: 1;

@@ -6,6 +6,7 @@ exports[`components/flashMessages > renders a flash message with high severity 1
     class="FlashMessages high flashIn"
   >
     Mock Content
+    
   </div>
 </div>
 `;
@@ -16,6 +17,7 @@ exports[`components/flashMessages > renders a flash message with low severity 1`
     class="FlashMessages low flashIn"
   >
     Mock Content
+    
   </div>
 </div>
 `;
@@ -26,6 +28,7 @@ exports[`components/flashMessages > renders a flash message with low severity an
     class="FlashMessages low flashOut"
   >
     Mock Content
+    
   </div>
 </div>
 `;
@@ -40,6 +43,7 @@ exports[`components/flashMessages > renders a flash message with low severity an
     >
       Mock Content
     </div>
+    
   </div>
 </div>
 `;
@@ -50,6 +54,7 @@ exports[`components/flashMessages > renders a flash message with normal severity
     class="FlashMessages normal flashIn"
   >
     Mock Content
+    
   </div>
 </div>
 `;

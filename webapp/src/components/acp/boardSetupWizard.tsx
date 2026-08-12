@@ -535,6 +535,11 @@ const BoardSetupWizard = (props: Props) => {
                                 defaultMessage: 'You can walk this again any time: ⋯ → “How this board works…” → “Walk the setup again…”.',
                             }),
                             severity: 'normal',
+                            notice: true,
+
+                            // Long enough to read a path of three menu names —
+                            // and closable, for whoever does not need to.
+                            milliseconds: 5000,
                         })
                         props.onClose()
                     }}
