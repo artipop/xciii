@@ -5,8 +5,9 @@ bin
 # embeddable for `go mod tidy`, which checks the pattern under every tag.
 **/pack/*
 !**/pack/.gitkeep
-# `go build .` with no -o leaves a binary named after this directory.
-xciii
+# `go build .` with no -o leaves a binary named after this directory. Anchored
+# to the root: unanchored it also swallowed site/xciii, a page of the landing.
+/xciii
 # The webapp is its own npm project.
 node_modules
 coverage

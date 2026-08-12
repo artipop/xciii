@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XCIII — доска, на которой работают ИИ-агенты</title>
+<meta name="description" content="XCIII — доска, на которой работают ИИ-агенты: карточки, колонки, терминал. Всё локально, с вашей подпиской на Claude или Codex. Одна оплата навсегда.">
+<meta property="og:title" content="XCIII — доска, на которой работают ИИ-агенты">
+<meta property="og:description" content="Карточка попадает в колонку, и за неё берётся агент. Всё локально, с вашей подпиской на Claude или Codex. Одна оплата навсегда.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230c0c0e'/><rect x='9' y='7' width='6' height='18' fill='%23e24234'/><rect x='18' y='7' width='6' height='18' fill='%23e9e9ec'/></svg>">
+<link rel="stylesheet" href="/styles.css">
+<!-- The theme is decided before the first paint: app.js is a module and would
+     run too late, showing a light visitor a dark page first. -->
+<script>
+    document.documentElement.dataset.theme = localStorage.getItem('deffun-theme') ||
+        (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+</script>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="wrap">
+        <a class="wordmark" href="/">deffun</a>
+        <nav class="nav">
+            <a class="nav-hide" href="#how">Как это работает</a>
+            <a class="nav-hide" href="#inbox">Входящие</a>
+            <a href="#price">Цена</a>
+            <a href="#preorder">Предзаказ</a>
+            <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Переключить тему">◐</button>
+        </nav>
+    </div>
+</header>
+
+<main id="top">
+
+<!-- ---------------------------------------------------------------- product -->
+<section class="hero" id="product">
+    <div class="wrap">
+        <p class="eyebrow"><span class="num">01</span>Продукт</p>
+        <p class="hero-name">XCIII</p>
+        <p class="hero-tag mono t-machine">Доска · <span class="nowrap">ИИ-агенты</span> · macOS, Windows, Linux</p>
+        <p class="hero-lead">
+            Доска, на&nbsp;которой работа делается: карточки, которые вы&nbsp;двигаете;
+            колонки, которые ставят агента на&nbsp;карточку, когда она в&nbsp;них
+            попадает; и&nbsp;терминал&nbsp;— когда проще сделать самому.
+        </p>
+        <p>
+            Агент делает задачу и&nbsp;оставляет результат в&nbsp;комментарии карточки.<br>
+            Дальше карточку двигает маршрут.
+        </p>
+        <p class="hero-actions">
+            <a class="btn" href="#preorder">Оформить предзаказ</a>
+            <a class="btn btn-ghost" href="#how">Как это работает</a>
+            <span class="note">Одна оплата, доступ навсегда</span>
+        </p>
+    </div>
+</section>
+
+<!-- ------------------------------------------------------------- three ideas -->
+<section id="how">
+    <div class="wrap">
+        <p class="eyebrow"><span class="num">02</span>Как это работает</p>
+        <h2>Колонки и&nbsp;маршруты</h2>
+        <div class="cols-3">
+            <div class="card">
+                <h3>Колонка</h3>
+                <p>
+                    У&nbsp;колонки настроено, какой агент берёт попавшую в&nbsp;неё
+                    карточку и&nbsp;сколько карточек идёт одновременно.
+                </p>
+            </div>
+            <div class="card">
+                <h3>Маршрут</h3>
+                <p>
+                    Маршрут переводит карточку в&nbsp;следующую колонку: агент закончил,
+                    проверка прошла или не&nbsp;прошла. Он&nbsp;рисуется на&nbsp;холсте,
+                    несколько готовых идёт с&nbsp;доской. Без&nbsp;маршрутов карточки
+                    двигаете вы.
+                </p>
+            </div>
+            <div class="card">
+                <h3>Задание</h3>
+                <p>
+                    Задание агент читает из&nbsp;описания карточки. К&nbsp;нему доска
+                    добавляет свою инструкцию&nbsp;— общую для&nbsp;всех её&nbsp;агентов.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ----------------------------------------------------------------- inbox -->
+<section id="inbox">
+    <div class="wrap">
+        <p class="eyebrow"><span class="num">03</span>Входящие</p>
+        <h2>Карточки приходят сами</h2>
+        <p>
+            Всё, что пришло извне, складывается в&nbsp;отдельный вид
+            «Входящие»&nbsp;— по&nbsp;колонке на&nbsp;каждый источник.
+        </p>
+        <div class="cols-3">
+            <div class="card">
+                <h3>Kaiten</h3>
+                <p>
+                    Задачи, назначенные на&nbsp;вас в&nbsp;Kaiten, появляются
+                    на&nbsp;доске сами. Одна задача&nbsp;— одна карточка.
+                </p>
+            </div>
+            <div class="card">
+                <h3>«Поделиться»</h3>
+                <p>
+                    Ссылка из&nbsp;браузера или с&nbsp;телефона отправляется
+                    на&nbsp;доску через системное меню «Поделиться».
+                </p>
+            </div>
+            <div class="card">
+                <h3>HTTP</h3>
+                <p>
+                    У&nbsp;каждого источника есть адрес и&nbsp;токен. Карточку может
+                    создать скрипт, вебхук или «Быстрая команда» на&nbsp;телефоне.
+                </p>
+            </div>
+        </div>
+        <p class="muted" style="margin-top: 26px;">
+            Карточка переносится на&nbsp;другую доску вместе со&nbsp;своими комментариями.
+        </p>
+
+        <h2 class="h2-follow">Или вы их нарежете с&nbsp;помощью&nbsp;ИИ</h2>
+        <p>
+            Это режим планирования: кнопка «Обсудить с&nbsp;агентом» открывает терминал
+            в&nbsp;проекте.<br>
+            Карточки, о&nbsp;которых вы&nbsp;договорились, агент заводит на&nbsp;доске сам.
+        </p>
+    </div>
+</section>
+
+<!-- ---------------------------------------------------------------- terminal -->
+<section>
+    <div class="wrap">
+        <p class="eyebrow"><span class="num">04</span>Когда нужно вмешаться</p>
+        <div class="cols-2">
+            <div>
+                <h2>Терминал на&nbsp;карточке</h2>
+                <p>
+                    Кнопка на&nbsp;карточке открывает настоящий терминал
+                    с&nbsp;CLI агента в&nbsp;рабочей папке этой карточки.
+                </p>
+                <p class="muted">
+                    Терминал переживает закрытие окна: в&nbsp;следующий раз
+                    вы&nbsp;вернётесь в&nbsp;тот&nbsp;же разговор.
+                </p>
+            </div>
+            <div>
+                <h2>Вопросы агента</h2>
+                <p>
+                    Если агенту нужно решение или разрешение, он&nbsp;останавливается
+                    и&nbsp;спрашивает. Вопрос с&nbsp;вариантами ответа приходит
+                    на&nbsp;карточку и&nbsp;уведомлением.
+                </p>
+                <p class="muted">
+                    Остальную работу агент в&nbsp;это время продолжает.
+                </p>
+            </div>
+        </div>
+        <p class="muted" style="margin-top: 26px;">
+            Всё это доступно и&nbsp;с&nbsp;телефона, через вашу собственную сеть
+            Tailscale. По&nbsp;умолчанию выключено.
+        </p>
+    </div>
+</section>
+
+<!-- --------------------------------------------------------------- the facts -->
+<section>
+    <div class="wrap">
+        <p class="eyebrow"><span class="num">05</span>Что это за программа</p>
+        <h2>Без облака и&nbsp;без второй подписки</h2>
+        <dl class="rows">
+            <div>
+                <dt>Всё на&nbsp;вашем компьютере</dt>
+                <dd><p>Доска, файлы и&nbsp;агенты работают локально. Серверов
+                    и&nbsp;учётных записей у&nbsp;нас нет.</p></dd>
+            </div>
+            <div>
+                <dt>Ваша подписка</dt>
+                <dd><p>XCIII запускает агентов, которые уже установлены у&nbsp;вас,
+                    под&nbsp;вашей учётной записью. Подписки на&nbsp;Claude или Codex
+                    достаточно.</p></dd>
+            </div>
+            <div>
+                <dt>Поддерживаемые агенты</dt>
+                <dd><p>Claude Code, Codex, GitHub Copilot CLI, Antigravity, Junie
+                    и&nbsp;любой агент с&nbsp;поддержкой ACP.</p></dd>
+            </div>
+            <div>
+                <dt>Отдельные копии</dt>
+                <dd><p>Агент работает в&nbsp;отдельной копии проекта
+                    и&nbsp;не&nbsp;трогает ту, что открыта у&nbsp;вас. Несколько
+                    карточек идут одновременно.</p></dd>
+            </div>
+            <div>
+                <dt>Платформы</dt>
+                <dd><p>macOS, Windows и&nbsp;Linux.</p></dd>
+            </div>
+        </dl>
+    </div>
+</section>
+
+<!-- ------------------------------------------------------------------- price -->
+<section id="price">
+    <div class="wrap">
+        <p class="eyebrow"><span class="num">06</span>Цена</p>
+        <div class="price">
+            <div>
+                <!-- TODO: цена. Впишите сумму вместо «—» ниже. -->
+                <p class="price-badge">Разовая оплата · доступ навсегда</p>
+                <h2>Платите один раз</h2>
+                <p>
+                    Сейчас идёт предзаказ: одна оплата, лицензия навсегда,
+                    без&nbsp;подписки. Оставьте почту&nbsp;— мы&nbsp;напишем, когда
+                    откроем продажи, и&nbsp;пришлём сборку под&nbsp;вашу систему.
+                </p>
+                <p class="muted">
+                    Предзаказ ничего не&nbsp;списывает и&nbsp;ни&nbsp;к&nbsp;чему
+                    не&nbsp;обязывает.
+                </p>
+            </div>
+
+            <form id="preorder" novalidate>
+                <div class="field">
+                    <label for="email">Почта</label>
+                    <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
+                </div>
+                <div class="field">
+                    <label for="name">Имя (необязательно)</label>
+                    <input type="text" id="name" name="name" autocomplete="name">
+                </div>
+                <div class="field">
+                    <label for="os">Система</label>
+                    <select id="os" name="os">
+                        <option>macOS</option>
+                        <option>Windows</option>
+                        <option>Linux</option>
+                    </select>
+                </div>
+                <button class="btn" type="submit">Оформить предзаказ</button>
+                <p class="form-status" id="form-status" role="status"></p>
+                <p class="form-note">
+                    Мы&nbsp;напишем один раз, когда откроются продажи.
+                    Рассылок не&nbsp;будет.
+                </p>
+            </form>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+    <div class="wrap">
+        <div class="footer-grid">
+            <div>
+                <p class="footer-title">deffun</p>
+                <p>
+                    Инструменты для&nbsp;повседневной работы.<br>
+                    <!-- TODO: почта-заглушка, поменяйте её во всех трёх местах:
+                         здесь, в ../index.html и в app.js (PREORDER_EMAIL). -->
+                    <a href="mailto:hello@deffun.com">hello@deffun.com</a>
+                </p>
+            </div>
+            <div>
+                <p class="footer-title">Реквизиты</p>
+                <!-- TODO: реквизиты. Впишите значения вместо «—»; лишние строки удалите.
+                     Футер продублирован в ../index.html — правьте оба. -->
+                <dl class="requisites">
+                    <div><dt>Наименование</dt><dd>—</dd></div>
+                    <div><dt>ИНН</dt><dd>—</dd></div>
+                    <div><dt>ОГРНИП</dt><dd>—</dd></div>
+                    <div><dt>Адрес</dt><dd>—</dd></div>
+                    <div><dt>Расчётный счёт</dt><dd>—</dd></div>
+                    <div><dt>Банк</dt><dd>—</dd></div>
+                    <div><dt>БИК</dt><dd>—</dd></div>
+                </dl>
+            </div>
+        </div>
+        <p class="copyright mono">© 2026 deffun</p>
+    </div>
+</footer>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>

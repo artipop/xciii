@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>deffun — инструменты для повседневной работы</title>
+<meta name="description" content="deffun делает инструменты, которые берут рутину на себя. Первый продукт — XCIII: доска, на которой работают ИИ-агенты.">
+<meta property="og:title" content="deffun">
+<meta property="og:description" content="Инструменты, которые берут рутину на себя. Первый продукт — XCIII: доска, на которой работают ИИ-агенты.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230c0c0e'/><rect x='9' y='7' width='6' height='18' fill='%23e24234'/><rect x='18' y='7' width='6' height='18' fill='%23e9e9ec'/></svg>">
+<link rel="stylesheet" href="/styles.css">
+<!-- The theme is decided before the first paint: app.js is a module and would
+     run too late, showing a light visitor a dark page first. -->
+<script>
+    document.documentElement.dataset.theme = localStorage.getItem('deffun-theme') ||
+        (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+</script>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="wrap">
+        <a class="wordmark" href="#top">deffun</a>
+        <nav class="nav">
+            <a class="nav-hide" href="#products">Продукты</a>
+            <a href="/xciii/">XCIII</a>
+            <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Переключить тему">◐</button>
+        </nav>
+    </div>
+</header>
+
+<main id="top">
+
+<!-- ---------------------------------------------------------------- company -->
+<section class="intro">
+    <div class="wrap">
+        <p class="eyebrow"><span class="num">00</span>Компания</p>
+        <h2>Меньше однообразной работы каждый день</h2>
+        <p class="lead">
+            deffun делает инструменты, которые берут рутину на&nbsp;себя.
+        </p>
+        <p class="muted">
+            Мы&nbsp;небольшая студия и&nbsp;делаем то, чем пользуемся сами.
+        </p>
+    </div>
+</section>
+
+<!-- --------------------------------------------------------------- products -->
+<section id="products">
+    <div class="wrap">
+        <p class="eyebrow"><span class="num">01</span>Продукты</p>
+
+        <article class="product">
+            <div class="product-head">
+                <p class="product-name">XCIII</p>
+                <p class="mono t-machine product-tag">Доска · ИИ-агенты · macOS, Windows, Linux</p>
+            </div>
+            <div class="product-body">
+                <p class="lead">
+                    Доска, на&nbsp;которой работа делается: карточки, которые
+                    вы&nbsp;двигаете; колонки, которые ставят агента
+                    на&nbsp;карточку, когда она в&nbsp;них попадает;
+                    и&nbsp;терминал&nbsp;— когда проще сделать самому.
+                </p>
+                <ul class="product-facts">
+                    <li>Всё работает локально, без&nbsp;облака</li>
+                    <li>Достаточно подписки на&nbsp;Claude или Codex</li>
+                    <li>Одна оплата, доступ навсегда</li>
+                </ul>
+                <p class="product-actions">
+                    <a class="btn" href="/xciii/">О продукте</a>
+                    <a class="btn btn-ghost" href="/xciii/#preorder">Оформить предзаказ</a>
+                </p>
+            </div>
+        </article>
+    </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+    <div class="wrap">
+        <div class="footer-grid">
+            <div>
+                <p class="footer-title">deffun</p>
+                <p>
+                    Инструменты для&nbsp;повседневной работы.<br>
+                    <!-- TODO: почта-заглушка, поменяйте её во всех трёх местах:
+                         здесь, в xciii/index.html и в app.js (PREORDER_EMAIL). -->
+                    <a href="mailto:hello@deffun.com">hello@deffun.com</a>
+                </p>
+            </div>
+            <div>
+                <p class="footer-title">Реквизиты</p>
+                <!-- TODO: реквизиты. Впишите значения вместо «—»; лишние строки удалите.
+                     Футер продублирован в xciii/index.html — правьте оба. -->
+                <dl class="requisites">
+                    <div><dt>Наименование</dt><dd>—</dd></div>
+                    <div><dt>ИНН</dt><dd>—</dd></div>
+                    <div><dt>ОГРНИП</dt><dd>—</dd></div>
+                    <div><dt>Адрес</dt><dd>—</dd></div>
+                    <div><dt>Расчётный счёт</dt><dd>—</dd></div>
+                    <div><dt>Банк</dt><dd>—</dd></div>
+                    <div><dt>БИК</dt><dd>—</dd></div>
+                </dl>
+            </div>
+        </div>
+        <p class="copyright mono">© 2026 deffun</p>
+    </div>
+</footer>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>
