@@ -158,6 +158,14 @@ describe('components/acp/automation', () => {
             flows: [{name: 'Фича', nodes: [{id: 'n', column: 'Тест', action: 'test'}], edges: []}],
         }, defs)
         expect(publishing.map((s) => s.kind)).toEqual(['project', 'agent', 'deploy', 'browser', 'done'])
+
+        // Never implied, as on the Go side: no arrangement of columns says
+        // cards should arrive by themselves. Declared by hand or not at all.
+        const withSource = impliedSetupSteps(
+            {columns: [{property: 'Статус', column: 'В работе', action: 'agent'}], flows: []},
+            [...defs.slice(0, 2), {kind: 'source', optional: true}, defs[4]],
+        )
+        expect(withSource.map((s) => s.kind)).toEqual(['project', 'agent', 'done'])
     })
 
     // A route no card can name is drawn and never taken — the commonest way an

@@ -439,6 +439,12 @@ export function impliedSetupSteps(automation: Automation, defs: SetupStepDef[]):
             return actions.has('deploy')
         case 'browser':
             return actions.has('test')
+
+        // Never implied, mirroring the Go side (impliedSetup in setup.go): no
+        // arrangement of columns says cards should arrive by themselves. A
+        // template that wants the step declares it by hand.
+        case 'source':
+            return false
         default:
             return true
         }
