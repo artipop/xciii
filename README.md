@@ -234,7 +234,10 @@ the one thing a rewrite must not quietly drop.
   agents are told first — is one screen, *«Как работает эта доска…»*. The board's
   ⋯ menu holds nothing else but export and *«Сохранить как шаблон…»*: it used to
   be the only door to all of the above, which made machine settings look like a
-  property of whichever board happened to be open.
+  property of whichever board happened to be open. A setting that belongs to one
+  *screen* goes with it: what feeds a board is asked on «Входящие», whose ⋯ menu
+  offers *«Источники…»* and nothing besides — with the board's own menu keeping
+  that door only while the board has no inbox to open it from.
   Registering an agent or a folder does not require going there — the card's
   terminal and the column's crew list both offer the short form (a name and a
   kind) where the choice is being made, and the full form stays in the

@@ -538,6 +538,55 @@ describe('components/centerPanel', () => {
             userEvent.click(buttonWithMenuElement!)
             expect(mockedMutator.performAsUndoGroup).toHaveBeenCalledTimes(1)
         })
+
+        // «Создать» on «Входящие» writes a task of one's own, and it must not
+        // look like something that arrived: the view admits two columns and
+        // names «Мои задачи» first, and the first value of an "includes" clause
+        // is what a card made in that view becomes. That is the whole
+        // mechanism, and this is the test that would notice it going.
+        test('a card made on «Входящие» stands in «Мои задачи», not among what arrived', async () => {
+            const inboxBoard = {...board, cardProperties: board.cardProperties.map((p) => ({...p, options: [...p.options]}))}
+            const status = inboxBoard.cardProperties[0]
+            status.options = [
+                {id: 'opt-mine', value: 'Мои задачи', color: 'propColorPurple'},
+                {id: 'opt-inbox', value: 'Входящие', color: 'propColorGray'},
+            ]
+            const inbox = TestBlockFactory.createBoardView(inboxBoard)
+            inbox.id = 'view-inbox'
+            inbox.title = 'Входящие'
+            inbox.fields.viewType = 'board'
+            inbox.fields.groupById = 'author'
+            inbox.fields.filter = {
+                operation: 'and',
+                filters: [{propertyId: status.id, condition: 'includes', values: ['opt-mine', 'opt-inbox']}],
+            }
+            const author: IPropertyTemplate = {id: 'author', name: 'Автор', type: 'createdBy', options: []}
+            mockedMutator.performAsUndoGroup.mockImplementation(async (actions) => actions())
+            mockedMutator.insertBlock.mockResolvedValue({id: 'made-here'} as any)
+
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
+                        <CenterPanel
+                            cards={[]}
+                            views={[inbox]}
+                            board={inboxBoard}
+                            activeView={inbox}
+                            readonly={false}
+                            showCard={vi.fn()}
+                            groupByProperty={author}
+                            hiddenCardsCount={0}
+                        />
+                    </TestRouter>
+                </AppStoreProvider>,
+            ))
+            userEvent.click(container.querySelector('.ButtonWithMenu')!)
+
+            await waitFor(() => expect(mockedMutator.insertBlock).toHaveBeenCalled())
+            const made = mockedMutator.insertBlock.mock.calls[0][1] as {fields: {properties: Record<string, string>}}
+            expect(made.fields.properties[status.id]).toBe('opt-mine')
+        })
+
         test('click on new card to add card template', () => {
             activeView.fields.viewType = 'table'
             const {container} = render(() => wrapDNDIntl(() =>

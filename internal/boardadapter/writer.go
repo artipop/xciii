@@ -398,62 +398,89 @@ func (w *Writer) EnsureColumn(ctx context.Context, boardID, propertyName, option
 // field on a block the board server knows nothing about.
 const InboxViewTitle = "Входящие"
 
-// EnsureInbox makes a board's inbox exist: the column things arrive in, and the
-// view that shows only them.
+// MineColumnTitle is the column a person's own card lands in when they press
+// «Создать» on the inbox — everything else there was brought by a source, and a
+// task somebody typed is not something that arrived and nobody has read.
+//
+// It is a column of the board rather than a group of the view because the view
+// is grouped by who made the card, and "made by me" is already a column there:
+// what the person needs kept apart is what the *automation* sees, and that is
+// the board's column property.
+const MineColumnTitle = "Мои задачи"
+
+// EnsureInbox makes a board's inbox exist: the column things arrive in, the
+// column a person's own tasks start in, and the view that shows both.
 //
 // The view is where the inbox lives for a person. The sidebar already lists a
 // board's views underneath it, so a filtered view is the inbox in the one place
 // a person looks for a part of a board — beside the calendar and the table,
-// rather than as a column in the middle of the work. The column is hidden from
-// the kanban for the same reason: it is where a card stands, not where anybody
-// reads it.
+// rather than as a column in the middle of the work. The arrival column is
+// hidden from the kanban for the same reason: it is where a card stands, not
+// where anybody reads it.
 func (w *Writer) EnsureInbox(ctx context.Context, boardID, propertyName, optionName string) (string, error) {
-	optionID, err := w.EnsureColumn(ctx, boardID, propertyName, optionName)
-	if err != nil {
-		return "", err
-	}
-	// The inbox is grouped by who made the card, which for what arrived is the
-	// source that brought it. The property has to exist for a view to group by
-	// it, and a board of ours may not have one.
-	authorID, err := w.ensureAuthorProperty(boardID)
+	optionID, mineID, authorID, err := w.ensureInboxSchema(boardID, propertyName, optionName)
 	if err != nil {
 		return optionID, err
 	}
-	if err := w.ensureInboxView(boardID, propertyName, optionID, authorID); err != nil {
+	if err := w.ensureInboxView(boardID, propertyName, optionID, mineID, authorID); err != nil {
 		// The column is what the pipeline cannot do without; the view is how a
 		// person finds what landed in it. Losing the second is worth a line in
 		// the log and not the card.
 		return optionID, fmt.Errorf("вид «%s» на доске %s: %w", InboxViewTitle, boardID, err)
 	}
-	// And off the kanban, where it is not the person's entry point: what has
-	// arrived is read in the view, and a column of unread things standing in
-	// the middle of the work is what the view exists instead of. The column
-	// itself has to stay — a card stands in one, and the automation fires on a
-	// change of it — so it is hidden rather than avoided.
-	if err := w.hideFromKanban(boardID, optionID); err != nil {
-		return optionID, fmt.Errorf("скрыть колонку «%s» на доске %s: %w", optionName, boardID, err)
+	if err := w.arrangeKanbans(boardID, propertyName, optionID, mineID); err != nil {
+		return optionID, fmt.Errorf("колонки канбана на доске %s: %w", boardID, err)
 	}
 	return optionID, nil
 }
 
-// hideFromKanban takes one column out of every kanban view of a board, without
-// touching the rest of their order.
+// arrangeKanbans says where the inbox's two columns stand on the board's own
+// kanbans: what arrived is taken off them, and «Мои задачи» is put at the front.
 //
-// A group named in neither list is drawn (webapp/src/boardUtils.ts), so hiding
-// is naming it in hiddenOptionIds — and taking it out of visibleOptionIds,
-// where a board made from an older template still has it.
-func (w *Writer) hideFromKanban(boardID, optionID string) error {
+// Both in one pass, and one patch per view, because a view's history is keyed
+// by (id, insert_at) in milliseconds — two patches of the same block in a row
+// are two rows in the same millisecond, and the second one loses.
+//
+// A group named in neither list is drawn (webapp/src/boardUtils.ts walks the
+// visible ones and then the rest), so hiding is naming it in hiddenOptionIds —
+// and taking it out of visibleOptionIds, where a board made from an older
+// template still has it. Drawn last is where a column work *starts* in must not
+// be: after «Готово» and «В архиве» is not where anybody types a task. Naming it
+// first is what says so, and only while the view has no opinion — one that names
+// it anywhere, visible or hidden, has been answered by a person.
+func (w *Writer) arrangeKanbans(boardID, propertyName, inboxID, mineID string) error {
+	board, err := w.app.GetBoard(boardID)
+	if err != nil {
+		return fmt.Errorf("get board %s: %w", boardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return err
+	}
 	views, err := w.boardViews(boardID)
 	if err != nil {
 		return err
 	}
 	for _, view := range views {
-		if viewType, _ := view.Fields["viewType"].(string); viewType != "board" {
+		if viewType, _ := view.Fields["viewType"].(string); viewType != inboxViewType {
 			continue
 		}
-		visible, hadVisible := withoutOption(view.Fields["visibleOptionIds"], optionID)
-		hidden, hadHidden := withOption(view.Fields["hiddenOptionIds"], optionID)
-		if !hadVisible && hadHidden {
+		// The inbox is a kanban too, and it groups by who brought the card:
+		// naming a column of the board in its lists would say nothing there.
+		groupBy, _ := view.Fields["groupById"].(string)
+		if def, ok := schema[groupBy]; !ok || def.Type != "select" || !strings.EqualFold(def.Name, propertyName) {
+			continue
+		}
+
+		visible, wasVisible := withoutOption(view.Fields["visibleOptionIds"], inboxID)
+		hidden, wasHidden := withOption(view.Fields["hiddenOptionIds"], inboxID)
+		changed := wasVisible || !wasHidden
+
+		if !containsOption(visible, mineID) && !containsOption(hidden, mineID) {
+			visible = append([]any{mineID}, visible...)
+			changed = true
+		}
+		if !changed {
 			continue
 		}
 		patch := &model.BlockPatch{UpdatedFields: map[string]any{
@@ -483,6 +510,69 @@ func withoutOption(raw any, optionID string) ([]any, bool) {
 	return out, found
 }
 
+// filterWithColumn is the view's filter with one more column admitted by the
+// clause on the column property, and whether anything changed. The column goes
+// first, because the first value of an "includes" clause is what a card made in
+// that view becomes (CardFilter.propertyThatMeetsFilterClause in the webapp) —
+// which is the whole of how «Создать» on the inbox lands in «Мои задачи».
+//
+// A view with no clause on that property is left alone: it was filtered by
+// somebody, and a filter of ours put back would be an edit nobody asked for.
+func filterWithColumn(raw any, propID, optionID string) (map[string]any, bool) {
+	filter, ok := raw.(map[string]any)
+	if !ok {
+		return nil, false
+	}
+	clauses, ok := filter["filters"].([]any)
+	if !ok {
+		return nil, false
+	}
+	out := make([]any, 0, len(clauses))
+	changed := false
+	for _, item := range clauses {
+		clause, ok := item.(map[string]any)
+		if !ok {
+			out = append(out, item)
+			continue
+		}
+		if id, _ := clause["propertyId"].(string); id != propID {
+			out = append(out, clause)
+			continue
+		}
+		values, _ := clause["values"].([]any)
+		if _, has := withOption(values, optionID); has {
+			out = append(out, clause)
+			continue
+		}
+		next := map[string]any{}
+		for key, value := range clause {
+			next[key] = value
+		}
+		next["values"] = append([]any{optionID}, values...)
+		out = append(out, next)
+		changed = true
+	}
+	if !changed {
+		return nil, false
+	}
+	next := map[string]any{}
+	for key, value := range filter {
+		next[key] = value
+	}
+	next["filters"] = out
+	return next, true
+}
+
+// containsOption is whether the list names the option at all.
+func containsOption(list []any, optionID string) bool {
+	for _, item := range list {
+		if id, ok := item.(string); ok && id == optionID {
+			return true
+		}
+	}
+	return false
+}
+
 func withOption(raw any, optionID string) ([]any, bool) {
 	list, _ := raw.([]any)
 	for _, item := range list {
@@ -503,33 +593,76 @@ const inboxViewType = "board"
 // property it had rather than growing a second one saying the same thing.
 const AuthorPropertyTitle = "Автор"
 
-// ensureAuthorProperty returns the id of the board's createdBy property, adding
-// one if it has none. Add-only, like every other write to a board's schema
-// here: nothing is removed and an existing one is reused whatever it is called.
-func (w *Writer) ensureAuthorProperty(boardID string) (string, error) {
+// mineColumnColor is what «Мои задачи» is painted on a board that grew one
+// later, and it is the colour the templates ship it in: the same column has to
+// look the same wherever it came from.
+const mineColumnColor = "propColorPurple"
+
+// ensureInboxSchema adds everything the inbox needs of the board's schema — the
+// column what arrives stands in, the column a person's own tasks start in, and
+// the property the view groups by — and adds it in **one** write.
+//
+// One write because the board's history is keyed by (id, insert_at) in
+// milliseconds: three patches in a row are three history rows in the same
+// millisecond on any machine fast enough, and the second one fails on the
+// unique key. Add-only, like every other write to a board's schema here:
+// nothing is removed, and a property or option somebody renamed stays theirs.
+func (w *Writer) ensureInboxSchema(boardID, propertyName, inboxName string) (inboxID, mineID, authorID string, err error) {
 	board, err := w.app.GetBoard(boardID)
 	if err != nil {
-		return "", fmt.Errorf("get board %s: %w", boardID, err)
+		return "", "", "", fmt.Errorf("get board %s: %w", boardID, err)
 	}
 	schema, err := model.ParsePropertySchema(board)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
-	if id, ok := arrivedAuthor(board, schema); ok {
-		return id, nil
+
+	var updated []map[string]any
+	_, inboxID, hasInbox := findSelectOption(schema, propertyName, inboxName)
+	_, mineID, hasMine := findSelectOption(schema, propertyName, MineColumnTitle)
+	if !hasInbox || !hasMine {
+		prop, ok := findCardProperty(board.CardProperties, propertyName)
+		if !ok {
+			// The property itself is not invented: a board with no column
+			// property has no columns to file anything into, and guessing one
+			// would put the card somewhere nobody looks.
+			return "", "", "", fmt.Errorf("на доске %s нет свойства %q", boardID, propertyName)
+		}
+		options, _ := prop["options"].([]any)
+		if !hasInbox {
+			inboxID = utils.NewID(utils.IDTypeBlock)
+			options = append(options, map[string]any{"id": inboxID, "value": inboxName, "color": "propColorGray"})
+		}
+		if !hasMine {
+			mineID = utils.NewID(utils.IDTypeBlock)
+			options = append(options, map[string]any{"id": mineID, "value": MineColumnTitle, "color": mineColumnColor})
+		}
+		prop["options"] = options
+		updated = append(updated, prop)
 	}
-	propID := utils.NewID(utils.IDTypeBlock)
-	prop := map[string]any{
-		"id":      propID,
-		"name":    AuthorPropertyTitle,
-		"type":    "createdBy",
-		"options": []any{},
+
+	// The inbox is grouped by who made the card, which for what arrived is the
+	// source that brought it. The property has to exist for a view to group by
+	// it, and a board of ours may not have one.
+	authorID, hasAuthor := arrivedAuthor(board, schema)
+	if !hasAuthor {
+		authorID = utils.NewID(utils.IDTypeBlock)
+		updated = append(updated, map[string]any{
+			"id":      authorID,
+			"name":    AuthorPropertyTitle,
+			"type":    "createdBy",
+			"options": []any{},
+		})
 	}
-	patch := &model.BoardPatch{UpdatedCardProperties: []map[string]any{prop}}
+
+	if len(updated) == 0 {
+		return inboxID, mineID, authorID, nil
+	}
+	patch := &model.BoardPatch{UpdatedCardProperties: updated}
 	if _, err := w.app.PatchBoard(patch, boardID, model.SingleUser); err != nil {
-		return "", fmt.Errorf("add the author property to board %s: %w", boardID, err)
+		return "", "", "", fmt.Errorf("завести «%s» на доске %s: %w", inboxName, boardID, err)
 	}
-	return propID, nil
+	return inboxID, mineID, authorID, nil
 }
 
 // arrivedAuthor finds the board's own createdBy property, in the board's order
@@ -594,7 +727,7 @@ func propertyOfType(board *model.Board, schema model.PropSchema, propType string
 // ensureInboxView adds the view if the board has not got one already, and
 // teaches an older one to group — a view made before the inbox grouped by
 // anything would otherwise be the one board where it does not.
-func (w *Writer) ensureInboxView(boardID, propertyName, optionID, authorID string) error {
+func (w *Writer) ensureInboxView(boardID, propertyName, optionID, mineID, authorID string) error {
 	board, err := w.app.GetBoard(boardID)
 	if err != nil {
 		return fmt.Errorf("get board %s: %w", boardID, err)
@@ -633,6 +766,12 @@ func (w *Writer) ensureInboxView(boardID, propertyName, optionID, authorID strin
 		if viewType, _ := view.Fields["viewType"].(string); viewType != inboxViewType {
 			fields["viewType"] = inboxViewType
 		}
+		// And an inbox made before «Мои задачи» existed shows only what
+		// arrived, so a card made with the «Создать» button standing right
+		// there would vanish the moment it was made.
+		if filter, changed := filterWithColumn(view.Fields["filter"], propID, mineID); changed {
+			fields["filter"] = filter
+		}
 		if len(fields) == 0 {
 			return nil
 		}
@@ -656,12 +795,16 @@ func (w *Writer) ensureInboxView(boardID, propertyName, optionID, authorID strin
 			// into work the same way it is dragged anywhere else.
 			"viewType":  inboxViewType,
 			"groupById": authorID,
+			// Two columns, and «Мои задачи» first: the first value of an
+			// "includes" clause is what a card made in this view becomes, so
+			// pressing «Создать» here writes a task of one's own rather than
+			// something that arrived and nobody has read.
 			"filter": map[string]any{
 				"operation": "and",
 				"filters": []any{map[string]any{
 					"propertyId": propID,
 					"condition":  "includes",
-					"values":     []any{optionID},
+					"values":     []any{mineID, optionID},
 				}},
 			},
 			// Nothing else on the face of a card: what a person reads in an

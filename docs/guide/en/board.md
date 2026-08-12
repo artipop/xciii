@@ -49,4 +49,6 @@ names that view in Russian, and the name is not translated.)
 
 The view header has **"Properties"** (which fields to show on a card), **"Group
 by"**, **"Filter"**, **"Sort"** and search. These are settings of the view, not
-of the board: each view has its own.
+of the board: each view has its own. The ⋯ menu belongs to the view too: on
+Входящие it holds **"Sources"** and nothing else, while exporting and the
+board's settings are in the menus of the other views.

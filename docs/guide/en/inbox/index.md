@@ -27,6 +27,16 @@ be named anything.
 A board made from a template shows the inbox right away, still empty. A board
 created empty gets it with its first source or the first shared link.
 
+## A task of your own
+
+The **"New"** button in the inbox creates a card in the **Мои задачи** ("my
+tasks") column rather than in the inbox: the inbox holds what came from outside,
+and this card is yours.
+
+Мои задачи is an ordinary column of the board, first on the kanban: a card is
+dragged from it into work like any other. In the inbox view it stands in the
+column with your name — the columns there are authors.
+
 ## Sorting it out
 
 - **On a computer**: open the inbox view and a card in it — like any other.
@@ -40,7 +50,8 @@ created empty gets it with its first source or the first shared link.
 
 | What you see | Why |
 |---|---|
-| No inbox in the sidebar | The board was created empty and has no source — the view appears with the first one |
+| No inbox in the sidebar | The board was created empty and has no source — the view appears with the first one; until then "Sources" is in the board's own menu |
+| No "Sources" in the board menu | The board has an inbox — the setting moved to that view's menu |
 | "needs a token" next to a source | The token was not saved or was revoked — "Remove" and set the source up again |
 | "failed" and an error text | Usually a wrong service address or token; the error is quoted from the service |
 | "dropped" in the log | "keep only what a rule asks for" is on, and there are no rules |

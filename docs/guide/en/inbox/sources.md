@@ -1,7 +1,14 @@
 # Sources
 
-Sources are set up in the board menu: ⋯ in the header → **"Sources"**.
-Everything they bring goes to [the inbox](./index.md). There are three ways.
+Sources are set up in the menu of the [inbox](./index.md) view: ⋯ in the header
+→ **"Sources"**. There is nothing else in that menu: exporting and the board's
+settings are in the menus of the other views.
+
+If the board has no inbox yet (it was created empty), **"Sources"** stays in the
+board's own menu. The view appears with the first source, and the setting moves
+into it.
+
+There are three ways.
 
 ## Share (macOS)
 

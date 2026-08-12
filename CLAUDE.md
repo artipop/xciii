@@ -509,11 +509,30 @@ column and grouped by who brought the card — a column per source — called
 columns are facts about the past rather than places, so a card cannot be dragged
 between them (`columnsAreFacts` in `kanban.tsx`). That is where somebody looks for a part of a board, and it keeps
 what nobody has read yet out of the middle of the work — which is also why the
-column itself is hidden from the kanban (`hideFromKanban`, and
+column itself is hidden from the kanban (`arrangeKanbans`, and
 `hiddenOptionIds` in the templates). The column has to exist, since a card
 stands in one and the automation fires on a change of it; it just is not where
 anybody reads. A board with no source
 gets neither the column nor the view, because nothing arrives on it.
+
+So the inbox is the screen about **where cards come from**, and that is where
+the sources are set up: «Источники…» is on that view's ⋯ menu and nowhere else,
+and that menu holds nothing besides — exporting or saving as a template are
+questions about the board, asked where the board is (`viewHeaderActionsMenu.tsx`,
+`isInboxView`). One door stays open on the board itself: a board that has no
+«Входящие» yet is offered them there, or the only way to make an inbox would be
+a screen that exists once you have one.
+
+A person's own card made on that screen lands in a **second** column,
+«Мои задачи» — everything else there arrived, and a task somebody typed is not
+something nobody has read. It is a column rather than a group of the view
+because what has to be kept apart is what the *automation* sees; the view is
+grouped by author, where "made by me" is already its own column. The mechanism
+is the view's filter and nothing else: it admits both columns, «Мои задачи»
+first, and the first value of an "includes" clause is what a card made in that
+view becomes (`CardFilter.propertyThatMeetsFilterClause`). Unlike the arrival
+column it stays on the kanban, at its front, because the way out of it is a drag
+like any other and the inbox's own columns do not drag.
 
 The inbox is **grouped by what brought the card**, and that needs no property of
 ours: a source has a board account, exactly as an agent does and for the same

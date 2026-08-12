@@ -43,7 +43,10 @@ var templateFiles embed.FS
 // 14: «Контент» joins the set — content making with an agent writing the brief
 // and the draft and a person reading them; no deploy, no browser test, so its
 // setup wizard asks for a folder and an agent and nothing else.
-const TemplateVersion = 14
+// 15: «Мои задачи» stands beside «Входящие» — the column a card made with the
+// inbox's own «Создать» button lands in, so what a person typed is not filed
+// among what arrived and nobody has read.
+const TemplateVersion = 15
 
 // TemplateMarkerProperty is the board property each template carries its slug
 // in. Ids are regenerated on import and titles are the user's to change, so the
