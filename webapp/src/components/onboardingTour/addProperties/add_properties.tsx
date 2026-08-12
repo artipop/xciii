@@ -28,13 +28,13 @@ const AddPropertiesTourStep = (): JSX.Element => {
     const title = (
         <FormattedMessage
             id='OnboardingTour.AddProperties.Title'
-            defaultMessage='Add properties'
+            defaultMessage='Card properties'
         />
     )
     const screen = (
         <FormattedMessage
             id='OnboardingTour.AddProperties.Body'
-            defaultMessage='Add various properties to cards to make them more powerful!'
+            defaultMessage='Properties are what the board groups, sorts and filters by: who works on the card, which project it belongs to, what stage it is on.'
         />
     )
 

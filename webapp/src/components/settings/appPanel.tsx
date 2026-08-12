@@ -52,7 +52,7 @@ const AppPanel = () => {
             <div class='AppPanel__subtitle'>
                 {intl.formatMessage({
                     id: 'Settings.app-subtitle',
-                    defaultMessage: 'How the app looks, what language it speaks, where it is written down, and where to say that something is broken.',
+                    defaultMessage: 'The app\'s theme and language, the guide, and where to report a problem.',
                 })}
             </div>
 
@@ -118,7 +118,7 @@ const AppPanel = () => {
                             <span class='AppPanel__actionHint'>
                                 {intl.formatMessage({
                                     id: 'Settings.help-hint',
-                                    defaultMessage: 'What the board can do, what a column runs, and the code behind it.',
+                                    defaultMessage: 'The guide to the board, its columns and routes, with the source code beside it.',
                                 })}
                             </span>
                         </div>
@@ -145,7 +145,7 @@ const AppPanel = () => {
                             <span class='AppPanel__actionHint'>
                                 {intl.formatMessage({
                                     id: 'Settings.feedback-hint',
-                                    defaultMessage: 'What broke, or what is missing — the issue tracker takes both.',
+                                    defaultMessage: 'Bugs and requests go to the issue tracker.',
                                 })}
                             </span>
                         </div>

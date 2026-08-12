@@ -173,7 +173,7 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                     class="CompassIcon icon-eye-off-outline"
                   />
                   <span>
-                    hide description
+                    Hide description
                   </span>
                   
                 </button>
@@ -1272,7 +1272,7 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                     class="CompassIcon icon-eye-off-outline"
                   />
                   <span>
-                    hide description
+                    Hide description
                   </span>
                   
                 </button>

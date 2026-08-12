@@ -16,13 +16,13 @@ const CopyLinkTourStep = (): JSX.Element | null => {
     const title = (
         <FormattedMessage
             id='OnboardingTour.CopyLink.Title'
-            defaultMessage='Copy link'
+            defaultMessage='Copy the link'
         />
     )
     const screen = (
         <FormattedMessage
             id='OnboardingTour.CopyLink.Body'
-            defaultMessage='You can share your cards with teammates by copying the link and pasting it in a channel, direct message, or group message.'
+            defaultMessage='The link leads to one card and opens it wherever the board is available: in the window, in a browser, on a phone.'
         />
     )
 

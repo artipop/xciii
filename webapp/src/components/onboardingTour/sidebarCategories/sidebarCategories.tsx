@@ -33,7 +33,7 @@ const SidebarCategoriesTourStep = (): JSX.Element => {
     const screen = (
         <FormattedMessage
             id='SidebarTour.SidebarCategories.Body'
-            defaultMessage='Every board lives here. Drag one into a category of your own to keep the list in the order you think in.'
+            defaultMessage='Every board is listed here. Drag one into a category of your own to keep the list in an order that suits you.'
         />
     )
 

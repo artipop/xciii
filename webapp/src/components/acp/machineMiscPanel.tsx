@@ -85,7 +85,7 @@ const MachineMiscPanel = () => {
                             <span class='MachineMiscPanel__factValue'>
                                 {intl.formatMessage({
                                     id: 'Machine.agent-notifications-hint',
-                                    defaultMessage: 'The question itself is in the notification, and answering it there is answering the agent. The amber dot on the card stays either way.',
+                                    defaultMessage: 'The notification shows the question itself, and the agent can be answered right in it. The amber dot on the card stays either way.',
                                 })}
                             </span>
                         </div>

@@ -215,7 +215,7 @@ exports[`components/cardDetail/CardDetail > should show add comments tour tip 1`
         class="tutorial-tour-tip__header__title"
         id="cl-1"
       >
-        Add comments
+        Comments
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -229,7 +229,7 @@ exports[`components/cardDetail/CardDetail > should show add comments tour tip 1`
     <div
       class="tutorial-tour-tip__body"
     >
-      You can comment on issues, and even @mention your fellow Mattermost users to get their attention.
+      The comments hold everything that has happened to the card. The agent working it writes here too: what it did and what it is asking.
     </div>
     <div
       class="tutorial-tour-tip__image"
@@ -331,7 +331,7 @@ exports[`components/cardDetail/CardDetail > should show add description tour tip
         class="tutorial-tour-tip__header__title"
         id="cl-7"
       >
-        Add description
+        Description
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -345,7 +345,7 @@ exports[`components/cardDetail/CardDetail > should show add description tour tip
     <div
       class="tutorial-tour-tip__body"
     >
-      Add a description to your card so your teammates know what the card is about.
+      The description is the task itself: it is what the agent gets when it picks the card up, so it is worth writing clearly.
     </div>
     <div
       class="tutorial-tour-tip__image"
@@ -445,7 +445,7 @@ exports[`components/cardDetail/CardDetail > should show add properties tour tip 
         class="tutorial-tour-tip__header__title"
         id="cl-0"
       >
-        Add properties
+        Card properties
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -459,7 +459,7 @@ exports[`components/cardDetail/CardDetail > should show add properties tour tip 
     <div
       class="tutorial-tour-tip__body"
     >
-      Add various properties to cards to make them more powerful!
+      Properties are what the board groups, sorts and filters by: who works on the card, which project it belongs to, what stage it is on.
     </div>
     <div
       class="tutorial-tour-tip__image"

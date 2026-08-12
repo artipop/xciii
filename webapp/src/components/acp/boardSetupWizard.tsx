@@ -337,7 +337,7 @@ const BoardSetupWizard = (props: Props) => {
         case STEP_BROWSER:
             return (
                 <div class='BoardSetupWizard__step'>
-                    <p>{intl.formatMessage({id: 'BoardSetup.browser-why', defaultMessage: 'The "QA" column drives a browser the agent brings itself. Without a browser MCP server a test session refuses to start; the one below is the usual answer.'})}</p>
+                    <p>{intl.formatMessage({id: 'BoardSetup.browser-why', defaultMessage: 'The "QA" column needs a browser, which the agent gets from a browser MCP server. Without one a test session will not start; the configuration below usually fits.'})}</p>
                     <textarea
                         rows={7}
                         value={serversText()}
@@ -351,7 +351,7 @@ const BoardSetupWizard = (props: Props) => {
                     <p>
                         {intl.formatMessage({
                             id: 'BoardSetup.source-why',
-                            defaultMessage: 'A source puts cards on this board by itself — a notification from your phone, a script, a service. It is fed over HTTP at the address the board is served on, so from a phone that means the tailnet address.',
+                            defaultMessage: 'A source puts cards on this board by itself — a notification from your phone, a script, a service. Records are sent to it over HTTP at the address the board is served on; from a phone that is the tailnet address.',
                         })}
                     </p>
                     <label class='BoardSetupWizard__field'>
@@ -491,7 +491,7 @@ const BoardSetupWizard = (props: Props) => {
         <Dialog
             class='BoardSetupWizard'
             title={<span>{intl.formatMessage({id: 'BoardSetup.title', defaultMessage: 'Set up this board: {step}'}, {step: title(step())})}</span>}
-            subtitle={<span>{intl.formatMessage({id: 'BoardSetup.subtitle', defaultMessage: 'The board already knows how the work is organised. What it does not know is your machine.'})}</span>}
+            subtitle={<span>{intl.formatMessage({id: 'BoardSetup.subtitle', defaultMessage: 'The board\'s columns and routes are already in place. What is left is to say where things are on your machine.'})}</span>}
             onClose={props.onClose}
         >
             <div class='BoardSetupWizard__content'>

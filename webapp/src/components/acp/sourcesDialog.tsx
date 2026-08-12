@@ -268,7 +268,7 @@ const SourcesDialog = (props: Props) => {
                 <span>
                     {intl.formatMessage({
                         id: 'Sources.subtitle',
-                        defaultMessage: 'What turns into cards on this board on its own: a notification from your phone, a script, a service. Anything that can make an HTTP request can feed a source.',
+                        defaultMessage: 'What turns into cards on this board on its own: a notification from your phone, a script, a service. Anything that can make an HTTP request can send records in.',
                     })}
                 </span>
             }
@@ -371,7 +371,7 @@ const SourcesDialog = (props: Props) => {
                             }}
                         >
                             <option value=''>
-                                {intl.formatMessage({id: 'Sources.plugin-none', defaultMessage: 'Fed from outside (a script, a phone)'})}
+                                {intl.formatMessage({id: 'Sources.plugin-none', defaultMessage: 'Takes HTTP requests (a script, a phone)'})}
                             </option>
                             <For each={plugins()}>
                                 {(available) => <option value={available.name}>{available.title || available.name}</option>}

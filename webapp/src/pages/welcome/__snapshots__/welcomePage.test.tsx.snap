@@ -16,12 +16,12 @@ exports[`pages/welcome > Welcome Page shows Explore Page 1`] = `
       <h1
         class="text-heading9"
       >
-        Welcome To Boards
+        XCIII
       </h1>
       <div
         class="WelcomePage__subtitle"
       >
-        Boards is a project management tool that helps define, organize, track, and manage work across teams using a familiar Kanban board view.
+        A board where agents work the cards: drag a card into a column and an agent picks it up. When it is easier to do it yourself, there is the terminal.
       </div>
       <div
         class="WelcomePage__content"
@@ -80,12 +80,12 @@ exports[`pages/welcome > Welcome Page shows Explore Page with subpath 1`] = `
       <h1
         class="text-heading9"
       >
-        Welcome To Boards
+        XCIII
       </h1>
       <div
         class="WelcomePage__subtitle"
       >
-        Boards is a project management tool that helps define, organize, track, and manage work across teams using a familiar Kanban board view.
+        A board where agents work the cards: drag a card into a column and an agent picks it up. When it is easier to do it yourself, there is the terminal.
       </div>
       <div
         class="WelcomePage__content"

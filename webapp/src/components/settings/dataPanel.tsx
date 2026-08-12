@@ -40,7 +40,7 @@ const DataPanel = () => {
             <div class='DataPanel__subtitle'>
                 {intl.formatMessage({
                     id: 'Settings.data-subtitle',
-                    defaultMessage: 'An archive carries every board on this install. A single board leaves through its own ⋯ menu in the list of boards.',
+                    defaultMessage: 'An archive takes every board on this install. A single board is exported from its own ⋯ menu in the list of boards.',
                 })}
             </div>
 

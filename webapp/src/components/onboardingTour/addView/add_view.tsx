@@ -15,13 +15,13 @@ const AddViewTourStep = (): JSX.Element => {
     const title = (
         <FormattedMessage
             id='OnboardingTour.AddView.Title'
-            defaultMessage='Add a new view'
+            defaultMessage='Add a view'
         />
     )
     const screen = (
         <FormattedMessage
             id='OnboardingTour.AddView.Body'
-            defaultMessage='Go here to create a new view to organise your board using different layouts.'
+            defaultMessage='A view is a way of looking at the same cards: a board, a table, a calendar. A board can have as many as you like.'
         />
     )
 

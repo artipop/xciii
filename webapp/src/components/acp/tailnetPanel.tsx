@@ -140,7 +140,7 @@ const TailnetPanel = () => {
                         </Button>
                     </div>
                     <p class='TailnetPanel__hint'>
-                        {intl.formatMessage({id: 'Tailnet.hint-phone', defaultMessage: 'The phone needs the Tailscale app, signed in as you. The address works nowhere else.'})}
+                        {intl.formatMessage({id: 'Tailnet.hint-phone', defaultMessage: 'The phone needs the Tailscale app, signed in as you. The address works only inside your network.'})}
                     </p>
                 </Show>
 

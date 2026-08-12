@@ -15,13 +15,13 @@ const AddDescriptionTourStep = (): JSX.Element | null => {
     const title = (
         <FormattedMessage
             id='OnboardingTour.AddDescription.Title'
-            defaultMessage='Add description'
+            defaultMessage='Description'
         />
     )
     const screen = (
         <FormattedMessage
             id='OnboardingTour.AddDescription.Body'
-            defaultMessage='Add a description to your card so your teammates know what the card is about.'
+            defaultMessage='The description is the task itself: it is what the agent gets when it picks the card up, so it is worth writing clearly.'
         />
     )
 

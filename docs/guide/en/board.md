@@ -17,9 +17,9 @@ menu — **"Pick icon"**, **"Random"**, **"Remove icon"**.
 A board has a description — text under the title. It is hidden by default, and
 a new board opens straight onto its columns.
 
-To show it, hover over the area above the title and press **"show
+To show it, hover over the area above the title and press **"Show
 description"** (the button with an eye). A field opens under the title. While
-the description is visible the same button reads **"hide description"**. Hiding
+the description is visible the same button reads **"Hide description"**. Hiding
 does not delete the text — it stays on the board.
 
 ## The board menu: «⋯» in the list on the left

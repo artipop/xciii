@@ -143,7 +143,7 @@ const PlanningDialog = (props: Props) => {
                 <p class='PlanningDialog__hint'>
                     {intl.formatMessage({
                         id: 'Planning.hint-terminal',
-                        defaultMessage: 'Opens the agent\'s CLI in the project. This is a place to think out loud: nothing is committed for you, and the cards you agree on the agent can put on this board itself.',
+                        defaultMessage: 'Opens the agent\'s CLI in the project folder. Nothing is committed without you, and the agent can create the cards you agree on right on this board.',
                     })}
                 </p>
 

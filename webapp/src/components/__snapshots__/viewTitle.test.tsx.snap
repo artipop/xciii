@@ -27,7 +27,7 @@ exports[`components/viewTitle > add random icon 1`] = `
           class="CompassIcon icon-eye-outline"
         />
         <span>
-          show description
+          Show description
         </span>
         
       </button>
@@ -65,7 +65,7 @@ exports[`components/viewTitle > hide description 1`] = `
           class="CompassIcon icon-eye-outline"
         />
         <span>
-          show description
+          Show description
         </span>
         
       </button>
@@ -119,7 +119,7 @@ exports[`components/viewTitle > should match snapshot 1`] = `
           class="CompassIcon icon-eye-off-outline"
         />
         <span>
-          hide description
+          Hide description
         </span>
         
       </button>
@@ -235,7 +235,7 @@ exports[`components/viewTitle > show description 1`] = `
           class="CompassIcon icon-eye-off-outline"
         />
         <span>
-          hide description
+          Hide description
         </span>
         
       </button>

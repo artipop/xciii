@@ -145,7 +145,7 @@ const AgentQuickAdd = (props: Props) => {
             </div>
 
             <div class='AgentQuickAdd__hint'>
-                {intl.formatMessage({id: 'AgentQuickAdd.hint', defaultMessage: 'Everything else about it — model, environment, MCP servers, proxy — is in Settings → This machine, and has a working default until you go there.'})}
+                {intl.formatMessage({id: 'AgentQuickAdd.hint', defaultMessage: 'Everything else about it — model, environment, MCP servers, proxy — is in Settings → Agents, and has a working default until you go there.'})}
             </div>
 
             <Show when={error()}>

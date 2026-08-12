@@ -19,7 +19,7 @@ exports[`components/onboardingTour/addComments/AddCommentTourStep > after hover 
         class="tutorial-tour-tip__header__title"
         id="cl-1"
       >
-        Add comments
+        Comments
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -33,7 +33,7 @@ exports[`components/onboardingTour/addComments/AddCommentTourStep > after hover 
     <div
       class="tutorial-tour-tip__body"
     >
-      You can comment on issues, and even @mention your fellow Mattermost users to get their attention.
+      The comments hold everything that has happened to the card. The agent working it writes here too: what it did and what it is asking.
     </div>
     <div
       class="tutorial-tour-tip__image"

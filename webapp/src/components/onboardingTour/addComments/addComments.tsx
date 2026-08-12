@@ -15,13 +15,13 @@ const AddCommentTourStep = (): JSX.Element | null => {
     const title = (
         <FormattedMessage
             id='OnboardingTour.AddComments.Title'
-            defaultMessage='Add comments'
+            defaultMessage='Comments'
         />
     )
     const screen = (
         <FormattedMessage
             id='OnboardingTour.AddComments.Body'
-            defaultMessage='You can comment on issues, and even @mention your fellow Mattermost users to get their attention.'
+            defaultMessage='The comments hold everything that has happened to the card. The agent working it writes here too: what it did and what it is asking.'
         />
     )
 

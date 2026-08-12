@@ -20,7 +20,7 @@ const OpenCardTourStep = (): JSX.Element | null => {
     const screen = (
         <FormattedMessage
             id='OnboardingTour.OpenACard.Body'
-            defaultMessage='Open a card to explore the powerful ways that Boards can help you organize your work.'
+            defaultMessage='A card is one task: what needs doing, who is on it, and everything said about it.'
         />
     )
 

@@ -701,7 +701,7 @@ const AgentsPanel = () => {
                         <Show when={CLI_HANDOFF_KINDS.includes(form()!.kind)}>
                             <div class='AgentsPanel__options'>
                                 <div class='AgentsPanel__optionsHeader'>
-                                    <span>{intl.formatMessage({id: 'Agents.cli', defaultMessage: 'What the protocol has no word for'})}</span>
+                                    <span>{intl.formatMessage({id: 'Agents.cli', defaultMessage: 'The CLI behind the adapter'})}</span>
                                 </div>
                                 <label class='AgentsPanel__checkbox'>
                                     <input
@@ -783,7 +783,7 @@ const AgentsPanel = () => {
                             />
                         </label>
                         <div class='AgentsPanel__hint'>
-                            {intl.formatMessage({id: 'Agents.mcp-servers-hint', defaultMessage: 'Their tools run without asking: wiring a server here is consent to use it. A browser server (Playwright, say) is what the "To Test" column runs on.'})}
+                            {intl.formatMessage({id: 'Agents.mcp-servers-hint', defaultMessage: 'Their tools run without confirmation prompts. A browser server (Playwright, say) is what the "To Test" column needs.'})}
                         </div>
                         <label>
                             {intl.formatMessage({id: 'Agents.args', defaultMessage: 'Extra CLI args (space-separated)'})}

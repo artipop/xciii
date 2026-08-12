@@ -46,8 +46,8 @@ The **"Log"** button shows what the source has brought.
 
 ## HTTP: a script, a webhook, a phone
 
-Accepts cards from anything that can send an HTTP request. Leave **"Fed from
-outside (a script, a phone)"** selected, set a name and press "Add" — the
+Accepts cards from anything that can send an HTTP request. Leave **"Takes HTTP
+requests (a script, a phone)"** selected, set a name and press "Add" — the
 dialog shows an address like `http://127.0.0.1:PORT/sources/ingest/name` and a
 token. **The token is shown once** — save it right away.
 

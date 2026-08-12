@@ -19,7 +19,7 @@ exports[`components/onboardingTour/addComments/AddViewTourStep > after hover 1`]
         class="tutorial-tour-tip__header__title"
         id="cl-1"
       >
-        Add a new view
+        Add a view
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -33,7 +33,7 @@ exports[`components/onboardingTour/addComments/AddViewTourStep > after hover 1`]
     <div
       class="tutorial-tour-tip__body"
     >
-      Go here to create a new view to organise your board using different layouts.
+      A view is a way of looking at the same cards: a board, a table, a calendar. A board can have as many as you like.
     </div>
     <div
       class="tutorial-tour-tip__image"

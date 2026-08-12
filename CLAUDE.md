@@ -625,6 +625,17 @@ whoever opened it. **Only the protocol asks** (`question.go`), which is why
   `mockResolvedValue`, and the hook around it clears rather than resets.
 - Russian in user-facing strings and product docs, English in code, comments and
   commit messages.
+- **User-facing text is plain documentation.** The register for everything a
+  person reads off the product — the webapp's strings (`webapp/i18n/*.json` and
+  the English defaults in components), the landing (`site/`) and `docs/guide/` —
+  is that of a good manual: name the thing, say what it does, say what to do.
+  Not allowed: aphorisms and mirrored halves («Доска уже знает, как устроена
+  работа. Чего она не знает — …»), a lesson appended to an instruction, a
+  metaphor where a plain verb exists («кормить источник», «архив уносит
+  доски»), a heading that makes a statement instead of naming its topic. The
+  product's own vocabulary is terminology, not decoration, and stays (маршрут,
+  карточка едет, «Входящие»); a hint keeps its "why" when the why changes what
+  the reader does.
 - **Russian is never a key.** A Russian word may be a label, a message, a
   prompt, or the name a thing is *given* when this app creates it — and nothing
   else. Nothing may find, match or branch on one: the board's column property is
@@ -637,6 +648,17 @@ whoever opened it. **Only the protocol asks** (`question.go`), which is why
   the Russian a person reads. The one deliberate exception is
   `NormalizeVerdict`, which meets an agent's free text halfway in both languages
   and maps it onto `pass`/`fail`/`blocked`.
+- **A rework is not finished until `docs/` says what is now true.** The rule
+  below is about a feature somebody uses; this one is about the shape of the
+  code. When something structural moves — a layer replaced, a plan carried out,
+  a decision reversed — the document that described the old shape is edited in
+  the same change, and a planning document whose work is done is either
+  rewritten as description or deleted. A plan that outlives its work is not
+  history, it is a wrong answer with a filename: `plan.md` went on saying
+  `acpColumns`, went on describing a session console that had been cut, and
+  listed Makefile targets this tree has not got. What was thought through and
+  deliberately *not* done keeps its reasoning in `docs/deferred.md` — that is
+  worth carrying, and it is the half a deletion tends to take with it.
 - **A feature a person uses is not finished until `docs/guide/` says how.**
   `docs/` is for whoever works on the code; `docs/guide/` is the other shelf —
   Russian, organised by screen or by task, for the person the thing was built

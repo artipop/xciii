@@ -19,7 +19,7 @@ exports[`components/onboardingTour/addComments/CopyLinkTourStep > after hover 1`
         class="tutorial-tour-tip__header__title"
         id="cl-1"
       >
-        Copy link
+        Copy the link
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -33,7 +33,7 @@ exports[`components/onboardingTour/addComments/CopyLinkTourStep > after hover 1`
     <div
       class="tutorial-tour-tip__body"
     >
-      You can share your cards with teammates by copying the link and pasting it in a channel, direct message, or group message.
+      The link leads to one card and opens it wherever the board is available: in the window, in a browser, on a phone.
     </div>
     <div
       class="tutorial-tour-tip__image"

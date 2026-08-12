@@ -68,7 +68,7 @@ const ViewTitle = (props: Props) => {
                     >
                         <FormattedMessage
                             id='ViewTitle.hide-description'
-                            defaultMessage='hide description'
+                            defaultMessage='Hide description'
                         />
                     </Button>
                 </Show>
@@ -84,7 +84,7 @@ const ViewTitle = (props: Props) => {
                     >
                         <FormattedMessage
                             id='ViewTitle.show-description'
-                            defaultMessage='show description'
+                            defaultMessage='Show description'
                         />
                     </Button>
                 </Show>

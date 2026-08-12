@@ -33,7 +33,7 @@ exports[`components/onboardingTour/addComments/OpenCardTourStep > after hover 1`
     <div
       class="tutorial-tour-tip__body"
     >
-      Open a card to explore the powerful ways that Boards can help you organize your work.
+      A card is one task: what needs doing, who is on it, and everything said about it.
     </div>
     
     <div

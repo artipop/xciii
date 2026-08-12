@@ -28,7 +28,7 @@ exports[`components/centerPanel > Clicking on the Hidden card count should open 
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -763,7 +763,7 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -1352,7 +1352,7 @@ exports[`components/centerPanel > return centerPanel and > click on new card to 
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -2451,7 +2451,7 @@ exports[`components/centerPanel > return centerPanel and > press touch ctrl+d fo
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -3136,7 +3136,7 @@ exports[`components/centerPanel > return centerPanel and > press touch del for o
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -3821,7 +3821,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -4506,7 +4506,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -5191,7 +5191,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -5876,7 +5876,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -6561,7 +6561,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -7246,7 +7246,7 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -7931,7 +7931,7 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -8616,7 +8616,7 @@ exports[`components/centerPanel > should match snapshot for Gallery 1`] = `
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -8895,7 +8895,7 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -9447,7 +9447,7 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
@@ -9999,7 +9999,7 @@ exports[`components/centerPanel > should match snapshot for Table 1`] = `
                 class="CompassIcon icon-eye-off-outline"
               />
               <span>
-                hide description
+                Hide description
               </span>
               
             </button>
