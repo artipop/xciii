@@ -19,6 +19,7 @@ import (
 	"github.com/artipop/xciii/internal/boardadapter"
 	"github.com/artipop/xciii/internal/secrets"
 	"github.com/artipop/xciii/internal/sources"
+	"github.com/artipop/xciii/internal/userpath"
 )
 
 // appDataDir returns one of this install's own directories, made if it is not
@@ -69,6 +70,15 @@ func main() {
 	maybeRunMCP(os.Args[1:])
 
 	ignoreViteDevServer()
+
+	// Before anything can be spawned: a packaged app is started by launchd and
+	// gets its PATH, which has none of what this app runs for the user — npx,
+	// node, the agent CLIs, a source plugin. See internal/userpath.
+	if changed, err := userpath.Restore(); err != nil {
+		log.Printf("path: %v", err)
+	} else if changed {
+		log.Printf("path: taken from the login shell (%s)", os.Getenv("SHELL"))
+	}
 
 	// Said out loud, because the two installs look identical from the inside
 	// and the first sign of being in the wrong one is a board that should have

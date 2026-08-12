@@ -56,6 +56,16 @@ in a browser and as a Mattermost plugin.
   `prometheus/client_golang` for a Darwin memory collector and
   `tailscale/certstore` — and both fall back to pure Go, so SQLite and Wails are
   the whole of the requirement.
+- **A packaged app is not a child of a shell**, and that is the other difference
+  `wails3 dev` hides. launchd hands the `.app` `PATH=/usr/bin:/bin:/usr/sbin:/sbin`
+  and nothing else, so npx, node, the agent CLIs and a source plugin are all
+  invisible to it while a dev build — started from a terminal — finds every one of
+  them. `internal/userpath` asks the login shell for the real PATH at startup,
+  because a version manager's node lives under a version number only the user's
+  own rc files know. Fixing the *process* PATH rather than our lookups is the
+  point: npx is a `#!/usr/bin/env node` script and the codex adapter drives the
+  codex CLI, so finding a binary and spawning it with launchd's PATH only moves
+  the failure one process along.
 - `npm test` in `webapp/` — the page's suite, **vitest** under jsdom, sharing
   `vite-plugin-solid` with the build through `vitest.config.ts`. Coverage is on by
   default (v8); `--coverage.enabled=false` while iterating, `npm run updatesnapshot`

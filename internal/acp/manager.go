@@ -698,9 +698,11 @@ func lookupBin(name, notFoundMsg string) (string, error) {
 }
 
 // resolveArgv0 makes an argv runnable from a GUI process: a bare command name is
-// looked up on PATH and in the common install locations, because launchd hands
-// GUI apps a minimal PATH. Left as written when nothing matches, so the spawn
-// error names the command the user actually typed.
+// looked up on PATH and in the common install locations. The PATH itself is
+// repaired at startup from the user's login shell (internal/userpath), which is
+// the only thing that finds a version manager's node; the extra locations here
+// are what is left when the shell could not be asked. Left as written when
+// nothing matches, so the spawn error names the command the user actually typed.
 func resolveArgv0(argv []string) []string {
 	if len(argv) == 0 {
 		return argv
