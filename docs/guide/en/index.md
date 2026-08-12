@@ -31,7 +31,7 @@ features:
     details: 'Cards that arrive on their own: a link, Kaiten, a script or a phone over HTTP.'
     link: /en/inbox/
   - title: Settings
-    details: Theme and language, agents and Node.js, deploys, access from a phone.
+    details: Theme and language, agents and Node.js, access from a phone.
     link: /en/settings/
   - title: Moving
     details: Archive export and import, moving to another machine.

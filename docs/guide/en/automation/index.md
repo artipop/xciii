@@ -87,9 +87,12 @@ own.
   card picks its folder with the "Projects" field;
 - **"Where to deploy"** — deploy targets: the Dokku host, the SSH user and
   key, the preview domain. The section only appears on a board that has a
-  deploy column — a board that deploys nothing has no use for it. The targets
-  themselves are shared by the whole machine: one added here is visible to any
-  other deploying board;
+  deploy column — a board that deploys nothing has no use for it. Of the
+  shipped templates only **«Разработка»** has one: a board made from it
+  arrives with the «Деплой» column and the section is there at once; any
+  other board grows it the moment you give a column the "deploy the card’s
+  branch" action. The targets themselves are shared by the whole machine: one
+  added here is visible to any other deploying board;
 - **"What every agent on this board is told first"** — the board's instruction,
   added before the card description.
 
