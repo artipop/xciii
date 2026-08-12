@@ -5,6 +5,7 @@ import {useIntl, IntlShape} from '../../intl'
 import {IPropertyTemplate} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
 import Select from '../../widgets/select'
+import CompassIcon from '../../widgets/icons/compassIcon'
 
 import FlowDiagram, {BLOCK_DRAG_TYPE, NODE_HEIGHT, NODE_WIDTH, StageCount, condLabel, edgeId, edgeIndexOf} from './flowDiagram'
 import {
@@ -695,7 +696,7 @@ const AutomationEditor = (props: Props) => {
                                                             onChange={(on) => patchEdge(index, {on})}
                                                             label={intl.formatMessage({id: 'Automation.transition-on', defaultMessage: 'When'})}
                                                         />
-                                                        <span class='AutomationEditor__arrow'>{'→'}</span>
+                                                        <span class='AutomationEditor__arrow'><CompassIcon icon='arrow-right'/></span>
                                                         <Select
                                                             value={edge.to}
                                                             options={stageTargets().map((n) => ({value: n.id, label: n.column}))}
@@ -707,7 +708,7 @@ const AutomationEditor = (props: Props) => {
                                                             class='AutomationEditor__remove'
                                                             title={intl.formatMessage({id: 'Automation.remove-transition', defaultMessage: 'Remove'})}
                                                             onClick={() => dropEdge(index)}
-                                                        >{'×'}</button>
+                                                        ><CompassIcon icon='close'/></button>
                                                     </div>
 
                                                     {/* The rule, right under its arrow: the fork is
@@ -881,7 +882,7 @@ const AutomationEditor = (props: Props) => {
                         past its own edge. */}
                     <Show when={!selectedNode() && !selectedEdge() && !flow()}>
                         <p class='AutomationEditor__hint'>
-                            {intl.formatMessage({id: 'Automation.empty-panel', defaultMessage: 'A column says what is done. A route says where the card goes afterwards. Pick a column to start.'})}
+                            {intl.formatMessage({id: 'Automation.empty-panel', defaultMessage: 'Settings of the selected column or route appear here. Pick a column to start.'})}
                         </p>
                     </Show>
                 </div>

@@ -45,7 +45,9 @@ exports[`properties/person > not readOnly, show firstname 1`] = `
         role="button"
         tabindex="-1"
       >
-        ×
+        <i
+          class="CompassIcon icon-close"
+        />
       </div>
     </div>
     
@@ -449,7 +451,9 @@ exports[`properties/person > not readOnly, show username 1`] = `
         role="button"
         tabindex="-1"
       >
-        ×
+        <i
+          class="CompassIcon icon-close"
+        />
       </div>
     </div>
     
@@ -510,7 +514,9 @@ exports[`properties/person > show multiple 1`] = `
             role="button"
             tabindex="-1"
           >
-            ×
+            <i
+              class="CompassIcon icon-close"
+            />
           </div>
         </div>
         <div
@@ -532,7 +538,9 @@ exports[`properties/person > show multiple 1`] = `
             role="button"
             tabindex="-1"
           >
-            ×
+            <i
+              class="CompassIcon icon-close"
+            />
           </div>
         </div>
         
@@ -551,7 +559,9 @@ exports[`properties/person > show multiple 1`] = `
         role="button"
         tabindex="-1"
       >
-        ×
+        <i
+          class="CompassIcon icon-close"
+        />
       </div>
     </div>
     
@@ -596,7 +606,9 @@ exports[`properties/person > show multiple, display modal 1`] = `
             role="button"
             tabindex="-1"
           >
-            ×
+            <i
+              class="CompassIcon icon-close"
+            />
           </div>
         </div>
         <div
@@ -618,7 +630,9 @@ exports[`properties/person > show multiple, display modal 1`] = `
             role="button"
             tabindex="-1"
           >
-            ×
+            <i
+              class="CompassIcon icon-close"
+            />
           </div>
         </div>
         
@@ -637,7 +651,9 @@ exports[`properties/person > show multiple, display modal 1`] = `
         role="button"
         tabindex="-1"
       >
-        ×
+        <i
+          class="CompassIcon icon-close"
+        />
       </div>
     </div>
     
@@ -682,7 +698,9 @@ exports[`properties/person > show multiple, display modal 2`] = `
             role="button"
             tabindex="-1"
           >
-            ×
+            <i
+              class="CompassIcon icon-close"
+            />
           </div>
         </div>
         <div
@@ -704,7 +722,9 @@ exports[`properties/person > show multiple, display modal 2`] = `
             role="button"
             tabindex="-1"
           >
-            ×
+            <i
+              class="CompassIcon icon-close"
+            />
           </div>
         </div>
         
@@ -724,7 +744,9 @@ exports[`properties/person > show multiple, display modal 2`] = `
         role="button"
         tabindex="-1"
       >
-        ×
+        <i
+          class="CompassIcon icon-close"
+        />
       </div>
     </div>
     <div

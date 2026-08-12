@@ -17,6 +17,8 @@ import {
 
 import {useIntl, IntlShape} from '../../intl'
 
+import CompassIcon from '../../widgets/icons/compassIcon'
+
 import {BoardColumn, CARD_CHANGED, EdgeCond, FlowEdge, FlowNode, FlowTrigger, SUCCESS, FAILURE, nodeId} from './automation'
 
 import '@dschz/solid-flow/dist/style.css'
@@ -293,10 +295,10 @@ const StageNode = (props: NodeProps) => {
                 <span class='FlowDiagram__count'>
                     {count()!.cards}
                     <Show when={count()!.running > 0}>
-                        <span class='FlowDiagram__running'>{'▶'}</span>
+                        <span class='FlowDiagram__running'><CompassIcon icon='play'/></span>
                     </Show>
                     <Show when={count()!.queued > 0}>
-                        <span class='FlowDiagram__queued'>{'⏸'}</span>
+                        <span class='FlowDiagram__queued'><CompassIcon icon='pause'/></span>
                     </Show>
                 </span>
             </Show>

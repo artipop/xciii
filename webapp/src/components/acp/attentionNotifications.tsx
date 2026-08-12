@@ -2,6 +2,8 @@ import {For, Show, createMemo, createSignal} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
+import CompassIcon from '../../widgets/icons/compassIcon'
+
 import {
     Attention,
     agentNotificationsOn,
@@ -129,7 +131,7 @@ const AttentionNotifications = () => {
                                 aria-label={intl.formatMessage({id: 'Attention.dismiss', defaultMessage: 'Dismiss'})}
                                 onClick={() => dismiss(target)}
                             >
-                                {'×'}
+                                <CompassIcon icon='close'/>
                             </button>
                         </div>
                     )}

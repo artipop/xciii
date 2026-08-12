@@ -37,7 +37,9 @@ exports[`properties/multiperson > not readonly 1`] = `
             role="button"
             tabindex="-1"
           >
-            ×
+            <i
+              class="CompassIcon icon-close"
+            />
           </div>
         </div>
         <div
@@ -59,7 +61,9 @@ exports[`properties/multiperson > not readonly 1`] = `
             role="button"
             tabindex="-1"
           >
-            ×
+            <i
+              class="CompassIcon icon-close"
+            />
           </div>
         </div>
         
@@ -78,7 +82,9 @@ exports[`properties/multiperson > not readonly 1`] = `
         role="button"
         tabindex="-1"
       >
-        ×
+        <i
+          class="CompassIcon icon-close"
+        />
       </div>
     </div>
     
@@ -187,7 +193,9 @@ exports[`properties/multiperson > user dropdown open 1`] = `
             role="button"
             tabindex="-1"
           >
-            ×
+            <i
+              class="CompassIcon icon-close"
+            />
           </div>
         </div>
         <div
@@ -209,7 +217,9 @@ exports[`properties/multiperson > user dropdown open 1`] = `
             role="button"
             tabindex="-1"
           >
-            ×
+            <i
+              class="CompassIcon icon-close"
+            />
           </div>
         </div>
         
@@ -229,7 +239,9 @@ exports[`properties/multiperson > user dropdown open 1`] = `
         role="button"
         tabindex="-1"
       >
-        ×
+        <i
+          class="CompassIcon icon-close"
+        />
       </div>
     </div>
     <div

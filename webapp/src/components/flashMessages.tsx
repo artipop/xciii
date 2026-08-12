@@ -4,6 +4,8 @@ import {createNanoEvents} from 'nanoevents'
 
 import {useIntl} from '../intl'
 
+import CompassIcon from '../widgets/icons/compassIcon'
+
 import './flashMessages.scss'
 
 export type FlashMessage = {
@@ -84,7 +86,7 @@ export const FlashMessages: Component<Props> = (props) => {
                         aria-label={intl.formatMessage({id: 'Modal.close', defaultMessage: 'Close'})}
                         onClick={handleClick}
                     >
-                        {'×'}
+                        <CompassIcon icon='close'/>
                     </button>
                 </Show>
             </div>

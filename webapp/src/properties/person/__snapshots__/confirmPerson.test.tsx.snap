@@ -45,7 +45,9 @@ exports[`properties/person > select user - cancel 1`] = `
         role="button"
         tabindex="-1"
       >
-        ×
+        <i
+          class="CompassIcon icon-close"
+        />
       </div>
     </div>
     
@@ -99,7 +101,9 @@ exports[`properties/person > select user - cancel 2`] = `
         role="button"
         tabindex="-1"
       >
-        ×
+        <i
+          class="CompassIcon icon-close"
+        />
       </div>
     </div>
     <div
@@ -195,7 +199,9 @@ exports[`properties/person > select user - confirm 1`] = `
         role="button"
         tabindex="-1"
       >
-        ×
+        <i
+          class="CompassIcon icon-close"
+        />
       </div>
     </div>
     
@@ -249,7 +255,9 @@ exports[`properties/person > select user - confirm 2`] = `
         role="button"
         tabindex="-1"
       >
-        ×
+        <i
+          class="CompassIcon icon-close"
+        />
       </div>
     </div>
     <div

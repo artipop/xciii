@@ -15,6 +15,8 @@ import {
     type ComboboxRow,
 } from '../combobox'
 
+import CompassIcon from './icons/compassIcon'
+
 import './combobox.scss'
 
 // Where an option is being drawn: in the menu, or as the chosen value. This is
@@ -283,7 +285,7 @@ function Combobox<T>(props: Props<T>): JSX.Element {
                                             onMouseDown={(event) => event.preventDefault()}
                                             onClick={() => remove(option)}
                                         >
-                                            {'×'}
+                                            <CompassIcon icon='close'/>
                                         </div>
                                     </Show>
                                 </div>
@@ -342,7 +344,7 @@ function Combobox<T>(props: Props<T>): JSX.Element {
                         onMouseDown={(event) => event.preventDefault()}
                         onClick={() => props.onChange(props.isMulti ? [] : null, 'clear')}
                     >
-                        {'×'}
+                        <CompassIcon icon='close'/>
                     </div>
                 </Show>
             </div>
