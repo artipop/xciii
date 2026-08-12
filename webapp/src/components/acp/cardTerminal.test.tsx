@@ -76,9 +76,14 @@ describe('components/acp/cardTerminal', () => {
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
-        // Two folders need choosing; the single agent filled itself in.
+        // Two folders need choosing; the single agent filled itself in. The
+        // headline is the ask, not the machinery's own words — those are the
+        // small print under the form.
         expect(await screen.findByText('Choose a folder…')).toBeInTheDocument()
         expect(screen.getByText('клаус')).toBeInTheDocument()
+        expect(screen.getByText('The card does not say where or by whom to work — choose:')).toBeInTheDocument()
+        const reason = screen.getByText(/ни тег карточки/)
+        expect(reason.className).toContain('CardTerminal__reason')
 
         await userEvent.click(screen.getByText('Choose a folder…'))
         await userEvent.click(await screen.findByText('app'))
@@ -86,6 +91,20 @@ describe('components/acp/cardTerminal', () => {
 
         await waitFor(() => expect(open).toHaveBeenLastCalledWith('card-1', 'app', 'клаус', false))
         expect(await screen.findByTestId('terminal')).toHaveTextContent('term-9')
+    })
+
+    // «На весь экран» is a handover, not a copy: two views of one pty fight
+    // over its size, so opening the window closes the panel.
+    it('hands the conversation to the window and closes the panel', async () => {
+        const onClose = vi.fn()
+        stubBindings({
+            OpenCardTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-1', windowed: true})),
+        })
+        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={onClose}/>))
+        await screen.findByTestId('terminal')
+
+        await userEvent.click(screen.getByRole('button', {name: 'Open in a separate window'}))
+        await waitFor(() => expect(onClose).toHaveBeenCalled())
     })
 
     // One conversation on a card with no route is the whole story: a row of

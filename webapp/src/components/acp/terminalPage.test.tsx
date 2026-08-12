@@ -201,18 +201,6 @@ describe('components/acp/terminalPage', () => {
         expect(new URL((await ptySocket()).url).pathname).toBe('/acp/terminal/term-42/ws')
     })
 
-    it('pastes the card task into the prompt on request', async () => {
-        renderPage()
-        await waitFor(() => expect(screen.getByText('Paste the task')).toBeInTheDocument())
-        const socket = await ptySocket()
-        socket.onopen!()
-        screen.getByText('Paste the task').click()
-        await waitFor(() => {
-            const last = socket.sent[socket.sent.length - 1]
-            expect(new TextDecoder().decode(last)).toBe('Почини логин')
-        })
-    })
-
     // The dot on the card opens this window, and the question it is amber for
     // was asked over the protocol rather than in the pty — so it can only be
     // shown around the terminal. Without it the dot would lead to a window with

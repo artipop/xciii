@@ -733,7 +733,6 @@
 "acp.terminal.connecting","connecting…","подключение…","","","","","","","","","","","","","","",""
 "acp.terminal.live","session running","сессия идёт","","","","","","","","","","","","","","",""
 "acp.terminal.noBindings","The terminal is only available in the desktop app.","Терминал доступен только в десктопном приложении.","","","","","","","","","","","","","","",""
-"acp.terminal.pasteTask","Paste the task","Вставить задачу","","","","","","","","","","","","","","",""
 "badge.guest","Guest","Гость","","Gast","","","Invité","","","ゲスト","Gast","","Convidado","Gäst","Konuk","访客","訪客"
 "boardPage.confirm-join-button","Join","Присоединиться","","Teilnehmen","","","","","","","","","Ingressar","","Katıl","",""
 "boardPage.confirm-join-text","You are about to join a private board without explicitly being added by the board admin. Are you sure you wish to join this private board?","Вы собираетесь войти в закрытую доску, не будучи добавленным её администратором. Точно войти?","","Du bist dabei einem privaten Board zu betreten, ohne dass du explizit durch den Board-Administrator hinzugefügt wurdest. Bist du sicher, dass du diesem privaten Board beitreten willst?","","","","","","","","","Você está prestes a ingressar em um board privado sem ter sido explicitamente adicionado pelo administrador do quadro. Você tem certeza de que deseja ingressar neste board privado?","","Bir özel kanala, pano yöneticisi tarafından açıkça eklenmeden katılmak üzeresiniz. Bu özel kanala katılmak istediğinize emin misiniz?","",""

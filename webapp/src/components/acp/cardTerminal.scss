@@ -107,6 +107,19 @@
         white-space: pre-wrap;
     }
 
+    // The ask above the pick, said in the panel's own voice; the machinery's
+    // reason is small print below the form, not the headline.
+    &__ask {
+        padding: 12px 12px 0;
+    }
+
+    &__reason {
+        padding: 0 12px 12px;
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.4);
+        white-space: pre-wrap;
+    }
+
     // The pick for a conversation Go could not resolve: folder, agent, go.
     &__picker {
         display: flex;

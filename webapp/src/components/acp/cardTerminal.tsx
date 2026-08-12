@@ -78,7 +78,10 @@ const CardTerminal = (props: Props) => {
     const [addingAgent, setAddingAgent] = createSignal(false)
 
     // inWindow asks for a screen of its own, which is the only thing a panel
-    // beside a card cannot be. Go hands back the same terminal either way.
+    // beside a card cannot be. Go hands back the same terminal either way —
+    // and the panel then bows out: two views of one pty fight over its size
+    // (each tells the CLI its own columns, the CLI draws for whoever spoke
+    // last), so «на весь экран» is a handover, not a copy.
     const start = async (inWindow: boolean) => {
         if (!bindings?.OpenCardTerminal) {
             return
@@ -90,8 +93,12 @@ const CardTerminal = (props: Props) => {
 
             // The desktop app has already opened the window by now; a server
             // build has no windows, so the browser opens a tab instead.
-            if (inWindow && !handle.windowed && handle.url) {
-                window.open(handle.url, '_blank', 'noopener')
+            if (inWindow) {
+                if (!handle.windowed && handle.url) {
+                    window.open(handle.url, '_blank', 'noopener')
+                }
+                props.onClose()
+                return
             }
             setChoosing(false)
             setTerminalId(handle.id || '')
@@ -252,7 +259,12 @@ const CardTerminal = (props: Props) => {
                 )}
             </Show>
 
-            <Show when={error()}>
+            {/* A refusal the picker answers is not an error to shout: the ask
+                is the choice below, and the machinery's own words («ни тег
+                карточки, ни исходная колонка…») are a technicality demoted to
+                small print. Anything else — the app unreachable, a broken
+                agent — stays red, because no choice here will fix it. */}
+            <Show when={error() && !choosing()}>
                 <div class='CardTerminal__error'>
                     <div>{error()}</div>
                 </div>
@@ -267,6 +279,9 @@ const CardTerminal = (props: Props) => {
                 point at the settings instead: planning in place is the point,
                 and an errand to the settings is where planning goes to die. */}
             <Show when={choosing()}>
+                <div class='CardTerminal__ask'>
+                    {intl.formatMessage({id: 'CardTerminal.ask', defaultMessage: 'The card does not say where or by whom to work — choose:'})}
+                </div>
                 <div class='CardTerminal__picker'>
                     <label>
                         {intl.formatMessage({id: 'CardTerminal.project', defaultMessage: 'Folder'})}
@@ -323,6 +338,10 @@ const CardTerminal = (props: Props) => {
                         }}
                         onCancel={() => setAddingAgent(false)}
                     />
+                </Show>
+
+                <Show when={error()}>
+                    <div class='CardTerminal__reason'>{error()}</div>
                 </Show>
             </Show>
         </div>

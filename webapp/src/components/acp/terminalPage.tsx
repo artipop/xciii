@@ -80,16 +80,6 @@ const TerminalPage = (props: TerminalProps = {}): JSX.Element => {
     // planning terminal has no card and so never has one.
     const question = useCardAttention(() => info()?.cardId || '')
 
-    // The task text is a button rather than something typed for you: a CLI is
-    // not ready for input the moment it starts, and typing into a TUI that is
-    // still painting loses the first characters.
-    const pasteTask = () => {
-        const task = info()?.task
-        if (task) {
-            writeToPty(task)
-        }
-    }
-
     onMount(() => {
         const bindings = agentBindings()
         if (!bindings?.GetTerminalInfo) {
@@ -233,14 +223,6 @@ const TerminalPage = (props: TerminalProps = {}): JSX.Element => {
                     </Show>
                     <span class={`AcpTerminalPage__status AcpTerminalPage__status--${status()}`}>{statusText()}</span>
                 </div>
-                <Show when={info()?.task}>
-                    <Button
-                        onClick={pasteTask}
-                        title={info()?.task}
-                    >
-                        {intl.formatMessage({id: 'acp.terminal.pasteTask', defaultMessage: 'Paste the task'})}
-                    </Button>
-                </Show>
             </div>
 
             {/* The question the card's dot leads here for. It was asked by the
