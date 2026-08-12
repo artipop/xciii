@@ -1220,6 +1220,7 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
             class="KanbanCard"
             style="opacity: 1;"
           >
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper optionsMenu"
@@ -1238,7 +1239,6 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
             <div
               class="octo-icontitle"
             >
-              
               <div
                 class="octo-icon"
               >
@@ -1257,6 +1257,7 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
             class="KanbanCard"
             style="opacity: 1;"
           >
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper optionsMenu"
@@ -1275,7 +1276,6 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
             <div
               class="octo-icontitle"
             >
-              
               <div
                 class="octo-icon"
               >
@@ -9352,6 +9352,7 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
             class="KanbanCard"
             style="opacity: 1;"
           >
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper optionsMenu"
@@ -9370,7 +9371,6 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
             <div
               class="octo-icontitle"
             >
-              
               <div
                 class="octo-icon"
               >
@@ -9904,6 +9904,7 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
             class="KanbanCard"
             style="opacity: 1;"
           >
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper optionsMenu"
@@ -9922,7 +9923,6 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
             <div
               class="octo-icontitle"
             >
-              
               <div
                 class="octo-icon"
               >

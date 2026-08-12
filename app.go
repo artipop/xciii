@@ -896,6 +896,11 @@ func (a *App) GetCardAgent(cardID string) (string, error) {
 	if conversations := a.mgr.CardConversations(cardID); len(conversations) > 0 {
 		payload["conversations"] = conversations
 	}
+	// Where a conversation on this card would run. The panel asks the person
+	// before starting a folderless one, and this is how it knows to ask.
+	if folder, ok := a.mgr.CardFolder(cardID); ok {
+		payload["folder"] = folder
+	}
 	out, err := json.Marshal(payload)
 	if err != nil {
 		return "", err

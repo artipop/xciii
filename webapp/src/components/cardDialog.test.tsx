@@ -391,7 +391,9 @@ describe('components/cardDialog', () => {
     // person wrote, and the dialog's toolbar is where the machinery lives.
     it('opens the terminal in a panel beside the card', async () => {
         const bindings = {
-            GetCardAgent: vi.fn().mockResolvedValue('{}'),
+            // The card resolves a folder, so the panel starts straight away
+            // rather than asking where the conversation should live.
+            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({folder: '/tmp/proj'})),
             OpenCardTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-7'})),
             ListAgentAccounts: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude', username: 'claude'}])),
         };

@@ -25,6 +25,11 @@ export type CardAgentState = {
     // The current stage's is the one the terminal button opens; a passed
     // stage's is history until the card comes back.
     conversations?: CardConversation[]
+
+    // Where a conversation on this card would run, when the card resolves a
+    // folder. Absent means «no folder», which the panel turns into an explicit
+    // choice before anything starts.
+    folder?: string
 }
 
 export type CardConversation = {

@@ -276,7 +276,7 @@
   "CardTerminal.add-agent": "Добавить агента…",
   "CardTerminal.add-project": "Добавить папку…",
   "CardTerminal.agent": "Агент",
-  "CardTerminal.ask": "Карточка не говорит, кто ведёт разговор — выберите агента. Папка не обязательна.",
+  "CardTerminal.ask": "Кто ведёт разговор и где? Выберите агента; папка не обязательна.",
   "CardTerminal.choose-agent": "Выберите агента…",
   "CardTerminal.choose-project": "— без папки, просто поговорить —",
   "CardTerminal.close": "Закрыть панель",

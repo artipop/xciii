@@ -1,10 +1,12 @@
 package acp
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // Project registry: named local projects, edited from the desktop UI and
@@ -189,6 +191,28 @@ func firstProp(props map[string]string, names []string) string {
 // folder instead of refusing (a card can be talked over — wording, a plan —
 // before anybody decides where the work lives).
 type errNoProject struct{ error }
+
+// CardFolder answers where a conversation on this card would run: the folder
+// the card resolves, or nothing. The terminal panel reads it before starting
+// anything — «no folder» is a question for the person sitting there, never a
+// silent temp directory — while the windowed path keeps Go's own fallback,
+// since a window has no form to ask with.
+func (m *Manager) CardFolder(cardID string) (string, bool) {
+	if m.reader == nil {
+		return "", false
+	}
+	ctx, cancel := context.WithTimeout(m.rootCtx, 5*time.Second)
+	defer cancel()
+	ev, err := m.reader.CardByID(ctx, cardID)
+	if err != nil {
+		return "", false
+	}
+	path, err := m.resolveProject(ev)
+	if err != nil {
+		return "", false
+	}
+	return path, true
+}
 
 func (m *Manager) resolveProject(ev CardMoved) (string, error) {
 	if explicit := firstProp(ev.Props, cardProjectPathProps); explicit != "" {

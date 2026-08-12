@@ -34,7 +34,10 @@ describe('components/acp/cardTerminal', () => {
     })
 
     it('opens the current conversation as the panel opens', async () => {
-        stubBindings()
+        // The card resolves a folder, so there is nothing to ask.
+        stubBindings({
+            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({folder: '/tmp/proj'})),
+        })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
         expect(await screen.findByTestId('terminal')).toHaveTextContent('term-1')
     })
@@ -70,6 +73,7 @@ describe('components/acp/cardTerminal', () => {
             mockRejectedValueOnce(new Error('нет ни одного агента')).
             mockResolvedValue(JSON.stringify({id: 'term-9'}))
         stubBindings({
+            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({folder: '/tmp/app'})),
             OpenCardTerminal: open,
             ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'кодекс'}])),
@@ -81,7 +85,7 @@ describe('components/acp/cardTerminal', () => {
         // small print under the form.
         expect(await screen.findByText('Choose an agent…')).toBeInTheDocument()
         expect(screen.getByText('app')).toBeInTheDocument()
-        expect(screen.getByText('The card does not say who should talk here — pick an agent. A folder is optional.')).toBeInTheDocument()
+        expect(screen.getByText('Who talks here, and where? Pick an agent; a folder is optional.')).toBeInTheDocument()
         const reason = screen.getByText(/нет ни одного агента/)
         expect(reason.className).toContain('CardTerminal__reason')
 
@@ -93,13 +97,29 @@ describe('components/acp/cardTerminal', () => {
         expect(await screen.findByTestId('terminal')).toHaveTextContent('term-9')
     })
 
+    // A card that resolves no folder is not started into a temp directory
+    // behind the person's back: the panel asks first, with «no folder» as an
+    // explicit answer.
+    it('asks before starting when the card resolves no folder', async () => {
+        const open = vi.fn().mockResolvedValue(JSON.stringify({id: 'term-8'}))
+        stubBindings({
+            OpenCardTerminal: open,
+            ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
+        })
+        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+
+        await screen.findByText('Who talks here, and where? Pick an agent; a folder is optional.')
+
+        // Nothing was started to get here.
+        expect(open).not.toHaveBeenCalled()
+    })
+
     // A folder is optional: a conversation can be about the card itself —
     // wording, a plan — before anywhere to work exists. The agent is the only
     // required answer, and «no folder» is a real choice, not an unfilled one.
     it('starts with an agent alone — a folder is not required', async () => {
-        const open = vi.fn().
-            mockRejectedValueOnce(new Error('нет ни одного агента')).
-            mockResolvedValue(JSON.stringify({id: 'term-7'}))
+        const open = vi.fn().mockResolvedValue(JSON.stringify({id: 'term-7'}))
         stubBindings({
             OpenCardTerminal: open,
             ListAgentProjects: vi.fn().mockResolvedValue('[]'),
@@ -120,16 +140,16 @@ describe('components/acp/cardTerminal', () => {
     })
 
     // A window onto a conversation that has not started is a window onto
-    // nothing, so while the panel is asking, the header offers no ⤢.
+    // nothing, so while the panel is asking, the header offers no window
+    // button.
     it('offers the window only once the terminal is open', async () => {
         stubBindings({
-            OpenCardTerminal: vi.fn().mockRejectedValue(new Error('нет ни одного агента')),
             ListAgentProjects: vi.fn().mockResolvedValue('[]'),
             ListAgents: vi.fn().mockResolvedValue('[]'),
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
-        await screen.findByText('The card does not say who should talk here — pick an agent. A folder is optional.')
+        await screen.findByText('Who talks here, and where? Pick an agent; a folder is optional.')
         expect(screen.queryByRole('button', {name: 'Open in a separate window'})).toBeNull()
     })
 
@@ -138,6 +158,7 @@ describe('components/acp/cardTerminal', () => {
     it('hands the conversation to the window and closes the panel', async () => {
         const onClose = vi.fn()
         stubBindings({
+            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({folder: '/tmp/proj'})),
             OpenCardTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-1', windowed: true})),
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={onClose}/>))

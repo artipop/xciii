@@ -538,3 +538,39 @@ func TestFolderlessResumeNamesNoWorktree(t *testing.T) {
 		t.Errorf("the talk directory leaked into the stamp: %q", out.Cwd)
 	}
 }
+
+// A conversation that already exists continues with whoever held it. It used
+// to be re-resolved from scratch, so registering a second agent made every
+// old conversation refuse with «на карточке не указан агент» — and the
+// transcript `--continue` picks up belongs to the held agent's CLI anyway.
+func TestResumedConversationKeepsItsAgent(t *testing.T) {
+	if _, err := exec.LookPath("sh"); err != nil {
+		t.Skip("no shell to stand in for an agent CLI")
+	}
+	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
+		cfg.Agents = []AgentEntry{
+			{Name: "клаус", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}},
+			{Name: "кодекс", Kind: AgentKindCodex, TerminalCommand: []string{"sh"}},
+		}
+	})
+	m.SetBoardReader(&fakeReader{ev: CardMoved{BoardID: "board1", Title: "Продолжить разговор"}})
+
+	talk := t.TempDir()
+	if err := m.store.InsertTerminal(TerminalRecord{
+		ID: "held", CardID: "card-held", Cwd: talk,
+		Agent: "клаус", Kind: AgentKindClaude,
+		StartedAt: time.Now().Add(-time.Hour),
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	term, err := m.StartCardTerminal("card-held", "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(term.ID) }()
+
+	if term.AgentName != "клаус" {
+		t.Errorf("the conversation changed hands to %q", term.AgentName)
+	}
+}

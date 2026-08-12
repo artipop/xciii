@@ -8,6 +8,7 @@ import {useListSortable} from '../../hooks/sortable'
 import mutator from '../../mutator'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
 import {Utils} from '../../utils'
+import CompassIcon from '../../widgets/icons/compassIcon'
 import MenuWrapper from '../../widgets/menuWrapper'
 import Tooltip from '../../widgets/tooltip'
 import PropertyValueElement from '../propertyValueElement'
@@ -131,6 +132,40 @@ const KanbanCard = (props: Props) => {
                 style={{opacity: isDragging() ? 0.5 : 1}}
                 onClick={handleOnClick}
             >
+                {/* The terminal, from the card's corner: a console button
+                    where the eye already looks for controls. The colour is
+                    the meaning — the board's ink while it merely runs, the
+                    amber kept for attention while the agent is asking — and
+                    the click is the way in. First in the DOM on purpose: the
+                    ⋯ menu and the title step aside with sibling selectors. */}
+                <Show when={showsAgent()}>
+                    <Show
+                        when={canOpenTerminal()}
+                        fallback={
+                            <span
+                                class='KanbanCard__terminal'
+                                classList={{'KanbanCard__terminal--asking': Boolean(attention())}}
+                                role='status'
+                                title={agentTitle()}
+                                aria-label={agentTitle()}
+                            >
+                                <CompassIcon icon='console'/>
+                            </span>
+                        }
+                    >
+                        <button
+                            type='button'
+                            class='KanbanCard__terminal'
+                            classList={{'KanbanCard__terminal--asking': Boolean(attention())}}
+                            title={agentTitle()}
+                            aria-label={agentTitle()}
+                            onClick={openTerminal}
+                        >
+                            <CompassIcon icon='console'/>
+                        </button>
+                    </Show>
+                </Show>
+
                 <Show when={!props.readonly}>
                     <MenuWrapper
                         class={'optionsMenu'}
@@ -165,29 +200,6 @@ const KanbanCard = (props: Props) => {
                 </Show>
 
                 <div class='octo-icontitle'>
-                    <Show when={showsAgent()}>
-                        <Show
-                            when={canOpenTerminal()}
-                            fallback={
-                                <span
-                                    class='KanbanCard__attention'
-                                    classList={{'KanbanCard__attention--live': !attention()}}
-                                    role='status'
-                                    title={agentTitle()}
-                                    aria-label={agentTitle()}
-                                />
-                            }
-                        >
-                            <button
-                                type='button'
-                                class='KanbanCard__attention'
-                                classList={{'KanbanCard__attention--live': !attention()}}
-                                title={agentTitle()}
-                                aria-label={agentTitle()}
-                                onClick={openTerminal}
-                            />
-                        </Show>
-                    </Show>
                     <Show when={props.card.fields.icon}>
                         <div class='octo-icon'>{props.card.fields.icon}</div>
                     </Show>

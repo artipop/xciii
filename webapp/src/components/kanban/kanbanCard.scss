@@ -60,42 +60,52 @@
         }
     }
 
-    // An agent waiting for an answer, said as quietly as it can be said: a dot
-    // the size of a full stop, breathing slowly enough to catch the eye only
-    // when the eye passes over it.
-    .KanbanCard__attention {
-        flex: 0 0 auto;
-        align-self: flex-start;
-        width: 8px;
-        height: 8px;
-        margin: 6px 6px 0 0;
-        border-radius: 50%;
-        // The amber the design language keeps for exactly this.
-        background: rgb(var(--warning-rgb));
-        animation: kanbancard-attention 2.4s ease-in-out infinite;
-        padding: 0;
+    // The terminal on the card, from its top-right corner: the console glyph
+    // where the eye already looks for a card's controls. Quiet ink while it
+    // merely runs; the amber the design language keeps for attention, and the
+    // slow breath with it, while the agent is asking.
+    .KanbanCard__terminal {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px;
         border: 0;
-        position: relative;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        .CompassIcon {
+            font-size: 16px;
+            line-height: 1;
+        }
     }
 
-    // A terminal running with nobody waiting on it: the same dot, said in the
-    // ink of the board rather than in amber, and not breathing. Something is
-    // happening here is not the same news as something needs you.
-    .KanbanCard__attention--live {
-        background: rgba(var(--center-channel-color-rgb), 0.4);
-        animation: none;
+    .KanbanCard__terminal--asking {
+        color: rgb(var(--warning-rgb));
+        animation: kanbancard-attention 2.4s ease-in-out infinite;
     }
 
-    // Eight pixels is a full stop, not a target. The dot keeps its size in the
-    // layout and takes a finger's worth of room to be pressed in.
-    button.KanbanCard__attention {
+    button.KanbanCard__terminal {
         cursor: pointer;
 
-        &::after {
-            content: '';
-            position: absolute;
-            inset: -6px;
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
         }
+    }
+
+    // The ⋯ appears in the same corner on hover; with the terminal standing
+    // there it steps aside rather than covering the one control that is
+    // always on screen.
+    .KanbanCard__terminal ~ .optionsMenu {
+        right: 40px;
+    }
+
+    // And the title never runs under the button.
+    .KanbanCard__terminal ~ .octo-icontitle {
+        padding-right: 26px;
     }
 
     @keyframes kanbancard-attention {

@@ -55,30 +55,29 @@ There is no "Terminal" button if no agent is registered on the machine. The
 exception is a card that was already worked: it has a branch and a worktree, so
 the button stays even after the agent is removed.
 
-**A folder is optional.** A card can be talked over without one — wording,
-subtasks, a brief: if neither the «Проекты» field nor the registry names a
-folder, the conversation opens in a temporary directory of the card's own —
-the agent sees no code there, only the conversation; the pick form says so
-outright. A folder the card names but which is missing on disk is still an
-error.
+**A folder is optional — and never chosen silently.** A card can be talked
+over without one: wording, subtasks, a brief. If neither the «Проекты» field
+nor the registry names a folder, the panel does not decide for you — it asks:
+an agent, a folder, where "— no folder, just talk —" is as much an answer as
+any folder, with a note saying a temporary directory of the card's own will
+be created and the agent sees no code there. The same ask appears when the
+agent could not be determined; "Add an agent…" and "Add a folder…" stand
+beside the picks. The choice lasts one conversation and does not change the
+card's assignment. A folder the card names but which is missing on disk is
+still an error.
 
-If the agent could not be determined, the panel offers to pick on the spot:
-an agent from the list (or "Add an agent…"), a folder from the board's
-projects (or "Add a folder…", and "— no folder, just talk —" is an answer
-too) — then "Start the conversation". The choice lasts one conversation and
-does not change the card's assignment. The agent in such a conversation has
-the board's tools: it can fill the card in, split it into subtasks, set
-fields.
+The agent in such a conversation has the board's tools: it can fill the card
+in, split it into subtasks, set fields.
 
-## The dot on a card
+## The terminal button on a card
 
-You do not need to open a card to reach its terminal. A card on the board has a
-dot, which is also a button:
+You do not need to open a card to reach its terminal. A terminal-icon button
+appears in the top right corner of a card on the board:
 
 - **amber, blinking** — the agent is asking something;
 - **grey** — a terminal is currently working on the card.
 
-Clicking it opens the terminal in a separate window. There is no dot when
+Clicking it opens the terminal in a separate window. There is no button when
 nothing is running and there are no questions.
 
 ## Questions from the agent

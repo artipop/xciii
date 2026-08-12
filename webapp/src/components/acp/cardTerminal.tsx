@@ -166,8 +166,22 @@ const CardTerminal = (props: Props) => {
         }
     }
 
-    onMount(() => {
-        start(false)
+    onMount(async () => {
+        // What is known about the card comes first, because «no folder» is a
+        // question for the person sitting here, never a silent temp directory:
+        // a conversation that exists (live or resumable on the current stage)
+        // or a card that resolves a folder opens straight away; anything else
+        // is the ask below, with «— без папки —» as one of its answers.
+        await refreshCardAgent(props.cardId)
+        const known = state()
+        const hasConversation = (known.conversations || []).some((c) => c.current)
+        if (known.running || hasConversation || known.folder) {
+            start(false)
+            return
+        }
+        await offerChoices()
+        setChoosing(true)
+        setBusy(false)
     })
 
     const conversations = () => state().conversations || []
@@ -288,7 +302,7 @@ const CardTerminal = (props: Props) => {
                 and an errand to the settings is where planning goes to die. */}
             <Show when={choosing()}>
                 <div class='CardTerminal__ask'>
-                    {intl.formatMessage({id: 'CardTerminal.ask', defaultMessage: 'The card does not say who should talk here — pick an agent. A folder is optional.'})}
+                    {intl.formatMessage({id: 'CardTerminal.ask', defaultMessage: 'Who talks here, and where? Pick an agent; a folder is optional.'})}
                 </div>
 
                 {/* A form, not a strip: one question per row — who, then

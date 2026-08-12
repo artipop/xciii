@@ -237,7 +237,8 @@ reports `waiting_permission` meanwhile, and an unanswered question does not stal
 for ever: cancelling the session, or the app closing, is a refusal, and the agent
 carries on without what it asked for.
 
-The question shows up as `acp:attention` — the amber dot on the card's face, and,
+The question shows up as `acp:attention` — the amber terminal button on the
+card's corner, and,
 unless turned off in the settings menu, a notification carrying the question
 itself, since the options *are* the answer and there is nothing to navigate to.
 It is answered in either place through `AnswerQuestion`, and leaves no comment
@@ -246,8 +247,10 @@ answered. This is the only thing that raises attention: a terminal used to be a
 second reason and no longer is (below). `components/acp/attention.ts` is the one
 subscription behind it.
 
-**The dot is also the way in.** It opens the card's terminal in a window, and it
-is the same control whether it is amber because an agent is asking or the
+**The button is also the way in.** A console-glyph button in the card's top
+right corner (`KanbanCard__terminal` — it began life as a dot, and the corner
+button is what it grew into) opens the card's terminal in a window, and it is
+the same control whether it is amber because an agent is asking or the
 board's own ink because a terminal is merely running there — one thing on the
 card's face, its colour saying what is happening and its click saying where to
 go. Reaching the CLI otherwise meant opening the card, finding the toolbar and
@@ -257,7 +260,7 @@ the board knows per card comes from `components/acp/liveTerminals.ts`: one
 per card and a board has as many as it likes.
 
 Which is why **the terminal page draws the question too**, above the screen and
-in the same amber: the dot leads here, and what it leads for was asked over the
+in the same amber: the button leads here, and what it leads for was asked over the
 protocol rather than in the pty — a CLI draws its own questions inside the
 terminal, and this one is not the CLI's. The page finds it by the `cardId` in
 `TerminalInfo` and answers through the same `AnswerQuestion` the notification
@@ -582,7 +585,7 @@ flow state). A passed stage's conversation is closed; the card coming back
 makes that stage current and its conversation reopens where it left off. A
 still-running CLI on a passed stage stays reachable by id until it exits — a
 person's terminal is never killed — it just is not where a new ask lands, which
-is why the board's dot shows a live terminal via `ShowTerminal(id)` rather than
+is why the board's terminal button shows a live terminal via `ShowTerminal(id)` rather than
 reopening "the card's terminal" beside it. The node-less conversation is the
 resume fallback for a stage with none, so planning done on a card flows into
 its first stage. Resume metadata is per stage; the transcript `claude
@@ -592,16 +595,21 @@ history. Who a terminal speaks as follows the stage too — its crew, then the
 assignee, then the single agent — and a fully busy crew does not block it: the
 person opening one is present.
 
-**A folder is optional, an agent is not.** A card can be talked over —
-wording, a plan, the brief — before anybody decides where the work lives, so
-"the card names no folder" is not a refusal: `resolveProject`'s two
-nothing-chosen errors are marked `errNoProject` (projects.go) and
-`StartCardTerminal` opens the conversation without one, in
+**A folder is optional, an agent is not — and neither is picked silently.** A
+card can be talked over — wording, a plan, the brief — before anybody decides
+where the work lives, so "the card names no folder" is not a refusal:
+`resolveProject`'s two nothing-chosen errors are marked `errNoProject`
+(projects.go) and `StartCardTerminal` opens the conversation without one, in
 `<dataDir>/talks/<cardID>` — the card's own directory, because the CLI's
 resume is directory-scoped and a shared one would hand one card another
-card's conversation. A folder the card *does* name but which is broken stays
-an error: the person meant it. Sessions are untouched — automation without a
-folder has nowhere to work, so it stalls as before.
+card's conversation. The *panel*, though, asks before it starts one:
+`GetCardAgent.folder` (`CardFolder`) says whether the card resolves a folder,
+and a card that does not — with no conversation to reopen — gets the pick
+form, «— без папки, просто поговорить —» being a first-class answer with a
+note naming the temp directory. Go's own fallback stays for the windowed
+path, which has no form to ask with. A folder the card *does* name but which
+is broken stays an error: the person meant it. Sessions are untouched —
+automation without a folder has nowhere to work, so it stalls as before.
 
 **The panel asks only what Go refused to answer**: when `OpenCardTerminal`
 fails — which now means the agent, or a folder named but broken — the panel

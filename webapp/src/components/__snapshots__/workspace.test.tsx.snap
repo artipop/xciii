@@ -542,6 +542,7 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   aria-label="menuwrapper"
                   class="MenuWrapper optionsMenu"
@@ -559,7 +560,6 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >
@@ -587,6 +587,7 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   aria-label="menuwrapper"
                   class="MenuWrapper optionsMenu"
@@ -604,7 +605,6 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >
@@ -632,6 +632,7 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   aria-label="menuwrapper"
                   class="MenuWrapper optionsMenu"
@@ -649,7 +650,6 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >
@@ -922,10 +922,10 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
                 style="opacity: 1;"
               >
                 
+                
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >
@@ -954,10 +954,10 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
                 style="opacity: 1;"
               >
                 
+                
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >
@@ -986,10 +986,10 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
                 style="opacity: 1;"
               >
                 
+                
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >
@@ -1641,6 +1641,7 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   aria-label="menuwrapper"
                   class="MenuWrapper optionsMenu"
@@ -1658,7 +1659,6 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >
@@ -1686,6 +1686,7 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   aria-label="menuwrapper"
                   class="MenuWrapper optionsMenu"
@@ -1703,7 +1704,6 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >
@@ -1731,6 +1731,7 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                 class="KanbanCard"
                 style="opacity: 1;"
               >
+                
                 <div
                   aria-label="menuwrapper"
                   class="MenuWrapper optionsMenu"
@@ -1748,7 +1749,6 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >
@@ -2021,10 +2021,10 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
                 style="opacity: 1;"
               >
                 
+                
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >
@@ -2053,10 +2053,10 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
                 style="opacity: 1;"
               >
                 
+                
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >
@@ -2085,10 +2085,10 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
                 style="opacity: 1;"
               >
                 
+                
                 <div
                   class="octo-icontitle"
                 >
-                  
                   <div
                     class="octo-icon"
                   >

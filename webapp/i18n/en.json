@@ -276,7 +276,7 @@
   "CardTerminal.add-agent": "Add an agent…",
   "CardTerminal.add-project": "Add a folder…",
   "CardTerminal.agent": "Agent",
-  "CardTerminal.ask": "The card does not say who should talk here — pick an agent. A folder is optional.",
+  "CardTerminal.ask": "Who talks here, and where? Pick an agent; a folder is optional.",
   "CardTerminal.choose-agent": "Choose an agent…",
   "CardTerminal.choose-project": "— no folder, just talk —",
   "CardTerminal.close": "Close the panel",

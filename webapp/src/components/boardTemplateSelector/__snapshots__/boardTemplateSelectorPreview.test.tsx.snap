@@ -399,6 +399,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview > should 
             class="KanbanCard"
             style="opacity: 1;"
           >
+            
             <div
               aria-label="menuwrapper"
               class="MenuWrapper optionsMenu"
@@ -416,7 +417,6 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview > should 
             <div
               class="octo-icontitle"
             >
-              
               <div
                 class="octo-icon"
               >

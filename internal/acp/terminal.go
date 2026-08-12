@@ -246,9 +246,21 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		return nil, err
 	}
 	agent := AgentEntry{}
-	if strings.TrimSpace(agentName) != "" {
+	switch {
+	case strings.TrimSpace(agentName) != "":
 		agent, err = m.planningAgent(agentName)
-	} else {
+	default:
+		// A conversation that already exists continues with whoever held it:
+		// re-resolving refused the card the moment a second agent was
+		// registered, and the transcript `--continue` picks up is the held
+		// agent's CLI's anyway. An agent since removed falls through to the
+		// usual resolution.
+		if rec, ok, recErr := m.store.LastTerminalForCardNode(cardID, nodeID); recErr == nil && ok && rec.Agent != "" {
+			if held, heldErr := m.planningAgent(rec.Agent); heldErr == nil {
+				agent = held
+				break
+			}
+		}
 		// The same resolution a session at this stage would go through: the
 		// stage's own crew first, then the card's assignee, then the single
 		// registered agent. A fully busy crew does not block a *terminal* —
