@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package main
 
 import (
@@ -12,12 +9,12 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/mattermost/focalboard/server/server"
-	"github.com/mattermost/focalboard/server/services/config"
-	"github.com/mattermost/focalboard/server/services/notify"
-	"github.com/mattermost/focalboard/server/services/permissions/localpermissions"
+	"github.com/artipop/xciii/server/server"
+	"github.com/artipop/xciii/server/services/config"
+	"github.com/artipop/xciii/server/services/notify"
+	"github.com/artipop/xciii/server/services/permissions/localpermissions"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 // getFreePort asks the kernel for a free open port that is ready to use.
@@ -35,22 +32,10 @@ func getFreePort() (int, error) {
 	return l.Addr().(*net.TCPAddr).Port, nil
 }
 
-// dataDir returns the writable location for the database and uploaded files.
-// A packaged/signed app directory is read-only, so persistent state must live in
-// the OS user config dir instead of next to the binary. os.UserConfigDir()
-// resolves per platform: ~/Library/Application Support on macOS,
-// %AppData% on Windows, ~/.config (or $XDG_CONFIG_HOME) on Linux.
-func dataDir() (string, error) {
-	base, err := os.UserConfigDir()
-	if err != nil {
-		return "", err
-	}
-	dir := filepath.Join(base, "XCIII", "server")
-	if err := os.MkdirAll(dir, 0o750); err != nil {
-		return "", err
-	}
-	return dir, nil
-}
+// dataDir returns the writable location for the board database and uploaded
+// files — this install's own, so a development build does not open the app's
+// boards. See appDataDir.
+func dataDir() (string, error) { return appDataDir("server", 0o750) }
 
 // resolveWebPath returns a real on-disk directory the board server can
 // serve the webapp from (it templates index.html on read, so it needs files on

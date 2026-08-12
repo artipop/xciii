@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {For, Show, createMemo} from 'solid-js'
 
 import {FormattedMessage, useIntl} from '../../intl'
@@ -55,7 +52,7 @@ const ViewHeaderGroupByMenu = (props: Props) => {
                         <Show when={emptyVisibleGroupsCount() > 0}>
                             <Menu.Text
                                 id={'hideEmptyGroups'}
-                                name={intl.formatMessage({id: 'GroupBy.hideEmptyGroups', defaultMessage: 'Hide {count} empty groups'}, {count: emptyVisibleGroupsCount()})}
+                                name={intl.formatMessage({id: 'GroupBy.hideEmptyGroups', defaultMessage: 'Hide {count, plural, one {# empty group} other {# empty groups}}'}, {count: emptyVisibleGroupsCount()})}
                                 rightIcon={<HideIcon/>}
                                 onClick={() => handleToggleGroups(false)}
                             />
@@ -63,7 +60,7 @@ const ViewHeaderGroupByMenu = (props: Props) => {
                         <Show when={hiddenGroupsCount() > 0}>
                             <Menu.Text
                                 id={'showHiddenGroups'}
-                                name={intl.formatMessage({id: 'GroupBy.showHiddenGroups', defaultMessage: 'Show {count} hidden groups'}, {count: hiddenGroupsCount()})}
+                                name={intl.formatMessage({id: 'GroupBy.showHiddenGroups', defaultMessage: 'Show {count, plural, one {# hidden group} other {# hidden groups}}'}, {count: hiddenGroupsCount()})}
                                 rightIcon={<ShowIcon/>}
                                 onClick={() => handleToggleGroups(true)}
                             />

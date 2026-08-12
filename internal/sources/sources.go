@@ -62,8 +62,8 @@ func (it Item) WithFallbackID() Item {
 }
 
 // CardSpec is a card the pipeline asks for. Properties are named rather than
-// identified: a source knows it wants «Ссылка» filled in and cannot know the id
-// the board gave it.
+// identified, because a rule is written by a person against the board in front
+// of them and cannot know the ids the board gave its properties.
 type CardSpec struct {
 	Title string
 	Icon  string
@@ -71,8 +71,45 @@ type CardSpec struct {
 	// Source is what brought the item, and it becomes the card's author: the
 	// board's own answer to "who made this", which is also what it groups the
 	// inbox by. Empty means a card nobody outside made.
-	Source     string
+	Source string
+	// URL is the way back to the original, and it is a field rather than one
+	// more entry in Properties because it is the pipeline's own doing and not a
+	// rule's. Which property on the board holds it is the board's business —
+	// this package cannot know, and naming one here would have meant every
+	// board being obliged to call it the same thing in the same language.
+	URL        string
 	Properties map[string]string
+	// Item is which item of the source this card was made from. It is written
+	// onto the card itself, so that "we already brought this one" is something
+	// the board knows rather than something only this machine remembers — see
+	// ItemRef.
+	Item ItemRef
+}
+
+// ItemRef is a card's origin: the item of a source it was made from, and the
+// state of that item when it was. It lives on the card (fields.xciiiSource) and
+// is what stops the same letter becoming a second card.
+//
+// On the card and not only in source_item because that table is keyed by card
+// id, and a board carried to another machine arrives with new ids for every
+// card — so the table would say nothing about the cards that are actually
+// there, and the next poll would bring everything again.
+//
+// Source is not a field here: it is the name of the source that owns the card,
+// which is already the card's author on the board, and the lookup is always
+// made for one named source.
+type ItemRef struct {
+	ExternalID string `json:"externalId,omitempty"`
+	Version    string `json:"version,omitempty"`
+}
+
+// BoardItems is the board asked what a source has already brought it. Optional:
+// without it this machine's own table is the only record, which is right for a
+// board that has never left this machine and wrong the moment one arrives.
+type BoardItems interface {
+	// CardBySourceItem finds the card a source's item became. Not found is not
+	// an error: most items have never been seen.
+	CardBySourceItem(ctx context.Context, boardID, source, externalID string) (cardID, version string, ok bool, err error)
 }
 
 // BoardWriter is everything this package does to a board. It is narrow on

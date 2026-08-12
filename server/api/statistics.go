@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/web"
 	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
-func (a *API) registerStatisticsRoutes(r *mux.Router) {
+func (a *API) registerStatisticsRoutes(r *web.Router) {
 	// statistics
-	r.HandleFunc("/statistics", a.sessionRequired(a.handleStatistics)).Methods("GET")
+	r.HandleFunc("GET /statistics", a.sessionRequired(a.handleStatistics))
 }
 
 func (a *API) handleStatistics(w http.ResponseWriter, r *http.Request) {

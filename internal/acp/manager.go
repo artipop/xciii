@@ -32,6 +32,10 @@ type Manager struct {
 	reader         BoardReader // optional; enables opening a console on a card
 	users          BoardUsers  // optional; enables assigning cards to an agent
 	meta           BoardMeta   // optional; lets a board bring its own columns and routes
+	// cards is where a card's own route position is kept — on the card, so it
+	// travels with it. Optional; without it the position lives in this
+	// machine's store alone and stays behind when the board moves.
+	cards BoardCardState
 	ui             UIEmitter
 	log            *slog.Logger
 	tr             *Tracer
@@ -55,6 +59,13 @@ type Manager struct {
 	// (boardseed.go). Guarded by cfgMu, because it is exactly what decides
 	// which of them still go into config.json.
 	boardStored map[string]bool
+
+	// boardUnadopted is what a board carries that this machine cannot use — a
+	// column naming an agent nobody registered here, which is every column of
+	// a board that has just been imported. Kept verbatim and written back
+	// beside the registry's own, so that reading a board can never shrink it.
+	// Guarded by cfgMu, like boardStored.
+	boardUnadopted map[string]unadopted
 
 	// questions are what agents are waiting to hear back on: one entry per open
 	// question, keyed by its id (question.go). Its own lock — a question is
@@ -93,6 +104,11 @@ func (m *Manager) SetBoardReader(r BoardReader) { m.reader = r }
 // agent" needs. Optional: without it a card can only reach an agent through
 // its column's crew.
 func (m *Manager) SetBoardUsers(u BoardUsers) { m.users = u }
+
+// SetBoardCardState supplies the per-card store on the board. Optional: without
+// it a card's place on its route is remembered only here, and an exported board
+// arrives elsewhere with every card back at the start of its route.
+func (m *Manager) SetBoardCardState(c BoardCardState) { m.cards = c }
 
 // NewManager wires the manager. cfgPath is where project-registry edits are
 // persisted (may be empty in tests). Call Start to begin consuming events.
@@ -682,9 +698,11 @@ func lookupBin(name, notFoundMsg string) (string, error) {
 }
 
 // resolveArgv0 makes an argv runnable from a GUI process: a bare command name is
-// looked up on PATH and in the common install locations, because launchd hands
-// GUI apps a minimal PATH. Left as written when nothing matches, so the spawn
-// error names the command the user actually typed.
+// looked up on PATH and in the common install locations. The PATH itself is
+// repaired at startup from the user's login shell (internal/userpath), which is
+// the only thing that finds a version manager's node; the extra locations here
+// are what is left when the shell could not be asked. Left as written when
+// nothing matches, so the spawn error names the command the user actually typed.
 func resolveArgv0(argv []string) []string {
 	if len(argv) == 0 {
 		return argv

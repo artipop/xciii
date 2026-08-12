@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import type {JSX} from 'solid-js'
 
 import {FormattedMessage} from '../../../intl'
@@ -18,14 +16,14 @@ const ManageCategoriesTourStep = (): JSX.Element | null => {
     const title = (
         <FormattedMessage
             id='SidebarTour.ManageCategories.Title'
-            defaultMessage='Manage categories'
+            defaultMessage='Categories'
         />
     )
 
     const screen = (
         <FormattedMessage
             id='SidebarTour.ManageCategories.Body'
-            defaultMessage='Create and manage custom categories. Categories are user-specific, so moving a board to your category won’t impact other members using the same board.'
+            defaultMessage='Categories are yours alone: moving a board into one changes nothing for anybody else on that board.'
         />
     )
 

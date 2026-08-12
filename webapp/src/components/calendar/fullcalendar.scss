@@ -261,6 +261,21 @@
         }
     }
 
+    // FullCalendar writes a day header as a link, and our link colour then
+    // painted every day of the week the same accent — a row of seven identical
+    // reds, in which today could not be marked at all. A header names a day, so
+    // it reads as a name; the accent is spent on today alone. That matters most
+    // in the week view, where the header is the only place the date is written
+    // and the cell below it has no number to circle.
+    .fc-col-header-cell a {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        text-decoration: none;
+    }
+
+    .fc-col-header-cell.fc-day-today a {
+        color: rgba(var(--button-bg-rgb), 1);
+    }
+
     .fc-daygrid-day-number {
         align-items: center;
         width: 100%;

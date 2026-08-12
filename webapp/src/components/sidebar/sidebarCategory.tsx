@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {For, Show, createEffect, createSignal, onCleanup} from 'solid-js'
 
 import {useNavigate} from '@solidjs/router'
@@ -76,6 +74,23 @@ const SidebarCategory = (props: Props) => {
     const [collapsed, setCollapsed] = createSignal(props.categoryBoards.collapsed)
     const intl = useIntl()
     const navigate = useNavigate()
+
+    // The click below answers straight away, because a category has to collapse
+    // under the finger rather than after a round trip; the server's answer then
+    // arrives as a prop, from this window's own echo or from another window, and
+    // the signal follows it.
+    createEffect(() => setCollapsed(props.categoryBoards.collapsed))
+
+    // A system category is the one the server made for boards that are in no
+    // category of anybody's making -- nobody named it and nobody can rename it,
+    // so it is named here, in the language the page is being read in. A name a
+    // person typed is shown as they typed it.
+    const categoryName = () => {
+        if (props.categoryBoards.type === 'system') {
+            return intl.formatMessage({id: 'Sidebar.default-category', defaultMessage: 'Boards'})
+        }
+        return props.categoryBoards.name
+    }
 
     const [deleteBoard, setDeleteBoard] = createSignal<Board|null>()
     const [showDeleteCategoryDialog, setShowDeleteCategoryDialog] = createSignal<boolean>(false)
@@ -258,12 +273,7 @@ const SidebarCategory = (props: Props) => {
     const toggleCollapse = async () => {
         const newVal = !collapsed()
         setCollapsed(newVal)
-
-        // The default 'Boards' category isn't stored in database,
-        // so avoid making the API call for it
-        if (props.categoryBoards.id !== '') {
-            debouncedUpdateCategory(newVal)
-        }
+        debouncedUpdateCategory(newVal)
     }
 
     const newCategoryBadge = () => (
@@ -320,11 +330,11 @@ const SidebarCategory = (props: Props) => {
                     >
                         <div
                             class='octo-sidebar-title category-title'
-                            title={props.categoryBoards.name}
+                            title={categoryName()}
                             onClick={toggleCollapse}
                         >
                             {collapsed() || isDragging() || props.forceCollapse ? <ChevronRight/> : <ChevronDown/>}
-                            {props.categoryBoards.name}
+                            {categoryName()}
                             <div class='sidebarCategoriesTour'>
                                 <Show when={props.index === 0 && shouldViewSidebarTour()}>
                                     <SidebarCategoriesTourStep/>

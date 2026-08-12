@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Flat config, replacing .eslintrc.json + .eslintignore (ESLint 9 reads neither).
 //
 // mattermost-base.json under .eslint/ is the config `plugin:mattermost/react`
@@ -14,18 +11,12 @@ import stylistic from '@stylistic/eslint-plugin'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import cypress from 'eslint-plugin-cypress'
-import header from 'eslint-plugin-header'
 import importPlugin from 'eslint-plugin-import'
 import noOnlyTests from 'eslint-plugin-no-only-tests'
 import solid from 'eslint-plugin-solid'
 import globals from 'globals'
 
 import mattermostBase from './.eslint/mattermost-base.json' with {type: 'json'}
-
-// eslint-plugin-header still ships an eslintrc-era `meta.schema`, which ESLint 9
-// rejects when it validates rule options. The rule itself works; only the schema
-// is stale, so drop it rather than lose the licence-header check.
-header.rules.header.meta.schema = false
 
 // The vendored base config carries an override for test files; keep it as the one
 // place those relaxations are written down.
@@ -59,7 +50,6 @@ export default [
         plugins: {
             '@stylistic': stylistic,
             '@typescript-eslint': tsPlugin,
-            header,
             import: importPlugin,
             'no-only-tests': noOnlyTests,
             solid,

@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {Show} from 'solid-js'
 import type {JSX} from 'solid-js'
 
@@ -11,7 +9,6 @@ import {getClientConfig} from '../../../store/clientConfig'
 import {useAppSelector} from '../../../store/hooks'
 import {getCurrentBoard} from '../../../store/boards'
 import {getCurrentCard} from '../../../store/cards'
-import {OnboardingBoardTitle, OnboardingCardTitle} from '../../cardDetail/cardDetail'
 import {getOnboardingTourCategory, getOnboardingTourStarted, getOnboardingTourStep} from '../../../store/users'
 import TourTip from '../../tutorial_tour_tip/tutorial_tour_tip'
 import {TutorialTourTipPunchout} from '../../tutorial_tour_tip/tutorial_tour_tip_backdrop'
@@ -42,14 +39,19 @@ const TourTipRenderer = (props: Props): JSX.Element | null => {
     const onboardingTourStep = useAppSelector(getOnboardingTourStep)
     const currentCard = useAppSelector((state) => (props.requireCard ? getCurrentCard(state) : null))
 
-    const isOnboardingBoard = () => (props.showForce ? true : Boolean(board() && board()!.title === OnboardingBoardTitle))
+    // The tour runs on the board the person is actually on. It used to run only
+    // on a board titled 'Welcome to Boards!' — a duplicate of Focalboard's demo
+    // board, matched by its English title. Two things were wrong with that: the
+    // board it named is not a board this app ever makes, and a title is a thing
+    // a person renames, so the tour ended the moment they did.
+    const onABoard = () => (props.showForce ? true : Boolean(board()))
     const disableTour = () => clientConfig()?.featureFlags?.disableTour || false
 
     const showTourTip = () => {
-        const showTour = !disableTour() && isOnboardingBoard() && onboardingTourStarted() && onboardingTourCategory() === props.category
+        const showTour = !disableTour() && onABoard() && onboardingTourStarted() && onboardingTourCategory() === props.category
         let show = showTour && onboardingTourStep() === props.step.toString()
         if (props.requireCard) {
-            show = show && Boolean(currentCard() && currentCard()!.title === OnboardingCardTitle)
+            show = show && Boolean(currentCard())
         }
         return show
     }

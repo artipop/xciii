@@ -28,7 +28,7 @@ func SetupTestHelper(t *testing.T) (*TestHelper, func()) {
 }
 
 func setupTestHelper(t *testing.T) (*TestHelper, func()) {
-	f := foundation.New(t, NewBoardsMigrator(false))
+	f := foundation.New(t, NewBoardsMigrator())
 
 	th := &TestHelper{
 		t: t,

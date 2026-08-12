@@ -305,12 +305,12 @@ func TestTemplateFlowsUseTheConfigsOwnColumns(t *testing.T) {
 	if n, ok := feature.NodeByColumn("К агенту"); !ok || n.Action != FlowActionAgent {
 		t.Fatalf("agent stage: %+v", n)
 	}
-	if n, _, ok := feature.Next("test", TriggerSuccess, nil, ""); !ok || n.Column != "Проверено" {
-		t.Fatalf("test success edge: %+v", n)
+	if n, _, ok := feature.Next("qa", TriggerSuccess, nil, ""); !ok || n.Column != "Проверено" {
+		t.Fatalf("QA success edge: %+v", n)
 	}
 	// A failed check goes back to the agent rather than to a person.
-	if n, _, ok := feature.Next("test", TriggerFailure, nil, ""); !ok || n.Column != "К агенту" {
-		t.Fatalf("test failure edge: %+v", n)
+	if n, _, ok := feature.Next("qa", TriggerFailure, nil, ""); !ok || n.Column != "К агенту" {
+		t.Fatalf("QA failure edge: %+v", n)
 	}
 	// Waiting for the merge needs no token: it is the local git watcher.
 	if !IsVCSTrigger(TriggerBranchMerged) || IsGitHubTrigger(TriggerBranchMerged) {

@@ -1,6 +1,4 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
+import {createSignal} from 'solid-js'
 import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
@@ -209,5 +207,67 @@ describe('components/sidebarCategory', () => {
         expect(subItems).toBeDefined()
         userEvent.click(subItems[0] as Element)
         expect(mockTemplateClose).not.toHaveBeenCalled()
+    })
+
+    // The category the server makes for unfiled boards is named in the server's
+    // own English, which nobody chose and nobody can change. The sidebar reads
+    // in the language of the page, so the name has to come from the catalogue.
+    test('the default category is named by the page and not by the server', () => {
+        const store = mockAppStore(state)
+
+        const systemCategory = {
+            ...TestBlockFactory.createCategoryBoards(),
+            id: 'default_category',
+            name: 'Whatever the server called it',
+            type: 'system' as const,
+            boardMetadata: [],
+        }
+
+        const component = wrapRBDNDDroppable(wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <SidebarCategory
+                        hideSidebar={() => {}}
+                        categoryBoards={systemCategory}
+                        boards={[]}
+                        allCategories={[systemCategory]}
+                        index={0}
+                    />
+                </TestRouter>
+            </AppStoreProvider>,
+        ))
+        const {container, queryByText} = render(component)
+
+        expect(queryByText('Whatever the server called it')).toBeNull()
+        expect(container.querySelector('.category-title')?.textContent).toContain('Boards')
+    })
+
+    // A collapse is persisted and comes back as an update of the category, so
+    // the row has to take the answer it is handed. It used to keep its own, and
+    // an update rebuilt the row from a category the store had not been told
+    // about -- which is how every collapse undid itself a moment later.
+    test('a category collapsed elsewhere collapses here', () => {
+        const store = mockAppStore(state)
+        const [category, setCategory] = createSignal(categoryBoards1)
+
+        const component = wrapRBDNDDroppable(wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <SidebarCategory
+                        hideSidebar={() => {}}
+                        categoryBoards={category()}
+                        boards={boards}
+                        allCategories={allCategoryBoards}
+                        index={0}
+                    />
+                </TestRouter>
+            </AppStoreProvider>,
+        ))
+        const {container} = render(component)
+        expect(container.querySelector('.octo-sidebar-item.category.collapsed')).toBeNull()
+
+        setCategory({...categoryBoards1, collapsed: true})
+
+        expect(container.querySelector('.octo-sidebar-item.category.collapsed')).not.toBeNull()
     })
 })

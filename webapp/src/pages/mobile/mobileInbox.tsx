@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {For, Show, createSignal} from 'solid-js'
 import type {Component} from 'solid-js'
 
@@ -60,14 +58,14 @@ const MobileInbox: Component<Props> = (props) => {
                             <span class='MobilePage__card'>
                                 {card.icon ? `${card.icon} ` : ''}{card.title}
                             </span>
-                            <Show when={card.properties?.['Ссылка']}>
+                            <Show when={card.link}>
                                 <a
                                     class='MobilePage__link'
-                                    href={card.properties!['Ссылка']}
+                                    href={card.link}
                                     target='_blank'
                                     rel='noreferrer'
                                 >
-                                    {card.properties!['Ссылка']}
+                                    {card.link}
                                 </a>
                             </Show>
                             <button

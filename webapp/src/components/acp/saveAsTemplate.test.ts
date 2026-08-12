@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import Mutator from '../../mutator'
 import {Board, createBoard} from '../../blocks/board'
 import {createIntl} from '../../intl'

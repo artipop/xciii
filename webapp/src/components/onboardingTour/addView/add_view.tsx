@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import type {JSX} from 'solid-js'
 
 import {FormattedMessage} from '../../../intl'
@@ -17,13 +15,13 @@ const AddViewTourStep = (): JSX.Element => {
     const title = (
         <FormattedMessage
             id='OnboardingTour.AddView.Title'
-            defaultMessage='Add a new view'
+            defaultMessage='Add a view'
         />
     )
     const screen = (
         <FormattedMessage
             id='OnboardingTour.AddView.Body'
-            defaultMessage='Go here to create a new view to organise your board using different layouts.'
+            defaultMessage='A view is one way of looking at the same cards: a kanban, a table, a calendar. A board can carry as many as it needs.'
         />
     )
 

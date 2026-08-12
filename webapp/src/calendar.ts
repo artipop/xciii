@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The month grid behind the two date pickers, with no framework in it.
 // `widgets/calendar.tsx` is the React view, and a port to another framework
 // rewrites that and nothing here.

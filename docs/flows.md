@@ -133,7 +133,7 @@ as a duplicate path.
 
 Three templates are offered. «Разработка» is the one written for code, with
 the «Фича», «Хотфикс» and «Только ревью» routes across «В работе», «Деплой»
-and «Тестирование». The other two are the same machinery pointed at ordinary life
+and «QA». The other two are the same machinery pointed at ordinary life
 — «Домашние дела», «Покупки и меню» — and they are worth
 reading as examples, because they show what is left when deploys and browser
 tests are taken away: one column where an agent works, and a route that waits
@@ -237,7 +237,7 @@ flowchart LR
     P["В работе<br/>agent"] -->|done| R["На ревью"]
     P -->|failed| B["Заблокировано"]
     R -->|branch merged| D["Деплой<br/>deploy"]
-    D -->|done| T["Тестирование<br/>test"]
+    D -->|done| T["QA<br/>test"]
     D -->|failed| F["Не прошло"]
     T -->|passed| OK["Проверено"]
     T -->|failed| P
@@ -412,7 +412,7 @@ by hand:
 | `artifactsDir` | screenshots and verdicts of test runs |
 
 Колонок и маршрутов в этом файле нет: **автоматика доски лежит на самой доске**,
-в её собственных свойствах `acpColumns` и `acpFlows`, вместе со всем остальным,
+в её собственных свойствах `xciiiColumns` и `xciiiFlows`, вместе со всем остальным,
 что доске принадлежит. Поэтому она уезжает вместе с доской в экспорт архива и в
 шаблон, копируется вместе с копией доски и исчезает вместе с удалённой — а файл
 рядом с приложением хранит только машинное: агентов, папки, цели деплоя,

@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {render, waitFor} from '@solidjs/testing-library'
 
 import {IPropertyTemplate} from '../../blocks/board'
@@ -7,6 +5,8 @@ import {TestRouter, mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
 import {TestBlockFactory} from '../../test/testBlockFactory'
+
+import octoClient from '../../octoClient'
 
 import BoardTemplateSelectorPreview from './boardTemplateSelectorPreview'
 
@@ -31,7 +31,7 @@ const groupProperty: IPropertyTemplate = {
 // The client is a default export, and a factory has to say so: babel's CJS
 // interop used to hand the whole object back as the default, ESM does not.
 vi.mock('../../octoClient', () => {
-    const octoClient = {
+    const client = {
         getAllBlocks: vi.fn(() => Promise.resolve([
             {
                 id: '1',
@@ -72,7 +72,7 @@ vi.mock('../../octoClient', () => {
             },
         ])),
     }
-    return {default: octoClient}
+    return {default: client}
 })
 vi.mock('../../utils')
 vi.mock('../../mutator')
@@ -177,6 +177,47 @@ describe('components/boardTemplateSelector/boardTemplateSelectorPreview', () => 
         await waitFor(() => expect(container.querySelector('.top-head')).not.toBeNull())
         expect(container).toMatchSnapshot()
     })
+
+    // Every template carries «Входящие» as well as the view it is really
+    // about, and that title sorts first — so a preview that took the first
+    // view by title showed an empty inbox for every template and said nothing
+    // about what the template is for.
+    test('previews the view the template was made with, not the one that sorts first', async () => {
+        const viewOf = (id: string, title: string, createAt: number) => ({
+            id,
+            workspaceId: 'workspace',
+            title,
+            type: 'view',
+            createAt,
+            fields: {
+                groupById: 'group-prop-id',
+                viewType: 'board',
+                visibleOptionIds: ['group-prop-id'],
+                hiddenOptionIds: [],
+                visiblePropertyIds: ['group-prop-id'],
+                sortOptions: [],
+                kanbanCalculations: {},
+            },
+        })
+        vi.mocked(octoClient.getAllBlocks).mockResolvedValueOnce([
+            viewOf('v-inbox', 'Входящие', 2000),
+            viewOf('v-work', 'Дела', 1000),
+        ] as never)
+
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <BoardTemplateSelectorPreview activeTemplate={(store.state as any).boards.templates[0]}/>
+                </TestRouter>
+            </AppStoreProvider>
+            ,
+        ))
+
+        await waitFor(() => expect(container.querySelector('.top-head')).not.toBeNull())
+        const title = container.querySelector('.ViewHeader input, .ViewHeader .viewTitle') as HTMLInputElement | null
+        expect(title?.value ?? title?.textContent).toBe('Дела')
+    })
+
     test('should be null without activeTemplate', () => {
         const {container} = render(() => wrapDNDIntl(() =>
             <AppStoreProvider store={store}>

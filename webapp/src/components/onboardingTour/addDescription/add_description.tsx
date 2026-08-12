@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import type {JSX} from 'solid-js'
 
 import {FormattedMessage} from '../../../intl'
@@ -17,13 +15,13 @@ const AddDescriptionTourStep = (): JSX.Element | null => {
     const title = (
         <FormattedMessage
             id='OnboardingTour.AddDescription.Title'
-            defaultMessage='Add description'
+            defaultMessage='Description'
         />
     )
     const screen = (
         <FormattedMessage
             id='OnboardingTour.AddDescription.Body'
-            defaultMessage='Add a description to your card so your teammates know what the card is about.'
+            defaultMessage='The description is the task itself, and it is what an agent is given to work from, so it is worth writing plainly.'
         />
     )
 

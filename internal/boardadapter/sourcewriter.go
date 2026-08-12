@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/utils"
 
 	"github.com/artipop/xciii/internal/sources"
 )
@@ -79,6 +79,19 @@ func (w *SourceWriter) CreateCard(ctx context.Context, boardID string, spec Card
 		properties = map[string]any{}
 	}
 
+	// The link is the pipeline's own doing rather than a rule's, so it is not
+	// looked up by name among the properties above: the board's url property is
+	// found by type and made if the board has none. A rule that names a
+	// property of its own for the link still wins — it was written against this
+	// board by somebody looking at it.
+	if url := strings.TrimSpace(spec.URL); url != "" {
+		if id, err := w.ensureLinkProperty(boardID); err == nil {
+			if _, taken := properties[id]; !taken {
+				properties[id] = url
+			}
+		}
+	}
+
 	card := &model.Card{
 		Title: spec.Title,
 		Icon:  spec.Icon,
@@ -95,6 +108,12 @@ func (w *SourceWriter) CreateCard(ctx context.Context, boardID string, spec Card
 	created, err := w.app.CreateCard(card, boardID, author, true)
 	if err != nil {
 		return "", fmt.Errorf("create card on board %s: %w", boardID, err)
+	}
+	// Which item of which source this card came from goes on the card, so the
+	// board itself answers "have we brought this one already" — this machine's
+	// table cannot, on a board that came from another machine.
+	if err := w.setCardSource(created.ID, spec.Source, spec.Item); err != nil {
+		w.logSourceOrigin(created.ID, err)
 	}
 	if strings.TrimSpace(spec.Body) == "" {
 		return created.ID, nil
@@ -159,4 +178,94 @@ func cardProperties(schema model.PropSchema, props map[string]string) map[string
 		}
 	}
 	return out
+}
+
+// Where a card came from lives on the card, under one key of its own — the same
+// bargain as xciiiFlow (cardstate.go): a card block is what an export carries and
+// an import renumbers, and a table keyed by card id is neither.
+//
+// It holds the source's name as well as the item's id, because the question
+// asked of it is "did *this* source bring this id" and two sources may well use
+// the same id space. The card's author answers the same question, but only for
+// a source that was given a board account, and losing the account is allowed to
+// lose the author — not the dedup.
+// The prefix is the app's, not the agent integration's: sources are not part of
+// it and must keep working with it switched off (docs/sources.md §18), so a
+// card brought by a phone onto a household board has no business carrying an
+// `acp` key. The board marker `xciiiTemplate` (templates.go) is the same case
+// and the same prefix.
+const cardFieldSource = "xciiiSource"
+
+var _ sources.BoardItems = (*SourceWriter)(nil)
+
+// cardSource is the field's shape. sources.ItemRef is the half the pipeline
+// knows; the source's name is added here because the field has to stand on its
+// own on the card.
+type cardSource struct {
+	Source     string `json:"source,omitempty"`
+	ExternalID string `json:"externalId,omitempty"`
+	Version    string `json:"version,omitempty"`
+}
+
+// setCardSource records the origin. A card with no origin — one a person typed
+// — is left alone rather than given an empty key.
+func (w *Writer) setCardSource(cardID, source string, ref sources.ItemRef) error {
+	if strings.TrimSpace(source) == "" || strings.TrimSpace(ref.ExternalID) == "" {
+		return nil
+	}
+	field := map[string]any{
+		"source":     source,
+		"externalId": ref.ExternalID,
+		"version":    ref.Version,
+	}
+	return w.patchCardFields(cardID, &model.BlockPatch{UpdatedFields: map[string]any{cardFieldSource: field}})
+}
+
+// CardBySourceItem asks the board whether this source has already brought this
+// item, and onto which card.
+//
+// It reads the board's cards rather than querying for the field: the board
+// server has no index over what is inside a block's fields, and the alternative
+// — a query shaped per database dialect over a JSON column — would be a patch
+// to the fork for something a source poll does once per unknown item.
+func (w *SourceWriter) CardBySourceItem(_ context.Context, boardID, source, externalID string) (string, string, bool, error) {
+	blocks, err := w.app.GetBlocks(boardID, "", string(model.TypeCard))
+	if err != nil {
+		return "", "", false, fmt.Errorf("get cards of board %s: %w", boardID, err)
+	}
+	for _, block := range blocks {
+		if block == nil || block.DeleteAt != 0 {
+			continue
+		}
+		origin, ok := cardSourceOf(block)
+		if !ok {
+			continue
+		}
+		if !strings.EqualFold(origin.Source, source) || origin.ExternalID != externalID {
+			continue
+		}
+		return block.ID, origin.Version, true, nil
+	}
+	return "", "", false, nil
+}
+
+func cardSourceOf(block *model.Block) (cardSource, bool) {
+	raw, ok := block.Fields[cardFieldSource]
+	if !ok || raw == nil {
+		return cardSource{}, false
+	}
+	var origin cardSource
+	if err := reinterpretField(raw, &origin); err != nil {
+		return cardSource{}, false
+	}
+	return origin, origin.ExternalID != ""
+}
+
+// logSourceOrigin reports a card that was created but could not be stamped with
+// where it came from. Deliberately not an error to the caller: the card exists,
+// and reporting failure would have the pipeline create it again on the next
+// poll. What is lost is only the board being able to tell another machine, and
+// this machine's own table still remembers the item.
+func (w *Writer) logSourceOrigin(cardID string, err error) {
+	w.log.Warn("boardadapter: cannot record where the card came from", "card", cardID, "err", err)
 }

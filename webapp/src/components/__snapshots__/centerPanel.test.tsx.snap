@@ -21,15 +21,6 @@ exports[`components/centerPanel > Clicking on the Hidden card count should open 
         >
           Give feedback
         </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
-        </a>
       </div>
       <div
         class="mid-head"
@@ -682,6 +673,7 @@ exports[`components/centerPanel > Clicking on the Hidden card count should open 
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -776,15 +768,6 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
           target="_blank"
         >
           Give feedback
-        </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
         </a>
       </div>
       <div
@@ -1388,15 +1371,6 @@ exports[`components/centerPanel > return centerPanel and > click on new card to 
         >
           Give feedback
         </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
-        </a>
       </div>
       <div
         class="mid-head"
@@ -2049,6 +2023,7 @@ exports[`components/centerPanel > return centerPanel and > click on new card to 
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -2093,15 +2068,6 @@ exports[`components/centerPanel > return centerPanel and > press touch 1 with re
           target="_blank"
         >
           Give feedback
-        </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
         </a>
       </div>
       <div
@@ -2484,6 +2450,7 @@ exports[`components/centerPanel > return centerPanel and > press touch 1 with re
         >
           <div
             class="Calculation count octo-table-cell disabled  "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -2529,15 +2496,6 @@ exports[`components/centerPanel > return centerPanel and > press touch ctrl+d fo
         >
           Give feedback
         </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
-        </a>
       </div>
       <div
         class="mid-head"
@@ -3190,6 +3148,7 @@ exports[`components/centerPanel > return centerPanel and > press touch ctrl+d fo
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -3235,15 +3194,6 @@ exports[`components/centerPanel > return centerPanel and > press touch del for o
         >
           Give feedback
         </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
-        </a>
       </div>
       <div
         class="mid-head"
@@ -3896,6 +3846,7 @@ exports[`components/centerPanel > return centerPanel and > press touch del for o
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -3941,15 +3892,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
         >
           Give feedback
         </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
-        </a>
       </div>
       <div
         class="mid-head"
@@ -4602,6 +4544,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -4647,15 +4590,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
         >
           Give feedback
         </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
-        </a>
       </div>
       <div
         class="mid-head"
@@ -5308,6 +5242,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -5353,15 +5288,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
         >
           Give feedback
         </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
-        </a>
       </div>
       <div
         class="mid-head"
@@ -6014,6 +5940,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -6059,15 +5986,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
         >
           Give feedback
         </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
-        </a>
       </div>
       <div
         class="mid-head"
@@ -6720,6 +6638,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -6765,15 +6684,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
         >
           Give feedback
         </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
-        </a>
       </div>
       <div
         class="mid-head"
@@ -7426,6 +7336,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -7470,15 +7381,6 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
           target="_blank"
         >
           Give feedback
-        </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
         </a>
       </div>
       <div
@@ -8132,6 +8034,7 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -8176,15 +8079,6 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
           target="_blank"
         >
           Give feedback
-        </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
         </a>
       </div>
       <div
@@ -8838,6 +8732,7 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             
@@ -8882,15 +8777,6 @@ exports[`components/centerPanel > should match snapshot for Gallery 1`] = `
           target="_blank"
         >
           Give feedback
-        </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
         </a>
       </div>
       <div
@@ -9183,15 +9069,6 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
           target="_blank"
         >
           Give feedback
-        </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
         </a>
       </div>
       <div
@@ -9758,15 +9635,6 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
         >
           Give feedback
         </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
-        </a>
       </div>
       <div
         class="mid-head"
@@ -10331,15 +10199,6 @@ exports[`components/centerPanel > should match snapshot for Table 1`] = `
           target="_blank"
         >
           Give feedback
-        </a>
-        <a
-          href="https://github.com/artipop/xciii"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <i
-            class="CompassIcon icon-help-circle-outline HelpIcon"
-          />
         </a>
       </div>
       <div
@@ -10917,6 +10776,7 @@ exports[`components/centerPanel > should match snapshot for Table 1`] = `
         >
           <div
             class="Calculation count octo-table-cell   "
+            style="width: 100px;"
             tabindex="0"
           >
             

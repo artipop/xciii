@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import {For, Show, createEffect, createSignal, onMount} from 'solid-js'
@@ -338,7 +335,7 @@ const BoardSetupWizard = (props: Props) => {
         case STEP_BROWSER:
             return (
                 <div class='BoardSetupWizard__step'>
-                    <p>{intl.formatMessage({id: 'BoardSetup.browser-why', defaultMessage: 'The "To Test" column drives a browser the agent brings itself. Without a browser MCP server a test session refuses to start; the one below is the usual answer.'})}</p>
+                    <p>{intl.formatMessage({id: 'BoardSetup.browser-why', defaultMessage: 'The "QA" column drives a browser the agent brings itself. Without a browser MCP server a test session refuses to start; the one below is the usual answer.'})}</p>
                     <textarea
                         rows={7}
                         value={serversText()}
@@ -480,7 +477,7 @@ const BoardSetupWizard = (props: Props) => {
         case STEP_DEPLOY:
             return intl.formatMessage({id: 'BoardSetup.step-deploy', defaultMessage: 'Deploy'})
         case STEP_BROWSER:
-            return intl.formatMessage({id: 'BoardSetup.step-browser', defaultMessage: 'Testing'})
+            return intl.formatMessage({id: 'BoardSetup.step-browser', defaultMessage: 'QA'})
         case STEP_SOURCE:
             return intl.formatMessage({id: 'BoardSetup.step-source', defaultMessage: 'Source'})
         default:

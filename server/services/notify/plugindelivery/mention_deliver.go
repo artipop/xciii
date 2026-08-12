@@ -1,13 +1,10 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package plugindelivery
 
 import (
 	"fmt"
 
-	"github.com/mattermost/focalboard/server/services/notify"
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/services/notify"
+	"github.com/artipop/xciii/server/utils"
 
 	mm_model "github.com/mattermost/mattermost/server/public/model"
 )

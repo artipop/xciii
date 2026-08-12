@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {Match, Show, Switch, createEffect, createMemo, createSignal, onMount} from 'solid-js'
 
 import {useIntl} from '../intl'
@@ -248,12 +245,11 @@ const CenterPanel = (props: Props) => {
     const addEmptyCardAndShow = () => addCard('', true)
 
     const shouldStartBoardsTour = (): boolean => {
-        const isOnboardingBoard = props.board.title === 'Welcome to Boards!'
         const isTourStarted = onboardingTourStarted()
         const completedCardsTour = onboardingTourCategory() === TOUR_CARD && onboardingTourStep() === FINISHED.toString()
         const noCardOpen = !currentCard()
 
-        return isOnboardingBoard && isTourStarted && completedCardsTour && noCardOpen
+        return isTourStarted && completedCardsTour && noCardOpen
     }
 
     const prepareBoardsTour = async () => {

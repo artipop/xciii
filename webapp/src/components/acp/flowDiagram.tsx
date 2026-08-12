@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {Show, createEffect, createMemo, createSignal} from 'solid-js'
 import {
     Background,
@@ -646,7 +644,10 @@ const FlowDiagram = (props: Props) => {
                     fitView={true}
                     fitViewOptions={{padding: 0.2, maxZoom: 1}}
                     minZoom={0.3}
-                    proOptions={{hideAttribution: false}}
+
+                    // Solid Flow is MIT and its own attribution says to feel free to
+                    // remove it; the canvas is small and the plate sits over the cards.
+                    proOptions={{hideAttribution: true}}
                 >
                     <Background/>
                     <Controls showLock={false}/>

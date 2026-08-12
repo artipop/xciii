@@ -128,20 +128,18 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
         + Add board
       </div>
       <div
-        class="SidebarSettingsMenu"
+        class="SidebarSettingsButton"
       >
-        <div
-          aria-label="menuwrapper"
-          class="MenuWrapper"
-          role="button"
+        <button
+          aria-label="Settings"
+          class="SidebarSettingsButton__entry"
+          type="button"
         >
-          <div
-            class="menu-entry"
-          >
-            Settings
-          </div>
-          
-        </div>
+          <i
+            class="CompassIcon icon-settings-outline SettingsIcon"
+          />
+          Settings
+        </button>
         
       </div>
     </div>
@@ -168,15 +166,6 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
               target="_blank"
             >
               Give feedback
-            </a>
-            <a
-              href="https://github.com/artipop/xciii"
-              rel="noreferrer"
-              target="_blank"
-            >
-              <i
-                class="CompassIcon icon-help-circle-outline HelpIcon"
-              />
             </a>
           </div>
           <div
@@ -761,15 +750,6 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
             >
               Give feedback
             </a>
-            <a
-              href="https://github.com/artipop/xciii"
-              rel="noreferrer"
-              target="_blank"
-            >
-              <i
-                class="CompassIcon icon-help-circle-outline HelpIcon"
-              />
-            </a>
           </div>
           <div
             class="mid-head"
@@ -1273,20 +1253,18 @@ exports[`src/components/workspace > should match snapshot 1`] = `
         + Add board
       </div>
       <div
-        class="SidebarSettingsMenu"
+        class="SidebarSettingsButton"
       >
-        <div
-          aria-label="menuwrapper"
-          class="MenuWrapper"
-          role="button"
+        <button
+          aria-label="Settings"
+          class="SidebarSettingsButton__entry"
+          type="button"
         >
-          <div
-            class="menu-entry"
-          >
-            Settings
-          </div>
-          
-        </div>
+          <i
+            class="CompassIcon icon-settings-outline SettingsIcon"
+          />
+          Settings
+        </button>
         
       </div>
     </div>
@@ -1313,15 +1291,6 @@ exports[`src/components/workspace > should match snapshot 1`] = `
               target="_blank"
             >
               Give feedback
-            </a>
-            <a
-              href="https://github.com/artipop/xciii"
-              rel="noreferrer"
-              target="_blank"
-            >
-              <i
-                class="CompassIcon icon-help-circle-outline HelpIcon"
-              />
             </a>
           </div>
           <div
@@ -1905,15 +1874,6 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
               target="_blank"
             >
               Give feedback
-            </a>
-            <a
-              href="https://github.com/artipop/xciii"
-              rel="noreferrer"
-              target="_blank"
-            >
-              <i
-                class="CompassIcon icon-help-circle-outline HelpIcon"
-              />
             </a>
           </div>
           <div

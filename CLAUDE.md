@@ -13,17 +13,19 @@ and the same code builds a headless server (`-tags server`) that serves the boar
 a browser instead of a webview.
 
 The board server and the webapp are both forks of Mattermost's Focalboard, and
-the product no longer carries that name anywhere a person can see it — the only
-place it survives is the upstream Go import path.
+the product no longer carries that name anywhere — not on screen, and since the
+rename, not in an import path either.
 
 Both halves are here. `webapp/` is its own npm project built with Vite, since
 rewritten from React to **SolidJS**, so upstream and this repository's early
 history are both React and neither is a recipe any more; see
 `docs/solidjs-migration-plan.md` for what the rewrite promised. `server/` is the
-board server, its own Go module, which `go.mod` `replace`s the upstream path
-onto. It was a checkout beside this one until that turned out to mean the
-project built on exactly one machine, because the branch it needed had never
-been pushed. Nothing outside this repository is required to build it.
+board server, and it is **a directory of this module, not a module of its own**:
+its packages are `github.com/artipop/xciii/server/…`, there is one `go.mod`, and
+there is nothing to `replace`. It was a checkout beside this one until that
+turned out to mean the project built on exactly one machine, then a second module
+carrying upstream's import path, and now neither. Nothing outside this repository
+is required to build it.
 
 `server/` is a fork carried, not a library consumed: patch it here, and keep
 patches small enough to explain, because there is nobody upstream to merge them.
@@ -54,6 +56,16 @@ in a browser and as a Mattermost plugin.
   `prometheus/client_golang` for a Darwin memory collector and
   `tailscale/certstore` — and both fall back to pure Go, so SQLite and Wails are
   the whole of the requirement.
+- **A packaged app is not a child of a shell**, and that is the other difference
+  `wails3 dev` hides. launchd hands the `.app` `PATH=/usr/bin:/bin:/usr/sbin:/sbin`
+  and nothing else, so npx, node, the agent CLIs and a source plugin are all
+  invisible to it while a dev build — started from a terminal — finds every one of
+  them. `internal/userpath` asks the login shell for the real PATH at startup,
+  because a version manager's node lives under a version number only the user's
+  own rc files know. Fixing the *process* PATH rather than our lookups is the
+  point: npx is a `#!/usr/bin/env node` script and the codex adapter drives the
+  codex CLI, so finding a binary and spawning it with launchd's PATH only moves
+  the failure one process along.
 - `npm test` in `webapp/` — the page's suite, **vitest** under jsdom, sharing
   `vite-plugin-solid` with the build through `vitest.config.ts`. Coverage is on by
   default (v8); `--coverage.enabled=false` while iterating, `npm run updatesnapshot`
@@ -259,12 +271,12 @@ column is a stage no card can stand on, so there is no way to make one. The
 editor is source-agnostic and the container decides what it edits: `automation
 Dialog.tsx` points it at the registry of a live board (saving through
 `SaveBoardColumn`/`AddFlow`/…), `templateEditor.tsx` at a template board's own
-properties (`acpColumns`, `acpFlows`, `acpSetup`), which is where a board made
+properties (`xciiiColumns`, `xciiiFlows`, `xciiiSetup`), which is where a board made
 from it will read them. `automation.ts` holds the types and every pure helper,
 which is what keeps the two containers from growing their own answers.
 `docs/templates.md` is the template half written for somebody using it.
 
-And a board's automation **lives on the board** — `acpColumns`/`acpFlows` in the
+And a board's automation **lives on the board** — `xciiiColumns`/`xciiiFlows` in the
 board's own properties, in the board database, which is why a live board and a
 template are the same two keys and why a template can carry automation at all.
 `internal/acp` keeps the registry in memory because the engine reads it on every
@@ -277,11 +289,23 @@ the file until one gets through, which is what makes the move safe to retry.
 **A setting lives where its owner does**, and that is the rule the whole
 settings surface is sorted by. The registries are the machine's — agents,
 deploy targets, proxies, the tailnet, what a card-less conversation opens
-saying — so they are `machineSettingsDialog.tsx`, one dialog of panels opened
-from `sidebarSettingsMenu.tsx`, reachable with no board open. What a board runs
-— columns, routes, its folders, and what its agents are told first
-(`boardPrompts`, keyed by board id) — is `automationDialog.tsx`. The board's ⋯
-menu keeps only export and "save as a template". Registering an agent needs
+saying, whether an agent waiting may interrupt, and the archive that carries
+every board in and out — so they are `settings/appSettingsDialog.tsx`, one
+dialog of panels opened from `sidebarSettingsButton.tsx`, reachable with no
+board open. **The theme and the language are settings like the rest of them**,
+and are `settings/appPanel.tsx` with the link to the manual: they spent a while
+in the corner of the board on the grounds that they are changed while looking at
+it, and what that cost was two icon menus and a question mark standing in for
+three words, plus a corner that had to be published over the no-board screen to
+stay reachable. The corner is one link to the issue tracker again, which is what
+it was. What a board runs — columns, routes, its folders, and
+what its agents are told first (`boardPrompts`, keyed by board id) — is
+`automationDialog.tsx`. The board's ⋯ menu keeps only export and "save as a
+template" — the archive in the settings dialog is every board there is, and one
+board's own is the board's own business, which is also the whole of why import
+is not offered per board: what an archive brings is boards, plural, and
+Trello/Notion/Todoist are instructions for making one rather than an importer of
+ours. Registering an agent needs
 neither: `agentQuickAdd.tsx` is the two-field form, used by the card, the
 column's crew list and the setup wizard alike, and `agentSync.ts` is what makes
 a registered agent nameable on a board — called where a board exists, since the
@@ -502,6 +526,18 @@ whoever opened it. **Only the protocol asks** (`question.go`), which is why
   `mockResolvedValue`, and the hook around it clears rather than resets.
 - Russian in user-facing strings and product docs, English in code, comments and
   commit messages.
+- **Russian is never a key.** A Russian word may be a label, a message, a
+  prompt, or the name a thing is *given* when this app creates it — and nothing
+  else. Nothing may find, match or branch on one: the board's column property is
+  whatever a view groups by, the author and link properties are found by their
+  *type*, the inbox view by what it filters, the projects field by an id the
+  board records (`xciiiProjectProperty`). Names that do decide something come from
+  the board or the registry — a rule's `Props`, a flow's stages — where a person
+  typed them against the board in front of them; they are data, not literals in
+  our code. A manifest field is the shape to copy: `key` is the id, `title` is
+  the Russian a person reads. The one deliberate exception is
+  `NormalizeVerdict`, which meets an agent's free text halfway in both languages
+  and maps it onto `pass`/`fail`/`blocked`.
 - **A feature a person uses is not finished until `docs/guide/` says how.**
   `docs/` is for whoever works on the code; `docs/guide/` is the other shelf —
   Russian, organised by screen or by task, for the person the thing was built

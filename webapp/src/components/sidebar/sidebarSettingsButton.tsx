@@ -1,0 +1,49 @@
+import {Show, createSignal} from 'solid-js'
+
+import {FormattedMessage, useIntl} from '../../intl'
+
+import SettingsIcon from '../../widgets/icons/settings'
+import RootPortal from '../rootPortal'
+import AppSettingsDialog from '../settings/appSettingsDialog'
+
+import './sidebarSettingsButton.scss'
+
+// The foot of the sidebar used to be a menu with a submenu of a submenu in it:
+// import, export, language, theme, notifications and "this machine…", which is
+// where a person went looking for any of the six and found the other five.
+// It opens the settings dialog instead — one place, sections down the side —
+// and the two things that are not settings of the app but of the moment, the
+// theme and the language, moved to the corner of the board (`topBar.tsx`).
+
+const SidebarSettingsButton = () => {
+    const intl = useIntl()
+    const [showSettings, setShowSettings] = createSignal(false)
+
+    return (
+        <div class='SidebarSettingsButton'>
+            <button
+                type='button'
+                class='SidebarSettingsButton__entry'
+                aria-label={intl.formatMessage({id: 'Sidebar.settings', defaultMessage: 'Settings'})}
+                onClick={() => setShowSettings(true)}
+            >
+                <SettingsIcon/>
+                <FormattedMessage
+                    id='Sidebar.settings'
+                    defaultMessage='Settings'
+                />
+            </button>
+            {/* Out of the sidebar, because the sidebar paints its own text
+                colour and everything under it inherits: a dialog opened from
+                here used to draw every heading in the sidebar's light ink,
+                which is invisible on the light theme's paper. */}
+            <Show when={showSettings()}>
+                <RootPortal>
+                    <AppSettingsDialog onClose={() => setShowSettings(false)}/>
+                </RootPortal>
+            </Show>
+        </div>
+    )
+}
+
+export default SidebarSettingsButton

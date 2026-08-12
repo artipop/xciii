@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Dragging a card has repeatedly worked for a handful of drags and then stopped
 // dead -- no drag starts, the board looks untouched, and nothing is logged. None
 // of it reproduces in jsdom: the failure lives in real layout, real pointer

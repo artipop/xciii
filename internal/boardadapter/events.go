@@ -13,10 +13,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/notify"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/mlog"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/notify"
 
 	"github.com/artipop/xciii/internal/acp"
 )
@@ -233,14 +233,14 @@ func (b *EventsBackend) BoardProperties(_ context.Context, boardID string) (map[
 // app recording what the app was told, and attributing it to whoever happened
 // to have the dialog open would put their name on a board they may only be
 // looking at.
-func (b *EventsBackend) SetBoardProperties(_ context.Context, boardID string, props map[string]any) error {
+func (b *EventsBackend) SetBoardProperties(_ context.Context, boardID string, props map[string]any, remove []string) error {
 	b.mu.Lock()
 	a := b.app
 	b.mu.Unlock()
 	if a == nil {
 		return fmt.Errorf("board app is not ready")
 	}
-	patch := &model.BoardPatch{UpdatedProperties: props}
+	patch := &model.BoardPatch{UpdatedProperties: props, DeletedProperties: remove}
 	if _, err := a.PatchBoard(patch, boardID, model.SystemUserID); err != nil {
 		return fmt.Errorf("patch board %s: %w", boardID, err)
 	}

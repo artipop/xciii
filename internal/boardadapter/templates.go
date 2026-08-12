@@ -9,9 +9,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/mlog"
+	"github.com/artipop/xciii/server/model"
 )
 
 // The board templates this app ships are ours, and they live here. The server
@@ -34,7 +34,12 @@ var templateFiles embed.FS
 // TemplateVersion is bumped to push edited templates into installs that already
 // have them. Nothing else re-imports: a template somebody has since changed is
 // theirs until this number moves, and then it is replaced.
-const TemplateVersion = 10
+// 11: the board keys the templates carry were renamed acp* → xciii*. A stale
+// template would go on making boards under the old names — read, but never the
+// ones anything writes, so every such board would carry both.
+// 12: the developer template's test column is «QA», and its route names the
+// stage `qa` rather than `test`.
+const TemplateVersion = 12
 
 // TemplateMarkerProperty is the board property each template carries its slug
 // in. Ids are regenerated on import and titles are the user's to change, so the

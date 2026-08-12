@@ -1,169 +1,69 @@
 package migrationstests
 
 import (
-	"bytes"
-	"context"
 	"database/sql"
+	"errors"
 	"fmt"
-	"path/filepath"
-	"text/template"
 
-	"github.com/mattermost/mattermost/server/public/pluginapi/cluster"
-	"github.com/mattermost/morph"
-	"github.com/mattermost/morph/drivers"
-	"github.com/mattermost/morph/drivers/mysql"
-	"github.com/mattermost/morph/drivers/postgres"
-	"github.com/mattermost/morph/drivers/sqlite"
-	embedded "github.com/mattermost/morph/sources/embedded"
+	"github.com/golang-migrate/migrate/v4"
+	migratedb "github.com/golang-migrate/migrate/v4/database"
+	migratemysql "github.com/golang-migrate/migrate/v4/database/mysql"
+	migratepostgres "github.com/golang-migrate/migrate/v4/database/postgres"
+	migratesqlite "github.com/golang-migrate/migrate/v4/database/sqlite"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	mmSqlStore "github.com/mattermost/mattermost/server/public/utils/sql"
-	"github.com/mattermost/mattermost/server/v8/channels/db"
+	"github.com/artipop/xciii/server/mlog"
+	mysqldriver "github.com/go-sql-driver/mysql"
 
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/store/sqlstore"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/store/sqlstore"
 )
 
 var tablePrefix = "focalboard_"
 
+// BoardsMigrator stands the board's schema up one migration at a time, so a test
+// can look at the database between two of them. It builds its own engine rather
+// than calling Migrate, because Migrate runs the whole sequence and what these
+// tests are about is the state in the middle of it — but the migrations it runs
+// are the app's own, rendered by the store that will read them.
 type BoardsMigrator struct {
-	withMattermostMigrations bool
-	connString               string
-	driverName               string
-	db                       *sql.DB
-	store                    *sqlstore.SQLStore
-	morphEngine              *morph.Morph
-	morphDriver              drivers.Driver
+	connString string
+	driverName string
+	db         *sql.DB
+	store      *sqlstore.SQLStore
+	engine     *migrate.Migrate
 }
 
-func NewBoardsMigrator(withMattermostMigrations bool) *BoardsMigrator {
-	return &BoardsMigrator{
-		withMattermostMigrations: withMattermostMigrations,
-	}
+func NewBoardsMigrator() *BoardsMigrator {
+	return &BoardsMigrator{}
 }
 
-func (bm *BoardsMigrator) runMattermostMigrations() error {
-	assets := db.Assets()
-	assetsList, err := assets.ReadDir(filepath.Join("migrations", bm.driverName))
-	if err != nil {
-		return err
-	}
+func (bm *BoardsMigrator) getDriver() (migratedb.Driver, error) {
+	table := tablePrefix + "schema_migrations"
 
-	assetNames := make([]string, len(assetsList))
-	for i, entry := range assetsList {
-		assetNames[i] = entry.Name()
-	}
-
-	src, err := embedded.WithInstance(&embedded.AssetSource{
-		Names: assetNames,
-		AssetFunc: func(name string) ([]byte, error) {
-			return assets.ReadFile(filepath.Join("migrations", bm.driverName, name))
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	driver, err := bm.getDriver()
-	if err != nil {
-		return err
-	}
-
-	options := []morph.EngineOption{
-		morph.SetStatementTimeoutInSeconds(1000000),
-	}
-
-	engine, err := morph.New(context.Background(), driver, src, options...)
-	if err != nil {
-		return err
-	}
-	defer engine.Close()
-
-	return engine.ApplyAll()
-}
-
-func (bm *BoardsMigrator) getDriver() (drivers.Driver, error) {
-	var driver drivers.Driver
-	var err error
 	switch bm.driverName {
 	case model.PostgresDBType:
-		driver, err = postgres.WithInstance(bm.db)
-		if err != nil {
-			return nil, err
-		}
+		return migratepostgres.WithInstance(bm.db, &migratepostgres.Config{MigrationsTable: table})
 	case model.MysqlDBType:
-		driver, err = mysql.WithInstance(bm.db)
-		if err != nil {
-			return nil, err
-		}
+		return migratemysql.WithInstance(bm.db, &migratemysql.Config{MigrationsTable: table})
 	case model.SqliteDBType:
-		driver, err = sqlite.WithInstance(bm.db)
-		if err != nil {
-			return nil, err
-		}
+		return migratesqlite.WithInstance(bm.db, &migratesqlite.Config{MigrationsTable: table})
+	default:
+		return nil, fmt.Errorf("unsupported database type %s", bm.driverName)
 	}
-
-	return driver, nil
 }
 
-func (bm *BoardsMigrator) getMorphConnection() (*morph.Morph, drivers.Driver, error) {
+func (bm *BoardsMigrator) getMigrationEngine() (*migrate.Migrate, error) {
 	driver, err := bm.getDriver()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	assetsList, err := sqlstore.Assets.ReadDir("migrations")
+	src, err := bm.store.NewMigrationSource()
 	if err != nil {
-		return nil, nil, err
-	}
-	assetNamesForDriver := make([]string, len(assetsList))
-	for i, dirEntry := range assetsList {
-		assetNamesForDriver[i] = dirEntry.Name()
+		return nil, err
 	}
 
-	params := map[string]interface{}{
-		"prefix":     tablePrefix,
-		"postgres":   bm.driverName == model.PostgresDBType,
-		"sqlite":     bm.driverName == model.SqliteDBType,
-		"mysql":      bm.driverName == model.MysqlDBType,
-		"plugin":     bm.withMattermostMigrations,
-		"singleUser": false,
-	}
-
-	migrationAssets := &embedded.AssetSource{
-		Names: assetNamesForDriver,
-		AssetFunc: func(name string) ([]byte, error) {
-			asset, mErr := sqlstore.Assets.ReadFile("migrations/" + name)
-			if mErr != nil {
-				return nil, mErr
-			}
-
-			tmpl, pErr := template.New("sql").Funcs(bm.store.GetTemplateHelperFuncs()).Parse(string(asset))
-			if pErr != nil {
-				return nil, pErr
-			}
-			buffer := bytes.NewBufferString("")
-
-			err = tmpl.Execute(buffer, params)
-			if err != nil {
-				return nil, err
-			}
-
-			return buffer.Bytes(), nil
-		},
-	}
-
-	src, err := embedded.WithInstance(migrationAssets)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	engine, err := morph.New(context.Background(), driver, src, morph.SetMigrationTableName(fmt.Sprintf("%sschema_migrations", tablePrefix)))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return engine, driver, nil
+	return migrate.NewWithInstance("xciii", src, bm.driverName, driver)
 }
 
 func (bm *BoardsMigrator) Setup() error {
@@ -174,15 +74,13 @@ func (bm *BoardsMigrator) Setup() error {
 	}
 
 	if bm.driverName == model.MysqlDBType {
-		bm.connString, err = mmSqlStore.ResetReadTimeout(bm.connString)
-		if err != nil {
-			return err
+		cfg, pErr := mysqldriver.ParseDSN(bm.connString)
+		if pErr != nil {
+			return pErr
 		}
-
-		bm.connString, err = mmSqlStore.AppendMultipleStatementsFlag(bm.connString)
-		if err != nil {
-			return err
-		}
+		cfg.MultiStatements = true
+		cfg.ReadTimeout = 0
+		bm.connString = cfg.FormatDSN()
 	}
 
 	var dbErr error
@@ -195,12 +93,6 @@ func (bm *BoardsMigrator) Setup() error {
 		return err
 	}
 
-	if bm.withMattermostMigrations {
-		if err := bm.runMattermostMigrations(); err != nil {
-			return err
-		}
-	}
-
 	logger, _ := mlog.NewLogger()
 
 	storeParams := sqlstore.Params{
@@ -210,34 +102,24 @@ func (bm *BoardsMigrator) Setup() error {
 		TablePrefix:      tablePrefix,
 		Logger:           logger,
 		DB:               bm.db,
-		NewMutexFn: func(name string) (*cluster.Mutex, error) {
-			return nil, fmt.Errorf("not implemented")
-		},
-		SkipMigrations: true,
+		SkipMigrations:   true,
 	}
 	bm.store, err = sqlstore.New(storeParams)
 	if err != nil {
 		return err
 	}
 
-	morphEngine, morphDriver, err := bm.getMorphConnection()
+	engine, err := bm.getMigrationEngine()
 	if err != nil {
 		return err
 	}
-	bm.morphEngine = morphEngine
-	bm.morphDriver = morphDriver
+	bm.engine = engine
 
 	return nil
 }
 
 func (bm *BoardsMigrator) MigrateToStep(step int) error {
-	applied, err := bm.morphDriver.AppliedMigrations()
-	if err != nil {
-		return err
-	}
-	currentVersion := len(applied)
-
-	if _, err := bm.morphEngine.Apply(step - currentVersion); err != nil {
+	if err := bm.engine.Migrate(uint(step)); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return err
 	}
 
@@ -253,15 +135,9 @@ func (bm *BoardsMigrator) Interceptors() map[int]func() error {
 }
 
 func (bm *BoardsMigrator) TearDown() error {
-	if err := bm.morphEngine.Close(); err != nil {
-		return err
-	}
-
-	if err := bm.db.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	// Closing the engine would close the database driver, and that driver holds
+	// the connection below — which the test still owns.
+	return bm.db.Close()
 }
 
 func (bm *BoardsMigrator) DriverName() string {

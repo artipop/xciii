@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {Show, createSignal} from 'solid-js'
 import {A} from '@solidjs/router'
 
@@ -27,7 +25,7 @@ const ChangePasswordPage = () => {
             setErrorMessage('')
             setSucceeded(true)
         } else {
-            setErrorMessage(`Change password failed: ${response.json?.error}`)
+            setErrorMessage(intl.formatMessage({id: 'ChangePassword.failed', defaultMessage: 'Change password failed: {error}'}, {error: response.json?.error ?? ''}))
         }
     }
 
@@ -36,13 +34,13 @@ const ChangePasswordPage = () => {
             when={user()}
             fallback={
                 <div class='ChangePasswordPage'>
-                    <div class='title'>{'Change Password'}</div>
-                    <A href='/login'>{'Log in first'}</A>
+                    <div class='title'>{intl.formatMessage({id: 'ChangePassword.changePassword', defaultMessage: 'Change Password'})}</div>
+                    <A href='/login'>{intl.formatMessage({id: 'ChangePassword.login-first', defaultMessage: 'Log in first'})}</A>
                 </div>
             }
         >
             <div class='ChangePasswordPage'>
-                <div class='title'>{'Change Password'}</div>
+                <div class='title'>{intl.formatMessage({id: 'ChangePassword.changePassword', defaultMessage: 'Change Password'})}</div>
                 <form
                     onSubmit={(e: Event) => {
                         e.preventDefault()
@@ -77,7 +75,7 @@ const ChangePasswordPage = () => {
                         filled={true}
                         submit={true}
                     >
-                        {'Change password'}
+                        {intl.formatMessage({id: 'ChangePassword.changePassword-button', defaultMessage: 'Change password'})}
                     </Button>
                 </form>
                 <Show when={errorMessage()}>
@@ -87,12 +85,12 @@ const ChangePasswordPage = () => {
                 </Show>
                 <Show
                     when={succeeded()}
-                    fallback={<A href='/'>{'Cancel'}</A>}
+                    fallback={<A href='/'>{intl.formatMessage({id: 'ChangePassword.cancel', defaultMessage: 'Cancel'})}</A>}
                 >
                     <A
                         class='succeeded'
                         href='/'
-                    >{'Password changed, click to continue.'}</A>
+                    >{intl.formatMessage({id: 'ChangePassword.succeeded', defaultMessage: 'Password changed, click to continue.'})}</A>
                 </Show>
             </div>
         </Show>

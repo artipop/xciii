@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 
 	"github.com/artipop/xciii/internal/acp"
 )

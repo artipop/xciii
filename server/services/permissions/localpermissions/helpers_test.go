@@ -1,16 +1,13 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package localpermissions
 
 import (
 	"testing"
 
-	"github.com/mattermost/focalboard/server/model"
-	permissionsMocks "github.com/mattermost/focalboard/server/services/permissions/mocks"
+	"github.com/artipop/xciii/server/model"
+	permissionsMocks "github.com/artipop/xciii/server/services/permissions/mocks"
 
+	"github.com/artipop/xciii/server/mlog"
 	mmModel "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

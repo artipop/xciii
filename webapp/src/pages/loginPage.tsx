@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {Show, createSignal} from 'solid-js'
 import {A, Navigate, useLocation, useNavigate} from '@solidjs/router'
 
@@ -32,7 +30,7 @@ const LoginPage = () => {
                 navigate('/')
             }
         } else {
-            setErrorMessage('Login failed')
+            setErrorMessage(intl.formatMessage({id: 'login.failed', defaultMessage: 'Login failed'}))
         }
     }
 

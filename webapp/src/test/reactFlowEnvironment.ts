@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The flow canvas measures the page: it observes the container's size, reads a
 // transform matrix off it, and asks whether the pointer is coarse. jsdom has
 // none of ResizeObserver, DOMMatrix or matchMedia, and every element it lays

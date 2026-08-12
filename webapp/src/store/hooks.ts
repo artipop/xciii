@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {Accessor, createMemo, useContext} from 'solid-js'
 
 import {AppStore, AppStoreContext, RootState} from './index'

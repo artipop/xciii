@@ -1,11 +1,9 @@
 //go:generate mockgen -destination=mocks/mockstore.go -package mocks . Store
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 
 package permissions
 
 import (
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 
 	mmModel "github.com/mattermost/mattermost/server/public/model"
 )

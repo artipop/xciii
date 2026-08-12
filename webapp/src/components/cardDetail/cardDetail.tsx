@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {Show, createEffect, createMemo, createSignal, onCleanup, onMount} from 'solid-js'
 import type {JSX} from 'solid-js'
 
@@ -47,9 +45,6 @@ import useImagePaste from './imagePaste'
 import AttachmentList from './attachment'
 
 import './cardDetail.scss'
-
-export const OnboardingBoardTitle = 'Welcome to Boards!'
-export const OnboardingCardTitle = 'Create a new card'
 
 type Props = {
     board: Board

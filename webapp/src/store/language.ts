@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {getCurrentLanguage, storeLanguage as i18nStoreLanguage} from '../i18n'
 
 import type {StoreContext} from './context'

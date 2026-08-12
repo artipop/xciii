@@ -1,10 +1,7 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package notifymentions
 
 import (
-	"github.com/mattermost/focalboard/server/services/notify"
+	"github.com/artipop/xciii/server/services/notify"
 
 	mm_model "github.com/mattermost/mattermost/server/public/model"
 )

@@ -13,15 +13,6 @@ exports[`src/components/topBar > should match snapshot 1`] = `
     >
       Give feedback
     </a>
-    <a
-      href="https://github.com/artipop/xciii"
-      rel="noreferrer"
-      target="_blank"
-    >
-      <i
-        class="CompassIcon icon-help-circle-outline HelpIcon"
-      />
-    </a>
   </div>
 </div>
 `;

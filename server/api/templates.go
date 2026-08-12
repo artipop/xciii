@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/web"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
-func (a *API) registerTemplatesRoutes(r *mux.Router) {
-	r.HandleFunc("/teams/{teamID}/templates", a.sessionRequired(a.handleGetTemplates)).Methods("GET")
+func (a *API) registerTemplatesRoutes(r *web.Router) {
+	r.HandleFunc("GET /teams/{teamID}/templates", a.sessionRequired(a.handleGetTemplates))
 }
 
 func (a *API) handleGetTemplates(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,7 @@ func (a *API) handleGetTemplates(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	teamID := mux.Vars(r)["teamID"]
+	teamID := r.PathValue("teamID")
 	userID := getUserID(r)
 
 	if teamID != model.GlobalTeamID && !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {

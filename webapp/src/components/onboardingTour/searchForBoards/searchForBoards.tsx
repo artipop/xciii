@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import type {JSX} from 'solid-js'
 
 import {FormattedMessage} from '../../../intl'
@@ -15,14 +13,14 @@ const SearchForBoardsTourStep = (): JSX.Element | null => {
     const title = (
         <FormattedMessage
             id='SidebarTour.SearchForBoards.Title'
-            defaultMessage='Search for boards'
+            defaultMessage='Find a board'
         />
     )
 
     const screen = (
         <FormattedMessage
             id='SidebarTour.SearchForBoards.Body'
-            defaultMessage='Open the board switcher (Cmd/Ctrl + K) to quickly search and add boards to your sidebar.'
+            defaultMessage='Cmd/Ctrl + K opens the board switcher: type a few letters and go straight there.'
         />
     )
 

@@ -1,12 +1,9 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {For, Show, createEffect, createSignal, onCleanup, onMount} from 'solid-js'
 import {render} from 'solid-js/web'
 import type {JSX} from 'solid-js'
 
 import {Calendar} from '@fullcalendar/core'
-import type {EventChangeArg, EventInput, EventContentArg, DayCellContentArg} from '@fullcalendar/core'
+import type {EventChangeArg, EventInput, EventContentArg, DayCellContentArg, LocaleInput} from '@fullcalendar/core'
 
 import interactionPlugin from '@fullcalendar/interaction'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -253,9 +250,15 @@ const CalendarFullView = (props: Props): JSX.Element => {
             >
                 {'+'}
             </div>
-            <div class='dateDisplay'>
-                {cellProps.dayNumberText}
-            </div>
+            {/* The week view writes the date in the column header instead, so
+                the cell's day number is empty there. The marker only exists to
+                carry that number — drawn anyway it became a filled accent
+                circle with nothing in it, one naked dot floating over today. */}
+            <Show when={cellProps.dayNumberText}>
+                <div class='dateDisplay'>
+                    {cellProps.dayNumberText}
+                </div>
+            </Show>
         </div>
     )
 
@@ -270,6 +273,32 @@ const CalendarFullView = (props: Props): JSX.Element => {
         month: intl.formatMessage({id: 'calendar.month', defaultMessage: 'Month'}),
         week: intl.formatMessage({id: 'calendar.week', defaultMessage: 'Week'}),
     })
+
+    // Everything FullCalendar writes itself — the month in the title, the
+    // weekday headings, «ещё N», which day a week starts on — comes from a
+    // locale of its own, and it ships with English alone. The definitions are
+    // their own chunk, fetched only when the UI is not English, which is the
+    // same bargain hooks/momentLocale.ts takes with moment's.
+    const [locales, setLocales] = createSignal<LocaleInput[]>([])
+    createEffect(() => {
+        if (intl.locale.toLowerCase() === 'en' || locales().length > 0) {
+            return
+        }
+        let cancelled = false
+        import('@fullcalendar/core/locales-all').then((mod) => {
+            if (!cancelled) {
+                setLocales(mod.default)
+            }
+        })
+        onCleanup(() => {
+            cancelled = true
+        })
+    })
+
+    // Named only once the definitions are here: FullCalendar warns about a
+    // locale it has never been given and quietly stays English, so asking for
+    // one early would cost a console warning and buy nothing.
+    const calendarLocale = () => (locales().length > 0 ? intl.locale.toLowerCase() : 'en')
 
     let host: HTMLDivElement | undefined
     let calendar: Calendar | undefined
@@ -305,6 +334,8 @@ const CalendarFullView = (props: Props): JSX.Element => {
             initialDate: initialDate(),
             dayMaxEventRows: 5,
             headerToolbar: toolbar,
+            locales: locales(),
+            locale: calendarLocale(),
             events: myEventsList(),
             editable: isEditable(),
             eventResizableFromStart: isEditable(),
@@ -360,6 +391,8 @@ const CalendarFullView = (props: Props): JSX.Element => {
         calendar.setOption('eventResizableFromStart', isEditable())
         calendar.setOption('selectable', isSelectable())
         calendar.setOption('buttonText', buttonText())
+        calendar.setOption('locales', locales())
+        calendar.setOption('locale', calendarLocale())
     })
 
     // …and the span itself, when it was changed somewhere else: another window

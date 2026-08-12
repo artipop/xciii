@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {ParentComponent, createEffect, onMount} from 'solid-js'
 
 import wsClient, {MMWebSocketClient} from '../wsclient'

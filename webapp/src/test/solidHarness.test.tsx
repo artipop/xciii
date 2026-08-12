@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The migration rides on three toolchain facts: vite-plugin-solid compiles Solid
 // JSX, it resolves solid-js to its browser development build (the node build
 // would render once and never react), and Portal escapes into document.body the

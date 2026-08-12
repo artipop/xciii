@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Dragging a board into a category in the sidebar, which is the one thing the
 // sidebar's drag and drop is for. It broke twice without a word: once when the
 // drop's destination was read off the dragged item, which only moves under a

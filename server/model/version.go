@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 // This is a list of all the current versions including any patches.

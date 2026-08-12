@@ -439,3 +439,124 @@ func TestABatchAsksTheBoardOnce(t *testing.T) {
 		t.Fatalf("свойство колонок должно спрашиваться раз на партию, спросили %d раз", got)
 	}
 }
+
+// A rule that names an agent and no properties of its own: RenderProps answers
+// nil for such a rule, and writing the agent into a nil map is a panic rather
+// than a lost field.
+func TestARuleMayNameAnAgentAndNoPropertiesAtAll(t *testing.T) {
+	entry := SourceEntry{
+		Name: "телефон", BoardID: "board1", Enabled: true, Noisy: true,
+		Rules: []Rule{{Name: "всё", Then: ActionCard, Column: "Сегодня", Agent: "claude"}},
+	}
+	m, board, _ := testManager(t, entry)
+
+	if _, err := m.Deliver(context.Background(), "телефон", []Item{deliveryItem()}); err != nil {
+		t.Fatal(err)
+	}
+	if len(board.cards()) != 1 {
+		t.Fatalf("created: %+v", board.cards())
+	}
+	if board.cards()[0].Properties["Agent"] != "claude" {
+		t.Fatalf("properties: %+v", board.cards()[0].Properties)
+	}
+}
+
+// The link travels as the card's own field rather than as a property named in
+// this package: which property holds it is the board's answer, and a name here
+// would have obliged every board to speak one language.
+func TestTheLinkTravelsBesideTheCardRatherThanAsANamedProperty(t *testing.T) {
+	m, board, _ := testManager(t, phoneSource())
+
+	if _, err := m.Deliver(context.Background(), "телефон", []Item{deliveryItem()}); err != nil {
+		t.Fatal(err)
+	}
+	if board.cards()[0].URL != "https://example.com/1" {
+		t.Fatalf("card: %+v", board.cards()[0])
+	}
+}
+
+// fakeBoardItems is the board asked what a source has already brought it.
+type fakeBoardItems struct {
+	cards map[string]string // source + "\x00" + externalID → card id
+	// version is what the board says the item was at when it was brought.
+	version string
+	fail    error
+}
+
+func (f *fakeBoardItems) CardBySourceItem(_ context.Context, _, source, externalID string) (string, string, bool, error) {
+	if f.fail != nil {
+		return "", "", false, f.fail
+	}
+	cardID, ok := f.cards[source+"\x00"+externalID]
+	return cardID, f.version, ok, nil
+}
+
+// A board carried here from another machine already holds the cards a source
+// made there, and this machine has never heard of the items. Asking the board
+// is what stops the next poll turning every one of them into a second card.
+func TestAnItemTheBoardAlreadyHoldsIsNotBroughtAgain(t *testing.T) {
+	m, board, store := testManager(t, phoneSource())
+	m.SetBoardItems(&fakeBoardItems{
+		cards:   map[string]string{"телефон\x00n1": "cardFromElsewhere"},
+		version: "v1",
+	})
+
+	res, err := m.Deliver(context.Background(), "телефон", []Item{deliveryItem()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Created != 0 || res.Skipped != 1 {
+		t.Fatalf("result: %+v", res)
+	}
+	if len(board.cards()) != 0 {
+		t.Fatalf("a second card was made for an item the board already holds: %+v", board.cards())
+	}
+
+	// The board is asked once: the answer is written into this machine's own
+	// table, so the next poll is the fast path again.
+	if _, cardID, err := store.StateOf("телефон", "n1", "v1"); err != nil || cardID != "cardFromElsewhere" {
+		t.Errorf("the board's answer was not remembered: %q, %v", cardID, err)
+	}
+}
+
+// The same item at a newer version is not a new card either — it is a comment
+// on the card the board already has.
+func TestAChangedItemTheBoardHoldsIsCommentedOn(t *testing.T) {
+	m, board, _ := testManager(t, phoneSource())
+	m.SetBoardItems(&fakeBoardItems{
+		cards:   map[string]string{"телефон\x00n1": "cardFromElsewhere"},
+		version: "v0",
+	})
+
+	res, err := m.Deliver(context.Background(), "телефон", []Item{deliveryItem()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Created != 0 || res.Commented != 1 {
+		t.Fatalf("result: %+v", res)
+	}
+	if len(board.comments) != 1 {
+		t.Fatalf("comments: %+v", board.comments)
+	}
+}
+
+// A board that cannot be asked is not a board with nothing on it: the item is
+// left for the next poll rather than turned into a card that may be a
+// duplicate.
+func TestAnItemIsLeftAloneWhileTheBoardCannotBeAsked(t *testing.T) {
+	m, board, _ := testManager(t, phoneSource())
+	m.SetBoardItems(&fakeBoardItems{fail: errors.New("доска недоступна")})
+
+	res, err := m.Deliver(context.Background(), "телефон", []Item{deliveryItem()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Counted as a failure, which is what leaves it to be tried again — one
+	// item that could not be decided must not stop the rest of the batch.
+	if res.Failed != 1 || res.Created != 0 {
+		t.Fatalf("result: %+v", res)
+	}
+	if len(board.cards()) != 0 {
+		t.Fatalf("a card was made anyway: %+v", board.cards())
+	}
+}

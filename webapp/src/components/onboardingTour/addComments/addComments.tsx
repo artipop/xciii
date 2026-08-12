@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import type {JSX} from 'solid-js'
 
 import {FormattedMessage} from '../../../intl'
@@ -17,13 +15,13 @@ const AddCommentTourStep = (): JSX.Element | null => {
     const title = (
         <FormattedMessage
             id='OnboardingTour.AddComments.Title'
-            defaultMessage='Add comments'
+            defaultMessage='Comments'
         />
     )
     const screen = (
         <FormattedMessage
             id='OnboardingTour.AddComments.Body'
-            defaultMessage='You can comment on issues, and even @mention your fellow Mattermost users to get their attention.'
+            defaultMessage='Comments are what happened to the card. An agent working it writes here too: what it did, and what it needs answered.'
         />
     )
 

@@ -1,13 +1,9 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package acp
 
 import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"sort"
 	"strings"
 	"sync"
@@ -326,10 +322,16 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		m.closeBoardTools(boardToken, mcpConfig)
 		return nil, err
 	}
-	if _, err := exec.LookPath(argv[0]); err != nil {
+	// The same lookup a session's agent gets, rather than PATH alone: a GUI
+	// launch is given launchd's PATH, and the usual install locations are what
+	// is left when the login shell could not be asked for the user's own
+	// (internal/userpath).
+	bin, err := lookupBin(argv[0], fmt.Sprintf("не найден %s — CLI агента %q не установлен", argv[0], spec.agent.Name))
+	if err != nil {
 		m.closeBoardTools(boardToken, mcpConfig)
-		return nil, fmt.Errorf("не найден %s — CLI агента %q не установлен", argv[0], spec.agent.Name)
+		return nil, err
 	}
+	argv[0] = bin
 	net, err := m.resolveNetwork(spec.agent)
 	if err != nil {
 		m.closeBoardTools(boardToken, mcpConfig)

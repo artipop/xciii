@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {createSignal} from 'solid-js'
 import {fireEvent, render, screen, within} from '@solidjs/testing-library'
 import '@testing-library/jest-dom'

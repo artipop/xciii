@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 //go:generate mockgen -destination=mocks/propValueResolverMock.go -package mocks . PropValueResolver
 
 package model
@@ -11,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/utils"
 )
 
 var ErrInvalidBoardBlock = errors.New("invalid board block")

@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/utils"
 
 	"github.com/artipop/xciii/internal/acp"
 )
@@ -19,11 +20,16 @@ import (
 // still updates the UI live.
 type Writer struct {
 	app *app.App
+	// log is for the writes that must not fail the caller — the bookkeeping
+	// this integration keeps on a card beside what a person filled in. The
+	// board's own logger is not reachable from here, and slog is what the rest
+	// of this app uses anyway.
+	log *slog.Logger
 }
 
 var _ acp.BoardWriter = (*Writer)(nil)
 
-func NewWriter(a *app.App) *Writer { return &Writer{app: a} }
+func NewWriter(a *app.App) *Writer { return &Writer{app: a, log: slog.Default()} }
 
 // cardBlock is the card every write here starts from. It reads the block rather
 // than the board's own Card view on purpose: Block2Card refuses a card whose
@@ -496,12 +502,56 @@ func (w *Writer) ensureAuthorProperty(boardID string) (string, error) {
 // arrivedAuthor finds the board's own createdBy property, in the board's order
 // so the answer is the same on every call.
 func arrivedAuthor(board *model.Board, schema model.PropSchema) (string, bool) {
+	return propertyOfType(board, schema, "createdBy")
+}
+
+// LinkPropertyTitle is what the board calls the way back to what a source
+// brought. Like AuthorPropertyTitle it is a name given at creation and never a
+// key: the property is found by its *type*, so a board that calls it "Link", or
+// whose owner renamed it, keeps working and does not grow a second one.
+const LinkPropertyTitle = "Ссылка"
+
+// ensureLinkProperty returns the id of the board's url property, adding one if
+// it has none. A card from a source is the only thing that asks for it, so a
+// board nothing arrives on never grows the field — the same bargain the inbox
+// column and view take.
+func (w *Writer) ensureLinkProperty(boardID string) (string, error) {
+	board, err := w.app.GetBoard(boardID)
+	if err != nil {
+		return "", fmt.Errorf("get board %s: %w", boardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return "", err
+	}
+	if id, ok := propertyOfType(board, schema, "url"); ok {
+		return id, nil
+	}
+	propID := utils.NewID(utils.IDTypeBlock)
+	prop := map[string]any{
+		"id":      propID,
+		"name":    LinkPropertyTitle,
+		"type":    "url",
+		"options": []any{},
+	}
+	patch := &model.BoardPatch{UpdatedCardProperties: []map[string]any{prop}}
+	if _, err := w.app.PatchBoard(patch, boardID, model.SingleUser); err != nil {
+		return "", fmt.Errorf("add the link property to board %s: %w", boardID, err)
+	}
+	return propID, nil
+}
+
+// propertyOfType finds the board's first property of a given type, walking
+// CardProperties rather than the parsed schema: the schema is a map, and a
+// board with two properties of one type would otherwise answer differently on
+// different runs.
+func propertyOfType(board *model.Board, schema model.PropSchema, propType string) (string, bool) {
 	for _, prop := range board.CardProperties {
 		id, ok := prop["id"].(string)
 		if !ok {
 			continue
 		}
-		if def, ok := schema[id]; ok && def.Type == "createdBy" {
+		if def, ok := schema[id]; ok && def.Type == propType {
 			return id, true
 		}
 	}
@@ -536,7 +586,7 @@ func (w *Writer) ensureInboxView(boardID, propertyName, optionID, authorID strin
 		return err
 	}
 	for _, view := range views {
-		if !strings.EqualFold(view.Title, InboxViewTitle) {
+		if !isInboxView(view, propID, optionID) {
 			continue
 		}
 		// An inbox made by an older version of this is a table grouped by
@@ -601,6 +651,32 @@ func (w *Writer) ensureInboxView(boardID, propertyName, optionID, authorID strin
 	}
 	_, err = w.app.InsertBlocksAndNotify([]*model.Block{block}, model.SingleUser, true)
 	return err
+}
+
+// isInboxView tells the inbox view from the board's other views by what it
+// shows — a view filtered to the inbox option — rather than by what it is
+// called. The title is the fallback and not the answer: renaming a view is
+// something a person may do, and matching on «Входящие» meant the next card to
+// arrive built a second inbox beside the renamed one.
+func isInboxView(view *model.Block, propID, optionID string) bool {
+	filter, _ := view.Fields["filter"].(map[string]any)
+	filters, _ := filter["filters"].([]any)
+	for _, raw := range filters {
+		f, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		if id, _ := f["propertyId"].(string); id != propID {
+			continue
+		}
+		values, _ := f["values"].([]any)
+		for _, value := range values {
+			if s, _ := value.(string); s == optionID {
+				return true
+			}
+		}
+	}
+	return strings.EqualFold(view.Title, InboxViewTitle)
 }
 
 // findCardProperty returns the board's raw definition of a property, which is

@@ -1,8 +1,5 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {batch} from 'solid-js'
-import {produce} from 'solid-js/store'
+import {produce, reconcile} from 'solid-js/store'
 
 import {IUser, parseUserProps, UserPreference} from '../user'
 import {Subscription} from '../wsclient'
@@ -62,8 +59,14 @@ export const createUsersActions = ({setState, deps}: StoreContext) => ({
     unfollowBlock(subscription: Subscription) {
         setState('users', 'blockSubscriptions', (subs) => subs.filter((s) => s.blockId !== subscription.blockId))
     },
+
+    // The response carries every preference the person has left, so it replaces
+    // the config rather than being merged into it — and `setState` with a plain
+    // object merges. A preference *deleted* server-side therefore survived in
+    // the store for ever: settings could forget that the welcome screen had been
+    // shown, and the page went on believing it had.
     patchProps(props: UserPreference[]) {
-        setState('users', 'myConfig', parseUserProps(props))
+        setState('users', 'myConfig', reconcile(parseUserProps(props)))
     },
     async fetchMe(): Promise<void> {
         try {
@@ -75,7 +78,7 @@ export const createUsersActions = ({setState, deps}: StoreContext) => ({
                 setState('users', 'me', me || null)
                 setState('users', 'loggedIn', Boolean(me))
                 if (myConfig) {
-                    setState('users', 'myConfig', parseUserProps(myConfig))
+                    setState('users', 'myConfig', reconcile(parseUserProps(myConfig)))
                 }
             })
         } catch (e) {

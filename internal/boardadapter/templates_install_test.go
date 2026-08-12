@@ -7,14 +7,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/server"
-	"github.com/mattermost/focalboard/server/services/config"
-	"github.com/mattermost/focalboard/server/services/notify"
-	"github.com/mattermost/focalboard/server/services/permissions/localpermissions"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/server"
+	"github.com/artipop/xciii/server/services/config"
+	"github.com/artipop/xciii/server/services/notify"
+	"github.com/artipop/xciii/server/services/permissions/localpermissions"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 // Installing the templates is the half nothing else covers: the files are
@@ -180,10 +180,10 @@ func TestAnInstalledTemplateKeepsItsCardsAndAutomation(t *testing.T) {
 	if board == nil {
 		t.Fatal("«Домашние дела» is not installed")
 	}
-	if _, ok := board.Properties["acpColumns"]; !ok {
+	if _, ok := board.Properties["xciiiColumns"]; !ok {
 		t.Error("the board arrived without the columns it runs")
 	}
-	if _, ok := board.Properties["acpFlows"]; !ok {
+	if _, ok := board.Properties["xciiiFlows"]; !ok {
 		t.Error("the board arrived without its routes")
 	}
 	if len(board.CardProperties) == 0 {

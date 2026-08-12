@@ -1,13 +1,10 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package plugindelivery
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 
 	mm_model "github.com/mattermost/mattermost/server/public/model"
 )

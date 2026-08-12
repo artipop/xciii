@@ -5,22 +5,22 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/web"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
-func (a *API) registerBoardsRoutes(r *mux.Router) {
-	r.HandleFunc("/teams/{teamID}/boards", a.sessionRequired(a.handleGetBoards)).Methods("GET")
-	r.HandleFunc("/boards", a.sessionRequired(a.handleCreateBoard)).Methods("POST")
-	r.HandleFunc("/boards/{boardID}", a.attachSession(a.handleGetBoard, false)).Methods("GET")
-	r.HandleFunc("/boards/{boardID}", a.sessionRequired(a.handlePatchBoard)).Methods("PATCH")
-	r.HandleFunc("/boards/{boardID}", a.sessionRequired(a.handleDeleteBoard)).Methods("DELETE")
-	r.HandleFunc("/boards/{boardID}/duplicate", a.sessionRequired(a.handleDuplicateBoard)).Methods("POST")
-	r.HandleFunc("/boards/{boardID}/undelete", a.sessionRequired(a.handleUndeleteBoard)).Methods("POST")
-	r.HandleFunc("/boards/{boardID}/metadata", a.sessionRequired(a.handleGetBoardMetadata)).Methods("GET")
+func (a *API) registerBoardsRoutes(r *web.Router) {
+	r.HandleFunc("GET /teams/{teamID}/boards", a.sessionRequired(a.handleGetBoards))
+	r.HandleFunc("POST /boards", a.sessionRequired(a.handleCreateBoard))
+	r.HandleFunc("GET /boards/{boardID}", a.attachSession(a.handleGetBoard, false))
+	r.HandleFunc("PATCH /boards/{boardID}", a.sessionRequired(a.handlePatchBoard))
+	r.HandleFunc("DELETE /boards/{boardID}", a.sessionRequired(a.handleDeleteBoard))
+	r.HandleFunc("POST /boards/{boardID}/duplicate", a.sessionRequired(a.handleDuplicateBoard))
+	r.HandleFunc("POST /boards/{boardID}/undelete", a.sessionRequired(a.handleUndeleteBoard))
+	r.HandleFunc("GET /boards/{boardID}/metadata", a.sessionRequired(a.handleGetBoardMetadata))
 }
 
 func (a *API) handleGetBoards(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +51,7 @@ func (a *API) handleGetBoards(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	teamID := mux.Vars(r)["teamID"]
+	teamID := r.PathValue("teamID")
 	userID := getUserID(r)
 
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
@@ -221,7 +221,7 @@ func (a *API) handleGetBoard(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 	userID := getUserID(r)
 
 	hasValidReadToken := a.hasValidReadTokenForBoard(r, boardID)
@@ -317,7 +317,7 @@ func (a *API) handlePatchBoard(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 	if _, err := a.app.GetBoard(boardID); err != nil {
 		a.errorResponse(w, r, err)
 		return
@@ -415,7 +415,7 @@ func (a *API) handleDeleteBoard(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 	userID := getUserID(r)
 
 	// Check if board exists
@@ -472,7 +472,7 @@ func (a *API) handleDuplicateBoard(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 	userID := getUserID(r)
 	query := r.URL.Query()
 	asTemplate := query.Get("asTemplate")
@@ -579,8 +579,7 @@ func (a *API) handleUndeleteBoard(w http.ResponseWriter, r *http.Request) {
 	session := ctx.Value(sessionContextKey).(*model.Session)
 	userID := session.UserID
 
-	vars := mux.Vars(r)
-	boardID := vars["boardID"]
+	boardID := r.PathValue("boardID")
 
 	auditRec := a.makeAuditRecord(r, "undeleteBoard", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelModify, auditRec)
@@ -633,7 +632,7 @@ func (a *API) handleGetBoardMetadata(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 	userID := getUserID(r)
 
 	board, boardMetadata, err := a.app.GetBoardMetadata(boardID)

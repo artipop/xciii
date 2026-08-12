@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import {For, Show, createSignal, onMount} from 'solid-js'
@@ -14,23 +11,20 @@ import Button from '../../widgets/buttons/button'
 import {sendFlashMessage} from '../flashMessages'
 
 import {agentBindings} from './bindings'
+import {BOARD_PROP_PROJECT_PROPERTY, legacyBoardProp} from './automation'
 
 import './agentProjectsPanel.scss'
 
-// The dedicated card property the registry syncs into. Cards are mapped to a
-// project by an option of this (multiSelect) property.
+// What the property is *called* when this app has to make one. It is a name
+// given at creation and never a key — the board records which property it is
+// (BOARD_PROP_PROJECT_PROPERTY), so a person may rename the field and a board
+// in another language is not obliged to spell it this way. The templates ship
+// the property and the id together, so a board made from one never gets here.
 //
 // A project is a git project, and the code still calls it one — that is what
 // it is. What a person sees is "проект", because the board is not only for
 // software: the thing a card sends an agent into happens to be a project.
-const PROJECT_PROPERTY_NAME = 'Проекты'
-
-// What the property was called before, so a board that already has one is
-// renamed rather than given a second. Only the name changes: the property keeps
-// its id and its options, and a card refers to an option by id, so nothing a
-// card points at moves. The Go side matches a card to a project by the option's
-// *value*, never by the property's name, so it is not affected either.
-const LEGACY_PROJECT_PROPERTY_NAMES = ['Repositories']
+const PROJECT_PROPERTY_TITLE = 'Проекты'
 
 export type AgentProject = {
     name: string
@@ -65,13 +59,16 @@ const AgentProjectsPanel = (props: Props) => {
     const [pendingGlobal, setPendingGlobal] = createSignal(false)
     const [error, setError] = createSignal('')
 
-    // The board's project property, under its current name or the one it had
-    // before the rename.
-    const findProjectProperty = (properties: IPropertyTemplate[]) => {
-        const names = [PROJECT_PROPERTY_NAME, ...LEGACY_PROJECT_PROPERTY_NAMES].map((n) => n.toLowerCase())
-        return properties.find((p: IPropertyTemplate) =>
-            names.includes(p.name.trim().toLowerCase()) &&
-            (p.type === 'select' || p.type === 'multiSelect'))
+    // The board's project property, and it is the one the board says it is.
+    // Nothing is matched by name: a board that has not recorded one has not got
+    // one, and one is made.
+    const findProjectProperty = (board: Board, properties: IPropertyTemplate[]) => {
+        const recorded = board.properties?.[BOARD_PROP_PROJECT_PROPERTY] ??
+            board.properties?.[legacyBoardProp(BOARD_PROP_PROJECT_PROPERTY)!]
+        if (typeof recorded !== 'string' || !recorded) {
+            return undefined
+        }
+        return properties.find((p: IPropertyTemplate) => p.id === recorded)
     }
 
     // syncToBoard mirrors the registry into that property, creating it when the
@@ -84,7 +81,7 @@ const AgentProjectsPanel = (props: Props) => {
             return
         }
         const board = props.board
-        const property = findProjectProperty(board.cardProperties)
+        const property = findProjectProperty(board, board.cardProperties)
 
         // A project marked "on every board" is offered to every board, and
         // syncing it would give a board of shopping lists a "Projects" field it
@@ -98,8 +95,7 @@ const AgentProjectsPanel = (props: Props) => {
 
         const existing = new Set((property?.options || []).map((o: IPropertyOption) => o.value.trim().toLowerCase()))
         const missing = mine.filter((r) => !existing.has(r.name.trim().toLowerCase()))
-        const needsRename = Boolean(property) && property?.name !== PROJECT_PROPERTY_NAME
-        if (property && missing.length === 0 && !needsRename) {
+        if (property && missing.length === 0) {
             return
         }
 
@@ -108,15 +104,11 @@ const AgentProjectsPanel = (props: Props) => {
                 ...p,
                 options: [...p.options],
             }))
-            let target = findProjectProperty(newProperties)
-            if (target) {
-                // A board from before the rename keeps the property, its id and
-                // its options; only the label a person reads changes.
-                target.name = PROJECT_PROPERTY_NAME
-            } else {
+            let target = newProperties.find((p) => p.id === property?.id)
+            if (!target) {
                 target = {
                     id: Utils.createGuid(IDType.BlockID),
-                    name: PROJECT_PROPERTY_NAME,
+                    name: PROJECT_PROPERTY_TITLE,
                     type: 'multiSelect',
                     options: [],
                 }
@@ -129,13 +121,24 @@ const AgentProjectsPanel = (props: Props) => {
                     color: 'propColorDefault',
                 })
             }
-
             await mutator.updateBoardCardProperties(board.id, board.cardProperties, newProperties, 'sync projects')
+
+            // Written after the property exists, and only for a board that has
+            // just been given one — the templates ship the pair, and a board
+            // that already has it is never patched, so opening the dialog
+            // leaves the undo history and the websocket alone.
+            if (!property) {
+                await mutator.updateBoard(
+                    {...board, properties: {...board.properties, [BOARD_PROP_PROJECT_PROPERTY]: target.id}},
+                    board,
+                    'remember the projects field',
+                )
+            }
             if (missing.length > 0) {
                 sendFlashMessage({
                     content: intl.formatMessage(
-                        {id: 'AgentProjects.options-added', defaultMessage: 'Added {count} project option(s) to "{property}"'},
-                        {count: missing.length, property: PROJECT_PROPERTY_NAME},
+                        {id: 'AgentProjects.options-added', defaultMessage: 'Added {count, plural, one {# project option} other {# project options}} to "{property}"'},
+                        {count: missing.length, property: target.name},
                     ),
                     severity: 'normal',
                 })

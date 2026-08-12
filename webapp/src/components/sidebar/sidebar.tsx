@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {For, Show, createEffect, createSignal, onCleanup, onMount} from 'solid-js'
 
 import {useDragDropMonitor} from '@dnd-kit/solid'
@@ -7,7 +5,7 @@ import {isSortable} from '@dnd-kit/dom/sortable'
 
 import {FormattedMessage} from '../../intl'
 
-import {getActiveThemeName, loadTheme} from '../../theme'
+import {loadTheme} from '../../theme'
 import IconButton from '../../widgets/buttons/iconButton'
 import HamburgerIcon from '../../widgets/icons/hamburger'
 import HideSidebarIcon from '../../widgets/icons/hideSidebar'
@@ -46,7 +44,7 @@ import mutator from '../../mutator'
 import {Board} from '../../blocks/board'
 
 import SidebarCategory, {CategoryBoardsDroppableData} from './sidebarCategory'
-import SidebarSettingsMenu from './sidebarSettingsMenu'
+import SidebarSettingsButton from './sidebarSettingsButton'
 import SidebarUserMenu from './sidebarUserMenu'
 
 type Props = {
@@ -263,10 +261,13 @@ const Sidebar = (props: Props) => {
         }
 
         // if the board doesn't belong to a category
-        // we need to move it to the default "Boards" category
-        const boardsCategory = categories.find((c) => c.name === 'Boards')
+        // we need to move it to the default category.
+        // Found by its type: the default category is the one the server made
+        // rather than a person, and its name is the server's English, which the
+        // sidebar does not show and must not look for.
+        const boardsCategory = categories.find((c) => c.type === 'system')
         if (!boardsCategory) {
-            Utils.logError('Boards category not found for user')
+            Utils.logError('Default category not found for user')
             return
         }
 
@@ -571,7 +572,7 @@ const Sidebar = (props: Props) => {
                         />
                     </div>
 
-                    <SidebarSettingsMenu activeTheme={getActiveThemeName()}/>
+                    <SidebarSettingsButton/>
                 </div>
             </Show>
         </Show>

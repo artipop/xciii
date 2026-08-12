@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {Component, Show} from 'solid-js'
 import {Navigate, Route, useParams} from '@solidjs/router'
 import type {Params} from '@solidjs/router'

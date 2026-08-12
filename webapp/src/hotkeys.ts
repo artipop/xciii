@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Keyboard shortcuts with no framework in them. `hooks/hotkeys.ts` is the React
 // binding, and it is the only part a port to another framework would rewrite.
 //

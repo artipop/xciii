@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 )
 
 // A template is JSON nobody compiles, embedded in the binary and read once on
@@ -111,7 +111,7 @@ func TestEveryTemplateBringsItsOwnAutomation(t *testing.T) {
 	for _, file := range embeddedTemplates(t) {
 		board := readTemplate(t, file)[0].Data
 		properties, _ := board.Fields["properties"].(map[string]any)
-		for _, key := range []string{"acpColumns", "acpFlows"} {
+		for _, key := range []string{"xciiiColumns", "xciiiFlows"} {
 			list, ok := properties[key].([]any)
 			if !ok || len(list) == 0 {
 				t.Errorf("%s (%s) ships no %s", file, board.Title, key)
@@ -149,5 +149,40 @@ func TestTemplateSlugIsReadFromTheBoardItself(t *testing.T) {
 	board := &model.Board{Properties: map[string]any{TemplateMarkerProperty: "home-chores"}}
 	if got := templateSlug(board); got != "home-chores" {
 		t.Errorf("got %q", got)
+	}
+}
+
+// Every template names the card property that holds the projects, by id.
+// Making a board from a template duplicates it without renumbering the card
+// properties, so the id the template writes is the id the new board has — and
+// that is what lets the app find the field without knowing what it is called.
+// A field recognised by its name was a field nobody could rename and a board in
+// another language could never have.
+func TestEveryTemplateNamesItsProjectPropertyByID(t *testing.T) {
+	for _, file := range embeddedTemplates(t) {
+		board := readTemplate(t, file)[0].Data
+
+		properties, _ := board.Fields["properties"].(map[string]any)
+		propID, _ := properties["xciiiProjectProperty"].(string)
+		if propID == "" {
+			t.Errorf("%s: no xciiiProjectProperty", file)
+			continue
+		}
+
+		cardProperties, _ := board.Fields["cardProperties"].([]any)
+		found := false
+		for _, raw := range cardProperties {
+			prop, _ := raw.(map[string]any)
+			if id, _ := prop["id"].(string); id != propID {
+				continue
+			}
+			found = true
+			if propType, _ := prop["type"].(string); propType != "multiSelect" {
+				t.Errorf("%s: the projects property is a %q, and a card belongs to more than one project", file, propType)
+			}
+		}
+		if !found {
+			t.Errorf("%s: xciiiProjectProperty names %q, which the board has not got", file, propID)
+		}
 	}
 }

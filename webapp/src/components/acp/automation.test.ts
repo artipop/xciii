@@ -1,11 +1,10 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {Board, createBoard} from '../../blocks/board'
 
 import {
     Automation,
     BOARD_PROP_COLUMNS,
     BOARD_PROP_FLOWS,
+    BOARD_PROP_PROMPT,
     BOARD_PROP_SETUP,
     Flow,
     SUCCESS,
@@ -134,6 +133,15 @@ describe('components/acp/automation', () => {
         expect(boardAutomationProperties(board, {columns: [], flows: []}, undefined)[BOARD_PROP_SETUP]).toBeUndefined()
     })
 
+    test('saving a template keeps the instructions its agents are given', () => {
+        // The prompt is written by Go, not here, so the only way this page can
+        // affect it is by dropping it — which would leave a template that runs
+        // the right columns and briefs nobody.
+        const board = boardWith({[BOARD_PROP_PROMPT]: 'Отвечай по-русски.'})
+        const properties = boardAutomationProperties(board, {columns: [], flows: []}, undefined)
+        expect(properties[BOARD_PROP_PROMPT]).toBe('Отвечай по-русски.')
+    })
+
     test('the steps offered to a template follow what its automation does', () => {
         const defs = [
             {kind: 'project', optional: false},
@@ -187,5 +195,30 @@ describe('components/acp/automation', () => {
         expect(condIsComplete({commentContains: 'READY'})).toBe(true)
         expect(condIsComplete({property: 'Приоритет'})).toBe(false)
         expect(condIsComplete({property: 'Приоритет', value: 'Высокий', commentContains: 'x'})).toBe(false)
+    })
+
+    // Boards made before the rename carry the old key names. Reading has to
+    // find them, and saving has to replace them rather than leave both.
+    test('a template written under the old key names is read and migrated', () => {
+        const board = boardWith({
+            acpColumns: [{property: 'Статус', column: 'В работе', action: 'agent'}],
+            acpFlows: [{name: 'Фича', nodes: [], edges: []}],
+            acpSetup: {steps: [{kind: 'project'}]},
+            acpPrompt: 'Отвечай по-русски.',
+        })
+
+        expect(readBoardAutomation(board).columns[0].column).toBe('В работе')
+        expect(readBoardAutomation(board).flows[0].name).toBe('Фича')
+        expect(readBoardSetup(board)!.steps).toEqual([{kind: 'project'}])
+
+        const properties = boardAutomationProperties(board, readBoardAutomation(board), readBoardSetup(board))
+        expect(JSON.parse(properties[BOARD_PROP_COLUMNS] as string)[0].column).toBe('В работе')
+
+        // The prompt is not this page's to write, but it must survive under the
+        // current name rather than be dropped with the old one.
+        expect(properties[BOARD_PROP_PROMPT]).toBe('Отвечай по-русски.')
+        for (const legacy of ['acpColumns', 'acpFlows', 'acpSetup', 'acpPrompt']) {
+            expect(properties[legacy]).toBeUndefined()
+        }
     })
 })

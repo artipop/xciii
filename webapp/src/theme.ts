@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {UserSettings} from './userSettings'
 
 // The palette itself lives in `styles/_tokens.scss`, both themes side by side.

@@ -1,9 +1,6 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package audit
 
-import "github.com/mattermost/mattermost/server/public/shared/mlog"
+import "github.com/artipop/xciii/server/mlog"
 
 // Meta represents metadata that can be added to a audit record as name/value pairs.
 type Meta struct {

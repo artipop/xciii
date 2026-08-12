@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {Show, batch, createEffect, createSignal} from 'solid-js'
 import type {JSX} from 'solid-js'
 
@@ -294,7 +292,7 @@ const BoardPage = (props: Props): JSX.Element => {
                                 setMobileWarningClosed(true)
                             }}
                             icon={<CloseIcon/>}
-                            title='Close'
+                            title={intl.formatMessage({id: 'Modal.close', defaultMessage: 'Close'})}
                             class='margin-right'
                         />
                     </div>

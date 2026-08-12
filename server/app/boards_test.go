@@ -3,11 +3,11 @@ package app
 import (
 	"testing"
 
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/utils"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -32,6 +32,12 @@ func TestAddMemberToBoard(t *testing.T) {
 		}, nil)
 
 		th.Store.EXPECT().GetMemberForBoard(boardID, userID).Return(nil, nil)
+
+		// Adding a member sends the board to whoever can see the team, and asks
+		// with no user id because nobody in particular is asking. Both
+		// permission services answer that with a flat no before they consult
+		// anything; the mock has to be told, since it is the service now.
+		th.API.EXPECT().HasPermissionToTeam("", "team_id_1", model.PermissionManageTeam).Return(false).AnyTimes()
 
 		th.Store.EXPECT().SaveMember(mock.MatchedBy(func(i interface{}) bool {
 			p := i.(*model.BoardMember)

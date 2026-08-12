@@ -3,17 +3,17 @@ package auth
 import (
 	"testing"
 
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/config"
+	"github.com/artipop/xciii/server/services/permissions/localpermissions"
+	mockpermissions "github.com/artipop/xciii/server/services/permissions/mocks"
+	"github.com/artipop/xciii/server/services/store/mockstore"
+	"github.com/artipop/xciii/server/utils"
 	"github.com/golang/mock/gomock"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/config"
-	"github.com/mattermost/focalboard/server/services/permissions/localpermissions"
-	mockpermissions "github.com/mattermost/focalboard/server/services/permissions/mocks"
-	"github.com/mattermost/focalboard/server/services/store/mockstore"
-	"github.com/mattermost/focalboard/server/utils"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 type TestHelper struct {

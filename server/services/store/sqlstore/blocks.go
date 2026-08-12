@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/utils"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/artipop/xciii/server/model"
 	_ "github.com/lib/pq" // postgres driver
-	"github.com/mattermost/focalboard/server/model"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 const (

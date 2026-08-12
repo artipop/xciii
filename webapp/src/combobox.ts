@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The list behind every select in the app, with no framework and no DOM in it:
 // which rows are drawn, which of them a keystroke moves to, and what a key
 // means at all. `widgets/combobox.tsx` is the React view over it.

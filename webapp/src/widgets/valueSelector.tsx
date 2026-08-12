@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {For, Show} from 'solid-js'
 import type {JSX} from 'solid-js'
 
@@ -104,7 +102,7 @@ const ValueSelectorLabel = (props: LabelProps): JSX.Element => {
                     <IconButton
                         onClick={() => props.onDeleteValue!(props.option)}
                         icon={<CloseIcon/>}
-                        title='Clear'
+                        title={intl.formatMessage({id: 'PropertyValueElement.clear', defaultMessage: 'Clear'})}
                         class='margin-left delete-value'
                     />
                 </Show>

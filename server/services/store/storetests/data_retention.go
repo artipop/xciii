@@ -1,14 +1,12 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 package storetests
 
 import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/store"
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/store"
+	"github.com/artipop/xciii/server/utils"
 
 	"github.com/stretchr/testify/require"
 )

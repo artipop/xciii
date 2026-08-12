@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package boardadapter
 
 import (
@@ -9,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 )
 
 // The board as a phone reads it.
@@ -63,10 +60,15 @@ type CardSummary struct {
 	// without a property of ours beside it.
 	Author string `json:"author,omitempty"`
 
-	// Properties are the card's own, by the names a person reads. A card an
-	// outside source left carries «Источник» and «Ссылка» among them, which is
-	// how the inbox says where a thing came from without a second query.
+	// Properties are the card's own, by the names a person reads — which is what
+	// they are for: showing. Nothing keys off them.
 	Properties map[string]string `json:"properties,omitempty"`
+
+	// Link is the way back to whatever brought the card, resolved here from the
+	// board's url property rather than guessed from a property name on the
+	// screen that reads it. A phone that looked for «Ссылка» showed a link on a
+	// Russian board and nothing on any other.
+	Link string `json:"link,omitempty"`
 
 	UpdateAt int64 `json:"updateAt,omitempty"`
 }
@@ -150,6 +152,7 @@ func (w *Writer) BoardCards(ctx context.Context, boardID string) ([]CardSummary,
 		return nil, fmt.Errorf("get views of board %s: %w", boardID, err)
 	}
 	property, _ := columnPropertyName(board, schema, views)
+	linkID, _ := propertyOfType(board, schema, "url")
 	authors := w.boardAuthors(boardID)
 	blocks, err := w.app.GetBlocks(boardID, "", model.TypeCard)
 	if err != nil {
@@ -172,6 +175,11 @@ func (w *Writer) BoardCards(ctx context.Context, boardID string) ([]CardSummary,
 			UpdateAt:   block.UpdateAt,
 		}
 		card.Column = card.Properties[property]
+		if linkID != "" {
+			if def, ok := schema[linkID]; ok {
+				card.Link = card.Properties[def.Name]
+			}
+		}
 		out = append(out, card)
 	}
 	// Newest first: a list on a phone is read from the top, and what changed
@@ -258,8 +266,18 @@ func propertyText(def model.PropDef, value any) string {
 // to start one, exactly as it would if the card had been dragged. Everything
 // else in this file is the integration's own bookkeeping and must stay quiet.
 func (w *Writer) MoveCardToBoard(ctx context.Context, cardID, toBoardID, column string) error {
+	// A move that reports failure may still have landed: the board records
+	// every card write in a history keyed by (id, insert_at) in whole
+	// milliseconds, so a move a millisecond after any other write to the same
+	// card fails on that key after the card has already changed hands. Asking
+	// the card where it is now is the only way to tell the two apart — and
+	// retrying is not, because the second attempt finds the card already there
+	// and answers with a different error entirely.
 	if _, err := w.app.MoveCardToBoard(cardID, toBoardID, model.SingleUser); err != nil {
-		return fmt.Errorf("перенос карточки %s на доску %s: %w", cardID, toBoardID, err)
+		card, readErr := w.cardBlock(cardID)
+		if readErr != nil || card.BoardID != toBoardID {
+			return fmt.Errorf("перенос карточки %s на доску %s: %w", cardID, toBoardID, err)
+		}
 	}
 	if strings.TrimSpace(column) == "" {
 		return nil

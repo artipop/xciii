@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {Show, createEffect, createSignal, onCleanup} from 'solid-js'
 
 import {useIntl, FormattedMessage} from '../intl'
@@ -77,7 +75,7 @@ const CardLimitNotification = (props: Props) => {
         let title = intl.formatMessage(
             {
                 id: 'notification-box-card-limit-reached.title',
-                defaultMessage: '{cards} cards hidden from board',
+                defaultMessage: '{cards, plural, one {# card hidden from board} other {# cards hidden from board}}',
             },
             {cards: hiddenCards()},
         )

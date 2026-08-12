@@ -1,13 +1,10 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package model
 
 import (
 	"errors"
 	"strings"
 
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/utils"
 )
 
 // BlockType represents a block type.

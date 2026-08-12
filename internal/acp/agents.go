@@ -223,10 +223,17 @@ func (m *Manager) BoardPrompt(boardID string) string {
 // SetBoardPrompt stores that instruction for one board and persists. Empty text
 // removes the key rather than storing a blank, so a board that has said nothing
 // and a board that unsaid it are the same board.
+//
+// It is written through to the board itself, like the board's columns and
+// routes: the instruction is about this board and has to travel with it.
 func (m *Manager) SetBoardPrompt(boardID, text string) error {
 	if strings.TrimSpace(boardID) == "" {
 		return fmt.Errorf("не указана доска")
 	}
+	// Read the board before writing to it: the write below is the whole of
+	// this board's automation, and this is the one edit that can be the first
+	// thing that ever happens to a board.
+	m.listenBeforeSpeaking(boardID)
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
 	if strings.TrimSpace(text) == "" {
@@ -237,7 +244,7 @@ func (m *Manager) SetBoardPrompt(boardID, text string) error {
 		}
 		m.cfg.BoardPrompts[boardID] = text
 	}
-	return m.persistConfigLocked()
+	return m.saveBoardsLocked(boardID)
 }
 
 // PlanningPrompt returns the instructions a planning terminal is opened with.

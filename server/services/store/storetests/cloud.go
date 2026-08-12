@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package storetests
 
 import (
@@ -9,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/focalboard/server/model"
-	storeservice "github.com/mattermost/focalboard/server/services/store"
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/model"
+	storeservice "github.com/artipop/xciii/server/services/store"
+	"github.com/artipop/xciii/server/utils"
 )
 
 func StoreTestCloudStore(t *testing.T, setup func(t *testing.T) (storeservice.Store, func())) {

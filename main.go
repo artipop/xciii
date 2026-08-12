@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package main
 
 import (
@@ -13,55 +10,46 @@ import (
 	"github.com/google/uuid"
 	"github.com/wailsapp/wails/v3/pkg/application"
 
-	"github.com/mattermost/focalboard/server/services/notify"
+	"github.com/artipop/xciii/server/services/notify"
 
 	"github.com/artipop/xciii/internal/acp"
 	"github.com/artipop/xciii/internal/boardadapter"
 	"github.com/artipop/xciii/internal/secrets"
 	"github.com/artipop/xciii/internal/sources"
+	"github.com/artipop/xciii/internal/userpath"
 )
 
-// acpDataDir returns the ACP integration's own state directory
-// (~/Library/Application Support/XCIII/acp).
-func acpDataDir() (string, error) {
+// appDataDir returns one of this install's own directories, made if it is not
+// there. The install is named by appDirName, which is what keeps a development
+// build's boards, agents and tokens out of the real app's — see
+// datadir_dev.go.
+//
+// It is under os.UserConfigDir() rather than beside the binary because a
+// packaged, signed app directory is read-only:
+// ~/Library/Application Support on macOS, %AppData% on Windows,
+// ~/.config (or $XDG_CONFIG_HOME) on Linux.
+func appDataDir(name string, perm os.FileMode) (string, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	dir := filepath.Join(base, "XCIII", "acp")
-	if err := os.MkdirAll(dir, 0o750); err != nil {
+	dir := filepath.Join(base, appDirName, name)
+	if err := os.MkdirAll(dir, perm); err != nil {
 		return "", err
 	}
 	return dir, nil
 }
+
+// acpDataDir returns the ACP integration's own state directory.
+func acpDataDir() (string, error) { return appDataDir("acp", 0o750) }
 
 // sourcesDataDir returns where the sources subsystem keeps its registry and
-// what it has already seen (~/Library/Application Support/XCIII/sources).
-func sourcesDataDir() (string, error) {
-	base, err := os.UserConfigDir()
-	if err != nil {
-		return "", err
-	}
-	dir := filepath.Join(base, "XCIII", "sources")
-	if err := os.MkdirAll(dir, 0o750); err != nil {
-		return "", err
-	}
-	return dir, nil
-}
+// what it has already seen.
+func sourcesDataDir() (string, error) { return appDataDir("sources", 0o750) }
 
 // tailnetDataDir returns where the tailnet door keeps its settings and the
-// node's own state (~/Library/Application Support/XCIII/tailnet).
-func tailnetDataDir() (string, error) {
-	base, err := os.UserConfigDir()
-	if err != nil {
-		return "", err
-	}
-	dir := filepath.Join(base, "XCIII", "tailnet")
-	if err := os.MkdirAll(dir, 0o700); err != nil {
-		return "", err
-	}
-	return dir, nil
-}
+// node's own state. Tighter than the rest: it holds an auth key.
+func tailnetDataDir() (string, error) { return appDataDir("tailnet", 0o700) }
 
 // ignoreViteDevServer removes the variable `wails3 dev` sets to point the app at
 // a Vite dev server. This app never has one: the page is the board webapp,
@@ -79,6 +67,24 @@ func main() {
 	maybeRunMCP(os.Args[1:])
 
 	ignoreViteDevServer()
+
+	// Before anything can be spawned: a packaged app is started by launchd and
+	// gets its PATH, which has none of what this app runs for the user — npx,
+	// node, the agent CLIs, a source plugin. See internal/userpath.
+	if changed, err := userpath.Restore(); err != nil {
+		log.Printf("path: %v", err)
+	} else if changed {
+		log.Printf("path: taken from the login shell (%s)", os.Getenv("SHELL"))
+	}
+
+	// Said out loud, because the two installs look identical from the inside
+	// and the first sign of being in the wrong one is a board that should have
+	// something on it and does not.
+	if appIsDev {
+		if base, err := os.UserConfigDir(); err == nil {
+			log.Printf("development build: its own data, %s — the installed app keeps its own", filepath.Join(base, appDirName))
+		}
+	}
 
 	sessionToken := "su-" + uuid.New().String()
 
@@ -192,8 +198,13 @@ func main() {
 		log.Printf("sources: disabled, store error: %v", err)
 		sourceStore = nil
 	} else {
+		sourceWriter := boardadapter.NewSourceWriter(srv.App())
 		sourceMgr := sources.NewManager(cfg, filepath.Join(dir, "sources.json"),
-			sourceStore, boardadapter.NewSourceWriter(srv.App()), nil)
+			sourceStore, sourceWriter, nil)
+		// Lets the board answer "have we brought this one already", so a board
+		// that arrived from another machine does not have everything on it
+		// brought a second time.
+		sourceMgr.SetBoardItems(sourceWriter)
 		ingest.SetManager(sourceMgr)
 		app.sources = sourceMgr
 		sourcesReady = func() bool { return len(sourceMgr.Sources()) > 0 }
@@ -216,8 +227,12 @@ func main() {
 		// having to delete anything, then the platform's own keychain, and the
 		// file only where there is no keychain to have: it keeps values in
 		// plain text at 0600 and says so.
+		// The keychain service is this install's name, not the product's: a
+		// token stored by a development build must not be handed to the app,
+		// and a real token must not be reachable from whatever is being tried
+		// out at the time.
 		store := secrets.Chain{secrets.Env{Prefix: "XCIII_SECRET_"}}
-		if keychain, ok := secrets.OpenKeychain("XCIII"); ok {
+		if keychain, ok := secrets.OpenKeychain(appDirName); ok {
 			store = append(store, keychain)
 		} else {
 			store = append(store, secrets.NewFileStore(filepath.Join(dir, "secrets.json")))
@@ -244,10 +259,14 @@ func main() {
 		if err != nil {
 			log.Printf("acp: disabled, store error: %v", err)
 		} else {
-			mgr = acp.NewManager(acpCfg, filepath.Join(dir, "config.json"), store, boardadapter.NewWriter(srv.App()), emitter, nil)
+			writer := boardadapter.NewWriter(srv.App())
+			mgr = acp.NewManager(acpCfg, filepath.Join(dir, "config.json"), store, writer, emitter, nil)
 			// Lets the UI open a console on a card without moving it.
 			mgr.SetBoardReader(events)
 			mgr.SetBoardMeta(events)
+			// Keeps a card's place on its route on the card, so it travels
+			// with the board rather than staying on this machine.
+			mgr.SetBoardCardState(writer)
 			// Lets the UI give agents board accounts, so cards can be
 			// assigned to them in a person property.
 			mgr.SetBoardUsers(events)

@@ -11,13 +11,15 @@ the whole thing to a browser.
 Everything a build needs is in this repository: `webapp/` is the frontend, its
 own npm project built with Vite, and `server/` is the board server, a fork of
 Mattermost's Focalboard with our own patches (`GetUserByUsername` and two
-single-user endpoint fixes). `go.mod` `replace`s the module to `./server`, so
-**`git clone` and `go build ./...` is the whole of it** — there is no second
-checkout to place beside this one and no branch of somebody else's to be on.
+single-user endpoint fixes). It is one Go module — `server/` is a directory in
+it, not a module of its own — so **`git clone` and `go build ./...` is the whole
+of it**: no second checkout beside this one, no branch of somebody else's, and
+nothing to `replace`.
 
-`server/` keeps Focalboard's import path, `github.com/mattermost/focalboard/
-server`, because that is what its own thousands of files say. The path is
-upstream's; the code is ours.
+The board server's packages are `github.com/artipop/xciii/server/…`. They kept
+upstream's import path for a long time, on the grounds that a rename was a
+tree-wide edit buying nothing but the name; the name turned out to be worth it,
+and the edit was one pass over 209 files.
 
 ## How it works
 
@@ -28,6 +30,11 @@ The Go code is platform-agnostic — the same files build for every OS:
   dir (`os.UserConfigDir()` → `~/Library/Application Support/XCIII` on macOS,
   `%AppData%\XCIII` on Windows, `~/.config/XCIII` on Linux), **not** next
   to the binary, because a signed/packaged app dir is read-only.
+- `datadir_production.go` / `datadir_dev.go` — which install that is.
+  A packaged build (`-tags production`, which every one of them carries) uses
+  `XCIII`; `wails3 dev` builds without the tag and uses `XCIII-dev`, including
+  as the keychain service name. One product, two installs, so what is tried out
+  in development is not in the app afterwards.
 - `frontend_embed.go` / `frontend_disk.go` — the webapp `pack` is compiled into the
   binary with `go:embed` (release builds, `-tags frontend`) straight from
   `webapp/pack`, where the `build:frontend` task leaves it.
@@ -192,7 +199,7 @@ the one thing a rewrite must not quietly drop.
 - **Linux targets GTK 3** (`gtk3` build tag, webkit2gtk-4.1). Wails v3 defaults
   to GTK 4, but its GTK 4 code needs 4.10 — newer than several still-supported
   distributions ship. `GTK_TAG=` drops the tag where GTK 4 is new enough.
-- **Browser-testing sessions** (the «Тестирование» column) need a browser MCP server
+- **Browser-testing sessions** (the «QA» column) need a browser MCP server
   on the agent — under *Agents → MCP servers*, paste the same JSON any MCP
   client takes, e.g. `{"mcpServers": {"playwright": {"command": "npx", "args":
   ["-y", "@playwright/mcp@latest", "--headless"]}}}`. The app ships no
@@ -247,7 +254,7 @@ the one thing a rewrite must not quietly drop.
   when the registries are still empty — a project and an agent are asked for
   (nothing runs without them), Dokku and a browser MCP server are offered and
   skippable. **Which steps it has is the board's own answer.** A template
-  declares them in `acpSetup`, beside the columns and routes it carries, and may
+  declares them in `xciiiSetup`, beside the columns and routes it carries, and may
   add a sentence of its own to a step ("the folder with your household notes")
   or insist on one the app calls optional. It may only name steps from the
   closed set `internal/acp/setup.go` implements — like the flow triggers, the

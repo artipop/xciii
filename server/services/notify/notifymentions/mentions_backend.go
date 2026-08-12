@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package notifymentions
 
 import (
@@ -8,12 +5,12 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/notify"
-	"github.com/mattermost/focalboard/server/services/permissions"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/notify"
+	"github.com/artipop/xciii/server/services/permissions"
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 const (

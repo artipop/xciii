@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {createMemo, createUniqueId} from 'solid-js'
 import type {Accessor, ParentComponent} from 'solid-js'
 import {DragDropProvider, useDragDropMonitor, useDraggable, useDroppable, type DragDropEventHandlers} from '@dnd-kit/solid'

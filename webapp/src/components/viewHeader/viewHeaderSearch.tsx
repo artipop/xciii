@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {createEffect, createSignal, onCleanup} from 'solid-js'
 import type {JSX} from 'solid-js'
 import debounce from 'lodash/debounce'

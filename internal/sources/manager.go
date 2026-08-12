@@ -21,7 +21,11 @@ type Manager struct {
 
 	store  *Store
 	writer BoardWriter
-	log    *slog.Logger
+	// items is the board asked what it already holds from a source. Optional,
+	// and separate from writer so that a build with no board, and every test
+	// that does not care, keeps working with this machine's table alone.
+	items BoardItems
+	log   *slog.Logger
 	// catalog is the manifests read from <dataDir>/sources/manifests. Kept
 	// beside the registry rather than in it: the registry is what a person
 	// configured, and this is a directory that is read again on every start.
@@ -55,6 +59,15 @@ func NewManager(cfg Config, cfgPath string, store *Store, writer BoardWriter, lo
 		log = slog.Default()
 	}
 	return &Manager{cfg: cfg, cfgPath: cfgPath, store: store, writer: writer, log: log}
+}
+
+// SetBoardItems supplies the board as the record of what a source has already
+// brought. Without it that record is this machine's alone, and a board carried
+// here from elsewhere has every one of its items brought again.
+func (m *Manager) SetBoardItems(b BoardItems) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.items = b
 }
 
 // boardWriteTimeout bounds one card write, so a stuck board cannot hold an
@@ -333,7 +346,7 @@ func newDelivery() *delivery {
 }
 
 func (m *Manager) deliverOne(ctx context.Context, d *delivery, entry SourceEntry, it Item, res *Result) error {
-	state, cardID, err := m.stateOf(entry.Name, it)
+	state, cardID, err := m.stateOf(ctx, entry, it)
 	if err != nil {
 		return err
 	}
@@ -411,22 +424,19 @@ func (m *Manager) createCard(ctx context.Context, d *delivery, entry SourceEntry
 		// whether the item was claimed, not whether it is shown.
 		column = entry.InboxOr()
 	}
+	// Where the card came from is not a property: the card is authored by the
+	// source, which is the board's own answer and the one the inbox groups by,
+	// and a property saying it again would be a second answer to one question.
+	// The way back to the original travels as CardSpec.URL, which the board
+	// side puts wherever that board keeps a link — this package knows no
+	// property names of its own.
 	spec.Source = entry.Name
-	if entry.Name != "" {
+	if rule.Agent != "" {
+		// RenderProps answers nil for a rule with no properties of its own, and
+		// a nil map is not something to write into.
 		if spec.Properties == nil {
 			spec.Properties = map[string]string{}
 		}
-		// The way back to the original, for a person looking at the card. Where
-		// it came from is not among these: the card is authored by the source,
-		// which is the board's own answer and the one the inbox groups by — a
-		// property saying it again would be a second answer to one question.
-		// The pipeline never reads these back — the truth is in source_item —
-		// so a person may change them freely.
-		if u := strings.TrimSpace(it.URL); u != "" {
-			setIfAbsent(spec.Properties, "Ссылка", u)
-		}
-	}
-	if rule.Agent != "" {
 		setIfAbsent(spec.Properties, "Agent", rule.Agent)
 	}
 
@@ -520,11 +530,51 @@ func setIfAbsent(props map[string]string, name, value string) {
 	props[name] = value
 }
 
-func (m *Manager) stateOf(source string, it Item) (ItemState, string, error) {
-	if m.store == nil {
+// stateOf answers whether this item has been brought before, and onto which
+// card. This machine's table is asked first because it is the fast answer and
+// the usual one; the board is asked only when the table has never heard of the
+// item, which is what happens on a board that arrived from somewhere else.
+//
+// The board's answer is written into the table, so it is asked once per item
+// and not once per poll.
+func (m *Manager) stateOf(ctx context.Context, entry SourceEntry, it Item) (ItemState, string, error) {
+	if m.store != nil {
+		state, cardID, err := m.store.StateOf(entry.Name, it.ExternalID, it.Version)
+		if err != nil {
+			return state, cardID, err
+		}
+		if state != ItemNew {
+			return state, cardID, nil
+		}
+	}
+	m.mu.RLock()
+	items := m.items
+	m.mu.RUnlock()
+	if items == nil || entry.BoardID == "" || it.ExternalID == "" {
 		return ItemNew, "", nil
 	}
-	return m.store.StateOf(source, it.ExternalID, it.Version)
+	bctx, cancel := context.WithTimeout(ctx, boardWriteTimeout)
+	cardID, version, ok, err := items.CardBySourceItem(bctx, entry.BoardID, entry.Name, it.ExternalID)
+	cancel()
+	if err != nil {
+		// The board could not be asked, so this machine does not know. Treating
+		// that as "never seen" would make a second card; treating it as an
+		// error leaves the item for the next poll, which is the poll's job.
+		return ItemNew, "", fmt.Errorf("спросить доску про элемент %s: %w", it.ExternalID, err)
+	}
+	if !ok {
+		return ItemNew, "", nil
+	}
+	if version != it.Version {
+		// Changed: what happens next is a comment on that card, and only once
+		// it lands is the item remembered — the same ordering the rest of the
+		// pipeline keeps, so a failed write replays instead of being lost.
+		return ItemChanged, cardID, nil
+	}
+	if err := m.remember(entry.Name, it, cardID); err != nil {
+		m.log.Warn("sources: не удалось запомнить элемент, известный доске", "source", entry.Name, "err", err)
+	}
+	return ItemSeen, cardID, nil
 }
 
 func (m *Manager) remember(source string, it Item, cardID string) error {

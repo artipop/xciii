@@ -15,15 +15,19 @@ webapp/cypress/videos
 webapp/cypress/screenshots
 build/linux/appimage/build
 build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
-# The macOS icon catalog `common:generate:icons` compiles from appicon.icon.
-# actool writes a fresh uuid into it every run, so a tracked copy is a binary
-# diff after every packaging job and nothing in it is worth reviewing. The
-# darwin package task copies it into the .app when it is there and carries on
-# without it, falling back to the icons.icns beside it — so if the Icon Composer
-# icon is missing from a build, `wails3 task --force common:generate:icons`
-# writes it back (plain `task` can consider itself up to date: Assets.car is not
-# among the task's `generates`).
-build/darwin/Assets.car
+# The macOS icon catalog `common:generate:icons` compiles from appicon.icon,
+# and the .icns beside it — `-macassetdir` hands both to the same actool run.
+# actool writes a fresh uuid into Assets.car every run, and the CLT/SDK version
+# on the machine changes the bytes it writes into icons.icns even from an
+# unchanged appicon.icon, so a tracked copy of either is a binary diff after
+# every packaging job and nothing in it is worth reviewing. `build` always
+# depends on `common:generate:icons`, so both exist fresh by the time the
+# darwin package task copies them into the .app — Assets.car optionally, since
+# older Icon Composer inputs may not produce one; icons.icns unconditionally.
+# Written to match anywhere rather than at the root: the phone module carries
+# its own copy of these Taskfiles, generating its own pair from its own icon.
+**/build/darwin/Assets.car
+**/build/darwin/icons.icns
 
 # The phone app's generated project. `wails3 ios xcode:gen` writes the Xcode
 # project and the main.m shim from templates inside the CLI on every build, and
@@ -42,3 +46,5 @@ go.work.sum
 
 # Finder leaves these in every directory it has been asked to draw.
 .DS_Store
+
+.idea/

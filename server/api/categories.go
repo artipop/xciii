@@ -6,22 +6,22 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/web"
 )
 
-func (a *API) registerCategoriesRoutes(r *mux.Router) {
+func (a *API) registerCategoriesRoutes(r *web.Router) {
 	// Category APIs
-	r.HandleFunc("/teams/{teamID}/categories", a.sessionRequired(a.handleCreateCategory)).Methods(http.MethodPost)
-	r.HandleFunc("/teams/{teamID}/categories/reorder", a.sessionRequired(a.handleReorderCategories)).Methods(http.MethodPut)
-	r.HandleFunc("/teams/{teamID}/categories/{categoryID}", a.sessionRequired(a.handleUpdateCategory)).Methods(http.MethodPut)
-	r.HandleFunc("/teams/{teamID}/categories/{categoryID}", a.sessionRequired(a.handleDeleteCategory)).Methods(http.MethodDelete)
-	r.HandleFunc("/teams/{teamID}/categories", a.sessionRequired(a.handleGetUserCategoryBoards)).Methods(http.MethodGet)
-	r.HandleFunc("/teams/{teamID}/categories/{categoryID}/boards/reorder", a.sessionRequired(a.handleReorderCategoryBoards)).Methods(http.MethodPut)
-	r.HandleFunc("/teams/{teamID}/categories/{categoryID}/boards/{boardID}", a.sessionRequired(a.handleUpdateCategoryBoard)).Methods(http.MethodPost)
-	r.HandleFunc("/teams/{teamID}/categories/{categoryID}/boards/{boardID}/hide", a.sessionRequired(a.handleHideBoard)).Methods(http.MethodPut)
-	r.HandleFunc("/teams/{teamID}/categories/{categoryID}/boards/{boardID}/unhide", a.sessionRequired(a.handleUnhideBoard)).Methods(http.MethodPut)
+	r.HandleFunc("POST /teams/{teamID}/categories", a.sessionRequired(a.handleCreateCategory))
+	r.HandleFunc("PUT /teams/{teamID}/categories/reorder", a.sessionRequired(a.handleReorderCategories))
+	r.HandleFunc("PUT /teams/{teamID}/categories/{categoryID}", a.sessionRequired(a.handleUpdateCategory))
+	r.HandleFunc("DELETE /teams/{teamID}/categories/{categoryID}", a.sessionRequired(a.handleDeleteCategory))
+	r.HandleFunc("GET /teams/{teamID}/categories", a.sessionRequired(a.handleGetUserCategoryBoards))
+	r.HandleFunc("PUT /teams/{teamID}/categories/{categoryID}/boards/reorder", a.sessionRequired(a.handleReorderCategoryBoards))
+	r.HandleFunc("POST /teams/{teamID}/categories/{categoryID}/boards/{boardID}", a.sessionRequired(a.handleUpdateCategoryBoard))
+	r.HandleFunc("PUT /teams/{teamID}/categories/{categoryID}/boards/{boardID}/hide", a.sessionRequired(a.handleHideBoard))
+	r.HandleFunc("PUT /teams/{teamID}/categories/{categoryID}/boards/{boardID}/unhide", a.sessionRequired(a.handleUnhideBoard))
 }
 
 func (a *API) handleCreateCategory(w http.ResponseWriter, r *http.Request) {
@@ -83,8 +83,7 @@ func (a *API) handleCreateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
+	teamID := r.PathValue("teamID")
 
 	if category.TeamID != teamID {
 		a.errorResponse(w, r, model.NewErrBadRequest("teamID mismatch"))
@@ -150,8 +149,7 @@ func (a *API) handleUpdateCategory(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	vars := mux.Vars(r)
-	categoryID := vars["categoryID"]
+	categoryID := r.PathValue("categoryID")
 
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -183,7 +181,7 @@ func (a *API) handleUpdateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamID := vars["teamID"]
+	teamID := r.PathValue("teamID")
 	if category.TeamID != teamID {
 		a.errorResponse(w, r, model.NewErrBadRequest("teamID mismatch"))
 		return
@@ -241,11 +239,10 @@ func (a *API) handleDeleteCategory(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	session := ctx.Value(sessionContextKey).(*model.Session)
-	vars := mux.Vars(r)
 
 	userID := session.UserID
-	teamID := vars["teamID"]
-	categoryID := vars["categoryID"]
+	teamID := r.PathValue("teamID")
+	categoryID := r.PathValue("categoryID")
 
 	auditRec := a.makeAuditRecord(r, "deleteCategory", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelModify, auditRec)
@@ -303,8 +300,7 @@ func (a *API) handleGetUserCategoryBoards(w http.ResponseWriter, r *http.Request
 	session := ctx.Value(sessionContextKey).(*model.Session)
 	userID := session.UserID
 
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
+	teamID := r.PathValue("teamID")
 
 	auditRec := a.makeAuditRecord(r, "getUserCategoryBoards", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelModify, auditRec)
@@ -367,10 +363,9 @@ func (a *API) handleUpdateCategoryBoard(w http.ResponseWriter, r *http.Request) 
 	auditRec := a.makeAuditRecord(r, "updateCategoryBoard", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelModify, auditRec)
 
-	vars := mux.Vars(r)
-	categoryID := vars["categoryID"]
-	boardID := vars["boardID"]
-	teamID := vars["teamID"]
+	categoryID := r.PathValue("categoryID")
+	boardID := r.PathValue("boardID")
+	teamID := r.PathValue("teamID")
 
 	ctx := r.Context()
 	session := ctx.Value(sessionContextKey).(*model.Session)
@@ -416,8 +411,7 @@ func (a *API) handleReorderCategories(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
+	teamID := r.PathValue("teamID")
 
 	ctx := r.Context()
 	session := ctx.Value(sessionContextKey).(*model.Session)
@@ -493,9 +487,8 @@ func (a *API) handleReorderCategoryBoards(w http.ResponseWriter, r *http.Request
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
-	categoryID := vars["categoryID"]
+	teamID := r.PathValue("teamID")
+	categoryID := r.PathValue("categoryID")
 
 	ctx := r.Context()
 	session := ctx.Value(sessionContextKey).(*model.Session)
@@ -586,10 +579,9 @@ func (a *API) handleHideBoard(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 
 	userID := getUserID(r)
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
-	boardID := vars["boardID"]
-	categoryID := vars["categoryID"]
+	teamID := r.PathValue("teamID")
+	boardID := r.PathValue("boardID")
+	categoryID := r.PathValue("categoryID")
 
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to category"))
@@ -648,10 +640,9 @@ func (a *API) handleUnhideBoard(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 
 	userID := getUserID(r)
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
-	boardID := vars["boardID"]
-	categoryID := vars["categoryID"]
+	teamID := r.PathValue("teamID")
+	boardID := r.PathValue("boardID")
+	categoryID := r.PathValue("categoryID")
 
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to category"))

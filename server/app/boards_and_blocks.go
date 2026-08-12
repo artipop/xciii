@@ -1,10 +1,10 @@
 package app
 
 import (
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/notify"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/notify"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 func (a *App) CreateBoardsAndBlocks(bab *model.BoardsAndBlocks, userID string, addMember bool) (*model.BoardsAndBlocks, error) {

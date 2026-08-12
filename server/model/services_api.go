@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 //go:generate mockgen --build_flags= -destination=mocks/mockservicesapi.go -package mocks . ServicesAPI
 
 package model
@@ -8,10 +5,8 @@ package model
 import (
 	"database/sql"
 
-	"github.com/gorilla/mux"
-
+	"github.com/artipop/xciii/server/mlog"
 	mm_model "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -81,9 +76,6 @@ type ServicesAPI interface {
 
 	// System service
 	GetDiagnosticID() string
-
-	// Router service
-	RegisterRouter(sub *mux.Router)
 
 	// Preferences services
 	GetPreferencesForUser(userID string) (mm_model.Preferences, error)

@@ -5,11 +5,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/config"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/config"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 func TestClientUpdateNotify(t *testing.T) {

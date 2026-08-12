@@ -33,9 +33,9 @@ type templateBoard struct {
 	Fields struct {
 		CardProperties []templateProperty `json:"cardProperties"`
 		Properties     struct {
-			Columns []ColumnSpec `json:"acpColumns"`
-			Flows   []FlowEntry  `json:"acpFlows"`
-			Setup   BoardSetup   `json:"acpSetup"`
+			Columns []ColumnSpec `json:"xciiiColumns"`
+			Flows   []FlowEntry  `json:"xciiiFlows"`
+			Setup   BoardSetup   `json:"xciiiSetup"`
 		} `json:"properties"`
 	} `json:"fields"`
 }

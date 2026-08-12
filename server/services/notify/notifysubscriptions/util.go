@@ -1,12 +1,9 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 package notifysubscriptions
 
 import (
 	"strings"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 )
 
 func getBoardDescription(board *model.Block) string {

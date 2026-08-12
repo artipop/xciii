@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import isEqual from 'lodash/isEqual'
 
 import {produce} from 'solid-js/store'
@@ -153,3 +150,18 @@ export const getCurrentViewDisplayBy = (state: RootState) => {
     }
     return currentBoard.cardProperties.find((o) => o.id === currentView.fields.dateDisplayPropertyId)
 }
+
+// oldestView is the view a board was made with: the ties are broken by id so
+// two views written in the same millisecond still resolve to the same one every
+// time, rather than to whichever the store happened to list first.
+//
+// It is what decides which view a board — or a template's preview — opens on.
+// Sorting by title, which is right for the sidebar, is wrong for that: a view
+// added later and named «Входящие» took the board over from «Дела».
+export const oldestView = (views: BoardView[]): BoardView =>
+    views.reduce((oldest, view) => {
+        if (view.createAt !== oldest.createAt) {
+            return view.createAt < oldest.createAt ? view : oldest
+        }
+        return view.id < oldest.id ? view : oldest
+    })

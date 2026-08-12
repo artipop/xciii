@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import {agentBindings} from '../components/acp/bindings'
@@ -43,6 +40,12 @@ export type BindingCard = {
 
     // Who made the card — for what arrived, the source that brought it.
     author?: string
+
+    // The way back to whatever brought the card. The Go side resolves it off
+    // the board's url property, so this screen never has to know what that
+    // property is called — it used to look for one named «Ссылка», and showed
+    // nothing on a board that called it anything else.
+    link?: string
     properties?: {[name: string]: string}
     updateAt?: number
 }
