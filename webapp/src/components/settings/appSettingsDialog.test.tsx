@@ -52,11 +52,14 @@ describe('components/settings/appSettingsDialog', () => {
         userEvent.click(screen.getByRole('button', {name: 'Proxy configurations'}))
         await waitFor(() => expect(screen.getByText('office')).toBeInTheDocument())
 
-        userEvent.click(screen.getByRole('button', {name: 'Where to deploy'}))
-        await waitFor(() => expect(screen.getByText('dokku-1')).toBeInTheDocument())
-
         userEvent.click(screen.getByRole('button', {name: 'Access from a phone'}))
         await waitFor(() => expect(screen.getByText('The board is on this machine only')).toBeInTheDocument())
+
+        // Deploy targets are machine registry too, but a Dokku host only means
+        // anything to a board whose route deploys — so their door is that
+        // board's «Как работает эта доска…», never this dialog, bindings or no
+        // bindings.
+        expect(screen.queryByRole('button', {name: 'Where to deploy'})).toBeNull()
     })
 
     // What a conversation with an agent opens saying is a setting of the
@@ -90,7 +93,6 @@ describe('components/settings/appSettingsDialog', () => {
         open()
 
         await waitFor(() => expect(screen.getByRole('button', {name: 'Agents'})).toBeInTheDocument())
-        expect(screen.queryByRole('button', {name: 'Where to deploy'})).toBeNull()
         expect(screen.queryByRole('button', {name: 'Access from a phone'})).toBeNull()
         expect(screen.queryByRole('button', {name: 'Proxy configurations'})).toBeNull()
     })

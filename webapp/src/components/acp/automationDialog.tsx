@@ -13,6 +13,7 @@ import Dialog from '../dialog'
 import {agentBindings} from './bindings'
 import AutomationEditor from './automationEditor'
 import AgentProjectsPanel, {isAgentProjectsAvailable} from './agentProjectsPanel'
+import DeployTargetsPanel, {isDeployTargetsAvailable} from './deployTargetsPanel'
 import AgentQuickAdd from './agentQuickAdd'
 import {isAgentsAvailable} from './agentsPanel'
 import BoardSetupWizard from './boardSetupWizard'
@@ -92,6 +93,7 @@ const AutomationDialog = (props: Props) => {
     // never asked about a checkout.
     const [projectCount, setProjectCount] = createSignal(0)
     const [showProjects, setShowProjects] = createSignal(false)
+    const [showDeploys, setShowDeploys] = createSignal(false)
     const [showSetup, setShowSetup] = createSignal(false)
     const [addingAgent, setAddingAgent] = createSignal(false)
     const [plan, refreshPlan] = createSetupPlan(() => props.board)
@@ -101,6 +103,26 @@ const AutomationDialog = (props: Props) => {
     const usesProjects = () => isAgentProjectsAvailable() && (
         projectCount() > 0 ||
         draft().columns.some((c) => c.action === 'agent' || c.action === 'test'))
+
+    // Deploy targets used to be a section of the app's own settings, and that
+    // put a Dokku form one click from a board of household chores. They are
+    // machine registry all the same — an SSH key is nothing a board owns — but
+    // what makes them worth *offering* is a stage that deploys, so the door is
+    // here and only on a board whose automation has one. The draft, not the
+    // saved state: drawing a deploy column is the moment the question arises.
+    const usesDeploys = () => isDeployTargetsAvailable() && (
+        draft().columns.some((c) => c.action === 'deploy') ||
+        draft().flows.some((f) => f.nodes.some((n) => n.action === 'deploy')))
+
+    // The editor's own copy of the registry, refreshed when the panel below
+    // changes it — a full refresh() would also reload the draft and throw away
+    // unsaved edits.
+    const refreshDeploys = async () => {
+        if (bindings?.ListDeployTargets) {
+            setDeploys(JSON.parse(await bindings.ListDeployTargets()) || [])
+        }
+        refreshPlan()
+    }
 
     const refresh = async () => {
         if (!bindings?.ListFlows) {
@@ -381,6 +403,24 @@ const AutomationDialog = (props: Props) => {
                                 board={props.board}
                                 onChange={refreshPlan}
                             />
+                        </Show>
+                    </details>
+                </Show>
+
+                {/* The registry is the machine's, the door is the board's: a
+                    Dokku host is only worth asking about where a stage
+                    deploys, so this is where it is asked — see usesDeploys. */}
+                <Show when={usesDeploys()}>
+                    <details
+                        class='AutomationDialog__deploys'
+                        open={showDeploys()}
+                        onToggle={(e) => setShowDeploys(e.currentTarget.open)}
+                    >
+                        <summary>
+                            {intl.formatMessage({id: 'Machine.section-deploys', defaultMessage: 'Where to deploy'})}
+                        </summary>
+                        <Show when={showDeploys()}>
+                            <DeployTargetsPanel onChange={refreshDeploys}/>
                         </Show>
                     </details>
                 </Show>

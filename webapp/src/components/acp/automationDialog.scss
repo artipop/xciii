@@ -60,9 +60,10 @@
         box-shadow: 0 -8px 12px -8px rgb(var(--surface-bg-rgb));
     }
 
-    // Folded away, both of them: what a column does is the point of this
-    // screen, and these two are answered once and then left alone.
-    .AutomationDialog__projects {
+    // Folded away, all of them: what a column does is the point of this
+    // screen, and these are answered once and then left alone.
+    .AutomationDialog__projects,
+    .AutomationDialog__deploys {
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         padding-top: 8px;
 
@@ -71,7 +72,8 @@
             font-weight: 600;
         }
 
-        .AgentProjectsPanel__subtitle {
+        .AgentProjectsPanel__subtitle,
+        .DeployTargetsPanel__subtitle {
             font-size: 12px;
             color: rgba(var(--center-channel-color-rgb), 0.56);
             margin: 6px 0;

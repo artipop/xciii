@@ -40,7 +40,15 @@ function previewHost(t: DeployTarget): string {
     return `${t.baseApp || 'reponame'}-my-branch.${t.baseDomain || t.sshHost || 'dokku.example.com'}`
 }
 
-const DeployTargetsPanel = () => {
+type Props = {
+
+    // Said after the registry actually changed, for a host that keeps its own
+    // copy of the list — the automation dialog offers the targets by name in a
+    // column's deploy override.
+    onChange?: () => void
+}
+
+const DeployTargetsPanel = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
 
@@ -90,6 +98,7 @@ const DeployTargetsPanel = () => {
             }
             setForm(null)
             await refresh()
+            props.onChange?.()
         } catch (e) {
             setError(String(e))
         }
@@ -105,6 +114,7 @@ const DeployTargetsPanel = () => {
         try {
             await bindings.RemoveDeployTarget(name)
             await refresh()
+            props.onChange?.()
         } catch (e) {
             setError(String(e))
         }

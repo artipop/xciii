@@ -85,6 +85,11 @@ own.
 
 - **"Projects"** — folders on your machine where this board's agents work; a
   card picks its folder with the "Projects" field;
+- **"Where to deploy"** — deploy targets: the Dokku host, the SSH user and
+  key, the preview domain. The section only appears on a board that has a
+  deploy column — a board that deploys nothing has no use for it. The targets
+  themselves are shared by the whole machine: one added here is visible to any
+  other deploying board;
 - **"What every agent on this board is told first"** — the board's instruction,
   added before the card description.
 

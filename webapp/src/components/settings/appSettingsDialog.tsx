@@ -7,7 +7,6 @@ import {useIntl} from '../../intl'
 import Dialog from '../dialog'
 
 import AgentsPanel, {isAgentsAvailable} from '../acp/agentsPanel'
-import DeployTargetsPanel, {isDeployTargetsAvailable} from '../acp/deployTargetsPanel'
 import ProxiesPanel, {isProxiesAvailable} from '../acp/proxiesPanel'
 import TailnetPanel, {isTailnetAvailable} from '../acp/tailnetPanel'
 import MachineMiscPanel from '../acp/machineMiscPanel'
@@ -18,10 +17,15 @@ import DataPanel from './dataPanel'
 import './appSettingsDialog.scss'
 
 // Everything this app is asked about itself rather than about a board: how it
-// looks and what language it speaks, which agents are installed, where they may
-// deploy, how they reach the network, whether the board is on the tailnet, what
-// comes in and goes out as an archive, and what it is allowed to interrupt
-// with.
+// looks and what language it speaks, which agents are installed, how they
+// reach the network, whether the board is on the tailnet, what comes in and
+// goes out as an archive, and what it is allowed to interrupt with.
+//
+// Deploy targets are deliberately not here, although their registry is the
+// machine's too: a deploy target only means anything to a board whose route
+// deploys, so it is offered in that board's «Как работает эта доска…» — and a
+// board of shopping lists never shows a Dokku form. What a setting depends on
+// is where it is offered, even when where it is stored is the same file.
 //
 // All of it used to be reached through a board's ⋯ menu, which put settings
 // behind a board and made them unreachable when none was open; then through the
@@ -64,12 +68,6 @@ const AppSettingsDialog = (props: Props) => {
             name: intl.formatMessage({id: 'Machine.section-agents', defaultMessage: 'Agents'}),
             when: isAgentsAvailable,
             body: AgentsPanel,
-        },
-        {
-            id: 'deploys',
-            name: intl.formatMessage({id: 'Machine.section-deploys', defaultMessage: 'Where to deploy'}),
-            when: isDeployTargetsAvailable,
-            body: DeployTargetsPanel,
         },
         {
             id: 'proxies',

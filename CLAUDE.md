@@ -325,11 +325,16 @@ the file until one gets through, which is what makes the move safe to retry.
 
 **A setting lives where its owner does**, and that is the rule the whole
 settings surface is sorted by. The registries are the machine's — agents,
-deploy targets, proxies, the tailnet, what a card-less conversation opens
-saying, whether an agent waiting may interrupt, and the archive that carries
-every board in and out — so they are `settings/appSettingsDialog.tsx`, one
-dialog of panels opened from `sidebarSettingsButton.tsx`, reachable with no
-board open. **The theme and the language are settings like the rest of them**,
+proxies, the tailnet, what a card-less conversation opens saying, whether an
+agent waiting may interrupt, and the archive that carries every board in and
+out — so they are `settings/appSettingsDialog.tsx`, one dialog of panels
+opened from `sidebarSettingsButton.tsx`, reachable with no board open. Deploy
+targets are the one registry whose *door* is elsewhere: the list is still the
+machine's (`config.json`, shared by every board that deploys), but a Dokku
+host only means anything to a board whose automation has a deploy stage, so
+the panel is a fold of that board's `automationDialog.tsx` (`usesDeploys`) and
+no other surface offers it — a settings section put a Dokku form one click
+from a board of shopping lists. **The theme and the language are settings like the rest of them**,
 and are `settings/appPanel.tsx` with the link to the manual: they spent a while
 in the corner of the board on the grounds that they are changed while looking at
 it, and what that cost was two icon menus and a question mark standing in for

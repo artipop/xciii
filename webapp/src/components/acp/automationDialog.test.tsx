@@ -154,4 +154,38 @@ describe('components/acp/automationDialog', () => {
         await waitFor(() => expect(screen.getByText(/не найден в реестре/)).toBeInTheDocument())
         expect(onClose).not.toHaveBeenCalled()
     })
+
+    // Deploy targets moved here from the app's own settings: a Dokku host only
+    // means anything to a board whose route deploys, so the door is on that
+    // board and on no other. The registry behind it is still the machine's.
+    test('a board with a deploy stage offers the deploy targets', async () => {
+        stubBindings({
+            ListBoardColumns: vi.fn().mockResolvedValue(JSON.stringify([
+                {boardId: 'board-1', optionId: 'opt-work', property: 'Статус', column: 'В работе', action: 'deploy'},
+            ])),
+        })
+        render(() => wrapIntl(() => (
+            <AutomationDialog
+                board={board}
+                onClose={vi.fn()}
+            />
+        )))
+
+        userEvent.click(await screen.findByText('Where to deploy'))
+
+        await waitFor(() => expect(screen.getByText('No deploy targets yet.')).toBeInTheDocument())
+    })
+
+    test('a board that deploys nowhere is not asked where to', async () => {
+        stubBindings()
+        render(() => wrapIntl(() => (
+            <AutomationDialog
+                board={board}
+                onClose={vi.fn()}
+            />
+        )))
+
+        await screen.findByRole('button', {name: 'Фича'})
+        expect(screen.queryByText('Where to deploy')).toBeNull()
+    })
 })

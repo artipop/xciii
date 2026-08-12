@@ -7,7 +7,6 @@ Sections:
 - **"The app itself"** — theme, language, help and feedback;
 - **"Agents"** — this machine's agents and what launches them, see
   [Agents, npx and Node.js](./agents.md);
-- **"Where to deploy"** — deploy targets;
 - **"Proxy configurations"** — named network settings that agents refer to;
 - **"Access from a phone"** — see below;
 - **"Import and export"** — board archive export and import, see
@@ -53,3 +52,6 @@ When off, it removes only the notifications; the amber dot on the card stays.
 Settings of a specific board — columns, routes, project folders, agent
 instructions — are set on the board itself, in the
 ["How this board works"](../automation/index.md) window.
+
+**"Where to deploy"** is there too: deploy targets are only shown on a board
+that has a deploy column, because no other board has any use for them.
