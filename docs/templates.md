@@ -80,7 +80,14 @@ again.
 
 ## What is offered in the picker
 
-The templates the install ships — «Разработка», «Домашние дела», «Покупки и
-меню» — and every template you have made. The rest of Focalboard's own defaults
-are hidden: they know nothing about columns that run an agent, so a board made
-from one arrives with no automation at all.
+The templates the install ships — «Разработка», «Контент», «Домашние дела»,
+«Покупки и меню» — and every template you have made. The rest of Focalboard's
+own defaults are hidden: they know nothing about columns that run an agent, so
+a board made from one arrives with no automation at all.
+
+«Контент» is also the smallest demonstration of setup following the flow: its
+routes are «Через бриф» (Бриф → Черновик → На вычитке, failures to «Не пошло»)
+and «Сразу черновик», both agent-written and person-read, with no deploy and
+no browser test anywhere — so its `xciiiSetup` declares only
+project/agent/done, and the wizard for a board made from it asks for a folder
+and an agent and nothing else.
