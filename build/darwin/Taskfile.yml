@@ -134,9 +134,27 @@ tasks:
     cmds:
       - task: create:dmg
 
+  create:dmg:icon:
+    summary: Renders the `.icns` the disk image wears from the `.app` bundle's own icon
+    internal: true
+    platforms: [darwin]
+    cmds:
+      - rm -rf "{{.ICONSET}}" "{{.RENDERER}}"
+      - >-
+        xcrun swiftc -O -o "{{.RENDERER}}"
+        build/darwin/dmg-icon/RenderAppIcon.swift -framework Cocoa
+      - '"{{.RENDERER}}" "{{.BIN_DIR}}/{{.APP_NAME}}.app" "{{.ICONSET}}"'
+      - iconutil -c icns -o "{{.BIN_DIR}}/dmg-icon.icns" "{{.ICONSET}}"
+      - rm -rf "{{.ICONSET}}" "{{.RENDERER}}"
+    vars:
+      ICONSET: '{{.BIN_DIR}}/dmg-icon.iconset'
+      RENDERER: '{{.BIN_DIR}}/render-app-icon'
+
   create:dmg:
     summary: Creates a configurable `.dmg` from the `.app` bundle
     platforms: [darwin]
+    deps:
+      - task: create:dmg:icon
     cmds:
       - >-
         wails3 tool package --format dmg --name "{{.APP_NAME}}" --out "{{.BIN_DIR}}"
@@ -148,14 +166,14 @@ tasks:
         {{if .DMG_FILES}}--files "{{.DMG_FILES}}"{{end}}
     vars:
       DMG_BACKGROUND: '{{.DMG_BACKGROUND | default "build/darwin/dmg-background.png"}}'
-      # Both the mounted volume and the .dmg file itself wear the app's own
-      # icon, which `common:generate:icons` renders from appicon.icon. There
-      # used to be a second icns beside it for the file, drawn from the flat
-      # appicon.png -- the same logo, but a raster nothing regenerates, so the
-      # day the Icon Composer document became the app's icon the disk image
-      # started wearing the previous one.
-      DMG_VOLUME_ICON: '{{.DMG_VOLUME_ICON | default "build/darwin/icons.icns"}}'
-      DMG_FILE_ICON: '{{.DMG_FILE_ICON | default "build/darwin/icons.icns"}}'
+      # Both the mounted volume and the .dmg file itself wear the icon the
+      # system draws for the app, rendered off the bundle by create:dmg:icon --
+      # not build/darwin/icons.icns, which actool writes from the same
+      # appicon.icon and which comes out a different colour. Which of the two is
+      # "right" is not ours to decide: the one a person sees is the one Finder
+      # draws, so the disk image is made to agree with that.
+      DMG_VOLUME_ICON: '{{.DMG_VOLUME_ICON | default (printf "%s/dmg-icon.icns" .BIN_DIR)}}'
+      DMG_FILE_ICON: '{{.DMG_FILE_ICON | default (printf "%s/dmg-icon.icns" .BIN_DIR)}}'
       DMG_WINDOW_WIDTH: '{{.DMG_WINDOW_WIDTH | default "540"}}'
       DMG_WINDOW_HEIGHT: '{{.DMG_WINDOW_HEIGHT | default "380"}}'
       DMG_FILES: '{{.DMG_FILES | default ""}}'
