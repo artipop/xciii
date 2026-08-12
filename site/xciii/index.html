@@ -25,6 +25,9 @@
         <nav class="nav">
             <a class="nav-hide" href="#how">Как это работает</a>
             <a class="nav-hide" href="#inbox">Входящие</a>
+            <!-- Руководство собирается отдельно (docs/guide) и кладётся в
+                 dist/docs — `npm run build:all` в site/. -->
+            <a class="nav-hide" href="/docs/">Руководство</a>
             <a href="#price">Цена</a>
             <a href="#preorder">Предзаказ</a>
             <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Переключить тему">◐</button>
@@ -87,6 +90,9 @@
                 </p>
             </div>
         </div>
+        <p class="muted" style="margin-top: 26px;">
+            Подробно, по&nbsp;шагам&nbsp;— в&nbsp;<a href="/docs/">руководстве</a>.
+        </p>
     </div>
 </section>
 
@@ -97,7 +103,7 @@
         <h2>Карточки приходят сами</h2>
         <p>
             Всё, что пришло извне, складывается в&nbsp;отдельный вид
-            «Входящие»&nbsp;— по&nbsp;колонке на&nbsp;каждый источник.
+            Входящие&nbsp;— по&nbsp;колонке на&nbsp;каждый источник.
         </p>
         <div class="cols-3">
             <div class="card">

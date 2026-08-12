@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
+        "build:all": "npm run build && npm --prefix ../docs/guide run build",
         "preview": "vite preview"
     },
     "devDependencies": {

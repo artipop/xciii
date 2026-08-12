@@ -271,15 +271,35 @@ buried in it. Everything that was narrated there is shown instead: the branch an
 the worktree on the card's stamp, the position on its route strip (whose reason
 is kept in the flow event record rather than on the card), the question on the
 card's face. What survives is what the card cannot show for itself — the agent's
-own summary, a failure, a stage that would not start, a card an agent refused
-because a person is assigned to it — and `comment_card`, which is the agent
-choosing to say something.
+own summary of a finished run, a deploy or test report, the terminal report, a
+session cut off by a restart — and `comment_card`, which is the agent choosing
+to say something.
+
+**"Nothing happened" is state, never a comment.** A stage that would not start,
+a card refused because a person holds it, a column with no free place, a route
+with no edge for the event that arrived — each is true only until somebody fixes
+the registry or moves the card, and a comment outlives it as noise (`«Агент не
+запущен: …»` from SINGLE-USER was the reading experience this replaces). One
+stall record per card (`card_stall`, `stall.go`) holds the current reason:
+written where the comments used to be, replaced by a newer reason, deleted by
+any progress, and drawn by the route strip in amber (`CardFlow.stalled`) or, for
+a card outside any route, handed to the terminal panel via `GetCardAgent.stall`.
+Route dead-ends write *softly* — only when no reason is recorded — so the
+consequence («нет перехода по событию «шаг упал»») can never bury the root
+cause (why the шаг упал).
 
 The automation around sessions is untouched by that: columns say what happens when a
 card lands in them, flows join columns into routes, deploys publish a branch to
 Dokku through our own MCP server, and the test column drives a browser through an
 MCP server the agent carries. `docs/flows.md` is that machinery written for somebody
 using the board.
+
+The model is a graph, and the kanban is one projection of it: **nodes** are
+what a card stands on (a column is a node's face on the board), **edges** are
+the routes, a node names its worker (crew — the column's, overridden per route
+in the stage's «Только в этом маршруте…»), and a card carries one conversation
+per node (the terminal, above). Everything per-stage hangs off the node id,
+which is why it is the board option id and never regenerated.
 
 Both halves are edited over **the board's own columns**: `components/acp/
 automationEditor.tsx` draws every option of the board's column property as a box,
@@ -331,7 +351,13 @@ column's crew list and the setup wizard alike.
 **A card names its agent by whom it is assigned to**, and by nothing else. Each
 registered agent has a board account under its own name, so «Кто занимается»
 answers the question the whole board already asks with that
-field. There used to be a second one — an «Agent» select `agentSync.ts` kept in
+field. The machine keeps the field truthful as the card travels: a stage with
+its own crew writes the worker it resolved into the assignee
+(`assignCardAgent` → `BoardUsers.AssignCardAgent`, the person property found by
+its *type*, the write silent and before the launch) — an uncrewed stage writes
+nothing, a card already saying so is left alone, and a card assigned to a
+person never reaches the write because `humanAssignee` vetoes the session
+first. There used to be a second one — an «Agent» select `agentSync.ts` kept in
 step with the registry — and two fields for one question meant a rule about
 which of them wins and a field that said nothing on a board where nobody had
 registered an agent. `retireAgentProperty` takes it off a board the first time
@@ -516,14 +542,39 @@ put in there was the machine talking in the middle of it. There was a row in the
 card once — the agent's name, the session status, the branch with a deploy
 button, a form asking which folder and which agent, and a chevron that expanded
 downwards — and the thing a person actually wanted, the terminal, was the part
-hardest to find in it. What replaced all of it is the terminal, the stamp under
-the title, and nothing else: **the folder and the agent are the machine's
-settings**, so a card that cannot work out either says so and points there
-rather than asking again. The window survives as the ⤢ in the panel's own head —
+hardest to find in it. The window survives as the ⤢ in the panel's own head —
 `OpenCardTerminal`'s `window` argument is what asks for one — because a screen of
 its own is the one thing a panel beside a card cannot be. And **no session UI of
 ours was built to go beside it**: the terminal *is* what a session looks like,
 since the agent's own CLI already draws its work and asks its own questions.
+
+**A terminal is the conversation of the stage the card stands on** — keyed
+(card, node), where a node is a stage of the card's route and `""` is the one
+conversation of a card outside any route. Everything follows from one rule: the
+only conversation that can be opened is the current stage's, and Go offers no
+way to ask for another (`StartCardTerminal` reads the node from the card's own
+flow state). A passed stage's conversation is closed; the card coming back
+makes that stage current and its conversation reopens where it left off. A
+still-running CLI on a passed stage stays reachable by id until it exits — a
+person's terminal is never killed — it just is not where a new ask lands, which
+is why the board's dot shows a live terminal via `ShowTerminal(id)` rather than
+reopening "the card's terminal" beside it. The node-less conversation is the
+resume fallback for a stage with none, so planning done on a card flows into
+its first stage. Resume metadata is per stage; the transcript `claude
+--continue` picks up is directory-scoped, and the panel lists the card's
+conversations as chips (`GetCardAgent.conversations`), current solid, the rest
+history. Who a terminal speaks as follows the stage too — its crew, then the
+assignee, then the single agent — and a fully busy crew does not block it: the
+person opening one is present.
+
+**The panel asks only what Go refused to answer**: when `OpenCardTerminal`
+fails to resolve the folder or the agent, the panel offers the pick — the
+board's projects, the registry's agents, quick-add for both — and starts the
+conversation with the choice. The choice lives that one conversation and writes
+nothing to the card: planning in place, not an assignment. (This deliberately
+reversed an earlier decision to point at the settings instead; the form that
+once overloaded the card stood on every card always, while this one appears
+only on refusal, in the panel the refusal is about.)
 
 It is deliberately not an ACP session: an ACP agent speaks JSON-RPC on stdio and has
 no terminal UI, so one process cannot be both. What the two share is everything
@@ -590,6 +641,18 @@ whoever opened it. **Only the protocol asks** (`question.go`), which is why
   a guide that misquotes the screen teaches somebody to look for a thing that
   is not there. `webapp/i18n/ru.json` carries the
   translations; defaults in components stay English.
+  That shelf is **also a site** — VitePress rooted at `docs/guide/` itself, so
+  the markdown stays where this rule points and nothing else under `docs/` can
+  be published by accident. A new page goes in one of the sections and gets a
+  line in the sidebar in `.vitepress/config.mjs`: a page nothing links to is a
+  page that, for a reader, is not there. `docs/guide-site.md` is the how.
+  Russian is the original and the root of that site; `docs/guide/en/` is a
+  translation kept **page for page**, so the language switcher never lands on a
+  page that does not exist. What the English pages quote off the screen comes
+  from `webapp/i18n/en.json` — a translated-by-eye button name sends a reader
+  looking for something that is not there — and a name the app *gives* (the
+  «Входящие» view) is not translated at all, because the English screen shows
+  it in Russian too.
 - Commit messages: a plain subject line saying what changed, and a body saying why —
   the reasoning, the alternative that was rejected, what was verified. No emoji.
 - Verify before claiming. A feature is done when it has been run, not when it
