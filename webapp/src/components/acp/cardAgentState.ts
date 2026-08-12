@@ -20,6 +20,23 @@ export type CardAgentState = {
     // Why the automation is doing nothing on this card, when it knows — the
     // same reason the route strip shows, for a card outside any route.
     stall?: {reason?: string, nodeId?: string, createdAt?: string}
+
+    // The card's conversations, one per stage of its route it was worked on.
+    // The current stage's is the one the terminal button opens; a passed
+    // stage's is history until the card comes back.
+    conversations?: CardConversation[]
+}
+
+export type CardConversation = {
+    nodeId?: string
+    column?: string
+    agent?: string
+    running?: boolean
+    current?: boolean
+    terminalId?: string
+    startedAt?: string
+    endedAt?: string
+    exitCode?: number
 }
 
 type Entry = {

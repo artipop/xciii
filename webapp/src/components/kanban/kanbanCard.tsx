@@ -76,7 +76,7 @@ const KanbanCard = (props: Props) => {
         // The card is a click target of its own, and opening the dialog behind
         // the terminal window is not what pressing this asked for.
         e.stopPropagation()
-        openCardTerminalWindow(props.card.id)
+        openCardTerminalWindow(props.card.id, liveTerminal())
     }
     const classes = () => {
         let name = props.isSelected ? 'KanbanCard selected' : 'KanbanCard'

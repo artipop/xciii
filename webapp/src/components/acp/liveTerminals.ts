@@ -74,16 +74,23 @@ export function isCardTerminalAvailable(): boolean {
 // room to draw one — the board. It lives here rather than in the panel beside
 // the card so that a board does not import the panel, and with it the emulator's
 // stylesheet, to open a window.
-export async function openCardTerminalWindow(cardId: string): Promise<void> {
+//
+// A live terminal is shown by its id, not reopened by its card: the card's
+// terminal is the conversation of the stage it stands on, and the live CLI may
+// be a passed stage's still running — opening "the card's terminal" would
+// start a second one beside it instead of showing the one the dot is for.
+export async function openCardTerminalWindow(cardId: string, terminalId?: string): Promise<void> {
     const bindings = agentBindings()
-    if (!bindings?.OpenCardTerminal) {
-        return
+    let handle: {windowed?: boolean, url?: string} | null = null
+    if (terminalId && bindings?.ShowTerminal) {
+        handle = JSON.parse(await bindings.ShowTerminal(terminalId))
+    } else if (bindings?.OpenCardTerminal) {
+        handle = JSON.parse(await bindings.OpenCardTerminal(cardId, '', '', true))
     }
-    const handle = JSON.parse(await bindings.OpenCardTerminal(cardId, '', '', true))
 
     // The desktop app has already opened the window by now; a server build has
     // no windows, so the browser opens a tab instead.
-    if (!handle.windowed && handle.url) {
+    if (handle && !handle.windowed && handle.url) {
         window.open(handle.url, '_blank', 'noopener')
     }
 }

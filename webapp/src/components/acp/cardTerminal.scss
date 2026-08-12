@@ -23,6 +23,44 @@
         color: rgba(var(--center-channel-color-rgb), 0.56);
     }
 
+    &__stage {
+        font-weight: 400;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    // One chip per stage the card was worked on. The current one carries the
+    // conversation that is open below; the rest are where the card has been.
+    &__stages {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 6px 12px;
+        border-bottom: 1px solid var(--border-subtle);
+        flex: 0 0 auto;
+        font-size: var(--text-small);
+    }
+
+    &__stageChip {
+        padding: 1px 8px;
+        border-radius: var(--radius-pill);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        white-space: nowrap;
+
+        &--current {
+            border-color: rgba(var(--center-channel-color-rgb), 0.4);
+            color: rgb(var(--center-channel-color-rgb));
+        }
+
+        &--running {
+            border-style: dashed;
+        }
+    }
+
+    &__stageAgent {
+        opacity: 0.7;
+    }
+
     &__actions {
         margin-left: auto;
         display: flex;

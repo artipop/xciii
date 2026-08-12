@@ -891,6 +891,11 @@ func (a *App) GetCardAgent(cardID string) (string, error) {
 	if stall, ok := a.mgr.CardStall(cardID); ok {
 		payload["stall"] = stall
 	}
+	// The card's conversations, one per stage of its route: what the terminal
+	// panel lists, with the current stage's being the one it opens.
+	if conversations := a.mgr.CardConversations(cardID); len(conversations) > 0 {
+		payload["conversations"] = conversations
+	}
 	out, err := json.Marshal(payload)
 	if err != nil {
 		return "", err

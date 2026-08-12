@@ -296,6 +296,56 @@ func TestTerminalResumesWhereTheCardLeftOff(t *testing.T) {
 	}
 }
 
+// A card travels a route, and each stage is its own conversation: the resume
+// point of stage B is what B left, not what A left last night. The stage a
+// card has passed keeps its record and gets it back when the card returns.
+func TestTerminalResumeIsPerStage(t *testing.T) {
+	m, _, _, project := testManager(t, "idle", nil)
+	cwdA, cwdB := t.TempDir(), t.TempDir()
+	agent := AgentEntry{Name: "clauuus", Kind: AgentKindClaude}
+
+	for _, rec := range []TerminalRecord{
+		{ID: "at-a", CardID: "card-n", NodeID: "work", ProjectPath: project, Cwd: cwdA,
+			Agent: "clauuus", Kind: AgentKindClaude, StartedAt: time.Now().Add(-2 * time.Hour)},
+		{ID: "at-b", CardID: "card-n", NodeID: "review", ProjectPath: project, Cwd: cwdB,
+			Agent: "clauuus", Kind: AgentKindClaude, StartedAt: time.Now().Add(-time.Hour)},
+	} {
+		if err := m.store.InsertTerminal(rec); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-n", nodeID: "work", projectPath: project, agent: agent})
+	if !resume || rec.ID != "at-a" {
+		t.Fatalf("stage work should resume its own conversation, got %+v (resume=%v)", rec, resume)
+	}
+	rec, resume = m.terminalResumePoint(terminalSpec{cardID: "card-n", nodeID: "review", projectPath: project, agent: agent})
+	if !resume || rec.ID != "at-b" {
+		t.Fatalf("stage review should resume its own conversation, got %+v (resume=%v)", rec, resume)
+	}
+}
+
+// The conversation from before the card had stages — node "" — flows into the
+// first stage that asks, so planning done on the card is not orphaned by
+// putting the card onto a route.
+func TestStageWithNoConversationContinuesTheCardsOwn(t *testing.T) {
+	m, _, _, project := testManager(t, "idle", nil)
+	cwd := t.TempDir()
+	agent := AgentEntry{Name: "clauuus", Kind: AgentKindClaude}
+
+	if err := m.store.InsertTerminal(TerminalRecord{
+		ID: "planned", CardID: "card-p", NodeID: "", ProjectPath: project, Cwd: cwd,
+		Agent: "clauuus", Kind: AgentKindClaude, StartedAt: time.Now().Add(-time.Hour),
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-p", nodeID: "work", projectPath: project, agent: agent})
+	if !resume || rec.ID != "planned" {
+		t.Fatalf("the first stage should continue the card's own conversation, got %+v (resume=%v)", rec, resume)
+	}
+}
+
 // write and git are the two things a report test needs a project to do.
 func write(t *testing.T, path, content string) {
 	t.Helper()

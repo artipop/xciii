@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -57,7 +58,30 @@ func OpenStore(path string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
+	if err := s.evolve(); err != nil {
+		db.Close()
+		return nil, err
+	}
 	return s, nil
+}
+
+// evolve adds what CREATE TABLE IF NOT EXISTS cannot: columns on tables that
+// already exist. Every step must be safe to run twice, since nothing records
+// which have run — a duplicate-column error is the step saying it has.
+func (s *Store) evolve() error {
+	// A terminal is a conversation on a stage of the card's route, so the
+	// record carries the stage. Rows from before this column are the card's
+	// one conversation from when it only had one, node '' — which is also what
+	// a card outside any route uses, so they stay resumable.
+	if _, err := s.db.Exec(`ALTER TABLE terminal_session ADD COLUMN node_id TEXT NOT NULL DEFAULT ''`); err != nil &&
+		!strings.Contains(err.Error(), "duplicate column") {
+		return err
+	}
+	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_terminal_session_card_node
+		ON terminal_session(card_id, node_id, started_at)`); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Store) migrate() error {
@@ -614,8 +638,12 @@ func (s *Store) LatestBranchForCard(cardID string) (string, error) {
 // resumable — the next one on that card goes back to the same directory and
 // branch, and asks the CLI to continue the conversation it left there.
 type TerminalRecord struct {
-	ID          string     `json:"id"`
-	CardID      string     `json:"cardId,omitempty"`
+	ID     string `json:"id"`
+	CardID string `json:"cardId,omitempty"`
+	// NodeID is the stage of the card's route this conversation belongs to.
+	// Empty for a card outside any route — and for every record from before
+	// stages existed, which is the same thing: the card's one conversation.
+	NodeID      string     `json:"nodeId,omitempty"`
 	BoardID     string     `json:"boardId,omitempty"`
 	Title       string     `json:"title,omitempty"`
 	ProjectPath string     `json:"projectPath,omitempty"`
@@ -631,9 +659,9 @@ type TerminalRecord struct {
 // InsertTerminal records a terminal session as it starts.
 func (s *Store) InsertTerminal(r TerminalRecord) error {
 	_, err := s.db.Exec(`INSERT INTO terminal_session
-		(id, card_id, board_id, title, repo_path, cwd, branch, agent, kind, started_at)
-		VALUES (?,?,?,?,?,?,?,?,?,?)`,
-		r.ID, r.CardID, r.BoardID, r.Title, r.ProjectPath, r.Cwd, r.Branch, r.Agent, r.Kind, r.StartedAt.UnixMilli())
+		(id, card_id, node_id, board_id, title, repo_path, cwd, branch, agent, kind, started_at)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+		r.ID, r.CardID, r.NodeID, r.BoardID, r.Title, r.ProjectPath, r.Cwd, r.Branch, r.Agent, r.Kind, r.StartedAt.UnixMilli())
 	return err
 }
 
@@ -644,10 +672,37 @@ func (s *Store) FinishTerminal(id string, endedAt time.Time, exitCode int) error
 	return err
 }
 
-// LastTerminalForCard is the most recent terminal opened on a card, whether or
-// not it is still running — the one a new terminal continues.
+const terminalColumns = `id, card_id, node_id, board_id, title, repo_path, cwd, branch, agent, kind, started_at, ended_at, exit_code`
+
+// LastTerminalForCardNode is the most recent conversation on one stage of the
+// card — the one a new terminal there continues. When the stage has none yet
+// and a stage was asked for, the card's node-less conversation answers: the
+// planning that happened before the card had stages flows into its first one.
+func (s *Store) LastTerminalForCardNode(cardID, nodeID string) (TerminalRecord, bool, error) {
+	rec, ok, err := s.lastTerminal(cardID, nodeID)
+	if err != nil || ok || nodeID == "" {
+		return rec, ok, err
+	}
+	return s.lastTerminal(cardID, "")
+}
+
+func (s *Store) lastTerminal(cardID, nodeID string) (TerminalRecord, bool, error) {
+	row := s.db.QueryRow(`SELECT `+terminalColumns+`
+		FROM terminal_session WHERE card_id=? AND node_id=? ORDER BY started_at DESC LIMIT 1`, cardID, nodeID)
+	rec, err := scanTerminal(row)
+	if err == sql.ErrNoRows {
+		return TerminalRecord{}, false, nil
+	}
+	if err != nil {
+		return TerminalRecord{}, false, err
+	}
+	return rec, true, nil
+}
+
+// LastTerminalForCard is the card's most recent conversation on any stage —
+// what "this card has been worked in a terminal" means.
 func (s *Store) LastTerminalForCard(cardID string) (TerminalRecord, bool, error) {
-	row := s.db.QueryRow(`SELECT id, card_id, board_id, title, repo_path, cwd, branch, agent, kind, started_at, ended_at, exit_code
+	row := s.db.QueryRow(`SELECT `+terminalColumns+`
 		FROM terminal_session WHERE card_id=? ORDER BY started_at DESC LIMIT 1`, cardID)
 	rec, err := scanTerminal(row)
 	if err == sql.ErrNoRows {
@@ -659,13 +714,36 @@ func (s *Store) LastTerminalForCard(cardID string) (TerminalRecord, bool, error)
 	return rec, true, nil
 }
 
+// TerminalsForCard is the card's conversations, one per stage — the latest
+// record of each. Newest first, which is the order a person left them in.
+func (s *Store) TerminalsForCard(cardID string) ([]TerminalRecord, error) {
+	rows, err := s.db.Query(`SELECT `+terminalColumns+` FROM terminal_session
+		WHERE card_id=? AND started_at = (
+			SELECT MAX(started_at) FROM terminal_session t2
+			WHERE t2.card_id = terminal_session.card_id AND t2.node_id = terminal_session.node_id)
+		ORDER BY started_at DESC`, cardID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []TerminalRecord
+	for rows.Next() {
+		rec, err := scanTerminal(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, rec)
+	}
+	return out, rows.Err()
+}
+
 func scanTerminal(row scanner) (TerminalRecord, error) {
 	var (
 		rec     TerminalRecord
 		started int64
 		ended   sql.NullInt64
 	)
-	if err := row.Scan(&rec.ID, &rec.CardID, &rec.BoardID, &rec.Title, &rec.ProjectPath, &rec.Cwd,
+	if err := row.Scan(&rec.ID, &rec.CardID, &rec.NodeID, &rec.BoardID, &rec.Title, &rec.ProjectPath, &rec.Cwd,
 		&rec.Branch, &rec.Agent, &rec.Kind, &started, &ended, &rec.ExitCode); err != nil {
 		return TerminalRecord{}, err
 	}

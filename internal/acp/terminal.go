@@ -37,8 +37,11 @@ const terminalScrollback = 256 * 1024
 
 // TerminalSession is one CLI in one pty.
 type TerminalSession struct {
-	ID          string
-	CardID      string
+	ID     string
+	CardID string
+	// NodeID is the stage of the card's route this conversation belongs to;
+	// empty for a card outside any route, and for planning terminals.
+	NodeID      string
 	BoardID     string
 	Title       string
 	Task        string
@@ -76,6 +79,7 @@ type TerminalSession struct {
 type TerminalInfo struct {
 	ID        string `json:"id"`
 	CardID    string `json:"cardId,omitempty"`
+	NodeID    string `json:"nodeId,omitempty"`
 	Title     string `json:"title,omitempty"`
 	Task      string `json:"task,omitempty"`
 	Cwd       string `json:"cwd"`
@@ -95,6 +99,7 @@ func (t *TerminalSession) Info() TerminalInfo {
 	info := TerminalInfo{
 		ID:        t.ID,
 		CardID:    t.CardID,
+		NodeID:    t.NodeID,
 		Title:     t.Title,
 		Task:      t.Task,
 		Cwd:       t.Cwd,
@@ -204,11 +209,17 @@ func (t *TerminalSession) finish() {
 // worktree rules and same agent as a session on that card would get.
 // projectName/agentName override what the card says, for the case where it says
 // nothing.
+//
+// The conversation belongs to the stage the card stands on. There is no way to
+// ask for another stage's — which is the whole rule about passed stages: their
+// conversations reopen only when the card comes back and they are current
+// again. A card outside any route has one conversation, node "".
 func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*TerminalSession, error) {
 	if m.reader == nil {
 		return nil, fmt.Errorf("чтение карточек недоступно")
 	}
-	if live := m.TerminalForCard(cardID); live != nil {
+	nodeID, crew := m.cardStage(cardID)
+	if live := m.TerminalForCardNode(cardID, nodeID); live != nil {
 		return live, nil
 	}
 	ctx, cancel := context.WithTimeout(m.rootCtx, 10*time.Second)
@@ -229,15 +240,19 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 	if strings.TrimSpace(agentName) != "" {
 		agent, err = m.planningAgent(agentName)
 	} else {
-		// The same resolution a session on this card would go through: the
-		// card's assignee, its own agent property, the single registered agent.
-		agent, err = m.resolveAgent(ev)
+		// The same resolution a session at this stage would go through: the
+		// stage's own crew first, then the card's assignee, then the single
+		// registered agent. A fully busy crew does not block a *terminal* —
+		// the person opening one is the person watching, so the first crew
+		// member answers even mid-session elsewhere.
+		agent, err = m.terminalAgent(ev, crew)
 	}
 	if err != nil {
 		return nil, err
 	}
 	return m.startTerminal(terminalSpec{
 		cardID:      ev.CardID,
+		nodeID:      nodeID,
 		boardID:     ev.BoardID,
 		title:       ev.Title,
 		task:        ev.Body,
@@ -248,6 +263,44 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		// terminal in one is a terminal in the folder itself.
 		worktree: m.cfg.UseWorktrees() && IsGitProject(m.rootCtx, projectPath),
 	})
+}
+
+// cardStage is the stage the card stands on and who works it: the node's own
+// crew, else its column's. Both empty for a card outside any route.
+func (m *Manager) cardStage(cardID string) (string, []string) {
+	st, ok, err := m.flowState(cardID)
+	if err != nil || !ok {
+		return "", nil
+	}
+	flow, found := m.FlowByName(st.Flow)
+	if !found {
+		return st.NodeID, nil
+	}
+	node, found := flow.Node(st.NodeID)
+	if !found {
+		return st.NodeID, nil
+	}
+	crew := node.Crew()
+	if len(crew) == 0 {
+		if spec, ok := m.columnByName(flow.PropertyOr(m.triggerProperty()), node.Column); ok {
+			crew = spec.Agents
+		}
+	}
+	return st.NodeID, crew
+}
+
+// terminalAgent resolves who a terminal on this card speaks as. It is the
+// session's own resolution with one difference: busy is not an answer, since a
+// terminal is a person present, not a second unattended run.
+func (m *Manager) terminalAgent(ev CardMoved, crew []string) (AgentEntry, error) {
+	agent, busy, err := m.resolveSessionAgent(ev, crew)
+	if err != nil {
+		return AgentEntry{}, err
+	}
+	if !busy {
+		return agent, nil
+	}
+	return m.planningAgent(crew[0])
 }
 
 // StartPlanningTerminal opens the CLI with no card behind it — the terminal
@@ -291,6 +344,9 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 // terminalSpec is everything startTerminal needs, resolved by the caller.
 type terminalSpec struct {
 	cardID string
+	// nodeID is the stage of the card's route this conversation belongs to.
+	// Empty for cards outside any route and for planning.
+	nodeID string
 	// boardID is also the board this terminal may write to through the board
 	// tools. A card's terminal has its card's board; planning has the board it
 	// was opened from, which is the only reason that dialog knows about one.
@@ -342,6 +398,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	t := &TerminalSession{
 		ID:          id,
 		CardID:      spec.cardID,
+		NodeID:      spec.nodeID,
 		BoardID:     spec.boardID,
 		Title:       spec.title,
 		Task:        spec.task,
@@ -406,7 +463,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// Recorded even for a planning terminal, so "where was I" survives the app
 	// being closed — which is the only reason a terminal can be resumed at all.
 	if err := m.store.InsertTerminal(TerminalRecord{
-		ID: id, CardID: t.CardID, BoardID: t.BoardID, Title: t.Title,
+		ID: id, CardID: t.CardID, NodeID: t.NodeID, BoardID: t.BoardID, Title: t.Title,
 		ProjectPath: t.ProjectPath, Cwd: t.Cwd, Branch: t.Branch,
 		Agent: t.AgentName, Kind: t.AgentKind, StartedAt: t.StartedAt,
 	}); err != nil {
@@ -490,12 +547,28 @@ func (m *Manager) Terminal(id string) *TerminalSession {
 	return m.terminals[id]
 }
 
-// TerminalForCard returns the card's live terminal session, if it has one.
+// TerminalForCard returns the card's live terminal session on any stage, if it
+// has one — "somebody is working this card in a CLI right now".
 func (m *Manager) TerminalForCard(cardID string) *TerminalSession {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for _, t := range m.terminals {
 		if t.CardID != "" && t.CardID == cardID {
+			return t
+		}
+	}
+	return nil
+}
+
+// TerminalForCardNode returns the live conversation of one stage of the card.
+// A live terminal on a *passed* stage is deliberately not this: it stays
+// reachable by id until its CLI exits, but the stage the card left cannot be
+// where a new ask lands.
+func (m *Manager) TerminalForCardNode(cardID, nodeID string) *TerminalSession {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, t := range m.terminals {
+		if t.CardID != "" && t.CardID == cardID && t.NodeID == nodeID {
 			return t
 		}
 	}
@@ -691,7 +764,11 @@ func (m *Manager) terminalResumePoint(spec terminalSpec) (TerminalRecord, bool) 
 	if spec.cardID == "" || !terminalCanResume(spec.agent) {
 		return TerminalRecord{}, false
 	}
-	rec, ok, err := m.store.LastTerminalForCard(spec.cardID)
+	// Per stage: the conversation continued is the one this stage left. The
+	// worktree is directory-scoped, though, and so is the CLI's own resume —
+	// the metadata is per stage, the transcript `--continue` picks up is the
+	// newest one in the directory.
+	rec, ok, err := m.store.LastTerminalForCardNode(spec.cardID, spec.nodeID)
 	if err != nil {
 		m.log.Warn("acp: failed to read the card's last terminal", "card", spec.cardID, "err", err)
 		return TerminalRecord{}, false
@@ -714,6 +791,76 @@ type ResumableTerminal struct {
 	Branch    string `json:"branch,omitempty"`
 	Agent     string `json:"agent,omitempty"`
 	EndedAt   string `json:"endedAt,omitempty"`
+}
+
+// CardConversation is one stage's conversation as the card's panel lists them:
+// which stage, who spoke there, whether it is running, and whether the card is
+// standing on it — the only one a new terminal can open.
+type CardConversation struct {
+	NodeID     string `json:"nodeId,omitempty"`
+	Column     string `json:"column,omitempty"`
+	Agent      string `json:"agent,omitempty"`
+	Running    bool   `json:"running,omitempty"`
+	Current    bool   `json:"current,omitempty"`
+	TerminalID string `json:"terminalId,omitempty"` // set while running
+	StartedAt  string `json:"startedAt,omitempty"`
+	EndedAt    string `json:"endedAt,omitempty"`
+	ExitCode   int    `json:"exitCode,omitempty"`
+}
+
+// CardConversations lists the card's conversations, one per stage it was
+// worked on, newest first. A passed stage's entry is history until the card
+// comes back; the current stage's is what the terminal button opens.
+func (m *Manager) CardConversations(cardID string) []CardConversation {
+	recs, err := m.store.TerminalsForCard(cardID)
+	if err != nil {
+		m.log.Warn("acp: cannot read the card's terminals", "card", cardID, "err", err)
+		return nil
+	}
+	if len(recs) == 0 {
+		return nil
+	}
+	currentNode, _ := m.cardStage(cardID)
+	columns := m.stageColumns(cardID)
+
+	out := make([]CardConversation, 0, len(recs))
+	for _, rec := range recs {
+		c := CardConversation{
+			NodeID:    rec.NodeID,
+			Column:    columns[rec.NodeID],
+			Agent:     rec.Agent,
+			Current:   rec.NodeID == currentNode,
+			StartedAt: rec.StartedAt.Format(time.RFC3339),
+			ExitCode:  rec.ExitCode,
+		}
+		if rec.EndedAt != nil {
+			c.EndedAt = rec.EndedAt.Format(time.RFC3339)
+		}
+		if live := m.TerminalForCardNode(cardID, rec.NodeID); live != nil {
+			c.Running = true
+			c.TerminalID = live.ID
+		}
+		out = append(out, c)
+	}
+	return out
+}
+
+// stageColumns maps the card's route nodes to the columns a person knows them
+// by. Empty for a card outside any route.
+func (m *Manager) stageColumns(cardID string) map[string]string {
+	st, ok, err := m.flowState(cardID)
+	if err != nil || !ok {
+		return nil
+	}
+	flow, found := m.FlowByName(st.Flow)
+	if !found {
+		return nil
+	}
+	out := make(map[string]string, len(flow.Nodes))
+	for _, n := range flow.Nodes {
+		out[n.ID] = n.Column
+	}
+	return out
 }
 
 // TerminalHistoryForCard reports whether the card has a terminal to resume.
