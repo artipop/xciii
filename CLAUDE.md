@@ -314,8 +314,10 @@ and are `settings/appPanel.tsx` with the link to the manual: they spent a while
 in the corner of the board on the grounds that they are changed while looking at
 it, and what that cost was two icon menus and a question mark standing in for
 three words, plus a corner that had to be published over the no-board screen to
-stay reachable. The corner is one link to the issue tracker again, which is what
-it was. What a board runs — columns, routes, its folders, and
+stay reachable. The link to the issue tracker went the same way and for the same
+reason — where to say something is broken is looked for once, and it is looked
+for where the manual is — so the corner is gone rather than reduced, and
+`topBar.tsx` with it. What a board runs — columns, routes, its folders, and
 what its agents are told first (`boardPrompts`, keyed by board id) — is
 `automationDialog.tsx`. The board's ⋯ menu keeps only export and "save as a
 template" — the archive in the settings dialog is every board there is, and one
@@ -324,13 +326,11 @@ is not offered per board: what an archive brings is boards, plural, and
 Trello/Notion/Todoist are instructions for making one rather than an importer of
 ours. Registering an agent needs
 neither: `agentQuickAdd.tsx` is the two-field form, used by the card, the
-column's crew list and the setup wizard alike, and `agentSync.ts` is what makes
-a registered agent nameable on a board — called where a board exists, since the
-machine's own settings have none.
+column's crew list and the setup wizard alike.
 
 **A card names its agent by whom it is assigned to**, and by nothing else. Each
-registered agent is a member of the board under its own name (`SyncAgentUsers`),
-so «Кто занимается» answers the question the whole board already asks with that
+registered agent has a board account under its own name, so «Кто занимается»
+answers the question the whole board already asks with that
 field. There used to be a second one — an «Agent» select `agentSync.ts` kept in
 step with the registry — and two fields for one question meant a rule about
 which of them wins and a field that said nothing on a board where nobody had
@@ -342,6 +342,26 @@ anywhere on the board spelled like an agent quietly decided who worked the card.
 opposite answers rather than the same one. A card property named `agent` went
 with them, and for the same reason: nothing in this app creates one, so it was a
 third answer only a hand-built board could give.
+
+**The account is made when the agent is registered** (`AddAgent` →
+`EnsureAgentAccounts`), because that is the moment it becomes a name a card can
+be assigned to — and it needs no board: an account is a row in the board
+server's own users table, which is what every board reads when it offers people
+to assign a card to. There was a sync instead, `syncAgentsToBoard`, run from
+wherever a board happened to be open, and it was a sync in search of an event:
+register an agent in the settings, never open «Как работает эта доска…», and
+the agent had no account anywhere. Running it on every board render was worse —
+finding-then-creating is not atomic, so one agent got three accounts. A
+registry that predates this is caught up once, at startup (`ensureAgentAccounts`
+in `Manager.Start`). `SyncAgentUsers` survives for the board *membership*,
+which is the board's own business and decides only whether the agent is listed
+under «участники доски» or found by search.
+
+The username is `AgentUsername`, and it keeps letters of **any** script. It
+folded to `a-z0-9` once, on a board whose every label is Russian: «клаус» became
+the empty string, was skipped by `AgentUsers`, got no account and could never be
+put in the one field that says who works a card — and «клаус 2» was provisioned
+under the name "2".
 
 Folders belong to **running an agent**, not to having a board: a board with no
 `agent`/`test` column is never asked for one, never grows a «Проекты» property,

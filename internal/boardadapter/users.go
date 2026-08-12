@@ -49,35 +49,19 @@ func (b *EventsBackend) EnsureAgentUsers(ctx context.Context, boardID string, ag
 
 	out := make([]acp.AgentUser, 0, len(agents))
 	for _, agent := range agents {
-		if agent.Username == "" {
+		agent, err := b.ensureAccount(agent)
+		if err != nil {
+			return out, err
+		}
+		if agent.UserID == "" {
 			continue
 		}
-		user, err := a.GetUserByUsername(agent.Username)
-		if err != nil {
-			return out, fmt.Errorf("поиск пользователя %q: %w", agent.Username, err)
-		}
-		if user == nil {
-			password, err := randomPassword()
-			if err != nil {
-				return out, err
-			}
-			// The account exists to be assigned, not to be logged into: the
-			// password is random and never shown anywhere.
-			if err := a.RegisterUser(agent.Username, agent.Username+"@"+agentEmailDomain, password); err != nil {
-				return out, fmt.Errorf("создание пользователя %q: %w", agent.Username, err)
-			}
-			if user, err = a.GetUserByUsername(agent.Username); err != nil || user == nil {
-				return out, fmt.Errorf("пользователь %q создан, но не найден: %w", agent.Username, err)
-			}
-			agent.Created = true
-		}
-		agent.UserID = user.ID
 
 		// Membership is what puts the agent into the board's person picker
 		// without searching for it.
 		member := &model.BoardMember{
 			BoardID:         boardID,
-			UserID:          user.ID,
+			UserID:          agent.UserID,
 			SchemeEditor:    true,
 			SchemeCommenter: true,
 			SchemeViewer:    true,
@@ -88,6 +72,69 @@ func (b *EventsBackend) EnsureAgentUsers(ctx context.Context, boardID string, ag
 		out = append(out, agent)
 	}
 	return out, nil
+}
+
+// EnsureAgentAccounts creates the accounts and stops there — no board is
+// involved, because an account is not a board's business: it is the name the
+// machine's registry is known by, and every board reads the same table when it
+// offers people to assign a card to.
+func (b *EventsBackend) EnsureAgentAccounts(ctx context.Context, agents []acp.AgentUser) ([]acp.AgentUser, error) {
+	b.mu.Lock()
+	ready := b.app != nil
+	b.mu.Unlock()
+	if !ready {
+		return nil, fmt.Errorf("board app is not ready")
+	}
+
+	out := make([]acp.AgentUser, 0, len(agents))
+	for _, agent := range agents {
+		agent, err := b.ensureAccount(agent)
+		if err != nil {
+			return out, err
+		}
+		if agent.UserID != "" {
+			out = append(out, agent)
+		}
+	}
+	return out, nil
+}
+
+// ensureAccount finds or makes one agent's account and fills in its user id.
+// An agent whose name folds to nothing has no account and is skipped, which is
+// reported by an empty UserID rather than by an error: the registry is a
+// person's own list and one unusable entry must not stop the rest.
+func (b *EventsBackend) ensureAccount(agent acp.AgentUser) (acp.AgentUser, error) {
+	if agent.Username == "" {
+		return agent, nil
+	}
+	b.mu.Lock()
+	a := b.app
+	b.mu.Unlock()
+	if a == nil {
+		return agent, fmt.Errorf("board app is not ready")
+	}
+
+	user, err := a.GetUserByUsername(agent.Username)
+	if err != nil {
+		return agent, fmt.Errorf("поиск пользователя %q: %w", agent.Username, err)
+	}
+	if user == nil {
+		password, err := randomPassword()
+		if err != nil {
+			return agent, err
+		}
+		// The account exists to be assigned, not to be logged into: the
+		// password is random and never shown anywhere.
+		if err := a.RegisterUser(agent.Username, agent.Username+"@"+agentEmailDomain, password); err != nil {
+			return agent, fmt.Errorf("создание пользователя %q: %w", agent.Username, err)
+		}
+		if user, err = a.GetUserByUsername(agent.Username); err != nil || user == nil {
+			return agent, fmt.Errorf("пользователь %q создан, но не найден: %w", agent.Username, err)
+		}
+		agent.Created = true
+	}
+	agent.UserID = user.ID
+	return agent, nil
 }
 
 // sourceEmailDomain is the reserved (RFC 2606) domain a source's account is

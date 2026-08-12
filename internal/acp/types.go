@@ -157,6 +157,12 @@ type AgentUser struct {
 // board without it has no way left to name an agent on a card: assigning one
 // is the way.
 type BoardUsers interface {
+	// EnsureAgentAccounts gives every agent the account it is named by, and
+	// nothing else. An account is the machine's, like the registry it comes
+	// from, so this needs no board: it runs when an agent is registered, which
+	// is the one moment there is something new to write.
+	EnsureAgentAccounts(ctx context.Context, agents []AgentUser) ([]AgentUser, error)
+
 	EnsureAgentUsers(ctx context.Context, boardID string, agents []AgentUser) ([]AgentUser, error)
 	// RetireAgentUser drops the account's board memberships and reports how
 	// many were removed. The account itself stays: cards may still name it, and

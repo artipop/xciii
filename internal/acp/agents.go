@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"unicode"
 )
 
 // Agent registry: named coding agents (claude/codex with their own prompt,
@@ -158,7 +159,42 @@ func (m *Manager) AddAgent(a AgentEntry) (AgentEntry, error) {
 		return AgentEntry{}, err
 	}
 	m.cfg.Agents = append(m.cfg.Agents, a)
-	return a, m.persistConfigLocked()
+	if err := m.persistConfigLocked(); err != nil {
+		return AgentEntry{}, err
+	}
+
+	// The account is made here, at the one moment there is something new: a
+	// registered agent is a name a card can be assigned to, and it can be
+	// assigned to it as soon as it exists. Nothing catches this up later.
+	//
+	// It does not hold up the registration if it fails — the registry is the
+	// answer to "which agents are there", and a board that is not ready yet
+	// must not turn adding one into an error.
+	m.ensureAgentAccount(a.Name)
+	return a, nil
+}
+
+// ensureAgentAccount provisions one agent's board account, and says so in the
+// log rather than to the caller: see AddAgent.
+func (m *Manager) ensureAgentAccount(name string) {
+	username := AgentUsername(name)
+	if m.users == nil || username == "" {
+		return
+	}
+	if _, err := m.users.EnsureAgentAccounts(context.Background(), []AgentUser{{Name: name, Username: username}}); err != nil {
+		m.log.Warn("acp: the agent has no board account yet", "agent", name, "err", err)
+	}
+}
+
+// ensureAgentAccounts is the same for the whole registry, at startup.
+func (m *Manager) ensureAgentAccounts() {
+	agents := m.AgentUsers()
+	if m.users == nil || len(agents) == 0 {
+		return
+	}
+	if _, err := m.users.EnsureAgentAccounts(m.rootCtx, agents); err != nil {
+		m.log.Warn("acp: some agents have no board account", "err", err)
+	}
 }
 
 // UpdateAgent replaces an existing agent (matched by name) and persists.
@@ -208,6 +244,7 @@ func (m *Manager) SyncAgentUsers(ctx context.Context, boardID string) ([]AgentUs
 	if len(agents) == 0 {
 		return nil, nil
 	}
+
 	return m.users.EnsureAgentUsers(ctx, boardID, agents)
 }
 
@@ -306,11 +343,19 @@ func (m *Manager) removeAgentEntry(name string) (AgentUser, error) {
 // registry name folded to what a username can carry, so the entry "My Agent"
 // and the account "my-agent" are the same agent. Also used for matching, which
 // is why it must stay deterministic.
+//
+// A letter is any letter, not only a Latin one. This kept `a-z0-9` once, on a
+// board whose every label is Russian, so an agent called «клаус» folded to the
+// empty string, was skipped by AgentUsers, got no account and could therefore
+// never be put in «Кто занимается» — the one field that says who works a card.
+// It failed in silence, and «клаус 2» was worse: it folded to "2" and made an
+// account under that name. Nothing here needs ASCII — the username is stored
+// in the board's own table and read back by the same fold.
 func AgentUsername(name string) string {
 	var b strings.Builder
 	for _, r := range strings.ToLower(strings.TrimSpace(name)) {
 		switch {
-		case (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '.' || r == '_':
+		case unicode.IsLetter(r) || unicode.IsDigit(r) || r == '.' || r == '_':
 			b.WriteRune(r)
 		default:
 			b.WriteRune('-')

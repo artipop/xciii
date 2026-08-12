@@ -296,6 +296,18 @@ func TestAgentUsername(t *testing.T) {
 		"agent.two_3":  "agent.two_3",
 		"---":          "",
 		"":             "",
+
+		// Every label on this board is Russian, and an agent named in it must
+		// get an account like any other. Folding to ASCII gave «клаус» the
+		// empty username, which AgentUsers skips — so the agent existed in the
+		// registry, had no account, and could never be put in «Кто занимается».
+		"клаус":       "клаус",
+		"Клаус":       "клаус",
+		"код-ревьюер": "код-ревьюер",
+
+		// And the worse half of the same bug: a name that kept one ASCII digit
+		// was provisioned under that digit alone.
+		"клаус 2": "клаус-2",
 	} {
 		if got := AgentUsername(in); got != want {
 			t.Errorf("AgentUsername(%q) = %q, want %q", in, got, want)
@@ -303,13 +315,70 @@ func TestAgentUsername(t *testing.T) {
 	}
 }
 
+// Registering an agent is the moment it becomes a name a card can be assigned
+// to, so it is the moment the account is made. Nothing opens a board to catch
+// this up afterwards — that was a sync in search of an event.
+func TestAddAgentMakesItsAccount(t *testing.T) {
+	m := agentManager(t, filepath.Join(t.TempDir(), "config.json"))
+	users := &fakeBoardUsers{}
+	m.SetBoardUsers(users)
+
+	if _, err := m.AddAgent(AgentEntry{Name: "клаус", Kind: "claude"}); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(users.accounts) != 1 || users.accounts[0].Username != "клаус" {
+		t.Fatalf("accounts provisioned = %+v, want one for «клаус»", users.accounts)
+	}
+}
+
+// And a registry that predates that is caught up once, when the app starts —
+// which is also what gives an account to the agents that never got one because
+// their names folded away.
+func TestAgentAccountsAreCaughtUpAtStartup(t *testing.T) {
+	m := agentManager(t, "", AgentEntry{Name: "клаус", Kind: "claude"}, AgentEntry{Name: "Codex", Kind: "codex"})
+	users := &fakeBoardUsers{}
+	m.SetBoardUsers(users)
+
+	m.ensureAgentAccounts()
+
+	if len(users.accounts) != 2 {
+		t.Fatalf("accounts provisioned = %+v, want one for each registered agent", users.accounts)
+	}
+}
+
+// A registry named in Russian is a registry the board can name back. This is
+// the whole of the bug reported as «агенты есть, но в исполнителе их нет»: the
+// sync asked for accounts and was handed nothing to create.
+func TestAgentUsersKeepsRussianNames(t *testing.T) {
+	m := &Manager{}
+	m.cfg.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}, {Name: "Codex", Kind: "codex"}}
+
+	users := m.AgentUsers()
+	if len(users) != 2 {
+		t.Fatalf("AgentUsers() = %+v, want an account for both agents", users)
+	}
+	if users[0].Username != "клаус" {
+		t.Errorf("username for %q = %q, want %q", users[0].Name, users[0].Username, "клаус")
+	}
+}
+
 // fakeBoardUsers records what the manager asked to provision and retire.
 type fakeBoardUsers struct {
 	boardID  string
 	agents   []AgentUser
+	accounts []AgentUser
 	retired  []AgentUser
 	err      error
 	retryErr error
+}
+
+func (f *fakeBoardUsers) EnsureAgentAccounts(_ context.Context, agents []AgentUser) ([]AgentUser, error) {
+	f.accounts = append(f.accounts, agents...)
+	if f.err != nil {
+		return nil, f.err
+	}
+	return agents, nil
 }
 
 func (f *fakeBoardUsers) RetireAgentUser(_ context.Context, agent AgentUser) (int, error) {

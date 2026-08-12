@@ -36,9 +36,9 @@ type Manager struct {
 	// travels with it. Optional; without it the position lives in this
 	// machine's store alone and stays behind when the board moves.
 	cards BoardCardState
-	ui             UIEmitter
-	log            *slog.Logger
-	tr             *Tracer
+	ui    UIEmitter
+	log   *slog.Logger
+	tr    *Tracer
 
 	mu     sync.Mutex
 	active map[string]*Session // session ID → session
@@ -163,6 +163,12 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 	// Before anything can edit either side: whatever automation the file still
 	// carries goes onto the boards that own it (boardseed.go).
 	m.moveAutomationToBoards()
+
+	// The accounts the registry is named by. Registering an agent makes its
+	// own from now on, so this is only ever the catch-up for a registry that
+	// predates that — and for the agents named in Russian, who folded to an
+	// empty username and got none at all.
+	m.ensureAgentAccounts()
 
 	m.recover()
 	PruneStale(m.rootCtx, m.cfg.ProjectWhitelist)
