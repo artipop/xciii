@@ -8,9 +8,12 @@ import {Show, createSignal, onMount} from 'solid-js'
 import {useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
+import Switch from '../../widgets/switch'
 import {sendFlashMessage} from '../flashMessages'
 
 import {agentBindings} from './bindings'
+import {agentNotificationsOn, setAgentNotifications} from './attention'
+import {isAgentsAvailable} from './agentsPanel'
 import PromptField from './promptField'
 
 import './machineMiscPanel.scss'
@@ -72,6 +75,30 @@ const MachineMiscPanel = () => {
                 {intl.formatMessage({id: 'Machine.subtitle', defaultMessage: 'Settings of this install: they apply to every board on it.'})}
             </div>
             <div class='MachineMiscPanel__content'>
+                {/* The card's own indicator is not a setting — it is part of
+                    the card. This is only about interrupting, which is why it
+                    is a setting at all, and why it is offered only where there
+                    is an agent that could ask. */}
+                <Show when={isAgentsAvailable()}>
+                    <div class='MachineMiscPanel__setting'>
+                        <div class='MachineMiscPanel__fact'>
+                            <span class='MachineMiscPanel__factName'>
+                                {intl.formatMessage({id: 'Sidebar.agent-notifications', defaultMessage: 'Notify me when an agent is waiting'})}
+                            </span>
+                            <span class='MachineMiscPanel__factValue'>
+                                {intl.formatMessage({
+                                    id: 'Machine.agent-notifications-hint',
+                                    defaultMessage: 'The question itself is in the notification, and answering it there is answering the agent. The amber dot on the card stays either way.',
+                                })}
+                            </span>
+                        </div>
+                        <Switch
+                            isOn={agentNotificationsOn()}
+                            onChanged={setAgentNotifications}
+                        />
+                    </div>
+                </Show>
+
                 <Show when={Boolean(bindings?.GetPlanningPrompt)}>
                     <PromptField
                         label={intl.formatMessage({

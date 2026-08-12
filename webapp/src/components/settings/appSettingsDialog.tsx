@@ -8,28 +8,30 @@ import {useIntl} from '../../intl'
 
 import Dialog from '../dialog'
 
-import AgentsPanel, {isAgentsAvailable} from './agentsPanel'
-import DeployTargetsPanel, {isDeployTargetsAvailable} from './deployTargetsPanel'
-import ProxiesPanel, {isProxiesAvailable} from './proxiesPanel'
-import TailnetPanel, {isTailnetAvailable} from './tailnetPanel'
-import MachineMiscPanel from './machineMiscPanel'
-import {agentBindings} from './bindings'
+import AgentsPanel, {isAgentsAvailable} from '../acp/agentsPanel'
+import DeployTargetsPanel, {isDeployTargetsAvailable} from '../acp/deployTargetsPanel'
+import ProxiesPanel, {isProxiesAvailable} from '../acp/proxiesPanel'
+import TailnetPanel, {isTailnetAvailable} from '../acp/tailnetPanel'
+import MachineMiscPanel from '../acp/machineMiscPanel'
 
-import './machineSettingsDialog.scss'
+import DataPanel from './dataPanel'
 
-// Everything this app knows that is true of the machine rather than of a board:
-// which agents are installed, where they may deploy, how they reach the network,
-// whether the board is on the tailnet.
+import './appSettingsDialog.scss'
+
+// Everything this app is asked about itself rather than about a board: which
+// agents are installed, where they may deploy, how they reach the network,
+// whether the board is on the tailnet, what comes in and goes out as an
+// archive, and what it is allowed to interrupt with.
 //
-// All of it used to be reached through a board's ⋯ menu, which put machine
-// settings behind a board and made them unreachable when none was open. They
-// are the sidebar's business, beside the theme and the language, and one dialog
-// with a list down the side is what keeps them one thing rather than five menu
-// entries.
-
-export function isMachineSettingsAvailable(): boolean {
-    return Boolean(agentBindings()?.ListAgents)
-}
+// All of it used to be reached through a board's ⋯ menu, which put settings
+// behind a board and made them unreachable when none was open; then through the
+// sidebar's own menu, where a submenu of a submenu was where a person went
+// looking for an import. One dialog with a list down the side is what keeps
+// them one thing rather than a menu that grows an entry per feature.
+//
+// The two settings that are *not* here are the theme and the language: they are
+// changed by looking at the screen and changed back, so they live in the corner
+// of the board itself (`topBar.tsx`) where they can be seen doing it.
 
 type Section = {
     id: string
@@ -46,7 +48,7 @@ type Props = {
     onClose: () => void
 }
 
-const MachineSettingsDialog = (props: Props) => {
+const AppSettingsDialog = (props: Props) => {
     const intl = useIntl()
 
     const sections: Section[] = [
@@ -75,6 +77,12 @@ const MachineSettingsDialog = (props: Props) => {
             body: TailnetPanel,
         },
         {
+            id: 'data',
+            name: intl.formatMessage({id: 'Settings.section-data', defaultMessage: 'Import and export'}),
+            when: () => true,
+            body: DataPanel,
+        },
+        {
             id: 'misc',
             name: intl.formatMessage({id: 'Machine.section-misc', defaultMessage: 'Other'}),
             when: () => true,
@@ -88,17 +96,17 @@ const MachineSettingsDialog = (props: Props) => {
 
     return (
         <Dialog
-            class='MachineSettingsDialog'
-            title={<span>{intl.formatMessage({id: 'Machine.title', defaultMessage: 'This machine'})}</span>}
+            class='AppSettingsDialog'
+            title={<span>{intl.formatMessage({id: 'Settings.title', defaultMessage: 'Settings'})}</span>}
             onClose={props.onClose}
         >
-            <div class='MachineSettingsDialog__body'>
-                <nav class='MachineSettingsDialog__nav'>
+            <div class='AppSettingsDialog__body'>
+                <nav class='AppSettingsDialog__nav'>
                     <For each={offered()}>
                         {(entry) => (
                             <button
                                 type='button'
-                                class={`MachineSettingsDialog__navItem${entry.id === current() ? ' MachineSettingsDialog__navItem--current' : ''}`}
+                                class={`AppSettingsDialog__navItem${entry.id === current() ? ' AppSettingsDialog__navItem--current' : ''}`}
                                 onClick={() => setCurrent(entry.id)}
                             >
                                 {entry.name}
@@ -106,11 +114,11 @@ const MachineSettingsDialog = (props: Props) => {
                         )}
                     </For>
                 </nav>
-                <div class='MachineSettingsDialog__panel'>
+                <div class='AppSettingsDialog__panel'>
                     <Show when={section()}>
                         {(entry) => (
                             <>
-                                <h3 class='MachineSettingsDialog__panelTitle'>{entry().name}</h3>
+                                <h3 class='AppSettingsDialog__panelTitle'>{entry().name}</h3>
                                 <Dynamic component={entry().body}/>
                             </>
                         )}
@@ -121,4 +129,4 @@ const MachineSettingsDialog = (props: Props) => {
     )
 }
 
-export default MachineSettingsDialog
+export default AppSettingsDialog

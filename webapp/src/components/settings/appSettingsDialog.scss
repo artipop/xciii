@@ -1,12 +1,12 @@
-.MachineSettingsDialog {
-    .MachineSettingsDialog__body {
+.AppSettingsDialog {
+    .AppSettingsDialog__body {
         display: flex;
         align-items: stretch;
         min-height: 420px;
         max-height: 70vh;
     }
 
-    .MachineSettingsDialog__nav {
+    .AppSettingsDialog__nav {
         display: flex;
         flex-direction: column;
         gap: 2px;
@@ -15,9 +15,9 @@
         border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     }
 
-    .MachineSettingsDialog__navItem {
+    .AppSettingsDialog__navItem {
         appearance: none;
-        border: none;
+        border: 0;
         background: transparent;
         text-align: left;
         padding: 8px 10px;
@@ -31,20 +31,20 @@
         }
     }
 
-    .MachineSettingsDialog__navItem--current {
+    .AppSettingsDialog__navItem--current {
         background: rgba(var(--button-bg-rgb), 0.12);
         color: rgb(var(--button-bg-rgb));
         font-weight: 600;
     }
 
-    .MachineSettingsDialog__panel {
+    .AppSettingsDialog__panel {
         flex: 1;
         min-width: 0;
         overflow-y: auto;
         padding: 0 24px 24px;
     }
 
-    .MachineSettingsDialog__panelTitle {
+    .AppSettingsDialog__panelTitle {
         margin: 0 0 4px;
         font-size: 16px;
         font-weight: 600;

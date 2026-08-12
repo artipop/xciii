@@ -34,6 +34,7 @@ import {getMe} from '../store/users'
 import {getHiddenBoardIDs} from '../store/sidebar'
 
 import CenterPanel from './centerPanel'
+import TopBar from './topBar'
 import TemplateEditor from './acp/templateEditor'
 import BoardTemplateSelector from './boardTemplateSelector/boardTemplateSelector'
 import GuestNoBoards from './guestNoBoards'
@@ -101,22 +102,29 @@ function CenterContent(props: Props) {
         })
     })
 
+    // The theme, the language and the way to report a bug hang off the top
+    // right of a board — and an install with no board yet is exactly when
+    // somebody wants the first two. The corner comes with this screen too,
+    // because the board that would otherwise carry it does not exist.
     const templateSelector = () => (
-        <BoardTemplateSelector
-            title={
-                <FormattedMessage
-                    id='BoardTemplateSelector.plugin.no-content-title'
-                    defaultMessage='Create a board'
-                />
-            }
-            description={
-                <FormattedMessage
-                    id='BoardTemplateSelector.plugin.no-content-description'
-                    defaultMessage='Add a board to the sidebar using any of the templates defined below or start from scratch.'
-                />
-            }
-            channelId={match().params.channelId}
-        />
+        <>
+            <TopBar overPage={true}/>
+            <BoardTemplateSelector
+                title={
+                    <FormattedMessage
+                        id='BoardTemplateSelector.plugin.no-content-title'
+                        defaultMessage='Create a board'
+                    />
+                }
+                description={
+                    <FormattedMessage
+                        id='BoardTemplateSelector.plugin.no-content-description'
+                        defaultMessage='Add a board to the sidebar using any of the templates defined below or start from scratch.'
+                    />
+                }
+                channelId={match().params.channelId}
+            />
+        </>
     )
 
     const property = () => {

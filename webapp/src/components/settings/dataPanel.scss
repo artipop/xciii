@@ -1,0 +1,101 @@
+.DataPanel {
+    .DataPanel__content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    // A row is a name, why you would want it, and the button that does it —
+    // the button on the right so the three of them line up down the panel.
+    .DataPanel__action {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-md);
+    }
+
+    .DataPanel__actionText {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .DataPanel__actionName {
+        font-weight: 600;
+    }
+
+    .DataPanel__actionHint,
+    .DataPanel__groupHint {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+    }
+
+    .DataPanel__group {
+        margin-top: 12px;
+    }
+
+    .DataPanel__groupTitle {
+        margin: 0 0 2px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .DataPanel__groupHint {
+        margin: 0 0 8px;
+    }
+
+    .DataPanel__brands {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    // Wide enough for three across the panel, and they wrap rather than shrink:
+    // a mark and a name are the whole of a card here.
+    .DataPanel__brand {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        flex: 1 1 140px;
+        padding: 10px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-md);
+        background: transparent;
+        color: rgb(var(--center-channel-color-rgb));
+        cursor: pointer;
+        text-align: left;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    .DataPanel__brandIcon {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .DataPanel__brandName {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .DataPanel__brandAway {
+        font-size: 14px;
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+    }
+}
