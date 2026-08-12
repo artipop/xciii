@@ -13,17 +13,19 @@ and the same code builds a headless server (`-tags server`) that serves the boar
 a browser instead of a webview.
 
 The board server and the webapp are both forks of Mattermost's Focalboard, and
-the product no longer carries that name anywhere a person can see it — the only
-place it survives is the upstream Go import path.
+the product no longer carries that name anywhere — not on screen, and since the
+rename, not in an import path either.
 
 Both halves are here. `webapp/` is its own npm project built with Vite, since
 rewritten from React to **SolidJS**, so upstream and this repository's early
 history are both React and neither is a recipe any more; see
 `docs/solidjs-migration-plan.md` for what the rewrite promised. `server/` is the
-board server, its own Go module, which `go.mod` `replace`s the upstream path
-onto. It was a checkout beside this one until that turned out to mean the
-project built on exactly one machine, because the branch it needed had never
-been pushed. Nothing outside this repository is required to build it.
+board server, and it is **a directory of this module, not a module of its own**:
+its packages are `github.com/artipop/xciii/server/…`, there is one `go.mod`, and
+there is nothing to `replace`. It was a checkout beside this one until that
+turned out to mean the project built on exactly one machine, then a second module
+carrying upstream's import path, and now neither. Nothing outside this repository
+is required to build it.
 
 `server/` is a fork carried, not a library consumed: patch it here, and keep
 patches small enough to explain, because there is nobody upstream to merge them.
