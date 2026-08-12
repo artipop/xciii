@@ -320,6 +320,7 @@ const CardDialog = (props: Props): JSX.Element => {
                         <div class='cardDialog__side'>
                             <CardTerminal
                                 cardId={props.cardId}
+                                board={props.board}
                                 onClose={() => setShowTerminal(false)}
                             />
                         </div>

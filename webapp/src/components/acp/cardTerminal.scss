@@ -107,8 +107,24 @@
         white-space: pre-wrap;
     }
 
-    &__hint {
-        margin-top: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+    // The pick for a conversation Go could not resolve: folder, agent, go.
+    &__picker {
+        display: flex;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0 12px 12px;
+
+        > label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: var(--text-small);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+    }
+
+    .AgentQuickAdd {
+        padding: 0 12px 12px;
     }
 }

@@ -4,9 +4,14 @@ import {For, Show, Suspense, createSignal, lazy, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
+import {Board} from '../../blocks/board'
+import Button from '../../widgets/buttons/button'
+import Select from '../../widgets/select'
+
 import {agentBindings} from './bindings'
 import {cardAgentState, refreshCardAgent, type CardConversation} from './cardAgentState'
 import {isCardTerminalAvailable} from './liveTerminals'
+import AgentQuickAdd from './agentQuickAdd'
 
 import './cardTerminal.scss'
 
@@ -45,6 +50,10 @@ export {isCardTerminalAvailable}
 
 type Props = {
     cardId: string
+
+    // Whose folders to offer when the card cannot say which project it is
+    // about — a project belongs to the board it was added on.
+    board: Board
     onClose: () => void
 }
 
@@ -57,6 +66,17 @@ const CardTerminal = (props: Props) => {
     const [error, setError] = createSignal('')
     const [busy, setBusy] = createSignal(true)
 
+    // The pick, for the conversation Go could not resolve by itself. It lives
+    // one conversation: choosing an agent here is «кто планирует со мной
+    // сейчас», not an assignment — the card's «Кто занимается» stays whatever
+    // a person set it to.
+    const [choosing, setChoosing] = createSignal(false)
+    const [projects, setProjects] = createSignal<Array<{name: string}>>([])
+    const [agents, setAgents] = createSignal<Array<{name: string}>>([])
+    const [projectName, setProjectName] = createSignal('')
+    const [agentName, setAgentName] = createSignal('')
+    const [addingAgent, setAddingAgent] = createSignal(false)
+
     // inWindow asks for a screen of its own, which is the only thing a panel
     // beside a card cannot be. Go hands back the same terminal either way.
     const start = async (inWindow: boolean) => {
@@ -66,19 +86,75 @@ const CardTerminal = (props: Props) => {
         setBusy(true)
         setError('')
         try {
-            const handle = JSON.parse(await bindings.OpenCardTerminal(props.cardId, '', '', inWindow))
+            const handle = JSON.parse(await bindings.OpenCardTerminal(props.cardId, projectName(), agentName(), inWindow))
 
             // The desktop app has already opened the window by now; a server
             // build has no windows, so the browser opens a tab instead.
             if (inWindow && !handle.windowed && handle.url) {
                 window.open(handle.url, '_blank', 'noopener')
             }
+            setChoosing(false)
             setTerminalId(handle.id || '')
             await refreshCardAgent(props.cardId)
         } catch (e: any) {
             setError(String(e?.message || e))
+
+            // Go refused because it could not work out the folder or the agent
+            // from the card. This is the moment the question is real — a card
+            // in a pre-work column with nobody assigned — so it is asked here,
+            // and the conversation it starts is planning in place: the CLI
+            // opens on the card, with the board tools to fill it in.
+            await offerChoices()
+            setChoosing(true)
         } finally {
             setBusy(false)
+        }
+    }
+
+    // What is on offer, fetched only when there is something to choose. One of
+    // a kind needs no choosing and is filled in rather than asked for.
+    const offerChoices = async () => {
+        if (!bindings) {
+            return
+        }
+        try {
+            const [projectList, agentList] = await Promise.all([
+                bindings.ListAgentProjects ? bindings.ListAgentProjects(props.board.id) : '[]',
+                bindings.ListAgents ? bindings.ListAgents() : '[]',
+            ])
+            const parsedProjects = (JSON.parse(projectList) || []) as Array<{name: string}>
+            const parsedAgents = (JSON.parse(agentList) || []) as Array<{name: string}>
+            setProjects(parsedProjects)
+            setAgents(parsedAgents)
+            if (parsedProjects.length === 1) {
+                setProjectName(parsedProjects[0].name)
+            }
+            if (parsedAgents.length === 1) {
+                setAgentName(parsedAgents[0].name)
+            }
+        } catch (e) {
+            // An empty registry is not an error to report here.
+        }
+    }
+
+    // A folder is two answers — where it is and what to call it — and the
+    // native picker gives both. It belongs to this board, like every project
+    // added anywhere but the "on every board" checkbox.
+    const addProject = async () => {
+        if (!bindings?.PickDirectory || !bindings.AddAgentProject) {
+            return
+        }
+        try {
+            const path = await bindings.PickDirectory(intl.formatMessage({id: 'CardTerminal.pick-project', defaultMessage: 'Choose a folder to work in'}))
+            if (!path) {
+                return
+            }
+            const name = path.split('/').filter(Boolean).pop() || path
+            await bindings.AddAgentProject(name, path, props.board.id, false)
+            await offerChoices()
+            setProjectName(name)
+        } catch (e: any) {
+            setError(String(e?.message || e))
         }
     }
 
@@ -176,17 +252,78 @@ const CardTerminal = (props: Props) => {
                 )}
             </Show>
 
-            {/* Go could not work out which folder or which agent this card is
-                for. There is nothing to answer that with here on purpose: both
-                are the machine's settings, and a form asking for them again is
-                how the card got overloaded in the first place. */}
             <Show when={error()}>
                 <div class='CardTerminal__error'>
                     <div>{error()}</div>
-                    <div class='CardTerminal__hint'>
-                        {intl.formatMessage({id: 'CardTerminal.settings-hint', defaultMessage: 'Folders and agents are set up in this machine’s settings.'})}
-                    </div>
                 </div>
+            </Show>
+
+            {/* Go could not work out which folder or which agent, and this is
+                the one moment the question is real: a card before any work,
+                with nobody assigned. The pick lives one conversation — it
+                writes nothing to the card and nothing to the registries
+                (except a folder added by hand, which is a registration like
+                any other). This deliberately reverses an earlier decision to
+                point at the settings instead: planning in place is the point,
+                and an errand to the settings is where planning goes to die. */}
+            <Show when={choosing()}>
+                <div class='CardTerminal__picker'>
+                    <label>
+                        {intl.formatMessage({id: 'CardTerminal.project', defaultMessage: 'Folder'})}
+                        <Select
+                            value={projectName()}
+                            options={[
+                                {value: '', label: intl.formatMessage({id: 'CardTerminal.choose-project', defaultMessage: 'Choose a folder…'})},
+                                ...projects().map((r) => ({value: r.name, label: r.name})),
+                            ]}
+                            onChange={setProjectName}
+                            label={intl.formatMessage({id: 'CardTerminal.project', defaultMessage: 'Folder'})}
+                        />
+                    </label>
+                    <Show when={Boolean(bindings?.PickDirectory)}>
+                        <Button onClick={addProject}>
+                            {intl.formatMessage({id: 'CardTerminal.add-project', defaultMessage: 'Add a folder…'})}
+                        </Button>
+                    </Show>
+
+                    <label>
+                        {intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
+                        <Select
+                            value={agentName()}
+                            options={[
+                                {value: '', label: intl.formatMessage({id: 'CardTerminal.choose-agent', defaultMessage: 'Choose an agent…'})},
+                                ...agents().map((a) => ({value: a.name, label: a.name})),
+                            ]}
+                            onChange={setAgentName}
+                            label={intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
+                        />
+                    </label>
+                    <Show when={!addingAgent()}>
+                        <Button onClick={() => setAddingAgent(true)}>
+                            {intl.formatMessage({id: 'CardTerminal.add-agent', defaultMessage: 'Add an agent…'})}
+                        </Button>
+                    </Show>
+
+                    <Button
+                        filled={true}
+                        onClick={() => start(false)}
+                        disabled={busy() || !projectName() || !agentName()}
+                    >
+                        {intl.formatMessage({id: 'CardTerminal.start', defaultMessage: 'Start the conversation'})}
+                    </Button>
+                </div>
+
+                <Show when={addingAgent()}>
+                    <AgentQuickAdd
+                        board={props.board}
+                        onAdded={async (name) => {
+                            setAddingAgent(false)
+                            await offerChoices()
+                            setAgentName(name)
+                        }}
+                        onCancel={() => setAddingAgent(false)}
+                    />
+                </Show>
             </Show>
         </div>
     )
