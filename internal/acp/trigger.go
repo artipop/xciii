@@ -44,8 +44,10 @@ func (m *Manager) handleEvent(ev CardMoved) {
 		return
 	}
 	if from, left := m.columnFor(ev.BoardID, ev.FromColumn); left && from.Action != FlowActionNone {
-		// A card that leaves stops waiting for the column it left.
+		// A card that leaves stops waiting for the column it left — and stops
+		// being stalled by it: whatever could not start there is moot now.
 		m.dequeueStage(ev.CardID)
+		m.clearStall(ev.CardID)
 		if m.CancelSessionForCard(ev.CardID, "карточка убрана из триггерной колонки") {
 			m.log.Info("acp: session cancelled by card move", "card", ev.CardID)
 		}
@@ -57,12 +59,12 @@ func (m *Manager) handleEvent(ev CardMoved) {
 // so the guards, the idempotency key and the logging are shared.
 func (m *Manager) handleEnter(ev CardMoved, spec ColumnSpec) {
 	opts := startOptions{column: spec}
-	kind, failed := "agent", "Агент не запущен"
+	kind, failed := "agent", "агент не запущен"
 	switch spec.Action {
 	case FlowActionDeploy:
-		opts.deploy, kind, failed = true, "deploy", "Деплой не запущен"
+		opts.deploy, kind, failed = true, "deploy", "деплой не запущен"
 	case FlowActionTest:
-		opts.test, kind, failed = true, "test", "Тестирование не запущено"
+		opts.test, kind, failed = true, "test", "тестирование не запущено"
 	}
 	if !m.claimMove(ev, kind) {
 		return
@@ -74,12 +76,12 @@ func (m *Manager) handleEnter(ev CardMoved, spec ColumnSpec) {
 	}
 	var mine AssignedToHumanError
 	if errors.As(err, &mine) {
-		m.sayCardIsTaken(ev.CardID, mine)
+		m.sayCardIsTaken(ev.CardID, "", mine)
 		return
 	}
 	if err != nil {
 		m.log.Warn("acp: session not started", "card", ev.CardID, "kind", kind, "err", err)
-		m.commentCard(ev.CardID, fmt.Sprintf("%s: %v", failed, err))
+		m.stallCard(ev.CardID, "", fmt.Sprintf("%s: %v", failed, err))
 		return
 	}
 	m.log.Info("acp: session started", "session", s.ID, "card", ev.CardID, "kind", kind, "project", s.ProjectPath)
@@ -119,12 +121,12 @@ func (m *Manager) claimMove(ev CardMoved, kind string) bool {
 	return true
 }
 
-// sayCardIsTaken explains, once per move, why nothing started: somebody has the
-// card. It also says how to hand it back, since "nothing happened" is otherwise
-// indistinguishable from a broken setup.
-func (m *Manager) sayCardIsTaken(cardID string, err AssignedToHumanError) {
+// sayCardIsTaken explains why nothing started: somebody has the card. Said on
+// the card's own state rather than in a comment — the card is being worked,
+// just not by us, and that is a state of affairs, not an event worth keeping.
+func (m *Manager) sayCardIsTaken(cardID, nodeID string, err AssignedToHumanError) {
 	m.log.Info("acp: card is assigned to a person, no agent started", "card", cardID, "assignee", err.Who)
-	m.commentCard(cardID, fmt.Sprintf(
+	m.stallCard(cardID, nodeID, fmt.Sprintf(
 		"%s — агент не запускается. Снимите исполнителя или назначьте агента, если работу должен взять он.",
 		err.Error()))
 }

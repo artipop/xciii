@@ -337,11 +337,19 @@ func TestProjectBusyRejectedWithoutWorktrees(t *testing.T) {
 	})
 
 	events.ch <- moveEvent("cardB", project, "opt-backlog", "opt-agent")
-	waitFor(t, 5*time.Second, "busy-project comment on second card", func() bool {
-		return len(writer.cardComments("cardB")) >= 1
+
+	// The busy project is the card's current state, told on its strip rather
+	// than left behind as a comment.
+	waitFor(t, 5*time.Second, "busy-project stall on second card", func() bool {
+		_, ok, _ := m.store.Stall("cardB")
+		return ok
 	})
-	if got := writer.cardComments("cardB")[0]; !strings.Contains(got, "уже работает") {
-		t.Errorf("expected busy-project error comment, got %q", got)
+	stall, _, _ := m.store.Stall("cardB")
+	if !strings.Contains(stall.Reason, "уже работает") {
+		t.Errorf("expected busy-project reason, got %q", stall.Reason)
+	}
+	if got := writer.cardComments("cardB"); len(got) != 0 {
+		t.Errorf("a failed start must not comment on the card: %q", got)
 	}
 	if sessions, _, _ := m.store.SessionsForCard("cardB"); len(sessions) != 0 {
 		t.Errorf("second card must not get a session, got %d", len(sessions))
@@ -368,21 +376,52 @@ func TestRapidMovesStartOneSession(t *testing.T) {
 	}
 }
 
-func TestInvalidProjectPathComments(t *testing.T) {
+func TestInvalidProjectPathStallsTheCard(t *testing.T) {
 	m, writer, events, _ := testManager(t, fakeClaudeHappy, nil)
 
 	ev := moveEvent("card3", "/nonexistent/path", "opt-backlog", "opt-agent")
 	events.ch <- ev
 
-	waitFor(t, 5*time.Second, "error comment", func() bool {
-		return len(writer.cardComments("card3")) >= 1
+	// «Агент не запущен: …» was the comment this whole design grew out of: a
+	// resolution failure is state, and the card shows it while it is true.
+	waitFor(t, 5*time.Second, "the stall record appears", func() bool {
+		_, ok, _ := m.store.Stall("card3")
+		return ok
 	})
-	if got := writer.cardComments("card3")[0]; !strings.Contains(got, "Агент не запущен") {
-		t.Errorf("expected clear error comment, got %q", got)
+	stall, _, _ := m.store.Stall("card3")
+	if !strings.Contains(stall.Reason, "агент не запущен") {
+		t.Errorf("expected a clear reason, got %q", stall.Reason)
+	}
+	if got := writer.cardComments("card3"); len(got) != 0 {
+		t.Errorf("a failed start must not comment on the card: %q", got)
 	}
 	if sessions, _, _ := m.store.SessionsForCard("card3"); len(sessions) != 0 {
 		t.Errorf("no session should have been created, got %d", len(sessions))
 	}
+}
+
+// A stall is state, and state goes away with progress: the reason the card
+// stood still must not survive the session that ended the standing.
+func TestStallClearsWhenTheSessionStarts(t *testing.T) {
+	m, _, events, project := testManager(t, fakeClaudeHappy, nil)
+
+	events.ch <- moveEvent("cardStall", "/nonexistent/path", "opt-backlog", "opt-agent")
+	waitFor(t, 5*time.Second, "the stall record appears", func() bool {
+		_, ok, _ := m.store.Stall("cardStall")
+		return ok
+	})
+
+	// The registry got fixed; the card is dragged in again, from elsewhere so
+	// idempotency does not swallow the move.
+	events.ch <- moveEvent("cardStall", project, "opt-review", "opt-agent")
+	waitFor(t, 15*time.Second, "the session starts and the stall clears", func() bool {
+		sessions, _, err := m.store.SessionsForCard("cardStall")
+		if err != nil || len(sessions) == 0 {
+			return false
+		}
+		_, ok, _ := m.store.Stall("cardStall")
+		return !ok
+	})
 }
 
 func TestMoveBackCancelsSession(t *testing.T) {

@@ -41,8 +41,9 @@ func (m *Manager) columnByKey(key string) (ColumnSpec, bool) {
 }
 
 // enqueueStage parks a card whose stage could not start because the column is
-// full. It says so on the card once — a card re-queued by a later attempt has
-// already been explained.
+// full. Nothing is said on the card: the route strip already reports «ждёт
+// места в колонке» for a queued card, which is this state told live rather
+// than as a comment that outlives it.
 func (m *Manager) enqueueStage(ev CardMoved, spec ColumnSpec, flowName, nodeID string) {
 	fresh, err := m.store.EnqueueStage(QueuedStage{
 		CardID:    ev.CardID,
@@ -55,12 +56,11 @@ func (m *Manager) enqueueStage(ev CardMoved, spec ColumnSpec, flowName, nodeID s
 		m.log.Error("acp: cannot queue the card", "card", ev.CardID, "err", err)
 		return
 	}
+	// Queued is progress of a kind: whatever stalled the card before is not
+	// what it is waiting for now.
+	m.clearStall(ev.CardID)
 	m.log.Info("acp: card waiting for a place in the column",
 		"card", ev.CardID, "column", spec.Column, "fresh", fresh)
-	if fresh {
-		m.commentCard(ev.CardID, fmt.Sprintf(
-			"Колонка «%s» занята — стадия начнётся, как только освободится место.", spec.Column))
-	}
 }
 
 // dequeueStage forgets a card that no longer waits: it started, or somebody
@@ -135,12 +135,12 @@ func (m *Manager) drainColumn(key string) {
 	// where it is, rather than failing its stage.
 	var mine AssignedToHumanError
 	if errors.As(err, &mine) {
-		m.sayCardIsTaken(q.CardID, mine)
+		m.sayCardIsTaken(q.CardID, q.NodeID, mine)
 		return
 	}
 	if err != nil {
 		m.log.Warn("acp: queued stage not started", "card", q.CardID, "column", spec.Column, "err", err)
-		m.commentCard(q.CardID, fmt.Sprintf("Стадия «%s» не запустилась: %v", spec.Column, err))
+		m.stallCard(q.CardID, q.NodeID, fmt.Sprintf("стадия «%s» не запустилась: %v", spec.Column, err))
 		if q.Flow != "" {
 			m.advanceFlow(q.CardID, TriggerFailure, "шаг не удалось запустить")
 		}

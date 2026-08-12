@@ -29,6 +29,11 @@ type CardFlow struct {
 	WaitingFor []string        `json:"waitingFor,omitempty"` // human labels of the events the stage waits on
 	Queued     bool            `json:"queued,omitempty"`     // waiting for a place in the column
 	Running    bool            `json:"running,omitempty"`    // a session of this stage is working now
+	// Stalled says why nothing is happening, when the machinery knows: the
+	// stage would not start, the route has no edge for what arrived. It used
+	// to be a comment on the card; it is state, so it lives here and goes away
+	// with the next progress.
+	Stalled string `json:"stalled,omitempty"`
 }
 
 // CardFlowFor describes where a card stands on its route. It returns nothing —
@@ -95,6 +100,9 @@ func (m *Manager) CardFlowFor(cardID string) (*CardFlow, error) {
 	m.mu.Unlock()
 	if !out.Running {
 		out.Queued = m.cardIsQueued(cardID)
+	}
+	if stall, ok := m.CardStall(cardID); ok {
+		out.Stalled = stall.Reason
 	}
 	return out, nil
 }

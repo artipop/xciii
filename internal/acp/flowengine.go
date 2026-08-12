@@ -38,6 +38,7 @@ func (m *Manager) handleFlowMove(ev CardMoved) bool {
 		if _, was := flow.NodeByColumn(ev.FromColumn.Name); was {
 			m.CancelSessionForCard(ev.CardID, "карточка убрана из флоу")
 			m.clearFlowState(ev.CardID)
+			m.clearStall(ev.CardID)
 		}
 		return true
 	}
@@ -66,15 +67,19 @@ func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bo
 		cancel()
 		if err != nil {
 			m.log.Warn("acp: flow move failed", "card", ev.CardID, "column", node.Column, "err", err)
-			m.commentCard(ev.CardID, fmt.Sprintf("Флоу «%s»: не удалось перевести карточку в «%s»: %v",
-				flow.Name, node.Column, err))
+			m.stallCard(ev.CardID, node.ID, fmt.Sprintf("не удалось перевести карточку в «%s»: %v",
+				node.Column, err))
 			return
 		}
 		// A card that moved is a card that moved: the board shows it in the new
-		// column, and a comment saying so on every stage of every route turned
-		// the card into a log of its own route. Only a move that did *not*
-		// happen is worth a comment, which is the branch above.
+		// column, and narrating it on every stage of every route turned the
+		// card into a log of its own route. Only a move that did *not* happen
+		// is worth saying, which is the branch above.
 	}
+
+	// A stage entered is progress: whatever stalled the card on the previous
+	// one is over.
+	m.clearStall(ev.CardID)
 
 	projectPath, _ := m.resolveProject(ev)
 	from, previousBranch := "", ""
@@ -189,12 +194,12 @@ func (m *Manager) runNodeAction(ev CardMoved, flow FlowEntry, node FlowNode) {
 	// move it on. Not a failed stage — the work is being done, just not by us.
 	var mine AssignedToHumanError
 	if errors.As(err, &mine) {
-		m.sayCardIsTaken(ev.CardID, mine)
+		m.sayCardIsTaken(ev.CardID, node.ID, mine)
 		return
 	}
 	if err != nil {
 		m.log.Warn("acp: flow action not started", "card", ev.CardID, "node", node.ID, "err", err)
-		m.commentCard(ev.CardID, fmt.Sprintf("Флоу «%s», стадия «%s»: шаг не запущен: %v", flow.Name, node.Column, err))
+		m.stallCard(ev.CardID, node.ID, fmt.Sprintf("стадия «%s» не запустилась: %v", node.Column, err))
 		m.advanceFlow(ev.CardID, TriggerFailure, "шаг не удалось запустить")
 		return
 	}
@@ -221,7 +226,7 @@ func (m *Manager) advanceFlowWith(cardID, on, detail, agentText string) {
 	}
 	node, ok := flow.Node(st.NodeID)
 	if !ok {
-		m.commentCard(cardID, fmt.Sprintf("Флоу «%s»: стадия %q исчезла из маршрута — карточка осталась на месте.", flow.Name, st.NodeID))
+		m.stallCardSoft(cardID, st.NodeID, fmt.Sprintf("стадия %q исчезла из маршрута — карточка осталась на месте", st.NodeID))
 		return
 	}
 	if !flow.HasEdge(node.ID, on) {
@@ -229,8 +234,8 @@ func (m *Manager) advanceFlowWith(cardID, on, detail, agentText string) {
 		// stops here and somebody has to know why. VCS events are only polled
 		// for where an edge exists, so silence is correct for them.
 		if !IsVCSTrigger(on) && on != TriggerCardChanged {
-			m.commentCard(cardID, fmt.Sprintf("Флоу «%s»: у стадии «%s» нет перехода по событию «%s» — карточка осталась на месте.",
-				flow.Name, node.Column, TriggerLabel(on)))
+			m.stallCardSoft(cardID, node.ID, fmt.Sprintf("у стадии «%s» нет перехода по событию «%s» — карточка осталась на месте",
+				node.Column, TriggerLabel(on)))
 		}
 		return
 	}
@@ -255,8 +260,8 @@ func (m *Manager) advanceFlowWith(cardID, on, detail, agentText string) {
 		// fallback. That is a decision the route made, and worth recording —
 		// once per parking, not per poll: a VCS event repeats every interval.
 		if !IsVCSTrigger(on) {
-			m.commentCard(cardID, fmt.Sprintf("Флоу «%s»: событие «%s» пришло, но ни одно условие стадии «%s» не выполнено — карточка осталась на месте.",
-				flow.Name, TriggerLabel(on), node.Column))
+			m.stallCardSoft(cardID, node.ID, fmt.Sprintf("событие «%s» пришло, но ни одно условие стадии «%s» не выполнено — карточка осталась на месте",
+				TriggerLabel(on), node.Column))
 		}
 		return
 	}

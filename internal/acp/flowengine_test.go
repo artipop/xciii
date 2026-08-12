@@ -102,15 +102,23 @@ func TestFlowTakesTheFailureBranch(t *testing.T) {
 func TestFlowWithoutAnEdgeLeavesTheCardPut(t *testing.T) {
 	flow := sampleFlow()
 	flow.Edges = nil // the stage runs, but nothing follows it
-	_, writer, events, project := flowManager(t, fakeClaudeHappy, flow)
+	m, writer, events, project := flowManager(t, fakeClaudeHappy, flow)
 
 	events.ch <- flowEvent("card3", project, "Backlog", "To Agent")
 
+	// The dead end is the card's current state, so it lives on the strip (a
+	// stall record), not in the comments.
 	waitFor(t, 20*time.Second, "the route reports the dead end", func() bool {
-		return strings.Contains(strings.Join(writer.cardComments("card3"), "\n"), "нет перехода")
+		stall, ok, _ := m.store.Stall("card3")
+		return ok && strings.Contains(stall.Reason, "нет перехода")
 	})
 	if moves := writer.cardMoves(); len(moves) != 0 {
 		t.Fatalf("the card should have stayed put: %+v", moves)
+	}
+	for _, comment := range writer.cardComments("card3") {
+		if strings.Contains(comment, "нет перехода") {
+			t.Fatalf("the dead end must not be a comment: %q", comment)
+		}
 	}
 }
 

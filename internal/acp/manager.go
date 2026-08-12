@@ -399,6 +399,9 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		m.byCard[s.CardID] = s
 	}
 	m.mu.Unlock()
+
+	// A session starting is the progress every stall record was waiting for.
+	m.clearStall(s.CardID)
 	m.emitSession(s, "")
 
 	m.wg.Add(1)

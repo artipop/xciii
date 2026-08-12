@@ -126,6 +126,12 @@ CREATE TABLE IF NOT EXISTS flow_event (
 	created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_flow_event_card ON flow_event(card_id, id);
+CREATE TABLE IF NOT EXISTS card_stall (
+	card_id TEXT PRIMARY KEY,
+	node_id TEXT NOT NULL DEFAULT '',
+	reason TEXT NOT NULL,
+	created_at INTEGER NOT NULL
+);
 CREATE TABLE IF NOT EXISTS stage_queue (
 	card_id TEXT PRIMARY KEY,
 	board_id TEXT NOT NULL DEFAULT '',
@@ -326,6 +332,53 @@ func (s *Store) FlowEvents(cardID string) ([]FlowEventRecord, error) {
 		out = append(out, r)
 	}
 	return out, rows.Err()
+}
+
+// StallRecord is why nothing is happening on a card that was asked to do
+// something: a stage that could not start, a route that has nowhere to go. One
+// per card — a newer reason replaces the old one, and any progress deletes it.
+type StallRecord struct {
+	CardID    string    `json:"cardId"`
+	NodeID    string    `json:"nodeId,omitempty"`
+	Reason    string    `json:"reason"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// SetStall records the reason, replacing whatever was there.
+func (s *Store) SetStall(r StallRecord) error {
+	_, err := s.db.Exec(`INSERT INTO card_stall (card_id, node_id, reason, created_at)
+		VALUES (?,?,?,?)
+		ON CONFLICT(card_id) DO UPDATE SET
+			node_id=excluded.node_id, reason=excluded.reason, created_at=excluded.created_at`,
+		r.CardID, r.NodeID, r.Reason, time.Now().UnixMilli())
+	return err
+}
+
+// ClearStall forgets the reason and reports whether there was one — the caller
+// only announces a change that happened.
+func (s *Store) ClearStall(cardID string) (bool, error) {
+	res, err := s.db.Exec(`DELETE FROM card_stall WHERE card_id=?`, cardID)
+	if err != nil {
+		return false, err
+	}
+	n, _ := res.RowsAffected()
+	return n > 0, nil
+}
+
+// Stall returns the card's recorded reason, if it has one.
+func (s *Store) Stall(cardID string) (StallRecord, bool, error) {
+	row := s.db.QueryRow(`SELECT card_id, node_id, reason, created_at FROM card_stall WHERE card_id=?`, cardID)
+	var r StallRecord
+	var created int64
+	err := row.Scan(&r.CardID, &r.NodeID, &r.Reason, &created)
+	if err == sql.ErrNoRows {
+		return StallRecord{}, false, nil
+	}
+	if err != nil {
+		return StallRecord{}, false, err
+	}
+	r.CreatedAt = time.UnixMilli(created)
+	return r, true, nil
 }
 
 // scanner is satisfied by both *sql.Row and *sql.Rows.

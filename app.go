@@ -886,6 +886,11 @@ func (a *App) GetCardAgent(cardID string) (string, error) {
 	if live := a.mgr.TerminalForCard(cardID); live != nil {
 		payload["running"] = live.Info()
 	}
+	// Why nothing is happening, for a card outside any route — the route strip
+	// says the same thing for cards on one.
+	if stall, ok := a.mgr.CardStall(cardID); ok {
+		payload["stall"] = stall
+	}
 	out, err := json.Marshal(payload)
 	if err != nil {
 		return "", err

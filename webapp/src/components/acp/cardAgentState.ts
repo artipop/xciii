@@ -16,6 +16,10 @@ export type CardAgentState = {
     }
     running?: {id: string}
     resume?: {available?: boolean, branch?: string, cwd?: string}
+
+    // Why the automation is doing nothing on this card, when it knows — the
+    // same reason the route strip shows, for a card outside any route.
+    stall?: {reason?: string, nodeId?: string, createdAt?: string}
 }
 
 type Entry = {

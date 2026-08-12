@@ -192,17 +192,18 @@ func TestColumnLimitQueuesTheCard(t *testing.T) {
 	})
 
 	events.ch <- moveEvent("cardTwo", project, "opt-backlog", "opt-agent")
-	waitFor(t, 10*time.Second, "the second card says it is waiting", func() bool {
-		return len(writer.cardComments("cardTwo")) > 0
+
+	// Waiting is a state the card shows live (the strip says queued), not a
+	// comment: a comment outlives the wait and reads as noise afterwards.
+	waitFor(t, 10*time.Second, "the second card is in the queue", func() bool {
+		_, ok, _ := m.store.NextQueuedStage(m.cfg.Columns[0].Key())
+		return ok
 	})
-	if got := writer.cardComments("cardTwo")[0]; !strings.Contains(got, "занята") {
-		t.Fatalf("the card should say why it waits, got %q", got)
+	if got := writer.cardComments("cardTwo"); len(got) != 0 {
+		t.Fatalf("queueing must not comment on the card, got %q", got)
 	}
 	if sessions, _, _ := m.store.SessionsForCard("cardTwo"); len(sessions) != 0 {
 		t.Fatalf("the second card must not have started: %d sessions", len(sessions))
-	}
-	if _, ok, _ := m.store.NextQueuedStage(m.cfg.Columns[0].Key()); !ok {
-		t.Fatal("the card is not in the queue")
 	}
 
 	// The place frees up: the queue is what fills it, without anybody dragging
@@ -426,12 +427,18 @@ func TestCardAssignedToAPersonIsLeftAlone(t *testing.T) {
 	ev.PersonNames = []string{"artem"}
 	events.ch <- ev
 
+	// Why nothing started is state, not history: it lives on the card's strip
+	// (a stall record), not in its comments.
 	waitFor(t, 10*time.Second, "the card says why nothing started", func() bool {
-		return len(writer.cardComments("cardMine")) > 0
+		_, ok, _ := m.store.Stall("cardMine")
+		return ok
 	})
-	comment := writer.cardComments("cardMine")[0]
-	if !strings.Contains(comment, "artem") || !strings.Contains(comment, "агент не запускается") {
-		t.Fatalf("the card should say who took it: %q", comment)
+	stall, _, _ := m.store.Stall("cardMine")
+	if !strings.Contains(stall.Reason, "artem") || !strings.Contains(stall.Reason, "агент не запускается") {
+		t.Fatalf("the card should say who took it: %q", stall.Reason)
+	}
+	if got := writer.cardComments("cardMine"); len(got) != 0 {
+		t.Fatalf("a vetoed start must not comment on the card, got %q", got)
 	}
 	if sessions, _, _ := m.store.SessionsForCard("cardMine"); len(sessions) != 0 {
 		t.Fatalf("an agent started on somebody's card: %d sessions", len(sessions))

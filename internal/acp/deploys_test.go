@@ -405,17 +405,23 @@ func TestDeployColumnIgnoredWhenDisabled(t *testing.T) {
 	}
 }
 
-func TestDeployWithoutTargetsCommentsOnTheCard(t *testing.T) {
+func TestDeployWithoutTargetsStallsTheCard(t *testing.T) {
 	m, writer, events, project := testManager(t, fakeClaudeRecordingArgs, nil)
 
 	events.ch <- deployMoveEvent("cardNoTarget", project, DefaultConfig("").DeployColumn)
 
-	waitFor(t, 5*time.Second, "failure comment", func() bool {
-		return len(writer.cardComments("cardNoTarget")) > 0
+	// A deploy column with nothing to deploy to is the card's current state,
+	// shown where the card shows its state — not a comment that outlives it.
+	waitFor(t, 5*time.Second, "the stall record appears", func() bool {
+		_, ok, _ := m.store.Stall("cardNoTarget")
+		return ok
 	})
-	comment := writer.cardComments("cardNoTarget")[0]
-	if !strings.Contains(comment, "Деплой не запущен") || !strings.Contains(comment, "Цели деплоя") {
-		t.Errorf("comment should say what to configure: %q", comment)
+	stall, _, _ := m.store.Stall("cardNoTarget")
+	if !strings.Contains(stall.Reason, "деплой не запущен") || !strings.Contains(stall.Reason, "Цели деплоя") {
+		t.Errorf("the reason should say what to configure: %q", stall.Reason)
+	}
+	if got := writer.cardComments("cardNoTarget"); len(got) != 0 {
+		t.Errorf("a failed start must not comment on the card: %q", got)
 	}
 	if sessions, _, _ := m.store.SessionsForCard("cardNoTarget"); len(sessions) != 0 {
 		t.Errorf("no session should have started: %v", sessions)

@@ -31,6 +31,10 @@ export type CardFlow = {
     waitingFor?: string[]
     queued?: boolean
     running?: boolean
+
+    // Why nothing is happening, when the machinery knows — a stage that would
+    // not start, an event with no edge. This used to be a comment on the card.
+    stalled?: string
 }
 
 export function isFlowStripAvailable(): boolean {
@@ -46,6 +50,13 @@ export function waited(since: string | undefined, now: number): {value: number, 
     }
     const started = Date.parse(since)
     if (isNaN(started)) {
+        return null
+    }
+
+    // Go's zero time is a valid date — year one — and "739839 дн" is what it
+    // reads as after the subtraction. A card whose stage entry was never
+    // stamped has no answer to "how long", not a nine-century one.
+    if (started <= 0) {
         return null
     }
     const minutes = Math.max(0, Math.floor((now - started) / 60000))
@@ -98,6 +109,12 @@ const FlowStrip = (props: Props) => {
         if (flow()?.queued) {
             return intl.formatMessage({id: 'FlowStrip.queued', defaultMessage: 'waiting for a free place in the column'})
         }
+
+        // The reason arrives as a whole sentence from the Go side, in the
+        // language the machinery failed in; it carries its own verb.
+        if (flow()?.stalled) {
+            return flow()!.stalled!
+        }
         const waitingFor = flow()?.waitingFor
         if (waitingFor && waitingFor.length > 0) {
             return intl.formatMessage({id: 'FlowStrip.waiting', defaultMessage: 'waiting: {events}'}, {events: waitingFor.join(', ')})
@@ -124,7 +141,10 @@ const FlowStrip = (props: Props) => {
                         )}
                     </For>
                 </div>
-                <div class='FlowStrip__status'>
+                <div
+                    class='FlowStrip__status'
+                    classList={{'FlowStrip__status--stalled': Boolean(flow()?.stalled) && !flow()?.running && !flow()?.queued}}
+                >
                     {status()}
                     {since() && ` · ${since()}`}
                 </div>
