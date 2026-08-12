@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import 'isomorphic-fetch'
-import {render} from '@solidjs/testing-library'
+import {render, waitFor} from '@solidjs/testing-library'
 
 import userEvent from '@testing-library/user-event'
 
@@ -25,6 +25,12 @@ const mockedOctoClient = vi.mocked(octoClient)
 
 beforeEach(() => {
     FetchMock.fn.mockReset()
+})
+
+// The desktop bindings are global, and a card left holding them decides for
+// every test after it whether this app has an agent integration at all.
+afterEach(() => {
+    delete (window as any).go
 })
 
 // This is needed to run EasyMDE in tests.
@@ -124,6 +130,81 @@ describe('components/cardDetail/CardDetail', () => {
         // Add comment option visible when readonly mode is off
         const newCommentSection = container!.querySelectorAll('.newcomment')
         expect(newCommentSection.length).toBe(1)
+    })
+
+    // A rule across the card means a section starts here. The route strip and
+    // the agent row learn only after their data arrives whether they have
+    // anything to show, so rules written beside them in the card stood over
+    // nothing — three of them in a row above the comments on a board with no
+    // route and no agents.
+    test('draws no rule for an agent section it is not drawing', async () => {
+        const bindings = {
+            GetCardAgent: vi.fn().mockResolvedValue('{}'),
+            GetCardFlow: vi.fn().mockResolvedValue('null'),
+            ListAgents: vi.fn().mockResolvedValue('[]'),
+            ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+        };
+        (window as any).go = {main: {App: bindings}}
+
+        const store = mockAppStore({
+            users: {
+                boardUsers: {
+                    'user-id-1': {username: 'username_1'},
+                },
+            },
+            teams: {
+                current: {id: 'team-id'},
+            },
+            boards: {
+                boards: {
+                    [board.id]: board,
+                },
+                current: board.id,
+                myBoardMemberships: {
+                    [board.id]: {userId: 'user_id_1', schemeAdmin: true},
+                },
+            },
+            cards: {
+                cards: {
+                    [card.id]: card,
+                },
+                current: card.id,
+            },
+            clientConfig: {
+                value: {},
+            },
+        })
+
+        const {container} = render(() => (
+            <AppStoreProvider store={store}>
+                {wrapIntl(() =>
+                    <CardDetail
+                        board={board}
+                        activeView={view}
+                        views={[view]}
+                        cards={[card]}
+                        card={card}
+                        comments={[comment1]}
+                        contents={[]}
+                        attachments={[]}
+                        readonly={false}
+                        onClose={vi.fn()}
+                        onDelete={vi.fn()}
+                        addAttachment={vi.fn()}
+                    />,
+                )}
+            </AppStoreProvider>
+        ))
+
+        await waitFor(() => expect(bindings.ListAgents).toHaveBeenCalled())
+
+        expect(container.querySelector('.FlowStrip')).toBeNull()
+        expect(container.querySelector('.CardAgent')).toBeNull()
+
+        // The comments are the only section under the properties, so the card
+        // draws one rule. The second hr is the one CommentsList closes itself
+        // with, between the comments and the content blocks.
+        expect(container.querySelectorAll('hr:not(.CommentsList__divider)').length).toBe(1)
     })
 
     test('should show comments in readonly view', async () => {

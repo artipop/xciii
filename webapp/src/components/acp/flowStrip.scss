@@ -1,8 +1,12 @@
+// The rule that opens the section belongs to the section: the strip knows
+// whether it has a route to draw, and the card cannot know it in time.
 .FlowStrip {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin: 8px 0;
+    margin: 8px 0 0;
+    padding: 8px 0;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.09);
 
     .FlowStrip__head {
         display: flex;

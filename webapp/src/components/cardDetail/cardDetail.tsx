@@ -327,15 +327,19 @@ const CardDetail = (props: Props): JSX.Element => {
                     />
                 </Show>
 
-                {/* Agent session console (desktop app only) */}
+                {/* The agent's half of the card: where it is on its route, and
+                    the row that runs one. Neither draws a rule of its own here,
+                    the way the attachments above do — both decide only once
+                    their data arrives whether they have anything to show, and a
+                    rule written beside them would stand alone on every card
+                    without a route or an agent. They carry it themselves, in
+                    flowStrip.scss and cardAgent.scss. */}
 
                 <Show when={!limited() && !props.readonly && isFlowStripAvailable()}>
-                    <hr/>
                     <FlowStrip cardId={props.card.id}/>
                 </Show>
 
                 <Show when={!limited() && !props.readonly && isCardAgentAvailable()}>
-                    <hr/>
                     <CardAgent
                         cardId={props.card.id}
                         board={props.board}

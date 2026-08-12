@@ -1,8 +1,17 @@
+// Same as the strip: the row draws its own rule, since a card with nothing to
+// run draws no row and must not be left with a line above the comments.
 .CardAgent {
     display: flex;
     flex-direction: column;
     gap: 8px;
     padding: 8px 0;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.09);
+
+    // The route strip and the agent row are one block about the same work, so
+    // the rule opens the block and does not run between its two halves.
+    .FlowStrip + & {
+        border-top: 0;
+    }
 
     &__row {
         display: flex;
@@ -22,7 +31,7 @@
         gap: 6px;
         padding: 2px 6px 2px 2px;
         margin-left: -2px;
-        border: none;
+        border: 0;
         border-radius: var(--radius-sm);
         background: transparent;
         color: inherit;
@@ -52,7 +61,7 @@
     }
 
     &__popOut {
-        border: none;
+        border: 0;
         border-radius: var(--radius-sm);
         background: transparent;
         color: inherit;
