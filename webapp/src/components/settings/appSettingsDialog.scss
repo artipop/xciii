@@ -1,4 +1,12 @@
 .AppSettingsDialog {
+    // The dialog says what colour it is written in rather than inheriting one.
+    // It is opened from the foot of the sidebar, and the sidebar paints its own
+    // light ink on everything under it: on the light theme that ink is the
+    // paper, so every heading that inherited was a heading nobody could read.
+    // The portal took the dialog out of there; this is what makes it not matter
+    // where it is mounted next.
+    color: rgb(var(--center-channel-color-rgb));
+
     .AppSettingsDialog__body {
         display: flex;
         align-items: stretch;
