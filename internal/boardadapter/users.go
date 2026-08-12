@@ -137,6 +137,79 @@ func (b *EventsBackend) ensureAccount(agent acp.AgentUser) (acp.AgentUser, error
 	return agent, nil
 }
 
+// AssignCardAgent writes the agent into the card's person property — «Кто
+// занимается», or whatever this board calls it: the property is found by its
+// *type*, never by name, because "Assignee" and «Исполнитель» are each right
+// for half the boards there are. A board with no person property has no field
+// to keep truthful, and that is not an error.
+//
+// The write is silent (disableNotify): it is the machine recording who a stage
+// gave the card to, and it must not set anything else off — humanAssignee is
+// checked before any of this, so it can never overwrite a person.
+func (b *EventsBackend) AssignCardAgent(ctx context.Context, cardID string, agent acp.AgentUser) error {
+	b.mu.Lock()
+	a := b.app
+	b.mu.Unlock()
+	if a == nil {
+		return fmt.Errorf("board app is not ready")
+	}
+
+	agent, err := b.ensureAccount(agent)
+	if err != nil {
+		return err
+	}
+	if agent.UserID == "" {
+		return fmt.Errorf("у агента %q нет учётной записи на доске", agent.Name)
+	}
+
+	block, err := a.GetBlockByID(cardID)
+	if err != nil {
+		return fmt.Errorf("get card %s: %w", cardID, err)
+	}
+	if block == nil || block.Type != model.TypeCard {
+		return fmt.Errorf("block %s is not a card", cardID)
+	}
+	board, err := a.GetBoard(block.BoardID)
+	if err != nil {
+		return fmt.Errorf("get board %s: %w", block.BoardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return err
+	}
+
+	var person *model.PropDef
+	for _, def := range schema {
+		def := def
+		if def.Type == "person" || def.Type == "multiPerson" {
+			// The first by a board's own order: a board with two person
+			// properties gets its primary one, which is the one its views
+			// show first.
+			if person == nil || def.Index < person.Index {
+				person = &def
+			}
+		}
+	}
+	if person == nil {
+		return nil
+	}
+
+	var value any = agent.UserID
+	if person.Type == "multiPerson" {
+		value = []string{agent.UserID}
+	}
+	patch := &model.CardPatch{UpdatedProperties: map[string]any{person.ID: value}}
+	if err := mergeCardProperties(a, cardID, patch); err != nil {
+		return err
+	}
+	blockPatch, err := model.CardPatch2BlockPatch(patch)
+	if err != nil {
+		return err
+	}
+	_, err = a.PatchBlockAndNotify(cardID, blockPatch, model.SingleUser, true)
+	return err
+}
+
 // sourceEmailDomain is the reserved (RFC 2606) domain a source's account is
 // created under, for the reason the agents' one is: it can never collide with
 // a real address.

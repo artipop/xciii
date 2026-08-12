@@ -297,6 +297,16 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	if busy {
 		return nil, errStageBusy
 	}
+	// A stage with its own crew names its worker, so the card's «Кто
+	// занимается» is written to match — by the machine, as the card travels.
+	// Before the launch rather than after: the stage gave the card to this
+	// agent whether or not the start then succeeds, and the field should say
+	// so either way. A person in the field never reaches this line
+	// (humanAssignee, above), and a card already saying this agent is left
+	// alone.
+	if len(opts.crew()) > 0 && !opts.deploy && !opts.test {
+		m.assignCardAgent(ev, agent)
+	}
 	// The column's own limit: how many of its crew may work it at once. It is
 	// checked here rather than at the trigger, so every way into a stage — a
 	// drag, a flow transition, the queue itself — obeys the same number.

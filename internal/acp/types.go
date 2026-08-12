@@ -168,6 +168,12 @@ type BoardUsers interface {
 	// many were removed. The account itself stays: cards may still name it, and
 	// re-registering the agent should give it its identity back.
 	RetireAgentUser(ctx context.Context, agent AgentUser) (int, error)
+
+	// AssignCardAgent puts the agent into the card's person property — the one
+	// «Кто занимается» the whole board asks with. The write is silent: it is
+	// the machine keeping the field truthful, not an edit that should set
+	// anything else off.
+	AssignCardAgent(ctx context.Context, cardID string, agent AgentUser) error
 }
 
 // UIEmitter pushes events to the desktop UI. Implementations must be safe to

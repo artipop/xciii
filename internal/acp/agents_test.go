@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -371,6 +372,11 @@ type fakeBoardUsers struct {
 	retired  []AgentUser
 	err      error
 	retryErr error
+
+	// assigned is card → username, written from the session-start goroutine
+	// and read by the test, hence its own lock.
+	mu       sync.Mutex
+	assigned map[string]string
 }
 
 func (f *fakeBoardUsers) EnsureAgentAccounts(_ context.Context, agents []AgentUser) ([]AgentUser, error) {
@@ -379,6 +385,22 @@ func (f *fakeBoardUsers) EnsureAgentAccounts(_ context.Context, agents []AgentUs
 		return nil, f.err
 	}
 	return agents, nil
+}
+
+func (f *fakeBoardUsers) AssignCardAgent(_ context.Context, cardID string, agent AgentUser) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.assigned == nil {
+		f.assigned = map[string]string{}
+	}
+	f.assigned[cardID] = agent.Username
+	return nil
+}
+
+func (f *fakeBoardUsers) assignedTo(cardID string) string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.assigned[cardID]
 }
 
 func (f *fakeBoardUsers) RetireAgentUser(_ context.Context, agent AgentUser) (int, error) {

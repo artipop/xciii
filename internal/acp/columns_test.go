@@ -454,6 +454,58 @@ func TestCardAssignedToAPersonIsLeftAlone(t *testing.T) {
 	})
 }
 
+// A stage with its own crew names its worker, and the card's assignee is kept
+// truthful by the machine: entering the crewed column writes the crew member
+// into «Кто занимается». A card that already names its agent is left alone —
+// nothing is written twice.
+func TestCrewedColumnWritesItsWorkerIntoTheAssignee(t *testing.T) {
+	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+		c.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}}
+		c.Columns = []ColumnSpec{{
+			Property: c.TriggerProperty, Column: c.TriggerColumn,
+			Action: FlowActionAgent, Agents: []string{"клаус"},
+		}}
+	})
+	users := &fakeBoardUsers{}
+	m.SetBoardUsers(users)
+
+	events.ch <- moveEvent("cardCrew", project, "opt-backlog", "opt-agent")
+	waitFor(t, 10*time.Second, "the crew member lands in the assignee", func() bool {
+		return users.assignedTo("cardCrew") == "клаус"
+	})
+
+	// Assigned already — resolution takes the assignee, and the field is not
+	// rewritten to say what it says.
+	ev := moveEvent("cardSaid", project, "opt-backlog", "opt-agent")
+	ev.PersonNames = []string{"клаус"}
+	events.ch <- ev
+	waitFor(t, 10*time.Second, "the assigned card starts", func() bool {
+		sessions, _, err := m.store.SessionsForCard("cardSaid")
+		return err == nil && len(sessions) == 1
+	})
+	if users.assignedTo("cardSaid") != "" {
+		t.Fatalf("a card already naming its agent must not be rewritten, got %q", users.assignedTo("cardSaid"))
+	}
+}
+
+// A column with no crew of its own decides by the assignee or the single
+// registered agent — that is the card's or the machine's answer, not the
+// stage's, and the machine has nothing of its own to write into the field.
+func TestUncrewedColumnWritesNoAssignee(t *testing.T) {
+	m, _, events, project := testManager(t, fakeClaudeHappy, nil)
+	users := &fakeBoardUsers{}
+	m.SetBoardUsers(users)
+
+	events.ch <- moveEvent("cardFree", project, "opt-backlog", "opt-agent")
+	waitFor(t, 10*time.Second, "the session starts", func() bool {
+		sessions, _, err := m.store.SessionsForCard("cardFree")
+		return err == nil && len(sessions) == 1
+	})
+	if got := users.assignedTo("cardFree"); got != "" {
+		t.Fatalf("an uncrewed stage must not assign, got %q", got)
+	}
+}
+
 // The veto is about the stage where a person and an agent would be doing the
 // same job. Deploying and testing are machine work, and a card assigned to
 // somebody is still deployed.

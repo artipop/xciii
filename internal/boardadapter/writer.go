@@ -165,12 +165,45 @@ func (w *Writer) UpdateCard(ctx context.Context, cardID string, edit acp.CardEdi
 // whose contentOrder is not a list — and a write that landed must not be
 // reported as an error because the answer could not be rendered.
 func (w *Writer) patchCard(cardID string, patch *model.CardPatch, disableNotify bool) error {
+	if err := mergeCardProperties(w.app, cardID, patch); err != nil {
+		return err
+	}
 	blockPatch, err := model.CardPatch2BlockPatch(patch)
 	if err != nil {
 		return err
 	}
 	_, err = w.app.PatchBlockAndNotify(cardID, blockPatch, model.SingleUser, disableNotify)
 	return err
+}
+
+// mergeCardProperties folds the card's current properties into the patch.
+// CardPatch2BlockPatch puts UpdatedProperties into the block's `properties`
+// field whole, and a block patch replaces a field it names — so a patch that
+// set one property silently erased every other one. The board's own webapp
+// never hits this because its mutator always sends the full map; every write
+// from this side — a route moving the card, an agent's update_card, the
+// assignee kept truthful by a stage — sends one key and lost the rest.
+func mergeCardProperties(a *app.App, cardID string, patch *model.CardPatch) error {
+	if len(patch.UpdatedProperties) == 0 {
+		return nil
+	}
+	block, err := a.GetBlockByID(cardID)
+	if err != nil {
+		return fmt.Errorf("get card %s: %w", cardID, err)
+	}
+	merged := map[string]any{}
+	if block != nil {
+		if existing, ok := block.Fields["properties"].(map[string]any); ok {
+			for k, v := range existing {
+				merged[k] = v
+			}
+		}
+	}
+	for k, v := range patch.UpdatedProperties {
+		merged[k] = v
+	}
+	patch.UpdatedProperties = merged
+	return nil
 }
 
 // cardPatchFor turns named values into the ids a card stores, or says which name

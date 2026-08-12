@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -183,6 +184,31 @@ func (m *Manager) ensureAgentAccount(name string) {
 	}
 	if _, err := m.users.EnsureAgentAccounts(context.Background(), []AgentUser{{Name: name, Username: username}}); err != nil {
 		m.log.Warn("acp: the agent has no board account yet", "agent", name, "err", err)
+	}
+}
+
+// assignCardAgent writes a stage's worker into the card's assignee field, in
+// the background and best-effort: the field is a mirror of a decision already
+// made, and a board that cannot take the write must not stop the session that
+// decision started.
+func (m *Manager) assignCardAgent(ev CardMoved, agent AgentEntry) {
+	if m.users == nil {
+		return
+	}
+	username := AgentUsername(agent.Name)
+	if username == "" {
+		return
+	}
+	// Already says so — by username, which is the name the board shows.
+	for _, person := range ev.PersonNames {
+		if strings.EqualFold(strings.TrimSpace(person), username) {
+			return
+		}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := m.users.AssignCardAgent(ctx, ev.CardID, AgentUser{Name: agent.Name, Username: username}); err != nil {
+		m.log.Warn("acp: cannot write the stage's agent into the assignee", "card", ev.CardID, "agent", agent.Name, "err", err)
 	}
 }
 
