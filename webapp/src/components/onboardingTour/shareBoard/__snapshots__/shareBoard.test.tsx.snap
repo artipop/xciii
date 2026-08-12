@@ -19,7 +19,7 @@ exports[`components/onboardingTour/addComments/ShareBoardTourStep > after hover 
         class="tutorial-tour-tip__header__title"
         id="cl-1"
       >
-        Share the board
+        Share board
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -33,7 +33,7 @@ exports[`components/onboardingTour/addComments/ShareBoardTourStep > after hover 
     <div
       class="tutorial-tour-tip__body"
     >
-      Publish the board behind a link, so somebody can look at it without an account of their own.
+      You can share your board internally, within your team, or publish it publicly for visibility outside of your organization.
     </div>
     <div
       class="tutorial-tour-tip__image"

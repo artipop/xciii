@@ -216,7 +216,7 @@ exports[`components/cardDetail/CardDetail > should show add comments tour tip 1`
         class="tutorial-tour-tip__header__title"
         id="cl-1"
       >
-        Comments
+        Add comments
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -230,7 +230,7 @@ exports[`components/cardDetail/CardDetail > should show add comments tour tip 1`
     <div
       class="tutorial-tour-tip__body"
     >
-      Comments are what happened to the card. An agent working it writes here too: what it did, and what it needs answered.
+      You can comment on issues, and even @mention your fellow Mattermost users to get their attention.
     </div>
     <div
       class="tutorial-tour-tip__image"
@@ -332,7 +332,7 @@ exports[`components/cardDetail/CardDetail > should show add description tour tip
         class="tutorial-tour-tip__header__title"
         id="cl-7"
       >
-        Description
+        Add description
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -346,7 +346,7 @@ exports[`components/cardDetail/CardDetail > should show add description tour tip
     <div
       class="tutorial-tour-tip__body"
     >
-      The description is the task itself, and it is what an agent is given to work from, so it is worth writing plainly.
+      Add a description to your card so your teammates know what the card is about.
     </div>
     <div
       class="tutorial-tour-tip__image"
@@ -446,7 +446,7 @@ exports[`components/cardDetail/CardDetail > should show add properties tour tip 
         class="tutorial-tour-tip__header__title"
         id="cl-0"
       >
-        Card properties
+        Add properties
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -460,7 +460,7 @@ exports[`components/cardDetail/CardDetail > should show add properties tour tip 
     <div
       class="tutorial-tour-tip__body"
     >
-      Properties are what the board groups, sorts and filters by: who is doing the card, which project it belongs to, what stage it stands on.
+      Add various properties to cards to make them more powerful!
     </div>
     <div
       class="tutorial-tour-tip__image"

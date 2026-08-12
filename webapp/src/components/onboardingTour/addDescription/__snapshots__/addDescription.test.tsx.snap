@@ -19,7 +19,7 @@ exports[`components/onboardingTour/addComments/AddDescriptionTourStep > after ho
         class="tutorial-tour-tip__header__title"
         id="cl-1"
       >
-        Description
+        Add description
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -33,7 +33,7 @@ exports[`components/onboardingTour/addComments/AddDescriptionTourStep > after ho
     <div
       class="tutorial-tour-tip__body"
     >
-      The description is the task itself, and it is what an agent is given to work from, so it is worth writing plainly.
+      Add a description to your card so your teammates know what the card is about.
     </div>
     <div
       class="tutorial-tour-tip__image"

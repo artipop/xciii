@@ -22,8 +22,9 @@ import {useAppSelector, useAppStore} from '../../store/hooks'
 import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
 
 import './boardTemplateSelector.scss'
+import {OnboardingBoardTitle} from '../cardDetail/cardDetail'
 import {IUser, UserConfigPatch} from '../../user'
-import {getMe, getOnboardingTourStarted} from '../../store/users'
+import {getMe} from '../../store/users'
 import {BaseTourSteps, TOUR_BASE} from '../onboardingTour'
 
 import {Utils} from '../../utils'
@@ -90,7 +91,6 @@ const BoardTemplateSelector = (props: Props) => {
     const navigate = useNavigate()
     const match = useRouteMatch()
     const me = useAppSelector<IUser|null>(getMe)
-    const onboardingTourStarted = useAppSelector(getOnboardingTourStarted)
 
     useHotkeys('esc', () => props.onClose?.())
 
@@ -201,11 +201,7 @@ const BoardTemplateSelector = (props: Props) => {
         const boardsAndBlocks = await mutator.addBoardFromTemplate(currentTeam()?.id || Constants.globalTeamId, intl, showBoard, () => showBoard(currentBoardId()), template.id, currentTeam()?.id)
         const board = boardsAndBlocks.boards[0]
         await mutator.updateBoard({...board, channelId: props.channelId || ''}, board, 'linked channel')
-
-        // A board made while the tour is running is the board the tour runs on,
-        // so it starts over from its first step here. The condition used to be
-        // "this is Focalboard's demo template", which no template here is.
-        if (onboardingTourStarted()) {
+        if (template.title === OnboardingBoardTitle) {
             resetTour()
         }
     }

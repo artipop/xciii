@@ -1,4 +1,5 @@
 import {For, Show, createSignal} from 'solid-js'
+import {useNavigate} from '@solidjs/router'
 
 import {useIntl} from '../../intl'
 
@@ -34,14 +35,14 @@ import './appPanel.scss'
 const AppPanel = () => {
     const intl = useIntl()
     const {actions} = useAppStore()
+    const navigate = useNavigate()
     const me = useAppSelector<IUser|null>(getMe)
 
-    // Showing the welcome screen again is forgetting that it was shown, and
-    // nothing else: the router puts the greeting in front of the board for
-    // anyone without welcomePageViewed, so the screen is back the moment the
-    // preference goes — no navigation to be undone by the board page's own.
-    // The tour's progress goes with it, otherwise the screen would open on a
-    // tour that had already finished and the tips would never come back.
+    // Showing the welcome screen again is forgetting that it was shown: the
+    // router sends anyone without welcomePageViewed there, so clearing the
+    // preference is the whole of it. The tour's own progress is cleared too,
+    // otherwise the screen would open on a tour that had already finished and
+    // the tips would never come back.
     const showWelcomeAgain = async () => {
         const user = me()
         if (!user) {
@@ -54,6 +55,7 @@ const AppPanel = () => {
         if (updatedProps) {
             actions.users.patchProps(updatedProps)
         }
+        navigate('/welcome')
     }
 
     // The theme module writes an attribute on the document and is not reactive,

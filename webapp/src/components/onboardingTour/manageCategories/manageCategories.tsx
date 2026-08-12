@@ -16,14 +16,14 @@ const ManageCategoriesTourStep = (): JSX.Element | null => {
     const title = (
         <FormattedMessage
             id='SidebarTour.ManageCategories.Title'
-            defaultMessage='Categories'
+            defaultMessage='Manage categories'
         />
     )
 
     const screen = (
         <FormattedMessage
             id='SidebarTour.ManageCategories.Body'
-            defaultMessage='Categories are yours alone: moving a board into one changes nothing for anybody else on that board.'
+            defaultMessage='Create and manage custom categories. Categories are user-specific, so moving a board to your category won’t impact other members using the same board.'
         />
     )
 

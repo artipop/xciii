@@ -245,11 +245,12 @@ const CenterPanel = (props: Props) => {
     const addEmptyCardAndShow = () => addCard('', true)
 
     const shouldStartBoardsTour = (): boolean => {
+        const isOnboardingBoard = props.board.title === 'Welcome to Boards!'
         const isTourStarted = onboardingTourStarted()
         const completedCardsTour = onboardingTourCategory() === TOUR_CARD && onboardingTourStep() === FINISHED.toString()
         const noCardOpen = !currentCard()
 
-        return isTourStarted && completedCardsTour && noCardOpen
+        return isOnboardingBoard && isTourStarted && completedCardsTour && noCardOpen
     }
 
     const prepareBoardsTour = async () => {

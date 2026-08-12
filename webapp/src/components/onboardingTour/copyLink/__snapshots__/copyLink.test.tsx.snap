@@ -33,7 +33,7 @@ exports[`components/onboardingTour/addComments/CopyLinkTourStep > after hover 1`
     <div
       class="tutorial-tour-tip__body"
     >
-      A link points at one card and opens it wherever the board is reached: the window, a browser, a phone.
+      You can share your cards with teammates by copying the link and pasting it in a channel, direct message, or group message.
     </div>
     <div
       class="tutorial-tour-tip__image"
