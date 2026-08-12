@@ -36,7 +36,7 @@ the new board has, and nothing has to recognise the field by what it is called �
 the person who owns the board may rename it to anything. A board that has not
 got the key has not got the field; the first project registered on it makes one
 and writes the id down. Adding a *new* property to a template is still
-hand-editing JSONL, which is what «[Свойства в шаблонах](plan.md)» in the plan
+hand-editing JSONL, which is what «[Свойства в шаблонах](deferred.md)» in the deferred work
 is about.
 
 ## The questions

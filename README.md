@@ -461,19 +461,19 @@ window-position autosave.
   board rather than working on it.
 - [docs/templates.md](docs/templates.md) — what a template carries, how it is edited,
   and how a working board becomes one.
-- [docs/plan.md](docs/plan.md) — what is done, what is left, and the open decisions
-  this repository starts with.
+- [docs/build-and-platforms.md](docs/build-and-platforms.md) — what to run to get a
+  binary on each of the three platforms, which build tags do what, and the traps
+  already stepped in.
+- [docs/webapp.md](docs/webapp.md) — the page: the store that replaced Redux, what
+  each React library was replaced by, and how its tests are written.
 - [docs/local-and-shared-state.md](docs/local-and-shared-state.md) — which of the
   things this app stores belong to the machine and which to the board. A note to
   think about later: nothing in it bites while the app is one process.
-- [docs/sources.md](docs/sources.md) — a design for turning outside events (an
-  OAuth API, a notification on a phone) into cards, through a documented plugin
-  protocol a source can be written against in Go or TypeScript. A proposal:
-  none of it is built yet.
-- [docs/desktop-port-and-websocket.md](docs/desktop-port-and-websocket.md) — why the
-  app serves itself over a local HTTP port, and why that is now on purpose.
-- [docs/solidjs-migration-plan.md](docs/solidjs-migration-plan.md) — an unfinished
-  plan for the frontend this app serves. It belongs to nobody yet.
+- [docs/sources.md](docs/sources.md) — how an outside event (a mailbox, a Kaiten
+  board, a notification from a phone) becomes a card, and the plugin protocol a
+  source is written against in Go or TypeScript.
+- [docs/deferred.md](docs/deferred.md) — work that was thought through and then put
+  down on purpose, with the reasoning that put it down.
 - [docs/spec-acp.md](docs/spec-acp.md) — the original specification the agent
   integration was written from. Kept for the reasoning; the implementation has
   moved past parts of it.

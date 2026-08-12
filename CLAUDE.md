@@ -19,7 +19,7 @@ rename, not in an import path either.
 Both halves are here. `webapp/` is its own npm project built with Vite, since
 rewritten from React to **SolidJS**, so upstream and this repository's early
 history are both React and neither is a recipe any more; see
-`docs/solidjs-migration-plan.md` for what the rewrite promised. `server/` is the
+`docs/webapp.md` for what the page is made of now. `server/` is the
 board server, and it is **a directory of this module, not a module of its own**:
 its packages are `github.com/artipop/xciii/server/…`, there is one `go.mod`, and
 there is nothing to `replace`. It was a checkout beside this one until that

@@ -40,7 +40,7 @@ Two things cross that boundary, and they are the smallest two that could:
   sit on the error page the webview drew while the desktop was asleep.
 
 What a merged list across machines would cost instead — a JSON API on the front
-door and a cross-origin hole in `sameOrigin` — is in `docs/plan.md`.
+door and a cross-origin hole in `sameOrigin` — is in `docs/deferred.md`.
 
 ## Why it is a module of its own
 
