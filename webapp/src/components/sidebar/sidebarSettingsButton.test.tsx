@@ -3,7 +3,7 @@ import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
-import {mockAppStore, wrapIntl} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
 import SidebarSettingsButton from './sidebarSettingsButton'
@@ -21,7 +21,9 @@ describe('components/sidebar/SidebarSettingsButton', () => {
     const open = () => {
         render(() => wrapIntl(() =>
             <AppStoreProvider store={store}>
-                <SidebarSettingsButton/>
+                <TestRouter>
+                    <SidebarSettingsButton/>
+                </TestRouter>
             </AppStoreProvider>,
         ))
         userEvent.click(screen.getByRole('button', {name: 'Settings'}))
@@ -45,13 +47,15 @@ describe('components/sidebar/SidebarSettingsButton', () => {
         expect(screen.queryByRole('button', {name: 'Agents'})).toBeNull()
     })
 
-    // The two settings that are changed by looking at the screen are not in
-    // here: they live in the corner of the board.
-    test('leaves the theme and the language to the top of the board', async () => {
+    // The theme and the language spent a while in the corner of the board, on
+    // the grounds that they are changed while looking at it. Two icons standing
+    // in for two words is what that cost, and this is where a person looks for
+    // either of them.
+    test('is where the theme and the language are answered', async () => {
         open()
 
         await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument())
-        expect(screen.queryByText('Set theme')).toBeNull()
-        expect(screen.queryByText('Set language')).toBeNull()
+        expect(screen.getByRole('button', {name: 'Dark theme'})).toBeInTheDocument()
+        expect(screen.getByRole('button', {name: 'Deutsch'})).toBeInTheDocument()
     })
 })

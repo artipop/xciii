@@ -159,68 +159,6 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
           <div
             class="TopBar"
           >
-            <div
-              class="ThemeMenu"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  aria-label="Set theme"
-                  class="TopBar__button"
-                  title="Set theme"
-                  type="button"
-                >
-                  <svg
-                    class="ThemeIcon Icon"
-                    fill="none"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="8.4"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                    />
-                    <path
-                      d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </button>
-                
-              </div>
-            </div>
-            <div
-              class="LanguageMenu"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  aria-label="Set language"
-                  class="TopBar__button"
-                  title="Set language"
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-translate"
-                  />
-                </button>
-                
-              </div>
-            </div>
-            <span
-              class="TopBar__divider"
-            />
             <a
               class="link"
               href="https://github.com/artipop/xciii/issues"
@@ -228,15 +166,6 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
               target="_blank"
             >
               Give feedback
-            </a>
-            <a
-              href="https://github.com/artipop/xciii"
-              rel="noreferrer"
-              target="_blank"
-            >
-              <i
-                class="CompassIcon icon-help-circle-outline HelpIcon"
-              />
             </a>
           </div>
           <div
@@ -813,68 +742,6 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
           <div
             class="TopBar"
           >
-            <div
-              class="ThemeMenu"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  aria-label="Set theme"
-                  class="TopBar__button"
-                  title="Set theme"
-                  type="button"
-                >
-                  <svg
-                    class="ThemeIcon Icon"
-                    fill="none"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="8.4"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                    />
-                    <path
-                      d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </button>
-                
-              </div>
-            </div>
-            <div
-              class="LanguageMenu"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  aria-label="Set language"
-                  class="TopBar__button"
-                  title="Set language"
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-translate"
-                  />
-                </button>
-                
-              </div>
-            </div>
-            <span
-              class="TopBar__divider"
-            />
             <a
               class="link"
               href="https://github.com/artipop/xciii/issues"
@@ -882,15 +749,6 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
               target="_blank"
             >
               Give feedback
-            </a>
-            <a
-              href="https://github.com/artipop/xciii"
-              rel="noreferrer"
-              target="_blank"
-            >
-              <i
-                class="CompassIcon icon-help-circle-outline HelpIcon"
-              />
             </a>
           </div>
           <div
@@ -1426,68 +1284,6 @@ exports[`src/components/workspace > should match snapshot 1`] = `
           <div
             class="TopBar"
           >
-            <div
-              class="ThemeMenu"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  aria-label="Set theme"
-                  class="TopBar__button"
-                  title="Set theme"
-                  type="button"
-                >
-                  <svg
-                    class="ThemeIcon Icon"
-                    fill="none"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="8.4"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                    />
-                    <path
-                      d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </button>
-                
-              </div>
-            </div>
-            <div
-              class="LanguageMenu"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  aria-label="Set language"
-                  class="TopBar__button"
-                  title="Set language"
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-translate"
-                  />
-                </button>
-                
-              </div>
-            </div>
-            <span
-              class="TopBar__divider"
-            />
             <a
               class="link"
               href="https://github.com/artipop/xciii/issues"
@@ -1495,15 +1291,6 @@ exports[`src/components/workspace > should match snapshot 1`] = `
               target="_blank"
             >
               Give feedback
-            </a>
-            <a
-              href="https://github.com/artipop/xciii"
-              rel="noreferrer"
-              target="_blank"
-            >
-              <i
-                class="CompassIcon icon-help-circle-outline HelpIcon"
-              />
             </a>
           </div>
           <div
@@ -2080,68 +1867,6 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
           <div
             class="TopBar"
           >
-            <div
-              class="ThemeMenu"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  aria-label="Set theme"
-                  class="TopBar__button"
-                  title="Set theme"
-                  type="button"
-                >
-                  <svg
-                    class="ThemeIcon Icon"
-                    fill="none"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="8.4"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                    />
-                    <path
-                      d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </button>
-                
-              </div>
-            </div>
-            <div
-              class="LanguageMenu"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  aria-label="Set language"
-                  class="TopBar__button"
-                  title="Set language"
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-translate"
-                  />
-                </button>
-                
-              </div>
-            </div>
-            <span
-              class="TopBar__divider"
-            />
             <a
               class="link"
               href="https://github.com/artipop/xciii/issues"
@@ -2149,15 +1874,6 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
               target="_blank"
             >
               Give feedback
-            </a>
-            <a
-              href="https://github.com/artipop/xciii"
-              rel="noreferrer"
-              target="_blank"
-            >
-              <i
-                class="CompassIcon icon-help-circle-outline HelpIcon"
-              />
             </a>
           </div>
           <div

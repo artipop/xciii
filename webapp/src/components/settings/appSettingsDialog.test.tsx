@@ -2,7 +2,7 @@ import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
-import {mockAppStore, wrapIntl} from '../../testUtils'
+import {TestRouter, mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
 import AppSettingsDialog from './appSettingsDialog'
@@ -24,7 +24,9 @@ describe('components/settings/appSettingsDialog', () => {
 
     const open = () => render(() => wrapIntl(() =>
         <AppStoreProvider store={store}>
-            <AppSettingsDialog onClose={vi.fn()}/>
+            <TestRouter>
+                <AppSettingsDialog onClose={vi.fn()}/>
+            </TestRouter>
         </AppStoreProvider>,
     ))
 
@@ -40,9 +42,9 @@ describe('components/settings/appSettingsDialog', () => {
 
         open()
 
-        // Agents is where it lands, because it is the first thing anybody comes
-        // here for. ("claude" is both the agent's name and its kind, so the
-        // registered row is matched by its own class.)
+        // ("claude" is both the agent's name and its kind, so the registered
+        // row is matched by its own class.)
+        userEvent.click(screen.getByRole('button', {name: 'Agents'}))
         await waitFor(() => expect(document.querySelector('.AgentsPanel__name')).toHaveTextContent('claude'))
 
         // Proxies used to be folded inside the agents form, two levels down.
@@ -98,8 +100,19 @@ describe('components/settings/appSettingsDialog', () => {
     test('offers import and export whatever else the machine can do', async () => {
         open()
 
-        await waitFor(() => expect(screen.getByRole('button', {name: 'Import and export'})).toBeInTheDocument())
-        expect(screen.getByText('Import archive')).toBeInTheDocument()
+        userEvent.click(screen.getByRole('button', {name: 'Import and export'}))
+
+        await waitFor(() => expect(screen.getByText('Import archive')).toBeInTheDocument())
         expect(screen.getByText('Export archive')).toBeInTheDocument()
+    })
+
+    // The theme and the language came here from the corner of the board, and
+    // they are what a fresh install with nothing registered opens on: every
+    // other section belongs to something this build may not be able to do.
+    test('opens on what every install can answer', async () => {
+        open()
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Light theme'})).toBeInTheDocument())
+        expect(screen.getByRole('button', {name: 'Deutsch'})).toBeInTheDocument()
     })
 })

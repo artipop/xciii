@@ -279,12 +279,13 @@ deploy targets, proxies, the tailnet, what a card-less conversation opens
 saying, whether an agent waiting may interrupt, and the archive that carries
 every board in and out — so they are `settings/appSettingsDialog.tsx`, one
 dialog of panels opened from `sidebarSettingsButton.tsx`, reachable with no
-board open. **The theme and the language are the exception**, and they earn it:
-they are changed by looking at the screen and changed back, so they are two
-menus in the corner of the board itself (`topBar.tsx`), which the no-board
-screen carries too — a fresh install is exactly where somebody wants them, and
-there is no board to hang them off. That corner used to be a link to the issue
-tracker and nothing else. What a board runs — columns, routes, its folders, and
+board open. **The theme and the language are settings like the rest of them**,
+and are `settings/appPanel.tsx` with the link to the manual: they spent a while
+in the corner of the board on the grounds that they are changed while looking at
+it, and what that cost was two icon menus and a question mark standing in for
+three words, plus a corner that had to be published over the no-board screen to
+stay reachable. The corner is one link to the issue tracker again, which is what
+it was. What a board runs — columns, routes, its folders, and
 what its agents are told first (`boardPrompts`, keyed by board id) — is
 `automationDialog.tsx`. The board's ⋯ menu keeps only export and "save as a
 template" — the archive in the settings dialog is every board there is, and one

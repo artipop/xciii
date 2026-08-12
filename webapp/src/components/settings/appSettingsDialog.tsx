@@ -12,24 +12,24 @@ import ProxiesPanel, {isProxiesAvailable} from '../acp/proxiesPanel'
 import TailnetPanel, {isTailnetAvailable} from '../acp/tailnetPanel'
 import MachineMiscPanel from '../acp/machineMiscPanel'
 
+import AppPanel from './appPanel'
 import DataPanel from './dataPanel'
 
 import './appSettingsDialog.scss'
 
-// Everything this app is asked about itself rather than about a board: which
-// agents are installed, where they may deploy, how they reach the network,
-// whether the board is on the tailnet, what comes in and goes out as an
-// archive, and what it is allowed to interrupt with.
+// Everything this app is asked about itself rather than about a board: how it
+// looks and what language it speaks, which agents are installed, where they may
+// deploy, how they reach the network, whether the board is on the tailnet, what
+// comes in and goes out as an archive, and what it is allowed to interrupt
+// with.
 //
 // All of it used to be reached through a board's ⋯ menu, which put settings
 // behind a board and made them unreachable when none was open; then through the
 // sidebar's own menu, where a submenu of a submenu was where a person went
 // looking for an import. One dialog with a list down the side is what keeps
-// them one thing rather than a menu that grows an entry per feature.
-//
-// The two settings that are *not* here are the theme and the language: they are
-// changed by looking at the screen and changed back, so they live in the corner
-// of the board itself (`topBar.tsx`) where they can be seen doing it.
+// them one thing rather than a menu that grows an entry per feature — and what
+// emptied the corner of the board, where the theme, the language and the way to
+// the manual had each become an icon standing in for a word.
 
 type Section = {
     id: string
@@ -50,6 +50,15 @@ const AppSettingsDialog = (props: Props) => {
     const intl = useIntl()
 
     const sections: Section[] = [
+        {
+
+            // First, and therefore what opens: it is the one section every
+            // install has something to say in, agents or no agents.
+            id: 'app',
+            name: intl.formatMessage({id: 'Settings.section-app', defaultMessage: 'The app itself'}),
+            when: () => true,
+            body: AppPanel,
+        },
         {
             id: 'agents',
             name: intl.formatMessage({id: 'Machine.section-agents', defaultMessage: 'Agents'}),
