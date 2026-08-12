@@ -515,3 +515,26 @@ func TestCardTerminalStillRefusesABrokenProject(t *testing.T) {
 		t.Fatal("a card naming a broken folder opened a terminal beside it")
 	}
 }
+
+// The stamp under a card's title reads the resume's Cwd as "worktree", and a
+// talk directory is not one: a folderless conversation stays resumable but
+// names no address.
+func TestFolderlessResumeNamesNoWorktree(t *testing.T) {
+	m, _, _, _ := testManager(t, "idle", nil)
+	talk := t.TempDir()
+	if err := m.store.InsertTerminal(TerminalRecord{
+		ID: "talk-1", CardID: "card-talk2", Cwd: talk,
+		Agent: "clauuus", Kind: AgentKindClaude,
+		StartedAt: time.Now().Add(-time.Hour),
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	out := m.TerminalHistoryForCard("card-talk2")
+	if !out.Available {
+		t.Error("a folderless conversation should still be resumable")
+	}
+	if out.Cwd != "" {
+		t.Errorf("the talk directory leaked into the stamp: %q", out.Cwd)
+	}
+}

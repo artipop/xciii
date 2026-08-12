@@ -907,6 +907,13 @@ func (m *Manager) TerminalHistoryForCard(cardID string) ResumableTerminal {
 		Branch:    rec.Branch,
 		Agent:     rec.Agent,
 	}
+	// A folderless conversation lives in the card's talk directory, which is
+	// not where any work lives — and the stamp under the card's title reads
+	// Cwd as the worktree. The conversation stays resumable; the address is
+	// nobody's business.
+	if rec.ProjectPath == "" {
+		out.Cwd = ""
+	}
 	if rec.EndedAt != nil {
 		out.EndedAt = rec.EndedAt.Format(time.RFC3339)
 	}
