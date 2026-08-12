@@ -2,8 +2,10 @@ package acp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -232,6 +234,13 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 	projectPath, err := m.resolveProject(ev)
 	if projectName != "" {
 		projectPath, err = m.resolveNamedProject(projectName)
+	} else if errors.As(err, &errNoProject{}) {
+		// The card names no folder, and a terminal does not need one: the
+		// conversation opens in the card's own talk directory (startTerminal),
+		// where wording and plans are discussed before any folder exists. A
+		// folder the card *does* name but which is broken stays an error — the
+		// person meant it, and silently talking beside it would mislead.
+		projectPath, err = "", nil
 	}
 	if err != nil {
 		return nil, err
@@ -261,7 +270,7 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		agent:       agent,
 		// A project that is not under git has no worktrees to give, and a
 		// terminal in one is a terminal in the folder itself.
-		worktree: m.cfg.UseWorktrees() && IsGitProject(m.rootCtx, projectPath),
+		worktree: projectPath != "" && m.cfg.UseWorktrees() && IsGitProject(m.rootCtx, projectPath),
 	})
 }
 
@@ -436,6 +445,20 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		t.usedWorktree = true
 		t.Cwd = wt.Path
 		t.Branch = wt.Branch
+	}
+
+	// A card's conversation with no folder still needs a working directory,
+	// and it has to be the card's own: the CLI's resume is directory-scoped,
+	// so a directory shared between cards would hand one card another card's
+	// conversation. <dataDir>/talks/<cardID>, derived the way trace.go derives
+	// the data dir.
+	if t.Cwd == "" && spec.cardID != "" {
+		talks := filepath.Join(filepath.Dir(m.cfg.WorktreeDir), "talks", spec.cardID)
+		if err := os.MkdirAll(talks, 0o755); err != nil {
+			m.closeBoardTools(boardToken, mcpConfig)
+			return nil, fmt.Errorf("не удалось создать папку разговора: %w", err)
+		}
+		t.Cwd = talks
 	}
 	t.startSHA = headSHA(m.rootCtx, t.Cwd)
 

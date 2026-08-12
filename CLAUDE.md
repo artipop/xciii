@@ -547,9 +547,10 @@ put in there was the machine talking in the middle of it. There was a row in the
 card once — the agent's name, the session status, the branch with a deploy
 button, a form asking which folder and which agent, and a chevron that expanded
 downwards — and the thing a person actually wanted, the terminal, was the part
-hardest to find in it. The window survives as the ⤢ in the panel's own head —
-`OpenCardTerminal`'s `window` argument is what asks for one — because a screen of
-its own is the one thing a panel beside a card cannot be. And **no session UI of
+hardest to find in it. The window survives as the open-in-new button in the
+panel's own head — `OpenCardTerminal`'s `window` argument is what asks for one,
+the glyph is the compass font's, and it appears only once the terminal runs —
+because a screen of its own is the one thing a panel beside a card cannot be. And **no session UI of
 ours was built to go beside it**: the terminal *is* what a session looks like,
 since the agent's own CLI already draws its work and asks its own questions.
 
@@ -572,14 +573,27 @@ history. Who a terminal speaks as follows the stage too — its crew, then the
 assignee, then the single agent — and a fully busy crew does not block it: the
 person opening one is present.
 
+**A folder is optional, an agent is not.** A card can be talked over —
+wording, a plan, the brief — before anybody decides where the work lives, so
+"the card names no folder" is not a refusal: `resolveProject`'s two
+nothing-chosen errors are marked `errNoProject` (projects.go) and
+`StartCardTerminal` opens the conversation without one, in
+`<dataDir>/talks/<cardID>` — the card's own directory, because the CLI's
+resume is directory-scoped and a shared one would hand one card another
+card's conversation. A folder the card *does* name but which is broken stays
+an error: the person meant it. Sessions are untouched — automation without a
+folder has nowhere to work, so it stalls as before.
+
 **The panel asks only what Go refused to answer**: when `OpenCardTerminal`
-fails to resolve the folder or the agent, the panel offers the pick — the
-board's projects, the registry's agents, quick-add for both — and starts the
-conversation with the choice. The choice lives that one conversation and writes
-nothing to the card: planning in place, not an assignment. (This deliberately
-reversed an earlier decision to point at the settings instead; the form that
-once overloaded the card stood on every card always, while this one appears
-only on refusal, in the panel the refusal is about.)
+fails — which now means the agent, or a folder named but broken — the panel
+offers the pick — the board's projects (with «— без папки, просто
+поговорить —» as a first-class answer), the registry's agents, quick-add for
+both — and starts the conversation with the choice. The choice lives that one
+conversation and writes nothing to the card: planning in place, not an
+assignment. (This deliberately reversed an earlier decision to point at the
+settings instead; the form that once overloaded the card stood on every card
+always, while this one appears only on refusal, in the panel the refusal is
+about.)
 
 It is deliberately not an ACP session: an ACP agent speaks JSON-RPC on stdio and has
 no terminal UI, so one process cannot be both. What the two share is everything

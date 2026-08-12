@@ -467,3 +467,51 @@ func TestPlanningTerminalCarriesTheEditedInstructions(t *testing.T) {
 		t.Errorf("emptied planning prompt reads back as %q, want the default", got)
 	}
 }
+
+// A card can be talked over — wording, a plan, the brief — before anybody
+// decides where the work lives, so "the card names no folder" is not a
+// refusal: the conversation opens in the card's own talk directory, with no
+// worktree and no branch.
+func TestCardTerminalOpensWithoutAnyProject(t *testing.T) {
+	if _, err := exec.LookPath("sh"); err != nil {
+		t.Skip("no shell to stand in for an agent CLI")
+	}
+	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
+		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}}}
+	})
+
+	// A card that says nothing about a folder, on a machine with no projects.
+	m.SetBoardReader(&fakeReader{ev: CardMoved{BoardID: "board1", Title: "Обсудить формулировку"}})
+
+	term, err := m.StartCardTerminal("card-talk", "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(term.ID) }()
+
+	want := filepath.Join(filepath.Dir(m.cfg.WorktreeDir), "talks", "card-talk")
+	if term.Cwd != want {
+		t.Errorf("talking in %s, want the card's own %s", term.Cwd, want)
+	}
+	if term.Branch != "" {
+		t.Errorf("a folderless conversation grew branch %q", term.Branch)
+	}
+}
+
+// Optional means "the card names no folder", never "the folder is broken": a
+// card that points somewhere that does not resolve still refuses, because
+// silently talking beside the folder the person meant would mislead.
+func TestCardTerminalStillRefusesABrokenProject(t *testing.T) {
+	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
+		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}}}
+	})
+	m.SetBoardReader(&fakeReader{ev: CardMoved{
+		BoardID: "board1",
+		Title:   "Сломанный проект",
+		Props:   map[string]string{"repo_path": "/no/such/dir"},
+	}})
+
+	if _, err := m.StartCardTerminal("card-broken", "", ""); err == nil {
+		t.Fatal("a card naming a broken folder opened a terminal beside it")
+	}
+}

@@ -183,6 +183,13 @@ func firstProp(props map[string]string, names []string) string {
 	return ""
 }
 
+// errNoProject marks the refusals that mean "the card names no folder" — as
+// opposed to a folder it names being broken. A session cannot run without one;
+// a terminal is a conversation first, and StartCardTerminal opens it without a
+// folder instead of refusing (a card can be talked over — wording, a plan —
+// before anybody decides where the work lives).
+type errNoProject struct{ error }
+
 func (m *Manager) resolveProject(ev CardMoved) (string, error) {
 	if explicit := firstProp(ev.Props, cardProjectPathProps); explicit != "" {
 		m.cfgMu.RLock()
@@ -208,9 +215,9 @@ func (m *Manager) resolveProject(ev CardMoved) (string, error) {
 		}
 	}
 	if len(projects) == 0 {
-		return "", fmt.Errorf("у карточки не заполнено поле «Проекты» и в реестре нет ни одного проекта (меню доски → «Проекты…»)")
+		return "", errNoProject{fmt.Errorf("у карточки не заполнено поле «Проекты» и в реестре нет ни одного проекта (меню доски → «Проекты…»)")}
 	}
-	return "", fmt.Errorf("ни тег карточки, ни исходная колонка не совпали с проектом из реестра (%s)", projectNames(projects))
+	return "", errNoProject{fmt.Errorf("ни тег карточки, ни исходная колонка не совпали с проектом из реестра (%s)", projectNames(projects))}
 }
 
 func projectNames(projects []ProjectEntry) string {

@@ -110,34 +110,65 @@
     // The ask above the pick, said in the panel's own voice; the machinery's
     // reason is small print below the form, not the headline.
     &__ask {
-        padding: 12px 12px 0;
+        padding: 16px 16px 0;
     }
 
     &__reason {
-        padding: 0 12px 12px;
+        padding: 0 16px 12px;
         font-size: var(--text-small);
         color: rgba(var(--center-channel-color-rgb), 0.4);
         white-space: pre-wrap;
     }
 
-    // The pick for a conversation Go could not resolve: folder, agent, go.
+    // The pick for a conversation Go could not resolve. A form, not a strip:
+    // one row per question, the label column keeping the answers aligned, the
+    // one action on a row of its own — a wrapping line of selects and buttons
+    // is how this read as "элементы подряд".
     &__picker {
         display: flex;
-        align-items: flex-end;
-        flex-wrap: wrap;
-        gap: 8px;
-        padding: 0 12px 12px;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px 16px 16px;
+        max-width: 460px;
+    }
 
-        > label {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            font-size: var(--text-small);
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-        }
+    &__pickRow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__pickLabel {
+        flex: 0 0 64px;
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    &__pickControl {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    // The escape hatch beside each answer, quiet like a link: the row's job
+    // is the select, this is for when the list has nothing to offer.
+    &__pickAdd {
+        flex: 0 0 auto;
+        border: 0;
+        background: transparent;
+        padding: 2px 0;
+        font: inherit;
+        font-size: var(--text-small);
+        color: rgb(var(--link-color-rgb));
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    &__pickActions {
+        padding-top: 2px;
     }
 
     .AgentQuickAdd {
-        padding: 0 12px 12px;
+        padding: 0;
     }
 }

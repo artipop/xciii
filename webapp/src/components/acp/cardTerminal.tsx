@@ -6,6 +6,7 @@ import {useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
+import CompassIcon from '../../widgets/icons/compassIcon'
 import Select from '../../widgets/select'
 
 import {agentBindings} from './bindings'
@@ -201,16 +202,23 @@ const CardTerminal = (props: Props) => {
                     <span class='CardTerminal__status'>{state().session?.status}</span>
                 </Show>
                 <div class='CardTerminal__actions'>
-                    <button
-                        type='button'
-                        class='CardTerminal__button'
-                        title={intl.formatMessage({id: 'CardTerminal.window', defaultMessage: 'Open in a separate window'})}
-                        aria-label={intl.formatMessage({id: 'CardTerminal.window', defaultMessage: 'Open in a separate window'})}
-                        disabled={busy()}
-                        onClick={() => start(true)}
-                    >
-                        {'⤢'}
-                    </button>
+                    {/* Only once there is a terminal to hand over: a window
+                        onto a conversation that has not started is a window
+                        onto nothing. The glyph is the compass font's own
+                        open-in-new — the app's icons come from there, and a
+                        unicode arrow was the one stranger among them. */}
+                    <Show when={terminalId()}>
+                        <button
+                            type='button'
+                            class='CardTerminal__button'
+                            title={intl.formatMessage({id: 'CardTerminal.window', defaultMessage: 'Open in a separate window'})}
+                            aria-label={intl.formatMessage({id: 'CardTerminal.window', defaultMessage: 'Open in a separate window'})}
+                            disabled={busy()}
+                            onClick={() => start(true)}
+                        >
+                            <CompassIcon icon='open-in-new'/>
+                        </button>
+                    </Show>
                     <button
                         type='button'
                         class='CardTerminal__button'
@@ -218,7 +226,7 @@ const CardTerminal = (props: Props) => {
                         aria-label={intl.formatMessage({id: 'CardTerminal.close', defaultMessage: 'Close the panel'})}
                         onClick={props.onClose}
                     >
-                        {'✕'}
+                        <CompassIcon icon='close'/>
                     </button>
                 </div>
             </div>
@@ -280,65 +288,89 @@ const CardTerminal = (props: Props) => {
                 and an errand to the settings is where planning goes to die. */}
             <Show when={choosing()}>
                 <div class='CardTerminal__ask'>
-                    {intl.formatMessage({id: 'CardTerminal.ask', defaultMessage: 'The card does not say where or by whom to work — choose:'})}
+                    {intl.formatMessage({id: 'CardTerminal.ask', defaultMessage: 'The card does not say who should talk here — pick an agent. A folder is optional.'})}
                 </div>
+
+                {/* A form, not a strip: one question per row — who, then
+                    where — each with its answer and its escape hatch aligned,
+                    and the one action underneath. The agent comes first
+                    because it is the only required answer; «— без папки —»
+                    is a real choice, since a conversation needs no folder. */}
                 <div class='CardTerminal__picker'>
-                    <label>
-                        {intl.formatMessage({id: 'CardTerminal.project', defaultMessage: 'Folder'})}
-                        <Select
-                            value={projectName()}
-                            options={[
-                                {value: '', label: intl.formatMessage({id: 'CardTerminal.choose-project', defaultMessage: 'Choose a folder…'})},
-                                ...projects().map((r) => ({value: r.name, label: r.name})),
-                            ]}
-                            onChange={setProjectName}
-                            label={intl.formatMessage({id: 'CardTerminal.project', defaultMessage: 'Folder'})}
+                    <div class='CardTerminal__pickRow'>
+                        <span class='CardTerminal__pickLabel'>
+                            {intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
+                        </span>
+                        <div class='CardTerminal__pickControl'>
+                            <Select
+                                value={agentName()}
+                                options={[
+                                    {value: '', label: intl.formatMessage({id: 'CardTerminal.choose-agent', defaultMessage: 'Choose an agent…'})},
+                                    ...agents().map((a) => ({value: a.name, label: a.name})),
+                                ]}
+                                onChange={setAgentName}
+                                label={intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
+                            />
+                        </div>
+                        <Show when={!addingAgent()}>
+                            <button
+                                type='button'
+                                class='CardTerminal__pickAdd'
+                                onClick={() => setAddingAgent(true)}
+                            >
+                                {intl.formatMessage({id: 'CardTerminal.add-agent', defaultMessage: 'Add an agent…'})}
+                            </button>
+                        </Show>
+                    </div>
+
+                    <Show when={addingAgent()}>
+                        <AgentQuickAdd
+                            board={props.board}
+                            onAdded={async (name) => {
+                                setAddingAgent(false)
+                                await offerChoices()
+                                setAgentName(name)
+                            }}
+                            onCancel={() => setAddingAgent(false)}
                         />
-                    </label>
-                    <Show when={Boolean(bindings?.PickDirectory)}>
-                        <Button onClick={addProject}>
-                            {intl.formatMessage({id: 'CardTerminal.add-project', defaultMessage: 'Add a folder…'})}
-                        </Button>
                     </Show>
 
-                    <label>
-                        {intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
-                        <Select
-                            value={agentName()}
-                            options={[
-                                {value: '', label: intl.formatMessage({id: 'CardTerminal.choose-agent', defaultMessage: 'Choose an agent…'})},
-                                ...agents().map((a) => ({value: a.name, label: a.name})),
-                            ]}
-                            onChange={setAgentName}
-                            label={intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
-                        />
-                    </label>
-                    <Show when={!addingAgent()}>
-                        <Button onClick={() => setAddingAgent(true)}>
-                            {intl.formatMessage({id: 'CardTerminal.add-agent', defaultMessage: 'Add an agent…'})}
-                        </Button>
-                    </Show>
+                    <div class='CardTerminal__pickRow'>
+                        <span class='CardTerminal__pickLabel'>
+                            {intl.formatMessage({id: 'CardTerminal.project', defaultMessage: 'Folder'})}
+                        </span>
+                        <div class='CardTerminal__pickControl'>
+                            <Select
+                                value={projectName()}
+                                options={[
+                                    {value: '', label: intl.formatMessage({id: 'CardTerminal.choose-project', defaultMessage: '— no folder, just talk —'})},
+                                    ...projects().map((r) => ({value: r.name, label: r.name})),
+                                ]}
+                                onChange={setProjectName}
+                                label={intl.formatMessage({id: 'CardTerminal.project', defaultMessage: 'Folder'})}
+                            />
+                        </div>
+                        <Show when={Boolean(bindings?.PickDirectory)}>
+                            <button
+                                type='button'
+                                class='CardTerminal__pickAdd'
+                                onClick={addProject}
+                            >
+                                {intl.formatMessage({id: 'CardTerminal.add-project', defaultMessage: 'Add a folder…'})}
+                            </button>
+                        </Show>
+                    </div>
 
-                    <Button
-                        filled={true}
-                        onClick={() => start(false)}
-                        disabled={busy() || !projectName() || !agentName()}
-                    >
-                        {intl.formatMessage({id: 'CardTerminal.start', defaultMessage: 'Start the conversation'})}
-                    </Button>
+                    <div class='CardTerminal__pickActions'>
+                        <Button
+                            filled={true}
+                            onClick={() => start(false)}
+                            disabled={busy() || !agentName()}
+                        >
+                            {intl.formatMessage({id: 'CardTerminal.start', defaultMessage: 'Start the conversation'})}
+                        </Button>
+                    </div>
                 </div>
-
-                <Show when={addingAgent()}>
-                    <AgentQuickAdd
-                        board={props.board}
-                        onAdded={async (name) => {
-                            setAddingAgent(false)
-                            await offerChoices()
-                            setAgentName(name)
-                        }}
-                        onCancel={() => setAddingAgent(false)}
-                    />
-                </Show>
 
                 <Show when={error()}>
                     <div class='CardTerminal__reason'>{error()}</div>

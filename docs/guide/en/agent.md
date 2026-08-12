@@ -34,7 +34,8 @@ starts by itself.
   history;
 - if the card was worked before, the agent returns to the same worktree and
   continues the conversation (`--continue`);
-- `⤢` in the panel header opens the same terminal in a separate window;
+- the open-in-new-window button in the panel header opens the same terminal
+  in a separate window; it appears once the terminal is running;
 - `✕` closes the panel. The terminal keeps running until the CLI in it exits,
   and opens in the same place next time.
 
@@ -54,12 +55,18 @@ There is no "Terminal" button if no agent is registered on the machine. The
 exception is a card that was already worked: it has a branch and a worktree, so
 the button stays even after the agent is removed.
 
-If the folder or the agent could not be determined, the panel offers to pick
-them on the spot: a folder from the board's projects (or "Add a folder…"), an
-agent from the list (or "Add an agent…") — then "Start the conversation". The
-choice lasts one conversation and does not change the card's assignment. The
-agent in such a conversation has the board's tools: it can fill the card in,
-split it into subtasks, set fields.
+**A folder is optional.** A card can be talked over without one — wording,
+subtasks, a brief: if neither the «Проекты» field nor the registry names a
+folder, the conversation simply opens without one. A folder the card names
+but which is missing on disk is still an error.
+
+If the agent could not be determined, the panel offers to pick on the spot:
+an agent from the list (or "Add an agent…"), a folder from the board's
+projects (or "Add a folder…", and "— no folder, just talk —" is an answer
+too) — then "Start the conversation". The choice lasts one conversation and
+does not change the card's assignment. The agent in such a conversation has
+the board's tools: it can fill the card in, split it into subtasks, set
+fields.
 
 ## The dot on a card
 
