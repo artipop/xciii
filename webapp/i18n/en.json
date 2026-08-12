@@ -778,6 +778,7 @@
   "notification-box-cards-hidden.title": "This action has hidden another card",
   "notification-box.card-limit-reached.not-admin.text": "To access archived cards, you can {contactLink} to upgrade to a paid plan.",
   "notification-box.card-limit-reached.text": "Card limit reached, to view older cards, {link}",
+  "person.add-agent-to-board-warning": "{username} is an agent on this machine and is not yet on this board.",
   "person.add-user-to-board": "Add {username} to board",
   "person.add-user-to-board-confirm-button": "Add to board",
   "person.add-user-to-board-permissions": "Permissions",

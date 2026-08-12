@@ -364,7 +364,7 @@ describe('components/cardDialog', () => {
         const bindings = {
             GetCardAgent: vi.fn().mockResolvedValue('{}'),
             OpenCardTerminal: vi.fn(),
-            ListAgents: vi.fn().mockResolvedValue('[]'),
+            ListAgentAccounts: vi.fn().mockResolvedValue('[]'),
         };
         (window as any).go = {main: {App: bindings}}
 
@@ -383,7 +383,7 @@ describe('components/cardDialog', () => {
             </AppStoreProvider>,
         ))
 
-        await waitFor(() => expect(bindings.ListAgents).toHaveBeenCalled())
+        await waitFor(() => expect(bindings.ListAgentAccounts).toHaveBeenCalled())
         expect(screen.queryByRole('button', {name: 'Terminal'})).toBeNull()
     })
 
@@ -393,7 +393,7 @@ describe('components/cardDialog', () => {
         const bindings = {
             GetCardAgent: vi.fn().mockResolvedValue('{}'),
             OpenCardTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-7'})),
-            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
+            ListAgentAccounts: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude', username: 'claude'}])),
         };
         (window as any).go = {main: {App: bindings}}
 

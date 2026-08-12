@@ -202,6 +202,24 @@ func (a *App) ListAgents() (string, error) {
 	return string(out), nil
 }
 
+// ListAgentAccounts returns the registry as the board knows it — the name a
+// person typed and the username it was provisioned under — as JSON:
+// [{"name","username"}, …].
+//
+// The page needs the username to recognise an agent among the board's people:
+// the fold from one to the other is this side's (AgentUsername), and writing it
+// a second time in TypeScript would be two answers to "is this an agent".
+func (a *App) ListAgentAccounts() (string, error) {
+	if a.mgr == nil {
+		return "[]", nil
+	}
+	out, err := json.Marshal(a.mgr.AgentUsers())
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
 // AddAgent registers a new agent from a JSON-encoded AgentEntry and returns the
 // created entry as JSON.
 func (a *App) AddAgent(entryJSON string) (string, error) {

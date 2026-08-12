@@ -30,6 +30,11 @@ export interface IAppWindow extends Window {
                 AttachAgentProject?(name: string, boardId: string): Promise<string>
                 RemoveAgentProject(name: string): Promise<void>
                 ListAgents(): Promise<string>
+
+                // The registry as the board knows it: [{name, username}]. The
+                // username is what recognises an agent among the board's
+                // people, and the fold that makes it belongs to the Go side.
+                ListAgentAccounts?(): Promise<string>
                 AddAgent(entryJSON: string): Promise<string>
                 UpdateAgent(entryJSON: string): Promise<string>
                 RemoveAgent(name: string): Promise<void>
