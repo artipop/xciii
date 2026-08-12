@@ -17,6 +17,7 @@ import CardBadges from '../cardBadges'
 import CardActionsMenu from '../cardActionsMenu/cardActionsMenu'
 import CardActionsMenuIcon from '../cardActionsMenu/cardActionsMenuIcon'
 import {attentionHeading, useCardAttention} from '../acp/attention'
+import {isCardTerminalAvailable, openCardTerminalWindow, useCardTerminal} from '../acp/liveTerminals'
 
 export const OnboardingCardClassName = 'onboardingCard'
 
@@ -60,6 +61,23 @@ const KanbanCard = (props: Props) => {
     // is a window nobody is looking at.
     const attention = useCardAttention(() => props.card.id)
     const attentionTitle = () => attentionHeading(intl, attention()!)
+
+    // And a terminal already running on the card is the other thing worth
+    // seeing from here — it is where the work is happening, and where a
+    // question was asked. The dot is both: what it means is the colour, what it
+    // does is open the terminal, so getting to the CLI from the board is one
+    // click rather than a card, a toolbar and a panel.
+    const liveTerminal = useCardTerminal(() => props.card.id)
+    const showsAgent = () => Boolean(attention() || liveTerminal())
+    const canOpenTerminal = () => !props.readonly && isCardTerminalAvailable()
+    const agentTitle = () => (attention() ? attentionTitle() : intl.formatMessage({id: 'KanbanCard.open-terminal', defaultMessage: 'Open the terminal'}))
+
+    const openTerminal = (e: MouseEvent) => {
+        // The card is a click target of its own, and opening the dialog behind
+        // the terminal window is not what pressing this asked for.
+        e.stopPropagation()
+        openCardTerminalWindow(props.card.id)
+    }
     const classes = () => {
         let name = props.isSelected ? 'KanbanCard selected' : 'KanbanCard'
         if (props.isManualSort && isOver()) {
@@ -147,13 +165,28 @@ const KanbanCard = (props: Props) => {
                 </Show>
 
                 <div class='octo-icontitle'>
-                    <Show when={attention()}>
-                        <span
-                            class='KanbanCard__attention'
-                            role='status'
-                            title={attentionTitle()}
-                            aria-label={attentionTitle()}
-                        />
+                    <Show when={showsAgent()}>
+                        <Show
+                            when={canOpenTerminal()}
+                            fallback={
+                                <span
+                                    class='KanbanCard__attention'
+                                    classList={{'KanbanCard__attention--live': !attention()}}
+                                    role='status'
+                                    title={agentTitle()}
+                                    aria-label={agentTitle()}
+                                />
+                            }
+                        >
+                            <button
+                                type='button'
+                                class='KanbanCard__attention'
+                                classList={{'KanbanCard__attention--live': !attention()}}
+                                title={agentTitle()}
+                                aria-label={agentTitle()}
+                                onClick={openTerminal}
+                            />
+                        </Show>
                     </Show>
                     <Show when={props.card.fields.icon}>
                         <div class='octo-icon'>{props.card.fields.icon}</div>

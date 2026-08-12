@@ -394,6 +394,7 @@
   "GroupBy.showHiddenGroups": "Показать {count, plural, one {# скрытую группу} few {# скрытые группы} many {# скрытых групп} other {# скрытой группы}}",
   "GroupBy.ungroup": "Разгруппировать",
   "HideBoard.MenuOption": "Скрыть доску",
+  "KanbanCard.open-terminal": "Открыть терминал",
   "KanbanCard.untitled": "Без названия",
   "Machine.agent-notifications-hint": "Сам вопрос лежит в уведомлении, и ответ в нём — это ответ агенту. Янтарная точка на карточке остаётся в любом случае.",
   "Machine.hint-config": "Сколько сессий работает одновременно, сколько может длиться ход, какими инструментами агент пользуется без спроса — это правится руками в config.json приложения и описано в docs/flows.md.",

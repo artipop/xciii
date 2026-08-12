@@ -73,6 +73,29 @@
         // The amber the design language keeps for exactly this.
         background: rgb(var(--warning-rgb));
         animation: kanbancard-attention 2.4s ease-in-out infinite;
+        padding: 0;
+        border: 0;
+        position: relative;
+    }
+
+    // A terminal running with nobody waiting on it: the same dot, said in the
+    // ink of the board rather than in amber, and not breathing. Something is
+    // happening here is not the same news as something needs you.
+    .KanbanCard__attention--live {
+        background: rgba(var(--center-channel-color-rgb), 0.4);
+        animation: none;
+    }
+
+    // Eight pixels is a full stop, not a target. The dot keeps its size in the
+    // layout and takes a finger's worth of room to be pressed in.
+    button.KanbanCard__attention {
+        cursor: pointer;
+
+        &::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+        }
     }
 
     @keyframes kanbancard-attention {

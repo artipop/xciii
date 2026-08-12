@@ -6,6 +6,7 @@ import {useIntl} from '../../intl'
 
 import {agentBindings} from './bindings'
 import {cardAgentState, refreshCardAgent} from './cardAgentState'
+import {isCardTerminalAvailable} from './liveTerminals'
 
 import './cardTerminal.scss'
 
@@ -31,9 +32,9 @@ import './cardTerminal.scss'
 // whose panel is never opened should not pay for the emulator.
 const InlineTerminal = lazy(() => import('./terminalPage'))
 
-export function isCardTerminalAvailable(): boolean {
-    return Boolean(agentBindings()?.OpenCardTerminal)
-}
+// Re-exported so the dialog beside the card asks the panel it draws, not a
+// module it otherwise has no reason to know about.
+export {isCardTerminalAvailable}
 
 type Props = {
     cardId: string

@@ -246,6 +246,16 @@ answered. This is the only thing that raises attention: a terminal used to be a
 second reason and no longer is (below). `components/acp/attention.ts` is the one
 subscription behind it.
 
+**The dot is also the way in.** It opens the card's terminal in a window, and it
+is the same control whether it is amber because an agent is asking or the
+board's own ink because a terminal is merely running there — one thing on the
+card's face, its colour saying what is happening and its click saying where to
+go. Reaching the CLI otherwise meant opening the card, finding the toolbar and
+opening a panel, which is three steps to a window that was already there. What
+the board knows per card comes from `components/acp/liveTerminals.ts`: one
+`ListTerminals` for the page indexed by card, because `GetCardAgent` is a call
+per card and a board has as many as it likes.
+
 **A session writes one comment, and writes it at the end**: what the agent did,
 or why it could not. There were a dozen once — started, cancelled, asked,
 answered, terminal opened, moved along the route — and a card whose comments are

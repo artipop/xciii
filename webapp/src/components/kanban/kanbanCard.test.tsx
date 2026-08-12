@@ -294,4 +294,82 @@ describe('src/components/kanban/kanbanCard', () => {
         expect(screen.queryByRole('status')).toBeNull()
         delete anyWindow.go
     })
+
+    // Getting to the CLI used to mean opening the card, finding the toolbar and
+    // opening a panel. A terminal already running on a card is the board's
+    // business, and the dot that says so is what opens it.
+    test('opens the terminal from the board when one is running on the card', async () => {
+        const anyWindow = window as any
+        const openCardTerminal = vi.fn().mockResolvedValue(JSON.stringify({id: 'term-3', windowed: true}))
+        anyWindow.go = {main: {App: {
+            ListAttention: vi.fn().mockResolvedValue('[]'),
+            ListTerminals: vi.fn().mockResolvedValue(JSON.stringify([{id: 'term-3', cardId: card.id}])),
+            OpenCardTerminal: openCardTerminal,
+        }}}
+
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <KanbanCard
+                    card={card}
+                    board={board}
+                    visiblePropertyTemplates={[propertyTemplate]}
+                    visibleBadges={false}
+                    isSelected={false}
+                    readonly={false}
+                    onDrop={vi.fn()}
+                    showCard={vi.fn()}
+                    isManualSort={false}
+                    index={0}
+                    groupId='group-1'
+                />
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
+
+        await userEvent.click(await screen.findByTitle('Open the terminal'))
+
+        // A window of its own: the board stays where it is, which is the whole
+        // point of going there from the board rather than through the card.
+        expect(openCardTerminal).toHaveBeenCalledWith(card.id, '', '', true)
+        delete anyWindow.go
+    })
+
+    // The same dot, and the same click: an agent that has stopped to ask is
+    // asking in a terminal, so that is where the answer is given.
+    test('opens the terminal from the dot an agent is asking on', async () => {
+        const anyWindow = window as any
+        const openCardTerminal = vi.fn().mockResolvedValue(JSON.stringify({id: 'term-4', windowed: true}))
+        anyWindow.go = {main: {App: {
+            ListAttention: vi.fn().mockResolvedValue(JSON.stringify([{
+                key: 'q:1',
+                cardId: card.id,
+                agent: 'clauuus',
+                reason: 'question',
+                awaiting: true,
+            }])),
+            ListTerminals: vi.fn().mockResolvedValue('[]'),
+            OpenCardTerminal: openCardTerminal,
+        }}}
+
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <KanbanCard
+                    card={card}
+                    board={board}
+                    visiblePropertyTemplates={[propertyTemplate]}
+                    visibleBadges={false}
+                    isSelected={false}
+                    readonly={false}
+                    onDrop={vi.fn()}
+                    showCard={vi.fn()}
+                    isManualSort={false}
+                    index={0}
+                    groupId='group-1'
+                />
+            </AppStoreProvider>,
+        ), {wrapper: TestRouter})
+
+        await userEvent.click(await screen.findByTitle('clauuus is asking'))
+        expect(openCardTerminal).toHaveBeenCalledWith(card.id, '', '', true)
+        delete anyWindow.go
+    })
 })
