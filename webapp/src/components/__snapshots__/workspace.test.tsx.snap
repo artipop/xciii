@@ -220,7 +220,6 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                 </div>
               </div>
             </div>
-            
             <div
               class="shareButtonWrapper"
             >
@@ -775,7 +774,6 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
                 </div>
               </div>
             </div>
-            
             <div
               class="shareButtonWrapper"
             >
@@ -1321,7 +1319,6 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                 </div>
               </div>
             </div>
-            
             <div
               class="shareButtonWrapper"
             >
@@ -1876,7 +1873,6 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
                 </div>
               </div>
             </div>
-            
             <div
               class="shareButtonWrapper"
             >

@@ -75,7 +75,6 @@ exports[`components/centerPanel > Clicking on the Hidden card count should open 
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -811,7 +810,6 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -1401,7 +1399,6 @@ exports[`components/centerPanel > return centerPanel and > click on new card to 
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -2070,7 +2067,6 @@ exports[`components/centerPanel > return centerPanel and > press touch 1 with re
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -2502,7 +2498,6 @@ exports[`components/centerPanel > return centerPanel and > press touch ctrl+d fo
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -3188,7 +3183,6 @@ exports[`components/centerPanel > return centerPanel and > press touch del for o
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -3874,7 +3868,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -4560,7 +4553,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -5246,7 +5238,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -5932,7 +5923,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -6618,7 +6608,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -7304,7 +7293,6 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -7990,7 +7978,6 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -8676,7 +8663,6 @@ exports[`components/centerPanel > should match snapshot for Gallery 1`] = `
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -8956,7 +8942,6 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -9509,7 +9494,6 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >
@@ -10062,7 +10046,6 @@ exports[`components/centerPanel > should match snapshot for Table 1`] = `
             </div>
           </div>
         </div>
-        
         <div
           class="shareButtonWrapper"
         >

@@ -192,13 +192,14 @@ describe('components/centerPanel', () => {
         })
 
         // Closing it half-way is an answer to "have you seen this?", not to any
-        // of the questions in it: the board still needs setting up, and says so,
-        // but the modal does not come back by itself.
+        // of the questions in it: nothing here is mandatory, so no badge nags
+        // about it afterwards — the wizard said how to come back, and the
+        // modal does not return by itself.
         // Throwing the page away and building it again is what a restart looks
         // like from here — and localStorage would not have survived it, because
         // the app serves itself on a fresh port, and therefore a fresh origin,
         // every launch.
-        test('does not open twice, and the reminder stays while a question is unanswered', async () => {
+        test('does not open twice, and nothing nags afterwards', async () => {
             stubPlan([{kind: 'project', optional: false, status: 'pending'}, {kind: 'done', optional: false, status: 'done'}])
             const first = renderPanel()
             await waitFor(() => expect(screen.getByText('Set up this board: Project')).toBeInTheDocument())
@@ -207,19 +208,18 @@ describe('components/centerPanel', () => {
 
             localStorage.clear()
             renderPanel()
-            await waitFor(() => expect(screen.getByText('This board is not set up yet')).toBeInTheDocument())
-            expect(screen.queryByText('Set up this board: Project')).toBeNull()
-        })
-
-        test('and the reminder goes when every question this board asks is answered', async () => {
-            stubPlan([
-                {kind: 'project', optional: false, status: 'done'},
-                {kind: 'deploy', optional: true, status: 'skipped'},
-                {kind: 'done', optional: false, status: 'done'},
-            ])
-            renderPanel()
             await waitFor(() => expect(screen.queryByText('Set up this board: Project')).toBeNull())
             expect(screen.queryByText('This board is not set up yet')).toBeNull()
+        })
+
+        // The soft way out is a button, and it says how to come back.
+        test('leaving through «Я сам освоюсь» closes the wizard', async () => {
+            stubPlan([{kind: 'project', optional: false, status: 'pending'}, {kind: 'done', optional: false, status: 'done'}])
+            renderPanel()
+            await waitFor(() => expect(screen.getByText('Set up this board: Project')).toBeInTheDocument())
+
+            screen.getByText('I’ll find my way around').click()
+            await waitFor(() => expect(screen.queryByText('Set up this board: Project')).toBeNull())
         })
     })
     test('should match snapshot for Kanban, not shared', () => {

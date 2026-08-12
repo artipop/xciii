@@ -56,7 +56,7 @@ import Gallery from './gallery/gallery'
 import {BoardTourSteps, FINISHED, TOUR_BOARD, TOUR_CARD} from './onboardingTour'
 import ShareBoardTourStep from './onboardingTour/shareBoard/shareBoard'
 import BoardSetupWizard from './acp/boardSetupWizard'
-import {createSetupPlan, markSetupOffered, setupNeeded, shouldOfferSetup} from './acp/boardSetup'
+import {createSetupPlan, markSetupOffered, shouldOfferSetup} from './acp/boardSetup'
 import {retireAgentProperty} from './acp/agentSync'
 
 type Props = {
@@ -78,12 +78,15 @@ const CenterPanel = (props: Props) => {
     const [selectedCardIds, setSelectedCardIds] = createSignal<string[]>([])
 
     // A board that runs something on a machine that cannot run it yet. The
-    // wizard opens by itself once per board — after that the header says so
-    // quietly and waits to be asked, because a modal on every launch is how a
-    // thing you meant to get round to becomes a thing you dismiss on reflex.
+    // wizard opens by itself once per board and never stands anywhere after
+    // that: there used to be a header badge saying «Доска настроена не до
+    // конца», but the app has stopped treating almost anything as mandatory —
+    // a board with no deploy target is a board that does not deploy, not a
+    // half-configured one. What replaced the badge is a parting note (the
+    // wizard says how to come back) and the standing way in: «Как работает эта
+    // доска…» → «Пройти настройку заново…».
     const [showSetup, setShowSetup] = createSignal(false)
     const [plan, refreshPlan] = createSetupPlan(() => props.board)
-    const setupPending = () => setupNeeded(plan())
     createEffect(() => {
         const board = props.board
         if (shouldOfferSetup(plan())) {
@@ -456,19 +459,6 @@ const CenterPanel = (props: Props) => {
                         board={props.board}
                         readonly={props.readonly}
                     />
-                    <Show when={setupPending()}>
-                        {/* The board says it runs agents and the machine cannot
-                            yet. Quiet, and always the way back into the wizard. */}
-                        <button
-                            class='CenterPanel__setupPending'
-                            onClick={() => setShowSetup(true)}
-                        >
-                            {intl.formatMessage({
-                                id: 'BoardSetup.pending',
-                                defaultMessage: 'This board is not set up yet',
-                            })}
-                        </button>
-                    </Show>
                     <div class='shareButtonWrapper'>
                         <Show when={showShareButton()}>
                             <ShareBoardButton
