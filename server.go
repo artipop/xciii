@@ -12,12 +12,12 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/mattermost/focalboard/server/server"
-	"github.com/mattermost/focalboard/server/services/config"
-	"github.com/mattermost/focalboard/server/services/notify"
-	"github.com/mattermost/focalboard/server/services/permissions/localpermissions"
+	"github.com/artipop/xciii/server/server"
+	"github.com/artipop/xciii/server/services/config"
+	"github.com/artipop/xciii/server/services/notify"
+	"github.com/artipop/xciii/server/services/permissions/localpermissions"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 // getFreePort asks the kernel for a free open port that is ready to use.

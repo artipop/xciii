@@ -11,30 +11,29 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/focalboard/server/api"
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/auth"
-	appModel "github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
-	"github.com/mattermost/focalboard/server/services/config"
-	"github.com/mattermost/focalboard/server/services/metrics"
-	"github.com/mattermost/focalboard/server/services/notify"
-	"github.com/mattermost/focalboard/server/services/notify/notifylogger"
-	"github.com/mattermost/focalboard/server/services/scheduler"
-	"github.com/mattermost/focalboard/server/services/store"
-	"github.com/mattermost/focalboard/server/services/store/sqlstore"
-	"github.com/mattermost/focalboard/server/services/telemetry"
-	"github.com/mattermost/focalboard/server/services/webhook"
-	"github.com/mattermost/focalboard/server/utils"
-	"github.com/mattermost/focalboard/server/web"
-	"github.com/mattermost/focalboard/server/ws"
+	"github.com/artipop/xciii/server/api"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/auth"
+	appModel "github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/services/config"
+	"github.com/artipop/xciii/server/services/metrics"
+	"github.com/artipop/xciii/server/services/notify"
+	"github.com/artipop/xciii/server/services/notify/notifylogger"
+	"github.com/artipop/xciii/server/services/scheduler"
+	"github.com/artipop/xciii/server/services/store"
+	"github.com/artipop/xciii/server/services/store/sqlstore"
+	"github.com/artipop/xciii/server/services/telemetry"
+	"github.com/artipop/xciii/server/services/webhook"
+	"github.com/artipop/xciii/server/utils"
+	"github.com/artipop/xciii/server/web"
+	"github.com/artipop/xciii/server/ws"
 	"github.com/oklog/run"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/artipop/xciii/server/mlog"
+	"github.com/artipop/xciii/server/services/filestore"
 )
 
 const (
@@ -62,7 +61,7 @@ type Server struct {
 	notificationService    *notify.Service
 	servicesStartStopMutex sync.Mutex
 
-	localRouter     *mux.Router
+	localRouter     *web.Router
 	localModeServer *http.Server
 	api             *api.API
 	app             *app.App
@@ -81,24 +80,15 @@ func New(params Params) (*Server, error) {
 		wsAdapter = ws.NewServer(authenticator, params.SingleUserToken, params.Cfg.AuthMode == MattermostAuthMod, params.Logger, params.DBStore)
 	}
 
-	filesBackendSettings := filestore.FileBackendSettings{}
-	filesBackendSettings.DriverName = params.Cfg.FilesDriver
-	filesBackendSettings.Directory = params.Cfg.FilesPath
-	filesBackendSettings.AmazonS3AccessKeyId = params.Cfg.FilesS3Config.AccessKeyID
-	filesBackendSettings.AmazonS3SecretAccessKey = params.Cfg.FilesS3Config.SecretAccessKey
-	filesBackendSettings.AmazonS3Bucket = params.Cfg.FilesS3Config.Bucket
-	filesBackendSettings.AmazonS3PathPrefix = params.Cfg.FilesS3Config.PathPrefix
-	filesBackendSettings.AmazonS3Region = params.Cfg.FilesS3Config.Region
-	filesBackendSettings.AmazonS3Endpoint = params.Cfg.FilesS3Config.Endpoint
-	filesBackendSettings.AmazonS3SSL = params.Cfg.FilesS3Config.SSL
-	filesBackendSettings.AmazonS3SignV2 = params.Cfg.FilesS3Config.SignV2
-	filesBackendSettings.AmazonS3SSE = params.Cfg.FilesS3Config.SSE
-	filesBackendSettings.AmazonS3Trace = params.Cfg.FilesS3Config.Trace
-	filesBackendSettings.AmazonS3RequestTimeoutMilliseconds = params.Cfg.FilesS3Config.Timeout
-
-	filesBackend, appErr := filestore.NewFileBackend(filesBackendSettings)
-	if appErr != nil {
-		params.Logger.Error("Unable to initialize the files storage", mlog.Err(appErr))
+	// Attachments go on the disk, under the directory the config names. The S3
+	// settings the config still carries are upstream's and no longer reach
+	// anything: see services/filestore for why the bucket went.
+	filesBackend, fErr := filestore.New(filestore.Settings{
+		DriverName: params.Cfg.FilesDriver,
+		Directory:  params.Cfg.FilesPath,
+	})
+	if fErr != nil {
+		params.Logger.Error("Unable to initialize the files storage", mlog.Err(fErr))
 
 		return nil, errors.New("unable to initialize the files storage")
 	}
@@ -146,7 +136,7 @@ func New(params Params) (*Server, error) {
 	focalboardAPI := api.NewAPI(app, params.SingleUserToken, params.Cfg.AuthMode, params.PermissionsService, params.Logger, auditService)
 
 	// Local router for admin APIs
-	localRouter := mux.NewRouter()
+	localRouter := web.NewRouter()
 	focalboardAPI.RegisterAdminRoutes(localRouter)
 
 	// Init team
@@ -436,7 +426,7 @@ func (s *Server) stopLocalModeServer() {
 	}
 }
 
-func (s *Server) GetRootRouter() *mux.Router {
+func (s *Server) GetRootRouter() *web.Router {
 	return s.webServer.Router()
 }
 

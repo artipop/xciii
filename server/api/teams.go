@@ -5,19 +5,23 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/utils"
+	"github.com/artipop/xciii/server/web"
 )
 
-func (a *API) registerTeamsRoutes(r *mux.Router) {
+func (a *API) registerTeamsRoutes(r *web.Router) {
 	// Team APIs
-	r.HandleFunc("/teams", a.sessionRequired(a.handleGetTeams)).Methods("GET")
-	r.HandleFunc("/teams/{teamID}", a.sessionRequired(a.handleGetTeam)).Methods("GET")
-	r.HandleFunc("/teams/{teamID}/users", a.sessionRequired(a.handleGetTeamUsers)).Methods("GET")
-	r.HandleFunc("/teams/{teamID}/users", a.sessionRequired(a.handleGetTeamUsersByID)).Methods("POST")
-	r.HandleFunc("/teams/{teamID}/archive/export", a.sessionRequired(a.handleArchiveExportTeam)).Methods("GET")
+	r.HandleFunc("GET /teams", a.sessionRequired(a.handleGetTeams))
+	r.HandleFunc("GET /teams/{teamID}", a.sessionRequired(a.handleGetTeam))
+	r.HandleFunc("GET /teams/{teamID}/users", a.sessionRequired(a.handleGetTeamUsers))
+	r.HandleFunc("POST /teams/{teamID}/users", a.sessionRequired(a.handleGetTeamUsersByID))
+	// The team's archive export is registered by registerAchivesRoutes, where
+	// its handler lives. It was registered here as well until the standard mux
+	// refused the second registration — gorilla had taken the first and
+	// discarded this one in silence, so the duplicate cost nothing and said
+	// nothing for as long as it existed.
 }
 
 func (a *API) handleGetTeams(w http.ResponseWriter, r *http.Request) {
@@ -89,8 +93,7 @@ func (a *API) handleGetTeam(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
+	teamID := r.PathValue("teamID")
 	userID := getUserID(r)
 
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
@@ -217,8 +220,7 @@ func (a *API) handleGetTeamUsers(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
+	teamID := r.PathValue("teamID")
 	userID := getUserID(r)
 	query := r.URL.Query()
 	searchQuery := query.Get("search")
@@ -308,8 +310,7 @@ func (a *API) handleGetTeamUsersByID(w http.ResponseWriter, r *http.Request) {
 	auditRec := a.makeAuditRecord(r, "getTeamUsersByID", audit.Fail)
 	defer a.audit.LogRecord(audit.LevelRead, auditRec)
 
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
+	teamID := r.PathValue("teamID")
 	userID := getUserID(r)
 
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {

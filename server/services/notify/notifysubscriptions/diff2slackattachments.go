@@ -11,11 +11,11 @@ import (
 	"sync"
 	"text/template"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 	"github.com/wiggin77/merror"
 
+	"github.com/artipop/xciii/server/mlog"
 	mm_model "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (

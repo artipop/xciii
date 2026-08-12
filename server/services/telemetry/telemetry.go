@@ -8,12 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/scheduler"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/scheduler"
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 const (
@@ -140,7 +139,7 @@ func (ts *Service) RunTelemetryJob(firstRunMillis int64) {
 	// Send on boot
 	ts.doTelemetry()
 	scheduler.CreateRecurringTask("Telemetry", func() {
-		ts.doTelemetryIfNeeded(utils.TimeFromMillis(firstRunMillis))
+		ts.doTelemetryIfNeeded(model.GetTimeForMillis(firstRunMillis))
 	}, timeBetweenTelemetryChecks)
 }
 

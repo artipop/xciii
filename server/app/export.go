@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 	"github.com/wiggin77/merror"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 var (

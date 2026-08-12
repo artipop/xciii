@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
-	"github.com/mattermost/focalboard/server/services/permissions"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/services/permissions"
+	"github.com/artipop/xciii/server/web"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 const (
@@ -61,15 +61,11 @@ func NewAPI(
 	}
 }
 
-func (a *API) RegisterRoutes(r *mux.Router) {
-	apiv2 := r.PathPrefix("/api/v2").Subrouter()
-	apiv2.Use(a.panicHandler)
-	apiv2.Use(a.requireCSRFToken)
+func (a *API) RegisterRoutes(r *web.Router) {
+	apiv2 := r.Group("/api/v2", a.panicHandler, a.requireCSRFToken)
 
 	/* ToDo:
-	apiv3 := r.PathPrefix("/api/v3").Subrouter()
-	apiv3.Use(a.panicHandler)
-	apiv3.Use(a.requireCSRFToken)
+	apiv3 := r.Group("/api/v3", a.panicHandler, a.requireCSRFToken)
 	*/
 
 	// V2 routes (ToDo: migrate these to V3 when ready to ship V3)
@@ -101,8 +97,8 @@ func (a *API) RegisterRoutes(r *mux.Router) {
 	a.registerSystemRoutes(r)
 }
 
-func (a *API) RegisterAdminRoutes(r *mux.Router) {
-	r.HandleFunc("/api/v2/admin/users/{username}/password", a.adminRequired(a.handleAdminSetPassword)).Methods("POST")
+func (a *API) RegisterAdminRoutes(r *web.Router) {
+	r.HandleFunc("POST /api/v2/admin/users/{username}/password", a.adminRequired(a.handleAdminSetPassword))
 }
 
 func getUserID(r *http.Request) string {

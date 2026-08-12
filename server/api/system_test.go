@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/mlog"
+	"github.com/artipop/xciii/server/model"
 )
 
 func TestHello(t *testing.T) {

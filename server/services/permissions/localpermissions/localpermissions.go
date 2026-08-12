@@ -4,11 +4,11 @@
 package localpermissions
 
 import (
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/permissions"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/permissions"
 
+	"github.com/artipop/xciii/server/mlog"
 	mmModel "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type Service struct {

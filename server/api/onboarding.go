@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/web"
 )
 
-func (a *API) registerOnboardingRoutes(r *mux.Router) {
+func (a *API) registerOnboardingRoutes(r *web.Router) {
 	// Onboarding tour endpoints APIs
-	r.HandleFunc("/teams/{teamID}/onboard", a.sessionRequired(a.handleOnboard)).Methods(http.MethodPost)
+	r.HandleFunc("POST /teams/{teamID}/onboard", a.sessionRequired(a.handleOnboard))
 }
 
 func (a *API) handleOnboard(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +45,7 @@ func (a *API) handleOnboard(w http.ResponseWriter, r *http.Request) {
 	//     description: internal error
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
-	teamID := mux.Vars(r)["teamID"]
+	teamID := r.PathValue("teamID")
 	userID := getUserID(r)
 
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {

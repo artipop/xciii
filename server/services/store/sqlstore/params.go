@@ -6,7 +6,7 @@ import (
 
 	mmModel "github.com/mattermost/mattermost/server/public/model"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 // servicesAPI is the interface required my the Params to interact with the mattermost-server.
@@ -23,7 +23,6 @@ type Params struct {
 	Logger           mlog.LoggerIFace
 	DB               *sql.DB
 	IsSingleUser     bool
-	NewMutexFn       MutexFactory
 	ServicesAPI      servicesAPI
 	SkipMigrations   bool
 	ConfigFn         func() *mmModel.Config

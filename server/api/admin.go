@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 type AdminSetPasswordData struct {
@@ -18,8 +17,7 @@ type AdminSetPasswordData struct {
 }
 
 func (a *API) handleAdminSetPassword(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	username := vars["username"]
+	username := r.PathValue("username")
 
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {

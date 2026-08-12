@@ -9,9 +9,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/focalboard/server/app"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/mlog"
+	"github.com/artipop/xciii/server/model"
 )
 
 // The board templates this app ships are ours, and they live here. The server

@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/web"
 
+	"github.com/artipop/xciii/server/mlog"
 	mm_model "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -18,11 +18,11 @@ const (
 	complianceDefaultPerPage = "60"
 )
 
-func (a *API) registerComplianceRoutes(r *mux.Router) {
+func (a *API) registerComplianceRoutes(r *web.Router) {
 	// Compliance APIs
-	r.HandleFunc("/admin/boards", a.sessionRequired(a.handleGetBoardsForCompliance)).Methods("GET")
-	r.HandleFunc("/admin/boards_history", a.sessionRequired(a.handleGetBoardsComplianceHistory)).Methods("GET")
-	r.HandleFunc("/admin/blocks_history", a.sessionRequired(a.handleGetBlocksComplianceHistory)).Methods("GET")
+	r.HandleFunc("GET /admin/boards", a.sessionRequired(a.handleGetBoardsForCompliance))
+	r.HandleFunc("GET /admin/boards_history", a.sessionRequired(a.handleGetBoardsComplianceHistory))
+	r.HandleFunc("GET /admin/blocks_history", a.sessionRequired(a.handleGetBlocksComplianceHistory))
 }
 
 func (a *API) handleGetBoardsForCompliance(w http.ResponseWriter, r *http.Request) {

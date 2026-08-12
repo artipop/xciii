@@ -4,18 +4,18 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/web"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
-func (a *API) registerSearchRoutes(r *mux.Router) {
-	r.HandleFunc("/teams/{teamID}/channels", a.sessionRequired(a.handleSearchMyChannels)).Methods("GET")
-	r.HandleFunc("/teams/{teamID}/boards/search", a.sessionRequired(a.handleSearchBoards)).Methods("GET")
-	r.HandleFunc("/teams/{teamID}/boards/search/linkable", a.sessionRequired(a.handleSearchLinkableBoards)).Methods("GET")
-	r.HandleFunc("/boards/search", a.sessionRequired(a.handleSearchAllBoards)).Methods("GET")
+func (a *API) registerSearchRoutes(r *web.Router) {
+	r.HandleFunc("GET /teams/{teamID}/channels", a.sessionRequired(a.handleSearchMyChannels))
+	r.HandleFunc("GET /teams/{teamID}/boards/search", a.sessionRequired(a.handleSearchBoards))
+	r.HandleFunc("GET /teams/{teamID}/boards/search/linkable", a.sessionRequired(a.handleSearchLinkableBoards))
+	r.HandleFunc("GET /boards/search", a.sessionRequired(a.handleSearchAllBoards))
 }
 
 func (a *API) handleSearchMyChannels(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +59,7 @@ func (a *API) handleSearchMyChannels(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	searchQuery := query.Get("search")
 
-	teamID := mux.Vars(r)["teamID"]
+	teamID := r.PathValue("teamID")
 	userID := getUserID(r)
 
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
@@ -134,7 +134,7 @@ func (a *API) handleSearchBoards(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 
 	var err error
-	teamID := mux.Vars(r)["teamID"]
+	teamID := r.PathValue("teamID")
 	term := r.URL.Query().Get("q")
 	searchFieldText := r.URL.Query().Get("field")
 	searchField := model.BoardSearchFieldTitle
@@ -231,7 +231,7 @@ func (a *API) handleSearchLinkableBoards(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	teamID := mux.Vars(r)["teamID"]
+	teamID := r.PathValue("teamID")
 	term := r.URL.Query().Get("q")
 	userID := getUserID(r)
 

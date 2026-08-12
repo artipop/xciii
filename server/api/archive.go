@@ -5,23 +5,23 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/web"
 
+	"github.com/artipop/xciii/server/mlog"
 	mmModel "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
 	archiveExtension = ".boardarchive"
 )
 
-func (a *API) registerAchivesRoutes(r *mux.Router) {
+func (a *API) registerAchivesRoutes(r *web.Router) {
 	// Archive APIs
-	r.HandleFunc("/boards/{boardID}/archive/export", a.sessionRequired(a.handleArchiveExportBoard)).Methods("GET")
-	r.HandleFunc("/teams/{teamID}/archive/import", a.sessionRequired(a.handleArchiveImport)).Methods("POST")
-	r.HandleFunc("/teams/{teamID}/archive/export", a.sessionRequired(a.handleArchiveExportTeam)).Methods("GET")
+	r.HandleFunc("GET /boards/{boardID}/archive/export", a.sessionRequired(a.handleArchiveExportBoard))
+	r.HandleFunc("POST /teams/{teamID}/archive/import", a.sessionRequired(a.handleArchiveImport))
+	r.HandleFunc("GET /teams/{teamID}/archive/export", a.sessionRequired(a.handleArchiveExportTeam))
 }
 
 func (a *API) handleArchiveExportBoard(w http.ResponseWriter, r *http.Request) {
@@ -52,8 +52,7 @@ func (a *API) handleArchiveExportBoard(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	vars := mux.Vars(r)
-	boardID := vars["boardID"]
+	boardID := r.PathValue("boardID")
 	userID := getUserID(r)
 
 	// check user has permission to board
@@ -129,8 +128,7 @@ func (a *API) handleArchiveImport(w http.ResponseWriter, r *http.Request) {
 	session, _ := ctx.Value(sessionContextKey).(*model.Session)
 	userID := session.UserID
 
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
+	teamID := r.PathValue("teamID")
 
 	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to create board"))
@@ -209,8 +207,7 @@ func (a *API) handleArchiveExportTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
+	teamID := r.PathValue("teamID")
 
 	ctx := r.Context()
 	session, _ := ctx.Value(sessionContextKey).(*model.Session)

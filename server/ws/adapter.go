@@ -2,7 +2,7 @@
 package ws
 
 import (
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 )
 
 const (

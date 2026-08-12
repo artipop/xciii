@@ -5,20 +5,20 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/web"
 )
 
-func (a *API) registerMembersRoutes(r *mux.Router) {
+func (a *API) registerMembersRoutes(r *web.Router) {
 	// Member APIs
-	r.HandleFunc("/boards/{boardID}/members", a.sessionRequired(a.handleGetMembersForBoard)).Methods("GET")
-	r.HandleFunc("/boards/{boardID}/members", a.sessionRequired(a.handleAddMember)).Methods("POST")
-	r.HandleFunc("/boards/{boardID}/members/{userID}", a.sessionRequired(a.handleUpdateMember)).Methods("PUT")
-	r.HandleFunc("/boards/{boardID}/members/{userID}", a.sessionRequired(a.handleDeleteMember)).Methods("DELETE")
-	r.HandleFunc("/boards/{boardID}/join", a.sessionRequired(a.handleJoinBoard)).Methods("POST")
-	r.HandleFunc("/boards/{boardID}/leave", a.sessionRequired(a.handleLeaveBoard)).Methods("POST")
+	r.HandleFunc("GET /boards/{boardID}/members", a.sessionRequired(a.handleGetMembersForBoard))
+	r.HandleFunc("POST /boards/{boardID}/members", a.sessionRequired(a.handleAddMember))
+	r.HandleFunc("PUT /boards/{boardID}/members/{userID}", a.sessionRequired(a.handleUpdateMember))
+	r.HandleFunc("DELETE /boards/{boardID}/members/{userID}", a.sessionRequired(a.handleDeleteMember))
+	r.HandleFunc("POST /boards/{boardID}/join", a.sessionRequired(a.handleJoinBoard))
+	r.HandleFunc("POST /boards/{boardID}/leave", a.sessionRequired(a.handleLeaveBoard))
 }
 
 func (a *API) handleGetMembersForBoard(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +49,7 @@ func (a *API) handleGetMembersForBoard(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 	userID := getUserID(r)
 
 	if !a.permissions.HasPermissionToBoard(userID, boardID, model.PermissionViewBoard) {
@@ -118,7 +118,7 @@ func (a *API) handleAddMember(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 	userID := getUserID(r)
 
 	board, err := a.app.GetBoard(boardID)
@@ -236,7 +236,7 @@ func (a *API) handleJoinBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 	board, err := a.app.GetBoard(boardID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -338,7 +338,7 @@ func (a *API) handleLeaveBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 
 	if !a.permissions.HasPermissionToBoard(userID, boardID, model.PermissionViewBoard) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to board"))
@@ -409,8 +409,8 @@ func (a *API) handleUpdateMember(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
-	paramsUserID := mux.Vars(r)["userID"]
+	boardID := r.PathValue("boardID")
+	paramsUserID := r.PathValue("userID")
 	userID := getUserID(r)
 
 	requestBody, err := io.ReadAll(r.Body)
@@ -508,8 +508,8 @@ func (a *API) handleDeleteMember(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
-	paramsUserID := mux.Vars(r)["userID"]
+	boardID := r.PathValue("boardID")
+	paramsUserID := r.PathValue("userID")
 	userID := getUserID(r)
 
 	if _, err := a.app.GetBoard(boardID); err != nil {

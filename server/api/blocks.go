@@ -7,22 +7,22 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/web"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
-func (a *API) registerBlocksRoutes(r *mux.Router) {
+func (a *API) registerBlocksRoutes(r *web.Router) {
 	// Blocks APIs
-	r.HandleFunc("/boards/{boardID}/blocks", a.attachSession(a.handleGetBlocks, false)).Methods("GET")
-	r.HandleFunc("/boards/{boardID}/blocks", a.sessionRequired(a.handlePostBlocks)).Methods("POST")
-	r.HandleFunc("/boards/{boardID}/blocks", a.sessionRequired(a.handlePatchBlocks)).Methods("PATCH")
-	r.HandleFunc("/boards/{boardID}/blocks/{blockID}", a.sessionRequired(a.handleDeleteBlock)).Methods("DELETE")
-	r.HandleFunc("/boards/{boardID}/blocks/{blockID}", a.sessionRequired(a.handlePatchBlock)).Methods("PATCH")
-	r.HandleFunc("/boards/{boardID}/blocks/{blockID}/undelete", a.sessionRequired(a.handleUndeleteBlock)).Methods("POST")
-	r.HandleFunc("/boards/{boardID}/blocks/{blockID}/duplicate", a.sessionRequired(a.handleDuplicateBlock)).Methods("POST")
+	r.HandleFunc("GET /boards/{boardID}/blocks", a.attachSession(a.handleGetBlocks, false))
+	r.HandleFunc("POST /boards/{boardID}/blocks", a.sessionRequired(a.handlePostBlocks))
+	r.HandleFunc("PATCH /boards/{boardID}/blocks", a.sessionRequired(a.handlePatchBlocks))
+	r.HandleFunc("DELETE /boards/{boardID}/blocks/{blockID}", a.sessionRequired(a.handleDeleteBlock))
+	r.HandleFunc("PATCH /boards/{boardID}/blocks/{blockID}", a.sessionRequired(a.handlePatchBlock))
+	r.HandleFunc("POST /boards/{boardID}/blocks/{blockID}/undelete", a.sessionRequired(a.handleUndeleteBlock))
+	r.HandleFunc("POST /boards/{boardID}/blocks/{blockID}/duplicate", a.sessionRequired(a.handleDuplicateBlock))
 }
 
 func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +70,7 @@ func (a *API) handleGetBlocks(w http.ResponseWriter, r *http.Request) {
 	blockType := query.Get("type")
 	all := query.Get("all")
 	blockID := query.Get("block_id")
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 
 	userID := getUserID(r)
 
@@ -214,7 +214,7 @@ func (a *API) handlePostBlocks(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
+	boardID := r.PathValue("boardID")
 	userID := getUserID(r)
 
 	val := r.URL.Query().Get("disable_notify")
@@ -362,9 +362,8 @@ func (a *API) handleDeleteBlock(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 
 	userID := getUserID(r)
-	vars := mux.Vars(r)
-	boardID := vars["boardID"]
-	blockID := vars["blockID"]
+	boardID := r.PathValue("boardID")
+	blockID := r.PathValue("blockID")
 
 	val := r.URL.Query().Get("disable_notify")
 	disableNotify := val == True
@@ -439,9 +438,8 @@ func (a *API) handleUndeleteBlock(w http.ResponseWriter, r *http.Request) {
 	session := ctx.Value(sessionContextKey).(*model.Session)
 	userID := session.UserID
 
-	vars := mux.Vars(r)
-	blockID := vars["blockID"]
-	boardID := vars["boardID"]
+	blockID := r.PathValue("blockID")
+	boardID := r.PathValue("boardID")
 
 	board, err := a.app.GetBoard(boardID)
 	if err != nil {
@@ -531,9 +529,8 @@ func (a *API) handlePatchBlock(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 
 	userID := getUserID(r)
-	vars := mux.Vars(r)
-	boardID := vars["boardID"]
-	blockID := vars["blockID"]
+	boardID := r.PathValue("boardID")
+	blockID := r.PathValue("blockID")
 
 	val := r.URL.Query().Get("disable_notify")
 	disableNotify := val == True
@@ -622,8 +619,7 @@ func (a *API) handlePatchBlocks(w http.ResponseWriter, r *http.Request) {
 	session := ctx.Value(sessionContextKey).(*model.Session)
 	userID := session.UserID
 
-	vars := mux.Vars(r)
-	teamID := vars["teamID"]
+	teamID := r.PathValue("teamID")
 
 	val := r.URL.Query().Get("disable_notify")
 	disableNotify := val == True
@@ -707,8 +703,8 @@ func (a *API) handleDuplicateBlock(w http.ResponseWriter, r *http.Request) {
 	//     schema:
 	//       "$ref": "#/definitions/ErrorResponse"
 
-	boardID := mux.Vars(r)["boardID"]
-	blockID := mux.Vars(r)["blockID"]
+	boardID := r.PathValue("boardID")
+	blockID := r.PathValue("blockID")
 	userID := getUserID(r)
 	query := r.URL.Query()
 	asTemplate := query.Get("asTemplate")

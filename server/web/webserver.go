@@ -11,21 +11,24 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/gorilla/mux"
-
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 // RoutedService defines the interface that is needed for any service to
 // register themself in the web server to provide new endpoints. (see
 // AddRoutes).
 type RoutedService interface {
-	RegisterRoutes(*mux.Router)
+	RegisterRoutes(*Router)
 }
 
 // Server is the structure responsible for managing our http web server.
 type Server struct {
 	http.Server
+
+	// The router everything registers on. It is the base-prefixed group rather
+	// than the root, so a service never has to know about the prefix; both
+	// share one mux, which is what the root Server.Handler serves.
+	router *Router
 
 	baseURL    string
 	rootPath   string
@@ -37,11 +40,12 @@ type Server struct {
 
 // NewServer creates a new instance of the webserver.
 func NewServer(rootPath string, serverRoot string, port int, ssl, localOnly bool, logger mlog.LoggerIFace) *Server {
-	r := mux.NewRouter()
+	root := NewRouter()
+	r := root
 
 	basePrefix := os.Getenv("FOCALBOARD_HTTP_SERVER_BASEPATH")
 	if basePrefix != "" {
-		r = r.PathPrefix(basePrefix).Subrouter()
+		r = root.Group(basePrefix)
 	}
 
 	var addr string
@@ -62,8 +66,9 @@ func NewServer(rootPath string, serverRoot string, port int, ssl, localOnly bool
 		// (TODO: Add ReadHeaderTimeout)
 		Server: http.Server{ //nolint:gosec
 			Addr:    addr,
-			Handler: r,
+			Handler: root,
 		},
+		router:     r,
 		baseURL:    baseURL,
 		rootPath:   rootPath,
 		port:       port,
@@ -75,8 +80,8 @@ func NewServer(rootPath string, serverRoot string, port int, ssl, localOnly bool
 	return ws
 }
 
-func (ws *Server) Router() *mux.Router {
-	return ws.Server.Handler.(*mux.Router)
+func (ws *Server) Router() *Router {
+	return ws.router
 }
 
 // AddRoutes allows services to register themself in the webserver router and provide new endpoints.
@@ -85,8 +90,8 @@ func (ws *Server) AddRoutes(rs RoutedService) {
 }
 
 func (ws *Server) registerRoutes() {
-	ws.Router().PathPrefix("/static").Handler(http.StripPrefix(ws.basePrefix+"/static/", http.FileServer(http.Dir(filepath.Join(ws.rootPath, "static")))))
-	ws.Router().PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ws.Router().Handle("/static/", http.StripPrefix(ws.basePrefix+"/static/", http.FileServer(http.Dir(filepath.Join(ws.rootPath, "static")))))
+	ws.Router().HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		indexTemplate, err := template.New("index").ParseFiles(path.Join(ws.rootPath, "index.html"))
 		if err != nil {

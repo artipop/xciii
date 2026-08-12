@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/focalboard/server/client"
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/client"
+	"github.com/artipop/xciii/server/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,40 +53,6 @@ func (tt TestCase) identifier() string {
 		tt.expectedStatusCode,
 		tt.totalResults,
 	)
-}
-
-func setupClients(th *TestHelper) Clients {
-	// user1
-	clients := Clients{
-		Anon:         client.NewClient(th.Server.Config().ServerRoot, ""),
-		NoTeamMember: client.NewClient(th.Server.Config().ServerRoot, ""),
-		TeamMember:   client.NewClient(th.Server.Config().ServerRoot, ""),
-		Viewer:       client.NewClient(th.Server.Config().ServerRoot, ""),
-		Commenter:    client.NewClient(th.Server.Config().ServerRoot, ""),
-		Editor:       client.NewClient(th.Server.Config().ServerRoot, ""),
-		Admin:        client.NewClient(th.Server.Config().ServerRoot, ""),
-		Guest:        client.NewClient(th.Server.Config().ServerRoot, ""),
-	}
-
-	clients.NoTeamMember.HTTPHeader["Mattermost-User-Id"] = userNoTeamMember
-	clients.TeamMember.HTTPHeader["Mattermost-User-Id"] = userTeamMember
-	clients.Viewer.HTTPHeader["Mattermost-User-Id"] = userViewer
-	clients.Commenter.HTTPHeader["Mattermost-User-Id"] = userCommenter
-	clients.Editor.HTTPHeader["Mattermost-User-Id"] = userEditor
-	clients.Admin.HTTPHeader["Mattermost-User-Id"] = userAdmin
-	clients.Guest.HTTPHeader["Mattermost-User-Id"] = userGuest
-
-	// For plugin tests, the userID = username
-	userAnonID = userAnon
-	userNoTeamMemberID = userNoTeamMember
-	userTeamMemberID = userTeamMember
-	userViewerID = userViewer
-	userCommenterID = userCommenter
-	userEditorID = userEditor
-	userAdminID = userAdmin
-	userGuestID = userGuest
-
-	return clients
 }
 
 func setupLocalClients(th *TestHelper) Clients {
@@ -348,13 +314,6 @@ func TestPermissionsGetTeamBoards(t *testing.T) {
 		{"/teams/test-team/boards", methodGet, "", userGuest, http.StatusOK, 1},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -378,13 +337,6 @@ func TestPermissionsSearchTeamBoards(t *testing.T) {
 		{"/teams/test-team/boards/search?q=b", methodGet, "", userAdmin, http.StatusOK, 2},
 		{"/teams/test-team/boards/search?q=b", methodGet, "", userGuest, http.StatusOK, 1},
 	}
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -397,23 +349,6 @@ func TestPermissionsSearchTeamBoards(t *testing.T) {
 }
 
 func TestPermissionsSearchTeamLinkableBoards(t *testing.T) {
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			// Search boards
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userTeamMember, http.StatusOK, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userViewer, http.StatusOK, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userCommenter, http.StatusOK, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userEditor, http.StatusOK, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userAdmin, http.StatusOK, 2},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -461,14 +396,6 @@ func TestPermissionsGetTeamTemplates(t *testing.T) {
 		{"/teams/0/templates", methodGet, "", userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraSetup(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -498,13 +425,6 @@ func TestPermissionsCreateBoard(t *testing.T) {
 		{"/boards", methodPost, privateBoard, userGuest, http.StatusForbidden, 0},
 		{"/boards", methodPost, privateBoard, userTeamMember, http.StatusOK, 1},
 	}
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -561,13 +481,6 @@ func TestPermissionsGetBoard(t *testing.T) {
 		{"/boards/{PRIVATE_BOARD_ID}?read_token=invalid", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
 		{"/boards/{PRIVATE_BOARD_ID}?read_token=valid", methodGet, "", userTeamMember, http.StatusOK, 1},
 	}
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -588,16 +501,6 @@ func TestPermissionsGetBoardPublic(t *testing.T) {
 		{"/boards/{PRIVATE_BOARD_ID}?read_token=invalid", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
 		{"/boards/{PRIVATE_BOARD_ID}?read_token=valid", methodGet, "", userTeamMember, http.StatusForbidden, 1},
 	}
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		cfg := th.Server.Config()
-		cfg.EnablePublicSharedBoards = false
-		th.Server.UpdateAppConfig()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -649,13 +552,6 @@ func TestPermissionsPatchBoard(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}", methodPatch, "{\"title\": \"test\"}", userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -700,13 +596,6 @@ func TestPermissionsPatchBoardType(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}", methodPatch, "{\"type\": \"P\"}", userAdmin, http.StatusOK, 1},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -752,13 +641,6 @@ func TestPermissionsPatchBoardMinimumRole(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}", methodPatch, patch, userAdmin, http.StatusOK, 1},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -804,13 +686,6 @@ func TestPermissionsPatchBoardChannelId(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}", methodPatch, patch, userAdmin, http.StatusOK, 1},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -859,13 +734,6 @@ func TestPermissionsDeleteBoard(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}", methodDelete, "", userAdmin, http.StatusOK, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -914,13 +782,6 @@ func TestPermissionsDuplicateBoard(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/duplicate", methodPost, "", userAdmin, http.StatusOK, 1},
 		{"/boards/{PUBLIC_TEMPLATE_ID}/duplicate", methodPost, "", userGuest, http.StatusForbidden, 0},
 	}
-	t.Run("plugin-same-team", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local-same-team", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -969,13 +830,6 @@ func TestPermissionsDuplicateBoard(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/duplicate?toTeam=other-team", methodPost, "", userAdmin, http.StatusOK, 1},
 		{"/boards/{PUBLIC_TEMPLATE_ID}/duplicate?toTeam=other-team", methodPost, "", userGuest, http.StatusForbidden, 0},
 	}
-	t.Run("plugin-other-team", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local-other-team", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1024,13 +878,6 @@ func TestPermissionsDuplicateBoard(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/duplicate?toTeam=empty-team", methodPost, "", userAdmin, http.StatusForbidden, 0},
 		{"/boards/{PUBLIC_TEMPLATE_ID}/duplicate?toTeam=empty-team", methodPost, "", userGuest, http.StatusForbidden, 0},
 	}
-	t.Run("plugin-empty-team", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 }
 
 func TestPermissionsGetBoardBlocks(t *testing.T) {
@@ -1076,13 +923,6 @@ func TestPermissionsGetBoardBlocks(t *testing.T) {
 		{"/boards/{PRIVATE_BOARD_ID}/blocks?read_token=invalid", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
 		{"/boards/{PRIVATE_BOARD_ID}/blocks?read_token=valid", methodGet, "", userTeamMember, http.StatusOK, 1},
 	}
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1148,14 +988,6 @@ func TestPermissionsCreateBoardBlocks(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := ttCasesF(testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1216,14 +1048,6 @@ func TestPermissionsCreateBoardComments(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := ttCasesF(testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1283,13 +1107,6 @@ func TestPermissionsPatchBoardBlocks(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/blocks", methodPatch, newBlocksPatchJSON("block-1"), userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1344,13 +1161,6 @@ func TestPermissionsPatchBoardBlock(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/blocks/block-3", methodPatch, patchJSON, userAdmin, http.StatusNotFound, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1413,14 +1223,6 @@ func TestPermissionsDeleteBoardBlock(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/blocks/block-3", methodDelete, "", userAdmin, http.StatusNotFound, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraSetup(t, th, testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1500,14 +1302,6 @@ func TestPermissionsUndeleteBoardBlock(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/blocks/block-3/undelete", methodPost, "", userAdmin, http.StatusNotFound, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraSetup(t, th, testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1587,14 +1381,6 @@ func TestPermissionsMoveContentBlock(t *testing.T) {
 		{"/content-blocks/content-1-1/moveto/after/content-2-1", methodPost, "{}", userAdmin, http.StatusBadRequest, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraSetup(t, th, testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1655,14 +1441,6 @@ func TestPermissionsUndeleteBoard(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/undelete", methodPost, "", userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraSetup(t, th, testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1726,14 +1504,6 @@ func TestPermissionsDuplicateBoardBlock(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/blocks/block-3/duplicate", methodPost, "", userAdmin, http.StatusNotFound, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraSetup(t, th, testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1783,13 +1553,6 @@ func TestPermissionsGetBoardMembers(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/members", methodGet, "", userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1848,14 +1611,6 @@ func TestPermissionsCreateBoardMembers(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := ttCasesF(testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -1925,14 +1680,6 @@ func TestPermissionsUpdateBoardMember(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := ttCasesF(testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2002,14 +1749,6 @@ func TestPermissionsDeleteBoardMember(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/members/invalid", methodDelete, "", userAdmin, http.StatusOK, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraSetup(t, th, testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2061,13 +1800,6 @@ func TestPermissionsJoinBoardAsMember(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/join", methodPost, "", userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2130,14 +1862,6 @@ func TestPermissionsLeaveBoardAsMember(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/leave", methodPost, "", userAdmin, http.StatusOK, 0},
 		{"/boards/{PUBLIC_TEMPLATE_ID}/leave", methodPost, "", userGuest, http.StatusForbidden, 0},
 	}
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraSetup(t, th, testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2171,14 +1895,6 @@ func TestPermissionsLeaveBoardAsMember(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/leave", methodPost, "", userAdmin, http.StatusBadRequest, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraSetup(t, th, testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2230,13 +1946,6 @@ func TestPermissionsShareBoard(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/sharing", methodPost, sharing, userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2285,19 +1994,6 @@ func TestPermissionsGetSharedBoardInfo(t *testing.T) {
 		{"/boards/{PUBLIC_TEMPLATE_ID}/sharing", methodGet, "", userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-
-		clients.Admin.PostSharing(&model.Sharing{ID: testData.publicBoard.ID, Enabled: true, Token: "test-token"})
-		clients.Admin.PostSharing(&model.Sharing{ID: testData.privateBoard.ID, Enabled: true, Token: "test-token"})
-		clients.Admin.PostSharing(&model.Sharing{ID: testData.publicTemplate.ID, Enabled: true, Token: "test-token"})
-		clients.Admin.PostSharing(&model.Sharing{ID: testData.privateTemplate.ID, Enabled: true, Token: "test-token"})
-
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2325,13 +2021,6 @@ func TestPermissionsListTeams(t *testing.T) {
 		{"/teams", methodGet, "", userGuest, http.StatusOK, 1},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2346,32 +2035,6 @@ func TestPermissionsListTeams(t *testing.T) {
 }
 
 func TestPermissionsGetTeam(t *testing.T) {
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/teams/test-team", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
-			{"/teams/test-team", methodGet, "", userTeamMember, http.StatusOK, 1},
-			{"/teams/test-team", methodGet, "", userViewer, http.StatusOK, 1},
-			{"/teams/test-team", methodGet, "", userCommenter, http.StatusOK, 1},
-			{"/teams/test-team", methodGet, "", userEditor, http.StatusOK, 1},
-			{"/teams/test-team", methodGet, "", userAdmin, http.StatusOK, 1},
-			{"/teams/test-team", methodGet, "", userGuest, http.StatusOK, 1},
-
-			{"/teams/empty-team", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/empty-team", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
-			{"/teams/empty-team", methodGet, "", userTeamMember, http.StatusForbidden, 0},
-			{"/teams/empty-team", methodGet, "", userViewer, http.StatusForbidden, 0},
-			{"/teams/empty-team", methodGet, "", userCommenter, http.StatusForbidden, 0},
-			{"/teams/empty-team", methodGet, "", userEditor, http.StatusForbidden, 0},
-			{"/teams/empty-team", methodGet, "", userAdmin, http.StatusForbidden, 0},
-			{"/teams/empty-team", methodGet, "", userGuest, http.StatusForbidden, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2392,20 +2055,6 @@ func TestPermissionsGetTeam(t *testing.T) {
 }
 
 func TestPermissionsRegenerateSignupToken(t *testing.T) {
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/teams/test-team/regenerate_signup_token", methodPost, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/regenerate_signup_token", methodPost, "", userAdmin, http.StatusNotImplemented, 0},
-
-			{"/teams/empty-team/regenerate_signup_token", methodPost, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/empty-team/regenerate_signup_token", methodPost, "", userAdmin, http.StatusNotImplemented, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2423,32 +2072,6 @@ func TestPermissionsRegenerateSignupToken(t *testing.T) {
 }
 
 func TestPermissionsGetTeamUsers(t *testing.T) {
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/teams/test-team/users", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/users", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
-			{"/teams/test-team/users", methodGet, "", userTeamMember, http.StatusOK, 6},
-			{"/teams/test-team/users", methodGet, "", userViewer, http.StatusOK, 6},
-			{"/teams/test-team/users", methodGet, "", userCommenter, http.StatusOK, 6},
-			{"/teams/test-team/users", methodGet, "", userEditor, http.StatusOK, 6},
-			{"/teams/test-team/users", methodGet, "", userAdmin, http.StatusOK, 6},
-			{"/teams/test-team/users", methodGet, "", userGuest, http.StatusOK, 5},
-
-			{"/teams/empty-team/users", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/empty-team/users", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
-			{"/teams/empty-team/users", methodGet, "", userTeamMember, http.StatusForbidden, 0},
-			{"/teams/empty-team/users", methodGet, "", userViewer, http.StatusForbidden, 0},
-			{"/teams/empty-team/users", methodGet, "", userCommenter, http.StatusForbidden, 0},
-			{"/teams/empty-team/users", methodGet, "", userEditor, http.StatusForbidden, 0},
-			{"/teams/empty-team/users", methodGet, "", userAdmin, http.StatusForbidden, 0},
-			{"/teams/empty-team/users", methodGet, "", userGuest, http.StatusForbidden, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2469,21 +2092,6 @@ func TestPermissionsGetTeamUsers(t *testing.T) {
 }
 
 func TestPermissionsTeamArchiveExport(t *testing.T) {
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/teams/test-team/archive/export", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/archive/export", methodGet, "", userAdmin, http.StatusNotImplemented, 0},
-
-			{"/teams/empty-team/archive/export", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/empty-team/archive/export", methodGet, "", userAdmin, http.StatusNotImplemented, 0},
-		}
-
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2539,13 +2147,6 @@ func TestPermissionsUploadFile(t *testing.T) {
 		{"/teams/test-team/{PUBLIC_TEMPLATE_ID}/files", methodPost, "", userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2567,13 +2168,6 @@ func TestPermissionsGetMe(t *testing.T) {
 		{"/users/me", methodGet, "", userGuest, http.StatusOK, 1},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2595,13 +2189,6 @@ func TestPermissionsGetMyMemberships(t *testing.T) {
 		{"/users/me/memberships", methodGet, "", userGuest, http.StatusOK, 1},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2641,13 +2228,6 @@ func TestPermissionsGetUser(t *testing.T) {
 		{"/users/{USER_VIEWER_ID}", methodGet, "", userGuest, http.StatusOK, 1},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2663,17 +2243,6 @@ func TestPermissionsUserChangePassword(t *testing.T) {
 		NewPassword: "newpa$$word123",
 	})
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/users/{USER_ADMIN_ID}/changepassword", methodPost, postBody, userAnon, http.StatusUnauthorized, 0},
-			{"/users/{USER_ADMIN_ID}/changepassword", methodPost, postBody, userAdmin, http.StatusNotImplemented, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2700,13 +2269,6 @@ func TestPermissionsUpdateUserConfig(t *testing.T) {
 		{"/users/{USER_TEAM_MEMBER_ID}/config", methodPut, patch, userAdmin, http.StatusForbidden, 0},
 		{"/users/{USER_TEAM_MEMBER_ID}/config", methodPut, patch, userGuest, http.StatusForbidden, 0},
 	}
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2735,13 +2297,6 @@ func TestPermissionsCreateBoardsAndBlocks(t *testing.T) {
 		{"/boards-and-blocks", methodPost, bab, userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2775,14 +2330,6 @@ func TestPermissionsUpdateBoardsAndBlocks(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := ttCasesF(t, testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2815,14 +2362,6 @@ func TestPermissionsUpdateBoardsAndBlocks(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := ttCasesF(t, testData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2851,18 +2390,6 @@ func TestPermissionsDeleteBoardsAndBlocks(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := ttCasesF(t, testData)
-
-		_, err := th.Server.App().AddMemberToBoard(&model.BoardMember{BoardID: testData.publicBoard.ID, UserID: userGuestID, SchemeViewer: true})
-		require.NoError(t, err)
-
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2882,17 +2409,6 @@ func TestPermissionsLogin(t *testing.T) {
 		})
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/login", methodPost, loginReq(userAnon, password), userAnon, http.StatusNotImplemented, 0},
-			{"/login", methodPost, loginReq(userAdmin, password), userAdmin, http.StatusNotImplemented, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2907,17 +2423,6 @@ func TestPermissionsLogin(t *testing.T) {
 }
 
 func TestPermissionsLogout(t *testing.T) {
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/logout", methodPost, "", userAnon, http.StatusUnauthorized, 0},
-			{"/logout", methodPost, "", userAdmin, http.StatusNotImplemented, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2932,17 +2437,6 @@ func TestPermissionsLogout(t *testing.T) {
 }
 
 func TestPermissionsRegister(t *testing.T) {
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/register", methodPost, "", userAnon, http.StatusNotImplemented, 0},
-			{"/register", methodPost, "", userAdmin, http.StatusNotImplemented, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -2974,13 +2468,6 @@ func TestPermissionsClientConfig(t *testing.T) {
 		{"/clientConfig", methodGet, "", userAdmin, http.StatusOK, 1},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3002,13 +2489,6 @@ func TestPermissionsGetCategories(t *testing.T) {
 		{"/teams/test-team/categories", methodGet, "", userGuest, http.StatusOK, 1},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3061,14 +2541,6 @@ func TestPermissionsCreateCategory(t *testing.T) {
 			{"/teams/other-team/categories", methodPost, category(userGuestID), userGuest, http.StatusBadRequest, 0},
 		}
 	}
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := ttCasesF()
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3165,15 +2637,6 @@ func TestPermissionsUpdateCategory(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraData := extraSetup(t, th)
-		ttCases := ttCasesF(extraData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3250,15 +2713,6 @@ func TestPermissionsDeleteCategory(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraData := extraSetup(t, th)
-		ttCases := ttCasesF(extraData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3328,15 +2782,6 @@ func TestPermissionsUpdateCategoryBoard(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraData := extraSetup(t, th)
-		ttCases := ttCasesF(testData, extraData)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3369,21 +2814,6 @@ func TestPermissionsGetFile(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-
-		newFileID, err := th.Server.App().SaveFile(bytes.NewBuffer([]byte("test")), "test-team", testData.privateBoard.ID, "test.png", false)
-		require.NoError(t, err)
-
-		ttCases := ttCasesF()
-		for i, tc := range ttCases {
-			ttCases[i].url = strings.Replace(tc.url, "{NEW_FILE_ID}", newFileID, 1)
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3424,13 +2854,6 @@ func TestPermissionsCreateSubscription(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases(), testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3460,13 +2883,6 @@ func TestPermissionsGetSubscriptions(t *testing.T) {
 		{"/subscriptions/other", methodGet, "", userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3531,14 +2947,6 @@ func TestPermissionsDeleteSubscription(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		extraSetup(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3561,17 +2969,6 @@ func TestPermissionsOnboard(t *testing.T) {
 		{"/teams/test-team/onboard", methodPost, "", userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-
-		err := th.Server.App().InitTemplates()
-		require.NoError(t, err, "InitTemplates should not fail")
-
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3626,13 +3023,6 @@ func TestPermissionsBoardArchiveExport(t *testing.T) {
 		{"/boards/{PRIVATE_TEMPLATE_ID}/archive/export", methodGet, "", userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3654,13 +3044,6 @@ func TestPermissionsBoardArchiveImport(t *testing.T) {
 		{"/teams/test-team/archive/import", methodPost, "", userGuest, http.StatusForbidden, 0},
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3766,40 +3149,6 @@ func TestPermissionsMinimumRolesApplied(t *testing.T) {
 		}
 	}
 
-	t.Run("plugin", func(t *testing.T) {
-		t.Run("minimum role viewer", func(t *testing.T) {
-			th := SetupTestHelperPluginMode(t)
-			defer th.TearDown()
-			clients := setupClients(th)
-			testData := setupData(t, th)
-			ttCases := ttCasesF(t, th, "viewer", testData)
-			runTestCases(t, ttCases, testData, clients)
-		})
-		t.Run("minimum role commenter", func(t *testing.T) {
-			th := SetupTestHelperPluginMode(t)
-			defer th.TearDown()
-			clients := setupClients(th)
-			testData := setupData(t, th)
-			ttCases := ttCasesF(t, th, "commenter", testData)
-			runTestCases(t, ttCases, testData, clients)
-		})
-		t.Run("minimum role editor", func(t *testing.T) {
-			th := SetupTestHelperPluginMode(t)
-			defer th.TearDown()
-			clients := setupClients(th)
-			testData := setupData(t, th)
-			ttCases := ttCasesF(t, th, "editor", testData)
-			runTestCases(t, ttCases, testData, clients)
-		})
-		t.Run("minimum role admin", func(t *testing.T) {
-			th := SetupTestHelperPluginMode(t)
-			defer th.TearDown()
-			clients := setupClients(th)
-			testData := setupData(t, th)
-			ttCases := ttCasesF(t, th, "admin", testData)
-			runTestCases(t, ttCases, testData, clients)
-		})
-	})
 	t.Run("local", func(t *testing.T) {
 		t.Run("minimum role viewer", func(t *testing.T) {
 			th := SetupTestHelperLocalMode(t)
@@ -3837,22 +3186,6 @@ func TestPermissionsMinimumRolesApplied(t *testing.T) {
 }
 
 func TestPermissionsChannels(t *testing.T) {
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/teams/test-team/channels", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/channels", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
-			{"/teams/test-team/channels", methodGet, "", userTeamMember, http.StatusOK, 2},
-			{"/teams/test-team/channels", methodGet, "", userViewer, http.StatusOK, 2},
-			{"/teams/test-team/channels", methodGet, "", userCommenter, http.StatusOK, 2},
-			{"/teams/test-team/channels", methodGet, "", userEditor, http.StatusOK, 2},
-			{"/teams/test-team/channels", methodGet, "", userAdmin, http.StatusOK, 2},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3872,30 +3205,6 @@ func TestPermissionsChannels(t *testing.T) {
 }
 
 func TestPermissionsChannel(t *testing.T) {
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userTeamMember, http.StatusOK, 1},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userViewer, http.StatusOK, 1},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userCommenter, http.StatusOK, 1},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userEditor, http.StatusOK, 1},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userAdmin, http.StatusOK, 1},
-
-			{"/teams/test-team/channels/not-valid-channel-id", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/channels/not-valid-channel-id", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
-			{"/teams/test-team/channels/not-valid-channel-id", methodGet, "", userTeamMember, http.StatusForbidden, 0},
-			{"/teams/test-team/channels/not-valid-channel-id", methodGet, "", userViewer, http.StatusForbidden, 0},
-			{"/teams/test-team/channels/not-valid-channel-id", methodGet, "", userCommenter, http.StatusForbidden, 0},
-			{"/teams/test-team/channels/not-valid-channel-id", methodGet, "", userEditor, http.StatusForbidden, 0},
-			{"/teams/test-team/channels/not-valid-channel-id", methodGet, "", userAdmin, http.StatusForbidden, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()
@@ -3915,23 +3224,6 @@ func TestPermissionsChannel(t *testing.T) {
 }
 
 func TestPermissionsGetStatistics(t *testing.T) {
-	t.Run("plugin", func(t *testing.T) {
-		th := SetupTestHelperPluginMode(t)
-		defer th.TearDown()
-		clients := setupClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/statistics", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/statistics", methodGet, "", userNoTeamMember, http.StatusForbidden, 0},
-			{"/statistics", methodGet, "", userTeamMember, http.StatusForbidden, 0},
-			{"/statistics", methodGet, "", userViewer, http.StatusForbidden, 0},
-			{"/statistics", methodGet, "", userCommenter, http.StatusForbidden, 0},
-			{"/statistics", methodGet, "", userEditor, http.StatusForbidden, 0},
-			{"/statistics", methodGet, "", userAdmin, http.StatusOK, 1},
-			{"/statistics", methodGet, "", userGuest, http.StatusForbidden, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
 	t.Run("local", func(t *testing.T) {
 		th := SetupTestHelperLocalMode(t)
 		defer th.TearDown()

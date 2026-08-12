@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/utils"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 
 	sq "github.com/Masterminds/squirrel"
 )

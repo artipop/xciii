@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/mattermost/focalboard/server/services/auth"
+	"github.com/artipop/xciii/server/services/auth"
 )
 
 const (

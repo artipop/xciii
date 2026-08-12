@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/wailsapp/wails/v3/pkg/application"
 
-	"github.com/mattermost/focalboard/server/services/notify"
+	"github.com/artipop/xciii/server/services/notify"
 
 	"github.com/artipop/xciii/internal/acp"
 	"github.com/artipop/xciii/internal/boardadapter"

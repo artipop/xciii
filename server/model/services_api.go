@@ -8,10 +8,8 @@ package model
 import (
 	"database/sql"
 
-	"github.com/gorilla/mux"
-
+	"github.com/artipop/xciii/server/mlog"
 	mm_model "github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -81,9 +79,6 @@ type ServicesAPI interface {
 
 	// System service
 	GetDiagnosticID() string
-
-	// Router service
-	RegisterRouter(sub *mux.Router)
 
 	// Preferences services
 	GetPreferencesForUser(userID string) (mm_model.Preferences, error)

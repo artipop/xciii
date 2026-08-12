@@ -1,7 +1,7 @@
 package audit
 
 import (
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 const (
@@ -35,7 +35,10 @@ type Audit struct {
 
 // NewAudit creates a new Audit instance which can be configured via `(*Audit).Configure`.
 func NewAudit(options ...mlog.Option) (*Audit, error) {
-	logger, err := mlog.NewLogger(options...)
+	// Discarding until configured: an audit record is written for every request
+	// and belongs in a file, and this build has no way to name one — see
+	// server/mlog. Configure below turns it on if a target is ever given.
+	logger, err := mlog.NewLogger(append([]mlog.Option{mlog.Discard()}, options...)...)
 	if err != nil {
 		return nil, err
 	}

@@ -4,9 +4,9 @@
 package notifylogger
 
 import (
-	"github.com/mattermost/focalboard/server/services/notify"
+	"github.com/artipop/xciii/server/services/notify"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 const (

@@ -8,22 +8,22 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/mux"
-	"github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/focalboard/server/services/audit"
-	"github.com/mattermost/focalboard/server/services/auth"
-	"github.com/mattermost/focalboard/server/utils"
+	"github.com/artipop/xciii/server/model"
+	"github.com/artipop/xciii/server/services/audit"
+	"github.com/artipop/xciii/server/services/auth"
+	"github.com/artipop/xciii/server/utils"
+	"github.com/artipop/xciii/server/web"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
-func (a *API) registerAuthRoutes(r *mux.Router) {
+func (a *API) registerAuthRoutes(r *web.Router) {
 	// personal-server specific routes. These are not needed in plugin mode.
-	r.HandleFunc("/login", a.handleLogin).Methods("POST")
-	r.HandleFunc("/logout", a.sessionRequired(a.handleLogout)).Methods("POST")
-	r.HandleFunc("/register", a.handleRegister).Methods("POST")
-	r.HandleFunc("/teams/{teamID}/regenerate_signup_token", a.sessionRequired(a.handlePostTeamRegenerateSignupToken)).Methods("POST")
-	r.HandleFunc("/users/{userID}/changepassword", a.sessionRequired(a.handleChangePassword)).Methods("POST")
+	r.HandleFunc("POST /login", a.handleLogin)
+	r.HandleFunc("POST /logout", a.sessionRequired(a.handleLogout))
+	r.HandleFunc("POST /register", a.handleRegister)
+	r.HandleFunc("POST /teams/{teamID}/regenerate_signup_token", a.sessionRequired(a.handlePostTeamRegenerateSignupToken))
+	r.HandleFunc("POST /users/{userID}/changepassword", a.sessionRequired(a.handleChangePassword))
 }
 
 func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
@@ -288,8 +288,7 @@ func (a *API) handleChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	userID := vars["userID"]
+	userID := r.PathValue("userID")
 
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {

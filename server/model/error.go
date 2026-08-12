@@ -8,8 +8,6 @@ import (
 	"strings"
 
 	mmModel "github.com/mattermost/mattermost/server/public/model"
-
-	pluginapi "github.com/mattermost/mattermost/server/public/pluginapi"
 )
 
 var (
@@ -284,11 +282,6 @@ func IsErrNotFound(err error) bool {
 
 	// check if this is a sql.ErrNotFound
 	if errors.Is(err, sql.ErrNoRows) {
-		return true
-	}
-
-	// check if this is a plugin API error
-	if errors.Is(err, pluginapi.ErrNotFound) {
 		return true
 	}
 

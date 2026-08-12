@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 // initialize is called when the App is first created.

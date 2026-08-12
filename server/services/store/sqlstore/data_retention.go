@@ -10,10 +10,10 @@ import (
 	"github.com/pkg/errors"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/artipop/xciii/server/model"
 	_ "github.com/lib/pq" // postgres driver
-	"github.com/mattermost/focalboard/server/model"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/artipop/xciii/server/mlog"
 )
 
 type RetentionTableDeletionInfo struct {

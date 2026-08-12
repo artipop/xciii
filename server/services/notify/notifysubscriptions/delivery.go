@@ -4,7 +4,7 @@
 package notifysubscriptions
 
 import (
-	"github.com/mattermost/focalboard/server/model"
+	"github.com/artipop/xciii/server/model"
 
 	mm_model "github.com/mattermost/mattermost/server/public/model"
 )
