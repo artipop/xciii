@@ -28,7 +28,6 @@ import {
     TOUR_BOARD,
     TourCategoriesMapToSteps,
 } from '../onboardingTour'
-import {OnboardingBoardTitle} from '../cardDetail/cardDetail'
 import AddViewTourStep from '../onboardingTour/addView/add_view'
 import {getCurrentCard} from '../../store/cards'
 import BoardPermissionGate from '../permissions/boardPermissionGate'
@@ -76,7 +75,6 @@ const ViewHeader = (props: Props) => {
 
     const hasFilter = () => props.activeView.fields.filter && props.activeView.fields.filter.filters?.length > 0
 
-    const isOnboardingBoard = () => props.board.title === OnboardingBoardTitle
     const onboardingTourStarted = useAppSelector(getOnboardingTourStarted)
     const onboardingTourCategory = useAppSelector(getOnboardingTourCategory)
     const onboardingTourStep = useAppSelector(getOnboardingTourStep)
@@ -84,8 +82,7 @@ const ViewHeader = (props: Props) => {
     const currentCard = useAppSelector(getCurrentCard)
     const noCardOpen = () => !currentCard()
 
-    const showTourBaseCondition = () => isOnboardingBoard() &&
-        onboardingTourStarted() &&
+    const showTourBaseCondition = () => onboardingTourStarted() &&
         noCardOpen() &&
         onboardingTourCategory() === TOUR_BOARD &&
         onboardingTourStep() === BoardTourSteps.ADD_VIEW.toString()

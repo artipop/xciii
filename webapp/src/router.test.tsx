@@ -13,10 +13,15 @@ vi.mock('./pages/boardPage/boardPage', () => ({default: () => <div>{'the board'}
 vi.mock('./pages/mobile/mobilePage', () => ({default: () => <div>{'the phone page'}</div>}))
 vi.mock('./components/acp/terminalPage', () => ({default: () => <div>{'the terminal'}</div>}))
 vi.mock('./pages/share/sharePage', () => ({default: () => <div>{'the share dialog'}</div>}))
+vi.mock('./pages/welcome/welcomePage', () => ({default: () => <div>{'the welcome screen'}</div>}))
 
-const renderAt = (path: string) => {
+// Somebody who has been greeted already, which is everyone but a fresh install
+// — otherwise every route below would be answered by the welcome screen.
+const welcomed = {welcomePageViewed: {value: '1'}}
+
+const renderAt = (path: string, myConfig: Record<string, unknown> = welcomed) => {
     window.history.pushState({}, '', path)
-    const store = mockAppStore({users: {me: {id: 'user-1', username: 'u'} as any}})
+    const store = mockAppStore({users: {me: {id: 'user-1', username: 'u'} as any, myConfig: myConfig as any}})
     return render(() => wrapStore(store, () => wrapIntl(() => <FocalboardRouter/>)))
 }
 
@@ -48,5 +53,26 @@ describe('router', () => {
         renderAt('/79dfb64e-9a41-4d69-9e0e-27dfd4f5f9d3')
 
         expect(await screen.findByText('the board')).toBeInTheDocument()
+    })
+
+    // The welcome screen is shown once and then never again, which is a fact
+    // about the person: welcomePageViewed is a preference the board server
+    // keeps, so a second window does not greet somebody twice.
+    it('greets somebody who has never been greeted, on their way to a board', async () => {
+        renderAt('/79dfb64e-9a41-4d69-9e0e-27dfd4f5f9d3', {})
+
+        expect(await screen.findByText('the welcome screen')).toBeInTheDocument()
+    })
+
+    // The phone, the share dialog and the terminal are windows opened to do one
+    // thing. A greeting in front of any of them is a window that did not do it.
+    it.each([
+        ['/m', 'the phone page'],
+        ['/share', 'the share dialog'],
+        ['/m/terminal/term-1', 'the terminal'],
+    ])('does not greet anybody at %s', async (path, shown) => {
+        renderAt(path, {})
+
+        expect(await screen.findByText(shown)).toBeInTheDocument()
     })
 })

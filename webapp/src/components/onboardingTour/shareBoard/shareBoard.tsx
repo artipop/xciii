@@ -15,13 +15,13 @@ const ShareBoardTourStep = (): JSX.Element | null => {
     const title = (
         <FormattedMessage
             id='OnboardingTour.ShareBoard.Title'
-            defaultMessage='Share board'
+            defaultMessage='Share the board'
         />
     )
     const screen = (
         <FormattedMessage
             id='OnboardingTour.ShareBoard.Body'
-            defaultMessage='You can share your board internally, within your team, or publish it publicly for visibility outside of your organization.'
+            defaultMessage='Publish the board behind a link, so somebody can look at it without an account of their own.'
         />
     )
 

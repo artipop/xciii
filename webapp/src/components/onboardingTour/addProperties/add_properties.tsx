@@ -11,7 +11,6 @@ import addProperty from '../../../../static/addProperty.gif'
 
 import {BaseTourSteps, CardTourSteps, TOUR_BASE, TOUR_CARD} from '../index'
 import TourTipRenderer from '../tourTipRenderer/tourTipRenderer'
-import {OnboardingBoardTitle, OnboardingCardTitle} from '../../cardDetail/cardDetail'
 import {useAppSelector, useAppStore} from '../../../store/hooks'
 import {
     getMe,
@@ -28,13 +27,13 @@ const AddPropertiesTourStep = (): JSX.Element => {
     const title = (
         <FormattedMessage
             id='OnboardingTour.AddProperties.Title'
-            defaultMessage='Add properties'
+            defaultMessage='Card properties'
         />
     )
     const screen = (
         <FormattedMessage
             id='OnboardingTour.AddProperties.Body'
-            defaultMessage='Add various properties to cards to make them more powerful!'
+            defaultMessage='Properties are what the board groups, sorts and filters by: who is doing the card, which project it belongs to, what stage it stands on.'
         />
     )
 
@@ -44,28 +43,25 @@ const AddPropertiesTourStep = (): JSX.Element => {
     const {actions} = useAppStore()
 
     const board = useAppSelector(getCurrentBoard)
-    const isOnboardingBoard = () => (board() ? board().title === OnboardingBoardTitle : false)
-
     const card = useAppSelector(getCurrentCard)
-    const isOnboardingCard = () => (card() ? card()!.title === OnboardingCardTitle : false)
 
     const onboardingTourStarted = useAppSelector(getOnboardingTourStarted)
     const onboardingTourCategory = useAppSelector(getOnboardingTourCategory)
     const onboardingTourStep = useAppSelector(getOnboardingTourStep)
 
-    // start the card tour if onboarding card is opened up
-    // and the user is still on the base tour
+    // Opening a card is what the base tour asks for, so opening any card is what
+    // finishes it and hands over to the card tour. It used to have to be one
+    // particular card on one particular board, both matched by their English
+    // titles, which is a match no board this app makes could ever satisfy.
     createEffect(() => {
         async function task() {
             const user = me()
             const currentCard = card()
-            if (!user || !currentCard) {
+            if (!user || !currentCard || !board()) {
                 return
             }
 
             const should = currentCard.id &&
-                isOnboardingBoard() &&
-                isOnboardingCard() &&
                 onboardingTourStarted() &&
                 onboardingTourCategory() === TOUR_BASE &&
                 onboardingTourStep() === BaseTourSteps.OPEN_A_CARD.toString()

@@ -13,14 +13,14 @@ const SearchForBoardsTourStep = (): JSX.Element | null => {
     const title = (
         <FormattedMessage
             id='SidebarTour.SearchForBoards.Title'
-            defaultMessage='Search for boards'
+            defaultMessage='Find a board'
         />
     )
 
     const screen = (
         <FormattedMessage
             id='SidebarTour.SearchForBoards.Body'
-            defaultMessage='Open the board switcher (Cmd/Ctrl + K) to quickly search and add boards to your sidebar.'
+            defaultMessage='Cmd/Ctrl + K opens the board switcher: type a few letters and go straight there.'
         />
     )
 
