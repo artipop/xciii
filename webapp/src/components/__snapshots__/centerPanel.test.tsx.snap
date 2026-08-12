@@ -11,18 +11,6 @@ exports[`components/centerPanel > Clicking on the Hidden card count should open 
       class="top-head"
     >
       <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
-      <div
         class="mid-head"
       >
         <div
@@ -759,18 +747,6 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
       class="top-head"
     >
       <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
-      <div
         class="mid-head"
       >
         <div
@@ -1360,18 +1336,6 @@ exports[`components/centerPanel > return centerPanel and > click on new card to 
     <div
       class="top-head"
     >
-      <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
       <div
         class="mid-head"
       >
@@ -2059,18 +2023,6 @@ exports[`components/centerPanel > return centerPanel and > press touch 1 with re
       class="top-head"
     >
       <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
-      <div
         class="mid-head"
       >
         <div
@@ -2485,18 +2437,6 @@ exports[`components/centerPanel > return centerPanel and > press touch ctrl+d fo
     <div
       class="top-head"
     >
-      <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
       <div
         class="mid-head"
       >
@@ -3184,18 +3124,6 @@ exports[`components/centerPanel > return centerPanel and > press touch del for o
       class="top-head"
     >
       <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
-      <div
         class="mid-head"
       >
         <div
@@ -3881,18 +3809,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
     <div
       class="top-head"
     >
-      <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
       <div
         class="mid-head"
       >
@@ -4580,18 +4496,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
       class="top-head"
     >
       <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
-      <div
         class="mid-head"
       >
         <div
@@ -5277,18 +5181,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
     <div
       class="top-head"
     >
-      <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
       <div
         class="mid-head"
       >
@@ -5976,18 +5868,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
       class="top-head"
     >
       <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
-      <div
         class="mid-head"
       >
         <div
@@ -6673,18 +6553,6 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
     <div
       class="top-head"
     >
-      <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
       <div
         class="mid-head"
       >
@@ -7372,18 +7240,6 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
       class="top-head"
     >
       <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
-      <div
         class="mid-head"
       >
         <div
@@ -8069,18 +7925,6 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
     <div
       class="top-head"
     >
-      <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
       <div
         class="mid-head"
       >
@@ -8768,18 +8612,6 @@ exports[`components/centerPanel > should match snapshot for Gallery 1`] = `
       class="top-head"
     >
       <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
-      <div
         class="mid-head"
       >
         <div
@@ -9059,18 +8891,6 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
     <div
       class="top-head"
     >
-      <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
       <div
         class="mid-head"
       >
@@ -9625,18 +9445,6 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
       class="top-head"
     >
       <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
-      <div
         class="mid-head"
       >
         <div
@@ -10189,18 +9997,6 @@ exports[`components/centerPanel > should match snapshot for Table 1`] = `
     <div
       class="top-head"
     >
-      <div
-        class="TopBar"
-      >
-        <a
-          class="link"
-          href="https://github.com/artipop/xciii/issues"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Give feedback
-        </a>
-      </div>
       <div
         class="mid-head"
       >

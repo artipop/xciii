@@ -11,9 +11,10 @@ import './sidebarSettingsButton.scss'
 // The foot of the sidebar used to be a menu with a submenu of a submenu in it:
 // import, export, language, theme, notifications and "this machine…", which is
 // where a person went looking for any of the six and found the other five.
-// It opens the settings dialog instead — one place, sections down the side —
-// and the two things that are not settings of the app but of the moment, the
-// theme and the language, moved to the corner of the board (`topBar.tsx`).
+// It opens the settings dialog instead — one place, sections down the side.
+// The theme and the language spent a while in the corner of the board on the
+// grounds that they are changed while looking at it; they are back here with
+// everything else, and the corner they were in is gone.
 
 const SidebarSettingsButton = () => {
     const intl = useIntl()

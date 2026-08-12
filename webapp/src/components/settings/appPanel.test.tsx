@@ -60,4 +60,13 @@ describe('components/settings/appPanel', () => {
 
         expect(screen.getByRole('link', {name: 'Open'})).toHaveAttribute('href', Constants.homeUrl)
     })
+
+    // The last thing left in the corner of the board, and the reason that
+    // corner outlived the theme and the language. Somewhere to say that
+    // something is broken is looked for once, which is here.
+    test('offers somewhere to say that something is broken', () => {
+        open()
+
+        expect(screen.getByRole('link', {name: 'Write'})).toHaveAttribute('href', Constants.issuesUrl)
+    })
 })

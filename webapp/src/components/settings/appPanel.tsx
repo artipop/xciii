@@ -16,11 +16,12 @@ import {
 
 import './appPanel.scss'
 
-// The app talking about itself: how it looks, what language it speaks, and
-// where it is written down. All three lived in the corner of the board — two
-// icon menus and a question mark — where an icon had to stand for a word and
-// the corner grew a control per answer. They are read once and set once, which
-// is what the rest of this dialog is for.
+// The app talking about itself: how it looks, what language it speaks, where
+// it is written down, and where to say that something is broken. All four
+// lived in the corner of the board — two icon menus, a question mark and a
+// link — where an icon had to stand for a word and the corner grew a control
+// per answer. They are read once and set once, which is what the rest of this
+// dialog is for; the corner is gone with the last of them.
 //
 // The choices are laid out rather than folded into a menu: there are three
 // themes and a dozen languages, and a person picking one wants to see what
@@ -51,7 +52,7 @@ const AppPanel = () => {
             <div class='AppPanel__subtitle'>
                 {intl.formatMessage({
                     id: 'Settings.app-subtitle',
-                    defaultMessage: 'How the app looks, what language it speaks, and where it is written down.',
+                    defaultMessage: 'How the app looks, what language it speaks, where it is written down, and where to say that something is broken.',
                 })}
             </div>
 
@@ -128,6 +129,33 @@ const AppPanel = () => {
                             rel='noreferrer'
                         >
                             {intl.formatMessage({id: 'Settings.help-open', defaultMessage: 'Open'})}
+                        </a>
+                    </div>
+
+                    {/* The one thing in the old corner that was about the
+                        moment rather than about the app, and the last reason
+                        that corner existed. It goes next to the guide because
+                        the two are one question apart: what is written down,
+                        and what to do when it does not match. */}
+                    <div class='AppPanel__action'>
+                        <div class='AppPanel__actionText'>
+                            <span class='AppPanel__actionName'>
+                                {intl.formatMessage({id: 'Settings.feedback', defaultMessage: 'Give feedback'})}
+                            </span>
+                            <span class='AppPanel__actionHint'>
+                                {intl.formatMessage({
+                                    id: 'Settings.feedback-hint',
+                                    defaultMessage: 'What broke, or what is missing — the issue tracker takes both.',
+                                })}
+                            </span>
+                        </div>
+                        <a
+                            class='AppPanel__actionLink'
+                            href={Constants.issuesUrl}
+                            target='_blank'
+                            rel='noreferrer'
+                        >
+                            {intl.formatMessage({id: 'Settings.feedback-open', defaultMessage: 'Write'})}
                         </a>
                     </div>
                 </section>
