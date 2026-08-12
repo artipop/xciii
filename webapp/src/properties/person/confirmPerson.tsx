@@ -26,7 +26,7 @@ const ConfirmPerson = (props: PropertyProps): JSX.Element => {
     const allowManageBoardRoles = useHasPermissions(() => props.board.teamId, () => props.board.id, [Permission.ManageBoardRoles])
     const allowAddUsers = () => !me()?.is_guest && (allowManageBoardRoles() || props.board.type === BoardTypeOpen)
     const changePropertyValue = (newValue: string | string[]) => mutator.changePropertyValue(props.board.id, props.card, props.propertyTemplate.id, newValue)
-    const emptyDisplayValue = () => (props.showEmptyPlaceholder ? intl.formatMessage({id: 'ConfirmPerson.empty', defaultMessage: 'Empty'}) : '')
+    const emptyDisplayValue = () => (props.showEmptyPlaceholder ? intl.formatMessage({id: 'PropertyValueElement.empty', defaultMessage: 'Empty'}) : '')
 
     const userIDs = (): string[] => {
         if (typeof props.propertyValue === 'string' && props.propertyValue !== '') {

@@ -34,11 +34,48 @@
 
 
 
+    // Every answer on a card is said in one voice, whatever kind of field it
+    // came from. Three things were in the way, and this is the first: the 14px
+    // in the block below never applied. main.scss states 12px for every
+    // property value anywhere, at the same specificity and later in the bundle,
+    // so a card has been drawing its answers at the table's size all along. The
+    // row is what makes this one more specific — and 14 is the size the whole
+    // block below was written for.
+    .octo-propertyrow .octo-propertyvalue {
+        font-size: 14px;
+
+        // A form control inherits neither family nor size on its own, so the
+        // one property you type into came out in the browser's default face —
+        // Arial, beside three fields that were not. The value element is
+        // sometimes the control itself, so both forms are named.
+        &.Editable,
+        input,
+        textarea,
+        .Editable {
+            font-family: inherit;
+            font-size: inherit;
+        }
+    }
+
     .octo-propertyvalue {
         font-size: 14px;
         padding: 4px 8px;
         min-height: 32px;
         display: flex;
+
+        // A chosen option is drawn as a Label, which is the machine's type:
+        // small, tracked, upper case. That is right where a Label is chrome — a
+        // column header, a badge on a kanban card — and wrong here, where it is
+        // the answer and the question above it is the one wearing that type. So
+        // the pill keeps its shape and its colour and speaks like the card.
+        .Label,
+        .Label-text {
+            font-family: var(--font-prose);
+            font-size: inherit;
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: var(--track-prose);
+        }
 
         &:not(.URLProperty) {
             flex-wrap: wrap;
