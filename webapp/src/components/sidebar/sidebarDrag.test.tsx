@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Dragging in the sidebar has no other guard that touches the wiring: the tests
 // below are the whole difference between "a board moves between categories" and
 // a drop quietly thrown away, which is how it was for a while -- the sidebar

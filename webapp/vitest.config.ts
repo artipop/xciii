@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Separate from vite.config.ts rather than a `test` block inside it, because a
 // test run wants a different pipeline than a build: no formatjs pre-compilation
 // (@formatjs/intl compiles the same messages at runtime, which is what every

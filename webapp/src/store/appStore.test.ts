@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The store is the contract every ported component will lean on, so this suite
 // pins its observable behaviour before any UI exists on top: the RootState
 // shape, the load fan-out into multiple domains, and the reactive edge — an

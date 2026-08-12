@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The Solid replacement for @lexical/react's LexicalTypeaheadMenuPlugin,
 // reduced to what the mentions and emoji typeaheads use: watch the text before
 // the caret for a trigger, report the query, draw the options in a floating

@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Collapsing a category is a change the server broadcasts back, so the sidebar
 // sees the echo of every one of its own clicks. What that echo does to the store
 // is what these pin: it must not lose the category's own answers, and it must

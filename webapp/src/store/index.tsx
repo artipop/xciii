@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The application store: one solid-js/store holding the same RootState shape
 // the Redux store had, and a tree of domain actions where reducers and thunks
 // used to be. Nothing here is global — createAppStore builds an instance, the

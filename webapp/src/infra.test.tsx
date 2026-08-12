@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The infrastructure the whole UI port stands on: the intl shim must format
 // the same ICU messages react-intl did, and the route guard must bounce a
 // logged-out visitor to /error with the original path — behaviour every page

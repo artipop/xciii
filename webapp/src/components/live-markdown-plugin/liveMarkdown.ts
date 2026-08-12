@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Lexical integration of the live-markdown highlighting. The editor runs in
 // plain-text mode, so all content lives in a single paragraph whose lines are
 // separated by LineBreakNodes (this is what keeps `getTextContent()` producing

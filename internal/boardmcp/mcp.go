@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Package boardmcp is the board as an agent's tools: the way an agent hands
 // work back to this application instead of printing it for a person to retype.
 //

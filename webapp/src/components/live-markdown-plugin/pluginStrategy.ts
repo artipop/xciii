@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // A camelCase style map (fontWeight: 'bold') the styler serializes to inline
 // CSS itself — what StyleMap typed before React left this package.
 export type StyleMap = {[property: string]: string | number}

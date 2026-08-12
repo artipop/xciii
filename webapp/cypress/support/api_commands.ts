@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {Board} from '../../src/blocks/board'
 import {UserConfigPatch} from '../../src/user'
 import {versionProperty} from '../../src/store/users'

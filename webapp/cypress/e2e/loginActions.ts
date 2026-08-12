@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 describe('Login actions', () => {
     const username = Cypress.env('username')
     const email = Cypress.env('email')

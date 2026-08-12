@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The browser this app ships in is WKWebView — the desktop window is one and so
 // is the phone — and it is not the browser its libraries were written against.
 // What lives here is a function some dependency calls unconditionally and Safari

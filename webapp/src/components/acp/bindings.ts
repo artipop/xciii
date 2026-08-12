@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // agentBindings returns the Wails-injected ACP bindings, or undefined in
 // browser/plugin deployments (mirrors the webSocketBaseURL guard pattern).
 //

@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {render} from 'solid-js/web'
 import {init as initEmojiMart} from 'emoji-mart'
 import emojiMartData from '@emoji-mart/data'

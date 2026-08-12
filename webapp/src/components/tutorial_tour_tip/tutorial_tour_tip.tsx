@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {For, Show, createEffect, createSignal, createUniqueId, onCleanup} from 'solid-js'
 import {Portal} from 'solid-js/web'
 import type {JSX, ParentComponent} from 'solid-js'

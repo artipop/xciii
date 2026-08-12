@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // jsdom has no layout engine, so every element measures 0x0, and dnd-kit -- which
 // decides what you are over by comparing rectangles against a pointer -- can
 // never see anything. Nor does jsdom have PointerEvent, IntersectionObserver,

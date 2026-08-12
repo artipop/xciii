@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 //go:build frontend
 
 // Package main, `frontend` build tag: the webapp `pack` bundle is compiled into

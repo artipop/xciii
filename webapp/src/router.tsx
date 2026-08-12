@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {Component, Suspense, createEffect, lazy, onMount} from 'solid-js'
 import {Router, useLocation, useNavigate, useParams} from '@solidjs/router'
 import type {JSX} from 'solid-js'

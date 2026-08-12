@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {createEffect, createSignal} from 'solid-js'
 
 // moment registers a locale's definitions as a side effect of importing it. The

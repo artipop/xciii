@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {Board, IPropertyOption, IPropertyTemplate} from '../../blocks/board'
 
 // What a board does, in the two halves the engine keeps apart: a **column**

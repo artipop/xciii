@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {createEffect, createSignal, onCleanup, onMount} from 'solid-js'
 import type {Accessor} from 'solid-js'
 

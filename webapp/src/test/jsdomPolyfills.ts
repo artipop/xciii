@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // jsdom's global has no fetch, and emoji-mart calls it while its module is
 // being evaluated. isomorphic-fetch is already a dependency for exactly this;
 // installing it once here saves the individual imports scattered through the

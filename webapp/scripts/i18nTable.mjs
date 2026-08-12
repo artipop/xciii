@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The catalogues go out to a translator and come back, and a spreadsheet is
 // what a translator works in. This carries them both ways:
 //

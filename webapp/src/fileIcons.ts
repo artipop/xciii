@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 const FileIcons: Record<string, string> = {
     AUDIO_TYPES: 'file-audio-outline',
     CODE_TYPES: 'file-code-outline-large',

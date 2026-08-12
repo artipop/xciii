@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {For, Show} from 'solid-js'
 import {Dynamic} from 'solid-js/web'
 import type {Component} from 'solid-js'

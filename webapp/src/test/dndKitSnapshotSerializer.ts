@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // dnd-kit attaches its accessibility plumbing to a draggable from an effect, so
 // whether a snapshot catches it depends on when the snapshot was taken -- the
 // same test flaps between runs. None of it is markup this codebase wrote, and

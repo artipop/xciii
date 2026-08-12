@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // Framework-agnostic core of the live-markdown highlighting. Given the full
 // editor text it splits it into lines, classifies each line's block type
 // (heading / code-block), and computes the styled character segments for each

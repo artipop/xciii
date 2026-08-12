@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {computeStyledLines, StyledLine} from './markdownStyling'
 
 // Return the merged style object that applies at character index `i` of the line.

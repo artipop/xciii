@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {onCleanup, onMount} from 'solid-js'
 import type {Component} from 'solid-js'
 import {Picker} from 'emoji-mart'

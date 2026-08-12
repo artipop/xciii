@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 describe('Create and delete board / card', () => {
     const timestamp = new Date().toLocaleString()
     const boardTitle = `Test Board (${timestamp})`

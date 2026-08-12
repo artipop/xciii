@@ -1,6 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 // The Solid face of @formatjs/intl, replacing react-intl: the same IntlShape,
 // message ids and ICU/AST messages, provided through Solid context. Components
 // keep calling useIntl().formatMessage and rendering <FormattedMessage/> —

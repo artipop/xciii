@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {Match, Show, Switch, createEffect, createMemo, createSignal, onCleanup} from 'solid-js'
 
 import {Board} from '../../blocks/board'

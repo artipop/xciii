@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {addMonths, isSameDay, isWithin, monthLabel, monthWeeks, startOfMonth, weekdayNames} from './calendar'
 
 const day = (year: number, month: number, date: number) => new Date(year, month - 1, date)

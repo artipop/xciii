@@ -1,5 +1,3 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
 import {defaultMatches, filterRows, firstOption, keyIntent, nextOption, optionAt, toRows, type ComboboxOption} from './combobox'
 
 const option = (id: string, label = id): ComboboxOption<string> => ({id, label, data: id})
