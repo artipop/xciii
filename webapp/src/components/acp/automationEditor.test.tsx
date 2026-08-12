@@ -256,4 +256,39 @@ describe('components/acp/automationEditor', () => {
         const next: Automation = onChange.mock.calls.at(-1)![0]
         expect(next.flows[0].edges[1].if).toEqual({property: 'Приоритет', value: ''})
     })
+
+    // Different agents on different nodes of one route: the stage's own crew is
+    // written on the node («Только в этом маршруте…»), and the engine already
+    // preferred it — the editor just could not say it. Nothing ticked means
+    // the column decides, which is why unticking the last one removes the
+    // override rather than storing an empty list.
+    test('a stage of a route can name its own crew', async () => {
+        const {container, onChange} = renderEditor()
+
+        userEvent.click(screen.getByRole('button', {name: 'Фича'}))
+        const stage = await waitFor(() => {
+            const found = [...container.querySelectorAll('.FlowDiagram__stage')].
+                find((el) => el.textContent?.includes('В работе'))
+            expect(found).toBeTruthy()
+            return found!
+        })
+        fireEvent.click(stage)
+
+        const override = await waitFor(() => {
+            const details = container.querySelector('.AutomationEditor__override')
+            expect(details).toBeTruthy()
+            return details!
+        })
+        const codex = [...override.querySelectorAll('.AutomationEditor__agent')].
+            find((el) => el.textContent?.includes('codex'))!
+        fireEvent.click(codex.querySelector('input')!)
+
+        await waitFor(() => expect(onChange).toHaveBeenCalled())
+        const next: Automation = onChange.mock.calls.at(-1)![0]
+        const node = next.flows[0].nodes.find((n) => n.id === 'opt-work')
+        expect(node?.agentNames).toEqual(['codex'])
+
+        // The column's own crew is not what was edited.
+        expect(next.columns.find((c) => c.optionId === 'opt-work')?.agents).toEqual(['claude'])
+    })
 })

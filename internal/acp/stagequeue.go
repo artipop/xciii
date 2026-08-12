@@ -107,8 +107,12 @@ func (m *Manager) drainColumn(key string) {
 		if flow, found := m.FlowByName(q.Flow); found {
 			if node, found := flow.Node(q.NodeID); found {
 				opts.deployOverride = node.DeployName
-				if node.AgentName != "" {
-					opts.agentCrew = []string{node.AgentName}
+				// Crew(), not AgentName: validateFlow folds the legacy
+				// singular field away, so reading it here meant a card that
+				// queued at a crewed stage lost that crew when it finally
+				// started and fell back to the column's.
+				if crew := node.Crew(); len(crew) > 0 {
+					opts.agentCrew = crew
 				}
 				if node.Action != "" {
 					action = node.Action

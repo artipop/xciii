@@ -741,7 +741,7 @@ const AutomationEditor = (props: Props) => {
                                         from it when somebody says so. */}
                                     <details
                                         class='AutomationEditor__override'
-                                        open={Boolean(node().action)}
+                                        open={Boolean(node().action) || (node().agentNames?.length || 0) > 0}
                                     >
                                         <summary>{intl.formatMessage({id: 'Automation.override', defaultMessage: 'Only on this route…'})}</summary>
                                         <Select
@@ -753,6 +753,41 @@ const AutomationEditor = (props: Props) => {
                                             onChange={(action) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {action}))}
                                             label={intl.formatMessage({id: 'Automation.override', defaultMessage: 'Only on this route…'})}
                                         />
+
+                                        {/* The stage's own crew — who works
+                                            this node of this route, over the
+                                            column's answer. This is what puts
+                                            different agents on different nodes
+                                            of one route; the engine already
+                                            preferred it (FlowNode.Crew), the
+                                            editor just could not say it. Ticks
+                                            write node.agentNames; none ticked
+                                            means the column decides, which is
+                                            why there is no explicit "as the
+                                            column" row to untick into. */}
+                                        <Show when={props.agents.length > 0}>
+                                            <div class='AutomationEditor__crew'>
+                                                <span class='AutomationEditor__label'>
+                                                    {intl.formatMessage({id: 'Automation.route-crew', defaultMessage: 'Worked here by'})}
+                                                </span>
+                                                <For each={props.agents}>
+                                                    {(a) => (
+                                                        <label class='AutomationEditor__agent'>
+                                                            <input
+                                                                type='checkbox'
+                                                                checked={(node().agentNames || []).includes(a.name)}
+                                                                onChange={() => {
+                                                                    const crew = node().agentNames || []
+                                                                    const next = crew.includes(a.name) ? crew.filter((n) => n !== a.name) : [...crew, a.name]
+                                                                    updateFlow(flow()!.name, (f) => withNode(f, node().id, {agentNames: next.length > 0 ? next : undefined}))
+                                                                }}
+                                                            />
+                                                            {a.name}
+                                                        </label>
+                                                    )}
+                                                </For>
+                                            </div>
+                                        </Show>
                                     </details>
                                 </Show>
                             </div>

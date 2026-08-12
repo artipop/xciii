@@ -120,6 +120,7 @@
   "Automation.remove-transition": "Remove",
   "Automation.route": "Route",
   "Automation.route-columns": "Goes through: {columns}",
+  "Automation.route-crew": "Worked here by",
   "Automation.route-hint": "Pull from the right side of a column to join it to the next one (upper point — on success, lower — on failure), from the bottom point to wait for an event. A faded column joins the route when you click or drag it.",
   "Automation.route-name": "Name",
   "Automation.route-name-hint": "A card takes this route by naming it — the option of the same name on the card.",

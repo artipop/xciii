@@ -3,6 +3,7 @@ package boardadapter
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/model"
@@ -125,6 +126,9 @@ func TestAssignCardAgentWritesThePersonAndKeepsTheRest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// The block history is keyed by (id, insert_at) in milliseconds; only a
+	// test patches a card in the same millisecond it was made.
+	time.Sleep(2 * time.Millisecond)
 
 	logger, err := mlog.NewLogger()
 	if err != nil {
@@ -169,6 +173,9 @@ func TestMoveCardKeepsTheOtherProperties(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// The block history is keyed by (id, insert_at) in milliseconds; only a
+	// test patches a card in the same millisecond it was made.
+	time.Sleep(2 * time.Millisecond)
 
 	if err := writer.MoveCardByOptionName(t.Context(), card.ID, "Статус", "К агенту"); err != nil {
 		t.Fatal(err)

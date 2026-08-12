@@ -122,6 +122,44 @@ func TestFlowWithoutAnEdgeLeavesTheCardPut(t *testing.T) {
 	}
 }
 
+// A card that queued at a crewed stage keeps that crew when it finally
+// starts. The drain used to read the legacy singular AgentName, which
+// validateFlow always folds away — so the queued card silently fell back to
+// the column's crew. The stage's worker landing in the assignee is the
+// observable.
+func TestQueuedStageKeepsItsCrew(t *testing.T) {
+	flow := sampleFlow()
+	flow.Nodes[0].AgentNames = []string{"агент-стадии"}
+	m, _, events, project := flowManager(t, fakeClaudeHang, flow)
+	m.cfgMu.Lock()
+	m.cfg.Agents = []AgentEntry{
+		{Name: "агент-стадии", Kind: "claude"},
+		{Name: "другой", Kind: "claude"},
+	}
+	// One at a time in the column, so the second card has to queue.
+	m.cfg.Columns = []ColumnSpec{{Property: "Status", Column: "To Agent", Action: FlowActionAgent, MaxRunning: 1}}
+	m.cfgMu.Unlock()
+	users := &fakeBoardUsers{}
+	m.SetBoardUsers(users)
+
+	events.ch <- flowEvent("cardQ1", project, "Backlog", "To Agent")
+	waitFor(t, 15*time.Second, "the first card works", func() bool {
+		return users.assignedTo("cardQ1") == "агент-стадии"
+	})
+	events.ch <- flowEvent("cardQ2", project, "Backlog", "To Agent")
+	waitFor(t, 10*time.Second, "the second card queues", func() bool {
+		_, ok, _ := m.store.NextQueuedStage(m.cfg.Columns[0].Key())
+		return ok
+	})
+
+	// The place frees up; the drained card must still be worked by the
+	// stage's own crew, not by whatever the column would have picked.
+	m.CancelSessionForCard("cardQ1", "тест")
+	waitFor(t, 15*time.Second, "the queued card starts with the stage's crew", func() bool {
+		return users.assignedTo("cardQ2") == "агент-стадии"
+	})
+}
+
 func TestFlowVCSEventAdvancesAndOnlyOnce(t *testing.T) {
 	flow := sampleFlow()
 	// Review waits for the branch to be merged, then the card is done.
