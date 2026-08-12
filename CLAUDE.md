@@ -256,6 +256,13 @@ the board knows per card comes from `components/acp/liveTerminals.ts`: one
 `ListTerminals` for the page indexed by card, because `GetCardAgent` is a call
 per card and a board has as many as it likes.
 
+Which is why **the terminal page draws the question too**, above the screen and
+in the same amber: the dot leads here, and what it leads for was asked over the
+protocol rather than in the pty — a CLI draws its own questions inside the
+terminal, and this one is not the CLI's. The page finds it by the `cardId` in
+`TerminalInfo` and answers through the same `AnswerQuestion` the notification
+does. A planning terminal has no card and so never shows one.
+
 **A session writes one comment, and writes it at the end**: what the agent did,
 or why it could not. There were a dozen once — started, cancelled, asked,
 answered, terminal opened, moved along the route — and a card whose comments are
