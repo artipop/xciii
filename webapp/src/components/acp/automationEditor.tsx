@@ -679,6 +679,17 @@ const AutomationEditor = (props: Props) => {
                                             label={intl.formatMessage({id: 'Automation.deploy', defaultMessage: 'Deploy target'})}
                                         />
                                     </label>
+
+                                    {/* The registry moved out of the app's
+                                        settings, and this select is exactly
+                                        where somebody discovers it is empty —
+                                        so this is where the way to it is
+                                        said. */}
+                                    <Show when={props.deploys.length === 0}>
+                                        <span class='AutomationEditor__hint'>
+                                            {intl.formatMessage({id: 'Automation.no-deploys', defaultMessage: 'No deploy targets yet — add one in «Where to deploy» below, under the canvas.'})}
+                                        </span>
+                                    </Show>
                                 </Show>
 
                                 <Show when={flow()}>

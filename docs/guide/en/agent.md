@@ -57,8 +57,10 @@ the button stays even after the agent is removed.
 
 **A folder is optional.** A card can be talked over without one — wording,
 subtasks, a brief: if neither the «Проекты» field nor the registry names a
-folder, the conversation simply opens without one. A folder the card names
-but which is missing on disk is still an error.
+folder, the conversation opens in a temporary directory of the card's own —
+the agent sees no code there, only the conversation; the pick form says so
+outright. A folder the card names but which is missing on disk is still an
+error.
 
 If the agent could not be determined, the panel offers to pick on the spot:
 an agent from the list (or "Add an agent…"), a folder from the board's

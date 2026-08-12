@@ -164,6 +164,11 @@
         text-underline-offset: 2px;
     }
 
+    &__pickNote {
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
     &__pickActions {
         padding-top: 2px;
     }

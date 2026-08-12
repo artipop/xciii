@@ -108,8 +108,10 @@ describe('components/acp/cardTerminal', () => {
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
         // No folders anywhere, the single agent filled itself in — the start
-        // button is live regardless.
+        // button is live regardless, and the consequence of «no folder» is
+        // said before the start, not discovered in the terminal's prompt.
         expect(await screen.findByText('— no folder, just talk —')).toBeInTheDocument()
+        expect(screen.getByText(/A temporary directory of the card’s own will be created/)).toBeInTheDocument()
         const start = screen.getByRole('button', {name: 'Start the conversation'})
         expect(start).toBeEnabled()
 

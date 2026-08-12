@@ -291,4 +291,32 @@ describe('components/acp/automationEditor', () => {
         // The column's own crew is not what was edited.
         expect(next.columns.find((c) => c.optionId === 'opt-work')?.agents).toEqual(['claude'])
     })
+
+    // The target registry moved out of the app's settings, and the deploy
+    // select is exactly where somebody discovers it is empty — so the way to
+    // it is said right there, not left to be searched for.
+    test('an empty target list says where targets are added', () => {
+        renderEditor({
+            automation: {
+                ...automation,
+                columns: [{boardId: 'board-1', optionId: 'opt-work', property: 'Статус', column: 'В работе', action: 'deploy'}],
+            },
+            focusColumnId: 'opt-work',
+        })
+
+        expect(screen.getByText(/add one in «Where to deploy» below/)).toBeInTheDocument()
+    })
+
+    test('the hint is not shown once a target exists', () => {
+        renderEditor({
+            automation: {
+                ...automation,
+                columns: [{boardId: 'board-1', optionId: 'opt-work', property: 'Статус', column: 'В работе', action: 'deploy'}],
+            },
+            deploys: [{name: 'dokku-1'}],
+            focusColumnId: 'opt-work',
+        })
+
+        expect(screen.queryByText(/add one in «Where to deploy» below/)).toBeNull()
+    })
 })

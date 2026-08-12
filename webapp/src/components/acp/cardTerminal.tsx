@@ -361,6 +361,15 @@ const CardTerminal = (props: Props) => {
                         </Show>
                     </div>
 
+                    {/* «Без папки» must not read as "somewhere unspoken": the
+                        consequence is said before the start, not discovered
+                        in the terminal's prompt. */}
+                    <Show when={!projectName()}>
+                        <div class='CardTerminal__pickNote'>
+                            {intl.formatMessage({id: 'CardTerminal.no-folder-note', defaultMessage: 'A temporary directory of the card’s own will be created — the agent sees no code there, only this conversation.'})}
+                        </div>
+                    </Show>
+
                     <div class='CardTerminal__pickActions'>
                         <Button
                             filled={true}
