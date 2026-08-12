@@ -160,10 +160,10 @@ flowchart TD
     A["Card moved into a column"] --> B{"Is this column configured<br/>to do something?"}
     B -- no --> Z["Nothing happens"]
     B -- yes --> C{"Is the card assigned<br/>to a person?"}
-    C -- yes --> Z2["Nothing starts.<br/>The card says why and waits for them"]
+    C -- yes --> Z2["Nothing starts. The route strip<br/>says why and waits for them"]
     C -- no --> D{"Column full?<br/>crew busy or limit reached"}
     D -- yes --> Q["Card waits in the queue.<br/>Starts by itself when a place frees up"]
-    D -- no --> E["Pick an agent:<br/>assignee → the column's crew<br/>→ the only one registered"]
+    D -- no --> E["Pick an agent:<br/>assignee within the stage's crew →<br/>the crew → the only one registered.<br/>A crewed stage writes its worker<br/>into the assignee"]
     E --> F["Find the project:<br/>project_path → Проекты option → source column name"]
     F --> G{"worktreeMode"}
     G -- always, the default --> H["Create a git worktree<br/>on a new branch acp/card-title-abcd1234"]
@@ -178,6 +178,12 @@ flowchart TD
 Two things about that first step. The trigger is a **change** of the column
 property on an existing card — a card created directly in a column starts
 nothing. And a card dragged out of a column while its session runs cancels it.
+
+A stage that could not start never comments the card. The reason — no project
+matched, the route has no edge for what arrived, the card belongs to a person —
+is a **stall record** (`card_stall`), shown in amber on the card's route strip
+while it is true and deleted by any progress. Route dead-ends write softly, so
+the first reason (the root cause) is the one that stays visible.
 
 ## When a worktree appears, and what becomes of it
 

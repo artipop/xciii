@@ -426,6 +426,10 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	case spec.worktree && spec.cardID != "":
 		wt, err := CreateWorktree(m.rootCtx, spec.projectPath, spec.base, spec.title, spec.cardID, id, m.cfg.WorktreeDir)
 		if err != nil {
+			// Every failure below the grant has to give it back: the token
+			// lives in m.grants and in a temp file, and a terminal that never
+			// started is a door nobody will ever close.
+			m.closeBoardTools(boardToken, mcpConfig)
 			return nil, fmt.Errorf("не удалось создать git worktree: %w", err)
 		}
 		t.worktree = wt
@@ -437,6 +441,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 
 	tty, err := pty.New()
 	if err != nil {
+		m.closeBoardTools(boardToken, mcpConfig)
 		m.releaseTerminalWorktree(t)
 		return nil, fmt.Errorf("не удалось открыть pty: %w", err)
 	}
@@ -448,6 +453,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	cmd.Env = terminalEnv(env, drop)
 	if err := cmd.Start(); err != nil {
 		_ = tty.Close()
+		m.closeBoardTools(boardToken, mcpConfig)
 		m.releaseTerminalWorktree(t)
 		return nil, fmt.Errorf("не удалось запустить %s: %w", argv[0], err)
 	}
