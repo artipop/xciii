@@ -4,13 +4,16 @@ import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
-import {wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider} from '../../store'
 
-import MachineSettingsDialog, {isMachineSettingsAvailable} from './machineSettingsDialog'
+import AppSettingsDialog from './appSettingsDialog'
 
 const anyWindow = window as any
 
-describe('components/acp/machineSettingsDialog', () => {
+describe('components/settings/appSettingsDialog', () => {
+    const store = mockAppStore({teams: {current: {id: 'team-id'}}})
+
     const bindings = () => ({
         ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude', kind: 'claude'}])),
         ListAgentAdapters: vi.fn().mockResolvedValue('[]'),
@@ -21,15 +24,15 @@ describe('components/acp/machineSettingsDialog', () => {
         GetWorktreeMode: vi.fn().mockResolvedValue('always'),
     })
 
+    const open = () => render(() => wrapIntl(() =>
+        <AppStoreProvider store={store}>
+            <AppSettingsDialog onClose={vi.fn()}/>
+        </AppStoreProvider>,
+    ))
+
     afterEach(() => {
         delete anyWindow.go
         vi.clearAllMocks()
-    })
-
-    test('is offered only where there is a machine to configure', () => {
-        expect(isMachineSettingsAvailable()).toBe(false)
-        anyWindow.go = {main: {App: bindings()}}
-        expect(isMachineSettingsAvailable()).toBe(true)
     })
 
     // The point of the move: none of this is about a board, so none of it needs
@@ -37,7 +40,7 @@ describe('components/acp/machineSettingsDialog', () => {
     test('opens every machine registry without a board', async () => {
         anyWindow.go = {main: {App: bindings()}}
 
-        render(() => wrapIntl(() => <MachineSettingsDialog onClose={vi.fn()}/>))
+        open()
 
         // Agents is where it lands, because it is the first thing anybody comes
         // here for. ("claude" is both the agent's name and its kind, so the
@@ -62,21 +65,43 @@ describe('components/acp/machineSettingsDialog', () => {
     test('carries the instructions a card-less conversation starts with', async () => {
         anyWindow.go = {main: {App: bindings()}}
 
-        render(() => wrapIntl(() => <MachineSettingsDialog onClose={vi.fn()}/>))
+        open()
         userEvent.click(screen.getByRole('button', {name: 'Other'}))
 
         await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('Think it through.'))
+    })
+
+    // Whether an agent may interrupt is a setting of the install like the rest
+    // of them, and it was the last thing left in the sidebar's menu.
+    test('carries whether an agent waiting may interrupt', async () => {
+        anyWindow.go = {main: {App: bindings()}}
+
+        open()
+        userEvent.click(screen.getByRole('button', {name: 'Other'}))
+
+        await waitFor(() => expect(screen.getByText('Notify me when an agent is waiting')).toBeInTheDocument())
+        expect(document.querySelector('.Switch')).toBeTruthy()
     })
 
     // A build that cannot do a thing does not offer a section for it.
     test('leaves out what this build has no bindings for', async () => {
         anyWindow.go = {main: {App: {ListAgents: vi.fn().mockResolvedValue('[]')}}}
 
-        render(() => wrapIntl(() => <MachineSettingsDialog onClose={vi.fn()}/>))
+        open()
 
         await waitFor(() => expect(screen.getByRole('button', {name: 'Agents'})).toBeInTheDocument())
         expect(screen.queryByRole('button', {name: 'Where to deploy'})).toBeNull()
         expect(screen.queryByRole('button', {name: 'Access from a phone'})).toBeNull()
         expect(screen.queryByRole('button', {name: 'Proxy configurations'})).toBeNull()
+    })
+
+    // Carrying boards in and out is not part of the agent integration: a build
+    // with no agents at all still opens on it.
+    test('offers import and export whatever else the machine can do', async () => {
+        open()
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Import and export'})).toBeInTheDocument())
+        expect(screen.getByText('Import archive')).toBeInTheDocument()
+        expect(screen.getByText('Export archive')).toBeInTheDocument()
     })
 })

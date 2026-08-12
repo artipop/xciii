@@ -707,7 +707,7 @@ func DefaultConfig(dataDir string) Config {
 		TriggerProperty:          DefaultTriggerProperty,
 		TriggerColumn:            DefaultTriggerColumn,
 		DeployColumn:             "Деплой",
-		TestColumn:               "Тестирование",
+		TestColumn:               "QA",
 		TestPassColumn:           "Проверено",
 		TestFailColumn:           "Не прошло",
 		ProjectWhitelist:         []string{},

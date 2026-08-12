@@ -23,13 +23,13 @@ and moving cards about. It is edited in *«Шаблон»*, which is reached fro
 | **Rules** | conditions on the arrows | the same outcome forks on the card's own properties, or on what the agent wrote |
 | **Questions to ask** | the list under the canvas | the setup wizard walks exactly these, in this order |
 
-The first two live in the template board's own properties (`acpColumns`,
-`acpFlows`), and a board made from it takes them into this machine's registry the
+The first two live in the template board's own properties (`xciiiColumns`,
+`xciiiFlows`), and a board made from it takes them into this machine's registry the
 first time it is looked at. From then on they are the board's own: editing them
 there does not touch the template, and editing the template does not reach back
 into boards already made.
 
-A fourth key sits beside them: **`acpProjectProperty`** is the id of the card
+A fourth key sits beside them: **`xciiiProjectProperty`** is the id of the card
 property that holds the projects. Making a board from a template duplicates it
 without renumbering the card properties, so the id the template writes is the id
 the new board has, and nothing has to recognise the field by what it is called —

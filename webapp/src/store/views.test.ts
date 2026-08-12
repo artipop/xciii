@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createBoardView} from '../../blocks/boardView'
-import type {BoardView} from '../../blocks/boardView'
+import {createBoardView} from '../blocks/boardView'
+import type {BoardView} from '../blocks/boardView'
 
-import {oldestView} from './teamToBoardAndViewRedirect'
+import {oldestView} from './views'
 
 const view = (id: string, title: string, createAt: number): BoardView => ({
     ...createBoardView(),
@@ -13,11 +13,11 @@ const view = (id: string, title: string, createAt: number): BoardView => ({
     createAt,
 })
 
-describe('pages/boardPage/teamToBoardAndViewRedirect', () => {
-    // A board opens on the view it was made with. The list it comes from is
-    // sorted by title for the sidebar, so taking its first entry made the
-    // alphabet decide: a view added later and named «Входящие» took the board
-    // over from «Дела».
+describe('store/views', () => {
+    // A board — and a template's preview — opens on the view it was made with.
+    // The list it comes from is sorted by title for the sidebar, so taking its
+    // first entry made the alphabet decide: a view added later and named
+    // «Входящие» took the board over from «Дела».
     it('opens the board on its oldest view, not its first by title', () => {
         const views = [
             view('v-inbox', 'Входящие', 2000),

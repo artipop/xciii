@@ -46,9 +46,14 @@ func (m *Manager) CardFlowFor(cardID string) (*CardFlow, error) {
 	out := &CardFlow{Flow: flow.Name, CurrentID: st.NodeID, Since: st.EnteredAt, Branch: st.Branch}
 
 	// "Done" is what the card's own history says it has been through, not what
-	// the graph makes possible: a route with a loop has no linear order.
+	// the graph makes possible: a route with a loop has no linear order. The
+	// card carries that history itself; the journal answers for a card parked
+	// before it did.
 	visited := make(map[string]bool)
-	if m.store != nil {
+	for _, id := range st.Visited {
+		visited[id] = true
+	}
+	if len(visited) == 0 && m.store != nil {
 		if events, err := m.store.FlowEvents(cardID); err == nil {
 			for _, e := range events {
 				if e.FromNode != "" {

@@ -278,7 +278,7 @@ func (f *fakeBoardMeta) BoardProperties(context.Context, string) (map[string]any
 	return f.props, nil
 }
 
-func (f *fakeBoardMeta) SetBoardProperties(_ context.Context, boardID string, props map[string]any) error {
+func (f *fakeBoardMeta) SetBoardProperties(_ context.Context, boardID string, props map[string]any, remove []string) error {
 	if f.fail != nil {
 		return f.fail
 	}
@@ -292,6 +292,11 @@ func (f *fakeBoardMeta) SetBoardProperties(_ context.Context, boardID string, pr
 	}
 	for k, v := range props {
 		board[k] = v
+	}
+	// The real board store deletes these; a fake that kept them would let a
+	// reader go on finding the old name for ever.
+	for _, k := range remove {
+		delete(board, k)
 	}
 	return nil
 }

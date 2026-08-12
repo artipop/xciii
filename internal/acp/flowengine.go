@@ -76,8 +76,14 @@ func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bo
 
 	projectPath, _ := m.resolveProject(ev)
 	from, previousBranch := "", ""
+	var visited []string
 	if st, ok, _ := m.flowState(ev.CardID); ok {
-		from, previousBranch = st.NodeID, st.Branch
+		from, previousBranch, visited = st.NodeID, st.Branch, st.Visited
+	}
+	// The stage being left is a stage the card has been through. A route may
+	// loop, so this is a set and not a trail.
+	if from != "" && !containsString(visited, from) {
+		visited = append(visited, from)
 	}
 	m.saveFlowState(FlowState{
 		CardID:      ev.CardID,
@@ -86,6 +92,7 @@ func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bo
 		NodeID:      node.ID,
 		Branch:      m.flowBranch(ev, projectPath, previousBranch),
 		ProjectPath: projectPath,
+		Visited:     visited,
 	})
 	m.appendFlowEvent(FlowEventRecord{
 		CardID: ev.CardID, Flow: flow.Name, FromNode: from, ToNode: node.ID, On: on, Detail: detail,
@@ -429,10 +436,32 @@ func (m *Manager) triggerProperty() string {
 	return m.cfg.TriggerProperty
 }
 
-// The store wrappers below keep the engine readable and tolerate a manager
-// built without a store (tests that never touch a route).
+// The wrappers below keep the engine readable and tolerate a manager built
+// without a store or without a board (tests that never touch a route).
+//
+// Where a card stands is kept in two places on purpose: on the card, which is
+// the truth and is what travels with the board, and in this machine's table,
+// which is the index the VCS watcher reads whole every poll. Reads about one
+// card ask the card; the read about all of them asks the table.
+
+// flowStateCtx bounds a card read. The engine calls these from event handlers
+// that must not hang on a board that has gone quiet.
+func flowStateCtx() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 10*time.Second)
+}
 
 func (m *Manager) flowState(cardID string) (FlowState, bool, error) {
+	if m.cards != nil {
+		ctx, cancel := flowStateCtx()
+		st, ok, err := m.cards.CardFlow(ctx, cardID)
+		cancel()
+		if err == nil {
+			return st, ok, nil
+		}
+		// A card that cannot be read right now is not a card with no position:
+		// falling through to the index keeps a route moving through a hiccup.
+		m.log.Warn("acp: cannot read the card's place on its route, using the local index", "card", cardID, "err", err)
+	}
 	if m.store == nil {
 		return FlowState{}, false, nil
 	}
@@ -447,6 +476,14 @@ func (m *Manager) flowStates() ([]FlowState, error) {
 }
 
 func (m *Manager) saveFlowState(st FlowState) {
+	if m.cards != nil {
+		ctx, cancel := flowStateCtx()
+		err := m.cards.SetCardFlow(ctx, st.CardID, st)
+		cancel()
+		if err != nil {
+			m.log.Error("acp: cannot record the card's place on its route", "card", st.CardID, "err", err)
+		}
+	}
 	if m.store == nil {
 		return
 	}
@@ -456,6 +493,14 @@ func (m *Manager) saveFlowState(st FlowState) {
 }
 
 func (m *Manager) clearFlowState(cardID string) {
+	if m.cards != nil {
+		ctx, cancel := flowStateCtx()
+		err := m.cards.ClearCardFlow(ctx, cardID)
+		cancel()
+		if err != nil {
+			m.log.Error("acp: cannot clear the card's place on its route", "card", cardID, "err", err)
+		}
+	}
 	if m.store == nil {
 		return
 	}

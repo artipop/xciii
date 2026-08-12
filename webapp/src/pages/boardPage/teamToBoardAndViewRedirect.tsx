@@ -4,26 +4,13 @@ import {createEffect} from 'solid-js'
 import {useNavigate} from '@solidjs/router'
 
 import {getBoards, getCurrentBoardId} from '../../store/boards'
-import {getCurrentBoardViews} from '../../store/views'
-import type {BoardView} from '../../blocks/boardView'
+import {getCurrentBoardViews, oldestView} from '../../store/views'
 import {useAppSelector, useAppStore} from '../../store/hooks'
 import {useRouteMatch} from '../../hooks/routerMatch'
 import {UserSettings} from '../../userSettings'
 import {Utils} from '../../utils'
 import {getSidebarCategories} from '../../store/sidebar'
 import {Constants} from '../../constants'
-
-// oldestView is the view a board was made with: the ties are broken by id so
-// two views written in the same millisecond still resolve to the same one every
-// time, rather than to whichever the store happened to list first.
-export function oldestView(views: BoardView[]): BoardView {
-    return views.reduce((oldest, view) => {
-        if (view.createAt !== oldest.createAt) {
-            return view.createAt < oldest.createAt ? view : oldest
-        }
-        return view.id < oldest.id ? view : oldest
-    })
-}
 
 const TeamToBoardAndViewRedirect = (): null => {
     const boardId = useAppSelector(getCurrentBoardId)

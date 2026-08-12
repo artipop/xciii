@@ -242,20 +242,18 @@ exports[`components/sidebarSidebar > a board in no category is filed under the d
       + Add board
     </div>
     <div
-      class="SidebarSettingsMenu"
+      class="SidebarSettingsButton"
     >
-      <div
-        aria-label="menuwrapper"
-        class="MenuWrapper"
-        role="button"
+      <button
+        aria-label="Settings"
+        class="SidebarSettingsButton__entry"
+        type="button"
       >
-        <div
-          class="menu-entry"
-        >
-          Settings
-        </div>
-        
-      </div>
+        <i
+          class="CompassIcon icon-settings-outline SettingsIcon"
+        />
+        Settings
+      </button>
       
     </div>
   </div>
@@ -450,20 +448,18 @@ exports[`components/sidebarSidebar > dont show hidden boards 1`] = `
       + Add board
     </div>
     <div
-      class="SidebarSettingsMenu"
+      class="SidebarSettingsButton"
     >
-      <div
-        aria-label="menuwrapper"
-        class="MenuWrapper"
-        role="button"
+      <button
+        aria-label="Settings"
+        class="SidebarSettingsButton__entry"
+        type="button"
       >
-        <div
-          class="menu-entry"
-        >
-          Settings
-        </div>
-        
-      </div>
+        <i
+          class="CompassIcon icon-settings-outline SettingsIcon"
+        />
+        Settings
+      </button>
       
     </div>
   </div>
@@ -800,20 +796,18 @@ exports[`components/sidebarSidebar > shouldnt do any category assignment is boar
       + Add board
     </div>
     <div
-      class="SidebarSettingsMenu"
+      class="SidebarSettingsButton"
     >
-      <div
-        aria-label="menuwrapper"
-        class="MenuWrapper"
-        role="button"
+      <button
+        aria-label="Settings"
+        class="SidebarSettingsButton__entry"
+        type="button"
       >
-        <div
-          class="menu-entry"
-        >
-          Settings
-        </div>
-        
-      </div>
+        <i
+          class="CompassIcon icon-settings-outline SettingsIcon"
+        />
+        Settings
+      </button>
       
     </div>
   </div>
@@ -1093,20 +1087,18 @@ exports[`components/sidebarSidebar > sidebar hidden 1`] = `
       + Add board
     </div>
     <div
-      class="SidebarSettingsMenu"
+      class="SidebarSettingsButton"
     >
-      <div
-        aria-label="menuwrapper"
-        class="MenuWrapper"
-        role="button"
+      <button
+        aria-label="Settings"
+        class="SidebarSettingsButton__entry"
+        type="button"
       >
-        <div
-          class="menu-entry"
-        >
-          Settings
-        </div>
-        
-      </div>
+        <i
+          class="CompassIcon icon-settings-outline SettingsIcon"
+        />
+        Settings
+      </button>
       
     </div>
   </div>
@@ -1440,20 +1432,18 @@ exports[`components/sidebarSidebar > some categories hidden 1`] = `
       + Add board
     </div>
     <div
-      class="SidebarSettingsMenu"
+      class="SidebarSettingsButton"
     >
-      <div
-        aria-label="menuwrapper"
-        class="MenuWrapper"
-        role="button"
+      <button
+        aria-label="Settings"
+        class="SidebarSettingsButton__entry"
+        type="button"
       >
-        <div
-          class="menu-entry"
-        >
-          Settings
-        </div>
-        
-      </div>
+        <i
+          class="CompassIcon icon-settings-outline SettingsIcon"
+        />
+        Settings
+      </button>
       
     </div>
   </div>

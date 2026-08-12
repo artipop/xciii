@@ -506,6 +506,7 @@ func sameFlow(a, b FlowEntry) bool {
 
 // AddFlow registers a new route and persists the config.
 func (m *Manager) AddFlow(f FlowEntry) (FlowEntry, error) {
+	m.listenBeforeSpeaking(f.BoardID)
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
 	f, err := validateFlow(f, m.cfg.Projects, m.cfg.Agents, m.cfg.Deploys)
@@ -524,6 +525,7 @@ func (m *Manager) AddFlow(f FlowEntry) (FlowEntry, error) {
 // UpdateFlow replaces an existing route (matched by board and name) and
 // persists.
 func (m *Manager) UpdateFlow(f FlowEntry) (FlowEntry, error) {
+	m.listenBeforeSpeaking(f.BoardID)
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
 	f, err := validateFlow(f, m.cfg.Projects, m.cfg.Agents, m.cfg.Deploys)
@@ -545,6 +547,7 @@ func (m *Manager) UpdateFlow(f FlowEntry) (FlowEntry, error) {
 // RemoveFlow deletes a board's route by name and persists. Cards currently on
 // it stop moving by themselves; nothing else happens to them.
 func (m *Manager) RemoveFlow(boardID, name string) error {
+	m.listenBeforeSpeaking(boardID)
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
 	target := FlowEntry{BoardID: boardID, Name: name}

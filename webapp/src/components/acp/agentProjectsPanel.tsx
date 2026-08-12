@@ -14,7 +14,7 @@ import Button from '../../widgets/buttons/button'
 import {sendFlashMessage} from '../flashMessages'
 
 import {agentBindings} from './bindings'
-import {BOARD_PROP_PROJECT_PROPERTY} from './automation'
+import {BOARD_PROP_PROJECT_PROPERTY, legacyBoardProp} from './automation'
 
 import './agentProjectsPanel.scss'
 
@@ -66,7 +66,8 @@ const AgentProjectsPanel = (props: Props) => {
     // Nothing is matched by name: a board that has not recorded one has not got
     // one, and one is made.
     const findProjectProperty = (board: Board, properties: IPropertyTemplate[]) => {
-        const recorded = board.properties?.[BOARD_PROP_PROJECT_PROPERTY]
+        const recorded = board.properties?.[BOARD_PROP_PROJECT_PROPERTY] ??
+            board.properties?.[legacyBoardProp(BOARD_PROP_PROJECT_PROPERTY)!]
         if (typeof recorded !== 'string' || !recorded) {
             return undefined
         }

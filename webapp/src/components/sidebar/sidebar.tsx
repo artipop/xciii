@@ -7,7 +7,7 @@ import {isSortable} from '@dnd-kit/dom/sortable'
 
 import {FormattedMessage} from '../../intl'
 
-import {getActiveThemeName, loadTheme} from '../../theme'
+import {loadTheme} from '../../theme'
 import IconButton from '../../widgets/buttons/iconButton'
 import HamburgerIcon from '../../widgets/icons/hamburger'
 import HideSidebarIcon from '../../widgets/icons/hideSidebar'
@@ -46,7 +46,7 @@ import mutator from '../../mutator'
 import {Board} from '../../blocks/board'
 
 import SidebarCategory, {CategoryBoardsDroppableData} from './sidebarCategory'
-import SidebarSettingsMenu from './sidebarSettingsMenu'
+import SidebarSettingsButton from './sidebarSettingsButton'
 import SidebarUserMenu from './sidebarUserMenu'
 
 type Props = {
@@ -574,7 +574,7 @@ const Sidebar = (props: Props) => {
                         />
                     </div>
 
-                    <SidebarSettingsMenu activeTheme={getActiveThemeName()}/>
+                    <SidebarSettingsButton/>
                 </div>
             </Show>
         </Show>

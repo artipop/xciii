@@ -180,10 +180,10 @@ func TestAnInstalledTemplateKeepsItsCardsAndAutomation(t *testing.T) {
 	if board == nil {
 		t.Fatal("«Домашние дела» is not installed")
 	}
-	if _, ok := board.Properties["acpColumns"]; !ok {
+	if _, ok := board.Properties["xciiiColumns"]; !ok {
 		t.Error("the board arrived without the columns it runs")
 	}
-	if _, ok := board.Properties["acpFlows"]; !ok {
+	if _, ok := board.Properties["xciiiFlows"]; !ok {
 		t.Error("the board arrived without its routes")
 	}
 	if len(board.CardProperties) == 0 {

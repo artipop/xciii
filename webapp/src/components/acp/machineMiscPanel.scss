@@ -11,6 +11,23 @@
         gap: 2px;
     }
 
+    // A setting is a fact with a switch beside it: the same two lines of text,
+    // and the control where the value would have been.
+    .MachineMiscPanel__setting {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-md);
+
+        .MachineMiscPanel__fact {
+            flex: 1;
+            min-width: 0;
+        }
+    }
+
     .MachineMiscPanel__factName {
         font-weight: 600;
     }

@@ -79,6 +79,37 @@ type CardSpec struct {
 	// board being obliged to call it the same thing in the same language.
 	URL        string
 	Properties map[string]string
+	// Item is which item of the source this card was made from. It is written
+	// onto the card itself, so that "we already brought this one" is something
+	// the board knows rather than something only this machine remembers — see
+	// ItemRef.
+	Item ItemRef
+}
+
+// ItemRef is a card's origin: the item of a source it was made from, and the
+// state of that item when it was. It lives on the card (fields.xciiiSource) and
+// is what stops the same letter becoming a second card.
+//
+// On the card and not only in source_item because that table is keyed by card
+// id, and a board carried to another machine arrives with new ids for every
+// card — so the table would say nothing about the cards that are actually
+// there, and the next poll would bring everything again.
+//
+// Source is not a field here: it is the name of the source that owns the card,
+// which is already the card's author on the board, and the lookup is always
+// made for one named source.
+type ItemRef struct {
+	ExternalID string `json:"externalId,omitempty"`
+	Version    string `json:"version,omitempty"`
+}
+
+// BoardItems is the board asked what a source has already brought it. Optional:
+// without it this machine's own table is the only record, which is right for a
+// board that has never left this machine and wrong the moment one arrives.
+type BoardItems interface {
+	// CardBySourceItem finds the card a source's item became. Not found is not
+	// an error: most items have never been seen.
+	CardBySourceItem(ctx context.Context, boardID, source, externalID string) (cardID, version string, ok bool, err error)
 }
 
 // BoardWriter is everything this package does to a board. It is narrow on

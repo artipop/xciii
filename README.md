@@ -28,6 +28,11 @@ The Go code is platform-agnostic — the same files build for every OS:
   dir (`os.UserConfigDir()` → `~/Library/Application Support/XCIII` on macOS,
   `%AppData%\XCIII` on Windows, `~/.config/XCIII` on Linux), **not** next
   to the binary, because a signed/packaged app dir is read-only.
+- `datadir_production.go` / `datadir_dev.go` — which install that is.
+  A packaged build (`-tags production`, which every one of them carries) uses
+  `XCIII`; `wails3 dev` builds without the tag and uses `XCIII-dev`, including
+  as the keychain service name. One product, two installs, so what is tried out
+  in development is not in the app afterwards.
 - `frontend_embed.go` / `frontend_disk.go` — the webapp `pack` is compiled into the
   binary with `go:embed` (release builds, `-tags frontend`) straight from
   `webapp/pack`, where the `build:frontend` task leaves it.
@@ -192,7 +197,7 @@ the one thing a rewrite must not quietly drop.
 - **Linux targets GTK 3** (`gtk3` build tag, webkit2gtk-4.1). Wails v3 defaults
   to GTK 4, but its GTK 4 code needs 4.10 — newer than several still-supported
   distributions ship. `GTK_TAG=` drops the tag where GTK 4 is new enough.
-- **Browser-testing sessions** (the «Тестирование» column) need a browser MCP server
+- **Browser-testing sessions** (the «QA» column) need a browser MCP server
   on the agent — under *Agents → MCP servers*, paste the same JSON any MCP
   client takes, e.g. `{"mcpServers": {"playwright": {"command": "npx", "args":
   ["-y", "@playwright/mcp@latest", "--headless"]}}}`. The app ships no
@@ -247,7 +252,7 @@ the one thing a rewrite must not quietly drop.
   when the registries are still empty — a project and an agent are asked for
   (nothing runs without them), Dokku and a browser MCP server are offered and
   skippable. **Which steps it has is the board's own answer.** A template
-  declares them in `acpSetup`, beside the columns and routes it carries, and may
+  declares them in `xciiiSetup`, beside the columns and routes it carries, and may
   add a sentence of its own to a step ("the folder with your household notes")
   or insist on one the app calls optional. It may only name steps from the
   closed set `internal/acp/setup.go` implements — like the flow triggers, the

@@ -246,12 +246,12 @@ column is a stage no card can stand on, so there is no way to make one. The
 editor is source-agnostic and the container decides what it edits: `automation
 Dialog.tsx` points it at the registry of a live board (saving through
 `SaveBoardColumn`/`AddFlow`/…), `templateEditor.tsx` at a template board's own
-properties (`acpColumns`, `acpFlows`, `acpSetup`), which is where a board made
+properties (`xciiiColumns`, `xciiiFlows`, `xciiiSetup`), which is where a board made
 from it will read them. `automation.ts` holds the types and every pure helper,
 which is what keeps the two containers from growing their own answers.
 `docs/templates.md` is the template half written for somebody using it.
 
-And a board's automation **lives on the board** — `acpColumns`/`acpFlows` in the
+And a board's automation **lives on the board** — `xciiiColumns`/`xciiiFlows` in the
 board's own properties, in the board database, which is why a live board and a
 template are the same two keys and why a template can carry automation at all.
 `internal/acp` keeps the registry in memory because the engine reads it on every
@@ -264,11 +264,22 @@ the file until one gets through, which is what makes the move safe to retry.
 **A setting lives where its owner does**, and that is the rule the whole
 settings surface is sorted by. The registries are the machine's — agents,
 deploy targets, proxies, the tailnet, what a card-less conversation opens
-saying — so they are `machineSettingsDialog.tsx`, one dialog of panels opened
-from `sidebarSettingsMenu.tsx`, reachable with no board open. What a board runs
-— columns, routes, its folders, and what its agents are told first
-(`boardPrompts`, keyed by board id) — is `automationDialog.tsx`. The board's ⋯
-menu keeps only export and "save as a template". Registering an agent needs
+saying, whether an agent waiting may interrupt, and the archive that carries
+every board in and out — so they are `settings/appSettingsDialog.tsx`, one
+dialog of panels opened from `sidebarSettingsButton.tsx`, reachable with no
+board open. **The theme and the language are the exception**, and they earn it:
+they are changed by looking at the screen and changed back, so they are two
+menus in the corner of the board itself (`topBar.tsx`), which the no-board
+screen carries too — a fresh install is exactly where somebody wants them, and
+there is no board to hang them off. That corner used to be a link to the issue
+tracker and nothing else. What a board runs — columns, routes, its folders, and
+what its agents are told first (`boardPrompts`, keyed by board id) — is
+`automationDialog.tsx`. The board's ⋯ menu keeps only export and "save as a
+template" — the archive in the settings dialog is every board there is, and one
+board's own is the board's own business, which is also the whole of why import
+is not offered per board: what an archive brings is boards, plural, and
+Trello/Notion/Todoist are instructions for making one rather than an importer of
+ours. Registering an agent needs
 neither: `agentQuickAdd.tsx` is the two-field form, used by the card, the
 column's crew list and the setup wizard alike, and `agentSync.ts` is what makes
 a registered agent nameable on a board — called where a board exists, since the
@@ -480,7 +491,7 @@ whoever opened it. **Only the protocol asks** (`question.go`), which is why
   else. Nothing may find, match or branch on one: the board's column property is
   whatever a view groups by, the author and link properties are found by their
   *type*, the inbox view by what it filters, the projects field by an id the
-  board records (`acpProjectProperty`). Names that do decide something come from
+  board records (`xciiiProjectProperty`). Names that do decide something come from
   the board or the registry — a rule's `Props`, a flow's stages — where a person
   typed them against the board in front of them; they are data, not literals in
   our code. A manifest field is the shape to copy: `key` is the id, `title` is

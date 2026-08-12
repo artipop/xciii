@@ -13,6 +13,68 @@ exports[`components/centerPanel > Clicking on the Hidden card count should open 
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -770,6 +832,68 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -1381,6 +1505,68 @@ exports[`components/centerPanel > return centerPanel and > click on new card to 
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -2088,6 +2274,68 @@ exports[`components/centerPanel > return centerPanel and > press touch 1 with re
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -2524,6 +2772,68 @@ exports[`components/centerPanel > return centerPanel and > press touch ctrl+d fo
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -3231,6 +3541,68 @@ exports[`components/centerPanel > return centerPanel and > press touch del for o
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -3938,6 +4310,68 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -4645,6 +5079,68 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -5352,6 +5848,68 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -6059,6 +6617,68 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -6766,6 +7386,68 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -7473,6 +8155,68 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -8180,6 +8924,68 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -8887,6 +9693,68 @@ exports[`components/centerPanel > should match snapshot for Gallery 1`] = `
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -9188,6 +10056,68 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -9762,6 +10692,68 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"
@@ -10336,6 +11328,68 @@ exports[`components/centerPanel > should match snapshot for Table 1`] = `
       <div
         class="TopBar"
       >
+        <div
+          class="ThemeMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set theme"
+              class="TopBar__button"
+              title="Set theme"
+              type="button"
+            >
+              <svg
+                class="ThemeIcon Icon"
+                fill="none"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8.4"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 3.6a8.4 8.4 0 0 1 0 16.8V3.6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+        <div
+          class="LanguageMenu"
+        >
+          <div
+            aria-label="menuwrapper"
+            class="MenuWrapper"
+            role="button"
+          >
+            <button
+              aria-label="Set language"
+              class="TopBar__button"
+              title="Set language"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-translate"
+              />
+            </button>
+            
+          </div>
+        </div>
+        <span
+          class="TopBar__divider"
+        />
         <a
           class="link"
           href="https://github.com/artipop/xciii/issues"

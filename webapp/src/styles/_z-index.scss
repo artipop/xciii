@@ -11,6 +11,9 @@
 
 $z-index: (
     // key: value
+    // The corner of the screen over the full-page template selector: with no
+    // board there is nothing else to change the theme or the language from.
+    top-bar-over-page:       1001,
     tour-tip:                1001,
     combobox-menu:           1000,
     modal-permissions-label: 1000,
