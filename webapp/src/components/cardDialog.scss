@@ -14,17 +14,27 @@
         }
     }
 
+    // dialog.scss pins every direct child of a dialog with `flex-shrink: 0`,
+    // which is right for a toolbar and a banner and wrong for the one child
+    // that has to take what is left and scroll inside it. That rule is two
+    // classes deep, so this one has to be three: written shorter, the body
+    // keeps its content's full height, overflows a dialog that now hides its
+    // overflow, and the card stops scrolling altogether.
+    .dialog > .cardDialog__body {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
     // The card on one side, the agent's terminal on the other.
     &__body {
         display: flex;
         align-items: stretch;
-        flex: 1 1 auto;
-        min-height: 0;
     }
 
     &__main {
         flex: 1 1 auto;
         min-width: 0;
+        min-height: 0;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
 
