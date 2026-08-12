@@ -186,3 +186,17 @@ func TestEveryTemplateNamesItsProjectPropertyByID(t *testing.T) {
 		}
 	}
 }
+
+// A board opens on its columns. The description is a paragraph a person writes
+// once and then reads past for ever, and a template that carries it turned on
+// put it above the columns of every board made from that template — including
+// the boards where nobody had written one, which showed the placeholder.
+// The eye above the title is still there for whoever wants it.
+func TestNoTemplateOpensWithItsDescriptionShowing(t *testing.T) {
+	for _, file := range embeddedTemplates(t) {
+		board := readTemplate(t, file)[0].Data
+		if show, _ := board.Fields["showDescription"].(bool); show {
+			t.Errorf("%s opens with the description showing", file)
+		}
+	}
+}

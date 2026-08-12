@@ -12,7 +12,9 @@ import (
 )
 
 const (
-	defaultTemplateVersion = 10 // bump this number to force default templates to be re-imported
+	// 11: every one of these carried showDescription, so a board made from one
+	// opened with a paragraph above the columns that nobody had written.
+	defaultTemplateVersion = 11 // bump this number to force default templates to be re-imported
 )
 
 func (a *App) InitTemplates() error {

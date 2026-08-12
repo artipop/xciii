@@ -39,7 +39,8 @@ var templateFiles embed.FS
 // ones anything writes, so every such board would carry both.
 // 12: the developer template's test column is «QA», and its route names the
 // stage `qa` rather than `test`.
-const TemplateVersion = 12
+// 13: the board's description is hidden until somebody asks for it.
+const TemplateVersion = 13
 
 // TemplateMarkerProperty is the board property each template carries its slug
 // in. Ids are regenerated on import and titles are the user's to change, so the
