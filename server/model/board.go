@@ -292,6 +292,12 @@ func (p *BoardPatch) Patch(board *Board) *Board {
 		board.ChannelID = *p.ChannelID
 	}
 
+	// A board created over the REST API with "properties": null carries a nil
+	// map, and the first property ever written — a route saved onto such a
+	// board — was a panic rather than a patch.
+	if len(p.UpdatedProperties) > 0 && board.Properties == nil {
+		board.Properties = map[string]any{}
+	}
 	for key, property := range p.UpdatedProperties {
 		board.Properties[key] = property
 	}
