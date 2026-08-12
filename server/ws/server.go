@@ -127,10 +127,21 @@ func (ws *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, p, err := wsSession.conn.ReadMessage()
 		if err != nil {
-			ws.logger.Error("ERROR WebSocket",
-				mlog.Stringer("client", wsSession.conn.RemoteAddr()),
-				mlog.Err(err),
-			)
+			// A tab navigating away or closing ends its socket with 1000/1001
+			// (or no status at all). That is a client leaving, not a fault,
+			// and logging it as an error put a red line in the log on every
+			// page reload.
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseNoStatusReceived) {
+				ws.logger.Debug("CLOSE WebSocket",
+					mlog.Stringer("client", wsSession.conn.RemoteAddr()),
+					mlog.Err(err),
+				)
+			} else {
+				ws.logger.Error("ERROR WebSocket",
+					mlog.Stringer("client", wsSession.conn.RemoteAddr()),
+					mlog.Err(err),
+				)
+			}
 			ws.removeListener(wsSession)
 			break
 		}
