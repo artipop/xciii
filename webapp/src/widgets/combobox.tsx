@@ -303,9 +303,12 @@ function Combobox<T>(props: Props<T>): JSX.Element {
                             {props.placeholder}
                         </div>
                     </Show>
+                    {/* Two classes on purpose: the prefixed one is what call
+                        sites style, and the stable one is what this widget's own
+                        stylesheet can reach without knowing the prefix. */}
                     <input
                         ref={inputRef}
-                        class={`${props.classNamePrefix}__input`}
+                        class={`Combobox__input ${props.classNamePrefix}__input`}
                         type='text'
                         role='combobox'
                         aria-expanded={isOpen()}

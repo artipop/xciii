@@ -51,7 +51,7 @@ exports[`components/blocksEditor/editor > should match snapshot on empty 1`] = `
             aria-expanded="false"
             autocomplete="off"
             autofocus=""
-            class="RootInput__input"
+            class="Combobox__input RootInput__input"
             role="combobox"
             type="text"
           />

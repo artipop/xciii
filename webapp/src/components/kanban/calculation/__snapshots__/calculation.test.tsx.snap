@@ -65,7 +65,7 @@ exports[`components/kanban/calculation/KanbanCalculation > calculations menu ope
             aria-controls="cl-0"
             aria-expanded="true"
             autocomplete="off"
-            class="CalculationOptions__input"
+            class="Combobox__input CalculationOptions__input"
             readonly=""
             role="combobox"
             type="text"

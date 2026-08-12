@@ -26,7 +26,7 @@ exports[`components/blocksEditor/rootInput > should match Display snapshot 1`] =
           aria-expanded="false"
           autocomplete="off"
           autofocus=""
-          class="RootInput__input"
+          class="Combobox__input RootInput__input"
           role="combobox"
           type="text"
         />
@@ -64,7 +64,7 @@ exports[`components/blocksEditor/rootInput > should match Input snapshot 1`] = `
           aria-expanded="false"
           autocomplete="off"
           autofocus=""
-          class="RootInput__input"
+          class="Combobox__input RootInput__input"
           role="combobox"
           type="text"
         />
@@ -107,7 +107,7 @@ exports[`components/blocksEditor/rootInput > should match Input snapshot with me
           aria-expanded="true"
           autocomplete="off"
           autofocus=""
-          class="RootInput__input"
+          class="Combobox__input RootInput__input"
           role="combobox"
           type="text"
         />

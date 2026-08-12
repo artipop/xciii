@@ -35,7 +35,7 @@ exports[`properties/person > select user - cancel 1`] = `
           aria-controls="cl-2"
           aria-expanded="false"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />
@@ -89,7 +89,7 @@ exports[`properties/person > select user - cancel 2`] = `
           aria-controls="cl-2"
           aria-expanded="true"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />
@@ -185,7 +185,7 @@ exports[`properties/person > select user - confirm 1`] = `
           aria-controls="cl-0"
           aria-expanded="false"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />
@@ -239,7 +239,7 @@ exports[`properties/person > select user - confirm 2`] = `
           aria-controls="cl-0"
           aria-expanded="true"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />

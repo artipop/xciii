@@ -388,7 +388,7 @@ exports[`src/component/kanban/kanban > return kanban and click on KanbanCalculat
                   aria-controls="cl-22"
                   aria-expanded="true"
                   autocomplete="off"
-                  class="CalculationOptions__input"
+                  class="Combobox__input CalculationOptions__input"
                   readonly=""
                   role="combobox"
                   type="text"

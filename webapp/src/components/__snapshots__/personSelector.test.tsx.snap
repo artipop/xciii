@@ -35,7 +35,7 @@ exports[`properties/person > not readOnly, show firstname 1`] = `
           aria-controls="cl-1"
           aria-expanded="false"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />
@@ -83,7 +83,7 @@ exports[`properties/person > not readOnly, show me 1`] = `
           aria-controls="cl-5"
           aria-expanded="true"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />
@@ -191,7 +191,7 @@ exports[`properties/person > not readOnly, show me 2`] = `
           aria-controls="cl-5"
           aria-expanded="true"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />
@@ -298,7 +298,7 @@ exports[`properties/person > not readOnly, show modal 1`] = `
           aria-controls="cl-2"
           aria-expanded="false"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />
@@ -340,7 +340,7 @@ exports[`properties/person > not readOnly, show modal 2`] = `
           aria-controls="cl-2"
           aria-expanded="true"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />
@@ -439,7 +439,7 @@ exports[`properties/person > not readOnly, show username 1`] = `
           aria-controls="cl-0"
           aria-expanded="false"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />
@@ -541,7 +541,7 @@ exports[`properties/person > show multiple 1`] = `
           aria-controls="cl-3"
           aria-expanded="false"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />
@@ -627,7 +627,7 @@ exports[`properties/person > show multiple, display modal 1`] = `
           aria-controls="cl-4"
           aria-expanded="false"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />
@@ -714,7 +714,7 @@ exports[`properties/person > show multiple, display modal 2`] = `
           aria-controls="cl-4"
           aria-expanded="true"
           autocomplete="off"
-          class="react-select__input"
+          class="Combobox__input react-select__input"
           role="combobox"
           type="text"
         />

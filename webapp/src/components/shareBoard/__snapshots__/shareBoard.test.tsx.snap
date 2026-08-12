@@ -78,7 +78,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Copy
                     aria-controls="cl-2"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -278,7 +278,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Copy
                     aria-controls="cl-2"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -478,7 +478,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Rege
                     aria-controls="cl-3"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -701,7 +701,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Sele
                     aria-controls="cl-7"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -887,7 +887,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Sele
                     aria-controls="cl-7"
                     aria-expanded="true"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -1086,7 +1086,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Sele
                     aria-controls="cl-8"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -1272,7 +1272,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Sele
                     aria-controls="cl-8"
                     aria-expanded="true"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -1471,7 +1471,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard template and c
                     aria-controls="cl-10"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -1605,7 +1605,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard template and c
                     aria-controls="cl-10"
                     aria-expanded="true"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -1752,7 +1752,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard, and click swi
                     aria-controls="cl-4"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -1975,7 +1975,7 @@ exports[`src/components/shareBoard/shareBoard > should match snapshot 1`] = `
                     aria-controls="cl-0"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -2175,7 +2175,7 @@ exports[`src/components/shareBoard/shareBoard > should match snapshot with shari
                     aria-controls="cl-1"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -2375,7 +2375,7 @@ exports[`src/components/shareBoard/shareBoard > should match snapshot with shari
                     aria-controls="cl-6"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -2575,7 +2575,7 @@ exports[`src/components/shareBoard/shareBoard > should match snapshot with shari
                     aria-controls="cl-5"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />
@@ -2775,7 +2775,7 @@ exports[`src/components/shareBoard/shareBoard > should match snapshot, with temp
                     aria-controls="cl-9"
                     aria-expanded="false"
                     autocomplete="off"
-                    class="userSearchInput__input"
+                    class="Combobox__input userSearchInput__input"
                     role="combobox"
                     type="text"
                   />

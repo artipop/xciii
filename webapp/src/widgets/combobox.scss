@@ -19,6 +19,20 @@
         outline: none;
     }
 
+    // A field in this product tints itself when you reach for it (main.scss),
+    // which is right for the ones you type into and wrong for this one: it is a
+    // caret inside a control, stretched across whatever room the control has.
+    // Focused, it painted a tinted box the width of the field beside the chosen
+    // value — half a card of empty grey, on the card's own person property.
+    // Named rather than reached for through the caller's prefix, so the rule
+    // does not depend on what a call site chose to call its classes.
+    input.Combobox__input {
+        &:hover,
+        &:focus {
+            background: transparent;
+        }
+    }
+
     [class$='__control'] {
         display: flex;
         width: 100%;
