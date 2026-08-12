@@ -61,6 +61,7 @@ type Props = {
 const TEMPLATE_MARKER = 'xciiiTemplate'
 const VISIBLE_TEMPLATE_SLUGS = [
     'developer-tasks',
+    'content-making',
     'home-chores',
     'shopping-and-meals',
 ]
