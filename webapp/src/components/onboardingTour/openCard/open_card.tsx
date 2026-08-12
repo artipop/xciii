@@ -7,7 +7,7 @@ import {useMeasurePunchouts} from '../../tutorial_tour_tip/hooks'
 import {BaseTourSteps, TOUR_BASE} from '../index'
 
 import './open_card.scss'
-import {OnboardingCardClassName} from '../../kanban/kanbanCard'
+import {FirstCardSelector} from '../../kanban/kanbanCard'
 import TourTipRenderer from '../tourTipRenderer/tourTipRenderer'
 
 const OpenCardTourStep = (): JSX.Element | null => {
@@ -20,11 +20,11 @@ const OpenCardTourStep = (): JSX.Element | null => {
     const screen = (
         <FormattedMessage
             id='OnboardingTour.OpenACard.Body'
-            defaultMessage='Open a card to explore the powerful ways that Boards can help you organize your work.'
+            defaultMessage='A card is one piece of work: what has to be done, who is doing it, and everything said about it along the way.'
         />
     )
 
-    const punchout = useMeasurePunchouts([`.${OnboardingCardClassName}`])
+    const punchout = useMeasurePunchouts([FirstCardSelector])
 
     return (
         <TourTipRenderer

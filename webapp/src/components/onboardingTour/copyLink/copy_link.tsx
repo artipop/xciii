@@ -9,7 +9,7 @@ import {Utils} from '../../../utils'
 import copyLink from '../../../../static/copyLink.gif'
 
 import {BoardTourSteps, TOUR_BOARD} from '../index'
-import {OnboardingCardClassName} from '../../kanban/kanbanCard'
+import {FirstCardSelector} from '../../kanban/kanbanCard'
 import TourTipRenderer from '../tourTipRenderer/tourTipRenderer'
 
 const CopyLinkTourStep = (): JSX.Element | null => {
@@ -22,11 +22,11 @@ const CopyLinkTourStep = (): JSX.Element | null => {
     const screen = (
         <FormattedMessage
             id='OnboardingTour.CopyLink.Body'
-            defaultMessage='You can share your cards with teammates by copying the link and pasting it in a channel, direct message, or group message.'
+            defaultMessage='A link points at one card and opens it wherever the board is reached: the window, a browser, a phone.'
         />
     )
 
-    const punchout = useMeasurePunchouts([`.${OnboardingCardClassName} .optionsMenu`])
+    const punchout = useMeasurePunchouts([`${FirstCardSelector} .optionsMenu`])
 
     return (
         <TourTipRenderer

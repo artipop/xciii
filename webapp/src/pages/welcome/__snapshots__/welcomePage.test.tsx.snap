@@ -16,26 +16,16 @@ exports[`pages/welcome > Welcome Page shows Explore Page 1`] = `
       <h1
         class="text-heading9"
       >
-        Welcome To Boards
+        Welcome to XCIII
       </h1>
       <div
         class="WelcomePage__subtitle"
       >
-        Boards is a project management tool that helps define, organize, track, and manage work across teams using a familiar Kanban board view.
+        A board where the work gets done: cards you move, columns that put an agent on a card when it lands in them, and a terminal for when it is easier to do it yourself.
       </div>
       <div
         class="WelcomePage__content"
       >
-        <img
-          alt="Boards Welcome Image"
-          class="WelcomePage__image WelcomePage__image--large"
-          src="http://localhost/test-file-stub"
-        />
-        <img
-          alt="Boards Welcome Image"
-          class="WelcomePage__image WelcomePage__image--small"
-          src="http://localhost/test-file-stub"
-        />
         <div
           class="WelcomePage__buttons"
         >
@@ -45,7 +35,7 @@ exports[`pages/welcome > Welcome Page shows Explore Page 1`] = `
           >
             
             <span>
-              Take a tour
+              Show me around
             </span>
             <i
               class="CompassIcon icon-chevron-right Icon Icon--right"
@@ -54,7 +44,7 @@ exports[`pages/welcome > Welcome Page shows Explore Page 1`] = `
           <a
             class="skip"
           >
-            No thanks, I'll figure it out myself
+            No thanks, I'll find my way
           </a>
           
         </div>
@@ -80,26 +70,16 @@ exports[`pages/welcome > Welcome Page shows Explore Page with subpath 1`] = `
       <h1
         class="text-heading9"
       >
-        Welcome To Boards
+        Welcome to XCIII
       </h1>
       <div
         class="WelcomePage__subtitle"
       >
-        Boards is a project management tool that helps define, organize, track, and manage work across teams using a familiar Kanban board view.
+        A board where the work gets done: cards you move, columns that put an agent on a card when it lands in them, and a terminal for when it is easier to do it yourself.
       </div>
       <div
         class="WelcomePage__content"
       >
-        <img
-          alt="Boards Welcome Image"
-          class="WelcomePage__image WelcomePage__image--large"
-          src="http://localhost/subpath/test-file-stub"
-        />
-        <img
-          alt="Boards Welcome Image"
-          class="WelcomePage__image WelcomePage__image--small"
-          src="http://localhost/subpath/test-file-stub"
-        />
         <div
           class="WelcomePage__buttons"
         >
@@ -109,7 +89,7 @@ exports[`pages/welcome > Welcome Page shows Explore Page with subpath 1`] = `
           >
             
             <span>
-              Take a tour
+              Show me around
             </span>
             <i
               class="CompassIcon icon-chevron-right Icon Icon--right"
@@ -118,7 +98,7 @@ exports[`pages/welcome > Welcome Page shows Explore Page with subpath 1`] = `
           <a
             class="skip"
           >
-            No thanks, I'll figure it out myself
+            No thanks, I'll find my way
           </a>
           
         </div>

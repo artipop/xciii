@@ -1,11 +1,9 @@
 import {render, screen} from '@solidjs/testing-library'
-import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
 import {mockAppStore, wrapDNDIntl} from '../testUtils'
 import {AppStoreProvider} from '../store'
 import {Constants} from '../constants'
-import {lightThemeName, setTheme} from '../theme'
 
 import TopBar from './topBar'
 
@@ -18,7 +16,6 @@ describe('src/components/topBar', () => {
     beforeEach(() => {
         vi.clearAllMocks()
         store = mockAppStore({})
-        setTheme(lightThemeName)
     })
 
     const open = () => render(() => wrapDNDIntl(() =>
@@ -32,23 +29,12 @@ describe('src/components/topBar', () => {
         expect(container).toMatchSnapshot()
     })
 
-    // How the app looks is changed by looking at it, so it is answered here
-    // rather than in the settings dialog three clicks away.
-    test('switches the theme from the corner of the board', () => {
+    // Everything else this corner used to carry — the theme, the language, the
+    // way to the manual — is a settings dialog away. What is left is the one
+    // thing that is about the moment rather than about the app.
+    test('offers somewhere to say that something is broken', () => {
         open()
 
-        userEvent.click(screen.getByRole('button', {name: 'Set theme'}))
-        userEvent.click(screen.getByText('Dark theme'))
-
-        expect(document.documentElement.dataset.theme).toBe('dark')
-    })
-
-    test('switches the language from the corner of the board', () => {
-        open()
-
-        userEvent.click(screen.getByRole('button', {name: 'Set language'}))
-        userEvent.click(screen.getByText('Deutsch'))
-
-        expect(store.state.language.value).toBe('de')
+        expect(screen.getByRole('link', {name: 'Give feedback'})).toHaveAttribute('href', Constants.issuesUrl)
     })
 })

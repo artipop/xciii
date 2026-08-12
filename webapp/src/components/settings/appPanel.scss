@@ -1,0 +1,112 @@
+.AppPanel {
+    .AppPanel__content {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .AppPanel__groupTitle {
+        margin: 0 0 8px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    // Every choice is on the panel rather than behind a menu, so the row wraps
+    // and a chip keeps its own width: a dozen languages are a dozen words of
+    // very different lengths, and a grid of equal cells would set the widest.
+    .AppPanel__choices {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .AppPanel__choice {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-md);
+        background: transparent;
+        color: rgb(var(--center-channel-color-rgb));
+        cursor: pointer;
+        text-align: left;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    .AppPanel__choice--current {
+        border-color: rgba(var(--button-bg-rgb), 0.6);
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: rgb(var(--button-bg-rgb));
+        font-weight: 600;
+
+        &:hover {
+            border-color: rgb(var(--button-bg-rgb));
+            background: rgba(var(--button-bg-rgb), 0.12);
+        }
+    }
+
+    .AppPanel__choiceTick {
+        display: flex;
+        align-items: center;
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    // The same row the other panels use for something that can be done: a name,
+    // why you would want it, and the way to it on the right.
+    .AppPanel__action {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-md);
+    }
+
+    .AppPanel__actionText {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .AppPanel__actionName {
+        font-weight: 600;
+    }
+
+    .AppPanel__actionHint {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+    }
+
+    // Shared by the link that opens the guide and the button that replays the
+    // welcome screen: a button would otherwise arrive with the platform's own
+    // border and font, and the two would not read as the same control.
+    .AppPanel__actionLink {
+        padding: 8px 16px;
+        border: 0;
+        border-radius: var(--radius-md);
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: rgb(var(--button-bg-rgb));
+        font: inherit;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.16);
+        }
+    }
+}

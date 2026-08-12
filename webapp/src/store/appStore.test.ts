@@ -124,6 +124,25 @@ describe('createAppStore', () => {
         expect(getMyConfig(state).onboardingTourStep?.value).toBe('3')
     })
 
+    // A preference the server has deleted is gone from the response, and the
+    // response is the whole of what is left. Merging it in instead of replacing
+    // kept deleted preferences alive in the page for ever — which is how
+    // settings could forget the welcome screen had been shown and the page go on
+    // believing it had.
+    test('a preference the server dropped is dropped from myConfig', () => {
+        const {state, actions} = createAppStore({client: fakeClient()})
+
+        actions.users.patchProps([
+            {user_id: 'user-1', category: 'xciii', name: 'welcomePageViewed', value: '1'},
+            {user_id: 'user-1', category: 'xciii', name: 'onboardingTourStep', value: '3'},
+        ])
+        expect(getMyConfig(state).welcomePageViewed?.value).toBe('1')
+
+        actions.users.patchProps([{user_id: 'user-1', category: 'xciii', name: 'onboardingTourStep', value: '3'}])
+        expect(getMyConfig(state).welcomePageViewed).toBeUndefined()
+        expect(getMyConfig(state).onboardingTourStep?.value).toBe('3')
+    })
+
     test('getCards returns the live map, not a copy', () => {
         const {state, actions} = createAppStore({client: fakeClient()})
 

@@ -19,7 +19,7 @@ exports[`components/onboardingTour/addComments/AddPropertiesTourStep > after hov
         class="tutorial-tour-tip__header__title"
         id="cl-1"
       >
-        Add properties
+        Card properties
       </h4>
       <button
         class="IconButton tutorial-tour-tip__header__close size--small"
@@ -33,7 +33,7 @@ exports[`components/onboardingTour/addComments/AddPropertiesTourStep > after hov
     <div
       class="tutorial-tour-tip__body"
     >
-      Add various properties to cards to make them more powerful!
+      Properties are what the board groups, sorts and filters by: who is doing the card, which project it belongs to, what stage it stands on.
     </div>
     <div
       class="tutorial-tour-tip__image"

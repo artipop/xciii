@@ -34,10 +34,6 @@ beforeEach(() => {
             value: '1',
         },
     ]))
-    mockedOctoClient.prepareOnboarding.mockResolvedValue({
-        teamID: 'team_id_1',
-        boardID: 'board_id_1',
-    })
 })
 
 afterEach(() => {
@@ -50,7 +46,7 @@ describe('pages/welcome', () => {
             current: {id: 'team_id_1'} as any,
         },
         users: {
-            me: {props: {}} as unknown as IUser,
+            me: {id: 'user_id_1', props: {}} as unknown as IUser,
             myConfig: {
                 onboardingTourStep: {value: '0'},
                 tourCategory: {value: 'onboarding'},
@@ -97,20 +93,20 @@ describe('pages/welcome', () => {
 
     test('Welcome Page shows Explore Page', () => {
         const {container} = renderPage(freshStore())
-        expect(screen.getByText('Take a tour')).toBeDefined()
+        expect(screen.getByText('Show me around')).toBeDefined()
         expect(container).toMatchSnapshot()
     })
 
     test('Welcome Page shows Explore Page with subpath', () => {
         w.baseURL = '/subpath'
         const {container} = renderPage(freshStore())
-        expect(screen.getByText('Take a tour')).toBeDefined()
+        expect(screen.getByText('Show me around')).toBeDefined()
         expect(container).toMatchSnapshot()
     })
 
     test('Welcome Page shows Explore Page And Then Proceeds after Clicking Explore', async () => {
         renderPage(freshStore())
-        const exploreButton = screen.getByText('No thanks, I\'ll figure it out myself')
+        const exploreButton = screen.getByText('No thanks, I\'ll find my way')
         expect(exploreButton).toBeDefined()
         userEvent.click(exploreButton)
         await waitFor(() => {
@@ -135,7 +131,7 @@ describe('pages/welcome', () => {
         await waitFor(() => {
             expect(screen.getByTestId('location').textContent).toBe('/team/team_id_1')
         })
-        expect(screen.queryByText('Take a tour')).toBeNull()
+        expect(screen.queryByText('Show me around')).toBeNull()
     })
 
     test('Welcome Page redirects us when we have a r query parameter with welcomePageViewed set to true', async () => {
@@ -166,7 +162,7 @@ describe('pages/welcome', () => {
             },
         })
         renderPage(store, '/welcome?r=/123')
-        const exploreButton = screen.getByText('No thanks, I\'ll figure it out myself')
+        const exploreButton = screen.getByText('No thanks, I\'ll find my way')
         expect(exploreButton).toBeDefined()
         userEvent.click(exploreButton)
         await waitFor(() => {
@@ -175,16 +171,27 @@ describe('pages/welcome', () => {
         })
     })
 
-    test('Welcome page starts tour on clicking Take a tour button', async () => {
+    // Starting the tour says so and goes on to the person's own board. It used
+    // to POST /onboard first, which duplicated Focalboard's English demo board
+    // into the team and sent them there instead of where they were going.
+    test('Welcome page starts the tour on the board the person was going to', async () => {
         const user = {} as unknown as IUser
         mockedOctoClient.getMe.mockResolvedValue(user)
 
         renderPage(freshStore())
-        const exploreButton = screen.getByText('Take a tour')
+        const exploreButton = screen.getByText('Show me around')
         expect(exploreButton).toBeDefined()
         userEvent.click(exploreButton)
-        await waitFor(() => expect(mockedOctoClient.prepareOnboarding).toHaveBeenCalledTimes(1))
-        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/team/team_id_1/board_id_1'))
+
+        await waitFor(() => expect(mockedOctoClient.patchUserConfig).toHaveBeenCalledWith('user_id_1', {
+            updatedFields: {
+                onboardingTourStarted: '1',
+                tourCategory: 'onboarding',
+                onboardingTourStep: '0',
+            },
+        }))
+        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/team/team_id_1'))
+        expect(mockedOctoClient.prepareOnboarding).not.toHaveBeenCalled()
     })
 
     test('Welcome page skips tour on clicking no thanks option', async () => {
@@ -192,7 +199,7 @@ describe('pages/welcome', () => {
         mockedOctoClient.getMe.mockResolvedValue(user)
 
         renderPage(freshStore())
-        const exploreButton = screen.getByText('No thanks, I\'ll figure it out myself')
+        const exploreButton = screen.getByText('No thanks, I\'ll find my way')
         expect(exploreButton).toBeDefined()
         userEvent.click(exploreButton)
         await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/team/team_id_1'))

@@ -18,7 +18,11 @@ import CardActionsMenu from '../cardActionsMenu/cardActionsMenu'
 import CardActionsMenuIcon from '../cardActionsMenu/cardActionsMenuIcon'
 import {attentionHeading, useCardAttention} from '../acp/attention'
 
-export const OnboardingCardClassName = 'onboardingCard'
+// What the tour points at when it says "open a card": the first card drawn on
+// the board. The tour used to aim at an `onboardingCard` class that this
+// component never put on anything — a hole cut around an element that was not
+// there, on a demo board this app does not make.
+export const FirstCardSelector = '.KanbanCard'
 
 type Props = {
     card: Card

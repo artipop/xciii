@@ -22,26 +22,19 @@ const SidebarCategoriesTourStep = (): JSX.Element => {
     const title = (
         <FormattedMessage
             id='SidebarTour.SidebarCategories.Title'
-            defaultMessage='Sidebar categories'
+            defaultMessage='Boards in the sidebar'
         />
     )
+
+    // One message and no link. This step used to explain a Mattermost 7.2
+    // upgrade that turned workspaces into sidebar categories, and pointed at
+    // release notes on docs.mattermost.com — an announcement about a product
+    // this is not, addressed to people who had upgraded something they never had.
     const screen = (
-        <div>
-            <FormattedMessage
-                id='SidebarTour.SidebarCategories.Body'
-                defaultMessage='All your boards are now organized under your new sidebar. No more switching between workspaces. One-time custom categories based on your prior workspaces may have automatically been created for you as part of your v7.2 upgrade. These can be removed or edited to your preference. '
-            />
-            <a
-                href='https://docs.mattermost.com/welcome/whats-new-in-v72.html'
-                target='_blank'
-                rel='noopener noreferrer'
-            >
-                <FormattedMessage
-                    id='SidebarTour.SidebarCategories.Link'
-                    defaultMessage='Learn more'
-                />
-            </a>
-        </div>
+        <FormattedMessage
+            id='SidebarTour.SidebarCategories.Body'
+            defaultMessage='Every board lives here. Drag one into a category of your own to keep the list in the order you think in.'
+        />
     )
 
     const punchout = useMeasurePunchouts(['.SidebarCategory'])

@@ -10,52 +10,10 @@
     flex-direction: row;
     align-items: center;
 
-    &.TopBar--overPage {
-        @include z-index(top-bar-over-page);
-    }
-
     a {
         display: flex;
         align-items: center;
         padding: 2px;
-    }
-
-    // The two menus and the two links read as one row: same muted colour, same
-    // hit area, and the divider is what says which of them change the app and
-    // which of them leave it.
-    .TopBar__button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 26px;
-        height: 26px;
-        padding: 0;
-        border: 0;
-        border-radius: var(--radius-sm);
-        background: transparent;
-        cursor: pointer;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgb(var(--center-channel-color-rgb));
-        }
-
-        svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        .CompassIcon {
-            font-size: 18px;
-        }
-    }
-
-    .TopBar__divider {
-        width: 1px;
-        height: 16px;
-        margin: 0 6px;
-        background-color: rgba(var(--center-channel-color-rgb), 0.16);
     }
 
     a.link {
@@ -67,11 +25,6 @@
         &:hover {
             color: rgba(var(--center-channel-color-rgb), 1);
         }
-    }
-
-    .HelpIcon {
-        font-size: 20px;
-        color: currentColor;
     }
 
     .versionFrame {
