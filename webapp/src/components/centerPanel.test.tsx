@@ -213,7 +213,7 @@ describe('components/centerPanel', () => {
         })
 
         // The soft way out is a button, and it says how to come back.
-        test('leaving through «Я сам освоюсь» closes the wizard', async () => {
+        test('leaving through «Разберусь сам» closes the wizard', async () => {
             stubPlan([{kind: 'project', optional: false, status: 'pending'}, {kind: 'done', optional: false, status: 'done'}])
             renderPanel()
             await waitFor(() => expect(screen.getByText('Set up this board: Project')).toBeInTheDocument())
