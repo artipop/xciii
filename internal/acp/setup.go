@@ -326,7 +326,7 @@ func (m *Manager) CheckSetupAnswer(boardID, step, value string) error {
 		}
 		for _, req := range s.Requires {
 			if req == SetupRequiresGit && !IsGitWorkdir(m.rootCtx, value) {
-				return fmt.Errorf("в каталоге %s нет git-репозитория, а этой доске он нужен: она публикует ветку или ждёт её — выполните `git init` или выберите другой каталог", value)
+				return fmt.Errorf("в папке %s нет git, а этой доске нужен репозиторий: она публикует ветку или ждёт её — выполните `git init` или выберите другую папку", value)
 			}
 		}
 	}

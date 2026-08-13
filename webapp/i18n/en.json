@@ -784,7 +784,7 @@
   "Workdirs.options-added": "Added {count, plural, one {# folder option} other {# folder options}} to \"{property}\"",
   "Workdirs.pick-title": "Choose a folder",
   "Workdirs.remove": "Remove",
-  "Workdirs.subtitle": "Folders on your machine an agent can work in. A card is matched to one by its \"{property}\" field. A board that runs no agents needs none of this.",
+  "Workdirs.subtitle": "Folders on your machine an agent can work in. A card is matched to one by its \"{property}\" field. A folder under git is a repository — every card gets a branch of its own in it.",
   "Workdirs.sync-hint": "Every folder above is an option of this board’s \"{property}\" field, so a card picks one there. A folder added here belongs to this board unless it says otherwise.",
   "Workdirs.title": "Folders",
   "Workdirs.unattached": "Not on any board yet",

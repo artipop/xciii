@@ -14,6 +14,7 @@ import {agentBindings} from './bindings'
 import {textToServers} from './agentsPanel'
 import AgentQuickAdd from './agentQuickAdd'
 import {agentColumn, checkSetupAnswer, createSetupPlan, recordSetupStep, SetupStep, SetupStepKind, stepRequires} from './boardSetup'
+import {syncWorkdirsToBoard} from './workdirSync'
 
 import './boardSetupWizard.scss'
 
@@ -207,6 +208,12 @@ const BoardSetupWizard = (props: Props) => {
         // every route waits for a branch.
         const kind = stepRequires(stepAt(STEP_WORKDIR), 'git') ? 'git' : ''
         await bindings!.AddAgentWorkdir!(workdirName().trim(), workdirPath(), props.board.id, kind, false)
+
+        // And onto the board, because the registry alone is not an answer: a
+        // card names its folder with an option of the board's own field, so a
+        // folder added here and nowhere else left the person who had just
+        // answered this question with nothing to pick on the card.
+        await syncWorkdirsToBoard(props.board, JSON.parse(await bindings!.ListAgentWorkdirs(props.board.id)) || [])
     }, STEP_WORKDIR)
 
     const addDeploy = () => run(async () => {

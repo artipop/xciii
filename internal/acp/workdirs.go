@@ -61,7 +61,7 @@ func (m *Manager) AddWorkdir(name, path, boardID, kind string, global bool) (Wor
 	clean := filepath.Clean(path)
 	info, err := os.Stat(clean)
 	if err != nil || !info.IsDir() {
-		return WorkdirEntry{}, fmt.Errorf("каталог не найден: %s", clean)
+		return WorkdirEntry{}, fmt.Errorf("папка не найдена: %s", clean)
 	}
 	// A folder under git gets a branch of its own and every transition that
 	// waits for one; one without is an ordinary folder an agent works in, which

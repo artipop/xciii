@@ -4,55 +4,14 @@ import {For, Show, createSignal, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
-import {Board, IPropertyTemplate, IPropertyOption} from '../../blocks/board'
-import mutator from '../../mutator'
-import {Utils, IDType} from '../../utils'
+import {Board} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
 import {sendFlashMessage} from '../flashMessages'
 
 import {agentBindings} from './bindings'
-import {BOARD_PROP_BRANCH_PROPERTY, BOARD_PROP_PROJECT_PROPERTY, boardBranchProperty, legacyBoardProp} from './automation'
+import {Workdir, WORKDIR_PROPERTY_TITLE, findWorkdirProperty, syncWorkdirsToBoard} from './workdirSync'
 
 import './workdirsPanel.scss'
-
-// What the property is *called* when this app has to make one. It is a name
-// given at creation and never a key — the board records which property it is
-// (BOARD_PROP_PROJECT_PROPERTY), so a person may rename the field and a board
-// in another language is not obliged to spell it this way. The templates ship
-// the property and the id together, so a board made from one never gets here.
-//
-// «Папки» rather than «Проекты»: what a card names is a folder on this machine,
-// and calling it a project asked every board of household notes to have one.
-// Boards made before this keep the name they carry — the field is found by the
-// id the board recorded, never by what it is called.
-const WORKDIR_PROPERTY_TITLE = 'Папки'
-
-// And what the branch field is called when this app makes one. Same rule: a
-// name given at creation, found afterwards by the id the board records.
-const BRANCH_PROPERTY_TITLE = 'Ветка'
-
-export type Workdir = {
-    name: string
-    path: string
-
-    // The board it was added on, and — unless global — the only one that offers
-    // it. Empty on entries written before workdirs belonged to a board.
-    boardId?: string
-    global?: boolean
-
-    // What git says about the folder right now, asked per listing rather than
-    // remembered: `git init` in a folder added last month makes it a
-    // repository, and nothing in the registry changed.
-    git?: boolean
-
-    // What work here branches from. A setting, prefilled from the repository
-    // when the folder was added.
-    base?: string
-
-    // Added as a repository, and the git is gone. The one state worth drawing:
-    // everything that waits for a branch will fail on this folder.
-    broken?: boolean
-}
 
 export function isWorkdirsAvailable(): boolean {
     return Boolean(agentBindings()?.ListAgentWorkdirs)
@@ -77,112 +36,22 @@ const WorkdirsPanel = (props: Props) => {
     const [pendingGlobal, setPendingGlobal] = createSignal(false)
     const [error, setError] = createSignal('')
 
-    // The board's workdir property, and it is the one the board says it is.
-    // Nothing is matched by name: a board that has not recorded one has not got
-    // one, and one is made.
-    const findWorkdirProperty = (board: Board, properties: IPropertyTemplate[]) => {
-        const recorded = board.properties?.[BOARD_PROP_PROJECT_PROPERTY] ??
-            board.properties?.[legacyBoardProp(BOARD_PROP_PROJECT_PROPERTY)!]
-        if (typeof recorded !== 'string' || !recorded) {
-            return undefined
-        }
-        return properties.find((p: IPropertyTemplate) => p.id === recorded)
-    }
-
     // The field a card names its folder in, quoted by the name this board gives
     // it: a board made before folders were called folders still says «Проекты»,
     // and a hint naming a field the board has not got sends somebody looking for
     // one that is not there.
     const propertyTitle = () => findWorkdirProperty(props.board, props.board.cardProperties)?.name || WORKDIR_PROPERTY_TITLE
 
-    // syncToBoard mirrors the registry into that property, creating it when the
-    // board has none. Add-only: existing options (which cards may reference) are
-    // never removed, and a board that already lists every workdir is left
-    // untouched — this runs on its own, so it must not churn the board or the
-    // undo history.
-    const syncToBoard = async (registry: Workdir[]) => {
-        if (registry.length === 0) {
-            return
-        }
-        const board = props.board
-        const property = findWorkdirProperty(board, board.cardProperties)
-
-        // A workdir marked "on every board" is offered to every board, and
-        // syncing it would give a board of shopping lists a folder field it
-        // never asked for. Such a workdir only reaches a board that already
-        // knows about folders — one that has the field, because a workdir of
-        // its own put it there.
-        const mine = registry.filter((r) => !r.global || property)
-        if (mine.length === 0) {
-            return
-        }
-
-        const existing = new Set((property?.options || []).map((o: IPropertyOption) => o.value.trim().toLowerCase()))
-        const missing = mine.filter((r) => !existing.has(r.name.trim().toLowerCase()))
-
-        // A board with a repository among its folders gets a field for the
-        // branch its cards work on. It is made here, beside the folder field,
-        // because the two exist for the same reason and a board of shopping
-        // lists must get neither: what puts it there is a folder that is
-        // actually a repository.
-        const wantsBranch = mine.some((r) => r.git) && !boardBranchProperty(board)
-        if (property && missing.length === 0 && !wantsBranch) {
-            return
-        }
-
+    // The registry into the board's own field, said out loud: a person who
+    // just added a folder wants to know the card can now name it.
+    const syncWorkdirs = async (registry: Workdir[]) => {
         try {
-            const newProperties: IPropertyTemplate[] = board.cardProperties.map((p) => ({
-                ...p,
-                options: [...p.options],
-            }))
-            let target = newProperties.find((p) => p.id === property?.id)
-            if (!target) {
-                target = {
-                    id: Utils.createGuid(IDType.BlockID),
-                    name: WORKDIR_PROPERTY_TITLE,
-                    type: 'multiSelect',
-                    options: [],
-                }
-                newProperties.push(target)
-            }
-            for (const workdir of missing) {
-                target.options.push({
-                    id: Utils.createGuid(IDType.BlockID),
-                    value: workdir.name,
-                    color: 'propColorDefault',
-                })
-            }
-            let branchProperty: IPropertyTemplate | undefined
-            if (wantsBranch) {
-                branchProperty = {
-                    id: Utils.createGuid(IDType.BlockID),
-                    name: BRANCH_PROPERTY_TITLE,
-                    type: 'text',
-                    options: [],
-                }
-                newProperties.push(branchProperty)
-            }
-            await mutator.updateBoardCardProperties(board.id, board.cardProperties, newProperties, 'sync workdirs')
-
-            // Written after the properties exist, and only for a board that has
-            // just been given one — the templates ship the pairs, and a board
-            // that already has them is never patched, so opening the dialog
-            // leaves the undo history and the websocket alone.
-            if (!property || branchProperty) {
-                const properties = {...board.properties}
-                if (!property) {
-                    properties[BOARD_PROP_PROJECT_PROPERTY] = target.id
-                }
-                if (branchProperty) {
-                    properties[BOARD_PROP_BRANCH_PROPERTY] = branchProperty.id
-                }
-                await mutator.updateBoard({...board, properties}, board, 'remember the workdirs field')
-            }
-            if (missing.length > 0) {
+            const {added, property} = await syncWorkdirsToBoard(props.board, registry)
+            if (added > 0) {
                 sendFlashMessage({
                     content: intl.formatMessage(
                         {id: 'Workdirs.options-added', defaultMessage: 'Added {count, plural, one {# folder option} other {# folder options}} to "{property}"'},
-                        {count: missing.length, property: target.name},
+                        {count: added, property: property?.name || propertyTitle()},
                     ),
                     severity: 'normal',
                 })
@@ -218,7 +87,7 @@ const WorkdirsPanel = (props: Props) => {
 
         // The board’s folder field is kept in step on its own, so a workdir
         // this board has is selectable on a card without a second step.
-        await syncToBoard(registry)
+        await syncWorkdirs(registry)
         props.onChange?.()
     }
 
@@ -302,7 +171,7 @@ const WorkdirsPanel = (props: Props) => {
     return (
         <div class='WorkdirsPanel'>
             <div class='WorkdirsPanel__subtitle'>
-                {intl.formatMessage({id: 'Workdirs.subtitle', defaultMessage: 'Folders on your machine an agent can work in. A card is matched to one by its "{property}" field. A board that runs no agents needs none of this.'}, {property: propertyTitle()})}
+                {intl.formatMessage({id: 'Workdirs.subtitle', defaultMessage: 'Folders on your machine an agent can work in. A card is matched to one by its "{property}" field. A folder under git is a repository — every card gets a branch of its own in it.'}, {property: propertyTitle()})}
             </div>
             <div class='WorkdirsPanel__content'>
                 <Show when={workdirs().length === 0 && !pendingPath()}>

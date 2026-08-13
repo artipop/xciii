@@ -92,6 +92,42 @@ describe('components/acp/workdirsPanel', () => {
         await waitFor(() => expect(setBase).toHaveBeenCalledWith('code', 'develop'))
     })
 
+    // The field this app made used to be called «Проекты», and a card that
+    // names a folder should not be asked about a project. The name is ours, so
+    // it is renamed once, in place — the board records the field by id, so
+    // nothing that points at it notices.
+    test('renames the field it made when it still says «Проекты»', async () => {
+        const legacyBoard = TestBlockFactory.createBoard()
+        legacyBoard.cardProperties.push({
+            id: 'projectprop',
+            name: 'Проекты',
+            type: 'multiSelect',
+            options: [{id: 'o1', value: 'alpha', color: 'propColorDefault'}],
+        })
+        legacyBoard.properties = {...legacyBoard.properties, xciiiProjectProperty: 'projectprop'}
+        anyWindow.go = {main: {App: {
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
+            PickDirectory: vi.fn(),
+            AddAgentWorkdir: vi.fn(),
+            RemoveAgentWorkdir: vi.fn(),
+        }}}
+        mockedMutator.updateBoardCardProperties.mockResolvedValue()
+
+        render(() => wrapIntl(() =>
+            <WorkdirsPanel
+                board={legacyBoard}
+                onClose={vi.fn()}
+            />,
+        ))
+
+        await waitFor(() => expect(mockedMutator.updateBoardCardProperties).toHaveBeenCalledTimes(1))
+        const renamed = mockedMutator.updateBoardCardProperties.mock.calls[0][2].find((p) => p.id === 'projectprop')!
+        expect(renamed.name).toBe('Папки')
+
+        // And its options are left exactly as they were: cards reference them.
+        expect(renamed.options.map((o) => o.value)).toEqual(['alpha'])
+    })
+
     // A workdir registered before workdirs belonged to a board is offered
     // nowhere — and its folder cannot be added again, the path is taken. So it
     // is listed apart, with the one action that puts it back into use.
@@ -262,7 +298,7 @@ describe('components/acp/workdirsPanel', () => {
         const boardWithProjects = TestBlockFactory.createBoard()
         boardWithProjects.cardProperties.push({
             id: 'projectprop',
-            name: 'Проекты',
+            name: 'Папки',
             type: 'multiSelect',
             options: [{id: 'o1', value: 'alpha', color: 'propColorDefault'}],
         })

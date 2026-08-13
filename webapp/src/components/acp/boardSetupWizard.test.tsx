@@ -6,11 +6,14 @@ import {Board} from '../../blocks/board'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import {wrapIntl} from '../../testUtils'
 
+import mutator from '../../mutator'
+
 import {SetupPlan, SetupStep, SetupStepKind} from './boardSetup'
 
 import BoardSetupWizard, {readRegistry} from './boardSetupWizard'
 
 vi.mock('../../mutator')
+const mockedMutator = vi.mocked(mutator)
 
 const anyWindow = window as any
 
@@ -79,7 +82,14 @@ describe('components/acp/boardSetupWizard', () => {
     })
 
     test('the project step will not pass until there is one', async () => {
-        const bindings = stubBindings()
+        // The registry answers empty until the folder is added, and with it
+        // afterwards — which is what the wizard reads back to put it on the
+        // board's own field.
+        const bindings = stubBindings({
+            ListAgentWorkdirs: vi.fn().
+                mockResolvedValueOnce('[]').
+                mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/Users/me/src/webapp'}])),
+        })
         renderWizard()
         await waitFor(() => expect(bindings.ListAgentWorkdirs).toHaveBeenCalled())
 
@@ -92,6 +102,15 @@ describe('components/acp/boardSetupWizard', () => {
 
         // Filed against the board being set up: the wizard is that board's.
         await waitFor(() => expect(bindings.AddAgentWorkdir).toHaveBeenCalledWith('webapp', '/Users/me/src/webapp', testBoard.id, '', false))
+
+        // And onto the board's own field, or the person who has just answered
+        // "which folder" has nothing to pick on the card: a card names its
+        // folder with an option of that field and with nothing else.
+        await waitFor(() => expect(mockedMutator.updateBoardCardProperties).toHaveBeenCalled())
+        const added = mockedMutator.updateBoardCardProperties.mock.calls[0][2].
+            flatMap((p: {options?: Array<{value: string}>}) => p.options || []).
+            map((o: {value: string}) => o.value)
+        expect(added).toContain('webapp')
 
         // And having added it, the wizard is on the agent step.
         await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
