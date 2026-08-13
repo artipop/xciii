@@ -712,7 +712,7 @@
   "ViewHeader.delete-template": "Удалить",
   "ViewHeader.display-by": "Показать по: {property}",
   "ViewHeader.edit-template": "Изменить",
-  "ViewHeader.empty-card": "Очистить карточку",
+  "ViewHeader.empty-card": "Пустая карточка",
   "ViewHeader.export-board-archive": "Экспорт архива доски",
   "ViewHeader.export-complete": "Экспорт завершен!",
   "ViewHeader.export-csv": "Экспорт в CSV",
