@@ -40,7 +40,13 @@ export type UpdateState = {
     downloaded?: number
     skippedVersion?: string
     lastCheckedAt?: string
+
+    // error is the framework's own English, verbatim; errorStage is the step it
+    // failed at. The panel says the actionable half itself off the stage and
+    // keeps the verbatim text underneath, because that text is what a bug
+    // report needs and nothing on this side can reconstruct it.
     error?: string
+    errorStage?: 'check' | 'download' | 'verify' | 'install'
     path?: string
 }
 

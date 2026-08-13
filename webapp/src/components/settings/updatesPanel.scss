@@ -70,6 +70,17 @@
         color: rgb(var(--error-text-rgb));
     }
 
+    // The framework's own words, kept for a bug report and sized so they do not
+    // compete with the sentence above them. It wraps rather than truncates: a
+    // half-shown error is one nobody can copy.
+    .UpdatesPanel__detail {
+        @include data;
+
+        font-size: var(--text-small);
+        opacity: 0.5;
+        word-break: break-word;
+    }
+
     .UpdatesPanel__actions {
         display: flex;
         gap: 8px;

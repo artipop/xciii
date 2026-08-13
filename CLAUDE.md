@@ -431,8 +431,8 @@ put in the one field that says who works a card — and «клаус 2» was pro
 under the name "2".
 
 Folders belong to **running an agent**, not to having a board: a board with no
-`agent`/`test` column is never asked for one, never grows a «Проекты» property,
-and a project marked global joins only boards that already have that property.
+`agent`/`test` column is never asked for one, never grows a «Папки» property,
+and a folder marked global joins only boards that already have that property.
 
 ### An agent talks back through MCP, not through its output
 
@@ -446,7 +446,7 @@ The surface is the board in the vocabulary a person uses: read it
 (`list_columns`, `list_flows`, `list_cards`, `get_card`), put work on it
 (`create_card`, `create_cards`), change it (`update_card`, `comment_card`), and
 carry a card on (`move_card`). Everything is **named, never identified** — a
-column, a project, a route, an answer a stage waits for — because names are what
+column, a folder, a route, an answer a stage waits for — because names are what
 a person typed and ids are what the board's own REST API would have made an agent
 learn. A **card id** is the one exception, and it has a default: empty means the
 card the run stands on (the grant carries it), which is the card an agent working
@@ -480,7 +480,7 @@ one *is* the app: the board lives in this process, and the app is already a
 separate process from the agent, already listening on an origin it can reach. A
 subprocess in between would have been a proxy of ours to ourselves with the tool
 schema written twice. It is not the board's own REST API either, because what it
-offers is ours: a column that means something, a project by name.
+offers is ours: a column that means something, a folder by name.
 
 The server carries **a grant token, not a board id**
 (`internal/acp/boardtools.go`): the token names the board, is minted per agent
@@ -648,8 +648,8 @@ person opening one is present.
 **A folder is optional, an agent is not — and neither is picked silently.** A
 card can be talked over — wording, a plan, the brief — before anybody decides
 where the work lives, so "the card names no folder" is not a refusal:
-`resolveProject`'s two nothing-chosen errors are marked `errNoProject`
-(projects.go) and `StartCardTerminal` opens the conversation in **«черновики
+`resolveWorkdir`'s two nothing-chosen errors are marked `errNoWorkdir`
+(workdirs.go) and `StartCardTerminal` opens the conversation in **«черновики
 доски»** — `<dataDir>/boards/<boardID>`, the board's own directory under the
 app's data, which is what every UI surface calls it (`TerminalInfo.
 BoardFolder` is how a surface knows to; the name is the board id and nothing
@@ -660,7 +660,7 @@ whether to answer with it. One folder
 per board on purpose: what an agent writes there for one card — a brief, a
 draft — is on hand when another card of the same board is talked over; the
 price is that the CLI's directory-scoped resume is board-scoped there, the
-same trade every non-git project folder makes. The *panel* asks before
+same trade every non-git folder makes. The *panel* asks before
 starting one: `GetCardAgent.folder` (`CardFolder`) says whether the card
 resolves a folder, and a card that does not — with no conversation to
 reopen — gets the question «В какой папке будет работать агент?», answered by
@@ -757,16 +757,25 @@ and the helper process that waits for us to exit and renames the new bundle into
 place. What this repository adds is the three things the framework leaves to the
 application.
 
-**Which feed to trust.** The provider is `endpoint`, not `github`. Both read
-GitHub Releases; the difference is that `github` can only verify a `SHA256SUMS`
-sidecar, and a hash published beside the file it describes catches a corrupted
-download and nothing else. `endpoint` reads a signed `manifest.json`, and the
-signature is checked against `build/updater.key.pub` — `go:embed`ed, so the
-feed has no say in which key authenticates it. The manifest is a file of the
-release, so GitHub is still the whole hosting and `wails3 updater manifest` in
-CI is the whole publishing side. The address is fixed
-(`releases/latest/download/manifest.json`) while the artifact links inside it
-are absolute per tag, which is what lets one never move and the others always.
+**Which feed to trust.** The provider is `endpoint`, not `github`. `github`
+reads a release's assets and can verify a `SHA256SUMS` sidecar, which catches a
+corrupted download and nothing else — the hash and the file come from the same
+place — and it ties the app to a public repository for ever, which this one is
+not. `endpoint` reads a signed `manifest.json`, and the signature is checked
+against `build/updater.key.pub` — `go:embed`ed, so the feed has no say in which
+key authenticates it. `wails3 updater manifest` in CI is the whole publishing
+side.
+
+**The address is the part that cannot be taken back.** `updateManifestURL` is
+`https://updates.deffun.com/stable.json`, a domain of ours rather than a
+release page on somebody's platform, because every copy already installed asks
+there and nowhere else: where the *files* are kept is a decision that can be
+revisited every release, and that one line cannot. So the manifest sits at one
+unchanging address and the artifact links inside it are absolute per version
+(`…/v1.1.0/…`), which is what lets one never move and the others always. It is
+also the only place the release address is written down — the workflow reads
+the prefix back out of the constant — so the app and the release cannot come to
+disagree about where a release lives.
 
 **What survives a restart.** Nothing, on the framework's side: the download is
 a temp directory the helper deletes, and the version a person skipped is a
@@ -844,7 +853,7 @@ extension is launched through. `docs/release.md` is the release itself;
   prompt, or the name a thing is *given* when this app creates it — and nothing
   else. Nothing may find, match or branch on one: the board's column property is
   whatever a view groups by, the author and link properties are found by their
-  *type*, the inbox view by what it filters, the projects field by an id the
+  *type*, the inbox view by what it filters, the folders field by an id the
   board records (`xciiiProjectProperty`). Names that do decide something come from
   the board or the registry — a rule's `Props`, a flow's stages — where a person
   typed them against the board in front of them; they are data, not literals in

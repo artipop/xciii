@@ -95,6 +95,25 @@ const UpdatesPanel = () => {
         }
     }
 
+    // What went wrong, said in a way somebody can act on. The framework's own
+    // message ("dial tcp: lookup …: no such host") is kept, in small print,
+    // below this — it is the half a bug report needs and the half nobody can
+    // do anything with.
+    const reason = (s: UpdateState): string => {
+        switch (s.errorStage) {
+        case 'check':
+            return intl.formatMessage({id: 'Updates.error-check', defaultMessage: 'Could not reach the update server.'})
+        case 'download':
+            return intl.formatMessage({id: 'Updates.error-download', defaultMessage: 'Could not download the update.'})
+        case 'verify':
+            return intl.formatMessage({id: 'Updates.error-verify', defaultMessage: 'The downloaded update did not match its signature and was not installed.'})
+        case 'install':
+            return intl.formatMessage({id: 'Updates.error-install', defaultMessage: 'The update downloaded but could not be installed.'})
+        default:
+            return ''
+        }
+    }
+
     const checkedAt = (): string => {
         const at = state().lastCheckedAt
         if (!at) {
@@ -156,8 +175,11 @@ const UpdatesPanel = () => {
                     <div class='UpdatesPanel__notes'>{state().notes}</div>
                 </Show>
 
+                <Show when={reason(state())}>
+                    <div class='UpdatesPanel__error'>{reason(state())}</div>
+                </Show>
                 <Show when={state().error || error()}>
-                    <div class='UpdatesPanel__error'>{state().error || error()}</div>
+                    <div class='UpdatesPanel__detail'>{state().error || error()}</div>
                 </Show>
 
                 <div class='UpdatesPanel__actions'>

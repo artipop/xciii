@@ -53,7 +53,7 @@ even when it is served from the same address as the real one.
   again — the same way it does on a first install. The update itself goes
   through.
 - **Windows.** A per-user install updates itself — that is what the installer
-  from our releases page sets up. An app moved into `Program Files` by hand
+  we publish sets up. An app moved into `Program Files` by hand
   cannot replace itself: that needs administrator rights.
 - **Linux.** The unpacked `.tar.gz` in your home directory updates itself.
   `.deb` packages and AppImages installed into system directories are updated

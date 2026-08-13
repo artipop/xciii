@@ -28,16 +28,17 @@ import (
 // release feed to trust, what to remember between launches, and what a person
 // sees.
 //
-// **The feed is a signed manifest, not the GitHub API.** The framework's
+// **The feed is a signed manifest on an address of ours.** The framework's
 // `github` provider reads a release's assets and can verify a SHA256SUMS
 // sidecar, which catches a corrupted download and nothing else: the hash and
 // the file come from the same place, so a release that was tampered with
-// carries a hash that agrees with it. The `endpoint` provider reads a
-// manifest.json whose artifacts are signed, and the signature is checked
+// carries a hash that agrees with it. It also ties the app to a public
+// repository for ever, and this one is not public. The `endpoint` provider
+// reads a manifest.json whose artifacts are signed, the signature is checked
 // against updaterPublicKey below — compiled into this binary, so the feed has
-// no say in which key authenticates it. The manifest is published as a file of
-// the release itself, so the hosting is still GitHub Releases and the whole
-// publishing side is one `wails3 updater manifest` in CI.
+// no say in which key authenticates it — and the manifest is a two-kilobyte
+// file that can be served from anywhere. The whole publishing side is one
+// `wails3 updater manifest` in CI.
 //
 // **The framework's own window is not used** (updater.WindowNone). It is a
 // good window and it is entirely in English, hard-coded; this product is
@@ -49,15 +50,20 @@ import (
 //go:embed build/updater.key.pub
 var updaterPublicKey []byte
 
-// updateManifestURL is where the manifest of the newest release lives. GitHub
-// serves `releases/latest/download/<asset>` as a redirect to the newest
-// non-prerelease, which is what makes this one fixed address rather than
-// something that has to know the version it is looking for. A repository with
-// no releases answers 404, which the provider reads as "nothing newer".
+// updateManifestURL is where the manifest of the newest release lives, and it
+// is **the one address this application can never change**: every copy already
+// installed asks here and nowhere else. Which is the whole reason it is a
+// domain of ours rather than a release page on somebody's platform — where the
+// files are kept is then a decision that can be revisited every release, and
+// this line cannot.
 //
-// The artifact URLs inside the manifest are absolute (CI passes -url-prefix
-// with the tag), so nothing here depends on what that redirect resolves to.
-const updateManifestURL = "https://github.com/artipop/xciii/releases/latest/download/manifest.json"
+// Nothing answering, or a 404, is read as "nothing newer", so a bucket that is
+// not there yet costs a log line rather than an error on the panel.
+//
+// It is also the only place the release address is written down: the workflow
+// reads the prefix out of this constant to build the artifact URLs, so the app
+// and the release cannot come to disagree about where a release lives.
+const updateManifestURL = "https://updates.deffun.com/stable.json"
 
 // updateCheckInterval is our own timer rather than updater.Config.CheckInterval.
 // Init may be called once and StopPeriodicCheck cannot be undone, so the
@@ -155,7 +161,15 @@ type updateState struct {
 
 	SkippedVersion string `json:"skippedVersion,omitempty"`
 	LastCheckedAt  string `json:"lastCheckedAt,omitempty"`
-	Error          string `json:"error,omitempty"`
+
+	// Error is what went wrong, verbatim and in the framework's English:
+	// "dial tcp: lookup updates.deffun.com: no such host". ErrorStage is which
+	// step it went wrong at (check | download | verify | install), and it is
+	// there because the panel says the actionable half itself, in the reader's
+	// language — the verbatim text stays underneath it, in small print, since
+	// it is what a bug report needs and nothing else here can supply it.
+	Error      string `json:"error,omitempty"`
+	ErrorStage string `json:"errorStage,omitempty"`
 
 	// Path is where the settings live, so the panel can name the file when
 	// something has to be looked at by hand.
@@ -252,12 +266,12 @@ func (c *updateController) listen(wapp *application.App) {
 			s.ReleaseName = rel.Name
 			s.Notes = rel.Notes
 			s.SizeBytes = rel.Artifact.Size
-			s.Error = ""
+			s.Error, s.ErrorStage = "", ""
 		})
 	}
 
 	wapp.Event.On(updater.EventCheckStarted, func(*application.CustomEvent) {
-		c.publish(func(s *updateState) { s.Error = "" })
+		c.publish(func(s *updateState) { s.Error, s.ErrorStage = "", "" })
 	})
 	wapp.Event.On(updater.EventUpdateAvailable, func(e *application.CustomEvent) {
 		c.checked()
@@ -274,7 +288,7 @@ func (c *updateController) listen(wapp *application.App) {
 			s.Notes = ""
 			s.SizeBytes = 0
 			s.Downloaded = 0
-			s.Error = ""
+			s.Error, s.ErrorStage = "", ""
 		})
 	})
 	wapp.Event.On(updater.EventDownloadStarted, release)
@@ -301,7 +315,9 @@ func (c *updateController) listen(wapp *application.App) {
 			return
 		}
 		log.Printf("updates: %s: %s", info.Stage, info.Message)
-		c.publish(func(s *updateState) { s.Error = info.Message })
+		c.publish(func(s *updateState) {
+			s.Error, s.ErrorStage = info.Message, string(info.Stage)
+		})
 	})
 }
 
@@ -453,7 +469,7 @@ func (c *updateController) check() error {
 	}
 	go func() {
 		if _, err := c.up.Check(context.Background()); err != nil {
-			c.failed(err)
+			c.failed(updater.StageCheck, err)
 		}
 	}()
 	return nil
@@ -467,7 +483,7 @@ func (c *updateController) install() error {
 	}
 	go func() {
 		if err := c.up.DownloadAndInstall(context.Background()); err != nil {
-			c.failed(err)
+			c.failed(updater.StageDownload, err)
 		}
 	}()
 	return nil
@@ -478,9 +494,11 @@ func (c *updateController) install() error {
 // the ones that do not are those refused before any stage began — nothing to
 // download, a download already running — and without this they would be a line
 // in a log nobody has open and a button that appeared to do nothing.
-func (c *updateController) failed(err error) {
-	log.Printf("updates: %v", err)
-	c.publish(func(s *updateState) { s.Error = err.Error() })
+func (c *updateController) failed(stage updater.Stage, err error) {
+	log.Printf("updates: %s: %v", stage, err)
+	c.publish(func(s *updateState) {
+		s.Error, s.ErrorStage = err.Error(), string(stage)
+	})
 }
 
 // restart hands over to the framework's helper: it spawns a copy of this

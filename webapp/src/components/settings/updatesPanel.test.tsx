@@ -140,6 +140,22 @@ describe('components/settings/updatesPanel', () => {
         expect(screen.getByText(/Last checked/)).toBeInTheDocument()
     })
 
+    // The framework's errors are English and shaped like a Go stack of wrapped
+    // verbs. What a person can act on is said here, in their language; the raw
+    // text stays because it is the half a bug report needs.
+    it('says what went wrong in the reader\'s language, keeping the raw text', async () => {
+        anyWindow.go = {main: {App: bindings({
+            status: 'error',
+            errorStage: 'check',
+            error: 'updater: all providers failed: dial tcp: lookup updates.deffun.com: no such host',
+        })}}
+
+        open()
+
+        expect(await screen.findByText('Could not reach the update server.')).toBeInTheDocument()
+        expect(screen.getByText(/no such host/)).toBeInTheDocument()
+    })
+
     it('turns the automatic check off', async () => {
         const app = bindings({})
         anyWindow.go = {main: {App: app}}

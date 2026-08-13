@@ -4,9 +4,15 @@ name: Release
 # commit, `git tag -a vx.y.z`, push the tag. This builds every platform, signs
 # the update manifest and publishes the lot. docs/release.md is the long form.
 #
-# The tag's own annotation is the release notes — the same text on the GitHub
-# release page and in the app's «Обновления» panel, because they are read by
-# the same person about the same release.
+# **This repository is private and stays private, and nothing here needs it not
+# to be.** The build runs on its own Actions minutes; what ships goes to an
+# S3-compatible bucket served under a domain of ours, which is also what an
+# installed app asks — see `updateManifestURL` in updates.go. No public
+# repository, no token handed to users, and one address that can point wherever
+# the files are kept next year.
+#
+# The tag's own annotation is the release notes — the text the app shows in its
+# «Обновления» panel.
 #
 # Nothing here reimplements the build. The Taskfiles already know how to build
 # and package this app on each platform, and the third-party Wails actions on
@@ -200,12 +206,25 @@ jobs:
           pattern: dist-*
           merge-multiple: true
 
-      - name: Work out the version
+      # Both numbers come out of the source. The base URL is read from the same
+      # constant the running app asks — `https://updates.deffun.com/stable.json`
+      # minus its last segment — so the address the release is published under
+      # and the address an installed copy looks at cannot drift apart.
+      - name: Work out the version and the release address
         id: version
         shell: bash
         run: |
           version="$(sed -n 's/^const appVersion = "\(.*\)"$/\1/p' version.go)"
+          manifest="$(sed -n 's/^const updateManifestURL = "\(.*\)"$/\1/p' updates.go)"
+          base="${manifest%/*}"
+          if [ -z "${version}" ] || [ -z "${base}" ]; then
+            echo "could not read the version or the feed address out of the source" >&2
+            exit 1
+          fi
           echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "manifest_name=${manifest##*/}" >> "$GITHUB_OUTPUT"
+          echo "url_prefix=${base}/v${version}/" >> "$GITHUB_OUTPUT"
+          echo "publishing ${version} under ${base}/v${version}/"
 
       # The annotated tag's message. A lightweight tag, or a manual run, leaves
       # it empty and the release carries its version and nothing else — better
@@ -227,9 +246,9 @@ jobs:
       # which is compiled into every binary this repository ships — so a
       # manifest served by anybody but us fails to verify inside the app.
       #
-      # -url-prefix makes the artifact URLs absolute against this tag, which is
-      # what lets the app read the manifest through the moving
-      # `releases/latest/download/` address without the artifact links moving.
+      # -url-prefix makes the artifact URLs absolute against this version's own
+      # folder, which is what lets the manifest live at one unchanging address
+      # while every release's files live at their own.
       - name: Sign the release manifest
         shell: bash
         env:
@@ -245,7 +264,7 @@ jobs:
             -channel stable \
             -key updater.key \
             -notes-file notes.md \
-            -url-prefix "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${{ steps.version.outputs.version }}/" \
+            -url-prefix "${{ steps.version.outputs.url_prefix }}" \
             -output dist/manifest.json \
             dist/update/
           rm -f updater.key
@@ -253,8 +272,10 @@ jobs:
       # The gate: verifying against the *tracked* public key proves the release
       # was signed with the key the shipped binaries trust. A mismatch here is
       # an update nobody could install, caught before it is published.
+      # -dir explicitly: verify defaults to the manifest's own directory, and
+      # the manifest is written a level above the files it describes.
       - name: Verify the manifest against the key the app is built with
-        run: wails3 updater verify -manifest dist/manifest.json -publickey build/updater.key.pub
+        run: wails3 updater verify -manifest dist/manifest.json -publickey build/updater.key.pub -dir dist/update
 
       - name: Show what would be published
         shell: bash
@@ -262,13 +283,67 @@ jobs:
           ls -l dist/update dist/install
           cat dist/manifest.json
 
-      - name: Publish the release
+      # S3-compatible, so the same three lines work against Cloudflare R2,
+      # Backblaze B2 or plain S3; only the endpoint changes. The AWS CLI ships
+      # on the runner.
+      #
+      # **The files go up before the manifest, and that ordering is the point.**
+      # The manifest is what says a release exists; publishing it first opens a
+      # window in which every app that checks downloads a 404 and shows a
+      # failed update for a release that is fine.
+      #
+      # Cache-Control likewise: the artifacts are immutable under a versioned
+      # path and may be cached for ever, but a manifest cached for hours is a
+      # release nobody sees until the CDN feels like it.
+      - name: Publish
         if: github.ref_type == 'tag' && inputs.dry_run != true
-        uses: softprops/action-gh-release@v2
-        with:
-          name: XCIII ${{ steps.version.outputs.version }}
-          body_path: notes.md
-          files: |
-            dist/manifest.json
-            dist/update/*
-            dist/install/*
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.RELEASES_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.RELEASES_S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          ENDPOINT: ${{ secrets.RELEASES_S3_ENDPOINT }}
+          BUCKET: ${{ secrets.RELEASES_S3_BUCKET }}
+        run: |
+          for name in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY ENDPOINT BUCKET; do
+            if [ -z "${!name}" ]; then
+              echo "${name} is not set — see docs/release.md" >&2
+              exit 1
+            fi
+          done
+          version="${{ steps.version.outputs.version }}"
+
+          aws s3 sync dist/update "s3://${BUCKET}/v${version}/" \
+            --endpoint-url "${ENDPOINT}" \
+            --cache-control "public, max-age=31536000, immutable"
+          aws s3 sync dist/install "s3://${BUCKET}/v${version}/" \
+            --endpoint-url "${ENDPOINT}" \
+            --cache-control "public, max-age=31536000, immutable"
+
+          aws s3 cp dist/manifest.json "s3://${BUCKET}/${{ steps.version.outputs.manifest_name }}" \
+            --endpoint-url "${ENDPOINT}" \
+            --content-type application/json \
+            --cache-control "public, max-age=300"
+
+      # Proof that an installed app would now find this release, made the same
+      # way one does: fetch the address compiled into the binary and check it
+      # against the same public key. A bucket whose custom domain is not wired
+      # up yet fails here rather than in somebody's app.
+      - name: Check the published feed the way the app reads it
+        if: github.ref_type == 'tag' && inputs.dry_run != true
+        shell: bash
+        run: |
+          manifest="$(sed -n 's/^const updateManifestURL = "\(.*\)"$/\1/p' updates.go)"
+          for attempt in 1 2 3 4 5; do
+            if curl -fsS "${manifest}" -o published.json; then break; fi
+            echo "not there yet (attempt ${attempt})"; sleep 10
+          done
+          # Against the files this run built: proves the manifest now being
+          # served is the one that was signed here, describing these bytes.
+          wails3 updater verify -manifest published.json -publickey build/updater.key.pub -dir dist/update
+          # And that the artifacts it points at are actually reachable — a
+          # bucket whose public access or custom domain is not wired up serves
+          # the manifest from cache and 403s every download.
+          for url in $(grep -oE 'https://[^"]+' published.json); do
+            curl -fsSI "${url}" > /dev/null || { echo "unreachable: ${url}" >&2; exit 1; }
+          done
