@@ -139,6 +139,7 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
             class="CompassIcon icon-settings-outline SettingsIcon"
           />
           Settings
+          
         </button>
         
       </div>
@@ -1238,6 +1239,7 @@ exports[`src/components/workspace > should match snapshot 1`] = `
             class="CompassIcon icon-settings-outline SettingsIcon"
           />
           Settings
+          
         </button>
         
       </div>

@@ -51,6 +51,21 @@ tasks:
     cmds:
       - wails3 dev -config ./build/config.yml
 
+  version:set:
+    summary: Writes one version number into every file that states one (VERSION=x.y.z)
+    # The first half of cutting a release: bump here, commit, tag `v{{.VERSION}}`,
+    # push, and .github/workflows/release.yml builds and publishes it.
+    #
+    # Deliberately not `common:update:build-assets`, which regenerates the
+    # platform assets from build/config.yml: it rewrites build/darwin/Info.plist
+    # from the CLI's own template and drops the hand-written CFBundleURLTypes
+    # block that registers the xciii:// scheme the share extension launches us
+    # with.
+    requires:
+      vars: [VERSION]
+    cmds:
+      - go run ./cmd/setversion {{.VERSION}}
+
   build:server:
     summary: Builds the application in server mode (no GUI, HTTP server only)
     cmds:

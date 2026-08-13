@@ -23,4 +23,14 @@
             font-size: 18px;
         }
     }
+
+    // Amber, like everything else in this app that is waiting for a person to
+    // decide something. It sits after the word rather than over the icon: the
+    // sidebar is a list of words, and a badge on a 18px glyph is a smudge.
+    .SidebarSettingsButton__dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgb(var(--warning-rgb));
+    }
 }

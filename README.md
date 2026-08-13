@@ -400,7 +400,23 @@ For pure webapp/CSS iteration the browser loop is still faster than the webview:
 run the server build above, then `cd webapp && npm run dev` for HMR at
 http://localhost:5173.
 
-## Build release installers
+## Cut a release
+
+A release is a tag. `.github/workflows/release.yml` builds all four platforms
+natively, signs the update manifest and publishes the lot:
+
+```
+wails3 task version:set VERSION=1.1.0   # every file that states a version
+go test .                               # the guard: they all have to agree
+git commit -am "Release 1.1.0"
+git tag -a v1.1.0                       # the annotation is the release notes
+git push && git push --tags
+```
+
+`docs/release.md` is the whole of it — the signing key, what is built where,
+and how to dry-run the workflow without publishing anything.
+
+## Build release installers by hand
 
 From the repo root, per platform. The build produces `webapp/pack` itself and
 embeds it, so the artifacts are single-binary:
@@ -468,6 +484,9 @@ window-position autosave.
 - [docs/build-and-platforms.md](docs/build-and-platforms.md) — what to run to get a
   binary on each of the three platforms, which build tags do what, and the traps
   already stepped in.
+- [docs/release.md](docs/release.md) — cutting a release: the version, the signing
+  key updates are verified against, what the workflow builds where, and how to
+  run it without publishing.
 - [docs/webapp.md](docs/webapp.md) — the page: the store that replaced Redux, what
   each React library was replaced by, and how its tests are written.
 - [docs/local-and-shared-state.md](docs/local-and-shared-state.md) — which of the

@@ -37,6 +37,10 @@ type App struct {
 	// board is how the page at /m reads the board, since it is served the
 	// bindings and the event socket and no board API of its own.
 	board *boardadapter.Writer
+	// updates is how this app replaces itself; nil in a headless build and
+	// whenever the release feed could not be configured. Its methods are safe
+	// on a nil receiver, as the tailnet controller's are.
+	updates *updateController
 }
 
 func NewApp(emitter *wailsEmitter) *App {
@@ -1306,4 +1310,68 @@ func (a *App) ShareItem(boardID, title, url, note string) (string, error) {
 		return "", err
 	}
 	return string(out), nil
+}
+
+// GetUpdateState reports everything the «Обновления» panel draws: which
+// version is running, whether the automatic check is on, what the last check
+// found and how far along an install is. JSON, the shape of updateState in
+// updates.go.
+//
+// A build that cannot update itself answers {"supported":false}, and the
+// settings dialog leaves the section out — which is also the answer in a plain
+// browser and as a Mattermost plugin, where there is no Go side to ask.
+func (a *App) GetUpdateState() (string, error) {
+	out, err := json.Marshal(a.updates.snapshot())
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// SetUpdateSettings changes what the panel owns — for now only whether the app
+// looks for updates by itself — and returns the new state. {"enabled":true}.
+func (a *App) SetUpdateSettings(entryJSON string) (string, error) {
+	var want struct {
+		Enabled bool `json:"enabled"`
+	}
+	if err := json.Unmarshal([]byte(entryJSON), &want); err != nil {
+		return "", err
+	}
+	state, err := a.updates.setEnabled(want.Enabled)
+	if err != nil {
+		return "", err
+	}
+	out, err := json.Marshal(state)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// CheckForUpdate asks the release feed. It returns as soon as the request is
+// away: what was found arrives as the acp:update event, which is the same way
+// the panel hears about a check nobody started.
+func (a *App) CheckForUpdate() error {
+	return a.updates.check()
+}
+
+// InstallUpdate downloads what the last check found, checks its signature
+// against the key compiled into this binary, and stages it. Nothing is
+// replaced until RestartToUpdate.
+func (a *App) InstallUpdate() error {
+	return a.updates.install()
+}
+
+// SkipUpdateVersion stops offering the release now on offer. It is remembered
+// across restarts, which the framework does not do for us.
+func (a *App) SkipUpdateVersion() error {
+	return a.updates.skip()
+}
+
+// RestartToUpdate closes this app and brings back the new one. Everything the
+// shutdown hook does — agents given their grace period, plugins stopped, the
+// board server closed — happens first, because the helper waits for this
+// process to be gone before it touches anything.
+func (a *App) RestartToUpdate() error {
+	return a.updates.restart()
 }

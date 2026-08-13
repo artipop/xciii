@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/updater"
 
 	"github.com/artipop/xciii/server/services/notify"
 
@@ -62,6 +63,15 @@ func ignoreViteDevServer() {
 }
 
 func main() {
+	// An update in progress re-execs this binary as its own helper: wait for
+	// the old process to go, rename the new bundle into place, launch it, exit.
+	// That is the whole of what the helper does, and it must not do anything
+	// else — application.New calls this too, but by then a board server has
+	// opened SQLite, taken a port, restored a PATH from the login shell and
+	// started plugin processes, all of it in the one process whose job is to
+	// wait for us to die. In helper mode the call never returns.
+	updater.HandleHelperMode()
+
 	// `xciii mcp dokku` runs this same binary as an MCP server for an agent
 	// session; it must come first, before the board server or a window exists.
 	maybeRunMCP(os.Args[1:])
@@ -298,6 +308,7 @@ func main() {
 			mgr.Shutdown(5 * time.Second)
 		}
 		tailnet.close()
+		app.updates.close()
 		if sourcePlugins != nil {
 			sourcePlugins.Stop(5 * time.Second)
 		}
@@ -354,6 +365,10 @@ func main() {
 		mgr.SetOrigin(front.url())
 	}
 	emitter.SetApplication(wapp)
+
+	// Self-updating, after the emitter has its application: the controller
+	// starts emitting the moment it subscribes.
+	initUpdater(wapp, app, emitter)
 
 	front.start()
 

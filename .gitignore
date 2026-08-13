@@ -44,6 +44,14 @@ mobile/build/android/app/src/main/jniLibs
 # `go build .` in mobile/ leaves a binary named after that directory.
 mobile/mobile
 
+# The key updates are signed with. Its public half is tracked and compiled into
+# the binary (updates.go) — that is the whole point, it is the only thing an
+# installed app trusts. The private half signs the release manifest in CI and
+# lives in the repository's secrets; anyone holding it can ship an update to
+# every user.
+updater.key
+**/updater.key
+
 # Go workspace files: a local convenience for building this module from a
 # git worktree, where the relative replace of the server module does not resolve.
 go.work

@@ -61,6 +61,7 @@ const ru = {
                 items: [
                     {text: 'Обзор', link: '/settings/'},
                     {text: 'Агенты, npx и Node.js', link: '/settings/agents'},
+                    {text: 'Обновления', link: '/settings/updates'},
                 ],
             },
             {
@@ -142,6 +143,7 @@ const en = {
                 items: [
                     {text: 'Overview', link: '/en/settings/'},
                     {text: 'Agents, npx and Node.js', link: '/en/settings/agents'},
+                    {text: 'Updates', link: '/en/settings/updates'},
                 ],
             },
             {

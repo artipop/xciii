@@ -1,0 +1,114 @@
+@import '../../styles/typography';
+
+.UpdatesPanel {
+    .UpdatesPanel__content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    // The version is a fact about the machine, so it wears the machine's voice.
+    .UpdatesPanel__version {
+        @include data;
+
+        font-size: var(--text-body);
+    }
+
+    // The status is the app reporting on itself. Only two of the nine carry a
+    // colour: the one that wants something from a person, and the one that
+    // went wrong.
+    .UpdatesPanel__status {
+        @include label;
+
+        &--available,
+        &--ready {
+            color: rgb(var(--warning-rgb));
+        }
+
+        &--error {
+            color: rgb(var(--error-text-rgb));
+        }
+    }
+
+    .UpdatesPanel__size,
+    .UpdatesPanel__checked {
+        @include label;
+
+        opacity: 0.64;
+    }
+
+    .UpdatesPanel__progress {
+        height: 6px;
+        border-radius: var(--radius-sm);
+        background: var(--border-subtle);
+        overflow: hidden;
+    }
+
+    .UpdatesPanel__progressBar {
+        height: 100%;
+        background: rgb(var(--accent-rgb));
+        transition: width 120ms linear;
+    }
+
+    // Release notes are Markdown as the author wrote them, and they are shown
+    // as written rather than rendered: this is a settings panel, not a reader,
+    // and a half-rendered list is worse than a plain one.
+    .UpdatesPanel__notes {
+        @include prose;
+
+        max-height: 220px;
+        overflow-y: auto;
+        padding: 10px 12px;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        background: rgb(var(--surface-rgb));
+        font-size: var(--text-small);
+        white-space: pre-wrap;
+    }
+
+    .UpdatesPanel__error {
+        color: rgb(var(--error-text-rgb));
+    }
+
+    .UpdatesPanel__actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    // Same shape as the one setting in «Прочее»: the sentence on the left, the
+    // switch on the right.
+    .UpdatesPanel__setting {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding-top: 8px;
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .UpdatesPanel__fact {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .UpdatesPanel__factName {
+        @include label;
+    }
+
+    .UpdatesPanel__factValue {
+        @include prose;
+
+        font-size: var(--text-small);
+        opacity: 0.64;
+    }
+
+    .UpdatesPanel__hint {
+        @include prose;
+
+        margin: 0;
+        font-size: var(--text-small);
+        opacity: 0.64;
+    }
+}

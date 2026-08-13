@@ -13,6 +13,7 @@ import MachineMiscPanel from '../acp/machineMiscPanel'
 
 import AppPanel from './appPanel'
 import DataPanel from './dataPanel'
+import UpdatesPanel, {isUpdatesAvailable} from './updatesPanel'
 
 import './appSettingsDialog.scss'
 
@@ -68,6 +69,16 @@ const AppSettingsDialog = (props: Props) => {
             name: () => intl.formatMessage({id: 'Settings.section-app', defaultMessage: 'The app itself'}),
             when: () => true,
             body: AppPanel,
+        },
+        {
+
+            // Directly after the app itself, because it is the app talking
+            // about the app — and because it is the one section that sometimes
+            // has something to say before anybody comes looking.
+            id: 'updates',
+            name: () => intl.formatMessage({id: 'Updates.title', defaultMessage: 'Updates'}),
+            when: isUpdatesAvailable,
+            body: UpdatesPanel,
         },
         {
             id: 'agents',

@@ -5,6 +5,7 @@ import {FormattedMessage, useIntl} from '../../intl'
 import SettingsIcon from '../../widgets/icons/settings'
 import RootPortal from '../rootPortal'
 import AppSettingsDialog from '../settings/appSettingsDialog'
+import {updateWaiting, useUpdateState} from '../settings/updates'
 
 import './sidebarSettingsButton.scss'
 
@@ -20,6 +21,12 @@ const SidebarSettingsButton = () => {
     const intl = useIntl()
     const [showSettings, setShowSettings] = createSignal(false)
 
+    // A new version is only ever shown inside this dialog, and nobody opens a
+    // settings dialog to find out whether there is one. The dot is the whole of
+    // how it gets mentioned — no notification, because an update is not
+    // something to interrupt anybody over.
+    const updates = useUpdateState()
+
     return (
         <div class='SidebarSettingsButton'>
             <button
@@ -33,6 +40,12 @@ const SidebarSettingsButton = () => {
                     id='Sidebar.settings'
                     defaultMessage='Settings'
                 />
+                <Show when={updateWaiting(updates())}>
+                    <span
+                        class='SidebarSettingsButton__dot'
+                        title={intl.formatMessage({id: 'Updates.waiting', defaultMessage: 'A new version is available'})}
+                    />
+                </Show>
             </button>
             {/* Out of the sidebar, because the sidebar paints its own text
                 colour and everything under it inherits: a dialog opened from

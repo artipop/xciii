@@ -92,7 +92,7 @@ installers are native-tool jobs (AppImage shells out to `ldd`, NSIS is `makensis
 
 ## Architecture
 
-Seven ideas hold this together. Read them before changing anything structural.
+Eight ideas hold this together. Read them before changing anything structural.
 
 ### The front door owns the origin
 
@@ -747,6 +747,65 @@ seconds later, every time, including after the window was closed. A signal that
 is wrong more often than right is worse than none, and the window is in front of
 whoever opened it. **Only the protocol asks** (`question.go`), which is why
 `acp:attention` now has one reason instead of two.
+
+### The app replaces itself, and trusts one key while doing it
+
+`updates.go` is self-updating, and the machinery under it is the framework's:
+`app.Updater` is on every Wails v3 application with nothing to register, and it
+owns the whole risky part — streaming the artifact, checking it, unpacking it,
+and the helper process that waits for us to exit and renames the new bundle into
+place. What this repository adds is the three things the framework leaves to the
+application.
+
+**Which feed to trust.** The provider is `endpoint`, not `github`. Both read
+GitHub Releases; the difference is that `github` can only verify a `SHA256SUMS`
+sidecar, and a hash published beside the file it describes catches a corrupted
+download and nothing else. `endpoint` reads a signed `manifest.json`, and the
+signature is checked against `build/updater.key.pub` — `go:embed`ed, so the
+feed has no say in which key authenticates it. The manifest is a file of the
+release, so GitHub is still the whole hosting and `wails3 updater manifest` in
+CI is the whole publishing side. The address is fixed
+(`releases/latest/download/manifest.json`) while the artifact links inside it
+are absolute per tag, which is what lets one never move and the others always.
+
+**What survives a restart.** Nothing, on the framework's side: the download is
+a temp directory the helper deletes, and the version a person skipped is a
+field of the running `Updater`. So `<dataDir>/updates.json` keeps the switch,
+the skipped version and when it last looked — `enabled` a pointer, because a
+file written before the field existed must not read as "turned off". The timer
+is ours too rather than `Config.CheckInterval`: `Init` may be called once and
+`StopPeriodicCheck` cannot be undone, so the framework's timer would make
+«проверять автоматически» a switch that takes effect at the next launch. And
+the poll only ever *checks* — spending a hundred megabytes of somebody's
+connection unasked is not the same act as telling them there is a new version.
+
+**What a person sees.** Not the framework's window, which is good and entirely
+hard-coded English. `updater.WindowNone`, Go subscribes to the eleven
+`wails:updater:*` events and re-emits **one** — `acp:update`, carrying the whole
+state — through `emitter.go`, which is the front door's socket and therefore
+the only path that also reaches a page opened on a phone. The status in that
+state is read fresh off `Updater.State()` rather than inferred from which event
+arrived, because the bus dispatches each event in a goroutine of its own and a
+status that went backwards is a progress bar that did. It is drawn by
+`settings/updatesPanel.tsx`, and the only thing outside that dialog is a dot on
+the sidebar's settings button: an update is not worth a notification.
+
+`updater.HandleHelperMode()` is **the first line of `main()`**, before
+`maybeRunMCP`. `application.New` calls it too, but by then this process has
+opened SQLite, taken a port, restored a PATH from the login shell and started
+plugin processes — all in the one process whose entire job is to wait for the
+old one to die.
+
+The version is a constant (`version.go`), not an `-ldflags` injection: every
+Taskfile bakes its own `-ldflags="-w -s"` into a template string, and threading
+a value through four of them makes the version a property of how the binary was
+built, which is exactly what `wails3 dev` then gets wrong. Every other file that
+states a version is listed in `internal/buildversion`, `version_test.go` fails
+when they disagree, and `wails3 task version:set` writes all of them. Not
+`common:update:build-assets`, which regenerates `build/darwin/Info.plist` from
+the CLI's template and drops the hand-written `CFBundleURLTypes` block the share
+extension is launched through. `docs/release.md` is the release itself;
+`.github/workflows/release.yml` is a tag away from it.
 
 ## Conventions
 

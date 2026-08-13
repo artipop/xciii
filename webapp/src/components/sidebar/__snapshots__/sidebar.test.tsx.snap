@@ -253,6 +253,7 @@ exports[`components/sidebarSidebar > a board in no category is filed under the d
           class="CompassIcon icon-settings-outline SettingsIcon"
         />
         Settings
+        
       </button>
       
     </div>
@@ -459,6 +460,7 @@ exports[`components/sidebarSidebar > dont show hidden boards 1`] = `
           class="CompassIcon icon-settings-outline SettingsIcon"
         />
         Settings
+        
       </button>
       
     </div>
@@ -807,6 +809,7 @@ exports[`components/sidebarSidebar > shouldnt do any category assignment is boar
           class="CompassIcon icon-settings-outline SettingsIcon"
         />
         Settings
+        
       </button>
       
     </div>
@@ -1098,6 +1101,7 @@ exports[`components/sidebarSidebar > sidebar hidden 1`] = `
           class="CompassIcon icon-settings-outline SettingsIcon"
         />
         Settings
+        
       </button>
       
     </div>
@@ -1443,6 +1447,7 @@ exports[`components/sidebarSidebar > some categories hidden 1`] = `
           class="CompassIcon icon-settings-outline SettingsIcon"
         />
         Settings
+        
       </button>
       
     </div>

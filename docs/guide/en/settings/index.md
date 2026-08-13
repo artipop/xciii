@@ -5,6 +5,8 @@ App settings live in one window: at the bottom of the left-hand list, under
 Sections:
 
 - **"The app itself"** — theme, language, help and feedback;
+- **"Updates"** — the app's version and moving to a newer one, see
+  [Updates](./updates.md);
 - **"Agents"** — this machine's agents and what launches them, see
   [Agents, npx and Node.js](./agents.md);
 - **"Proxy configurations"** — named network settings that agents refer to;
@@ -15,7 +17,7 @@ Sections:
   when an agent is waiting", and install details.
 
 Sections this build does not support are not shown: on a machine without
-agents, "The app itself", "Import and export" and "Other" remain.
+agents, "The app itself", "Updates", "Import and export" and "Other" remain.
 
 ## The app itself: theme, language, help
 

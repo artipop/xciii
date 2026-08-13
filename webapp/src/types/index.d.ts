@@ -112,6 +112,17 @@ export interface IAppWindow extends Window {
                 GetTailnetAccess?(): Promise<string>
                 SetTailnetAccess?(entryJson: string): Promise<string>
 
+                // Replacing this app with a newer one. Everything except the
+                // state read is fire-and-forget: what came of it arrives as the
+                // acp:update event, so a check somebody else started looks the
+                // same as one this panel asked for.
+                GetUpdateState?(): Promise<string>
+                SetUpdateSettings?(entryJson: string): Promise<string>
+                CheckForUpdate?(): Promise<void>
+                InstallUpdate?(): Promise<void>
+                SkipUpdateVersion?(): Promise<void>
+                RestartToUpdate?(): Promise<void>
+
                 // What turns into cards on a board on its own. AddSource and
                 // ResetSourceToken are the only calls that ever return the
                 // ingest token: only its hash is kept, so it is shown once.
