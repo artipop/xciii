@@ -6,6 +6,7 @@ import {UserSettings} from '../../userSettings'
 
 import {agentBindings} from './bindings'
 import {onAgentEvent} from './agentEvents'
+import {openCardTerminalWindow} from './liveTerminals'
 
 // Which cards are waiting for a person.
 //
@@ -14,13 +15,15 @@ import {onAgentEvent} from './agentEvents'
 // side says in one place, so every card on the board shares one subscription
 // and one initial load rather than asking for itself.
 
-// The one way an agent asks for a person: ACP itself — the session asked for a
-// tool it was not given, or sent an elicitation, and its turn is open until
-// somebody answers. A terminal used to be the second way, through silence, and
-// silence could not be told from a CLI sitting at its prompt: a terminal opened
-// and left alone announced itself five seconds later. The window is in front of
-// whoever opened it; only the protocol asks now.
-export type AttentionReason = 'question'
+// The two ways an agent asks for a person. 'question' is ACP itself — a deploy
+// or a test asked for a tool it was not given, or sent an elicitation, and its
+// turn is open until somebody answers. 'terminal' is a stage of a route whose
+// CLI has stopped drawing: it is asking something inside its own interface, and
+// only it knows what.
+//
+// Neither is answered here any more. The agent draws its question where it is
+// working, and what this side offers is the way to it.
+export type AttentionReason = 'question' | 'terminal'
 
 export type QuestionOption = {
     id: string
@@ -130,14 +133,11 @@ export function useCardAttention(cardId: Accessor<string>): Accessor<Attention |
     return createMemo(() => waiting().find((a) => a.cardId === cardId()))
 }
 
-// answerQuestion hands the agent what it is waiting for. Both empty is a
-// refusal, which is an answer too: the agent carries on without it.
-export async function answerQuestion(target: Attention, optionId: string, text: string): Promise<void> {
-    const bindings = agentBindings()
-    if (!bindings?.AnswerQuestion || !target.questionId) {
-        return
-    }
-    await bindings.AnswerQuestion(target.questionId, optionId, text)
+// openWait goes to where the agent is asking, which is the only thing to do
+// about a wait now: the terminal it is waiting in, by id when the wait names
+// one, else the card's own.
+export async function openWait(target: Attention): Promise<void> {
+    await openCardTerminalWindow(target.cardId || '', target.terminalId)
 }
 
 type Formatter = {

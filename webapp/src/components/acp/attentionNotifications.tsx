@@ -7,9 +7,9 @@ import CompassIcon from '../../widgets/icons/compassIcon'
 import {
     Attention,
     agentNotificationsOn,
-    answerQuestion,
     attentionHeading,
     keyOf,
+    openWait,
     useAttention,
 } from './attention'
 
@@ -18,14 +18,20 @@ import './attentionNotifications.scss'
 // Being told, rather than having to look.
 //
 // An agent works on a card in a window nobody is watching, and now and then it
-// needs a person: a tool it was not given, or a decision only somebody with the
-// product in their head can make. The card grows a dot for that, but a dot is
-// only seen by somebody already looking at the board — so the question says
-// itself, here, and is answered here too. Its turn is open the whole time; the
-// agent carries on the moment an answer arrives.
+// needs a person: a decision only somebody with the product in their head can
+// make, or permission for something it was not given. The card grows an amber
+// button for that, but a button is only seen by somebody already looking at the
+// board — so the wait says itself, here.
+//
+// It says it and does not answer it. The agent is asking inside its own CLI, in
+// the card's terminal, and that is where the answer belongs: a copy of the
+// question with a row of our buttons under it was a second interface for one
+// exchange, and the one that could not show what the agent had already drawn on
+// the screen. So this carries what is being asked and one way to act on it —
+// open the terminal.
 //
 // It is a setting because it interrupts: a person who would rather find out by
-// looking turns it off, and the card keeps its dot.
+// looking turns it off, and the card keeps its button.
 
 // stackLimit is how many waits are worth showing at once. Beyond that they stop
 // being a notification and become a wall, so the rest are counted instead.
@@ -40,7 +46,6 @@ const AttentionNotifications = () => {
     const intl = useIntl()
     const waiting = useAttention()
     const [dismissed, setDismissed] = createSignal<string[]>([])
-    const [typed, setTyped] = createSignal<Record<string, string>>({})
     const [busy, setBusy] = createSignal('')
 
     const pending = createMemo(() => (agentNotificationsOn() ? waiting().filter((a) => !dismissed().includes(waitKey(a))) : []))
@@ -56,10 +61,13 @@ const AttentionNotifications = () => {
         ])
     }
 
-    const answer = async (target: Attention, optionId: string) => {
+    // Going to the terminal is the whole of what this offers, and it dismisses
+    // the notification: somebody who is now looking at the agent has been told.
+    const open = async (target: Attention) => {
         setBusy(waitKey(target))
         try {
-            await answerQuestion(target, optionId, optionId ? '' : (typed()[waitKey(target)] || ''))
+            await openWait(target)
+            dismiss(target)
         } finally {
             setBusy('')
         }
@@ -82,47 +90,17 @@ const AttentionNotifications = () => {
                                     {target.title || intl.formatMessage({id: 'Attention.untitled', defaultMessage: 'Untitled card'})}
                                 </span>
 
-                                <Show when={target.reason === 'question'}>
+                                <Show when={target.text}>
                                     <span class='AttentionNotifications__question'>{target.text}</span>
-                                    <div class='AttentionNotifications__options'>
-                                        <For each={target.options || []}>
-                                            {(option) => (
-                                                <button
-                                                    type='button'
-                                                    class='AttentionNotifications__option'
-                                                    title={option.description}
-                                                    disabled={busy() === waitKey(target)}
-                                                    onClick={() => answer(target, option.id)}
-                                                >
-                                                    {option.label}
-                                                </button>
-                                            )}
-                                        </For>
-                                    </div>
-                                    <Show when={target.freeText}>
-                                        <form
-                                            class='AttentionNotifications__free'
-                                            onSubmit={(e) => {
-                                                e.preventDefault()
-                                                answer(target, '')
-                                            }}
-                                        >
-                                            <input
-                                                type='text'
-                                                placeholder={intl.formatMessage({id: 'Attention.free-text', defaultMessage: 'Answer in your own words…'})}
-                                                value={typed()[waitKey(target)] || ''}
-                                                onInput={(e) => setTyped((current) => ({...current, [waitKey(target)]: e.currentTarget.value}))}
-                                            />
-                                            <button
-                                                type='submit'
-                                                class='AttentionNotifications__option'
-                                                disabled={!typed()[waitKey(target)]}
-                                            >
-                                                {intl.formatMessage({id: 'Attention.send', defaultMessage: 'Send'})}
-                                            </button>
-                                        </form>
-                                    </Show>
                                 </Show>
+                                <button
+                                    type='button'
+                                    class='AttentionNotifications__action'
+                                    disabled={busy() === waitKey(target)}
+                                    onClick={() => open(target)}
+                                >
+                                    {intl.formatMessage({id: 'Attention.open', defaultMessage: 'Open the terminal'})}
+                                </button>
                             </div>
                             <button
                                 type='button'

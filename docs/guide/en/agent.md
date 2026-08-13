@@ -125,22 +125,44 @@ nothing is running and there are no questions.
 
 ## Questions from the agent
 
-When the agent needs an answer, the question arrives as a notification with
-answer options, and appears in "Waiting" on the phone. You can answer in either
-place, or in the terminal window — the question is shown above the screen with
-its options.
+The agent asks in the terminal — in its own interface, the same way it asks you
+in an ordinary console: a choice of options, permission for a command, a
+question about the task. That is where you answer.
+
+The app only tells you about it. When the CLI stops drawing anything, the
+terminal button on the card turns amber, a notification arrives, and the card
+appears in "Waiting" on the phone. All three offer the same button — "Open the
+terminal".
 
 Notifications can be turned off in the
 [settings](./settings/index.md#agent-notifications); the terminal button on
 the card stays amber either way.
 
+## When a stage ends
+
+A stage of a route is a conversation in a terminal, and a terminal does not end
+by itself: the CLI keeps running until it is closed. So the agent is the one
+that declares the work over — through the board tool `finish_work`, which the
+app hands it along with the rest. It says whether the work is done or could not
+be done, and briefly what was done.
+
+After that the card travels on along the route, the conversation is closed, and
+a comment with that summary appears on the card.
+
+If you close the terminal yourself before the agent has said this, the card
+stays where it is: the route strip shows an amber line saying the result was
+never reported. Open the terminal again and see the stage through.
+
+That is how agent stages work. Deploys and tests are arranged differently —
+there is no terminal there, the app talks to the agent directly and reads the
+result itself.
+
 ## Comments
 
-A session leaves one comment on the card, at the end: what the agent did or why
-it could not. The branch and the directory are shown in the line under the card
-title, the position on the route — in the route strip. When you exit the
-terminal, it adds its report: which commits appeared and what was left
-uncommitted.
+A stage leaves one comment on the card, at the end: what the agent did or why it
+could not, and under that the branch, the commits that appeared and anything
+left uncommitted. The branch and the directory are also shown in the line under
+the card title, the position on the route — in the route strip.
 
 If a stage could not start — no project found, the column is busy, the route
 has no transition — the reason is shown in amber on the route strip and

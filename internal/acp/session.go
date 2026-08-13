@@ -279,7 +279,20 @@ func (m *Manager) runSession(s *Session) {
 		return
 	}
 
-	// 2. Agent connection.
+	// 2. An agent stage is the agent's own CLI in the card's terminal, not a
+	// connection of ours: what it does, what it asks and what it asks permission
+	// for are all drawn by the CLI, in the window a person is looking at
+	// (stageterminal.go). A deploy and a test stay ACP sessions — nobody watches
+	// them and the machine reads their verdict — and so does an agent that has
+	// no interactive CLI to put in a pty at all, which is the generic acp kind
+	// and any entry whose command speaks only the protocol.
+	if sessionAction(s) == FlowActionAgent && !s.Planning && stageRunsInTerminal(s.Agent) {
+		m.runCardTaskInTerminal(s)
+		m.cleanupWorktree(s)
+		return
+	}
+
+	// 3. Agent connection.
 	conn, acpSessionID, cleanup, err := m.openConnection(m.rootCtx, s)
 	if err != nil {
 		m.finishSession(s, StatusFailed, err.Error())
@@ -289,10 +302,10 @@ func (m *Manager) runSession(s *Session) {
 	}
 	defer cleanup()
 
-	// 3. The card's task, which is the whole of the session.
+	// 4. The card's task, which is the whole of the session.
 	m.runCardTask(s, conn, acpSessionID)
 
-	// 4. Worktree cleanup for unsuccessful sessions.
+	// 5. Worktree cleanup for unsuccessful sessions.
 	m.cleanupWorktree(s)
 }
 

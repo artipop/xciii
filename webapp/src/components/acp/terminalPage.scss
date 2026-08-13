@@ -95,38 +95,6 @@
         flex: 0 0 auto;
     }
 
-    // The same amber the card's dot uses, and for the same wait: one thing,
-    // said twice in one language.
-    &__question {
-        flex: 0 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 8px 12px;
-        background: rgba(var(--warning-rgb), 0.14);
-        border-bottom: 1px solid rgba(var(--warning-rgb), 0.4);
-    }
-
-    &__questionText {
-        white-space: pre-wrap;
-    }
-
-    &__questionOptions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    &__questionFree {
-        display: flex;
-        gap: 8px;
-
-        input {
-            flex: 1 1 auto;
-            min-width: 0;
-        }
-    }
-
     // xterm measures the element it is opened in, so it needs a real size
     // rather than one that depends on its own content.
     &__screen {

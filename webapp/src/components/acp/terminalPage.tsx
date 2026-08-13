@@ -6,10 +6,7 @@ import {useParams} from '@solidjs/router'
 
 import {useIntl} from '../../intl'
 
-import Button from '../../widgets/buttons/button'
-
 import {agentBindings} from './bindings'
-import {answerQuestion, attentionHeading, useCardAttention} from './attention'
 
 import '@xterm/xterm/css/xterm.css'
 import './terminalPage.scss'
@@ -74,12 +71,7 @@ const TerminalPage = (props: TerminalProps = {}): JSX.Element => {
     const [info, setInfo] = createSignal<TerminalInfo | null>(null)
     const [status, setStatus] = createSignal<'connecting' | 'live' | 'closed'>('connecting')
     const [error, setError] = createSignal('')
-    const [answerText, setAnswerText] = createSignal('')
     let writeToPty: (data: string) => void = () => undefined
-
-    // What the card's dot is amber for, on the card this terminal belongs to. A
-    // planning terminal has no card and so never has one.
-    const question = useCardAttention(() => info()?.cardId || '')
 
     onMount(() => {
         const bindings = agentBindings()
@@ -234,53 +226,12 @@ const TerminalPage = (props: TerminalProps = {}): JSX.Element => {
                 </div>
             </div>
 
-            {/* The question the card's dot leads here for. It was asked by the
-                session over the protocol, not by this pty — a CLI draws its own
-                questions in the screen below — so the only place it can be
-                shown is around the terminal. Without this the dot would open a
-                window with nothing in it about what is being waited for. */}
-            <Show when={question()}>
-                {(waiting) => (
-                    <div class='AcpTerminalPage__question'>
-                        <div class='AcpTerminalPage__questionText'>{waiting().text || attentionHeading(intl, waiting())}</div>
-                        <div class='AcpTerminalPage__questionOptions'>
-                            <For each={waiting().options || []}>
-                                {(option) => (
-                                    <Button
-                                        onClick={() => answerQuestion(waiting(), option.id, '')}
-                                        title={option.description}
-                                    >
-                                        {option.label}
-                                    </Button>
-                                )}
-                            </For>
-                        </div>
-                        <Show when={waiting().freeText}>
-                            <form
-                                class='AcpTerminalPage__questionFree'
-                                onSubmit={(e) => {
-                                    e.preventDefault()
-                                    answerQuestion(waiting(), '', answerText())
-                                    setAnswerText('')
-                                }}
-                            >
-                                <input
-                                    type='text'
-                                    placeholder={intl.formatMessage({id: 'Attention.free-text', defaultMessage: 'Answer in your own words…'})}
-                                    value={answerText()}
-                                    onInput={(e) => setAnswerText(e.currentTarget.value)}
-                                />
-                                <Button
-                                    submit={true}
-                                    disabled={!answerText()}
-                                >
-                                    {intl.formatMessage({id: 'Attention.send', defaultMessage: 'Send'})}
-                                </Button>
-                            </form>
-                        </Show>
-                    </div>
-                )}
-            </Show>
+            {/* Nothing is drawn over the screen below, and that is the point of
+                this page. Whatever the agent is asking — a decision, a
+                permission, a plan to approve — the CLI asks it in its own
+                interface, in its own words, with its own keys. What used to be
+                here was our box with our buttons, sitting on top of the terminal
+                the notification had just led somebody to. */}
 
             <Show when={error()}>
                 <div class='AcpTerminalPage__error'>{error()}</div>

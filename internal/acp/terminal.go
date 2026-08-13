@@ -97,6 +97,14 @@ type TerminalSession struct {
 	// arrives from an HTTP handler while windows read it.
 	summary string
 
+	// stage marks a conversation a route opened rather than a person.
+	stage bool
+	// lastOutput is when the CLI last drew anything. It is how a stage tells a
+	// CLI that is working from one that has stopped to ask something: an agent
+	// mid-turn redraws its own spinner, and a TUI waiting on an answer draws
+	// nothing at all (stageterminal.go).
+	lastOutput time.Time
+
 	mu       sync.Mutex
 	buf      []byte
 	subs     map[int]chan []byte
@@ -242,10 +250,23 @@ func (t *TerminalSession) closeTTY() {
 // Done is closed when the CLI exits.
 func (t *TerminalSession) Done() <-chan struct{} { return t.done }
 
+// quietFor reports how long the CLI has drawn nothing. Zero output at all
+// counts from the launch, so a CLI that never started is not read as busy.
+func (t *TerminalSession) quietFor(now time.Time) time.Duration {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	since := t.lastOutput
+	if since.IsZero() {
+		since = t.launchedAt
+	}
+	return now.Sub(since)
+}
+
 // publish fans one chunk of output out to every window and keeps a copy.
 func (t *TerminalSession) publish(chunk []byte) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+	t.lastOutput = time.Now()
 	t.buf = append(t.buf, chunk...)
 	if len(t.buf) > terminalScrollback {
 		t.buf = append([]byte(nil), t.buf[len(t.buf)-terminalScrollback:]...)
@@ -470,6 +491,22 @@ type terminalSpec struct {
 	workdirPath string
 	base        string
 	agent       AgentEntry
+	// prompt is the first message of the conversation, set only by a stage of a
+	// route: the card's task, handed to the CLI the way a person would type it.
+	// A terminal a person opened has none — they are about to type their own.
+	prompt string
+	// cwd/branch are where this conversation runs, when the caller has already
+	// worked it out. A stage of a route has: the session claimed the card's
+	// workspace before the terminal existed, and a stage told to run in the
+	// folder itself claims nothing at all. Empty leaves the question to
+	// startTerminal, which is what a person opening a terminal gets.
+	cwd    string
+	branch string
+	// stage marks a terminal that is a stage of a route rather than somebody's
+	// own conversation. What it changes is who reports to the card: a stage
+	// writes one comment of its own when it ends (stageterminal.go), so this
+	// terminal must not write the second one terminalEnded normally would.
+	stage bool
 }
 
 func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
@@ -491,7 +528,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// exactly as it did before.
 	boardToken, mcpConfig := m.openBoardTools(spec.boardID, spec.cardID, id, spec.agent)
 
-	argv, err := terminalCommand(spec.agent, resume, mcpConfig)
+	argv, promptTaken, err := terminalCommand(spec.agent, resume, mcpConfig, spec.prompt)
 	if err != nil {
 		m.closeBoardTools(boardToken, mcpConfig)
 		return nil, err
@@ -511,7 +548,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// already been found, and it cannot fail after the argv above did not.
 	var freshArgv []string
 	if resume {
-		if fresh, freshErr := terminalCommand(spec.agent, false, mcpConfig); freshErr == nil && len(fresh) > 0 {
+		if fresh, _, freshErr := terminalCommand(spec.agent, false, mcpConfig, spec.prompt); freshErr == nil && len(fresh) > 0 {
 			fresh[0] = bin
 			freshArgv = fresh
 		}
@@ -540,6 +577,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		done:        make(chan struct{}),
 		boardToken:  boardToken,
 		mcpConfig:   mcpConfig,
+		stage:       spec.stage,
 	}
 
 	switch {
@@ -580,6 +618,15 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		t.usedWorktree = ws.Fresh && ws.Mode == WorkModeWorktree
 		t.Cwd = ws.Cwd
 		t.Branch = ws.Branch
+	}
+
+	// A caller that already knows where this runs outranks both: a stage of a
+	// route is handed the workspace its session claimed, and the copy is that
+	// session's to put away rather than this terminal's.
+	if spec.cwd != "" {
+		t.Cwd, t.Branch = spec.cwd, spec.branch
+		t.worktree = WorktreeInfo{Path: spec.cwd, Branch: spec.branch}
+		t.usedWorktree = false
 	}
 
 	// A conversation with no folder runs in «черновики доски» — the board's own
@@ -653,7 +700,47 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// terminalReport, when the CLI exits.
 
 	go t.pump()
+	// What the command line could not carry is typed in instead, once the CLI is
+	// listening. A resumed conversation is always this way round.
+	if spec.prompt != "" && !promptTaken {
+		go t.deliverPrompt(spec.prompt)
+	}
 	return t, nil
+}
+
+// promptSettle is how long the CLI has to draw nothing before the task is typed
+// into it, and promptWait is how long we wait for that quiet at all. A TUI paints
+// continuously while it starts up, so quiet is what "ready for input" looks like
+// from outside; the deadline is there because a CLI asking something on its first
+// frame would otherwise hold the task for ever, and a task typed under a question
+// is at least visible to whoever opens the terminal.
+const (
+	promptSettle = 2 * time.Second
+	promptWait   = 30 * time.Second
+)
+
+// deliverPrompt types the stage's task into a CLI that could not take it on its
+// command line — a resumed conversation, or a kind whose CLI we do not know a
+// flag for. Bracketed paste is what keeps a task of several lines one message:
+// a bare newline inside a TUI's input is a send.
+func (t *TerminalSession) deliverPrompt(text string) {
+	if text == "" {
+		return
+	}
+	deadline := time.Now().Add(promptWait)
+	for {
+		select {
+		case <-t.done:
+			return
+		case <-time.After(250 * time.Millisecond):
+		}
+		if t.quietFor(time.Now()) >= promptSettle || time.Now().After(deadline) {
+			break
+		}
+	}
+	if err := t.Write([]byte("\x1b[200~" + text + "\x1b[201~\r")); err != nil {
+		t.m.log.Warn("acp: could not hand the task to the terminal", "terminal", t.ID, "err", err)
+	}
 }
 
 // pump moves the CLI's output to every window until the process exits — and
@@ -780,7 +867,10 @@ func (m *Manager) terminalEnded(t *TerminalSession) {
 	if err := m.store.FinishTerminal(t.ID, time.Now(), t.exitCode); err != nil {
 		m.log.Warn("acp: failed to record terminal end", "terminal", t.ID, "err", err)
 	}
-	if t.CardID != "" {
+	// A stage of a route writes its own comment, once, and that comment already
+	// carries this report (stageterminal.go). Two comments for one piece of work
+	// is what the card was rescued from.
+	if t.CardID != "" && !t.stage {
 		m.commentCard(t.CardID, terminalReport(m.rootCtx, t))
 	}
 	m.closeBoardTools(t.boardToken, t.mcpConfig)
@@ -985,18 +1075,26 @@ type Attention struct {
 	Since    string `json:"since,omitempty"`
 }
 
-// The one reason, and it is the protocol asking: an ACP session sent
-// session/request_permission or an elicitation, and the agent is waiting on the
-// answer with its turn still open (question.go). It is answered on the card, or
-// in the notification the question carries itself into.
+// The two reasons a card can want a person.
 //
-// A terminal used to be the second reason. There is no protocol to ask through
-// in a pty — an agent CLI draws a TUI — so silence stood in for a question, and
-// it could not tell one from a CLI sitting at its prompt with nothing asked:
-// opening a terminal and leaving it announced "needs you" five seconds later.
-// A signal that is wrong more often than right is worse than no signal, and the
-// window is in front of the person who opened it anyway.
-const AttentionQuestion = "question"
+// AttentionQuestion is the protocol asking: an ACP session sent
+// session/request_permission or an elicitation, and the agent is waiting on the
+// answer with its turn still open (question.go). Only a deploy or a test is
+// still such a session.
+//
+// AttentionTerminal is a stage of a route whose CLI has stopped drawing. There
+// is no protocol to ask through in a pty, so this is silence standing in for a
+// question — which is exactly what was thrown out once, and it is back because
+// what it means has changed. Silence used to be measured on a terminal somebody
+// had opened and left, where "nothing is happening" is the ordinary state, and
+// it announced "needs you" five seconds later every time. Here the agent was
+// handed a task and has not said it is finished, so a CLI drawing nothing is
+// waiting on somebody: an agent mid-turn redraws its own spinner, and the
+// permission box it stops at is a still frame.
+const (
+	AttentionQuestion = "question"
+	AttentionTerminal = "terminal"
+)
 
 // withKey fills in what identifies this wait. A question is keyed by its own id
 // rather than by its card: an agent making two tool calls at once asks twice,
@@ -1020,6 +1118,9 @@ func (m *Manager) Attention() []Attention {
 	out := make([]Attention, 0, len(questions))
 	for _, q := range questions {
 		out = append(out, q.attention().withKey())
+	}
+	for _, a := range m.stageAttention() {
+		out = append(out, a.withKey())
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Since < out[j].Since })
 	return out

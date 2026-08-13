@@ -232,35 +232,64 @@ in `eslint.config.mjs` fails the lint, which is cheaper than finding a React
 component rendered from Solid at runtime — which is exactly how that guard
 earned its place.
 
-### A session works on its own, and asks when it has to
+### A stage is the agent's own CLI, and it asks in its own words
 
 `internal/acp` is the agent integration, and it is board-agnostic: `internal/
 boardadapter` is the only package importing both it and the board server.
 
-A session runs the task a card asked for, comments the result and ends. There is no
-console — what a person wants to *say* goes to the terminal instead (below) — but an
-agent that needs something from a person gets it through the protocol, which is the
-only place it can be asked for without a hack around stdio.
+**An agent stage of a route is a terminal, not a session** (`stageterminal.go`).
+The card's task goes to the vendor CLI on its command line — `claude "…"`, the
+kind's `cliPromptArgs` — and everything the agent does from there is drawn by the
+CLI in its own screen: its plan, its questions, its permission prompts. Nothing
+of ours is drawn over that, which is the whole point. It was an ACP session
+before: an adapter on stdio, its questions lifted out of the protocol into a box
+of our own — and that box was drawn *over the card's terminal*, in which a second
+CLI was sitting in the same worktree knowing nothing about the first. Two agents
+in one copy of the code, and a question about the card hiding the window it was
+asked from.
 
-Both of ACP's ways of asking land in `question.go`: a tool outside `autoAllowTools`
-comes as `session/request_permission`, and a decision comes as a form elicitation
-(the claude CLI's own AskUserQuestion, which stays enabled because
-`clientCapabilities` claims form elicitation). Either one **blocks only the request
-that asked** — the SDK gives every inbound request its own goroutine, so the agent
-keeps streaming and the turn is still open when the answer arrives. The session
-reports `waiting_permission` meanwhile, and an unanswered question does not stall
-for ever: cancelling the session, or the app closing, is a refusal, and the agent
-carries on without what it asked for.
+Three things follow, and each had to be answered before the swap was possible.
 
-The question shows up as `acp:attention` — the amber terminal button on the
-card's corner, and,
-unless turned off in the settings menu, a notification carrying the question
-itself, since the options *are* the answer and there is nothing to navigate to.
-It is answered in either place through `AnswerQuestion`, and leaves no comment
-behind: a question is live while it waits and the agent's business once it is
-answered. This is the only thing that raises attention: a terminal used to be a
-second reason and no longer is (below). `components/acp/attention.ts` is the one
-subscription behind it.
+**How the route learns the stage is over**: the agent says so, through the board
+tools — `finish_work` (below), which reports done-or-not and one line about what
+it did. Nothing else can: an interactive CLI does not exit when a turn ends, and
+a person typing in that terminal afterwards is the ordinary case rather than a
+signal. A CLI that exits without having said it is *not* a failed stage — the
+card keeps its place and stalls with a reason, since a window somebody closed is
+not a verdict.
+
+**How a stuck card is noticed**: `AttentionTerminal`, raised while the stage's
+CLI draws nothing (`terminalQuietFor`). This is silence standing in for a
+question, which is exactly what was thrown out once — and it is back because
+what it measures has changed. It used to be measured on a terminal somebody had
+opened and left, where nothing happening is the ordinary state, and it announced
+"needs you" five seconds later every time. Here the agent was handed a task and
+has not said it is finished, so a still frame means it is waiting on somebody: a
+model mid-turn redraws its own spinner, and a permission box does not.
+
+**Which agents can do this at all**: `stageRunsInTerminal`. Three requirements,
+and an agent missing any of them keeps the old arrangement, an ACP session — a
+way to be handed the board tools (without them the stage could never end), an
+interactive CLI at all (the generic `acp` kind is an adapter and nothing else),
+and that CLI actually installed here (the claude adapter embeds the CLI it
+drives, so a machine can run sessions of that kind with no `claude` on it).
+
+**A deploy and a test are still sessions**, and so is anything the rule above
+excludes. Nobody watches them, the machine reads their verdict rather than a
+person, and there is no terminal for anybody to answer in. So `question.go`
+stays: a tool outside `autoAllowTools` comes as `session/request_permission`, a
+decision as a form elicitation, either one **blocks only the request that asked**
+— the SDK gives every inbound request its own goroutine — and an unanswered one
+refuses on cancellation or shutdown rather than stalling for ever. What is gone
+is the surface that answered it; `docs/deferred.md` records why that is
+acceptable and what it costs.
+
+Both reasons show up as `acp:attention` — the amber terminal button on the card's
+corner, and, unless turned off in the settings menu, a notification. **Neither is
+answered there any more.** The notification carries what is being asked and one
+thing to do about it, «Открыть терминал», because the answer belongs to the
+interface the agent drew it in. `components/acp/attention.ts` is the one
+subscription behind all of it.
 
 **The button is also the way in.** A console-glyph button in the card's bottom
 right corner (`KanbanCard__terminal` — it began life as a dot, and the corner
@@ -276,24 +305,23 @@ the board knows per card comes from `components/acp/liveTerminals.ts`: one
 `ListTerminals` for the page indexed by card, because `GetCardAgent` is a call
 per card and a board has as many as it likes.
 
-Which is why **the terminal page draws the question too**, above the screen and
-in the same amber: the button leads here, and what it leads for was asked over the
-protocol rather than in the pty — a CLI draws its own questions inside the
-terminal, and this one is not the CLI's. The page finds it by the `cardId` in
-`TerminalInfo` and answers through the same `AnswerQuestion` the notification
-does. A planning terminal has no card and so never shows one.
+Which is why **the terminal page draws nothing over the screen**: the button
+leads here, and what it leads for is on the screen already, drawn by the CLI. A
+box of ours above the terminal covered the very thing the button was for.
 
-**A session writes one comment, and writes it at the end**: what the agent did,
+**A stage writes one comment, and writes it at the end**: what the agent did,
 or why it could not. There were a dozen once — started, cancelled, asked,
 answered, terminal opened, moved along the route — and a card whose comments are
 a log of the machinery is a card nobody reads, with the one thing worth reading
 buried in it. Everything that was narrated there is shown instead: the branch and
 the worktree on the card's stamp, the position on its route strip (whose reason
 is kept in the flow event record rather than on the card), the question on the
-card's face. What survives is what the card cannot show for itself — the agent's
-own summary of a finished run, a deploy or test report, the terminal report, a
-session cut off by a restart — and `comment_card`, which is the agent choosing
-to say something.
+card's face. What survives is what the card cannot show for itself — the summary
+the agent handed to `finish_work` with what landed on the branch under it
+(`stageComment`), a deploy or test report, the report a terminal somebody opened
+leaves when its CLI exits, a session cut off by a restart — and `comment_card`,
+which is the agent choosing to say something. A stage's terminal writes no
+report of its own, or one piece of work would be commented twice.
 
 **"Nothing happened" is state, never a comment.** A stage that would not start,
 a card refused because a person holds it, a column with no free place, a route
@@ -575,13 +603,21 @@ learn. A **card id** is the one exception, and it has a default: empty means the
 card the run stands on (the grant carries it), which is the card an agent working
 on one always means.
 
-One tool is not about the board at all: `describe_conversation` is the agent
-saying, in one line, what the conversation it is in is doing, and it is there
-because **nothing else can know**. A terminal is the vendor CLI in a pty, not an
-ACP session, so no protocol carries a title or a recap of one, and the only other
-source would be the CLI's own transcript file — its private business, in a
-different shape per kind. The agent, on the other hand, is the one having the
-conversation, so it is asked. The grant names the terminal
+**`finish_work` is how a stage of a route ends**, and it is the load-bearing
+piece of the arrangement above: an agent stage is a terminal, and only the agent
+knows the work in it is over. It says done-or-not and one line of what it did;
+that becomes the flow trigger, the card's one comment and the end of the
+conversation. A run that is not a stage — a planning terminal, a card outside any
+route — is told so and pointed at `move_card`, since the tool is about a stage
+rather than about the board.
+
+Two tools are not about the board at all, and both are there because **nothing
+else can know**. A terminal is the vendor CLI in a pty, not an ACP session, so no
+protocol carries a title, a recap or a stop reason, and the only other source
+would be the CLI's own transcript file — its private business, in a different
+shape per kind. The agent, on the other hand, is the one having the conversation,
+so it is asked: `finish_work` above, and `describe_conversation`, one line about
+what this conversation is doing. The grant names the terminal
 (`BoardGrant.TerminalID`), which is what keeps an agent from describing somebody
 else's; the line lands in `TerminalInfo.Summary`, is drawn under the name in
 «Открытые терминалы» and on «Терминалы» on a phone, and is kept in the record so
@@ -618,14 +654,16 @@ that check one board's grant would edit every other board's cards.
 A session declares MCP servers in `session/new`, where ACP has a field for HTTP
 ones. A **terminal** has no such field, so it gets a config file its CLI is
 pointed at — `cliMCPArgs` in the kind table, beside `cliBin`. A kind that has not
-filled that column in simply runs without the tools, which is better than
-guessing a flag and failing to open the window.
+filled that column in simply runs without the tools, and since a stage of a route
+*is* a terminal that now decides more than whether the window is useful: no
+tools, no `finish_work`, so `stageRunsInTerminal` leaves such an agent on the
+protocol rather than opening a conversation nothing could end.
 
-A session could take the same server through `session/new` and does not yet: a
-card's own agent creating cards — or moving its own card into the column that
-starts it — is a loop with nothing to stop it, and that wants a decision before
-it wants code. A terminal is a person watching, which is what stands in for that
-decision today.
+A deploy or a test session could take the same server through `session/new` and
+does not: a card's own agent creating cards — or moving its own card into the
+column that starts it — is a loop with nothing to stop it, and that wants a
+decision before it wants code. An agent stage no longer has the question, being a
+terminal with a person able to watch it.
 
 ### A source brings cards in, and the app decides what they become
 
@@ -726,11 +764,18 @@ of what was there: `insertBlock` keys its update on `id AND board_id`, so
 re-inserting a block under a new board updates nothing and says it worked.
 Properties travel by **name**, since the two boards share nothing else.
 
-### A terminal is how a person works with an agent
+### A terminal is where the work happens, watched or not
 
 `internal/acp/terminal.go` + `terminalws.go` run the agent's **own CLI** in a pty in
 the card's worktree, drawn by xterm.js and wired over a WebSocket on the front door
 (`/acp/terminal/{id}/ws`).
+
+It began as the place a person works *with* an agent, and it is now both that and
+the place the automation works: an agent stage of a route is a terminal, opened
+with the card's task already in it (`stageterminal.go`, above). One mechanism,
+two callers, and the same conversation either way — asking for the card's
+terminal while a stage is running hands back the stage's own, because that *is*
+the conversation about that card at that stage.
 
 **Where it is drawn is beside the card, not in it**: `pages/…/terminalPage.tsx`
 takes its terminal id from the route when it is a window and from a prop when it
@@ -843,10 +888,12 @@ is a column in the same table that knows the adapters (`cliBin`: `claude-agent-a
 → `claude`); `terminalCommand` on an entry replaces the argv outright.
 
 The card still hears about it, once: a comment when the CLI exits, saying what it
-left on the branch. Opening the terminal is not commented — it is on the card, in
-front of whoever opened it. Terminals outlive the panel and the window and
-resume — every one is recorded, so the next terminal on that card returns to the
-card's own workspace with `claude --continue`.
+left on the branch (`workLanded`). Opening the terminal is not commented — it is
+on the card, in front of whoever opened it. A *stage's* terminal writes no such
+comment, because the stage already wrote one carrying the same facts under the
+agent's own summary. Terminals outlive the panel and the window and resume —
+every one is recorded, so the next terminal on that card returns to the card's
+own workspace with `claude --continue`.
 
 **Our record of a terminal is not the CLI's own history, so a refused resume
 opens a new conversation rather than a dead window** (`restartFresh`). A terminal
@@ -865,14 +912,16 @@ kind's `dropEnv` exactly as a session does**, because `CLAUDE_CODE_CHILD_SESSION
 inherited from a Claude Code session the app was launched from turns the CLI's
 transcript saving *off*, and then there is never anything to continue.
 
-A terminal **raises nothing**, and that is a decision. There is no protocol to
-ask through in a pty — an agent CLI draws a TUI — so the only signal available
-was silence, and silence could not be told from a CLI sitting at its prompt with
-nothing asked: opening a terminal and leaving it announced "needs you" five
-seconds later, every time, including after the window was closed. A signal that
-is wrong more often than right is worse than none, and the window is in front of
-whoever opened it. **Only the protocol asks** (`question.go`), which is why
-`acp:attention` now has one reason instead of two.
+**A terminal somebody opened raises nothing; a stage's does.** There is no
+protocol to ask through in a pty, so the only signal is silence — and the same
+measurement means different things in the two cases. On a terminal a person
+opened, nothing happening is the ordinary state: it announced "needs you" five
+seconds later, every time, including after the window was closed, and a signal
+that is wrong more often than right is worse than none — the window is in front
+of whoever opened it anyway. On a stage the agent was handed a task and has not
+called `finish_work`, so a CLI drawing nothing has stopped *for somebody*
+(`watchStageQuiet`, `AttentionTerminal`). That is the whole difference, and it is
+why `acp:attention` has two reasons again without the old bug coming back.
 
 ### The app replaces itself, and trusts one key while doing it
 

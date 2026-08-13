@@ -20,18 +20,24 @@ import (
 // is how a terminal would fail to open at all. The MCP flag is not a guess: it
 // is a column of the same table that already knows which binary to run, and a
 // kind that has not filled it in gets no flag and no tools.
-func terminalCommand(a AgentEntry, resume bool, mcpConfig string) ([]string, error) {
+// prompt is the first message of the conversation, for a terminal a stage of a
+// route opened rather than a person. It is taken only when the CLI is starting a
+// conversation of its own — a resumed one already has a transcript, and putting a
+// task on that command line is a flag combination no vendor documents. The
+// second return value says whether it was taken; when it was not, the caller
+// pastes the task in once the CLI has settled (deliverPrompt).
+func terminalCommand(a AgentEntry, resume bool, mcpConfig, prompt string) ([]string, bool, error) {
 	// An explicit argv is the whole command, exactly as Command is for ACP:
 	// with it set nothing of ours is appended, resume flags included, since we
 	// cannot know whether a wrapper would pass them on.
 	if len(a.TerminalCommand) > 0 {
-		return append([]string(nil), a.TerminalCommand...), nil
+		return append([]string(nil), a.TerminalCommand...), false, nil
 	}
 	adapter, known := acpNative[a.Kind]
 	if !known {
 		// The generic kind is an argv somebody wrote for ACP-over-stdio; the
 		// same argv would put the CLI back into a mode with no terminal in it.
-		return nil, fmt.Errorf("для агента %q (kind %q) не известен интерактивный CLI — укажите terminalCommand или возьмите kind claude, codex, antigravity, copilot или junie", a.Name, a.Kind)
+		return nil, false, fmt.Errorf("для агента %q (kind %q) не известен интерактивный CLI — укажите terminalCommand или возьмите kind claude, codex, antigravity, copilot или junie", a.Name, a.Kind)
 	}
 	bin := adapter.cliBin
 	if bin == "" {
@@ -50,7 +56,15 @@ func terminalCommand(a AgentEntry, resume bool, mcpConfig string) ([]string, err
 	if mcpConfig != "" && adapter.cliMCPArgs != nil {
 		argv = append(argv, adapter.cliMCPArgs(mcpConfig)...)
 	}
-	return argv, nil
+	// The entry's CLI arguments are arguments for the vendor CLI, and here the
+	// vendor CLI is what is being started — no adapter in between to hand them
+	// to (clihandoff.go). Remote Control is why this field exists, and a stage
+	// that now runs as a terminal would otherwise quietly lose it.
+	argv = append(argv, a.CLIArgs...)
+	if prompt != "" && !resume && adapter.cliPromptArgs != nil {
+		return append(argv, adapter.cliPromptArgs(prompt)...), true, nil
+	}
+	return argv, false, nil
 }
 
 // terminalTakesMCP reports whether this entry's terminal can be handed tools of
@@ -106,8 +120,22 @@ func terminalReport(ctx context.Context, t *TerminalSession) string {
 	} else {
 		fmt.Fprintf(&b, " закрыт с кодом %d.", t.exitCode)
 	}
+	if landed := workLanded(ctx, t); landed != "" {
+		b.WriteString("\n")
+		b.WriteString(landed)
+	}
+	return strings.TrimSpace(b.String())
+}
+
+// workLanded is what the conversation left behind: the branch, the commits it
+// added and what is still uncommitted. Separate from the report above because a
+// stage of a route says the same thing under a heading of its own
+// (stageComment) — the facts are the conversation's, the heading is the
+// caller's.
+func workLanded(ctx context.Context, t *TerminalSession) string {
+	var b strings.Builder
 	if t.Branch != "" {
-		fmt.Fprintf(&b, "\nВетка: `%s`", t.Branch)
+		fmt.Fprintf(&b, "Ветка: `%s`", t.Branch)
 	}
 
 	commits := gitLines(ctx, t.Cwd, "log", "--oneline", "--no-decorate", t.startSHA+"..HEAD")

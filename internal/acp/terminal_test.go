@@ -51,7 +51,7 @@ func TestTerminalCommandRunsTheCLIRatherThanTheAdapter(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got, err := terminalCommand(c.entry, c.resume, "")
+			got, _, err := terminalCommand(c.entry, c.resume, "", "")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -65,7 +65,7 @@ func TestTerminalCommandRunsTheCLIRatherThanTheAdapter(t *testing.T) {
 // binPath on a claude entry points at the vendor adapter, which has no terminal
 // UI at all: running it in a window would show nothing and answer nothing.
 func TestTerminalCommandIgnoresTheAdapterBinPath(t *testing.T) {
-	got, err := terminalCommand(AgentEntry{Name: "c", Kind: AgentKindClaude, BinPath: "/opt/claude-agent-acp"}, false, "")
+	got, _, err := terminalCommand(AgentEntry{Name: "c", Kind: AgentKindClaude, BinPath: "/opt/claude-agent-acp"}, false, "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +78,7 @@ func TestTerminalCommandIgnoresTheAdapterBinPath(t *testing.T) {
 // interactive CLI out of it would open a window on a process with no terminal,
 // so it asks instead.
 func TestTerminalCommandRefusesAKindItCannotKnow(t *testing.T) {
-	_, err := terminalCommand(AgentEntry{Name: "g", Kind: AgentKindACP, Command: []string{"gemini", "--acp"}}, false, "")
+	_, _, err := terminalCommand(AgentEntry{Name: "g", Kind: AgentKindACP, Command: []string{"gemini", "--acp"}}, false, "", "")
 	if err == nil {
 		t.Fatal("expected a refusal for the generic kind")
 	}
@@ -332,7 +332,7 @@ func TestTerminalResumesWhereTheCardLeftOff(t *testing.T) {
 	if rec.Cwd != cwd {
 		t.Errorf("resuming in %s, want %s", rec.Cwd, cwd)
 	}
-	argv, err := terminalCommand(agent, resume, "")
+	argv, _, err := terminalCommand(agent, resume, "", "")
 	if err != nil {
 		t.Fatal(err)
 	}

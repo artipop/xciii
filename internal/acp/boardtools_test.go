@@ -285,7 +285,7 @@ func TestBoardToolsConfigIsWrittenForTheCLIAndCleanedUpAfter(t *testing.T) {
 	}
 
 	// And the argv the terminal runs is what that CLI takes.
-	argv, err := terminalCommand(AgentEntry{Name: "c", Kind: AgentKindClaude}, false, path)
+	argv, _, err := terminalCommand(AgentEntry{Name: "c", Kind: AgentKindClaude}, false, path, "")
 	if err != nil {
 		t.Fatal(err)
 	}

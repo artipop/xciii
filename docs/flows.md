@@ -176,10 +176,15 @@ flowchart TD
     G -- "not a repository" --> I["Work in the folder itself.<br/>A second card is refused while one is running"]
     G -- "a copy per card" --> H["The card's own copy,<br/>on branch card-title-abcd1234"]
     G -- "a branch in the folder" --> N["The card's branch, in the folder itself.<br/>The next card waits for the merge"]
-    H --> J["Session runs: the agent works,<br/>and the result lands as one card comment"]
+    H --> J["A terminal opens with the card's task in it.<br/>The agent's own CLI works there and asks there"]
     I --> J
     N --> J
-    J --> K{"Is the card on a route?"}
+    J --> J2{"Has the agent called<br/>finish_work?"}
+    J2 -- "not yet, and nothing is being drawn" --> J3["The card goes amber: the agent is<br/>waiting for somebody in the terminal"]
+    J3 --> J2
+    J2 -- "the terminal was closed instead" --> J4["The card stays put and says<br/>the result was never reported"]
+    J2 -- yes --> J5["The conversation closes, and the summary<br/>lands as one card comment"]
+    J5 --> K{"Is the card on a route?"}
     K -- no --> L["Card stays where it is.<br/>A person moves it on"]
     K -- yes --> M["The route takes the outcome<br/>and moves the card to the next stage"]
 ```
@@ -193,6 +198,26 @@ matched, the route has no edge for what arrived, the card belongs to a person �
 is a **stall record** (`card_stall`), shown in amber on the card's route strip
 while it is true and deleted by any progress. Route dead-ends write softly, so
 the first reason (the root cause) is the one that stays visible.
+
+### A stage is a terminal, and the agent says when it is over
+
+An agent stage runs the agent's **own CLI**, in a terminal, with the card's task
+already typed into it. Everything it asks — a choice, permission to run a
+command, a question about the task — it asks in its own interface, and that is
+where you answer: open the terminal from the card, the notification or «Ждут» on
+a phone. Nothing of ours is drawn over that screen.
+
+A terminal does not end by itself, so the agent declares the work over with
+**finish_work**: done or not done, and one line about what it did. That line is
+the card's comment and the event the route acts on. If the terminal is closed
+without it, the card stays where it is and says so — no verdict was given, so
+none is invented.
+
+Two things are still done the old way, without a terminal: a **deploy** and a
+**test**. Nobody is watching those, and their result is read by the machine
+rather than by a person. So is any agent whose CLI cannot be started here — an
+agent registered as a plain ACP command, or one whose CLI is not installed on
+this machine.
 
 ## Where the work happens, and what becomes of it
 
@@ -335,6 +360,7 @@ board: an agent only ever reaches the board its terminal was opened on.
 | put work on the board | *create_card*, *create_cards* — how a planning conversation ends |
 | change a card | *update_card* — its title, its project, its route, an answer a stage is waiting on; *comment_card* — a note in the card's own history |
 | hand work on | *move_card* — the card goes into another column, **and the column starts** |
+| finish a stage | *finish_work* — the work of this card is done, or could not be done; the route takes it from there |
 | say what it is doing | *describe_conversation* — one line about this conversation, shown under its name in «Открытые терминалы» and on «Терминалы» on a phone |
 
 That last row is the one to know about. A card an agent moves is a card moved:

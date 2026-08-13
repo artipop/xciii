@@ -17,6 +17,7 @@ type fakeBoard struct {
 	changes   []CardChange
 	comments  []string
 	described []string
+	finished  []string
 }
 
 func (b *fakeBoard) Columns(context.Context) ([]Column, error) {
@@ -90,6 +91,11 @@ func (b *fakeBoard) Comment(_ context.Context, cardID, text string) error {
 
 func (b *fakeBoard) Describe(_ context.Context, text string) error {
 	b.described = append(b.described, text)
+	return nil
+}
+
+func (b *fakeBoard) Finish(_ context.Context, ok bool, summary string) error {
+	b.finished = append(b.finished, fmt.Sprintf("%t: %s", ok, summary))
 	return nil
 }
 

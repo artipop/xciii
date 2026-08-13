@@ -13,14 +13,21 @@ import (
 // Claude's Remote Control is a flag of the CLI and nothing in ACP, so no probe
 // can find it: the only way is the door the adapter documents — session/new's
 // _meta, where extraArgs reach the CLI it spawns.
+//
+// _meta is a session's channel, and a session is what an agent gets when its
+// stages cannot run in a terminal (stageRunsInTerminal) — which a terminal argv
+// of its own is one way to say, and a deploy or a test is the other. A stage
+// that does run in a terminal needs no channel at all: there the vendor CLI is
+// what we start, and the arguments go on its command line (terminalCommand).
 func TestCLIArgsReachTheAgentThroughSessionMeta(t *testing.T) {
 	script := writeFakeAgent(t, fakeClaudeHappy)
 	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{
-			Name:    "remote",
-			Kind:    "claude",
-			BinPath: script,
-			CLIArgs: []string{"--remote-control", "--remote-control-session-name-prefix", "board"},
+			Name:            "remote",
+			Kind:            "claude",
+			BinPath:         script,
+			TerminalCommand: []string{"sh"},
+			CLIArgs:         []string{"--remote-control", "--remote-control-session-name-prefix", "board"},
 		}}
 	})
 

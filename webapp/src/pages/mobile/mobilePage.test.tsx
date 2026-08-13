@@ -33,13 +33,14 @@ const askedOnCard = {
     since: '2026-08-06T11:00:00Z',
 }
 
-const quietOnCard = {
+const waitingOnCard = {
     key: 'term-1',
     terminalId: 'term-1',
     cardId: 'card-1',
     title: 'Починить логин',
     agent: 'clauuus',
-    reason: 'quiet',
+    reason: 'terminal',
+    text: 'агент ждёт ответа в терминале',
     awaiting: true,
     since: '2026-08-06T10:00:00Z',
 }
@@ -109,27 +110,25 @@ describe('pages/mobile/mobilePage', () => {
         expect(screen.getByText('No terminal is running.')).toBeInTheDocument()
     })
 
-    // The point of carrying the question to the phone is answering it there:
-    // the agent's turn is open, and it carries on the moment the answer lands.
-    it('answers a question where it is read', async () => {
-        const app = bindings([askedOnCard])
-        anyWindow.go = {main: {App: app}}
+    // The agent is asking inside its own CLI, so this screen says which card is
+    // waiting and takes you there. It deliberately does not offer an answer of
+    // its own: the options it used to draw were a second interface for one
+    // exchange, and the one that could not show what the agent had drawn.
+    it('says which card is waiting and offers the terminal, not an answer', async () => {
+        anyWindow.go = {main: {App: bindings([waitingOnCard])}}
 
         renderPage()
 
-        expect(await screen.findByText('Выкатить релиз')).toBeInTheDocument()
-        expect(screen.getByText('Разрешить Bash: git push?')).toBeInTheDocument()
-
-        await userEvent.click(screen.getByText('Разрешить'))
-
-        await waitFor(() => expect(app.AnswerQuestion).toHaveBeenCalledWith('q-1', 'allow', ''))
+        expect(await screen.findByText('Починить логин')).toBeInTheDocument()
+        expect(screen.getByText('агент ждёт ответа в терминале')).toBeInTheDocument()
+        expect(screen.getByText('Open the terminal')).toBeInTheDocument()
     })
 
-    // A silent CLI is answered by typing in it, so the phone goes to the
-    // terminal — by address, without asking Go to open a window on a desktop
-    // nobody is sitting at.
+    // A CLI is answered by typing in it, so the phone goes to the terminal — by
+    // address, without asking Go to open a window on a desktop nobody is sitting
+    // at.
     it('opens a waiting terminal in the page rather than a window', async () => {
-        const app = bindings([quietOnCard])
+        const app = bindings([waitingOnCard])
         anyWindow.go = {main: {App: app}}
 
         renderPage()

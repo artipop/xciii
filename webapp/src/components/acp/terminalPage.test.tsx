@@ -2,7 +2,6 @@ import {TextDecoder as NodeTextDecoder, TextEncoder as NodeTextEncoder} from 'ut
 
 import {render, screen, waitFor} from '@solidjs/testing-library'
 import {MemoryRouter, Route, createMemoryHistory} from '@solidjs/router'
-import userEvent from '@testing-library/user-event'
 
 import {IntlProvider} from '../../intl'
 import '@testing-library/jest-dom'
@@ -81,8 +80,7 @@ const renderPage = () => {
 }
 
 // The page opens two sockets: the pty it draws, and the one shared connection
-// every ACP component listens on — it reads the card's pending question from
-// there. Only the first is this test's business.
+// every ACP component listens on. Only the first is this test's business.
 const ptySocket = async (): Promise<FakeSocket> => {
     let found: FakeSocket | undefined
     await waitFor(() => {
@@ -201,12 +199,10 @@ describe('components/acp/terminalPage', () => {
         expect(new URL((await ptySocket()).url).pathname).toBe('/acp/terminal/term-42/ws')
     })
 
-    // The dot on the card opens this window, and the question it is amber for
-    // was asked over the protocol rather than in the pty — so it can only be
-    // shown around the terminal. Without it the dot would lead to a window with
-    // nothing in it about what is being waited for.
-    it('shows the question waiting on this terminal’s card and answers it', async () => {
-        const answerQuestion = vi.fn().mockResolvedValue(undefined);
+    // The amber button on the card leads here, and here is the agent's own CLI
+    // asking in its own interface. Nothing of ours is drawn over it — a box with
+    // our buttons in it used to cover the very screen the button had led to.
+    it('draws nothing over the terminal when the card is waiting', async () => {
         (window as any).go.main.App.GetTerminalInfo = vi.fn().mockResolvedValue(JSON.stringify({
             id: 'term-1',
             cardId: 'card-9',
@@ -226,12 +222,12 @@ describe('components/acp/terminalPage', () => {
             text: 'Снести ветку или оставить?',
             options: [{id: 'keep', label: 'Оставить'}],
             awaiting: true,
-        }]));
-        (window as any).go.main.App.AnswerQuestion = answerQuestion
+        }]))
 
         renderPage()
 
-        await userEvent.click(await screen.findByText('Оставить'))
-        expect(answerQuestion).toHaveBeenCalledWith('q-7', 'keep', '')
+        expect(await screen.findByText('clauuus')).toBeInTheDocument()
+        expect(screen.queryByText('Снести ветку или оставить?')).not.toBeInTheDocument()
+        expect(screen.queryByText('Оставить')).not.toBeInTheDocument()
     })
 })

@@ -146,6 +146,12 @@ func (g *grantedBoard) Describe(_ context.Context, text string) error {
 	return g.mgr.DescribeTerminalFromTools(g.token, text)
 }
 
+// Finish ends the stage of a route this conversation is, which the grant is
+// what knows — the same way Describe does.
+func (g *grantedBoard) Finish(_ context.Context, ok bool, summary string) error {
+	return g.mgr.FinishWorkFromTools(g.token, ok, summary)
+}
+
 func cardInfo(c acp.BoardToolCard) boardmcp.CardInfo {
 	return boardmcp.CardInfo{
 		ID:      c.ID,

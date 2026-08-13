@@ -52,6 +52,15 @@ type Manager struct {
 	// threshold is a human one and would make the suite wait it out.
 	terminalQuiet time.Duration
 
+	// The stages of routes that are running in a terminal (stageterminal.go):
+	// what each is waiting to be told through finish_work, and which of them
+	// have gone quiet and want a person. Their own lock, for the same reason
+	// questions have one — a report arrives on an HTTP handler and must not
+	// queue behind a session starting.
+	stageMu      sync.Mutex
+	stageWaits   map[string]chan stageReport // terminal ID → where its report lands
+	stageWaiting map[string]Attention        // terminal ID → the wait it is showing
+
 	seededMu sync.Mutex
 	seeded   map[string]bool // boards whose own settings have been imported
 

@@ -18,22 +18,17 @@ function attentionBindings(waiting: any[] = []) {
     }
 }
 
-// What ACP sends, and the only thing that raises a notification: the agent
-// asked, its turn is still open, and the answer goes straight back to it.
-const askedOnCard = {
-    key: 'card:card-2',
+// A stage of a route whose CLI has stopped drawing: it is asking something
+// inside its own interface, and the conversation it is asking in is named, which
+// is what the notification leads to.
+const waitingOnCard = {
+    key: 'term-1',
+    terminalId: 'term-1',
     cardId: 'card-2',
     title: 'Выкатить релиз',
     agent: 'clauuus',
-    reason: 'question',
-    questionId: 'q-1',
-    tool: 'Bash',
-    text: 'Разрешить Bash: git push?',
-    options: [
-        {id: 'allow', label: 'Разрешить', kind: 'allow_once'},
-        {id: 'no', label: 'Отклонить', kind: 'reject_once'},
-    ],
-    freeText: false,
+    reason: 'terminal',
+    text: 'агент ждёт ответа в терминале',
     awaiting: true,
     since: '2026-08-05T11:00:00Z',
 }
@@ -76,7 +71,7 @@ describe('components/acp/attentionNotifications', () => {
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention'](askedOnCard)
+        handlers['acp:attention'](waitingOnCard)
 
         expect(await screen.findByText('clauuus is asking')).toBeInTheDocument()
         expect(screen.getByText('Выкатить релиз')).toBeInTheDocument()
@@ -89,61 +84,45 @@ describe('components/acp/attentionNotifications', () => {
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention'](askedOnCard)
+        handlers['acp:attention'](waitingOnCard)
         expect(await screen.findByRole('alert')).toBeInTheDocument()
 
-        handlers['acp:attention']({...askedOnCard, awaiting: false})
+        handlers['acp:attention']({...waitingOnCard, awaiting: false})
         await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
     })
 
-    // The agent's own question, with its own words and its own options — the
-    // turn is open while it is on screen.
-    it('puts the agent question and its options to the person', async () => {
+    // What is being asked, in the agent's own words, and nothing to answer it
+    // with: the agent is asking inside its own CLI, and a row of buttons of ours
+    // beside a copy of the question was a second interface for one exchange.
+    it('says what is being asked and offers the terminal rather than an answer', async () => {
         anyWindow.go = {main: {App: attentionBindings()}}
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention'](askedOnCard)
+        handlers['acp:attention'](waitingOnCard)
 
         expect(await screen.findByText('clauuus is asking')).toBeInTheDocument()
-        expect(screen.getByText('Разрешить Bash: git push?')).toBeInTheDocument()
-        expect(screen.getByText('Разрешить')).toBeInTheDocument()
-        expect(screen.getByText('Отклонить')).toBeInTheDocument()
+        expect(screen.getByText('агент ждёт ответа в терминале')).toBeInTheDocument()
+        expect(screen.getByText('Open the terminal')).toBeInTheDocument()
     })
 
-    // Answering is the whole point: it goes back to the agent that is waiting,
-    // and no terminal is opened to do it.
-    it('answers the agent where the question was read', async () => {
+    // The one thing there is to do: go to where the agent is asking. A wait that
+    // names its conversation is shown by id — reopening "the card's terminal"
+    // would start a second CLI beside the one that is waiting.
+    it('opens the terminal the agent is waiting in', async () => {
         const bindings = attentionBindings()
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention'](askedOnCard)
+        handlers['acp:attention'](waitingOnCard)
 
-        await userEvent.click(await screen.findByText('Разрешить'))
-        await waitFor(() => expect(bindings.AnswerQuestion).toHaveBeenCalledWith('q-1', 'allow', ''))
-        expect(bindings.ShowTerminal).not.toHaveBeenCalled()
+        await userEvent.click(await screen.findByText('Open the terminal'))
+        await waitFor(() => expect(bindings.ShowTerminal).toHaveBeenCalledWith('term-1'))
         expect(bindings.OpenCardTerminal).not.toHaveBeenCalled()
 
-        // The agent answered is no longer waiting, and the Go side says so.
-        handlers['acp:attention']({...askedOnCard, awaiting: false})
+        // Somebody who is now looking at the agent has been told.
         await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
-    })
-
-    // An agent may want words rather than a choice — the claude CLI always
-    // offers that beside its options.
-    it('sends an answer typed in words', async () => {
-        const bindings = attentionBindings()
-        anyWindow.go = {main: {App: bindings}}
-
-        render(() => wrapIntl(() => <AttentionNotifications/>))
-        await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention']({...askedOnCard, freeText: true})
-
-        await userEvent.type(await screen.findByPlaceholderText('Answer in your own words…'), 'через staging')
-        await userEvent.click(screen.getByText('Send'))
-        await waitFor(() => expect(bindings.AnswerQuestion).toHaveBeenCalledWith('q-1', '', 'через staging'))
     })
 
     // Waving one question away is not a standing refusal: the agent asking
@@ -153,24 +132,24 @@ describe('components/acp/attentionNotifications', () => {
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention'](askedOnCard)
+        handlers['acp:attention'](waitingOnCard)
 
         await userEvent.click(await screen.findByLabelText('Dismiss'))
         expect(screen.queryByRole('alert')).toBeNull()
 
-        handlers['acp:attention']({...askedOnCard, awaiting: false})
-        handlers['acp:attention']({...askedOnCard, key: 'q:q-2', questionId: 'q-2', since: '2026-08-05T11:30:00Z'})
+        handlers['acp:attention']({...waitingOnCard, awaiting: false})
+        handlers['acp:attention']({...waitingOnCard, key: 'term-2', terminalId: 'term-2', since: '2026-08-05T11:30:00Z'})
 
         expect(await screen.findByRole('alert')).toBeInTheDocument()
     })
 
     it('interrupts nobody who turned notifications off', async () => {
-        anyWindow.go = {main: {App: attentionBindings([askedOnCard])}}
+        anyWindow.go = {main: {App: attentionBindings([waitingOnCard])}}
         setAgentNotifications(false)
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
-        handlers['acp:attention'](askedOnCard)
+        handlers['acp:attention'](waitingOnCard)
 
         expect(screen.queryByRole('alert')).toBeNull()
         setAgentNotifications(true)
@@ -179,7 +158,7 @@ describe('components/acp/attentionNotifications', () => {
     // A page opened after the agent stopped has no event to hear: the list is
     // what it starts from.
     it('starts from what is already waiting', async () => {
-        anyWindow.go = {main: {App: attentionBindings([askedOnCard])}}
+        anyWindow.go = {main: {App: attentionBindings([waitingOnCard])}}
 
         render(() => wrapIntl(() => <AttentionNotifications/>))
 

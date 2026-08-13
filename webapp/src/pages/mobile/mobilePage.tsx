@@ -7,13 +7,7 @@ import {useIntl} from '../../intl'
 import type {IntlShape} from '../../intl'
 import {agentBindings} from '../../components/acp/bindings'
 import {onAgentEvent} from '../../components/acp/agentEvents'
-import {
-    Attention,
-    answerQuestion,
-    attentionHeading,
-    keyOf,
-    useAttention,
-} from '../../components/acp/attention'
+import {attentionHeading, useAttention} from '../../components/acp/attention'
 
 import {BindingBoard, BindingCard, listBoards, listInbox} from '../../bindings/boards'
 
@@ -33,8 +27,9 @@ import './mobilePage.scss'
 //                 board from here, which is the whole point of an inbox;
 //   «Карточки»  — one board's cards as a list, to find out where something got
 //                 to without walking to the desk;
-//   «Ждут»      — what is asking for a person, answered in place, because a
-//                 question carries its own options;
+//   «Ждут»      — what is asking for a person, and the way into the terminal it
+//                 is asking in: the agent draws its own question there, so this
+//                 screen carries you to it rather than copying it;
 //   «Терминалы» — which are alive, so the one that went quiet can be typed in.
 //
 // «Ждут» is what opens, because it is the only one of the four that cannot
@@ -67,8 +62,6 @@ const MobilePage = () => {
     const navigate = useNavigate()
     const waiting = useAttention()
     const [terminals, setTerminals] = createSignal<Terminal[]>([])
-    const [typed, setTyped] = createSignal<Record<string, string>>({})
-    const [busy, setBusy] = createSignal('')
     const [tab, setTab] = createSignal<Tab>('waiting')
 
     // The inbox and the boards are read here rather than inside the tab that
@@ -132,15 +125,6 @@ const MobilePage = () => {
         })
     })
 
-    const answer = async (target: Attention, optionId: string) => {
-        setBusy(keyOf(target))
-        try {
-            await answerQuestion(target, optionId, optionId ? '' : (typed()[keyOf(target)] || ''))
-        } finally {
-            setBusy('')
-        }
-    }
-
     // A terminal that exists is reached by its address alone — no binding call,
     // and no window opening on a desktop nobody is sitting at.
     const openTerminal = (terminalId: string) => navigate(`/m/terminal/${terminalId}`)
@@ -187,48 +171,14 @@ const MobilePage = () => {
                                         {target.title || intl.formatMessage({id: 'Attention.untitled', defaultMessage: 'Untitled card'})}
                                     </span>
 
-                                    <Show when={target.reason === 'question'}>
+                                    <Show when={target.text}>
                                         <p class='MobilePage__question'>{target.text}</p>
-                                        <div class='MobilePage__options'>
-                                            <For each={target.options || []}>
-                                                {(option) => (
-                                                    <button
-                                                        type='button'
-                                                        class='MobilePage__option'
-                                                        disabled={busy() === keyOf(target)}
-                                                        onClick={() => answer(target, option.id)}
-                                                    >
-                                                        {option.label}
-                                                    </button>
-                                                )}
-                                            </For>
-                                        </div>
-                                        <Show when={target.freeText}>
-                                            <form
-                                                class='MobilePage__free'
-                                                onSubmit={(e) => {
-                                                    e.preventDefault()
-                                                    answer(target, '')
-                                                }}
-                                            >
-                                                <input
-                                                    type='text'
-                                                    placeholder={intl.formatMessage({id: 'Attention.free-text', defaultMessage: 'Answer in your own words…'})}
-                                                    value={typed()[keyOf(target)] || ''}
-                                                    onInput={(e) => setTyped((current) => ({...current, [keyOf(target)]: e.currentTarget.value}))}
-                                                />
-                                                <button
-                                                    type='submit'
-                                                    class='MobilePage__option'
-                                                    disabled={!typed()[keyOf(target)]}
-                                                >
-                                                    {intl.formatMessage({id: 'Attention.send', defaultMessage: 'Send'})}
-                                                </button>
-                                            </form>
-                                        </Show>
                                     </Show>
 
-                                    <Show when={target.reason === 'quiet' && target.terminalId}>
+                                    {/* The answer is given to the agent's own
+                                        CLI, in the terminal, so all this screen
+                                        does is get you there. */}
+                                    <Show when={target.terminalId}>
                                         <button
                                             type='button'
                                             class='MobilePage__action'

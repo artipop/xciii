@@ -49,7 +49,11 @@ const instructions = `Инструменты доски XCIII. Через них
 дальше по доске сами.
 
 Когда с человеком договорились, что делать, — заведи задачи: по одной карточке
-на задачу, все разом через create_cards. Когда работа по карточке сделана —
+на задачу, все разом через create_cards.
+
+Если этот разговор начался с задачи по карточке, то он и есть стадия маршрута:
+доделав работу, скажи об этом через finish_work — карточка поедет дальше сама,
+и до этого вызова она стоит и ждёт тебя. Если карточка никуда не едет сама,
 переложи её в следующую колонку через move_card, это и запускает всё дальнейшее.
 
 Доска уже выбрана, указать другую нельзя. Колонка решает, что с карточкой
@@ -154,6 +158,11 @@ type Board interface {
 	// than about the board, and it exists because nothing else can know: a
 	// terminal is a vendor CLI in a pty, so no protocol carries a recap of it.
 	Describe(ctx context.Context, text string) error
+	// Finish is the agent saying the stage of the route it was given is over,
+	// and what became of it. It is the one thing the app cannot see for itself:
+	// the stage is the agent's own CLI in a terminal, and an interactive CLI
+	// does not exit when a turn ends.
+	Finish(ctx context.Context, ok bool, summary string) error
 }
 
 type createInput struct {
@@ -190,6 +199,11 @@ type commentInput struct {
 
 type describeInput struct {
 	Text string `json:"text" jsonschema:"одна строка: чем занят этот разговор прямо сейчас"`
+}
+
+type finishInput struct {
+	Done    bool   `json:"done" jsonschema:"true — работа по карточке сделана; false — сделать её не вышло"`
+	Summary string `json:"summary" jsonschema:"что сделано или почему не вышло — это попадёт в карточку как комментарий"`
 }
 
 type noInput struct{}
@@ -352,6 +366,28 @@ func NewServer(board Board) *mcp.Server {
 			return errorResult("%v", err), nil, nil
 		}
 		return textResult("Комментарий добавлен."), nil, nil
+	})
+
+	// How a stage of a route ends. The app started this conversation with the
+	// card's task in it and has no other way to learn that the task is done: a
+	// CLI that is still running is a CLI a person may simply be reading.
+	mcp.AddTool(srv, &mcp.Tool{
+		Name: "finish_work",
+		Description: "Сказать, что работа по карточке закончена. Вызови это, когда сделал то, " +
+			"о чём просит карточка, — или когда понял, что сделать это не выходит. Пока ты этого " +
+			"не сказал, карточка стоит на месте и ждёт тебя; после этого она едет по маршруту " +
+			"дальше, а разговор закрывается.",
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in finishInput) (*mcp.CallToolResult, any, error) {
+		if strings.TrimSpace(in.Summary) == "" {
+			return errorResult("не сказано, что сделано: короткий итог попадёт в карточку, человек читает именно его"), nil, nil
+		}
+		if err := board.Finish(ctx, in.Done, in.Summary); err != nil {
+			return errorResult("%v", err), nil, nil
+		}
+		if in.Done {
+			return textResult("Работа принята, карточка едет дальше. Разговор сейчас закроется."), nil, nil
+		}
+		return textResult("Записано, что закончить не вышло. Карточка поедет по ветке маршрута для неудачи."), nil, nil
 	})
 
 	// The only tool here about the conversation rather than about the board: what
