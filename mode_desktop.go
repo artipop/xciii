@@ -8,8 +8,10 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"sync"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 
 	"github.com/artipop/xciii/internal/acp"
 )
@@ -95,8 +97,10 @@ func (o *origin) start() {}
 // newMainWindow opens the one window the desktop app has, on the front door's
 // address rather than the wails:// origin.
 func newMainWindow(wapp *application.App, url string) {
-	wapp.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:  "XCIII",
+	win := wapp.Window.NewWithOptions(application.WebviewWindowOptions{
+		Title: "XCIII",
+		// The stated size is what Restore returns to; the window itself opens
+		// maximised (below).
 		Width:  1024,
 		Height: 768,
 		URL:    url,
@@ -104,6 +108,16 @@ func newMainWindow(wapp *application.App, url string) {
 		// cannot know which theme the page will choose, and of the two seams a
 		// dark one is the quieter mistake.
 		BackgroundColour: application.NewRGB(12, 12, 14),
+	})
+	// Maximised, not fullscreen: the board is the kind of thing a person gives
+	// the whole screen to, and a 1024×768 default opened every session with
+	// the columns squeezed and a resize as the first chore. Done when the
+	// runtime reports the window ready rather than as StartState, which this
+	// Wails runs before the window can zoom, so it opened at the stated size
+	// anyway.
+	var once sync.Once
+	win.OnWindowEvent(events.Common.WindowRuntimeReady, func(*application.WindowEvent) {
+		once.Do(func() { win.Maximise() })
 	})
 }
 
