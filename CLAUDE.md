@@ -378,16 +378,38 @@ in for both while there was no site: somebody who opens «Руководство
 manual and not a source tree, and a bug report should not cost a person an
 account on a hosting service. The address is printed on the panel as well as put
 in the `mailto:`, since a webview that refuses to open one leaves nothing to
-copy. What a board runs — columns, routes, its folders, and
-what its agents are told first (`boardPrompts`, keyed by board id) — is
-`automationDialog.tsx`. The board's ⋯ menu keeps only export and "save as a
-template" — the archive in the settings dialog is every board there is, and one
-board's own is the board's own business, which is also the whole of why import
-is not offered per board: what an archive brings is boards, plural, and
-Trello/Notion/Todoist are instructions for making one rather than an importer of
-ours. Registering an agent needs
-neither: `agentQuickAdd.tsx` is the two-field form, used by the card, the
-column's crew list and the setup wizard alike.
+copy. What a board *runs* — its columns, its routes, and what its agents are
+told first (`boardPrompts`, keyed by board id) — is `automationDialog.tsx`.
+
+**What a board had to be asked before it can run is not that, and each question
+is its own item in the board's ⋯ menu**: «Папки…» (`workdirsDialog.tsx`),
+«Куда деплоить…» (`deployTargetsDialog.tsx`), «Пройти настройку заново…» (the
+wizard). Which of them a board has is **the board's own setup plan**
+(`BoardSetupPlan` → the steps its template declared in `xciiiSetup`), so the
+menu differs by template exactly as the questions do: a board made from
+«Разработка» offers folders and a deploy host, one made from «Домашние дела»
+offers folders alone. They were folds of the automation dialog, and that was
+wrong twice over — setting up where an agent works is not a question about
+columns and routes, and a fold under a canvas is a place nobody opens, which is
+how somebody who had just answered "which folder" in the wizard ended up with a
+card that could not name one.
+
+The rest of the ⋯ menu is export and "save as a template" — the archive in the
+settings dialog is every board there is, and one board's own is the board's own
+business, which is also the whole of why import is not offered per board: what
+an archive brings is boards, plural, and Trello/Notion/Todoist are instructions
+for making one rather than an importer of ours. Registering an agent needs none
+of these screens: `agentQuickAdd.tsx` is the two-field form, used by the card,
+the column's crew list and the setup wizard alike.
+
+**The registry is not an answer by itself.** A card names its folder with an
+option of the board's own field, so anything that adds a folder mirrors the
+registry into it (`workdirSync.ts`), the wizard included — and a folder somebody
+has already added is offered rather than refused («использовать здесь»:
+`AttachAgentWorkdir` for one no board claimed, `ShareAgentWorkdir` for one
+another board owns), because one checkout worked from two boards is an ordinary
+arrangement. That the option is the folder's *name* is a compromise with a
+deadline on it: `docs/deferred.md` says why an id belongs there instead.
 
 **A card names its agent by whom it is assigned to**, and by nothing else. Each
 registered agent has a board account under its own name, so «Кто занимается»

@@ -1,8 +1,12 @@
 # Folders and branches
 
 An agent always works in some folder on your machine. The list of them is in the
-board's menu → **"How this board works…"** → the **Folders** section. A card
-picks one of them with its «Папки» field.
+board's menu → **"Folders…"**. A card picks one of them with its «Папки» field.
+
+Which items a board's menu has is decided by the template it was made from: the
+«Разработка» board asks about a folder, a deploy host and a browser, so its menu
+has "Folders…" and "Where to deploy…"; a board of household chores asks about a
+folder alone.
 
 A folder is one of two kinds, and the list says which:
 
@@ -32,7 +36,7 @@ the repository treats as its main one. Change it if you work off another —
 ## How an agent works in a repository
 
 This is the board's choice, not the machine's: it decides which routes the board
-can be built out of. It is asked in the same Folders section:
+can be built out of. It is the first question in "Folders…":
 
 **"in a copy of its own"** (the default) — the card gets its own copy of the
 repository and its own branch in it.

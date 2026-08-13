@@ -1,3 +1,5 @@
+// The Wails-generated Go bindings are PascalCase methods, not constructors.
+/* eslint-disable new-cap */
 import {Board, IPropertyTemplate, IPropertyOption} from '../../blocks/board'
 import mutator from '../../mutator'
 import {Utils, IDType} from '../../utils'
@@ -135,4 +137,24 @@ export async function syncWorkdirsToBoard(board: Board, registry: Workdir[]): Pr
         await mutator.updateBoard({...board, properties}, board, 'remember the workdirs field')
     }
     return {added: missing.length, property: target}
+}
+
+// useWorkdirHere makes a folder somebody already registered available on this
+// board. Which call that takes is the entry's business and not the caller's: a
+// folder no board claimed is attached to this one, a folder another board owns
+// becomes every board's, and a folder that is already this board's needs
+// nothing at all.
+export async function useWorkdirHere(entry: Workdir, boardId: string): Promise<void> {
+    const bindings = (window as {go?: {main?: {App?: Record<string, (...args: unknown[]) => Promise<unknown>>}}}).go?.main?.App
+    if (!bindings) {
+        return
+    }
+    if (entry.global || entry.boardId === boardId) {
+        return
+    }
+    if (!entry.boardId) {
+        await bindings.AttachAgentWorkdir?.(entry.name, boardId)
+        return
+    }
+    await bindings.ShareAgentWorkdir?.(entry.name)
 }

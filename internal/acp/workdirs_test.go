@@ -289,3 +289,38 @@ func TestAProjectBelongsToTheBoardItWasAddedOn(t *testing.T) {
 		t.Errorf("its own board could not resolve it: got=%q err=%v", got, err)
 	}
 }
+
+// A folder somebody has already added is not a mistake to refuse: one checkout
+// worked from two boards is an ordinary arrangement, so the screens ask whether
+// to use it here, and this is what the answer costs.
+func TestAFolderAlreadyAddedCanBeUsedHere(t *testing.T) {
+	repo := initTestWorkdir(t)
+	m := registryManager(t, filepath.Join(t.TempDir(), "config.json"))
+	if _, err := m.AddWorkdir("code", repo, "board-a", "", false); err != nil {
+		t.Fatal(err)
+	}
+
+	// Found by path, whichever board owns it — that is what lets the question
+	// be asked before the add is attempted.
+	entry, ok := m.WorkdirAt(repo + "/")
+	if !ok || entry.Name != "code" {
+		t.Fatalf("the folder was not found by its path: %+v ok=%v", entry, ok)
+	}
+	if _, ok := m.WorkdirAt(t.TempDir()); ok {
+		t.Error("a folder nobody added was found anyway")
+	}
+
+	// Another board asks for it, and gets it without a second entry.
+	if got := m.WorkdirsForBoard("board-b"); len(got) != 0 {
+		t.Fatalf("board-b already sees %+v", got)
+	}
+	if _, err := m.ShareWorkdir("code"); err != nil {
+		t.Fatal(err)
+	}
+	if got := m.WorkdirsForBoard("board-b"); len(got) != 1 || got[0].Name != "code" {
+		t.Errorf("board-b sees %+v after the folder was shared", got)
+	}
+	if len(m.Workdirs()) != 1 {
+		t.Errorf("sharing made a second entry: %+v", m.Workdirs())
+	}
+}

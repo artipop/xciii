@@ -128,6 +128,38 @@ describe('components/acp/workdirsPanel', () => {
         expect(renamed.options.map((o) => o.value)).toEqual(['alpha'])
     })
 
+    // Picking a folder somebody has already added is not a mistake: it is the
+    // folder they meant, on another board. The answer is a question.
+    test('offers a folder that is already added instead of refusing it', async () => {
+        const share = vi.fn().mockResolvedValue('{}')
+        const add = vi.fn()
+        anyWindow.go = {main: {App: {
+            ListAgentWorkdirs: vi.fn().mockResolvedValue('[]'),
+            PickDirectory: vi.fn().mockResolvedValue('/tmp/code'),
+            FindAgentWorkdir: vi.fn().mockResolvedValue(JSON.stringify({name: 'code', path: '/tmp/code', boardId: 'another-board'})),
+            ShareAgentWorkdir: share,
+            AddAgentWorkdir: add,
+            RemoveAgentWorkdir: vi.fn(),
+        }}}
+
+        render(() => wrapIntl(() =>
+            <WorkdirsPanel
+                board={board}
+                onClose={vi.fn()}
+            />,
+        ))
+
+        userEvent.click(await screen.findByRole('button', {name: 'Add a folder…'}))
+        await waitFor(() => expect(screen.getByText(/already added as "code"/)).toBeInTheDocument())
+
+        await userEvent.click(screen.getByRole('button', {name: 'Use it here'}))
+
+        // Shared rather than added twice: one folder, one entry, offered on
+        // both boards.
+        await waitFor(() => expect(share).toHaveBeenCalledWith('code'))
+        expect(add).not.toHaveBeenCalled()
+    })
+
     // A workdir registered before workdirs belonged to a board is offered
     // nowhere — and its folder cannot be added again, the path is taken. So it
     // is listed apart, with the one action that puts it back into use.

@@ -27,6 +27,13 @@ export interface IAppWindow extends Window {
                 // основную» waits for. Empty falls back to what git says.
                 SetAgentWorkdirBase?(name: string, branch: string): Promise<string>
 
+                // The entry a path is already registered as, whichever board
+                // owns it, and the call that makes one every board's. Between
+                // them, "this folder is already added" is a choice offered
+                // rather than a refusal.
+                FindAgentWorkdir?(path: string): Promise<string>
+                ShareAgentWorkdir?(name: string): Promise<string>
+
                 // Registry entries no board has claimed — what an install from
                 // before board-owned workdirs is left with — and the call that
                 // gives one to a board.

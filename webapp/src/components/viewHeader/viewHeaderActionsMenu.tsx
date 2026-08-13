@@ -18,6 +18,10 @@ import {getCurrentBoardViews} from '../../store/views'
 import ModalWrapper from '../modalWrapper'
 import {sendFlashMessage} from '../flashMessages'
 import AutomationDialog, {isAutomationAvailable} from '../acp/automationDialog'
+import WorkdirsDialog from '../acp/workdirsDialog'
+import DeployTargetsDialog from '../acp/deployTargetsDialog'
+import BoardSetupWizard from '../acp/boardSetupWizard'
+import {createSetupPlan, isBoardSetupAvailable} from '../acp/boardSetup'
 import SourcesDialog, {isSourcesAvailable} from '../acp/sourcesDialog'
 import TemplateEditor from '../acp/templateEditor'
 import {isSaveAsTemplateAvailable, saveBoardAsTemplate} from '../acp/saveAsTemplate'
@@ -73,6 +77,18 @@ const ViewHeaderActionsMenu = (props: Props) => {
     const intl = useIntl()
     const [showWorkflows, setShowWorkflows] = createSignal(false)
     const [showSources, setShowSources] = createSignal(false)
+    const [showWorkdirs, setShowWorkdirs] = createSignal(false)
+    const [showDeploys, setShowDeploys] = createSignal(false)
+    const [showSetup, setShowSetup] = createSignal(false)
+
+    // Which of the setup questions this board asks is the board's own answer,
+    // and the menu follows it: a board of shopping lists is offered folders and
+    // nothing else, a board that deploys is offered somewhere to deploy to.
+    // They were folds of «Как работает эта доска…», where setting up where an
+    // agent works was a question about columns and routes — which it is not —
+    // and a fold under a canvas is a place nobody opens.
+    const [plan, refreshPlan] = createSetupPlan(() => props.board)
+    const asks = (kind: string) => (plan()?.steps || []).some((s) => s.kind === kind)
 
     // The template a board was saved as, held so the editor opens on it: it is
     // a board of its own and the page has not navigated to it.
@@ -118,6 +134,30 @@ const ViewHeaderActionsMenu = (props: Props) => {
                                     />
                                 </Show>
 
+                                <Show when={asks('project')}>
+                                    <Menu.Text
+                                        id='workdirs'
+                                        name={intl.formatMessage({id: 'ViewHeader.workdirs', defaultMessage: 'Folders…'})}
+                                        onClick={() => setShowWorkdirs(true)}
+                                    />
+                                </Show>
+
+                                <Show when={asks('deploy')}>
+                                    <Menu.Text
+                                        id='deploys'
+                                        name={intl.formatMessage({id: 'ViewHeader.deploys', defaultMessage: 'Where to deploy…'})}
+                                        onClick={() => setShowDeploys(true)}
+                                    />
+                                </Show>
+
+                                <Show when={isBoardSetupAvailable() && (plan()?.steps.length || 0) > 0}>
+                                    <Menu.Text
+                                        id='setup'
+                                        name={intl.formatMessage({id: 'ViewHeader.setup', defaultMessage: 'Walk the setup again…'})}
+                                        onClick={() => setShowSetup(true)}
+                                    />
+                                </Show>
+
                                 {/* A board that has been set up the way somebody
                                     wants it is the best template there is, and
                                     until now the only way to make one was to
@@ -148,6 +188,31 @@ const ViewHeaderActionsMenu = (props: Props) => {
                 <AutomationDialog
                     board={props.board}
                     onClose={() => setShowWorkflows(false)}
+                />
+            </Show>
+            <Show when={showWorkdirs()}>
+                <WorkdirsDialog
+                    board={props.board}
+                    onClose={() => {
+                        setShowWorkdirs(false)
+                        refreshPlan()
+                    }}
+                />
+            </Show>
+            <Show when={showDeploys()}>
+                <DeployTargetsDialog
+                    board={props.board}
+                    onChange={refreshPlan}
+                    onClose={() => setShowDeploys(false)}
+                />
+            </Show>
+            <Show when={showSetup()}>
+                <BoardSetupWizard
+                    board={props.board}
+                    onClose={() => {
+                        setShowSetup(false)
+                        refreshPlan()
+                    }}
                 />
             </Show>
             <Show when={showSources()}>

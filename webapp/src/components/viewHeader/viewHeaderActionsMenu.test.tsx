@@ -126,7 +126,15 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
         })
 
         test('the machine registries are not', () => {
-            for (const gone of ['Agents…', 'Deploy targets…', 'Projects…', 'Set up this board…', 'Plan a task…']) {
+            for (const gone of ['Agents…', 'Deploy targets…', 'Plan a task…']) {
+                expect(screen.queryByRole('button', {name: gone})).toBeNull()
+            }
+        })
+
+        // A board that asks for nothing is offered nothing: the setup steps in
+        // the menu are this board's own, not a fixed list.
+        test('a board with no setup questions is offered none of them', () => {
+            for (const gone of ['Folders…', 'Where to deploy…', 'Walk the setup again…']) {
                 expect(screen.queryByRole('button', {name: gone})).toBeNull()
             }
         })
@@ -136,6 +144,57 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
         // to walk past.
         test('and neither are the sources of a board', () => {
             expect(screen.queryByRole('button', {name: 'Sources…'})).toBeNull()
+        })
+    })
+
+    // The setup questions a board asks are its own screens in its own menu.
+    // They used to be folds of «Как работает эта доска…», where setting up
+    // where an agent works was filed under columns and routes — and a fold
+    // under a canvas is a place nobody opens.
+    describe('a board offers the setup steps it asks for', () => {
+        const anyWindow = window as any
+
+        beforeEach(() => {
+            anyWindow.go = {main: {App: {
+                ListAgents: vi.fn(),
+                ListDeployTargets: vi.fn(),
+                ListAgentWorkdirs: vi.fn(),
+                ListFlows: vi.fn(),
+                ListSources: vi.fn().mockResolvedValue('[]'),
+                ExportBoardAutomation: vi.fn(),
+                BoardSetupPlan: vi.fn().mockResolvedValue(JSON.stringify({
+                    steps: [
+                        {kind: 'project', optional: false, status: 'pending'},
+                        {kind: 'deploy', optional: true, status: 'pending'},
+                    ],
+                })),
+            }}}
+            render(() =>
+                wrapIntl(() =>
+                    <AppStoreProvider store={mockAppStore({...state, ...withAnInbox})}>
+                        <ViewHeaderActionsMenu
+                            board={board}
+                            activeView={activeView}
+                            cards={[card]}
+                        />
+                    </AppStoreProvider>,
+                ),
+            )
+            userEvent.click(screen.getByRole('button', {name: 'View header menu'}))
+        })
+        afterEach(() => {
+            delete anyWindow.go
+        })
+
+        test('the folders and the deploy targets are each their own item', async () => {
+            await waitFor(() => expect(screen.getByRole('button', {name: 'Folders…'})).toBeInTheDocument())
+            expect(screen.getByRole('button', {name: 'Where to deploy…'})).toBeInTheDocument()
+        })
+
+        // The way back to the questions, which used to be a button at the
+        // bottom of another dialog.
+        test('and so is walking the setup again', async () => {
+            await waitFor(() => expect(screen.getByRole('button', {name: 'Walk the setup again…'})).toBeInTheDocument())
         })
     })
 

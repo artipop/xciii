@@ -100,6 +100,40 @@ func (m *Manager) AddWorkdir(name, path, boardID, kind string, global bool) (Wor
 	return entry, m.persistConfigLocked()
 }
 
+// ShareWorkdir marks a folder as every board's. It is the answer to "this
+// folder is already registered on another board": one checkout worked from two
+// boards is an ordinary arrangement, and the alternative — refusing, and
+// leaving somebody to find the board it belongs to and change it there — is a
+// refusal that teaches nothing.
+func (m *Manager) ShareWorkdir(name string) (WorkdirEntry, error) {
+	m.cfgMu.Lock()
+	defer m.cfgMu.Unlock()
+	for i, r := range m.cfg.Workdirs {
+		if !strings.EqualFold(r.Name, name) {
+			continue
+		}
+		m.cfg.Workdirs[i].Global = true
+		return m.cfg.Workdirs[i], m.persistConfigLocked()
+	}
+	return WorkdirEntry{}, fmt.Errorf("папка %q не найдена", name)
+}
+
+// WorkdirAt is the registry entry for a path, whichever board it belongs to.
+// Asked before a folder is added, so "already added" can be an offer rather
+// than an error.
+func (m *Manager) WorkdirAt(path string) (WorkdirEntry, bool) {
+	clean := filepath.Clean(strings.TrimSpace(path))
+	if clean == "" || clean == "." {
+		return WorkdirEntry{}, false
+	}
+	for _, r := range m.Workdirs() {
+		if filepath.Clean(r.Path) == clean {
+			return r, true
+		}
+	}
+	return WorkdirEntry{}, false
+}
+
 // SetWorkdirBase changes what work in this folder branches from. Empty clears
 // it, and the folder falls back to what git says.
 func (m *Manager) SetWorkdirBase(name, branch string) (WorkdirEntry, error) {

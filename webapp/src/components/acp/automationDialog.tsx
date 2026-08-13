@@ -12,12 +12,8 @@ import Dialog from '../dialog'
 
 import {agentBindings} from './bindings'
 import AutomationEditor from './automationEditor'
-import WorkdirsPanel, {isWorkdirsAvailable} from './workdirsPanel'
-import DeployTargetsPanel, {isDeployTargetsAvailable} from './deployTargetsPanel'
 import AgentQuickAdd from './agentQuickAdd'
 import {isAgentsAvailable} from './agentsPanel'
-import BoardSetupWizard from './boardSetupWizard'
-import {createSetupPlan, isBoardSetupAvailable} from './boardSetup'
 import {syncAgentsToBoard} from './agentSync'
 import PromptField from './promptField'
 import {StageCount} from './flowDiagram'
@@ -93,56 +89,9 @@ const AutomationDialog = (props: Props) => {
     const [prompt, setPrompt] = createSignal('')
     const [savedPrompt, setSavedPrompt] = createSignal('')
 
-    // Folders are where an agent writes, and plenty of boards have no
-    // agent at all — so the section is offered only to a board that has folders
-    // already or a column that would need one. A board of shopping lists is
-    // never asked about a checkout.
-    const [workdirCount, setWorkdirCount] = createSignal(0)
-    const [showWorkdirs, setShowWorkdirs] = createSignal(false)
-    const [showDeploys, setShowDeploys] = createSignal(false)
-    const [showSetup, setShowSetup] = createSignal(false)
     const [addingAgent, setAddingAgent] = createSignal(false)
-    const [plan, refreshPlan] = createSetupPlan(() => props.board)
 
     const columns = (): BoardColumn[] => boardColumns(props.board, property()?.name)
-
-    const usesWorkdirs = () => isWorkdirsAvailable() && (
-        workdirCount() > 0 ||
-        draft().columns.some((c) => c.action === 'agent' || c.action === 'test'))
-
-    // Deploy targets used to be a section of the app's own settings, and that
-    // put a Dokku form one click from a board of household chores. They are
-    // machine registry all the same — an SSH key is nothing a board owns — but
-    // what makes them worth *offering* is a stage that deploys, so the door is
-    // here and only on a board whose automation has one. The draft, not the
-    // saved state: drawing a deploy column is the moment the question arises.
-    const usesDeploys = () => isDeployTargetsAvailable() && (
-        draft().columns.some((c) => c.action === 'deploy') ||
-        draft().flows.some((f) => f.nodes.some((n) => n.action === 'deploy')))
-
-    // The editor's own copy of the registry, refreshed when the panel below
-    // changes it — a full refresh() would also reload the draft and throw away
-    // unsaved edits.
-    const refreshDeploys = async () => {
-        if (bindings?.ListDeployTargets) {
-            setDeploys(JSON.parse(await bindings.ListDeployTargets()) || [])
-        }
-        refreshPlan()
-    }
-
-    // Saved on the click rather than with the columns: it is one of two
-    // answers, and «сохранить» beside a pair of chips is a step for nothing.
-    const saveGitMode = async (mode: string) => {
-        setGitMode(mode)
-        if (!bindings?.SetBoardGit) {
-            return
-        }
-        try {
-            await bindings.SetBoardGit(props.board.id, JSON.stringify({mode}))
-        } catch (e) {
-            setError(String(e))
-        }
-    }
 
     const refresh = async () => {
         if (!bindings?.ListFlows) {
@@ -184,9 +133,6 @@ const AutomationDialog = (props: Props) => {
                 const stored = await bindings.GetBoardPrompt(props.board.id)
                 setPrompt(stored)
                 setSavedPrompt(stored)
-            }
-            if (bindings.ListAgentWorkdirs) {
-                setWorkdirCount((JSON.parse(await bindings.ListAgentWorkdirs(props.board.id)) || []).length)
             }
         } catch (e) {
             setError(String(e))
@@ -407,77 +353,6 @@ const AutomationDialog = (props: Props) => {
                     </div>
                 </Show>
 
-                {/* Folders are what an agent writes in, so a board with no
-                    agent column and no folders of its own is never asked. */}
-                <Show when={usesWorkdirs()}>
-                    <details
-                        class='AutomationDialog__workdirs'
-                        open={showWorkdirs()}
-                        onToggle={(e) => setShowWorkdirs(e.currentTarget.open)}
-                    >
-                        <summary>
-                            {intl.formatMessage({id: 'Workdirs.title', defaultMessage: 'Folders'})}
-                        </summary>
-                        <Show when={showWorkdirs()}>
-                            {/* Asked inside the folders, because it is about
-                                them: the two answers are what «работать в этой
-                                папке» can mean when the folder is a repository.
-                                A board with no repository among its folders
-                                never notices which one is chosen. */}
-                            <div class='AutomationDialog__gitMode'>
-                                <span class='AutomationDialog__gitModeLabel'>
-                                    {intl.formatMessage({id: 'Automation.git-mode', defaultMessage: 'In a repository an agent works'})}
-                                </span>
-                                <div class='AutomationDialog__gitModeChoices'>
-                                    <For each={['worktree', 'branch']}>
-                                        {(mode) => (
-                                            <button
-                                                type='button'
-                                                class={`AutomationDialog__gitModeChip ${gitMode() === mode ? 'AutomationDialog__gitModeChip--on' : ''}`}
-                                                onClick={() => saveGitMode(mode)}
-                                            >
-                                                <span class='AutomationDialog__gitModeName'>
-                                                    {mode === 'worktree' ?
-                                                        intl.formatMessage({id: 'Automation.git-worktree', defaultMessage: 'in a copy of its own'}) :
-                                                        intl.formatMessage({id: 'Automation.git-branch', defaultMessage: 'in the folder itself'})}
-                                                </span>
-                                                <span class='AutomationDialog__gitModeWhy'>
-                                                    {mode === 'worktree' ?
-                                                        intl.formatMessage({id: 'Automation.git-worktree-why', defaultMessage: 'a branch and a checkout per card — several cards of one repository at once, and your own checkout is left alone'}) :
-                                                        intl.formatMessage({id: 'Automation.git-branch-why', defaultMessage: 'a branch in the folder itself — one card at a time, and you see the work in your editor as it happens'})}
-                                                </span>
-                                            </button>
-                                        )}
-                                    </For>
-                                </div>
-                            </div>
-                            <WorkdirsPanel
-                                board={props.board}
-                                onChange={refreshPlan}
-                            />
-
-                        </Show>
-                    </details>
-                </Show>
-
-                {/* The registry is the machine's, the door is the board's: a
-                    Dokku host is only worth asking about where a stage
-                    deploys, so this is where it is asked — see usesDeploys. */}
-                <Show when={usesDeploys()}>
-                    <details
-                        class='AutomationDialog__deploys'
-                        open={showDeploys()}
-                        onToggle={(e) => setShowDeploys(e.currentTarget.open)}
-                    >
-                        <summary>
-                            {intl.formatMessage({id: 'Machine.section-deploys', defaultMessage: 'Where to deploy'})}
-                        </summary>
-                        <Show when={showDeploys()}>
-                            <DeployTargetsPanel onChange={refreshDeploys}/>
-                        </Show>
-                    </details>
-                </Show>
-
                 <div class='AutomationDialog__actions'>
                     <Button
                         emphasis='primary'
@@ -489,15 +364,6 @@ const AutomationDialog = (props: Props) => {
                         {intl.formatMessage({id: 'Automation.cancel', defaultMessage: 'Close'})}
                     </Button>
 
-                    {/* The wizard opens by itself once, and the board's title
-                        carries a reminder while it is unanswered. This is the
-                        way back to it afterwards — the only one, now that it is
-                        no longer a permanent entry in the board's menu. */}
-                    <Show when={isBoardSetupAvailable() && (plan()?.steps.length || 0) > 0}>
-                        <Button onClick={() => setShowSetup(true)}>
-                            {intl.formatMessage({id: 'Automation.setup', defaultMessage: 'Walk the setup again…'})}
-                        </Button>
-                    </Show>
                     <Show when={unsaved()}>
                         <span class='AutomationDialog__hint'>
                             {intl.formatMessage({id: 'Automation.unsaved', defaultMessage: 'Unsaved changes'})}
@@ -510,16 +376,6 @@ const AutomationDialog = (props: Props) => {
                 </Show>
             </div>
 
-            <Show when={showSetup()}>
-                <BoardSetupWizard
-                    board={props.board}
-                    onClose={() => {
-                        setShowSetup(false)
-                        refreshPlan()
-                        refresh()
-                    }}
-                />
-            </Show>
         </Dialog>
     )
 }

@@ -9,7 +9,7 @@ import Button from '../../widgets/buttons/button'
 import {sendFlashMessage} from '../flashMessages'
 
 import {agentBindings} from './bindings'
-import {Workdir, WORKDIR_PROPERTY_TITLE, findWorkdirProperty, syncWorkdirsToBoard} from './workdirSync'
+import {Workdir, WORKDIR_PROPERTY_TITLE, findWorkdirProperty, syncWorkdirsToBoard, useWorkdirHere} from './workdirSync'
 
 import './workdirsPanel.scss'
 
@@ -34,6 +34,11 @@ const WorkdirsPanel = (props: Props) => {
     const [pendingPath, setPendingPath] = createSignal('')
     const [pendingName, setPendingName] = createSignal('')
     const [pendingGlobal, setPendingGlobal] = createSignal(false)
+
+    // A folder somebody has already added, picked again. Refusing it is a dead
+    // end — the person would have to find the board it belongs to and change
+    // it there — so the answer is a question: use it here too?
+    const [taken, setTaken] = createSignal<Workdir | null>(null)
     const [error, setError] = createSignal('')
 
     // The field a card names its folder in, quoted by the name this board gives
@@ -102,10 +107,13 @@ const WorkdirsPanel = (props: Props) => {
         setError('')
         try {
             const path = await bindings.PickDirectory(intl.formatMessage({id: 'Workdirs.pick-title', defaultMessage: 'Choose a folder'}))
-            if (path) {
-                setPendingPath(path)
-                setPendingName(path.split('/').filter(Boolean).pop() || '')
+            if (!path) {
+                return
             }
+            const already = JSON.parse(await bindings.FindAgentWorkdir?.(path) || 'null')
+            setTaken(already)
+            setPendingPath(path)
+            setPendingName(path.split('/').filter(Boolean).pop() || '')
         } catch (e) {
             setError(String(e))
         }
@@ -121,6 +129,23 @@ const WorkdirsPanel = (props: Props) => {
             setPendingPath('')
             setPendingName('')
             setPendingGlobal(false)
+            await refresh()
+        } catch (e) {
+            setError(String(e))
+        }
+    }
+
+    const useTaken = async () => {
+        const entry = taken()
+        if (!entry) {
+            return
+        }
+        setError('')
+        try {
+            await useWorkdirHere(entry, props.board.id)
+            setTaken(null)
+            setPendingPath('')
+            setPendingName('')
             await refresh()
         } catch (e) {
             setError(String(e))
@@ -263,7 +288,37 @@ const WorkdirsPanel = (props: Props) => {
                     </div>
                 </Show>
 
-                <Show when={pendingPath()}>
+                {/* Picked a folder somebody has already added: the answer is
+                    a question rather than a refusal, because "it is on another
+                    board" is not a mistake — one checkout worked from two
+                    boards is an ordinary arrangement. */}
+                <Show when={taken()}>
+                    {(entry) => (
+                        <div class='WorkdirsPanel__row WorkdirsPanel__row--pending'>
+                            <span class='WorkdirsPanel__taken'>
+                                {intl.formatMessage(
+                                    {id: 'Workdirs.already-added', defaultMessage: 'This folder is already added as "{name}". Use it on this board too?'},
+                                    {name: entry().name},
+                                )}
+                            </span>
+                            <Button
+                                emphasis='primary'
+                                onClick={useTaken}
+                            >
+                                {intl.formatMessage({id: 'Workdirs.use-here', defaultMessage: 'Use it here'})}
+                            </Button>
+                            <Button onClick={() => {
+                                setTaken(null)
+                                setPendingPath('')
+                            }}
+                            >
+                                {intl.formatMessage({id: 'Workdirs.cancel', defaultMessage: 'Cancel'})}
+                            </Button>
+                        </div>
+                    )}
+                </Show>
+
+                <Show when={pendingPath() && !taken()}>
                     <div class='WorkdirsPanel__row WorkdirsPanel__row--pending'>
                         <input
                             class='WorkdirsPanel__nameInput'

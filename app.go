@@ -154,6 +154,39 @@ func (a *App) SetAgentWorkdirBase(name, branch string) (string, error) {
 	return string(out), nil
 }
 
+// FindAgentWorkdir returns the registry entry for a path — whichever board it
+// belongs to — or "" for a path nobody has added. The screens that add a folder
+// ask first, so "already added elsewhere" can be offered as a choice instead of
+// refused as a mistake.
+func (a *App) FindAgentWorkdir(path string) (string, error) {
+	if a.mgr == nil {
+		return "", nil
+	}
+	entry, ok := a.mgr.WorkdirAt(path)
+	if !ok {
+		return "", nil
+	}
+	out, err := json.Marshal(entry)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// ShareAgentWorkdir marks a folder as every board's, which is how a folder
+// registered on one board comes to be offered on another.
+func (a *App) ShareAgentWorkdir(name string) (string, error) {
+	if a.mgr == nil {
+		return "", errACPDisabled
+	}
+	entry, err := a.mgr.ShareWorkdir(name)
+	if err != nil {
+		return "", err
+	}
+	out, _ := json.Marshal(entry)
+	return string(out), nil
+}
+
 // ListUnattachedWorkdirs returns the registry entries no board has claimed, as
 // JSON. They are what an install upgrading into board-owned folders is left
 // with, and the dialog offers them to the board somebody is on.

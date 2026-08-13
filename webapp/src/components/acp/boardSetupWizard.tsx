@@ -14,7 +14,7 @@ import {agentBindings} from './bindings'
 import {textToServers} from './agentsPanel'
 import AgentQuickAdd from './agentQuickAdd'
 import {agentColumn, checkSetupAnswer, createSetupPlan, recordSetupStep, SetupStep, SetupStepKind, stepRequires} from './boardSetup'
-import {syncWorkdirsToBoard} from './workdirSync'
+import {Workdir, syncWorkdirsToBoard, useWorkdirHere} from './workdirSync'
 
 import './boardSetupWizard.scss'
 
@@ -104,6 +104,10 @@ const BoardSetupWizard = (props: Props) => {
     // Step 1: a folder.
     const [workdirPath, setWorkdirPath] = createSignal('')
     const [workdirName, setWorkdirName] = createSignal('')
+
+    // A folder already in the registry, picked again — offered rather than
+    // refused (see the folders panel).
+    const [taken, setTaken] = createSignal<Workdir | null>(null)
     const basename = (path: string) => path.split('/').filter(Boolean).pop() || ''
 
     // Step 2: another agent, on a step that already has one.
@@ -198,11 +202,23 @@ const BoardSetupWizard = (props: Props) => {
                 const previous = basename(workdirPath())
                 setWorkdirName((current) => (!current || current === previous ? basename(picked) : current))
                 setWorkdirPath(picked)
+                setTaken(JSON.parse(await bindings.FindAgentWorkdir?.(picked) || 'null'))
             }
         } catch (e) {
             setError(String(e))
         }
     }
+
+    // The folder is already somebody's: using it here is one call and no new
+    // registry entry, and the step is answered by it just the same.
+    const useTakenWorkdir = () => run(async () => {
+        const entry = taken()
+        if (entry) {
+            await useWorkdirHere(entry, props.board.id)
+            setTaken(null)
+        }
+        await syncWorkdirsToBoard(props.board, JSON.parse(await bindings!.ListAgentWorkdirs(props.board.id)) || [])
+    }, STEP_WORKDIR)
 
     const addWorkdir = () => run(async () => {
         // Asked before it is filed: a board that publishes a branch needs a
@@ -300,7 +316,19 @@ const BoardSetupWizard = (props: Props) => {
                     <Button onClick={pickWorkdir}>
                         {intl.formatMessage({id: 'BoardSetup.choose-folder', defaultMessage: 'Choose a folder…'})}
                     </Button>
-                    <Show when={workdirPath()}>
+                    {/* Already added, on this board or another: an offer, not
+                        a refusal — the person picked the folder they meant. */}
+                    <Show when={taken()}>
+                        {(entry) => (
+                            <div class='BoardSetupWizard__known'>
+                                {intl.formatMessage(
+                                    {id: 'Workdirs.already-added', defaultMessage: 'This folder is already added as "{name}". Use it on this board too?'},
+                                    {name: entry().name},
+                                )}
+                            </div>
+                        )}
+                    </Show>
+                    <Show when={workdirPath() && !taken()}>
                         <span class='BoardSetupWizard__path'>{workdirPath()}</span>
                         <label>
                             {intl.formatMessage({id: 'BoardSetup.folder-name', defaultMessage: 'Name'})}
@@ -527,10 +555,20 @@ const BoardSetupWizard = (props: Props) => {
             return (
                 <Button
                     emphasis='primary'
-                    disabled={busy() || (!hasWorkdir() && !(workdirPath() && workdirName().trim()))}
-                    onClick={() => (workdirPath() && workdirName().trim() ? addWorkdir() : pass(STEP_WORKDIR))}
+                    disabled={busy() || (!taken() && !hasWorkdir() && !(workdirPath() && workdirName().trim()))}
+                    onClick={() => {
+                        // Three answers behind one button: use the folder that
+                        // is already registered, add the one just picked, or —
+                        // with a folder already on this board — pass the step.
+                        if (taken()) {
+                            return useTakenWorkdir()
+                        }
+                        return workdirPath() && workdirName().trim() ? addWorkdir() : pass(STEP_WORKDIR)
+                    }}
                 >
-                    {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
+                    {taken() ?
+                        intl.formatMessage({id: 'Workdirs.use-here', defaultMessage: 'Use it here'}) :
+                        intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
                 </Button>
             )
         case STEP_AGENT:
