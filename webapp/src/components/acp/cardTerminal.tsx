@@ -7,7 +7,6 @@ import {useIntl} from '../../intl'
 import {Board} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
 import CompassIcon from '../../widgets/icons/compassIcon'
-import Select from '../../widgets/select'
 
 import {agentBindings} from './bindings'
 import {cardAgentState, refreshCardAgent, type CardConversation} from './cardAgentState'
@@ -135,6 +134,21 @@ const CardTerminal = (props: Props) => {
             }
         } catch (e) {
             // An empty registry is not an error to report here.
+        }
+    }
+
+    // The agent question is open while nobody is named. When the folder is
+    // known it is the *only* question the pick exists for, so it stays on
+    // screen: a name whose start was refused is a question again, not an
+    // answer.
+    const askingAgent = () => !agentName() || Boolean(state().folder)
+
+    // A click on a name is the answer. With the folder already known it is
+    // also the start; otherwise the folder question follows.
+    const chooseAgent = (name: string) => {
+        setAgentName(name)
+        if (state().folder) {
+            start(false)
         }
     }
 
@@ -295,38 +309,76 @@ const CardTerminal = (props: Props) => {
                 point at the settings instead: planning in place is the point,
                 and an errand to the settings is where planning goes to die. */}
             <Show when={choosing()}>
-                {/* Which of the two questions is actually open decides the
-                    form. No folder: the dialog Артём asked for — the sentence
-                    and two answers, «папка доски» (the board's own directory
-                    under the app's data, called that on every surface) or a
-                    picked folder. Folder known, agent refused: the agent is
-                    the whole question, so the folder buttons never show. */}
-                <div class='CardTerminal__ask'>
-                    <Show
-                        when={state().folder}
-                        fallback={intl.formatMessage({id: 'CardTerminal.need-folder', defaultMessage: 'The agent needs a folder to work in.'})}
-                    >
-                        {intl.formatMessage({id: 'CardTerminal.ask-agent', defaultMessage: 'Who talks here? Pick an agent.'})}
-                    </Show>
-                </div>
-
-                <div class='CardTerminal__picker'>
-                    <Show when={agents().length !== 1 || !agentName()}>
-                        <div class='CardTerminal__pickRow'>
-                            <span class='CardTerminal__pickLabel'>
-                                {intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
-                            </span>
-                            <div class='CardTerminal__pickControl'>
-                                <Select
-                                    value={agentName()}
-                                    options={[
-                                        {value: '', label: intl.formatMessage({id: 'CardTerminal.choose-agent', defaultMessage: 'Choose an agent…'})},
-                                        ...agents().map((a) => ({value: a.name, label: a.name})),
-                                    ]}
-                                    onChange={setAgentName}
-                                    label={intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
-                                />
+                {/* One question at a time, in the order they are answered:
+                    who first, where second. Mixing them drew «выбрать папку»
+                    above the agent and the folder buttons below it — the
+                    folder question interrupted by somebody else's. Picking an
+                    agent is a click on a name, not a select, and when the
+                    folder is already known that click is also the start. */}
+                <Show
+                    when={askingAgent()}
+                    fallback={
+                        <>
+                            <div class='CardTerminal__ask'>
+                                {intl.formatMessage({id: 'CardTerminal.need-folder', defaultMessage: 'The agent needs a folder to work in.'})}
                             </div>
+                            <div class='CardTerminal__picker'>
+                                {/* The answered question, kept in sight: the
+                                    name is the way back to it. */}
+                                <Show when={agents().length > 1}>
+                                    <button
+                                        type='button'
+                                        class='CardTerminal__pickBack'
+                                        title={intl.formatMessage({id: 'CardTerminal.change-agent', defaultMessage: 'Change the agent'})}
+                                        onClick={() => setAgentName('')}
+                                    >
+                                        <CompassIcon icon='account-outline'/>
+                                        {agentName()}
+                                    </button>
+                                </Show>
+                                <div class='CardTerminal__pickActions'>
+                                    {/* Both answers start the conversation:
+                                        the choice is the ask. */}
+                                    <Button
+                                        filled={true}
+                                        onClick={() => start(false)}
+                                        disabled={busy()}
+                                    >
+                                        {intl.formatMessage({id: 'CardTerminal.board-folder', defaultMessage: 'Use the board’s folder'})}
+                                    </Button>
+                                    <Show when={Boolean(bindings?.PickDirectory)}>
+                                        <Button
+                                            onClick={pickFolderAndStart}
+                                            disabled={busy()}
+                                        >
+                                            {intl.formatMessage({id: 'CardTerminal.pick-folder', defaultMessage: 'Choose a folder…'})}
+                                        </Button>
+                                    </Show>
+                                </div>
+                                <div class='CardTerminal__pickNote'>
+                                    {intl.formatMessage({id: 'CardTerminal.board-folder-note', defaultMessage: 'The board’s folder is where its agents keep what they write for the board’s cards — briefs, drafts, notes. There is no code in it.'})}
+                                </div>
+                            </div>
+                        </>
+                    }
+                >
+                    <div class='CardTerminal__ask'>
+                        {intl.formatMessage({id: 'CardTerminal.ask-agent', defaultMessage: 'Who talks here?'})}
+                    </div>
+                    <div class='CardTerminal__picker'>
+                        <div class='CardTerminal__agentChoices'>
+                            <For each={agents()}>
+                                {(a) => (
+                                    <button
+                                        type='button'
+                                        class='CardTerminal__agentChoice'
+                                        disabled={busy()}
+                                        onClick={() => chooseAgent(a.name)}
+                                    >
+                                        {a.name}
+                                    </button>
+                                )}
+                            </For>
                             <Show when={!addingAgent()}>
                                 <button
                                     type='button'
@@ -337,59 +389,19 @@ const CardTerminal = (props: Props) => {
                                 </button>
                             </Show>
                         </div>
-                    </Show>
-
-                    <Show when={addingAgent()}>
-                        <AgentQuickAdd
-                            board={props.board}
-                            onAdded={async (name) => {
-                                setAddingAgent(false)
-                                await offerChoices()
-                                setAgentName(name)
-                            }}
-                            onCancel={() => setAddingAgent(false)}
-                        />
-                    </Show>
-
-                    <div class='CardTerminal__pickActions'>
-                        <Show
-                            when={!state().folder}
-                            fallback={
-                                <Button
-                                    filled={true}
-                                    onClick={() => start(false)}
-                                    disabled={busy() || !agentName()}
-                                >
-                                    {intl.formatMessage({id: 'CardTerminal.start', defaultMessage: 'Start the conversation'})}
-                                </Button>
-                            }
-                        >
-                            {/* Both answers start the conversation: the
-                                choice is the ask. */}
-                            <Button
-                                filled={true}
-                                onClick={() => start(false)}
-                                disabled={busy() || !agentName()}
-                            >
-                                {intl.formatMessage({id: 'CardTerminal.board-folder', defaultMessage: 'Use the board’s folder'})}
-                            </Button>
-                            <Show when={Boolean(bindings?.PickDirectory)}>
-                                <Button
-                                    onClick={pickFolderAndStart}
-                                    disabled={busy() || !agentName()}
-                                >
-                                    {intl.formatMessage({id: 'CardTerminal.pick-folder', defaultMessage: 'Choose a folder…'})}
-                                </Button>
-                            </Show>
+                        <Show when={addingAgent()}>
+                            <AgentQuickAdd
+                                board={props.board}
+                                onAdded={async (name) => {
+                                    setAddingAgent(false)
+                                    await offerChoices()
+                                    chooseAgent(name)
+                                }}
+                                onCancel={() => setAddingAgent(false)}
+                            />
                         </Show>
                     </div>
-
-                    <Show when={!state().folder}>
-                        <div class='CardTerminal__pickNote'>
-                            {intl.formatMessage({id: 'CardTerminal.board-folder-note', defaultMessage: 'The board’s folder is where its agents keep what they write for the board’s cards — briefs, drafts, notes. There is no code in it.'})}
-                        </div>
-                    </Show>
-                </div>
+                </Show>
 
                 <Show when={error()}>
                     <div class='CardTerminal__reason'>{error()}</div>

@@ -132,21 +132,57 @@
         max-width: 460px;
     }
 
-    &__pickRow {
+    // The agents, offered as names to click rather than a select to open:
+    // one question, and its answers right under it.
+    &__agentChoices {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
         gap: 8px;
     }
 
-    &__pickLabel {
-        flex: 0 0 64px;
-        font-size: var(--text-small);
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+    &__agentChoice {
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: var(--radius-pill);
+        background: transparent;
+        color: rgb(var(--center-channel-color-rgb));
+        font: inherit;
+        padding: 4px 14px;
+        cursor: pointer;
+
+        &:hover {
+            border-color: rgb(var(--button-bg-rgb));
+            color: rgb(var(--button-bg-rgb));
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: progress;
+        }
     }
 
-    &__pickControl {
-        flex: 1 1 auto;
-        min-width: 0;
+    // The answered agent above the folder question — quiet, and the way back.
+    &__pickBack {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        align-self: flex-start;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font: inherit;
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+
+        &:hover {
+            color: rgb(var(--link-color-rgb));
+        }
+
+        .CompassIcon {
+            font-size: 14px;
+            line-height: 1;
+        }
     }
 
     // The escape hatch beside each answer, quiet like a link: the row's job
@@ -169,12 +205,21 @@
         color: rgba(var(--center-channel-color-rgb), 0.56);
     }
 
+    // The two answers, stacked and equally wide on purpose: the tracked caps
+    // make «использовать папку доски» too long to share a row with anything,
+    // and a ragged pair read as a layout accident. A column of same-width
+    // options is the shape of a choice.
     &__pickActions {
         display: flex;
-        align-items: center;
-        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: stretch;
         gap: 8px;
+        max-width: 340px;
         padding-top: 2px;
+
+        .Button {
+            justify-content: center;
+        }
     }
 
     .AgentQuickAdd {

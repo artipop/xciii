@@ -273,8 +273,6 @@
 "CardDialog.nocard","This card doesn't exist or is inaccessible.","Эта карточка не существует или недоступна.","Aquesta targeta no existeix o és innaccesible.","Diese Karte existiert nicht oder ist nicht verfügbar.","Αυτή η κάρτα δεν υπάρχει ή δεν είναι προσβάσιμη","Esta tarjeta no existe o es inaccesible.","Cette carte n'existe pas ou n'est pas accessible.","Kartu ini tidak ada atau tidak dapat diakses.","Questa scheda non esiste o è inaccessibile.","このカードは存在しないか、アクセスできません。","Deze kaart bestaat niet of is ontoegankelijk.","Aquesta zòna existís pas o es pas accessibla.","Esse cartão não existe ou não está acessível.","Detta kort existerar inte eller är oåtkomligt.","Bu kart bulunamadı ya da erişilebilir değil.","卡片不存在或者无法被存取。","卡片不存在或者無法被存取。"
 "CardDialog.terminal","Terminal","Терминал","","","","","","","","","","","","","","",""
 "CardTerminal.add-agent","Add an agent…","Добавить агента…","","","","","","","","","","","","","","",""
-"CardTerminal.agent","Agent","Агент","","","","","","","","","","","","","","",""
-"CardTerminal.choose-agent","Choose an agent…","Выберите агента…","","","","","","","","","","","","","","",""
 "CardTerminal.close","Close the panel","Закрыть панель","","","","","","","","","","","","","","",""
 "CardTerminal.no-stage","before the route","до маршрута","","","","","","","","","","","","","","",""
 "CardTerminal.pick-project","Choose a folder to work in","Выберите папку для работы","","","","","","","","","","","","","","",""

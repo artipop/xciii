@@ -81,21 +81,45 @@ describe('components/acp/cardTerminal', () => {
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
         // Two agents need choosing. The folder is known, so the agent is the
-        // whole question — no folder buttons. The headline is the ask, not
-        // the machinery's own words — those are the small print under the
-        // form.
-        expect(await screen.findByText('Choose an agent…')).toBeInTheDocument()
-        expect(screen.getByText('Who talks here? Pick an agent.')).toBeInTheDocument()
+        // whole question — the names are the answers, no folder buttons. The
+        // headline is the ask, not the machinery's own words — those are the
+        // small print under the form.
+        expect(await screen.findByText('Who talks here?')).toBeInTheDocument()
+        expect(screen.getByRole('button', {name: 'кодекс'})).toBeInTheDocument()
         expect(screen.queryByRole('button', {name: 'Use the board’s folder'})).toBeNull()
         const reason = screen.getByText(/нет ни одного агента/)
         expect(reason.className).toContain('CardTerminal__reason')
 
-        await userEvent.click(screen.getByText('Choose an agent…'))
-        await userEvent.click(await screen.findByText('клаус'))
-        await userEvent.click(screen.getByRole('button', {name: 'Start the conversation'}))
+        // A click on the name is the answer, and — the folder being known —
+        // the start.
+        await userEvent.click(screen.getByRole('button', {name: 'клаус'}))
 
         await waitFor(() => expect(open).toHaveBeenLastCalledWith('card-1', '', 'клаус', false))
         expect(await screen.findByTestId('terminal')).toHaveTextContent('term-9')
+    })
+
+    // With no folder and several agents, the questions come one at a time and
+    // in the order they are answered: who first, where second — the folder
+    // question is not interrupted by the agent's.
+    it('asks who first and where second', async () => {
+        const open = vi.fn().mockResolvedValue(JSON.stringify({id: 'term-5'}))
+        stubBindings({
+            OpenCardTerminal: open,
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'кодекс'}])),
+        })
+        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+
+        // Who — and nothing about folders on screen yet.
+        expect(await screen.findByText('Who talks here?')).toBeInTheDocument()
+        expect(screen.queryByText('The agent needs a folder to work in.')).toBeNull()
+
+        await userEvent.click(screen.getByRole('button', {name: 'клаус'}))
+
+        // Where — with the answered name kept in sight as the way back.
+        expect(await screen.findByText('The agent needs a folder to work in.')).toBeInTheDocument()
+        expect(screen.queryByText('Who talks here?')).toBeNull()
+        await userEvent.click(screen.getByRole('button', {name: 'клаус'}))
+        expect(await screen.findByText('Who talks here?')).toBeInTheDocument()
     })
 
     // A card that resolves no folder is not started anywhere behind the
@@ -164,7 +188,7 @@ describe('components/acp/cardTerminal', () => {
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
-        await screen.findByText('The agent needs a folder to work in.')
+        await screen.findByText('Who talks here?')
         expect(screen.queryByRole('button', {name: 'Open in a separate window'})).toBeNull()
     })
 

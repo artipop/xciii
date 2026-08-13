@@ -67,11 +67,12 @@ appears with two answers:
 - **"Choose a folder…"** — the usual folder pick; it joins the board's
   projects and the conversation starts in it.
 
-With more than one agent, an agent pick stands beside them (and "Add an
-agent…"). The choice lasts one conversation and does not change the card's
-assignment; a started conversation continues in the same place with the same
-agent. A folder the card names but which is missing on disk is still an
-error.
+With more than one agent, the questions come one at a time and in order:
+first "Who talks here?" — the names are the answers — then the folder; the
+chosen name stays above the question and is the way back. The choice lasts
+one conversation and does not change the card's assignment; a started
+conversation continues in the same place with the same agent. A folder the
+card names but which is missing on disk is still an error.
 
 The agent in such a conversation has the board's tools: it can fill the card
 in, split it into subtasks, set fields.
