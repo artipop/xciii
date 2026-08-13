@@ -310,10 +310,10 @@ export const BOARD_PROP_SETUP = 'xciiiSetup'
 // anything that rebuilds a board's properties has to leave it alone.
 export const BOARD_PROP_PROMPT = 'xciiiPrompt'
 
-// How this board works in a folder that is a repository — a copy per card, or
-// a branch in the folder itself. Nothing here writes it either (GetBoardGit/
-// SetBoardGit), and it is named for the same reason the prompt is: a template
-// carries it, and a save must leave it alone.
+// How a board *used* to say a repository is worked in. The answer belongs to
+// the folder on this board now (SetAgentWorkdirMode); Go moves the old key onto
+// the folders once and takes it off the board. Named here only so that a save
+// which rebuilds a board's properties leaves it alone while it is still there.
 export const BOARD_PROP_GIT = 'xciiiGit'
 
 // Which card property holds the folders, by id. A name would have been a

@@ -55,11 +55,10 @@ const (
 	// code board want different first words, and a board carried to another
 	// machine that arrived without them would run its agents unbriefed.
 	BoardPropPrompt = "xciiiPrompt"
-	// BoardPropGit is how this board works in a folder that is a repository —
-	// a copy per card or a branch in the folder itself (GitPolicy). It is the
-	// board's because it decides what the board's routes can be made of, and it
-	// travels with the board for the same reason the columns do. Where the
-	// copies live on disk stays in config.json: that is the machine's.
+	// BoardPropGit is how this board *used* to say a repository is worked in.
+	// The answer belongs to the folder (WorkdirEntry.Mode) — it is a fact about
+	// the repository and not about the board — so this key is read once, moved
+	// onto the folders that board offers, and taken off the board.
 	BoardPropGit = "xciiiGit"
 	// BoardPropBranch is the id of the text property a card's branch is
 	// written into. An id and not a name, for the reason every other field of
@@ -222,8 +221,8 @@ func (m *Manager) seedFromBoard(boardID string) {
 	if m.adoptPrompt(boardID, boardPromptFrom(props)) {
 		m.log.Info("acp: the board's own instructions taken from the board itself", "board", boardID)
 	}
-	if m.adoptGitPolicy(boardID, boardGitFrom(props)) {
-		m.log.Info("acp: how to work in a repository taken from the board itself", "board", boardID)
+	if moved := m.moveGitPolicyToWorkdirs(boardID, props); moved > 0 {
+		m.log.Info("acp: how to work in a repository moved onto the folders", "board", boardID, "folders", moved)
 	}
 	m.indexBoardCardFlows(boardID)
 
@@ -273,37 +272,55 @@ func boardPromptFrom(props map[string]any) string {
 	return strings.TrimSpace(text)
 }
 
-// boardGitFrom reads how the board works in a repository. Unreadable is
-// treated as unset, for the same reason the prompt is: a board whose one key is
-// malformed still has columns and routes worth taking.
-func boardGitFrom(props map[string]any) GitPolicy {
+// moveGitPolicyToWorkdirs takes a board's old answer about repositories and
+// writes it onto the folders that board offers, then takes the key off the
+// board. One-time, and idempotent: a folder that already says how it is worked
+// in is left alone, and a board whose key is gone does nothing.
+//
+// The answer moved because it is a fact about the repository rather than about
+// the board — see WorkMode. Moving it rather than dropping it is what keeps a
+// board somebody had already set to «в самой папке» working that way.
+func (m *Manager) moveGitPolicyToWorkdirs(boardID string, props map[string]any) int {
 	raw, ok := boardProp(props, BoardPropGit)
 	if !ok {
-		return GitPolicy{}
+		return 0
 	}
-	var p GitPolicy
+	var p struct {
+		Mode string `json:"mode"`
+	}
 	if err := reinterpret(raw, &p); err != nil {
-		return GitPolicy{}
+		return 0
 	}
-	return p
-}
+	mode := strings.ToLower(strings.TrimSpace(p.Mode))
+	if mode != WorkModeWorktree && mode != WorkModeBranch {
+		return 0
+	}
 
-// adoptGitPolicy takes the board's own answer unless this machine already has
-// one for that board — the same rule as a column or a prompt.
-func (m *Manager) adoptGitPolicy(boardID string, p GitPolicy) bool {
-	if strings.TrimSpace(p.Mode) == "" {
-		return false
-	}
+	moved := 0
 	m.cfgMu.Lock()
-	defer m.cfgMu.Unlock()
-	if _, ok := m.cfg.BoardGit[boardID]; ok {
-		return false
+	for i, e := range m.cfg.Workdirs {
+		if !e.OfferedOn(boardID) || strings.TrimSpace(e.Modes[boardID]) != "" {
+			continue
+		}
+		if m.cfg.Workdirs[i].Modes == nil {
+			m.cfg.Workdirs[i].Modes = map[string]string{}
+		}
+		m.cfg.Workdirs[i].Modes[boardID] = mode
+		moved++
 	}
-	if m.cfg.BoardGit == nil {
-		m.cfg.BoardGit = map[string]GitPolicy{}
+	err := m.persistConfigLocked()
+	m.cfgMu.Unlock()
+	if err != nil {
+		m.log.Warn("acp: cannot save how the folders are worked in", "board", boardID, "err", err)
 	}
-	m.cfg.BoardGit[boardID] = p
-	return true
+
+	// Off the board, so it is moved once and never read again.
+	ctx, cancel := context.WithTimeout(m.rootCtx, 10*time.Second)
+	defer cancel()
+	if err := m.meta.SetBoardProperties(ctx, boardID, nil, []string{BoardPropGit}); err != nil {
+		m.log.Warn("acp: cannot take the old repository setting off the board", "board", boardID, "err", err)
+	}
+	return moved
 }
 
 // adoptPrompt takes the board's own instructions, unless this machine already
@@ -618,13 +635,6 @@ func (m *Manager) persistBoardLocked(boardID string) {
 		BoardPropFlows:   flows,
 		BoardPropPrompt:  m.cfg.BoardPrompts[boardID],
 	}
-	// Only when the board has an answer: writing the resolved default would
-	// make every board this machine opens claim a mode it was never asked
-	// about, and that answer would then travel with the board to a machine
-	// whose own default is the other one.
-	if p, ok := m.cfg.BoardGit[boardID]; ok {
-		props[BoardPropGit] = p
-	}
 
 	parent := m.rootCtx
 	if parent == nil {
@@ -756,15 +766,6 @@ func (m *Manager) configToStore() Config {
 			}
 		}
 		cfg.BoardPrompts = prompts
-	}
-	if len(cfg.BoardGit) > 0 {
-		git := make(map[string]GitPolicy, len(cfg.BoardGit))
-		for boardID, p := range cfg.BoardGit {
-			if !m.boardStored[boardID] {
-				git[boardID] = p
-			}
-		}
-		cfg.BoardGit = git
 	}
 	return cfg
 }

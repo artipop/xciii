@@ -2,20 +2,20 @@ package acp
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
-var (
-	errNoBoard     = errors.New("не указана доска")
-	errBadWorkMode = errors.New("способ работы в репозитории — «worktree» (своя копия на карточку) или «branch» (ветка в самой папке)")
-)
-
 // How work in a folder is arranged. A folder is what an agent is sent into; the
-// mode is what that means when the folder is a repository, and it is the
-// board's answer rather than the machine's — it decides what the board's routes
-// can be built out of. A board whose QA stage checks the card's own code before
-// anything is merged needs a copy per card; a monorepo nobody can run twice
-// wants one card at a time on a branch of its own.
+// mode is what that means when the folder is a repository, and it is asked of
+// **the folder, on the board that offers it** (WorkdirEntry.Modes).
+//
+// Not of the board alone: one answer for every repository a board touches is
+// wrong the moment a board has two of them. Not of the folder alone either: a
+// folder marked «на всех досках» is one entry seen from several boards, and the
+// board where three people work it wants a copy per card while the board where
+// one person does may not. A folder belongs to one board anyway, so for almost
+// every entry there is exactly one answer and it reads as the folder's own.
 //
 // There is no third answer for a repository. "Work in it as it stands, on
 // whatever branch is checked out" was `worktreeMode: never`, and it is what an
@@ -24,7 +24,7 @@ var (
 const (
 	// WorkModePlain is an ordinary folder: the agent works in it, and there is
 	// no branch. What every folder that is not a repository does, whatever the
-	// board says.
+	// registry says.
 	WorkModePlain = "plain"
 	// WorkModeBranch is a branch in the folder itself: one card at a time,
 	// and the person's own checkout moves with it.
@@ -35,90 +35,77 @@ const (
 	WorkModeWorktree = "worktree"
 )
 
-// GitPolicy is what a board does with a folder that is a repository. It lives
-// on the board (BoardPropGit), because it shapes the board's routes — and not
-// in config.json, where only what the machine owns belongs: where the copies go
-// on disk (WorktreeDir) is the machine's business, how work is arranged is not.
-type GitPolicy struct {
-	// Mode is WorkModeWorktree or WorkModeBranch. Anything else — including
-	// empty, which is a board that has never been asked — falls back to the
-	// machine's own default (Config.WorktreeMode).
-	Mode string `json:"mode,omitempty"`
-	// BranchPrefix is what the branches this board makes are called — "feature/",
-	// say. Empty is the default, and the default is nothing at all.
-	BranchPrefix string `json:"branchPrefix,omitempty"`
-}
+var errNoBoard = errors.New("не указана доска")
 
-// DefaultBranchPrefix is what a card's branch is named with when the board does
+var errBadWorkMode = errors.New("способ работы в репозитории — «worktree» (своя копия на карточку) или «branch» (ветка в самой папке)")
+
+// DefaultBranchPrefix is what a card's branch is named with when the folder does
 // not say: nothing. It was `acp/` while the branch was the agent integration's
 // own bookkeeping; the branch is the card's work, and a person reading `git
-// branch` should see what the work is, not which program made it. Branches
-// already made keep their names — a branch is remembered by name, per card
-// (workdir_claim), and nothing re-derives one.
+// branch` should see what the work is, not which program made it.
 const DefaultBranchPrefix = ""
 
-// Prefix is the branch prefix this policy asks for.
-func (p GitPolicy) Prefix() string {
-	return strings.TrimSpace(p.BranchPrefix)
-}
-
-// BoardGitPolicy is the board's answer, with the machine's default filled in
-// for a board that has not been asked. `worktreeMode: never` becomes
-// WorkModeBranch: a repository always means a branch now, and the install that
-// asked for "never" asked for "not a copy per card", which is what it gets.
-func (m *Manager) BoardGitPolicy(boardID string) GitPolicy {
+// WorkMode is how work in this folder is arranged on this board: what the entry
+// says for it, else the machine's own old default. An entry written before the
+// setting existed carries nothing, and `worktreeMode: never` is the install
+// that asked for "not a copy per card", which is what it gets.
+func (m *Manager) WorkMode(boardID string, e WorkdirEntry) string {
+	switch strings.ToLower(strings.TrimSpace(e.Modes[boardID])) {
+	case WorkModeWorktree:
+		return WorkModeWorktree
+	case WorkModeBranch:
+		return WorkModeBranch
+	}
 	m.cfgMu.RLock()
 	defer m.cfgMu.RUnlock()
-	return m.boardGitPolicyLocked(boardID)
+	if !m.cfg.UseWorktrees() {
+		return WorkModeBranch
+	}
+	return WorkModeWorktree
 }
 
-func (m *Manager) boardGitPolicyLocked(boardID string) GitPolicy {
-	p := m.cfg.BoardGit[boardID]
-	switch strings.ToLower(strings.TrimSpace(p.Mode)) {
-	case WorkModeWorktree:
-		p.Mode = WorkModeWorktree
-	case WorkModeBranch:
-		p.Mode = WorkModeBranch
-	default:
-		p.Mode = WorkModeWorktree
-		if !m.cfg.UseWorktrees() {
-			p.Mode = WorkModeBranch
-		}
-	}
-	return p
-}
-
-// SetBoardGitPolicy records how this board works in a repository, on the board
-// itself.
-func (m *Manager) SetBoardGitPolicy(boardID string, p GitPolicy) (GitPolicy, error) {
-	if strings.TrimSpace(boardID) == "" {
-		return GitPolicy{}, errNoBoard
-	}
-	mode := strings.ToLower(strings.TrimSpace(p.Mode))
-	if mode != WorkModeWorktree && mode != WorkModeBranch {
-		return GitPolicy{}, errBadWorkMode
-	}
-	m.listenBeforeSpeaking(boardID)
-
-	m.cfgMu.Lock()
-	defer m.cfgMu.Unlock()
-	if m.cfg.BoardGit == nil {
-		m.cfg.BoardGit = map[string]GitPolicy{}
-	}
-	saved := GitPolicy{Mode: mode, BranchPrefix: strings.TrimSpace(p.BranchPrefix)}
-	m.cfg.BoardGit[boardID] = saved
-	return saved, m.saveBoardsLocked(boardID)
-}
-
-// WorkModeFor is how work in this folder is arranged for this board: what the
-// board asked for, unless the folder cannot carry a branch at all. The folder
-// decides first because the board's answer is about repositories — a board of
-// household notes has the same policy as any other and never notices it.
+// WorkModeFor is that answer for a path, with the folder having the last word:
+// a folder that is not a repository is worked in as it stands, whatever the
+// registry says about it.
 func (m *Manager) WorkModeFor(boardID, workdir string) string {
 	if strings.TrimSpace(workdir) == "" || !IsGitWorkdir(m.rootCtx, workdir) {
 		return WorkModePlain
 	}
-	return m.BoardGitPolicy(boardID).Mode
+	e, _ := m.WorkdirByPath(workdir)
+	return m.WorkMode(boardID, e)
+}
+
+// SetWorkdirMode records how this folder is worked in on one board.
+func (m *Manager) SetWorkdirMode(name, boardID, mode string) (WorkdirEntry, error) {
+	mode = strings.ToLower(strings.TrimSpace(mode))
+	if mode != WorkModeWorktree && mode != WorkModeBranch {
+		return WorkdirEntry{}, errBadWorkMode
+	}
+	if strings.TrimSpace(boardID) == "" {
+		return WorkdirEntry{}, errNoBoard
+	}
+	m.cfgMu.Lock()
+	defer m.cfgMu.Unlock()
+	for i, r := range m.cfg.Workdirs {
+		if !strings.EqualFold(r.Name, name) {
+			continue
+		}
+		if m.cfg.Workdirs[i].Modes == nil {
+			m.cfg.Workdirs[i].Modes = map[string]string{}
+		}
+		m.cfg.Workdirs[i].Modes[boardID] = mode
+		return m.cfg.Workdirs[i], m.persistConfigLocked()
+	}
+	return WorkdirEntry{}, fmt.Errorf("папка %q не найдена", name)
+}
+
+// BranchPrefixFor is what the branches made in this folder are called.
+func (m *Manager) BranchPrefixFor(workdir string) string {
+	e, ok := m.WorkdirByPath(workdir)
+	if !ok {
+		return DefaultBranchPrefix
+	}
+	return strings.TrimSpace(e.BranchPrefix)
 }
 
 // WorkdirByPath finds the registry entry a path belongs to. A folder an agent

@@ -22,8 +22,6 @@ describe('components/settings/appSettingsDialog', () => {
         ListProxies: vi.fn().mockResolvedValue(JSON.stringify([{name: 'office', proxy: 'http://proxy.example.com:8080'}])),
         GetTailnetAccess: vi.fn().mockResolvedValue(JSON.stringify({enabled: false, hostname: 'board', status: 'off', path: '/x'})),
         GetPlanningPrompt: vi.fn().mockResolvedValue('Think it through.'),
-        GetBoardGit: vi.fn().mockResolvedValue(JSON.stringify({mode: 'worktree'})),
-        SetBoardGit: vi.fn().mockResolvedValue('{}'),
     })
 
     const open = () => render(() => wrapIntl(() =>

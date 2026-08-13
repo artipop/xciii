@@ -74,12 +74,12 @@ const AutomationDialog = (props: Props) => {
     const [ready, setReady] = createSignal<Flow[]>([])
     const [counts, setCounts] = createSignal<Record<string, StageCount[]>>({})
 
-    // How this board works in a folder that is a repository: a copy per card,
-    // or a branch in the folder itself. It is the board's answer and it shapes
-    // the routes — a QA stage that checks the card's own code before anything
-    // is merged needs a copy per card — so it is edited here, with them.
-    const [gitMode, setGitMode] = createSignal('worktree')
-    const worktrees = () => gitMode() === 'worktree'
+    // Whether a crew can work this board's folders in parallel, which is the
+    // one thing the editor warns about. It follows the folders themselves — a
+    // repository worked on a branch in the folder itself takes one card at a
+    // time — and changing it is done on their own screen, «Папки…».
+    const [workdirs, setWorkdirs] = createSignal<Array<{git?: boolean, mode?: string}>>([])
+    const worktrees = () => !workdirs().some((w) => w.git && w.mode === 'branch')
     const [property, setProperty] = createSignal<IPropertyTemplate | undefined>(columnProperty(props.board))
     const [error, setError] = createSignal('')
     const [dirty, setDirty] = createSignal(false)
@@ -119,8 +119,8 @@ const AutomationDialog = (props: Props) => {
             if (bindings.ListDeployTargets) {
                 setDeploys(JSON.parse(await bindings.ListDeployTargets()) || [])
             }
-            if (bindings.GetBoardGit) {
-                setGitMode((JSON.parse(await bindings.GetBoardGit(props.board.id)) || {}).mode || 'worktree')
+            if (bindings.ListAgentWorkdirs) {
+                setWorkdirs(JSON.parse(await bindings.ListAgentWorkdirs(props.board.id)) || [])
             }
             if (bindings.ListFlowTemplates) {
                 setReady(JSON.parse(await bindings.ListFlowTemplates()) || [])

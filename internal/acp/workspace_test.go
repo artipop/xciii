@@ -105,7 +105,9 @@ func TestAFoldedCopyComesBackOnItsOwnBranch(t *testing.T) {
 // card holds the folder, the next waits, and a merge is what hands it over.
 func TestABranchInTheFolderIsHeldUntilItIsMerged(t *testing.T) {
 	m, repo := workspaceManager(t)
-	m.cfg.BoardGit = map[string]GitPolicy{"board1": {Mode: WorkModeBranch}}
+	if _, err := m.SetWorkdirMode("code", "board1", WorkModeBranch); err != nil {
+		t.Fatal(err)
+	}
 
 	first, err := m.ClaimWorkspace(WorkSpec{Workdir: repo, Owner: "card-1", BoardID: "board1", Title: "Первая"})
 	if err != nil {
@@ -139,7 +141,9 @@ func TestABranchInTheFolderIsHeldUntilItIsMerged(t *testing.T) {
 // Somebody's unsaved work is never switched out from under them.
 func TestABranchIsRefusedInADirtyFolder(t *testing.T) {
 	m, repo := workspaceManager(t)
-	m.cfg.BoardGit = map[string]GitPolicy{"board1": {Mode: WorkModeBranch}}
+	if _, err := m.SetWorkdirMode("code", "board1", WorkModeBranch); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(filepath.Join(repo, "notes.txt"), []byte("half a thought\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -193,21 +197,25 @@ func TestAnOrdinaryFolderIsItsOwnWorkspace(t *testing.T) {
 	}
 }
 
-// A card that already has a workspace keeps it, whatever the board decides
+// A card that already has a workspace keeps it, whatever the folder decides
 // afterwards: its work is in there. And a card working in a copy of its own
 // holds nothing, so it can never keep another card out of the folder — which is
 // what "папка занята другой карточкой" said about a card that had finished.
-func TestChangingTheBoardsModeLeavesRunningCardsAlone(t *testing.T) {
+func TestChangingTheFoldersModeLeavesRunningCardsAlone(t *testing.T) {
 	m, repo := workspaceManager(t)
-	m.cfg.BoardGit = map[string]GitPolicy{"board1": {Mode: WorkModeWorktree}}
+	if _, err := m.SetWorkdirMode("code", "board1", WorkModeWorktree); err != nil {
+		t.Fatal(err)
+	}
 
 	first, err := m.ClaimWorkspace(WorkSpec{Workdir: repo, Owner: "card-1", BoardID: "board1", Title: "Первая"})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// The board is switched to a branch in the folder itself.
-	m.cfg.BoardGit = map[string]GitPolicy{"board1": {Mode: WorkModeBranch}}
+	// The folder is switched to a branch in itself.
+	if _, err := m.SetWorkdirMode("code", "board1", WorkModeBranch); err != nil {
+		t.Fatal(err)
+	}
 
 	again, err := m.ClaimWorkspace(WorkSpec{Workdir: repo, Owner: "card-1", BoardID: "board1", Title: "Первая"})
 	if err != nil {

@@ -192,12 +192,12 @@ the first reason (the root cause) is the one that stays visible.
 A card's work lives in **one place, and that place is the card's**: every stage
 of its route, and every terminal somebody opens beside them, get the same
 directory and the same branch. What that means depends on the folder and on
-the board's own answer, chosen under «Папки» in «Как работает эта доска…»:
+the answer given for it on this board, in «Папки…» in the board's menu:
 
 | The folder | The board says | The card gets |
 |---|---|---|
 | an ordinary folder | — | the folder itself, no branch, one card at a time |
-| a repository | «в отдельной копии» (default) | a copy under `~/Library/Application Support/XCIII/acp/worktrees`, on `<card title>-<card id>` |
+| a repository | «отдельная копия» (default) | a copy under `~/Library/Application Support/XCIII/acp/worktrees`, on `<card title>-<card id>` |
 | a repository | «в самой папке» | that branch in the folder itself; the next card waits |
 
 The branch is **cut from** the folder's own base branch — a setting, filled in

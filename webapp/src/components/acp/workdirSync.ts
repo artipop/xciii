@@ -37,6 +37,10 @@ export type Workdir = {
     global?: boolean
     git?: boolean
     base?: string
+
+    // How work here is arranged, resolved by Go: 'worktree', 'branch', or
+    // 'plain' for a folder that is not a repository.
+    mode?: string
     broken?: boolean
 }
 

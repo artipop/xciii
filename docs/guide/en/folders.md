@@ -35,8 +35,10 @@ the repository treats as its main one. Change it if you work off another —
 
 ## How an agent works in a repository
 
-This is the board's choice, not the machine's: it decides which routes the board
-can be built out of. It is the first question in "Folders…":
+This is a choice about **that folder on this board** — two buttons on the
+repository's row in "Folders…". A folder belongs to one board anyway, so for it
+this reads as "how this folder works"; a folder marked «на всех досках» can be
+used differently by two boards.
 
 **"in a copy of its own"** (the default) — the card gets its own copy of the
 repository and its own branch in it.
@@ -57,6 +59,9 @@ repository and its own branch in it.
 
 There is no third answer for a repository: "work on whatever is checked out" is
 what an ordinary folder already does.
+
+A card that has already started stays where it started: its work is in that copy
+or on that branch. The new answer applies to the cards that come after.
 
 ## The card's branch
 

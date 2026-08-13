@@ -488,16 +488,24 @@ left three branches and three checkouts, and the conversation about a card sat
 in a copy the agent working on it never saw. A conversation with no card gets
 the folder itself and creates nothing.
 
-Two ways to work in a repository, and the **board** chooses (`xciiiGit`, a
-`GitPolicy`): `worktree` — a copy and a branch per card, several cards of one
-repository at once; `branch` — a branch in the folder itself, one card at a
-time, the person's own checkout moving with it. There is no third answer for a
-repository, because "work on whatever is checked out" is what an ordinary folder
-already does. The choice is the board's because it decides what the board's
-routes can be made of — QA before a merge needs a copy per card — while
+Two ways to work in a repository, and the answer is the **folder's, on the board
+that offers it** (`WorkdirEntry.Modes`, board id → mode): `worktree` — a copy
+and a branch per card, several cards of one repository at once; `branch` — a
+branch in the folder itself, one card at a time, the person's own checkout
+moving with it. There is no third answer, because "work on whatever is checked
+out" is what an ordinary folder already does.
+
+Keyed by *both* on purpose. One answer per board is wrong the moment a board has
+two repositories; one answer per folder is wrong for a folder marked «на всех
+досках», which is one entry seen from several boards — the board where three
+people work it may want a copy per card while the board where one person does
+does not. A folder belongs to one board anyway, so for almost every entry there
+is exactly one answer and the screen reads as "this folder works like this".
 `worktreeDir` and `keepFailedWorktrees` stay in `config.json`, being about this
-machine's disk. `worktreeMode` survives as the default for a board that has
-never been asked (`always`→worktree, `never`→branch).
+machine's disk, and `worktreeMode` survives as the default for a folder nobody
+has been asked about (`always`→worktree, `never`→branch). A board that carries
+the earlier board-level key (`xciiiGit`) has its answer moved onto its folders
+once, and the key taken off it (`moveGitPolicyToWorkdirs`).
 
 `branch` mode is the one that can refuse: the folder is held by one card
 (`workdir_claim`) until its branch is merged, and it will not switch under

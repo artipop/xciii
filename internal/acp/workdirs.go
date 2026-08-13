@@ -161,6 +161,11 @@ type WorkdirStatus struct {
 	// Base is the branch work here would start from, resolved when the entry
 	// does not name one. Empty for a folder with no git.
 	Base string `json:"base,omitempty"`
+	// Mode is how work here is arranged **on the board that asked**, resolved:
+	// "worktree", "branch", or "plain" for a folder that is not a repository.
+	// The screen draws the answer rather than the setting, so a folder that has
+	// never been asked still says which of the two it does.
+	Mode string `json:"mode"`
 	// Broken says the entry was added as a repository and the git is gone —
 	// the one state a screen has to show rather than quietly work around.
 	Broken bool `json:"broken,omitempty"`
@@ -172,15 +177,16 @@ func (m *Manager) WorkdirStatusesForBoard(boardID string) []WorkdirStatus {
 	entries := m.WorkdirsForBoard(boardID)
 	out := make([]WorkdirStatus, 0, len(entries))
 	for _, e := range entries {
-		out = append(out, m.workdirStatus(e))
+		out = append(out, m.workdirStatus(boardID, e))
 	}
 	return out
 }
 
-func (m *Manager) workdirStatus(e WorkdirEntry) WorkdirStatus {
-	st := WorkdirStatus{WorkdirEntry: e, Git: IsGitWorkdir(m.rootCtx, e.Path)}
+func (m *Manager) workdirStatus(boardID string, e WorkdirEntry) WorkdirStatus {
+	st := WorkdirStatus{WorkdirEntry: e, Git: IsGitWorkdir(m.rootCtx, e.Path), Mode: WorkModePlain}
 	if st.Git {
 		st.Base = m.BaseBranchOf(e)
+		st.Mode = m.WorkMode(boardID, e)
 	}
 	st.Broken = e.DeclaredGit() && !st.Git
 	return st

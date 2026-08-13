@@ -19,14 +19,14 @@ describe('components/acp/workdirsDialog', () => {
         vi.clearAllMocks()
     })
 
-    // The two answers come first, because they decide what the list under them
-    // means: the same folder is a copy per card or a branch in the folder
-    // itself depending on which is chosen.
-    test('asks how an agent works in a repository, and saves the answer', async () => {
+    // The choice is on the repository's own row: it is a fact about that
+    // repository, so it holds on every board the folder is offered on.
+    test('asks how a repository is worked in, on its own row', async () => {
         const bindings = {
-            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'code', path: '/tmp/code', git: true, base: 'main'}])),
-            GetBoardGit: vi.fn().mockResolvedValue(JSON.stringify({mode: 'worktree'})),
-            SetBoardGit: vi.fn().mockResolvedValue('{}'),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([
+                {name: 'code', path: '/tmp/code', git: true, base: 'main', mode: 'worktree'},
+            ])),
+            SetAgentWorkdirMode: vi.fn().mockResolvedValue('{}'),
             PickDirectory: vi.fn(),
             AddAgentWorkdir: vi.fn(),
             RemoveAgentWorkdir: vi.fn(),
@@ -40,13 +40,9 @@ describe('components/acp/workdirsDialog', () => {
             />,
         ))
 
-        await waitFor(() => expect(screen.getByText('In a repository an agent works')).toBeInTheDocument())
-
-        // And the folders themselves are on the same screen: the choice above
-        // is about them.
         expect(await screen.findByText('code')).toBeInTheDocument()
 
-        userEvent.click(screen.getByText('in the folder itself'))
-        await waitFor(() => expect(bindings.SetBoardGit).toHaveBeenCalledWith(board.id, JSON.stringify({mode: 'branch'})))
+        userEvent.click(screen.getByRole('button', {name: 'in the folder itself'}))
+        await waitFor(() => expect(bindings.SetAgentWorkdirMode).toHaveBeenCalledWith('code', board.id, 'branch'))
     })
 })

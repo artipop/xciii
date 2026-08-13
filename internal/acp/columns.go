@@ -269,11 +269,3 @@ func migratedColumns(cfg Config) []ColumnSpec {
 // errStageBusy is not a failure: the column's crew is fully occupied, so the
 // card waits for a free member instead of taking its failure branch.
 var errStageBusy = errors.New("состав колонки занят")
-
-// WorkModeOfBoard is how this board works in a repository — WorkModeWorktree
-// (a copy per card) or WorkModeBranch (a branch in the folder itself). It
-// decides whether a column's crew can work in parallel at all, which is why the
-// editor asks.
-func (m *Manager) WorkModeOfBoard(boardID string) string {
-	return m.BoardGitPolicy(boardID).Mode
-}

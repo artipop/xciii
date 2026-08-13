@@ -51,8 +51,6 @@ function stubBindings(overrides: Record<string, unknown> = {}) {
         ListFlowTemplates: vi.fn().mockResolvedValue('[]'),
         ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
         ListDeployTargets: vi.fn().mockResolvedValue('[]'),
-        GetBoardGit: vi.fn().mockResolvedValue(JSON.stringify({mode: 'worktree'})),
-        SetBoardGit: vi.fn().mockResolvedValue('{}'),
         GetBoardFlowOverview: vi.fn().mockResolvedValue('[]'),
         SaveBoardColumn: vi.fn().mockResolvedValue('{}'),
         RemoveBoardColumn: vi.fn().mockResolvedValue(undefined),

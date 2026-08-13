@@ -105,8 +105,8 @@ const COLUMNS_VIEW = ''
 // How many columns stand in a row when there is no route to lay them out by.
 const COLUMNS_PER_ROW = 5
 
-// The palette: what a block dropped on the canvas becomes. 'none' is a plain
-// column — a place cards stand, nothing runs.
+// What a new column can be made as. 'none' is a plain column — a place cards
+// stand, nothing runs.
 const PALETTE = ['agent', 'deploy', 'test', 'none']
 
 const AutomationEditor = (props: Props) => {
@@ -245,9 +245,10 @@ const AutomationEditor = (props: Props) => {
         setSelected({kind: 'node', id: column.optionId || column.name})
     }
 
-    // A palette block dropped on the canvas: a new column of the board, doing
-    // what the block says, standing where it was dropped.
-    const dropBlock = async (kind: string, at: {x: number, y: number}) => {
+    // A new column of the board, doing what the button said, standing where it
+    // was dropped — or wherever the layout puts it, when it was clicked rather
+    // than dragged.
+    const dropBlock = async (kind: string, at?: {x: number, y: number}) => {
         if (!props.onCreateColumn) {
             return
         }
@@ -529,30 +530,37 @@ const AutomationEditor = (props: Props) => {
                 </Show>
             </div>
 
-            <div class='AutomationEditor__body'>
-                <Show when={props.onCreateColumn}>
-                    <div class='AutomationEditor__palette'>
-                        <span class='AutomationEditor__label'>
-                            {intl.formatMessage({id: 'Automation.palette', defaultMessage: 'Drag onto the canvas'})}
-                        </span>
-                        <For each={PALETTE}>
-                            {(kind) => (
-                                <div
-                                    class={`AutomationEditor__block AutomationEditor__block--${kind}`}
-                                    draggable={true}
-                                    data-block={kind}
-                                    onDragStart={(e) => {
-                                        e.dataTransfer?.setData(BLOCK_DRAG_TYPE, kind)
-                                    }}
-                                >
-                                    <span class='AutomationEditor__blockName'>{blockName(intl, kind)}</span>
-                                    <span class='AutomationEditor__blockWhat'>{actionLabel(intl, kind)}</span>
-                                </div>
-                            )}
-                        </For>
-                    </div>
-                </Show>
+            {/* Making a column is one line above the canvas rather than a
+                column of blocks beside it: what each kind does is a sentence
+                the panel says anyway, and repeating it four times took a sixth
+                of the screen the picture is for. Clicking adds the column;
+                dragging still places it where it lands. */}
+            <Show when={props.onCreateColumn}>
+                <div class='AutomationEditor__add'>
+                    <span class='AutomationEditor__label'>
+                        {intl.formatMessage({id: 'Automation.palette', defaultMessage: 'Add a column'})}
+                    </span>
+                    <For each={PALETTE}>
+                        {(kind) => (
+                            <button
+                                type='button'
+                                class={`AutomationEditor__block AutomationEditor__block--${kind}`}
+                                draggable={true}
+                                data-block={kind}
+                                title={actionLabel(intl, kind)}
+                                onDragStart={(e) => {
+                                    e.dataTransfer?.setData(BLOCK_DRAG_TYPE, kind)
+                                }}
+                                onClick={() => dropBlock(kind)}
+                            >
+                                {blockName(intl, kind)}
+                            </button>
+                        )}
+                    </For>
+                </div>
+            </Show>
 
+            <div class='AutomationEditor__body'>
                 <div class='AutomationEditor__canvas'>
                     <FlowDiagram
                         nodes={nodes()}
@@ -568,14 +576,22 @@ const AutomationEditor = (props: Props) => {
                         onAddColumn={addColumnToRoute}
                         onDropBlock={props.onCreateColumn ? dropBlock : undefined}
                     />
-                    <div class='AutomationEditor__hint'>
-                        <Show
-                            when={flow()}
-                            fallback={intl.formatMessage({id: 'Automation.columns-hint', defaultMessage: 'Every column of the board is here. Pick one to say what happens when a card lands in it, or drop a block from the palette to make a new one.'})}
-                        >
-                            {intl.formatMessage({id: 'Automation.route-hint', defaultMessage: 'Pull from the right side of a column to join it to the next one (upper point — on success, lower — on failure), from the bottom point to wait for an event. A faded column joins the route when you click or drag it.'})}
-                        </Show>
-                    </div>
+
+                    {/* The hint stands while there is nothing to look at — an
+                        empty route, or a board nobody has picked a column on —
+                        and goes when the picture can answer for itself. It used
+                        to be two lines under the canvas at all times, which is
+                        two lines the route did not get. */}
+                    <Show when={flow() ? edges().length === 0 : !selectedNode()}>
+                        <p class='AutomationEditor__hint'>
+                            <Show
+                                when={flow()}
+                                fallback={intl.formatMessage({id: 'Automation.columns-hint', defaultMessage: 'Every column of the board is here. Pick one to say what happens when a card lands in it.'})}
+                            >
+                                {intl.formatMessage({id: 'Automation.route-hint', defaultMessage: 'Pull from the right side of a column to join it to the next one (upper point — on success, lower — on failure), from the bottom point to wait for an event. A faded column joins the route when you click or drag it.'})}
+                            </Show>
+                        </p>
+                    </Show>
                 </div>
 
                 <div class='AutomationEditor__panel'>
@@ -593,101 +609,128 @@ const AutomationEditor = (props: Props) => {
                                     />
                                 </Show>
 
-                                <label>
-                                    {intl.formatMessage({id: 'Automation.on-arrival', defaultMessage: 'When a card lands here'})}
-                                    <Select
-                                        value={specOf(node())?.action || 'none'}
-                                        options={ACTIONS.map((a) => ({value: a, label: actionLabel(intl, a)}))}
-                                        onChange={(action) => updateNodeSpec(node(), {action})}
-                                        label={intl.formatMessage({id: 'Automation.on-arrival', defaultMessage: 'When a card lands here'})}
-                                    />
-                                </label>
-
-                                <Show when={(specOf(node())?.action || 'none') !== 'none'}>
-                                    <div class='AutomationEditor__crew'>
-                                        <span class='AutomationEditor__label'>
-                                            {intl.formatMessage({id: 'Automation.crew', defaultMessage: 'Worked by'})}
-                                        </span>
-                                        <Show when={props.agents.length === 0}>
-                                            <span class='AutomationEditor__hint'>
-                                                {intl.formatMessage({id: 'Automation.no-agents', defaultMessage: 'No agents registered yet.'})}
-                                            </span>
-                                        </Show>
-
-                                        {/* Registering one is two answers, and
-                                            asking them here beats sending
-                                            somebody to the settings and back
-                                            with the column half-configured. */}
-                                        <Show when={props.onAddAgent}>
-                                            <button
-                                                type='button'
-                                                class='AutomationEditor__addAgent'
-                                                onClick={() => props.onAddAgent?.()}
-                                            >
-                                                {intl.formatMessage({id: 'Automation.add-agent', defaultMessage: 'Add an agent…'})}
-                                            </button>
-                                        </Show>
-                                        <For each={props.agents}>
-                                            {(a) => (
-                                                <label class='AutomationEditor__agent'>
-                                                    <input
-                                                        type='checkbox'
-                                                        checked={(specOf(node())?.agents || []).includes(a.name)}
-                                                        onChange={() => {
-                                                            const crew = specOf(node())?.agents || []
-                                                            updateNodeSpec(node(), {agents: crew.includes(a.name) ? crew.filter((n) => n !== a.name) : [...crew, a.name]})
-                                                        }}
-                                                    />
-                                                    {a.name}
-                                                </label>
-                                            )}
-                                        </For>
-                                    </div>
-
+                                {/* The columns view is about the column, so the
+                                    panel is too: what it does wherever a card
+                                    lands in it, and who works it on every
+                                    route. */}
+                                <Show when={!flow()}>
                                     <label>
-                                        {intl.formatMessage({id: 'Automation.limit', defaultMessage: 'At once (0 — no limit)'})}
-                                        <input
-                                            type='number'
-                                            min={0}
-                                            value={specOf(node())?.maxRunning || 0}
-                                            onInput={(e) => updateNodeSpec(node(), {maxRunning: Number(e.currentTarget.value)})}
-                                        />
-                                    </label>
-
-                                    <Show when={props.worktrees === false && (specOf(node())?.agents || []).length > 1}>
-                                        <div class='AutomationEditor__warning'>
-                                            {intl.formatMessage({id: 'Automation.no-worktrees', defaultMessage: 'This board works on a branch in the folder itself, so two agents cannot work one repository at the same time: the crew will take cards one after another.'})}
-                                        </div>
-                                    </Show>
-                                </Show>
-
-                                <Show when={specOf(node())?.action === 'deploy'}>
-                                    <label>
-                                        {intl.formatMessage({id: 'Automation.deploy', defaultMessage: 'Deploy target'})}
+                                        {intl.formatMessage({id: 'Automation.on-arrival', defaultMessage: 'When a card lands here'})}
                                         <Select
-                                            value={specOf(node())?.deployName || ''}
-                                            options={[
-                                                {value: '', label: intl.formatMessage({id: 'Automation.deploy-default', defaultMessage: '— the card’s own —'})},
-                                                ...props.deploys.map((d) => ({value: d.name, label: d.name})),
-                                            ]}
-                                            onChange={(deployName) => updateNodeSpec(node(), {deployName})}
-                                            label={intl.formatMessage({id: 'Automation.deploy', defaultMessage: 'Deploy target'})}
+                                            value={specOf(node())?.action || 'none'}
+                                            options={ACTIONS.map((a) => ({value: a, label: actionLabel(intl, a)}))}
+                                            onChange={(action) => updateNodeSpec(node(), {action})}
+                                            label={intl.formatMessage({id: 'Automation.on-arrival', defaultMessage: 'When a card lands here'})}
                                         />
                                     </label>
 
-                                    {/* The registry moved out of the app's
-                                        settings, and this select is exactly
-                                        where somebody discovers it is empty —
-                                        so this is where the way to it is
-                                        said. */}
-                                    <Show when={props.deploys.length === 0}>
-                                        <span class='AutomationEditor__hint'>
-                                            {intl.formatMessage({id: 'Automation.no-deploys', defaultMessage: 'No deploy targets yet — add one in "Where to deploy" below, under the canvas.'})}
-                                        </span>
+                                    <Show when={(specOf(node())?.action || 'none') !== 'none'}>
+                                        {crewPicker(
+                                            intl.formatMessage({id: 'Automation.crew', defaultMessage: 'Worked by'}),
+                                            () => specOf(node())?.agents || [],
+                                            (agents) => updateNodeSpec(node(), {agents}),
+                                        )}
+
+                                        <label>
+                                            {intl.formatMessage({id: 'Automation.limit', defaultMessage: 'At once (0 — no limit)'})}
+                                            <input
+                                                type='number'
+                                                min={0}
+                                                value={specOf(node())?.maxRunning || 0}
+                                                onInput={(e) => updateNodeSpec(node(), {maxRunning: Number(e.currentTarget.value)})}
+                                            />
+                                        </label>
+
+                                        <Show when={props.worktrees === false && (specOf(node())?.agents || []).length > 1}>
+                                            <div class='AutomationEditor__warning'>
+                                                {intl.formatMessage({id: 'Automation.no-worktrees', defaultMessage: 'This board works on a branch in the folder itself, so two agents cannot work one repository at the same time: the crew will take cards one after another.'})}
+                                            </div>
+                                        </Show>
+                                    </Show>
+
+                                    <Show when={specOf(node())?.action === 'deploy'}>
+                                        {deployPicker(
+                                            () => specOf(node())?.deployName || '',
+                                            (deployName) => updateNodeSpec(node(), {deployName}),
+                                            intl.formatMessage({id: 'Automation.deploy-default', defaultMessage: '— the card’s own —'}),
+                                        )}
                                     </Show>
                                 </Show>
 
+                                {/* A route's panel is about the stage. Everything
+                                    here is this stage's own answer, with the
+                                    column's shown as what it falls back to —
+                                    which is what puts a different agent on each
+                                    node of one route. It was a fold called
+                                    "only on this route…" under a second crew
+                                    list, and two crews for one question read as
+                                    a bug rather than as an override. */}
                                 <Show when={flow()}>
+                                    <label>
+                                        {intl.formatMessage({id: 'Automation.stage-action', defaultMessage: 'What happens at this stage'})}
+                                        <Select
+                                            value={node().action || ''}
+                                            options={[
+                                                {value: '', label: intl.formatMessage(
+                                                    {id: 'Automation.as-column', defaultMessage: '— as the column: {what} —'},
+                                                    {what: actionLabel(intl, specOf(node())?.action || 'none')},
+                                                )},
+                                                ...ACTIONS.map((a) => ({value: a, label: actionLabel(intl, a)})),
+                                            ]}
+                                            onChange={(action) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {action}))}
+                                            label={intl.formatMessage({id: 'Automation.stage-action', defaultMessage: 'What happens at this stage'})}
+                                        />
+                                    </label>
+
+                                    <Show when={actionOf(node()) !== 'none'}>
+                                        {crewPicker(
+                                            intl.formatMessage({id: 'Automation.route-crew', defaultMessage: 'Worked here by'}),
+                                            () => node().agentNames || [],
+                                            (agentNames) => updateFlow(flow()!.name, (f) =>
+                                                withNode(f, node().id, {agentNames: agentNames.length > 0 ? agentNames : undefined})),
+                                            () => (node().agentNames?.length ? '' : columnCrewNote(node())),
+                                        )}
+
+                                        {/* Where the stage works. It matters for
+                                            a repository and nowhere else: a QA
+                                            stage in the card's own workspace
+                                            checks the work before anything is
+                                            merged, one in the folder checks
+                                            what is already published. */}
+                                        <label>
+                                            {intl.formatMessage({id: 'Automation.run-in', defaultMessage: 'The stage works'})}
+                                            <Select
+                                                value={node().runIn || ''}
+                                                options={[
+                                                    {value: '', label: intl.formatMessage({id: 'Automation.run-in-default', defaultMessage: '— as this kind of stage usually does —'})},
+                                                    {value: 'owner', label: intl.formatMessage({id: 'Automation.run-in-owner', defaultMessage: 'on the card’s own branch'})},
+                                                    {value: 'workdir', label: intl.formatMessage({id: 'Automation.run-in-workdir', defaultMessage: 'in the folder itself'})},
+                                                ]}
+                                                onChange={(runIn) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {runIn: runIn || undefined}))}
+                                                label={intl.formatMessage({id: 'Automation.run-in', defaultMessage: 'The stage works'})}
+                                            />
+                                        </label>
+                                    </Show>
+
+                                    <Show when={actionOf(node()) === 'deploy'}>
+                                        {deployPicker(
+                                            () => node().deployName || '',
+                                            (deployName) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {deployName})),
+                                            intl.formatMessage({id: 'Automation.deploy-as-column', defaultMessage: '— as the column —'}),
+                                        )}
+                                    </Show>
+
+                                    {/* The way to the other half of the answer.
+                                        Without it "as the column" names a place
+                                        with no door to it. */}
+                                    <button
+                                        type='button'
+                                        class='AutomationEditor__addAgent'
+                                        onClick={() => showRoute(COLUMNS_VIEW)}
+                                    >
+                                        {intl.formatMessage({id: 'Automation.open-column', defaultMessage: 'Settings of the column itself…'})}
+                                    </button>
+
                                     <div class='AutomationEditor__transitions'>
                                         <span class='AutomationEditor__label'>
                                             {intl.formatMessage({id: 'Automation.transitions', defaultMessage: 'From here the card goes'})}

@@ -165,6 +165,22 @@ const WorkdirsPanel = (props: Props) => {
         }
     }
 
+    // How a repository is worked in — on its own row, and for this board: a
+    // folder belongs to one board anyway, and the one marked «на всех досках»
+    // is exactly where two boards may want different answers.
+    const setMode = async (name: string, mode: string) => {
+        if (!bindings?.SetAgentWorkdirMode) {
+            return
+        }
+        setError('')
+        try {
+            await bindings.SetAgentWorkdirMode(name, props.board.id, mode)
+            await refresh()
+        } catch (e) {
+            setError(String(e))
+        }
+    }
+
     // Changed on blur rather than per keystroke: half a branch name is a
     // branch name nothing matches, and this is written to the config file.
     const setBase = async (name: string, branch: string) => {
@@ -247,6 +263,22 @@ const WorkdirsPanel = (props: Props) => {
                                     title={intl.formatMessage({id: 'Workdirs.base-title', defaultMessage: 'Work here branches from this, and «merged» waits for it'})}
                                     onChange={(e) => setBase(workdir.name, e.currentTarget.value)}
                                 />
+                                <For each={['worktree', 'branch']}>
+                                    {(mode) => (
+                                        <button
+                                            type='button'
+                                            class={`WorkdirsPanel__mode ${workdir.mode === mode ? 'WorkdirsPanel__mode--on' : ''}`}
+                                            title={mode === 'worktree' ?
+                                                intl.formatMessage({id: 'Workdirs.mode-worktree-why', defaultMessage: 'a branch and a checkout per card — several cards of this repository at once, and your own checkout is left alone'}) :
+                                                intl.formatMessage({id: 'Workdirs.mode-branch-why', defaultMessage: 'a branch in the folder itself — one card at a time, and you see the work in your editor as it happens'})}
+                                            onClick={() => setMode(workdir.name, mode)}
+                                        >
+                                            {mode === 'worktree' ?
+                                                intl.formatMessage({id: 'Workdirs.mode-worktree', defaultMessage: 'a copy per card'}) :
+                                                intl.formatMessage({id: 'Workdirs.mode-branch', defaultMessage: 'in the folder itself'})}
+                                        </button>
+                                    )}
+                                </For>
                             </Show>
 
                             <span class='WorkdirsPanel__path'>{workdir.path}</span>

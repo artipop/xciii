@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -729,37 +728,20 @@ func (a *App) GetBoardFlowOverview(boardID string) (string, error) {
 	return string(out), nil
 }
 
-// GetBoardGit reports how this board works in a folder that is a repository,
-// as JSON: {"mode":"worktree|branch","branchPrefix":…}. The mode is always one
-// of the two — a board that has never been asked gets the machine's own
-// default filled in.
-func (a *App) GetBoardGit(boardID string) (string, error) {
-	if a.mgr == nil {
-		return "", nil
-	}
-	a.mgr.SeedBoard(boardID)
-	out, err := json.Marshal(a.mgr.BoardGitPolicy(boardID))
-	if err != nil {
-		return "", err
-	}
-	return string(out), nil
-}
-
-// SetBoardGit records how this board works in a repository. The JSON is the
-// same shape GetBoardGit returns.
-func (a *App) SetBoardGit(boardID, policyJSON string) (string, error) {
+// SetAgentWorkdirMode records how a folder that is a repository is worked in
+// on one board: "worktree" — a copy of its own per card — or "branch" — a
+// branch in the folder itself. Asked per (board, folder), because a folder
+// belongs to a board anyway and the one that does not — «на всех досках» — is
+// exactly the case where two boards may want different answers.
+func (a *App) SetAgentWorkdirMode(name, boardID, mode string) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
-	var p acp.GitPolicy
-	if err := json.Unmarshal([]byte(policyJSON), &p); err != nil {
-		return "", fmt.Errorf("не удалось разобрать настройку: %w", err)
-	}
-	saved, err := a.mgr.SetBoardGitPolicy(boardID, p)
+	entry, err := a.mgr.SetWorkdirMode(name, boardID, mode)
 	if err != nil {
 		return "", err
 	}
-	out, _ := json.Marshal(saved)
+	out, _ := json.Marshal(entry)
 	return string(out), nil
 }
 

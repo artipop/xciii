@@ -41,6 +41,23 @@ type WorkdirEntry struct {
 	// later without anybody re-adding it.
 	Kind string `json:"kind,omitempty"`
 
+	// Modes is how this folder is worked in when it is a repository, per board
+	// that offers it: board id → WorkModeWorktree (a copy per card) or
+	// WorkModeBranch (a branch in the folder itself). A board with no answer
+	// falls back to the machine's own old default.
+	//
+	// Keyed by board because the answer is about this folder *on this board*.
+	// A folder belongs to one board anyway, so for almost every entry the map
+	// has one key and reads as "the folder's answer"; a folder marked «на всех
+	// досках» is the case the key earns — the same checkout can be a copy per
+	// card on the board where three people work it and a branch in place on the
+	// board where one person does.
+	Modes map[string]string `json:"modes,omitempty"`
+
+	// BranchPrefix names the branches made here — "feature/", say. Empty is
+	// the default, and the default is nothing at all.
+	BranchPrefix string `json:"branchPrefix,omitempty"`
+
 	// BaseBranch is what work here branches from, and what "merged" means for
 	// it. It is a setting, and it is filled in when the folder is added by
 	// asking git (DefaultBaseBranch) so that nobody types "main" for every
@@ -503,6 +520,14 @@ type acpAdapter struct {
 	// without our tools; that is better than guessing a flag and failing to
 	// open the terminal at all.
 	cliMCPArgs func(configPath string) []string
+	// cliPromptArgs give the CLI the first message of the conversation on its
+	// own command line, which is how a stage of a route hands its card's task
+	// to a terminal (stageterminal.go). Typing it in instead means writing to a
+	// pty whose CLI is not listening yet — and the one it might be showing is
+	// "do you trust the files in this folder?", which must not be answered with
+	// a task. A kind that leaves this empty has the task pasted once its CLI
+	// has settled, which is the same answer a resumed conversation gets.
+	cliPromptArgs func(prompt string) []string
 	// dropEnv names variables the process must not inherit from ours.
 	dropEnv []string
 	// mode is the session mode to select after session/new, when the agent's
@@ -530,6 +555,10 @@ var acpNative = map[string]acpAdapter{
 		cliBin:        "claude",
 		cliResumeArgs: []string{"--continue"},
 		cliMCPArgs:    func(path string) []string { return []string{"--mcp-config", path} },
+		// `claude "…"` opens the TUI with that as the first message, which is
+		// exactly what a stage needs: the CLI is interactive from the first
+		// frame and the task is already in it.
+		cliPromptArgs: func(prompt string) []string { return []string{prompt} },
 		// Claude Code refuses to start inside another Claude Code session, and
 		// the desktop app may well have been launched from one: `wails3 dev` is
 		// started from a terminal, and that terminal is sometimes a CLI's own.
@@ -565,6 +594,8 @@ var acpNative = map[string]acpAdapter{
 		// `codex resume --last` picks up the newest conversation of this
 		// directory, the same rule as claude's --continue.
 		cliResumeArgs: []string{"resume", "--last"},
+		// Same shape: `codex "…"` starts the TUI on that message.
+		cliPromptArgs: func(prompt string) []string { return []string{prompt} },
 		// It starts read-only, which is not what a card asked for: a session
 		// that may not edit anything would spend its turn saying so.
 		mode: "agent",
@@ -667,13 +698,6 @@ type Config struct {
 	// prompt and the card task. Keyed by board id, empty for a board that
 	// never set one.
 	BoardPrompts map[string]string `json:"boardPrompts,omitempty"`
-
-	// BoardGit is how each board works in a folder that is a repository. It
-	// lives on the board (BoardPropGit) and is mirrored here for the same
-	// reason the columns are: the engine reads it on every card move, and a
-	// board that refuses a write keeps its answer in the file until one gets
-	// through.
-	BoardGit map[string]GitPolicy `json:"boardGit,omitempty"`
 
 	// DeployPrompt is what a deploy session is told to do; the concrete facts
 	// (folder, branch, target, expected URL) are appended to it.

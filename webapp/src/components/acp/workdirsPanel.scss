@@ -70,6 +70,26 @@
             color: rgb(var(--error-text-rgb, 210, 75, 78));
         }
 
+        // The two answers, on the repository's own row: small, side by side,
+        // the one in force filled in. A select would hide the answer behind a
+        // click; these say it while the list is being read.
+        .WorkdirsPanel__mode {
+            font-size: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+
+            &--on {
+                border-color: rgb(var(--button-bg-rgb));
+                background: rgba(var(--button-bg-rgb), 0.08);
+                color: rgb(var(--center-channel-color-rgb));
+            }
+        }
+
         .WorkdirsPanel__base {
             width: 96px;
             font-size: 12px;

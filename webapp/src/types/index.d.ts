@@ -27,6 +27,11 @@ export interface IAppWindow extends Window {
                 // основную» waits for. Empty falls back to what git says.
                 SetAgentWorkdirBase?(name: string, branch: string): Promise<string>
 
+                // How a repository is worked in on this board: "worktree" — a
+                // copy of its own per card — or "branch" — a branch in the
+                // folder itself. Per (board, folder).
+                SetAgentWorkdirMode?(name: string, boardId: string, mode: string): Promise<string>
+
                 // The entry a path is already registered as, whichever board
                 // owns it, and the call that makes one every board's. Between
                 // them, "this folder is already added" is a choice offered
@@ -68,11 +73,6 @@ export interface IAppWindow extends Window {
                 SaveBoardColumn(specJSON: string): Promise<string>
                 RemoveBoardColumn(boardId: string, optionId: string, column: string): Promise<void>
 
-                // How this board works in a folder that is a repository:
-                // {"mode":"worktree"|"branch"}. Always one of the two — a
-                // board never asked gets the machine's own default.
-                GetBoardGit?(boardId: string): Promise<string>
-                SetBoardGit?(boardId: string, policyJSON: string): Promise<string>
                 GetCardFlow(cardId: string): Promise<string>
                 GetBoardFlowOverview(boardId: string): Promise<string>
                 SeedBoardAutomation(boardId: string): Promise<void>
