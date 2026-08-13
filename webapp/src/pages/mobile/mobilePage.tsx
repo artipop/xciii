@@ -52,6 +52,11 @@ type Terminal = {
     id: string
     cardId?: string
     title?: string
+
+    // What the agent said this conversation is doing (describe_conversation).
+    // On a phone it matters more than anywhere else: the screen fits three rows,
+    // and «claude» three times over says nothing about which one to open.
+    summary?: string
     agent: string
     branch?: string
     running: boolean
@@ -263,6 +268,9 @@ const MobilePage = () => {
                                     <span class='MobilePage__card'>
                                         {terminal.title || intl.formatMessage({id: 'Mobile.planning', defaultMessage: 'Planning'})}
                                     </span>
+                                    <Show when={terminal.summary}>
+                                        <span class='MobilePage__terminalSummary'>{terminal.summary}</span>
+                                    </Show>
                                     <Show when={terminal.branch}>
                                         <code class='MobilePage__branch'>{terminal.branch}</code>
                                     </Show>

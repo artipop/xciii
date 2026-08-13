@@ -304,6 +304,7 @@ board: an agent only ever reaches the board its terminal was opened on.
 | put work on the board | *create_card*, *create_cards* — how a planning conversation ends |
 | change a card | *update_card* — its title, its project, its route, an answer a stage is waiting on; *comment_card* — a note in the card's own history |
 | hand work on | *move_card* — the card goes into another column, **and the column starts** |
+| say what it is doing | *describe_conversation* — one line about this conversation, shown under its name in «Открытые терминалы» and on «Терминалы» on a phone |
 
 That last row is the one to know about. A card an agent moves is a card moved:
 the column it lands in does what it always does, and the route takes it from

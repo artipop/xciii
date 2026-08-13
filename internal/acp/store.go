@@ -81,6 +81,12 @@ func (s *Store) evolve() error {
 		ON terminal_session(card_id, node_id, started_at)`); err != nil {
 		return err
 	}
+	// What the agent said the conversation is about. Rows from before it have
+	// none, which reads the same as an agent that has not said anything yet.
+	if _, err := s.db.Exec(`ALTER TABLE terminal_session ADD COLUMN summary TEXT NOT NULL DEFAULT ''`); err != nil &&
+		!strings.Contains(err.Error(), "duplicate column") {
+		return err
+	}
 	return nil
 }
 
@@ -649,8 +655,11 @@ type TerminalRecord struct {
 	ProjectPath string     `json:"projectPath,omitempty"`
 	Cwd         string     `json:"cwd"`
 	Branch      string     `json:"branch,omitempty"`
-	Agent       string     `json:"agent,omitempty"`
-	Kind        string     `json:"kind,omitempty"`
+	Agent string `json:"agent,omitempty"`
+	Kind  string `json:"kind,omitempty"`
+	// Summary is the agent's own line about the conversation, kept so it comes
+	// back with the conversation it describes.
+	Summary     string     `json:"summary,omitempty"`
 	StartedAt   time.Time  `json:"startedAt"`
 	EndedAt     *time.Time `json:"endedAt,omitempty"`
 	ExitCode    int        `json:"exitCode"`
@@ -659,9 +668,23 @@ type TerminalRecord struct {
 // InsertTerminal records a terminal session as it starts.
 func (s *Store) InsertTerminal(r TerminalRecord) error {
 	_, err := s.db.Exec(`INSERT INTO terminal_session
-		(id, card_id, node_id, board_id, title, repo_path, cwd, branch, agent, kind, started_at)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-		r.ID, r.CardID, r.NodeID, r.BoardID, r.Title, r.ProjectPath, r.Cwd, r.Branch, r.Agent, r.Kind, r.StartedAt.UnixMilli())
+		(id, card_id, node_id, board_id, title, repo_path, cwd, branch, agent, kind, summary, started_at)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+		r.ID, r.CardID, r.NodeID, r.BoardID, r.Title, r.ProjectPath, r.Cwd, r.Branch, r.Agent, r.Kind,
+		r.Summary, r.StartedAt.UnixMilli())
+	return err
+}
+
+// RenameTerminal records what a person called a conversation, so the name comes
+// back when the conversation is resumed.
+func (s *Store) RenameTerminal(id, title string) error {
+	_, err := s.db.Exec(`UPDATE terminal_session SET title=? WHERE id=?`, title, id)
+	return err
+}
+
+// SetTerminalSummary records what the agent said the conversation is about.
+func (s *Store) SetTerminalSummary(id, summary string) error {
+	_, err := s.db.Exec(`UPDATE terminal_session SET summary=? WHERE id=?`, summary, id)
 	return err
 }
 
@@ -672,7 +695,7 @@ func (s *Store) FinishTerminal(id string, endedAt time.Time, exitCode int) error
 	return err
 }
 
-const terminalColumns = `id, card_id, node_id, board_id, title, repo_path, cwd, branch, agent, kind, started_at, ended_at, exit_code`
+const terminalColumns = `id, card_id, node_id, board_id, title, repo_path, cwd, branch, agent, kind, summary, started_at, ended_at, exit_code`
 
 // LastTerminalForCardNode is the most recent conversation on one stage of the
 // card — the one a new terminal there continues. When the stage has none yet
@@ -744,7 +767,7 @@ func scanTerminal(row scanner) (TerminalRecord, error) {
 		ended   sql.NullInt64
 	)
 	if err := row.Scan(&rec.ID, &rec.CardID, &rec.NodeID, &rec.BoardID, &rec.Title, &rec.ProjectPath, &rec.Cwd,
-		&rec.Branch, &rec.Agent, &rec.Kind, &started, &ended, &rec.ExitCode); err != nil {
+		&rec.Branch, &rec.Agent, &rec.Kind, &rec.Summary, &started, &ended, &rec.ExitCode); err != nil {
 		return TerminalRecord{}, err
 	}
 	rec.StartedAt = time.UnixMilli(started)

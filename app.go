@@ -988,6 +988,16 @@ func (a *App) CloseTerminal(terminalID string) error {
 	return a.mgr.CloseTerminal(terminalID)
 }
 
+// RenameTerminal is a person calling a conversation what it is to them. The
+// title a terminal starts with says which card it is on, and a list of open
+// terminals is read by what each one is about.
+func (a *App) RenameTerminal(terminalID, title string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	return a.mgr.RenameTerminal(terminalID, title)
+}
+
 // errSourcesDisabled is returned by the source bindings when the subsystem
 // could not be started at all — no data directory, an unreadable registry.
 var errSourcesDisabled = errors.New("источники недоступны")

@@ -37,14 +37,25 @@ import (
 // enough that an agent printing a build log cannot grow it without bound.
 const terminalScrollback = 256 * 1024
 
+// resumeRefusedWindow is how soon after a launch an exit still counts as the CLI
+// refusing to continue a conversation rather than as work that ended
+// (restartFresh). Generous on purpose: an unattended refusal takes under a
+// second, but a folder the CLI has not been trusted in yet asks about that
+// first, and somebody who answers that question should still get their terminal.
+const resumeRefusedWindow = 30 * time.Second
+
 // TerminalSession is one CLI in one pty.
 type TerminalSession struct {
 	ID     string
 	CardID string
 	// NodeID is the stage of the card's route this conversation belongs to;
 	// empty for a card outside any route, and for planning terminals.
-	NodeID      string
-	BoardID     string
+	NodeID  string
+	BoardID string
+	// Title is what this conversation is called. It starts as the card's title
+	// (or «Планирование»), and both a person and the agent may change it: read
+	// it through Info, never off the field, since either can happen while a
+	// window is open.
 	Title       string
 	Task        string
 	ProjectPath string
@@ -61,11 +72,30 @@ type TerminalSession struct {
 	worktree     WorktreeInfo
 	usedWorktree bool
 	startSHA     string
+	// freshArgv is the same CLI without the flags that continue a conversation,
+	// and env is what it runs with: between them, everything restartFresh needs
+	// to open the terminal a refused resume did not. Empty when this launch did
+	// not resume, which is the only case that restart exists for.
+	freshArgv []string
+	env       []string
+	// launchedAt is when the process now in the pty started, which is not
+	// StartedAt once a restart has happened.
+	launchedAt time.Time
+	restarted  bool
+	ttyClosed  bool
+	// The size the window last asked for, so a restarted CLI is not drawn at the
+	// 80×24 a brand new pty comes with.
+	cols, rows int
 	// The board tools this CLI was given: a grant token and the config file
 	// that carries it. Both die with the terminal — a door nobody is standing
 	// in must not stay open.
 	boardToken string
 	mcpConfig  string
+
+	// summary is the one line the agent wrote about this conversation, through
+	// the board tools (DescribeTerminalFromTools). Under the lock because it
+	// arrives from an HTTP handler while windows read it.
+	summary string
 
 	mu       sync.Mutex
 	buf      []byte
@@ -92,8 +122,12 @@ type TerminalInfo struct {
 	Running   bool   `json:"running"`
 	ExitCode  int    `json:"exitCode"`
 	StartedAt string `json:"startedAt"`
-	// BoardFolder says Cwd is «папка доски» — the board's own directory under
-	// the app's data — so the UI can call it that instead of showing the path.
+	// Summary is the agent's own line about what this conversation is doing,
+	// which is what makes a list of open terminals readable: a title says which
+	// card, and this says what is going on in it.
+	Summary string `json:"summary,omitempty"`
+	// BoardFolder says Cwd is the board's own drafts folder — its directory
+	// under the app's data — so the UI can name it instead of showing the path.
 	BoardFolder bool `json:"boardFolder,omitempty"`
 }
 
@@ -114,8 +148,9 @@ func (t *TerminalSession) Info() TerminalInfo {
 		Command:   strings.Join(t.Argv, " "),
 		StartedAt: t.StartedAt.Format(time.RFC3339),
 		ExitCode:  t.exitCode,
-		// The UI names the board's folder «папка доски» rather than showing
-		// a path into the app's own data directory.
+		Summary:   t.summary,
+		// The UI names the board's drafts folder rather than showing a path into
+		// the app's own data directory.
 		BoardFolder: t.m != nil && t.Cwd != "" && t.Cwd == t.m.boardFolder(t.BoardID),
 	}
 	select {
@@ -162,17 +197,46 @@ func (t *TerminalSession) Write(p []byte) error {
 		return fmt.Errorf("терминал уже завершён")
 	default:
 	}
-	_, err := t.tty.Write(p)
+	_, tty := t.running()
+	_, err := tty.Write(p)
 	return err
 }
 
 // Resize tells the CLI how big the window is, which is what makes a TUI draw
-// itself correctly rather than wrapping at 80 columns.
+// itself correctly rather than wrapping at 80 columns. The size is remembered as
+// well as applied, because a restarted CLI gets a new pty (restartFresh) and the
+// window has no reason to ask again.
 func (t *TerminalSession) Resize(cols, rows int) error {
 	if cols <= 0 || rows <= 0 {
 		return nil
 	}
-	return t.tty.Resize(cols, rows)
+	t.mu.Lock()
+	t.cols, t.rows = cols, rows
+	tty := t.tty
+	t.mu.Unlock()
+	return tty.Resize(cols, rows)
+}
+
+// running is the process and the pty of the launch in flight. Both are replaced
+// when a refused resume is restarted, so nothing may hold either across that.
+func (t *TerminalSession) running() (*pty.Cmd, pty.Pty) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.cmd, t.tty
+}
+
+// closeTTY closes the pty, once. Both the app closing a terminal and the pump
+// reaching the end of one get here — the close is what unblocks the reader when
+// killing the CLI does not, because a child of it still holds the slave open —
+// and go-pty's own Close is not safe to call twice at once.
+func (t *TerminalSession) closeTTY() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.tty == nil || t.ttyClosed {
+		return
+	}
+	t.ttyClosed = true
+	_ = t.tty.Close()
 }
 
 // Done is closed when the CLI exits.
@@ -292,12 +356,12 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 	})
 }
 
-// boardFolder is «папка доски»: the board's own directory under the app's
+// boardFolder is «черновики доски»: the board's own directory under the app's
 // data, where conversations with no folder of their own run — and where what
 // an agent leaves for one card is on hand for the next. Named by the board's
 // id and nothing else: a generated name (the herokuish kind) would have to be
 // remembered somewhere, an id needs no state at all — and no UI ever shows
-// the name, every surface says «папка доски».
+// the name, every surface says «черновики доски».
 func (m *Manager) boardFolder(boardID string) string {
 	if boardID == "" {
 		return ""
@@ -356,7 +420,7 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 		return nil, err
 	}
 	if project.Path == "" {
-		// Planning with no project talks in «папка доски» — the same answer
+		// Planning with no project talks in «черновики доски» — the same answer
 		// the card's dialog gives, for a conversation that is about the
 		// board's cards rather than about code. The name is what the prompt
 		// shows the agent; every UI surface says the same words.
@@ -365,9 +429,9 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 			return nil, fmt.Errorf("для терминала нужен проект: выберите его в списке")
 		}
 		if err := os.MkdirAll(folder, 0o755); err != nil {
-			return nil, fmt.Errorf("не удалось создать папку доски: %w", err)
+			return nil, fmt.Errorf("не удалось создать папку черновиков доски: %w", err)
 		}
-		project = ProjectEntry{Name: "папка доски", Path: folder}
+		project = ProjectEntry{Name: "черновики доски", Path: folder}
 	}
 	// The same rule a card's terminal follows: asking twice means "show me the
 	// one I have", not "start another CLI". A planning terminal has no card to
@@ -418,11 +482,16 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// stored or guessed.
 	resumeAt, resume := m.terminalResumePoint(spec)
 
+	// Minted before anything can fail, because the grant carries it: the tools
+	// let the agent say what this conversation is about, and that needs a name
+	// for "this conversation" (DescribeTerminalFromTools).
+	id := uuid.NewString()
+
 	// The board tools: a terminal that stands on a board can hand work back to
 	// it rather than leaving a person to retype the plan (boardtools.go). A
 	// kind whose CLI cannot be told about MCP gets none, and the terminal opens
 	// exactly as it did before.
-	boardToken, mcpConfig := m.openBoardTools(spec.boardID, spec.cardID, spec.agent)
+	boardToken, mcpConfig := m.openBoardTools(spec.boardID, spec.cardID, id, spec.agent)
 
 	argv, err := terminalCommand(spec.agent, resume, mcpConfig)
 	if err != nil {
@@ -439,13 +508,22 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		return nil, err
 	}
 	argv[0] = bin
+	// The same CLI without the resume flags, kept for the one restart a refused
+	// resume gets (restartFresh). Built here because this is where the binary has
+	// already been found, and it cannot fail after the argv above did not.
+	var freshArgv []string
+	if resume {
+		if fresh, freshErr := terminalCommand(spec.agent, false, mcpConfig); freshErr == nil && len(fresh) > 0 {
+			fresh[0] = bin
+			freshArgv = fresh
+		}
+	}
 	net, err := m.resolveNetwork(spec.agent)
 	if err != nil {
 		m.closeBoardTools(boardToken, mcpConfig)
 		return nil, err
 	}
 
-	id := uuid.NewString()
 	t := &TerminalSession{
 		ID:          id,
 		CardID:      spec.cardID,
@@ -458,6 +536,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		AgentName:   spec.agent.Name,
 		AgentKind:   spec.agent.Kind,
 		Argv:        argv,
+		freshArgv:   freshArgv,
 		StartedAt:   time.Now(),
 		m:           m,
 		done:        make(chan struct{}),
@@ -472,6 +551,13 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		// The worktree is the earlier terminal's; this one is a visitor and
 		// must not remove it on the way out.
 		t.worktree = WorktreeInfo{Path: resumeAt.Cwd, Branch: resumeAt.Branch}
+		// The same conversation continued, so what it was called and what it was
+		// about come with it: a name a person typed must not be replaced by the
+		// card's title the next time the terminal opens.
+		if resumeAt.Title != "" {
+			t.Title = resumeAt.Title
+		}
+		t.summary = resumeAt.Summary
 	// A terminal gets a worktree for the same reason a session does: two of
 	// them, or a terminal beside a running session, must not share one checkout.
 	case spec.worktree && spec.cardID != "":
@@ -489,7 +575,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		t.Branch = wt.Branch
 	}
 
-	// A conversation with no folder runs in «папка доски» — the board's own
+	// A conversation with no folder runs in «черновики доски» — the board's own
 	// directory under the app's data, which is what every UI surface calls
 	// it. One folder per board, deliberately: what an agent writes there for
 	// one card (a brief, a draft) is on hand when another card of the same
@@ -500,7 +586,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		folder := m.boardFolder(spec.boardID)
 		if err := os.MkdirAll(folder, 0o755); err != nil {
 			m.closeBoardTools(boardToken, mcpConfig)
-			return nil, fmt.Errorf("не удалось создать папку доски: %w", err)
+			return nil, fmt.Errorf("не удалось создать папку черновиков доски: %w", err)
 		}
 		t.Cwd = folder
 	}
@@ -517,7 +603,14 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	cmd := tty.CommandContext(m.rootCtx, argv[0], argv[1:]...)
 	cmd.Dir = t.Cwd
 	env, drop := spawnEnv(spec.agent, net)
+	// The kind's own drops apply here exactly as they do to a session
+	// (agentLaunch): a terminal runs the same vendor CLI, so the variables that
+	// must not be inherited are the same ones. Leaving them out was the reason a
+	// terminal opened from a dev build could never continue anything —
+	// CLAUDE_CODE_CHILD_SESSION came through and the CLI saved no transcript.
+	drop = append(drop, acpNative[spec.agent.Kind].dropEnv...)
 	cmd.Env = terminalEnv(env, drop)
+	t.env = cmd.Env
 	if err := cmd.Start(); err != nil {
 		_ = tty.Close()
 		m.closeBoardTools(boardToken, mcpConfig)
@@ -525,6 +618,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		return nil, fmt.Errorf("не удалось запустить %s: %w", argv[0], err)
 	}
 	t.cmd = cmd
+	t.launchedAt = time.Now()
 
 	m.mu.Lock()
 	if m.terminals == nil {
@@ -538,7 +632,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	if err := m.store.InsertTerminal(TerminalRecord{
 		ID: id, CardID: t.CardID, NodeID: t.NodeID, BoardID: t.BoardID, Title: t.Title,
 		ProjectPath: t.ProjectPath, Cwd: t.Cwd, Branch: t.Branch,
-		Agent: t.AgentName, Kind: t.AgentKind, StartedAt: t.StartedAt,
+		Agent: t.AgentName, Kind: t.AgentKind, Summary: t.summary, StartedAt: t.StartedAt,
 	}); err != nil {
 		m.log.Warn("acp: failed to record terminal session", "terminal", id, "err", err)
 	}
@@ -555,27 +649,118 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	return t, nil
 }
 
-// pump moves the CLI's output to every window until the process exits.
+// pump moves the CLI's output to every window until the process exits — and
+// starts it once more, without the resume flags, when what exited was a resume
+// the CLI refused (restartFresh). Only the last exit is the terminal's.
 func (t *TerminalSession) pump() {
+	for {
+		cmd, tty := t.running()
+		t.copyOutput(tty)
+		waitErr := cmd.Wait()
+		code := -1
+		if cmd.ProcessState != nil {
+			code = cmd.ProcessState.ExitCode()
+		}
+		t.mu.Lock()
+		t.exitErr, t.exitCode = waitErr, code
+		t.mu.Unlock()
+		if !t.restartFresh() {
+			break
+		}
+	}
+	close(t.done)
+	t.finish()
+	t.closeTTY()
+	t.m.terminalEnded(t)
+}
+
+// copyOutput fans one process's output out to every window. A read on the pty
+// master ends as soon as the child is gone, which is what makes the end of this
+// the moment to wait for it.
+func (t *TerminalSession) copyOutput(tty pty.Pty) {
 	buf := make([]byte, 32*1024)
 	for {
-		n, err := t.tty.Read(buf)
+		n, err := tty.Read(buf)
 		if n > 0 {
 			t.publish(buf[:n])
 		}
 		if err != nil {
-			break
+			return
 		}
 	}
-	waitErr := t.cmd.Wait()
-	t.exitErr = waitErr
-	if t.cmd.ProcessState != nil {
-		t.exitCode = t.cmd.ProcessState.ExitCode()
+}
+
+// restartFresh runs the CLI again without the flags that continue a
+// conversation, after a resumed launch exited straight away, and reports whether
+// it did.
+//
+// "Continue what is in this directory" is a promise about the CLI's own history,
+// and our record of a terminal is not that history: a terminal that was opened
+// and never spoken in leaves a row here and nothing there — which is what a
+// `wails3 dev` restart makes of every terminal that was open — and `claude
+// --continue` then prints "No conversation found to continue" and exits 1. The
+// person who clicked the button wanted a terminal, so they get one; what they
+// got before was a dead window and a comment on the card saying the CLI closed
+// with code 1. Nothing vendor-specific is read to find this out, which is the
+// point: the same restart covers a pruned transcript, a `codex resume --last`
+// with nothing to resume, and whatever the next CLI does about it.
+//
+// Once only, and only for an exit too soon to have been work: a refused resume
+// dies before it draws anything, while a CLI a person used and closed exits 0 —
+// or exits nonzero much later, and that is its own report to make. A kill (code
+// -1) is this app closing the terminal or shutting down, and must never come
+// back.
+func (t *TerminalSession) restartFresh() bool {
+	t.mu.Lock()
+	fresh, restarted, code, since := t.freshArgv, t.restarted, t.exitCode, time.Since(t.launchedAt)
+	t.mu.Unlock()
+	if len(fresh) == 0 || restarted || code <= 0 || since > resumeRefusedWindow {
+		return false
 	}
-	close(t.done)
-	t.finish()
-	_ = t.tty.Close()
-	t.m.terminalEnded(t)
+	if t.m.rootCtx != nil && t.m.rootCtx.Err() != nil {
+		return false
+	}
+
+	// A new pty: this one's slave is the controlling terminal of the process that
+	// has just gone, and a second process cannot be started in it.
+	tty, err := pty.New()
+	if err != nil {
+		t.m.log.Warn("acp: cannot open a pty to restart the terminal", "terminal", t.ID, "err", err)
+		return false
+	}
+	cmd := tty.CommandContext(t.m.rootCtx, fresh[0], fresh[1:]...)
+	cmd.Dir = t.Cwd
+	cmd.Env = t.env
+	if err := cmd.Start(); err != nil {
+		_ = tty.Close()
+		t.m.log.Warn("acp: cannot restart the terminal without resuming", "terminal", t.ID, "err", err)
+		return false
+	}
+
+	t.mu.Lock()
+	old, oldClosed := t.tty, t.ttyClosed
+	t.tty, t.cmd, t.ttyClosed = tty, cmd, false
+	// The argv is what the UI shows as the command, and the exit code is now
+	// nobody's: this terminal is running again.
+	t.Argv, t.restarted, t.launchedAt = fresh, true, time.Now()
+	t.exitCode, t.exitErr = 0, nil
+	cols, rows := t.cols, t.rows
+	t.mu.Unlock()
+	// Ours alone to close: anything else that wanted this pty gone asked under
+	// the lock, and got either the flag above or the new pty.
+	if !oldClosed {
+		_ = old.Close()
+	}
+	if cols > 0 && rows > 0 {
+		_ = tty.Resize(cols, rows)
+	}
+
+	// Said in the window, under the CLI's own refusal, because that is where
+	// somebody is reading. The card is told nothing: nothing happened to it.
+	t.publish([]byte("\r\n\x1b[33mПродолжить прошлый разговор не удалось — открыт новый.\x1b[0m\r\n"))
+	t.m.log.Info("acp: resume refused, terminal restarted fresh",
+		"terminal", t.ID, "card", t.CardID, "agent", t.AgentName)
+	return true
 }
 
 // terminalEnded reports what the CLI left behind and forgets the session.
@@ -680,16 +865,75 @@ func (m *Manager) LiveTerminals() []TerminalInfo {
 	return out
 }
 
+// RenameTerminal is a person calling a conversation what it is to them. The
+// title starts as the card's, which answers "which card" and nothing else, and a
+// list of open terminals is read by what each one is *about*.
+//
+// It is written to the record as well as to the live session, so the name comes
+// back when the conversation does (startTerminal, on resume).
+func (m *Manager) RenameTerminal(id, title string) error {
+	title = strings.TrimSpace(title)
+	if title == "" {
+		return fmt.Errorf("название не может быть пустым")
+	}
+	t := m.Terminal(id)
+	if t == nil {
+		return fmt.Errorf("терминал %s не активен", id)
+	}
+	t.mu.Lock()
+	t.Title = title
+	t.mu.Unlock()
+	if err := m.store.RenameTerminal(id, title); err != nil {
+		m.log.Warn("acp: failed to record a terminal's new name", "terminal", id, "err", err)
+	}
+	m.emitTerminal(t)
+	return nil
+}
+
+// SetTerminalSummary records what the agent said this conversation is about.
+// Empty clears it, which is how an agent takes back a line that has stopped
+// being true; nothing else is validated, because it is one line of prose.
+func (m *Manager) SetTerminalSummary(id, summary string) error {
+	summary = strings.TrimSpace(summary)
+	// A recap is drawn in one line beside a title. An agent asked for a summary
+	// sometimes writes a paragraph, and the list is not the place to read one.
+	// Counted in runes, because this line is Russian more often than not and
+	// cutting bytes would cut a letter in half.
+	if runes := []rune(summary); len(runes) > terminalSummaryLimit {
+		summary = strings.TrimSpace(string(runes[:terminalSummaryLimit])) + "…"
+	}
+	// One line: a newline in the middle would break the row it is drawn in.
+	summary = strings.Join(strings.Fields(summary), " ")
+	t := m.Terminal(id)
+	if t == nil {
+		return fmt.Errorf("терминал %s не активен", id)
+	}
+	t.mu.Lock()
+	t.summary = summary
+	t.mu.Unlock()
+	if err := m.store.SetTerminalSummary(id, summary); err != nil {
+		m.log.Warn("acp: failed to record a terminal's summary", "terminal", id, "err", err)
+	}
+	m.emitTerminal(t)
+	return nil
+}
+
+// terminalSummaryLimit is how much of the agent's line is kept. Generous enough
+// for a sentence, short enough that the list stays a list.
+const terminalSummaryLimit = 200
+
 // CloseTerminal ends the CLI and everything it started.
 func (m *Manager) CloseTerminal(id string) error {
 	t := m.Terminal(id)
 	if t == nil {
 		return fmt.Errorf("терминал %s не активен", id)
 	}
-	if t.cmd != nil && t.cmd.Process != nil {
-		_ = t.cmd.Process.Kill()
+	cmd, _ := t.running()
+	if cmd != nil && cmd.Process != nil {
+		_ = cmd.Process.Kill()
 	}
-	return t.tty.Close()
+	t.closeTTY()
+	return nil
 }
 
 // shutdownTerminals ends every terminal when the app is closing.
@@ -701,10 +945,11 @@ func (m *Manager) shutdownTerminals() {
 	}
 	m.mu.Unlock()
 	for _, t := range live {
-		if t.cmd != nil && t.cmd.Process != nil {
-			_ = t.cmd.Process.Kill()
+		cmd, _ := t.running()
+		if cmd != nil && cmd.Process != nil {
+			_ = cmd.Process.Kill()
 		}
-		_ = t.tty.Close()
+		t.closeTTY()
 	}
 }
 
@@ -974,7 +1219,7 @@ func (m *Manager) TerminalHistoryForCard(cardID string) ResumableTerminal {
 		Branch:    rec.Branch,
 		Agent:     rec.Agent,
 	}
-	// A folderless conversation lives in «папка доски», which is not where
+	// A folderless conversation lives in «черновики доски», which is not where
 	// any work lives — and the stamp under the card's title reads Cwd as the
 	// worktree. The conversation stays resumable; the address is nobody's
 	// business.

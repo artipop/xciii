@@ -156,7 +156,7 @@ func toolText(t *testing.T, res *mcp.CallToolResult) string {
 // grant, and a card on the board at the other end.
 func TestBoardToolsRoundTrip(t *testing.T) {
 	mgr, writer, endpoint := toolsBoard(t)
-	session := connect(t, endpoint, mgr.GrantBoardTools("board-1", ""))
+	session := connect(t, endpoint, mgr.GrantBoardTools("board-1", "", ""))
 
 	tools, err := session.ListTools(t.Context(), nil)
 	if err != nil {
@@ -169,6 +169,7 @@ func TestBoardToolsRoundTrip(t *testing.T) {
 	for _, want := range []string{
 		"list_columns", "list_flows", "list_cards", "get_card",
 		"create_card", "create_cards", "update_card", "move_card", "comment_card",
+		"describe_conversation",
 	} {
 		if !offered[want] {
 			t.Errorf("the agent is not offered %s", want)
@@ -226,7 +227,7 @@ func TestBoardToolsRoundTrip(t *testing.T) {
 // and says on the card what it did.
 func TestAnAgentCarriesACardOnThroughTheTools(t *testing.T) {
 	mgr, writer, endpoint := toolsBoard(t)
-	session := connect(t, endpoint, mgr.GrantBoardTools("board-1", "card-1"))
+	session := connect(t, endpoint, mgr.GrantBoardTools("board-1", "card-1", ""))
 
 	// The board's own cards, and only the granted board's.
 	cards, err := session.CallTool(t.Context(), &mcp.CallToolParams{Name: "list_cards"})
@@ -296,11 +297,35 @@ func TestAnAgentCarriesACardOnThroughTheTools(t *testing.T) {
 	}
 }
 
+// The recap in the list of open terminals is written by the agent, because
+// nothing else can know it: a terminal is a vendor CLI in a pty, and no protocol
+// carries a summary of one. It is the grant that says which conversation the
+// agent is in, so a run standing in no terminal is told so rather than quietly
+// describing somebody else's.
+func TestAnAgentDescribesTheConversationItIsIn(t *testing.T) {
+	mgr, _, endpoint := toolsBoard(t)
+	session := connect(t, endpoint, mgr.GrantBoardTools("board-1", "card-1", ""))
+
+	res, err := session.CallTool(t.Context(), &mcp.CallToolParams{
+		Name:      "describe_conversation",
+		Arguments: map[string]any{"text": "разбираю, почему окно открывается пополам"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.IsError {
+		t.Errorf("a run with no terminal behind it described one: %s", toolText(t, res))
+	}
+	if text := toolText(t, res); !strings.Contains(text, "терминале") {
+		t.Errorf("the agent is not told why: %s", text)
+	}
+}
+
 // The grant is a board, not a doorway: a card id an agent read somewhere else
 // opens nothing, or one board's tools would edit every other board's cards.
 func TestTheToolsRefuseACardOfAnotherBoard(t *testing.T) {
 	mgr, writer, endpoint := toolsBoard(t)
-	session := connect(t, endpoint, mgr.GrantBoardTools("board-1", "card-1"))
+	session := connect(t, endpoint, mgr.GrantBoardTools("board-1", "card-1", ""))
 
 	for _, call := range []*mcp.CallToolParams{
 		{Name: "get_card", Arguments: map[string]any{"cardId": "elsewhere"}},
@@ -342,7 +367,7 @@ func TestBoardToolsRefuseACallWithoutAGrant(t *testing.T) {
 
 	// And a grant that has been revoked is no better than a made-up one: an
 	// agent run that ended must not be able to write afterwards.
-	token := mgr.GrantBoardTools("board-1", "")
+	token := mgr.GrantBoardTools("board-1", "", "")
 	mgr.RevokeBoardTools(token)
 	client := mcp.NewClient(&mcp.Implementation{Name: "test-agent", Version: "0.0.1"}, nil)
 	if session, err := client.Connect(t.Context(), &mcp.StreamableClientTransport{

@@ -452,6 +452,18 @@ learn. A **card id** is the one exception, and it has a default: empty means the
 card the run stands on (the grant carries it), which is the card an agent working
 on one always means.
 
+One tool is not about the board at all: `describe_conversation` is the agent
+saying, in one line, what the conversation it is in is doing, and it is there
+because **nothing else can know**. A terminal is the vendor CLI in a pty, not an
+ACP session, so no protocol carries a title or a recap of one, and the only other
+source would be the CLI's own transcript file — its private business, in a
+different shape per kind. The agent, on the other hand, is the one having the
+conversation, so it is asked. The grant names the terminal
+(`BoardGrant.TerminalID`), which is what keeps an agent from describing somebody
+else's; the line lands in `TerminalInfo.Summary`, is drawn under the name in
+«Открытые терминалы» and on «Терминалы» on a phone, and is kept in the record so
+it comes back with the conversation it describes.
+
 `move_card` is `update_card` with a column in it, and the split is for the model
 rather than for the code: moving is the call whose *consequence* is the point.
 Which is why `acp.CardEdit` is the one write in `BoardWriter` that lets the board
@@ -637,20 +649,22 @@ person opening one is present.
 card can be talked over — wording, a plan, the brief — before anybody decides
 where the work lives, so "the card names no folder" is not a refusal:
 `resolveProject`'s two nothing-chosen errors are marked `errNoProject`
-(projects.go) and `StartCardTerminal` opens the conversation in **«папка
+(projects.go) and `StartCardTerminal` opens the conversation in **«черновики
 доски»** — `<dataDir>/boards/<boardID>`, the board's own directory under the
 app's data, which is what every UI surface calls it (`TerminalInfo.
 BoardFolder` is how a surface knows to; the name is the board id and nothing
-else, because a generated name would need remembering somewhere). One folder
+else, because a generated name would need remembering somewhere). It was
+«папка доски» for a while, and the name said where it is rather than what is
+in it — briefs, drafts, notes — which is the half a person needs to decide
+whether to answer with it. One folder
 per board on purpose: what an agent writes there for one card — a brief, a
 draft — is on hand when another card of the same board is talked over; the
 price is that the CLI's directory-scoped resume is board-scoped there, the
 same trade every non-git project folder makes. The *panel* asks before
 starting one: `GetCardAgent.folder` (`CardFolder`) says whether the card
 resolves a folder, and a card that does not — with no conversation to
-reopen — gets the dialog: «Для работы агента необходимо выбрать папку», with
-«Использовать папку доски» and «Выбрать папку…» as its answers, either of
-which starts the conversation. Go's own fallback (board folder) stays for the
+reopen — gets the question «В какой папке будет работать агент?», answered by
+clicking one of them. Go's own fallback (board folder) stays for the
 windowed path, which has no form to ask with. A conversation that already
 exists continues with the agent who held it — re-resolving refused every old
 conversation the moment a second agent was registered. A folder the card
@@ -659,17 +673,41 @@ are untouched — automation without a folder has nowhere to work, so it stalls
 as before.
 
 **The pick is a stepped flow, one question per screen, the answers as
-buttons** (`cardTerminal.tsx`, mirrored by `planningDialog.tsx`): «Кто ведёт
-разговор?» with the agents as name-chips first — a single registered agent
-answers it unasked, quick-add beside the names — then the folder question,
-with the chosen name kept above it as the way back. Clicking a name when the
-folder is already known is also the start. Two selects asking both questions
-at once was the shape this replaced, twice: it read as one question
-interrupted by another. The choice lives that one conversation and writes
+chips** (`cardTerminal.tsx`, mirrored by `planningDialog.tsx`): «Выбор агента»
+with the agents as name-chips first — a single registered agent answers it
+unasked, quick-add beside the names — then «В какой папке будет работать
+агент?», with the chosen name kept above it as the way back. Clicking a name
+when the folder is already known is also the start. Two selects asking both
+questions at once was the shape this replaced, twice: it read as one question
+interrupted by another.
+
+**Both questions are answered the same way, and the folder half is one
+component** — `folderChoices.tsx`, used by both panels: the board's folders as
+chips, the board's own drafts folder as a chip among them, and «Добавить
+папку…» as a quiet link, which is exactly the shape «Добавить агента…» has in
+the question before it. What it replaced was a row of folder chips *plus* two
+full-width buttons — the drafts folder and the native picker — so the answer a
+person mostly wanted was the smallest thing on the screen, and nothing said
+which of the three were the same kind of thing. Sharing the component is the
+point: the two panels asked one question in two shapes, and that is how they
+drift. The choice lives that one conversation and writes
 nothing to the card: planning in place, not an assignment. (This deliberately
 reversed an earlier decision to point at the settings instead; the form that
 once overloaded the card stood on every card always, while this one appears
 only when there is something to ask, in the panel the question is about.)
+
+**«Обсудить с агентом» is two sections, and the open conversations are the
+first of them** (`planningDialog.tsx`): «Открытые терминалы», then «Новый
+разговор». Continuing a conversation is the shorter path, and it used to be the
+lower one — a line of buttons under the pick, each labelled «агент · папка», so
+two terminals on the same thing was what the dialog led to. A row now carries
+what a person needs to pick one: its name, the agent's own recap
+(`describe_conversation`), and who is talking where. Everything a row can do is
+an icon — open (`ShowTerminal`), rename (`RenameTerminal`), end
+(`CloseTerminal`) — and **ending is asked about**, because it stops a CLI
+somebody is using and is the only way this list gets shorter: the list *is* the
+terminals that are running. The dialog subscribes to `acp:terminal` rather than
+reloading on its own, since the recap arrives mid-turn, while it is open.
 
 It is deliberately not an ACP session: an ACP agent speaks JSON-RPC on stdio and has
 no terminal UI, so one process cannot be both. What the two share is everything
@@ -683,6 +721,23 @@ left on the branch. Opening the terminal is not commented — it is on the card,
 front of whoever opened it. Terminals outlive the panel and the window and
 resume — every one is recorded, so the next terminal on that card returns to the
 same worktree with `claude --continue`.
+
+**Our record of a terminal is not the CLI's own history, so a refused resume
+opens a new conversation rather than a dead window** (`restartFresh`). A terminal
+that was opened and never spoken in leaves a row here and nothing there — which
+is what a `wails3 dev` restart makes of every terminal that was open — and
+`claude --continue` then prints "No conversation found to continue" and exits 1.
+The CLI is started once more without the resume flags, in the same terminal id,
+the same directory and a new pty (a pty takes one process), and the window is
+told why in its own scrollback; the card is told nothing, because nothing
+happened to it. Only for a launch that asked to resume, only for an exit too fast
+to have been work, and only once — a kill is this app closing the terminal and
+must never come back. Nothing vendor-specific is read to decide it, so the same
+fallback covers a pruned transcript and a `codex resume --last` with nothing to
+resume. The other half of that bug was the environment: **a terminal drops the
+kind's `dropEnv` exactly as a session does**, because `CLAUDE_CODE_CHILD_SESSION`
+inherited from a Claude Code session the app was launched from turns the CLI's
+transcript saving *off*, and then there is never anything to continue.
 
 A terminal **raises nothing**, and that is a decision. There is no protocol to
 ask through in a pty — an agent CLI draws a TUI — so the only signal available

@@ -34,6 +34,10 @@ starts by itself.
   history;
 - if the card was worked before, the agent returns to the same worktree and
   continues the conversation (`--continue`);
+- if there turned out to be nothing to continue — the terminal was opened last
+  time and nothing was typed in it, so the CLI saved no conversation — the
+  terminal says «Продолжить прошлый разговор не удалось — открыт новый» and
+  starts a new conversation in the same folder;
 - the open-in-new-window button in the panel header opens the same terminal
   in a separate window; it appears once the terminal is running;
 - `✕` closes the panel. The terminal keeps running until the CLI in it exits,
@@ -57,18 +61,20 @@ the button stays even after the agent is removed.
 
 **If no folder resolves, the panel asks.** A card can be talked over without
 code: wording, subtasks, a brief. When neither the «Проекты» field nor the
-registry names a folder, the question "The agent needs a folder to work in"
-appears with two answers:
+registry names a folder, the question "Which folder will the agent work in?"
+appears, and the answers are chips:
 
-- **"Use the board’s folder"** — the board's own folder in the app's data:
-  its agents keep what they write for its cards there — briefs, drafts,
-  notes. There is no code in it, and it is one per board: what was written
-  for one card is on hand when another is talked over;
-- **"Choose a folder…"** — the usual folder pick; it joins the board's
-  projects and the conversation starts in it.
+- **the board's folders** by name: the one you pick becomes the conversation's
+  working folder;
+- **"The board’s drafts"** — the board's own folder in the app's data: its
+  agents keep what they write for its cards there — briefs, drafts, notes.
+  There is no code in it, and it is one per board: what was written for one
+  card is on hand when another is talked over;
+- **"Add a folder…"** — the usual folder pick; it joins the board's projects
+  and the conversation starts in it.
 
 With more than one agent, the questions come one at a time and in order:
-first "Who talks here?" — the names are the answers — then the folder; the
+first "Choosing an agent" — the names are the answers — then the folder; the
 chosen name stays above the question and is the way back. The choice lasts
 one conversation and does not change the card's assignment; a started
 conversation continues in the same place with the same agent. A folder the
@@ -80,17 +86,31 @@ in, split it into subtasks, set fields.
 ## Talking it over before there is a card
 
 A task can be talked through before it becomes a card: the arrow next to the
-"New" button in the board header → **"Talk it over with an agent…"**. The
-same stepped pick as the card's terminal opens: "Who talks here?" — the
-agents' names are the answers — then "Where should the conversation live?" —
-this machine's project folders, "Use the board’s folder" or "Choose a
-folder…". Answering the second question is what opens the terminal in a
-window.
+"New" button in the board header → **"Talk it over with an agent…"**.
+
+At the top of the dialog: **"Open terminals"**. A conversation outlives its
+window, and with no card behind it this is the only place to find it again.
+Each row is one conversation:
+
+- **the name** — clicking it opens the conversation; the ⧉ icon on the right
+  does the same;
+- **the line under the name** — what the conversation is doing: the agent
+  writes it once it knows, and updates it when it moves on to something else;
+- **who and where** — the agent and the conversation's folder;
+- **✎** — rename: a conversation starts out named after its card, or called
+  «Планирование», and what a list needs is what the conversation is about;
+- **✕** — end it: asks "End this terminal?", because this stops the CLI. It is also the
+  only way to take a conversation off the list — the list is exactly the
+  terminals that are running.
+
+Below: **"A new conversation"** — the same stepped pick as the card's
+terminal. "Choosing an agent" — the agents' names are the answers — then
+"Which folder will the agent work in?" — the board's folders, "The board’s
+drafts" or "Add a folder…". Answering the second question is what opens the
+terminal in a window.
 
 The agent changes nothing in the project — the instructions forbid it — and
-the cards you agree on it creates right on this board. Terminals still
-running are listed at the bottom of the dialog: a conversation outlives its
-window, and with no card behind it this is the only place to find it again.
+the cards you agree on it creates right on this board.
 
 ## The terminal button on a card
 

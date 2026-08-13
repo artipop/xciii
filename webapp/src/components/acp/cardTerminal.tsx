@@ -5,13 +5,13 @@ import {For, Show, Suspense, createSignal, lazy, onMount} from 'solid-js'
 import {useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
-import Button from '../../widgets/buttons/button'
 import CompassIcon from '../../widgets/icons/compassIcon'
 
 import {agentBindings} from './bindings'
 import {cardAgentState, refreshCardAgent, type CardConversation} from './cardAgentState'
 import {isCardTerminalAvailable} from './liveTerminals'
 import AgentQuickAdd from './agentQuickAdd'
+import FolderChoices from './folderChoices'
 
 import './cardTerminal.scss'
 
@@ -119,9 +119,9 @@ const CardTerminal = (props: Props) => {
 
     // Who is on offer, fetched only when there is something to choose. One of
     // a kind needs no choosing and is filled in rather than asked for. The
-    // folder is deliberately never prefilled from the registry: the dialog's
-    // first answer is «папка доски», and a lone registered project quietly
-    // standing in for it would redirect that button.
+    // folder is deliberately never prefilled from the registry: every folder is
+    // an answer a person clicks (FolderChoices), and one quietly filled in for
+    // them would decide where an agent works without being asked.
     const offerChoices = async () => {
         if (!bindings?.ListAgents) {
             return
@@ -152,26 +152,13 @@ const CardTerminal = (props: Props) => {
         }
     }
 
-    // A folder is two answers — where it is and what to call it — and the
-    // native picker gives both. It belongs to this board, like every project
-    // added anywhere but the "on every board" checkbox — and picking one is
-    // the answer to the dialog, so the conversation starts with it.
-    const pickFolderAndStart = async () => {
-        if (!bindings?.PickDirectory || !bindings.AddAgentProject) {
-            return
-        }
-        try {
-            const path = await bindings.PickDirectory(intl.formatMessage({id: 'CardTerminal.pick-project', defaultMessage: 'Choose a folder to work in'}))
-            if (!path) {
-                return
-            }
-            const name = path.split('/').filter(Boolean).pop() || path
-            await bindings.AddAgentProject(name, path, props.board.id, false)
-            setProjectName(name)
-            await start(false)
-        } catch (e: any) {
-            setError(String(e?.message || e))
-        }
+    // Answering the folder question is what starts the conversation: a folder of
+    // the board's by name, or '' for the board's own drafts folder, which is what
+    // Go resolves an empty name into. The answers themselves are FolderChoices,
+    // shared with «Обсудить с агентом» — one question in one shape.
+    const chooseFolder = async (name: string) => {
+        setProjectName(name)
+        await start(false)
     }
 
     onMount(async () => {
@@ -320,7 +307,7 @@ const CardTerminal = (props: Props) => {
                     fallback={
                         <>
                             <div class='CardTerminal__ask'>
-                                {intl.formatMessage({id: 'CardTerminal.need-folder', defaultMessage: 'The agent needs a folder to work in.'})}
+                                {intl.formatMessage({id: 'CardTerminal.ask-folder', defaultMessage: 'Which folder will the agent work in?'})}
                             </div>
                             <div class='CardTerminal__picker'>
                                 {/* The answered question, kept in sight: the
@@ -336,34 +323,21 @@ const CardTerminal = (props: Props) => {
                                         {agentName()}
                                     </button>
                                 </Show>
-                                <div class='CardTerminal__pickActions'>
-                                    {/* Both answers start the conversation:
-                                        the choice is the ask. */}
-                                    <Button
-                                        filled={true}
-                                        onClick={() => start(false)}
-                                        disabled={busy()}
-                                    >
-                                        {intl.formatMessage({id: 'CardTerminal.board-folder', defaultMessage: 'Use the board’s folder'})}
-                                    </Button>
-                                    <Show when={Boolean(bindings?.PickDirectory)}>
-                                        <Button
-                                            onClick={pickFolderAndStart}
-                                            disabled={busy()}
-                                        >
-                                            {intl.formatMessage({id: 'CardTerminal.pick-folder', defaultMessage: 'Choose a folder…'})}
-                                        </Button>
-                                    </Show>
-                                </div>
-                                <div class='CardTerminal__pickNote'>
-                                    {intl.formatMessage({id: 'CardTerminal.board-folder-note', defaultMessage: 'The board’s folder is where its agents keep what they write for the board’s cards — briefs, drafts, notes. There is no code in it.'})}
-                                </div>
+
+                                {/* Every answer is a chip, the board's drafts
+                                    folder among them: clicking one starts the
+                                    conversation, because the choice is the ask. */}
+                                <FolderChoices
+                                    board={props.board}
+                                    disabled={busy()}
+                                    onPick={chooseFolder}
+                                />
                             </div>
                         </>
                     }
                 >
                     <div class='CardTerminal__ask'>
-                        {intl.formatMessage({id: 'CardTerminal.ask-agent', defaultMessage: 'Who talks here?'})}
+                        {intl.formatMessage({id: 'CardTerminal.ask-agent', defaultMessage: 'Choosing an agent'})}
                     </div>
                     <div class='CardTerminal__picker'>
                         <div class='CardTerminal__agentChoices'>

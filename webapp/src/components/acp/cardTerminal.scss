@@ -200,28 +200,11 @@
         text-underline-offset: 2px;
     }
 
-    &__pickNote {
-        font-size: var(--text-small);
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-    }
-
-    // The two answers, stacked and equally wide on purpose: the tracked caps
-    // make «использовать папку доски» too long to share a row with anything,
-    // and a ragged pair read as a layout accident. A column of same-width
-    // options is the shape of a choice.
-    &__pickActions {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-        max-width: 340px;
-        padding-top: 2px;
-
-        .Button {
-            justify-content: center;
-        }
-    }
-
+    // The folder answers come from FolderChoices, shared with «Обсудить с
+    // агентом»: chips like the agents above them, so the two questions of one
+    // pick read as two of the same thing. What stood here — two stacked
+    // full-width buttons for the board's folder and the native picker — made the
+    // answer a person mostly wanted the smallest thing on the screen.
     .AgentQuickAdd {
         padding: 0;
     }

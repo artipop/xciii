@@ -504,8 +504,27 @@ var acpNative = map[string]acpAdapter{
 		cliResumeArgs: []string{"--continue"},
 		cliMCPArgs:    func(path string) []string { return []string{"--mcp-config", path} },
 		// Claude Code refuses to start inside another Claude Code session, and
-		// the desktop app may well have been launched from one.
-		dropEnv: []string{"CLAUDECODE"},
+		// the desktop app may well have been launched from one: `wails3 dev` is
+		// started from a terminal, and that terminal is sometimes a CLI's own.
+		// The rest of the list is that same launch described from the other
+		// side. CLAUDE_CODE_CHILD_SESSION is the one that matters most: it turns
+		// transcript saving *off*, so a CLI that inherits it leaves no
+		// conversation behind and the next `--continue` in that directory prints
+		// "No conversation found to continue" and exits 1 — a terminal that
+		// refuses to open, on a card whose conversation looked resumable.
+		//
+		// Only the markers of the outer session are dropped, never the whole
+		// CLAUDE_CODE_* family: CLAUDE_CODE_USE_BEDROCK and its like are the
+		// user's own configuration and have to be inherited.
+		dropEnv: []string{
+			"CLAUDECODE",
+			"CLAUDE_CODE_CHILD_SESSION",
+			"CLAUDE_CODE_SESSION_ID",
+			"CLAUDE_CODE_ENTRYPOINT",
+			"CLAUDE_CODE_EXECPATH",
+			"CLAUDE_CODE_MESSAGING_SOCKET",
+			"CLAUDE_CODE_MESSAGING_TOKEN",
+		},
 	},
 	// The Codex adapter drives the codex CLI it depends on, so this kind needs
 	// Node.js too.

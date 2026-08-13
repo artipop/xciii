@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -128,8 +129,9 @@ func TestAgentLaunch(t *testing.T) {
 	}
 
 	// The claude adapter refuses to run inside another Claude Code session, so
-	// the variable that says so must be dropped, and the model reaches it as
-	// ANTHROPIC_MODEL.
+	// the markers of an outer session must be dropped — CLAUDE_CODE_CHILD_SESSION
+	// above all, which turns transcript saving off and leaves nothing for a later
+	// terminal to continue — and the model reaches it as ANTHROPIC_MODEL.
 	l, err = m.agentLaunch(AgentEntry{Name: "c", Kind: "claude", BinPath: bin, Model: "opus"})
 	if err != nil {
 		t.Fatal(err)
@@ -137,8 +139,14 @@ func TestAgentLaunch(t *testing.T) {
 	if len(l.env) != 1 || l.env[0] != "ANTHROPIC_MODEL=opus" {
 		t.Errorf("claude model env = %v", l.env)
 	}
-	if len(l.dropEnv) != 1 || l.dropEnv[0] != "CLAUDECODE" {
-		t.Errorf("claude dropEnv = %v", l.dropEnv)
+	for _, name := range []string{"CLAUDECODE", "CLAUDE_CODE_CHILD_SESSION", "CLAUDE_CODE_SESSION_ID"} {
+		if !slices.Contains(l.dropEnv, name) {
+			t.Errorf("claude dropEnv = %v, want it to drop %s", l.dropEnv, name)
+		}
+	}
+	// The user's own configuration is not a session marker and has to survive.
+	if slices.Contains(l.dropEnv, "CLAUDE_CODE_USE_BEDROCK") {
+		t.Errorf("claude dropEnv = %v, want the user's own settings inherited", l.dropEnv)
 	}
 
 	// The codex adapter starts read-only, so the session has to be switched.

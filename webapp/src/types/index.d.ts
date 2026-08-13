@@ -100,6 +100,12 @@ export interface IAppWindow extends Window {
                 ShowTerminal?(terminalId: string): Promise<string>
                 CloseTerminal?(terminalId: string): Promise<void>
 
+                // What a conversation is called. It starts as the card's title,
+                // which says which card and nothing about what is going on in
+                // it; the recap beside it in the list is the agent's own, written
+                // through the board tools.
+                RenameTerminal?(terminalId: string, title: string): Promise<void>
+
                 // Whether the board is published on the user's own tailnet, and
                 // the address a phone opens. The second takes effect at once —
                 // the node is brought up or closed by the call itself.

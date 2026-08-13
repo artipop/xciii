@@ -140,6 +140,12 @@ func (g *grantedBoard) Comment(ctx context.Context, cardID, text string) error {
 	return g.mgr.CommentFromTools(ctx, g.token, cardID, text)
 }
 
+// Describe is about the conversation rather than the board, and the grant is
+// what knows which conversation that is.
+func (g *grantedBoard) Describe(_ context.Context, text string) error {
+	return g.mgr.DescribeTerminalFromTools(g.token, text)
+}
+
 func cardInfo(c acp.BoardToolCard) boardmcp.CardInfo {
 	return boardmcp.CardInfo{
 		ID:      c.ID,

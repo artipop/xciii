@@ -13,9 +13,10 @@ import (
 
 // fakeBoard is one agent's board: already bound to a grant, like the real one.
 type fakeBoard struct {
-	cards    []Card
-	changes  []CardChange
-	comments []string
+	cards     []Card
+	changes   []CardChange
+	comments  []string
+	described []string
 }
 
 func (b *fakeBoard) Columns(context.Context) ([]Column, error) {
@@ -84,6 +85,11 @@ func (b *fakeBoard) UpdateCard(_ context.Context, change CardChange) error {
 
 func (b *fakeBoard) Comment(_ context.Context, cardID, text string) error {
 	b.comments = append(b.comments, cardID+": "+text)
+	return nil
+}
+
+func (b *fakeBoard) Describe(_ context.Context, text string) error {
+	b.described = append(b.described, text)
 	return nil
 }
 

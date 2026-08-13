@@ -1,0 +1,77 @@
+// The chips are the answers, and they all look like answers: a folder, the
+// board's drafts, and — set apart as a link rather than a chip, because it asks
+// a question of its own — «Добавить папку…».
+.FolderChoices {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+
+    .FolderChoices__chips {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .FolderChoices__chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: var(--radius-pill);
+        background: transparent;
+        color: rgb(var(--center-channel-color-rgb));
+        font: inherit;
+        padding: 4px 14px;
+        cursor: pointer;
+
+        &:hover {
+            border-color: rgb(var(--button-bg-rgb));
+            color: rgb(var(--button-bg-rgb));
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: progress;
+        }
+
+        .CompassIcon {
+            font-size: 14px;
+            line-height: 1;
+        }
+    }
+
+    // The board's own folder is one of the answers, not one of the projects:
+    // dashed, because there is nothing of the user's on disk behind it yet.
+    .FolderChoices__chip--drafts {
+        border-style: dashed;
+    }
+
+    .FolderChoices__add {
+        border: 0;
+        background: transparent;
+        padding: 2px 0;
+        font: inherit;
+        font-size: var(--text-small);
+        color: rgb(var(--link-color-rgb));
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: progress;
+        }
+    }
+
+    .FolderChoices__note {
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .FolderChoices__error {
+        font-size: var(--text-small);
+        color: rgb(var(--error-text-rgb, 210, 75, 78));
+    }
+}

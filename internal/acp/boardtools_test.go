@@ -14,7 +14,7 @@ func TestBoardToolsWriteOnlyToTheGrantedBoard(t *testing.T) {
 		cfg.TriggerProperty = "Статус"
 	})
 
-	token := m.GrantBoardTools("board-1", "")
+	token := m.GrantBoardTools("board-1", "", "")
 	if token == "" {
 		t.Fatal("no token was minted")
 	}
@@ -58,7 +58,7 @@ func TestBoardToolsRefuseWhatTheyShould(t *testing.T) {
 		t.Error("a made-up token opened the board")
 	}
 
-	token := m.GrantBoardTools("board-1", "")
+	token := m.GrantBoardTools("board-1", "", "")
 	if _, err := m.CreateCardFromTools(t.Context(), token, NewCard{Title: "   "}); err == nil {
 		t.Error("a card with no title was accepted")
 	}
@@ -109,7 +109,7 @@ func boardWithCards(t *testing.T) (*Manager, *fakeWriter) {
 // board names things: a column in the configured property, values by name.
 func TestBoardToolsMoveACardOnByName(t *testing.T) {
 	m, writer := boardWithCards(t)
-	token := m.GrantBoardTools("board-1", "card-1")
+	token := m.GrantBoardTools("board-1", "card-1", "")
 
 	// The card a call names nothing for is the run's own, which is the case an
 	// agent working on one card always has.
@@ -142,7 +142,7 @@ func TestBoardToolsMoveACardOnByName(t *testing.T) {
 // nothing, or one board's tools would reach every other board's cards.
 func TestBoardToolsRefuseACardOfAnotherBoard(t *testing.T) {
 	m, writer := boardWithCards(t)
-	token := m.GrantBoardTools("board-1", "card-1")
+	token := m.GrantBoardTools("board-1", "card-1", "")
 
 	if err := m.UpdateCardFromTools(t.Context(), token, "elsewhere", CardEdit{Column: "Ревью"}); err == nil {
 		t.Error("a card of another board was moved")
@@ -159,7 +159,7 @@ func TestBoardToolsRefuseACardOfAnotherBoard(t *testing.T) {
 
 	// A grant that stands on no card has no default either: a planning terminal
 	// must name what it means.
-	planning := m.GrantBoardTools("board-1", "")
+	planning := m.GrantBoardTools("board-1", "", "")
 	if err := m.CommentFromTools(t.Context(), planning, "", "Привет"); err == nil {
 		t.Error("a comment with no card behind it was accepted")
 	}
@@ -170,7 +170,7 @@ func TestBoardToolsRefuseACardOfAnotherBoard(t *testing.T) {
 // says which card is the agent's own.
 func TestBoardToolsListTheGrantedBoardsCards(t *testing.T) {
 	m, _ := boardWithCards(t)
-	token := m.GrantBoardTools("board-1", "card-1")
+	token := m.GrantBoardTools("board-1", "card-1", "")
 
 	cards, err := m.BoardToolCards(t.Context(), token, "")
 	if err != nil {
@@ -229,7 +229,7 @@ func TestBoardToolsDescribeTheBoardsRoutes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	flows, err := m.BoardToolFlows(m.GrantBoardTools("board-1", ""))
+	flows, err := m.BoardToolFlows(m.GrantBoardTools("board-1", "", ""))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -252,7 +252,7 @@ func TestBoardToolsConfigIsWrittenForTheCLIAndCleanedUpAfter(t *testing.T) {
 	m, _, _, _ := testManager(t, "idle", nil)
 	m.SetOrigin("http://127.0.0.1:8088/")
 
-	token, path := m.openBoardTools("board-1", "card-1", AgentEntry{Name: "c", Kind: AgentKindClaude})
+	token, path := m.openBoardTools("board-1", "card-1", "term-1", AgentEntry{Name: "c", Kind: AgentKindClaude})
 	if token == "" || path == "" {
 		t.Fatal("claude takes an MCP config and got none")
 	}
@@ -312,14 +312,14 @@ func TestBoardToolsAreSkippedForACLIThatCannotTakeThem(t *testing.T) {
 		{Name: "x", Kind: AgentKindCodex},
 		{Name: "w", Kind: AgentKindClaude, TerminalCommand: []string{"proxychains4", "claude"}},
 	} {
-		if token, path := m.openBoardTools("board-1", "card-1", agent); token != "" || path != "" {
+		if token, path := m.openBoardTools("board-1", "card-1", "term-1", agent); token != "" || path != "" {
 			t.Errorf("%s was given tools it cannot be told about", agent.Name)
 			m.closeBoardTools(token, path)
 		}
 	}
 
 	// And a terminal with no board behind it has nowhere to write anyway.
-	if token, _ := m.openBoardTools("", "", AgentEntry{Name: "c", Kind: AgentKindClaude}); token != "" {
+	if token, _ := m.openBoardTools("", "", "term-1", AgentEntry{Name: "c", Kind: AgentKindClaude}); token != "" {
 		t.Error("a grant was minted for no board")
 	}
 }

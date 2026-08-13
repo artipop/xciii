@@ -227,7 +227,7 @@ const TerminalPage = (props: TerminalProps = {}): JSX.Element => {
                             class='AcpTerminalPage__cwd'
                             title={info()?.cwd}
                         >
-                            {info()?.boardFolder ? intl.formatMessage({id: 'Terminal.board-folder', defaultMessage: 'the board’s folder'}) : info()?.cwd}
+                            {info()?.boardFolder ? intl.formatMessage({id: 'Terminal.board-drafts', defaultMessage: 'the board’s drafts'}) : info()?.cwd}
                         </code>
                     </Show>
                     <span class={`AcpTerminalPage__status AcpTerminalPage__status--${status()}`}>{statusText()}</span>

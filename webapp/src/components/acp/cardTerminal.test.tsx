@@ -84,9 +84,9 @@ describe('components/acp/cardTerminal', () => {
         // whole question — the names are the answers, no folder buttons. The
         // headline is the ask, not the machinery's own words — those are the
         // small print under the form.
-        expect(await screen.findByText('Who talks here?')).toBeInTheDocument()
+        expect(await screen.findByText('Choosing an agent')).toBeInTheDocument()
         expect(screen.getByRole('button', {name: 'кодекс'})).toBeInTheDocument()
-        expect(screen.queryByRole('button', {name: 'Use the board’s folder'})).toBeNull()
+        expect(screen.queryByRole('button', {name: 'The board’s drafts'})).toBeNull()
         const reason = screen.getByText(/нет ни одного агента/)
         expect(reason.className).toContain('CardTerminal__reason')
 
@@ -110,21 +110,21 @@ describe('components/acp/cardTerminal', () => {
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
         // Who — and nothing about folders on screen yet.
-        expect(await screen.findByText('Who talks here?')).toBeInTheDocument()
-        expect(screen.queryByText('The agent needs a folder to work in.')).toBeNull()
+        expect(await screen.findByText('Choosing an agent')).toBeInTheDocument()
+        expect(screen.queryByText('Which folder will the agent work in?')).toBeNull()
 
         await userEvent.click(screen.getByRole('button', {name: 'клаус'}))
 
         // Where — with the answered name kept in sight as the way back.
-        expect(await screen.findByText('The agent needs a folder to work in.')).toBeInTheDocument()
-        expect(screen.queryByText('Who talks here?')).toBeNull()
+        expect(await screen.findByText('Which folder will the agent work in?')).toBeInTheDocument()
+        expect(screen.queryByText('Choosing an agent')).toBeNull()
         await userEvent.click(screen.getByRole('button', {name: 'клаус'}))
-        expect(await screen.findByText('Who talks here?')).toBeInTheDocument()
+        expect(await screen.findByText('Choosing an agent')).toBeInTheDocument()
     })
 
     // A card that resolves no folder is not started anywhere behind the
-    // person's back: the dialog asks first, and the board's folder is one of
-    // its two answers.
+    // person's back: the dialog asks first, and the board's drafts folder is one
+    // of the answers.
     it('asks before starting when the card resolves no folder', async () => {
         const open = vi.fn().mockResolvedValue(JSON.stringify({id: 'term-8'}))
         stubBindings({
@@ -133,47 +133,64 @@ describe('components/acp/cardTerminal', () => {
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
-        await screen.findByText('The agent needs a folder to work in.')
+        await screen.findByText('Which folder will the agent work in?')
 
         // Nothing was started to get here.
         expect(open).not.toHaveBeenCalled()
     })
 
-    // «Использовать папку доски» is the dialog's first answer: the board's
-    // own directory under the app's data, called that on every surface — and
-    // choosing it is what starts the conversation.
-    it('starts in the board’s folder on the first answer', async () => {
+    // Every answer to the folder question is a chip, the board's own drafts
+    // folder among them — and clicking one is what starts the conversation.
+    it('offers the board’s folders as chips, the drafts folder among them', async () => {
         const open = vi.fn().mockResolvedValue(JSON.stringify({id: 'term-7'}))
         stubBindings({
             OpenCardTerminal: open,
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
+            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
-        // The single agent filled itself in; the note says what the board's
+        // The single agent filled itself in; the note says what the drafts
         // folder is before anything runs.
-        const useBoard = await screen.findByRole('button', {name: 'Use the board’s folder'})
-        expect(screen.getByText(/The board’s folder is where its agents keep/)).toBeInTheDocument()
-        expect(useBoard).toBeEnabled()
+        const drafts = await screen.findByRole('button', {name: 'The board’s drafts'})
+        expect(await screen.findByRole('button', {name: 'app'})).toBeInTheDocument()
+        expect(screen.getByText(/The board’s drafts is the board’s own folder/)).toBeInTheDocument()
 
-        await userEvent.click(useBoard)
+        await userEvent.click(drafts)
         await waitFor(() => expect(open).toHaveBeenLastCalledWith('card-1', '', 'клаус', false))
     })
 
-    // The second answer: a real folder, picked natively — registered to the
-    // board and started with, in one move.
-    it('picks a folder and starts with it', async () => {
+    // A folder of the board's is an answer by name, and the conversation starts
+    // in it.
+    it('starts in a folder of the board’s', async () => {
+        const open = vi.fn().mockResolvedValue(JSON.stringify({id: 'term-4'}))
+        stubBindings({
+            OpenCardTerminal: open,
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
+            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
+        })
+        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+
+        await userEvent.click(await screen.findByRole('button', {name: 'app'}))
+        await waitFor(() => expect(open).toHaveBeenLastCalledWith('card-1', 'app', 'клаус', false))
+    })
+
+    // «Добавить папку…» is the escape hatch, in the same shape «Добавить
+    // агента…» has: the native picker registers the folder on this board and the
+    // conversation starts in it, in one move.
+    it('adds a folder and starts with it', async () => {
         const open = vi.fn().mockResolvedValue(JSON.stringify({id: 'term-6'}))
         const addProject = vi.fn().mockResolvedValue('')
         stubBindings({
             OpenCardTerminal: open,
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
+            ListAgentProjects: vi.fn().mockResolvedValue('[]'),
             PickDirectory: vi.fn().mockResolvedValue('/home/me/proj'),
             AddAgentProject: addProject,
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
-        await userEvent.click(await screen.findByRole('button', {name: 'Choose a folder…'}))
+        await userEvent.click(await screen.findByRole('button', {name: 'Add a folder…'}))
 
         await waitFor(() => expect(addProject).toHaveBeenCalledWith('proj', '/home/me/proj', board.id, false))
         await waitFor(() => expect(open).toHaveBeenLastCalledWith('card-1', 'proj', 'клаус', false))
@@ -188,7 +205,7 @@ describe('components/acp/cardTerminal', () => {
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
-        await screen.findByText('Who talks here?')
+        await screen.findByText('Choosing an agent')
         expect(screen.queryByRole('button', {name: 'Open in a separate window'})).toBeNull()
     })
 

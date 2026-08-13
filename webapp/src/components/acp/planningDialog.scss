@@ -6,11 +6,11 @@
     .PlanningDialog__body {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
         padding: 0 24px 24px;
-        // Width is pinned: the terminals still running are named by their
-        // working directory, and without this the dialog grows to whatever the
-        // longest path happens to be.
+        // Width is pinned: a terminal's row carries a folder name and a line of
+        // the agent's own prose, and without this the dialog grows to whatever
+        // the longest of them happens to be.
         width: min(720px, 86vw);
         min-width: 0;
 
@@ -28,9 +28,170 @@
         color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 
-    // The stepped pick, in the card terminal's own shapes (cardTerminal.scss
-    // is the original): the ask, name-chips as answers, the answered agent as
-    // the quiet way back, the two folder buttons stacked and equally wide.
+    .PlanningDialog__section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    // Two sections in one dialog need saying apart, and a heading is cheaper
+    // than a border: what is open, and what would be new.
+    .PlanningDialog__sectionTitle {
+        margin: 0;
+        font-size: var(--text-small);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .PlanningDialog__terminals {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    // A row, not a button: the name opens it, the icons act on it, and the two
+    // lines under the name are what makes the list readable at all.
+    .PlanningDialog__terminal {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 10px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: var(--radius-lg);
+        min-width: 0;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+    }
+
+    .PlanningDialog__terminalMain {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .PlanningDialog__terminalName {
+        align-self: flex-start;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font: inherit;
+        font-weight: 600;
+        color: rgb(var(--center-channel-color-rgb));
+        text-align: left;
+        cursor: pointer;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        &:hover {
+            color: rgb(var(--link-color-rgb));
+        }
+    }
+
+    .PlanningDialog__terminalRename {
+        font: inherit;
+        font-weight: 600;
+        width: 100%;
+        border: 1px solid rgb(var(--button-bg-rgb));
+        border-radius: var(--radius-md);
+        background: rgb(var(--center-channel-bg-rgb));
+        color: rgb(var(--center-channel-color-rgb));
+        padding: 2px 6px;
+    }
+
+    // The agent's own line. Clamped to two: it is a recap, and a row that grows
+    // with it stops being a row.
+    .PlanningDialog__terminalSummary {
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .PlanningDialog__terminalMeta {
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .PlanningDialog__terminalActions {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex: 0 0 auto;
+    }
+
+    .PlanningDialog__iconButton {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: var(--radius-md);
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgb(var(--center-channel-color-rgb));
+        }
+
+        .CompassIcon {
+            font-size: 16px;
+            line-height: 1;
+        }
+    }
+
+    .PlanningDialog__terminalConfirm {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 0 0 auto;
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    .PlanningDialog__confirmYes,
+    .PlanningDialog__confirmNo {
+        border: 0;
+        background: transparent;
+        padding: 2px 0;
+        font: inherit;
+        font-size: var(--text-small);
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .PlanningDialog__confirmYes {
+        color: rgb(var(--error-text-rgb, 210, 75, 78));
+    }
+
+    .PlanningDialog__confirmNo {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    // The stepped pick, in the card terminal's own shapes (cardTerminal.scss is
+    // the original): the ask, name-chips as answers, the answered agent as the
+    // quiet way back. The folder answers are FolderChoices, shared with the
+    // panel beside a card so the same question cannot drift into two shapes.
     .PlanningDialog__ask {
         font-size: 14px;
     }
@@ -41,16 +202,14 @@
         gap: 10px;
     }
 
-    .PlanningDialog__agentChoices,
-    .PlanningDialog__folderChoices {
+    .PlanningDialog__agentChoices {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
         gap: 8px;
     }
 
-    .PlanningDialog__agentChoice,
-    .PlanningDialog__folderChoice {
+    .PlanningDialog__agentChoice {
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
         border-radius: var(--radius-pill);
         background: transparent;
@@ -105,34 +264,7 @@
         }
     }
 
-    .PlanningDialog__pickActions {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-        max-width: 340px;
-
-        .Button {
-            justify-content: center;
-        }
-    }
-
-    .PlanningDialog__pickNote {
-        font-size: var(--text-small);
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-    }
-
     .PlanningDialog__error {
         color: rgb(var(--error-text-rgb, 210, 75, 78));
-    }
-
-    .Planning__terminals {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 8px;
-        font-size: 12px;
-        opacity: 0.8;
     }
 }

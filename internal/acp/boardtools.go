@@ -35,12 +35,17 @@ type BoardGrant struct {
 	// mostly have, and making it find its own card by title first would be an
 	// invitation to act on somebody else's.
 	CardID string
+	// TerminalID is the conversation this run *is*, which is how an agent can
+	// say what the conversation is about without being told which one it is in
+	// (DescribeTerminalFromTools). It is the terminal's own id and nothing else:
+	// a grant is minted per run, so there is exactly one.
+	TerminalID string
 }
 
 // GrantBoardTools opens a grant for one agent run and returns the token that
 // carries it. The caller revokes it when the run ends; a grant that outlives
 // its run is a door left open.
-func (m *Manager) GrantBoardTools(boardID, cardID string) string {
+func (m *Manager) GrantBoardTools(boardID, cardID, terminalID string) string {
 	if boardID == "" {
 		return ""
 	}
@@ -61,7 +66,7 @@ func (m *Manager) GrantBoardTools(boardID, cardID string) string {
 	if m.grants == nil {
 		m.grants = map[string]BoardGrant{}
 	}
-	m.grants[token] = BoardGrant{BoardID: boardID, Property: property, CardID: cardID}
+	m.grants[token] = BoardGrant{BoardID: boardID, Property: property, CardID: cardID, TerminalID: terminalID}
 	return token
 }
 
@@ -115,12 +120,12 @@ func (m *Manager) BoardToolsURL() string {
 // A board nobody named, an agent whose CLI cannot be told about MCP at all, or
 // an app that does not know its own address yet — each of those simply means no
 // tools, never a terminal that refuses to open.
-func (m *Manager) openBoardTools(boardID, cardID string, agent AgentEntry) (token, configPath string) {
+func (m *Manager) openBoardTools(boardID, cardID, terminalID string, agent AgentEntry) (token, configPath string) {
 	url := m.BoardToolsURL()
 	if boardID == "" || url == "" || !terminalTakesMCP(agent) {
 		return "", ""
 	}
-	token = m.GrantBoardTools(boardID, cardID)
+	token = m.GrantBoardTools(boardID, cardID, terminalID)
 	if token == "" {
 		return "", ""
 	}
@@ -379,6 +384,29 @@ func (m *Manager) CommentFromTools(ctx context.Context, token, cardID, text stri
 		return fmt.Errorf("доска недоступна")
 	}
 	return m.writer.AddComment(ctx, ev.CardID, text)
+}
+
+// DescribeTerminalFromTools is the agent saying what this conversation is
+// about, in one line, for the list of open terminals a person reads.
+//
+// It exists because there is nothing to read it off anywhere else. A terminal is
+// a vendor CLI in a pty — not an ACP session — so no protocol carries a title or
+// a recap of it, and the only other source would be the CLI's own transcript
+// file, which is its private business and a different shape for every kind. The
+// agent, on the other hand, knows: it is having the conversation. So it is asked,
+// through the tools it already has.
+//
+// The grant names the terminal, so an agent cannot describe somebody else's, and
+// a run with no terminal behind it (a session's grant) has nothing to say here.
+func (m *Manager) DescribeTerminalFromTools(token, text string) error {
+	g, ok := m.boardGrant(token)
+	if !ok {
+		return fmt.Errorf("нет доступа к доске")
+	}
+	if g.TerminalID == "" {
+		return fmt.Errorf("этот разговор не идёт в терминале")
+	}
+	return m.SetTerminalSummary(g.TerminalID, text)
 }
 
 // CreateCardFromTools is the write itself. Everything an agent may decide is a

@@ -59,7 +59,11 @@ list_columns и list_flows, потом клади карточку туда, г�
 значения задавай именами — так, как они называются на доске.
 
 Карточку, над которой ты работаешь, называть не нужно: там, где просят id,
-пустое значение означает именно её.`
+пустое значение означает именно её.
+
+Когда понятно, о чём этот разговор, скажи это одной строкой через
+describe_conversation и обновляй её, когда переключаешься на другое: человек
+видит эту строку в списке открытых терминалов и по ней находит нужный.`
 
 // Card is one card asked for; the field names are what the model fills in.
 type Card struct {
@@ -145,6 +149,11 @@ type Board interface {
 	// a move is what starts the column's automation.
 	UpdateCard(ctx context.Context, change CardChange) error
 	Comment(ctx context.Context, cardID, text string) error
+	// Describe records, in one line, what the conversation this run is having is
+	// about. It is the one tool here that writes about the *conversation* rather
+	// than about the board, and it exists because nothing else can know: a
+	// terminal is a vendor CLI in a pty, so no protocol carries a recap of it.
+	Describe(ctx context.Context, text string) error
 }
 
 type createInput struct {
@@ -177,6 +186,10 @@ type moveInput struct {
 type commentInput struct {
 	CardID string `json:"cardId,omitempty" jsonschema:"id карточки; пусто — та карточка, над которой идёт работа"`
 	Text   string `json:"text" jsonschema:"текст комментария"`
+}
+
+type describeInput struct {
+	Text string `json:"text" jsonschema:"одна строка: чем занят этот разговор прямо сейчас"`
 }
 
 type noInput struct{}
@@ -339,6 +352,23 @@ func NewServer(board Board) *mcp.Server {
 			return errorResult("%v", err), nil, nil
 		}
 		return textResult("Комментарий добавлен."), nil, nil
+	})
+
+	// The only tool here about the conversation rather than about the board: what
+	// a person sees in the list of open terminals, which otherwise says who is
+	// talking and where and nothing about what is going on.
+	mcp.AddTool(srv, &mcp.Tool{
+		Name: "describe_conversation",
+		Description: "Сказать одной строкой, чем занят этот разговор. Человек видит эту строку " +
+			"в списке открытых терминалов. Обнови её, когда занялся другим; пустая строка её убирает.",
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in describeInput) (*mcp.CallToolResult, any, error) {
+		if err := board.Describe(ctx, in.Text); err != nil {
+			return errorResult("%v", err), nil, nil
+		}
+		if strings.TrimSpace(in.Text) == "" {
+			return textResult("Описание разговора убрано."), nil, nil
+		}
+		return textResult("Описание разговора обновлено."), nil, nil
 	})
 
 	return srv

@@ -524,7 +524,7 @@ func TestPlanningTerminalCarriesTheEditedInstructions(t *testing.T) {
 
 // A card can be talked over — wording, a plan, the brief — before anybody
 // decides where the work lives, so "the card names no folder" is not a
-// refusal: the conversation opens in «папка доски» — the board's own
+// refusal: the conversation opens in «черновики доски» — the board's own
 // directory under the app's data — with no worktree and no branch.
 func TestCardTerminalOpensWithoutAnyProject(t *testing.T) {
 	if _, err := exec.LookPath("sh"); err != nil {
@@ -551,7 +551,7 @@ func TestCardTerminalOpensWithoutAnyProject(t *testing.T) {
 		t.Errorf("a folderless conversation grew branch %q", term.Branch)
 	}
 	if !term.Info().BoardFolder {
-		t.Error("the info does not say this is «папка доски», so the UI would show the raw path")
+		t.Error("the info does not say this is «черновики доски», so the UI would show the raw path")
 	}
 }
 
@@ -632,8 +632,250 @@ func TestResumedConversationKeepsItsAgent(t *testing.T) {
 	}
 }
 
+// fakeResumingCLI plants a `claude` that behaves the way the real one does when
+// the directory holds no conversation: asked to continue, it says so and exits
+// 1; asked for nothing, it opens and stays open, echoing what is typed. It goes
+// in front of PATH rather than replacing it, so git is still there.
+func fakeResumingCLI(t *testing.T) {
+	t.Helper()
+	if _, err := exec.LookPath("sh"); err != nil {
+		t.Skip("no shell to stand in for an agent CLI")
+	}
+	dir := t.TempDir()
+	script := "#!/bin/sh\n" +
+		"if [ \"$1\" = \"--continue\" ]; then\n" +
+		"  echo 'No conversation found to continue'\n" +
+		"  exit 1\n" +
+		"fi\n" +
+		"echo fresh-conversation\n" +
+		"while read line; do echo \"typed:$line\"; done\n"
+	if err := os.WriteFile(filepath.Join(dir, "claude"), []byte(script), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+}
+
+// A record of a terminal is not the CLI's own history: a terminal that was
+// opened and never spoken in leaves a row here and no conversation there, which
+// is what a `wails3 dev` restart makes of every terminal that was open. Asked to
+// continue it, the CLI says «No conversation found to continue» and exits 1 —
+// and what the person who clicked the button wanted was a terminal.
+func TestARefusedResumeStillOpensATerminal(t *testing.T) {
+	fakeResumingCLI(t)
+	m, writer, _, project := testManager(t, "idle", nil)
+
+	if err := m.store.InsertTerminal(TerminalRecord{
+		ID: "before-the-restart", CardID: "card-refused", ProjectPath: project, Cwd: project,
+		Agent: "cl", Kind: AgentKindClaude, StartedAt: time.Now().Add(-time.Hour),
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	agent := AgentEntry{Name: "cl", Kind: AgentKindClaude}
+	term, err := m.startTerminal(terminalSpec{
+		cardID: "card-refused", boardID: "board1", title: "Продолжить нечего",
+		projectPath: project, agent: agent,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(term.ID) }()
+
+	_, updates, unsubscribe := term.Subscribe()
+	defer unsubscribe()
+	if !waitForOutput(t, updates, "fresh-conversation") {
+		t.Fatal("the terminal stayed closed after the CLI refused to continue")
+	}
+
+	// The person reading the window is told why they are looking at a new
+	// conversation, since the CLI's refusal is right above it.
+	history, _, unsubscribe2 := term.Subscribe()
+	defer unsubscribe2()
+	if !strings.Contains(string(history), "Продолжить прошлый разговор не удалось") {
+		t.Errorf("the window was not told the resume was refused:\n%s", history)
+	}
+
+	// It is the same terminal, still the card's, and typing into it reaches the
+	// CLI in the pty it was restarted in.
+	if got := m.TerminalForCardNode("card-refused", ""); got == nil || got.ID != term.ID {
+		t.Error("the card lost its terminal in the restart")
+	}
+	info := term.Info()
+	if !info.Running {
+		t.Error("the restarted terminal is not reported as running")
+	}
+	if info.ExitCode != 0 {
+		t.Errorf("exit code %d is the refused launch's, not this one's", info.ExitCode)
+	}
+	if strings.Contains(info.Command, "--continue") {
+		t.Errorf("the command still asks to continue: %s", info.Command)
+	}
+	if err := term.Write([]byte("hello\n")); err != nil {
+		t.Fatal(err)
+	}
+	if !waitForOutput(t, updates, "typed:hello") {
+		t.Fatal("the restarted CLI never heard what was typed")
+	}
+
+	// Nothing happened to the card: the refusal was between us and the CLI.
+	if comments := writer.cardComments("card-refused"); len(comments) != 0 {
+		t.Errorf("the card was told about the refused resume: %v", comments)
+	}
+}
+
+// A list of open terminals is read by what each conversation is about, so both
+// halves of that line have to survive: the name a person gave it, and the recap
+// the agent wrote. The conversation continued is the same conversation.
+func TestAConversationKeepsItsNameAndItsRecap(t *testing.T) {
+	fakeResumingCLI(t)
+	m, _, _, project := testManager(t, "idle", nil)
+	m.SetOrigin("http://127.0.0.1:8088/")
+	agent := AgentEntry{Name: "cl", Kind: AgentKindClaude}
+
+	term, err := m.startTerminal(terminalSpec{
+		cardID: "card-named", boardID: "board1", title: "Починить окно",
+		projectPath: project, agent: agent,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The agent says what it is doing, through the tools it already has — the
+	// grant is what names the conversation, so it cannot describe another.
+	if term.boardToken == "" {
+		t.Fatal("the terminal was given no board tools, so the agent cannot describe it")
+	}
+	if err := m.DescribeTerminalFromTools(term.boardToken, "разбираю, почему окно открывается пополам"); err != nil {
+		t.Fatal(err)
+	}
+	if got := term.Info().Summary; got != "разбираю, почему окно открывается пополам" {
+		t.Errorf("summary %q, want what the agent said", got)
+	}
+
+	// And a person calls it what it is to them.
+	if err := m.RenameTerminal(term.ID, "  Окно пополам  "); err != nil {
+		t.Fatal(err)
+	}
+	if got := term.Info().Title; got != "Окно пополам" {
+		t.Errorf("title %q, want the name a person typed", got)
+	}
+	if err := m.RenameTerminal(term.ID, "   "); err == nil {
+		t.Error("a conversation was left with no name at all")
+	}
+
+	_ = m.CloseTerminal(term.ID)
+	<-term.Done()
+
+	// The next terminal on the same stage is the same conversation: the card's
+	// own title must not take the name back.
+	next, err := m.startTerminal(terminalSpec{
+		cardID: "card-named", boardID: "board1", title: "Починить окно",
+		projectPath: project, agent: agent,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(next.ID) }()
+	info := next.Info()
+	if info.Title != "Окно пополам" {
+		t.Errorf("the resumed conversation is called %q again", info.Title)
+	}
+	if info.Summary == "" {
+		t.Error("the resumed conversation lost what it was about")
+	}
+}
+
+// The recap is the conversation's, and the grant is what says which conversation
+// that is: a run with no terminal behind it has nothing to describe.
+func TestOnlyAConversationCanBeDescribed(t *testing.T) {
+	m, _, _, _ := testManager(t, "idle", nil)
+
+	if err := m.DescribeTerminalFromTools("not-a-token", "что-то"); err == nil {
+		t.Error("a made-up token described a conversation")
+	}
+	if err := m.DescribeTerminalFromTools(m.GrantBoardTools("board-1", "card-1", ""), "что-то"); err == nil {
+		t.Error("a grant with no terminal behind it described one")
+	}
+}
+
+// The restart is for a resume the CLI refused, and a terminal somebody closed is
+// not that: it must stay closed.
+func TestAClosedTerminalDoesNotComeBack(t *testing.T) {
+	fakeResumingCLI(t)
+	m, _, _, project := testManager(t, "idle", nil)
+
+	term, err := m.startTerminal(terminalSpec{
+		cardID: "card-closed", boardID: "board1", title: "Закрытый терминал",
+		projectPath: project, agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, updates, unsubscribe := term.Subscribe()
+	defer unsubscribe()
+	if !waitForOutput(t, updates, "fresh-conversation") {
+		t.Fatal("the CLI never opened")
+	}
+
+	if err := m.CloseTerminal(term.ID); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-term.Done():
+	case <-time.After(10 * time.Second):
+		t.Fatal("a closed terminal never ended")
+	}
+	// terminalEnded runs on the pump goroutine, just after Done is closed.
+	deadline := time.Now().Add(5 * time.Second)
+	for m.Terminal(term.ID) != nil {
+		if time.Now().After(deadline) {
+			t.Fatal("a closed terminal is still live")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+// The restart happens once, for a launch that asked to continue something, and
+// only for an exit that came too soon to have been work.
+func TestOnlyARefusedResumeIsRestarted(t *testing.T) {
+	cases := []struct {
+		name    string
+		session *TerminalSession
+	}{
+		{
+			name:    "a launch that was not resuming has nothing to fall back to",
+			session: &TerminalSession{exitCode: 1, launchedAt: time.Now()},
+		},
+		{
+			name:    "a CLI that finished cleanly is finished",
+			session: &TerminalSession{freshArgv: []string{"claude"}, exitCode: 0, launchedAt: time.Now()},
+		},
+		{
+			name:    "a kill is this app closing the terminal, and stays closed",
+			session: &TerminalSession{freshArgv: []string{"claude"}, exitCode: -1, launchedAt: time.Now()},
+		},
+		{
+			name: "an exit long after the launch is the CLI's own report to make",
+			session: &TerminalSession{freshArgv: []string{"claude"}, exitCode: 1,
+				launchedAt: time.Now().Add(-2 * resumeRefusedWindow)},
+		},
+		{
+			name: "the fallback is offered once",
+			session: &TerminalSession{freshArgv: []string{"claude"}, exitCode: 1,
+				launchedAt: time.Now(), restarted: true},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if c.session.restartFresh() {
+				t.Error("the terminal was restarted")
+			}
+		})
+	}
+}
+
 // Planning without a project is the board's own conversation: it opens in
-// «папка доски», exactly as a card's folderless conversation does, and says
+// «черновики доски», exactly as a card's folderless conversation does, and says
 // so through the info the window reads.
 func TestPlanningTerminalTalksInTheBoardsFolder(t *testing.T) {
 	if _, err := exec.LookPath("sh"); err != nil {
@@ -654,6 +896,6 @@ func TestPlanningTerminalTalksInTheBoardsFolder(t *testing.T) {
 		t.Errorf("planning in %s, want the board's own %s", term.Cwd, want)
 	}
 	if !term.Info().BoardFolder {
-		t.Error("the info does not say this is «папка доски»")
+		t.Error("the info does not say this is «черновики доски»")
 	}
 }
