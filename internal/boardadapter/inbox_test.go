@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/artipop/xciii/server/app"
+	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/utils"
 )
@@ -136,11 +137,11 @@ func TestTheInboxIsTwoColumnsAndAViewShowingBoth(t *testing.T) {
 	}
 }
 
-// Where the two columns end up on the board's own kanban is the difference
-// between them: what arrived is hidden, because unread things must not stand in
-// the middle of the work, and one's own tasks are the first column there,
-// because the way out of them is a drag like any other.
-func TestTheArrivalColumnIsHiddenAndOwnTasksComeFirst(t *testing.T) {
+// Both inbox columns are taken off the board's own kanban: what arrived and
+// what the person typed are read on the inbox view, and the board of work
+// stays the board of work. «Мои задачи» stood at the kanban's front for one
+// version, and that was not what was asked for.
+func TestBothInboxColumnsAreHiddenFromTheKanban(t *testing.T) {
 	a := newTestApp(t)
 	board := boardWithAKanban(t, a)
 	w := NewWriter(a)
@@ -154,10 +155,10 @@ func TestTheArrivalColumnIsHiddenAndOwnTasksComeFirst(t *testing.T) {
 	kanban := viewsByTitle(t, w, board.ID)["Дела"]
 	visible := ids(t, kanban.Fields["visibleOptionIds"])
 	hidden := ids(t, kanban.Fields["hiddenOptionIds"])
-	if len(visible) != 3 || visible[0] != mineID {
+	if len(visible) != 2 {
 		t.Fatalf("колонки канбана: %v", visible)
 	}
-	if len(hidden) != 1 || hidden[0] != inboxID {
+	if len(hidden) != 2 || hidden[0] != inboxID || hidden[1] != mineID {
 		t.Fatalf("скрытые колонки: %v", hidden)
 	}
 
@@ -170,9 +171,70 @@ func TestTheArrivalColumnIsHiddenAndOwnTasksComeFirst(t *testing.T) {
 	if len(after) != 2 {
 		t.Fatalf("видов стало %d", len(after))
 	}
-	if got := ids(t, after["Дела"].Fields["visibleOptionIds"]); len(got) != 3 || got[0] != mineID {
-		t.Fatalf("колонки канбана после второго источника: %v", got)
+	if got := ids(t, after["Дела"].Fields["hiddenOptionIds"]); len(got) != 2 {
+		t.Fatalf("скрытые колонки после второго источника: %v", got)
 	}
+}
+
+// A board the front-column version already arranged is put right on launch:
+// «Мои задачи» leaves the kanban's front and joins «Входящие» among the hidden
+// columns. The sweep runs from ImportTemplates, so having the templates is
+// having the fix.
+func TestALegacyFrontColumnIsHiddenOnLaunch(t *testing.T) {
+	a := newTestApp(t)
+	logger, _ := mlog.NewLogger()
+	if err := ImportTemplates(a, logger); err != nil {
+		t.Fatal(err)
+	}
+	template := installedTemplates(t, a)["home-chores"]
+	bab, _, err := a.DuplicateBoard(template.ID, model.SingleUser, model.GlobalTeamID, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	board := bab.Boards[0]
+	mineID := optionID(t, a, board.ID, MineColumnTitle)
+	inboxID := optionID(t, a, board.ID, "Входящие")
+
+	// The arrangement version 15 left behind: own tasks first, arrivals hidden.
+	views, err := a.GetBlocks(board.ID, "", model.TypeView)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, view := range views {
+		if view.Title != "Дела" {
+			continue
+		}
+		visible, _ := view.Fields["visibleOptionIds"].([]any)
+		patch := &model.BlockPatch{UpdatedFields: map[string]any{
+			"visibleOptionIds": append([]any{mineID}, visible...),
+			"hiddenOptionIds":  []any{inboxID},
+		}}
+		if _, err := a.PatchBlock(view.ID, patch, model.SystemUserID); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := ImportTemplates(a, logger); err != nil {
+		t.Fatal(err)
+	}
+
+	w := NewWriter(a)
+	kanban := viewsByTitle(t, w, board.ID)["Дела"]
+	if visible := ids(t, kanban.Fields["visibleOptionIds"]); containsString(visible, mineID) {
+		t.Fatalf("«Мои задачи» осталась на канбане: %v", visible)
+	}
+	if hidden := ids(t, kanban.Fields["hiddenOptionIds"]); !containsString(hidden, mineID) || !containsString(hidden, inboxID) {
+		t.Fatalf("скрытые колонки: %v", hidden)
+	}
+}
+
+func containsString(list []string, want string) bool {
+	for _, item := range list {
+		if item == want {
+			return true
+		}
+	}
+	return false
 }
 
 // An install that predates «Мои задачи» has an inbox filtered to what arrived,

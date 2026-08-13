@@ -530,12 +530,17 @@ A person's own card made on that screen lands in a **second** column,
 «Мои задачи» — everything else there arrived, and a task somebody typed is not
 something nobody has read. It is a column rather than a group of the view
 because what has to be kept apart is what the *automation* sees; the view is
-grouped by author, where "made by me" is already its own column. The mechanism
-is the view's filter and nothing else: it admits both columns, «Мои задачи»
-first, and the first value of an "includes" clause is what a card made in that
-view becomes (`CardFilter.propertyThatMeetsFilterClause`). Unlike the arrival
-column it stays on the kanban, at its front, because the way out of it is a drag
-like any other and the inbox's own columns do not drag.
+grouped by author, where "made by me" is already its own column — and that
+column is headed «Мои задачи» rather than by the viewer's username
+(`kanbanColumnHeader.tsx`, on the inbox view only), because what those cards
+are says more than who typed them. The mechanism is the view's filter and
+nothing else: it admits both columns, «Мои задачи» first, and the first value
+of an "includes" clause is what a card made in that view becomes
+(`CardFilter.propertyThatMeetsFilterClause`). On the board's own kanban the
+column is hidden exactly as «Входящие» is: it stood at the kanban's front for
+one template version, and that reading was reverted — a person's unprocessed
+tasks are the inbox's business, and the board of work stays as it was. A card
+leaves either column through its own dialog, by changing the column property.
 
 The inbox is **grouped by what brought the card**, and that needs no property of
 ours: a source has a board account, exactly as an agent does and for the same

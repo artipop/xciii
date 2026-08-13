@@ -49,7 +49,11 @@ var templateFiles embed.FS
 // 16: the developer template's main view is «Задачи» — «Progress Tracker» was
 // the one English name left on a Russian screen, inherited from the upstream
 // board the template was built from.
-const TemplateVersion = 16
+// 17: «Мои задачи» is hidden from the main kanban, exactly as «Входящие» is —
+// a person's unprocessed tasks are read on the inbox view, and the main board
+// stays the board of work it was before version 15 put the column at its
+// front.
+const TemplateVersion = 17
 
 // TemplateMarkerProperty is the board property each template carries its slug
 // in. Ids are regenerated on import and titles are the user's to change, so the
@@ -64,7 +68,58 @@ func ImportTemplates(a *app.App, log mlog.LoggerIFace) error {
 		return err
 	}
 	renameLegacyViews(a, log)
+	rearrangeLegacyKanbans(a, log)
 	return nil
+}
+
+// rearrangeLegacyKanbans catches up boards arranged by template version 15,
+// which put «Мои задачи» at the front of the main kanban. The column belongs
+// with «Входящие» — hidden from the board of work, read on the inbox view —
+// and a board with a source is re-arranged on every delivery anyway; this
+// covers the boards nothing delivers to. Idempotent, and it looks the columns
+// up by the names our own templates gave them: a board that has not got both
+// is not one of ours to touch.
+func rearrangeLegacyKanbans(a *app.App, log mlog.LoggerIFace) {
+	boards, err := a.GetBoardsForUserAndTeam(model.SingleUser, model.GlobalTeamID, false)
+	if err != nil {
+		log.Warn("templates: cannot list boards for the kanban catch-up", mlog.Err(err))
+		return
+	}
+	w := NewWriter(a)
+	for _, board := range boards {
+		if board.IsTemplate || templateSlug(board) == "" {
+			continue
+		}
+		schema, err := model.ParsePropertySchema(board)
+		if err != nil {
+			continue
+		}
+		var property, inboxID, mineID string
+		for _, def := range schema {
+			if def.Type != "select" {
+				continue
+			}
+			var inbox, mine string
+			for oid, opt := range def.Options {
+				if strings.EqualFold(opt.Value, InboxViewTitle) {
+					inbox = oid
+				}
+				if strings.EqualFold(opt.Value, MineColumnTitle) {
+					mine = oid
+				}
+			}
+			if inbox != "" && mine != "" {
+				property, inboxID, mineID = def.Name, inbox, mine
+				break
+			}
+		}
+		if property == "" {
+			continue
+		}
+		if err := w.arrangeKanbans(board.ID, property, inboxID, mineID); err != nil {
+			log.Warn("templates: cannot re-arrange the kanban", mlog.String("board", board.ID), mlog.Err(err))
+		}
+	}
 }
 
 // renameLegacyViews catches up boards the old templates already made. A version

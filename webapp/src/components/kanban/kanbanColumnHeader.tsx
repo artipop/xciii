@@ -20,13 +20,14 @@ import Label from '../../widgets/label'
 import {useHasCurrentBoardPermissions} from '../../hooks/permissions'
 import {useSortable} from '../../hooks/sortable'
 import {useAppSelector} from '../../store/hooks'
-import {getBoardUsers} from '../../store/users'
+import {getBoardUsers, getMe} from '../../store/users'
 import {IUser} from '../../user'
 
 import BoardPermissionGate from '../permissions/boardPermissionGate'
 
 import ColumnBadge from '../acp/columnBadge'
 import {isAutomationAvailable} from '../acp/automationDialog'
+import {MineColumnTitle, isInboxView} from '../acp/inboxView'
 
 import {KanbanCalculation} from './calculation/calculation'
 
@@ -63,12 +64,20 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
     // Who a group is, when the board is grouped by a person rather than by an
     // option: «кто создал» groups by user id, and an id is not a heading.
     const boardUsers = useAppSelector<{[key: string]: IUser}>(getBoardUsers)
+    const me = useAppSelector<IUser|null>(getMe)
     const isPersonGroup = () => {
         const type = props.groupByProperty?.type
         return type === 'person' || type === 'createdBy' || type === 'updatedBy'
     }
     const personName = () => {
         const id = props.group.option.id
+
+        // On the inbox the columns say who brought the card, and what the
+        // person themselves brought is their unprocessed tasks: the column is
+        // headed by what those cards are, not by who typed them.
+        if (isInboxView(props.activeView) && id === me()?.id) {
+            return MineColumnTitle
+        }
         return boardUsers()[id]?.username || id
     }
 

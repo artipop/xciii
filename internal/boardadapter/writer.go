@@ -434,8 +434,12 @@ func (w *Writer) EnsureInbox(ctx context.Context, boardID, propertyName, optionN
 	return optionID, nil
 }
 
-// arrangeKanbans says where the inbox's two columns stand on the board's own
-// kanbans: what arrived is taken off them, and «Мои задачи» is put at the front.
+// arrangeKanbans takes the inbox's two columns off the board's own kanbans:
+// both are the inbox screen's business, and neither belongs in the middle of
+// the work. «Мои задачи» stood at the front of the main kanban for one
+// version and that was the wrong reading of the ask — a person's unprocessed
+// tasks live on «Входящие» (where the view shows them as their own column),
+// and the main board stays exactly the board of work.
 //
 // Both in one pass, and one patch per view, because a view's history is keyed
 // by (id, insert_at) in milliseconds — two patches of the same block in a row
@@ -443,11 +447,8 @@ func (w *Writer) EnsureInbox(ctx context.Context, boardID, propertyName, optionN
 //
 // A group named in neither list is drawn (webapp/src/boardUtils.ts walks the
 // visible ones and then the rest), so hiding is naming it in hiddenOptionIds —
-// and taking it out of visibleOptionIds, where a board made from an older
-// template still has it. Drawn last is where a column work *starts* in must not
-// be: after «Готово» and «В архиве» is not where anybody types a task. Naming it
-// first is what says so, and only while the view has no opinion — one that names
-// it anywhere, visible or hidden, has been answered by a person.
+// and taking it out of visibleOptionIds, where a board arranged by the
+// front-column version still has it.
 func (w *Writer) arrangeKanbans(boardID, propertyName, inboxID, mineID string) error {
 	board, err := w.app.GetBoard(boardID)
 	if err != nil {
@@ -472,15 +473,11 @@ func (w *Writer) arrangeKanbans(boardID, propertyName, inboxID, mineID string) e
 			continue
 		}
 
-		visible, wasVisible := withoutOption(view.Fields["visibleOptionIds"], inboxID)
-		hidden, wasHidden := withOption(view.Fields["hiddenOptionIds"], inboxID)
-		changed := wasVisible || !wasHidden
-
-		if !containsOption(visible, mineID) && !containsOption(hidden, mineID) {
-			visible = append([]any{mineID}, visible...)
-			changed = true
-		}
-		if !changed {
+		visible, inboxWasVisible := withoutOption(view.Fields["visibleOptionIds"], inboxID)
+		visible, mineWasVisible := withoutOption(visible, mineID)
+		hidden, inboxWasHidden := withOption(view.Fields["hiddenOptionIds"], inboxID)
+		hidden, mineWasHidden := withOption(hidden, mineID)
+		if !inboxWasVisible && !mineWasVisible && inboxWasHidden && mineWasHidden {
 			continue
 		}
 		patch := &model.BlockPatch{UpdatedFields: map[string]any{
@@ -561,16 +558,6 @@ func filterWithColumn(raw any, propID, optionID string) (map[string]any, bool) {
 	}
 	next["filters"] = out
 	return next, true
-}
-
-// containsOption is whether the list names the option at all.
-func containsOption(list []any, optionID string) bool {
-	for _, item := range list {
-		if id, ok := item.(string); ok && id == optionID {
-			return true
-		}
-	}
-	return false
 }
 
 func withOption(raw any, optionID string) ([]any, bool) {

@@ -8,7 +8,7 @@ import Mutator from '../../mutator'
 import {mockAppStore, wrapDNDIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 import {TestBlockFactory} from '../../test/testBlockFactory'
-import {IPropertyOption} from '../../blocks/board'
+import {IPropertyOption, IPropertyTemplate} from '../../blocks/board'
 
 import KanbanColumnHeader from './kanbanColumnHeader'
 vi.mock('../../mutator')
@@ -319,5 +319,61 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
         expect(menuCountEmpty).toBeDefined()
         userEvent.click(menuCountEmpty)
         expect(mockedMutator.changeViewKanbanCalculations).toHaveBeenCalledTimes(1)
+    })
+
+    // The inbox's columns say who brought the card; what the person themselves
+    // brought is their unprocessed tasks, so their own column is headed by what
+    // the cards are — «Мои задачи» — and everybody else's by who they are.
+    describe('a person group on the inbox view', () => {
+        const inboxView = TestBlockFactory.createBoardView(board)
+        inboxView.title = 'Входящие'
+        const byAuthor = {id: 'author-prop', name: 'Автор', type: 'createdBy', options: []} as unknown as IPropertyTemplate
+        const meUser = {id: 'single-user', username: 'Вы'}
+        const sourceUser = {id: 'kaiten', username: 'kaiten'}
+        const storeWithUsers = mockAppStore({
+            ...state,
+            users: {
+                me: meUser,
+                boardUsers: {'single-user': meUser, kaiten: sourceUser},
+            },
+        } as never)
+
+        const renderHeader = (view: typeof inboxView, groupID: string) => render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={storeWithUsers}>
+                <KanbanColumnHeader
+                    board={board}
+                    activeView={view}
+                    group={{
+                        option: {id: groupID, value: '', color: ''},
+                        cards: [],
+                    }}
+                    groupByProperty={byAuthor}
+                    intl={intl}
+                    readonly={false}
+                    addCard={vi.fn()}
+                    propertyNameChanged={vi.fn()}
+                    onDropToColumn={vi.fn()}
+                    calculationMenuOpen={false}
+                    onCalculationMenuOpen={vi.fn()}
+                    onCalculationMenuClose={vi.fn()}
+                />
+            </AppStoreProvider>,
+        ))
+
+        test('the viewer\'s own column is headed «Мои задачи»', () => {
+            renderHeader(inboxView, 'single-user')
+            expect(screen.getByText('Мои задачи')).toBeInTheDocument()
+        })
+
+        test('a source\'s column is headed by the source', () => {
+            renderHeader(inboxView, 'kaiten')
+            expect(screen.getByText('kaiten')).toBeInTheDocument()
+        })
+
+        test('outside the inbox the viewer stays themselves', () => {
+            renderHeader(activeView, 'single-user')
+            expect(screen.getByText('Вы')).toBeInTheDocument()
+            expect(screen.queryByText('Мои задачи')).toBeNull()
+        })
     })
 })

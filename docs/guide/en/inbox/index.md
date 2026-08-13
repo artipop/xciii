@@ -33,16 +33,17 @@ The **"New"** button in the inbox creates a card in the **Мои задачи** 
 tasks") column rather than in the inbox: the inbox holds what came from outside,
 and this card is yours.
 
-Мои задачи is an ordinary column of the board, first on the kanban: a card is
-dragged from it into work like any other. In the inbox view it stands in the
-column with your name — the columns there are authors.
+In the inbox view these cards stand in the **Мои задачи** column — your own
+column among the source columns. On the board's own kanban the Мои задачи
+column is hidden, just like the inbox column: the unsorted lives on this view,
+and the working columns stay working columns.
 
 ## Sorting it out
 
 - **On a computer**: open the inbox view and a card in it — like any other.
-  Drag it into a working column — it disappears from the inbox. If the card
-  belongs on another board: card menu → **"Move to a board…"** — it moves
-  together with its comments.
+  Change the column in the card's properties — it leaves the inbox and appears
+  on the kanban in the column you chose. If the card belongs on another board:
+  card menu → **"Move to a board…"** — it moves together with its comments.
 - **On a phone**: `/m`, the Inbox tab. A card is moved to a board and a column
   in two taps.
 
