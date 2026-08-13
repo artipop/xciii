@@ -58,23 +58,30 @@ it is the board itself: **every column is a box on the canvas**, whatever
 happens in it. Along the top are the routes; **«Колонки»** is the same canvas
 with no route chosen, which is where you say what each column does.
 
-- **choose a column** and the panel on the right is about it: what happens when a
-  card lands there, who works it, how many at once, where it deploys. That
-  answer holds for every route at once, because it is the column's;
+- **choose a column** on «Колонки» and the panel on the right is about it: what
+  happens when a card lands there, who works it, how many at once, where it
+  deploys. That answer holds for every route at once, because it is the
+  column's;
 - **choose a route** and its arrows are drawn over the same boxes. The columns
   the route does not use stay on the canvas, faded — **clicking one puts it on
   the route**, and so does drawing an arrow to it. There is no separate "add a
   stage and then pick its column": a stage a card can stand on *is* a column;
+- **choose a stage of a route** and the panel is about *the stage*: what happens
+  at it, who works it here, where it works, where the card goes next. Each of
+  those falls back to the column's answer, which is named in the control rather
+  than left to be guessed — «— как в колонке: агент работает над карточкой —»,
+  and under the crew boxes «Никто не отмечен — работают агенты колонки: …».
+  That is what puts a different agent on each node of one route. It was a fold
+  called «Только в этом маршруте…» under a second list of the same agents, and
+  two crews for one question read as a bug rather than as an override;
 - **draw a transition** by pulling from a box's right edge — the upper point is
   "when this succeeded", the lower "when it failed" — or from the bottom point
   for something to wait for, like a merged branch. Click an arrow to change what
   it waits for or where it leads;
-- **drop a block from the palette** — «Агент», «Деплой», «Тест» or a plain
-  column — and a new column of the board appears where it landed, already doing
-  what the block says. Rename it in the panel; the routes and specs follow the
-  option, not the name;
-- a stage may differ from its column on one route only — «Только в этом
-  маршруте…» in the panel — but that is the exception, folded away.
+- **«Добавить колонку»**, the row above the canvas — «Агент», «Деплой», «Тест»
+  or a plain column: click a kind and a new column of the board appears already
+  doing what it says, drag it onto the canvas to say where it stands. Rename it
+  in the panel; the routes and specs follow the option, not the name.
 
 ## Rules: when one event is not one arrow
 

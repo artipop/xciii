@@ -25,23 +25,24 @@ to fire on.
 
 ## The editor window
 
-Three parts, left to right.
+Tabs on top: **"Columns"** — all the board's columns and their actions; a route
+tab — the same boxes with that route's arrows (columns outside the route are
+faded and join it on click); **"+ route"** — a new route.
 
-**The palette** — blocks: "Agent", "Deploy", "Test", "Column". Drag a block
-onto the canvas and a new column with that action appears on the board. There
-is no separate "create a stage" step: a route stage is always a board column.
+**"Add a column"** — the row under the tabs: "Agent", "Deploy", "Test",
+"Column". Click a kind and a new column with that action appears on the board;
+drag the block onto the canvas instead if where it stands matters. There is no
+separate "create a stage" step: a route stage is always a board column.
 
-**The canvas** — the board as a diagram, each column a box. Tabs on top:
-**"Columns"** — all columns and their actions; a route tab — the same boxes
-with that route's arrows (columns outside the route are faded and join it on
-click); **"+ route"** — a new route.
+**The canvas** — the board as a diagram, each column a box.
 
-**The panel** — on the right, shows what is selected: a column, an arrow or the
-route.
+**The panel** — on the right, shows what is selected. What it asks about
+depends on the tab: on "Columns" it is about the column (true on every route),
+on a route tab about that stage of the route.
 
 ## Column settings
 
-Select a column — in the panel:
+The **"Columns"** tab, select a column — in the panel:
 
 - **name** — edited here; routes are tied to the column, not its name, so
   renaming breaks nothing;
@@ -54,7 +55,24 @@ Select a column — in the panel:
 - **deploy target** — on a deploy column.
 
 These settings apply on every route. An exception for one route is set in the
-stage panel, under "Only on this route…".
+stage panel — select the stage on the route's tab.
+
+## Stage settings
+
+A route tab, select a box — in the panel:
+
+- **"What happens at this stage"** — the action on this route alone. While it
+  reads "— as the column: … —" the column's action runs, and the line names it;
+- **"Worked here by"** — this stage's agents. While none is ticked, the line
+  under the boxes says who works it instead — the column's crew. This is how
+  one route runs "In progress" with one agent and another with a different one;
+- **"The stage works"** — on the card's own branch, or in the folder itself. It
+  matters for a repository: checking before the branch is merged happens on the
+  card's branch, checking what is already published happens in the folder;
+- **deploy target** — on a deploy stage;
+- **"From here the card goes"** — this stage's arrows;
+- **"Settings of the column itself…"** — over to the "Columns" tab, to what is
+  true of the column on any route.
 
 ## Arrows
 
@@ -98,7 +116,7 @@ own.
 
 ## Saving
 
-- changes to the board itself — a new column from the palette, a rename — apply
+- changes to the board itself — a new column, a rename — apply
   immediately;
 - column actions and routes are written with the **"Save"** button. Everything
   is checked before writing: a transition to nowhere, two stages on one column,
@@ -109,9 +127,14 @@ itself — those already applied).
 
 ## Templates
 
-All of the above can also be edited in a template: the pencil on your template
-in the template list, or the board menu → "Save as a template…". The one
-difference: under the canvas a template lists the **questions** the setup
-wizard will ask when a board is created from it — project folder, agent, deploy
-target, browser for tests. Until set explicitly, the questions are derived from
-the automation.
+A board that is set up the way you want it is the template: the board menu →
+**"Save as a template…"**. The board is copied with its columns and routes, and
+the **"Template"** window opens: the name, the icon, what it is for, and the
+**questions** the setup wizard will ask when a board is created from it —
+project folder, agent, deploy target, browser for tests. Until set explicitly,
+the questions are derived from the automation.
+
+Columns and routes are only listed in that window. They are changed on a board
+("How this board works…") and reach the template when the board is saved as a
+template again. The pencil on your own template in the template list opens the
+same window.

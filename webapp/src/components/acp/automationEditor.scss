@@ -54,26 +54,27 @@
         flex: 1 1 auto;
     }
 
-    // The palette: blocks a route is built from. Dragging one onto the canvas
-    // makes a column of the board, so the blocks look like the stages they
-    // become — same box, same coloured edge.
-    .AutomationEditor__palette {
-        flex: 0 0 132px;
+    // Making a column: one line above the canvas. The buttons carry the colour
+    // of the stage they become and nothing else — what each kind does is a
+    // sentence, and the panel is where a sentence belongs.
+    .AutomationEditor__add {
         display: flex;
-        flex-direction: column;
-        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
     }
 
     .AutomationEditor__block {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        padding: 8px 10px;
+        @include label;
+
+        padding: 3px 10px;
+        font-size: 11px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
         border-left-width: 4px;
         border-radius: var(--radius-md);
         background: rgb(var(--surface-bg-rgb));
-        cursor: grab;
+        color: rgba(var(--center-channel-color-rgb), 1);
+        cursor: pointer;
         user-select: none;
     }
 
@@ -93,26 +94,12 @@
         border-left-color: rgba(var(--online-indicator-rgb), 1);
     }
 
-    .AutomationEditor__blockName {
-        @include label;
-
-        font-size: 12px;
-        color: rgba(var(--center-channel-color-rgb), 1);
-    }
-
-    .AutomationEditor__blockWhat {
-        @include prose;
-
-        font-size: 11px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-    }
-
     .AutomationEditor__canvas {
         flex: 1 1 auto;
 
-        // Never below this: the palette and the panel are fixed columns, and on
-        // a narrow window `min-width: 0` let them squeeze the canvas — the
-        // point of the screen — into a sliver.
+        // Never below this: the panel is a fixed column, and on a narrow
+        // window `min-width: 0` let it squeeze the canvas — the point of the
+        // screen — into a sliver.
         min-width: 320px;
 
         // A column, so the canvas above the hint can take the row's height.
@@ -131,7 +118,7 @@
     }
 
     .AutomationEditor__panel {
-        flex: 0 0 320px;
+        flex: 0 0 300px;
 
         // Without this the panel is only as narrow as its widest select, and a
         // long column name in one of them pushed its content half again past
@@ -311,14 +298,6 @@
         line-height: 1;
     }
 
-    .AutomationEditor__override summary {
-        @include label;
-
-        font-size: 11px;
-        color: rgba(var(--center-channel-color-rgb), 0.48);
-        cursor: pointer;
-    }
-
     // A hint is somebody explaining, so it is prose: the dialog sits inside
     // rules that put dialog text in the label voice, and a sentence in tracked
     // caps is a sentence nobody reads.
@@ -347,40 +326,16 @@
         color: rgb(var(--button-bg-rgb));
     }
 
-    // The app's own window opens at 1024 wide, and there the three columns are
-    // a bad bargain: the palette and the panel take 452px between them, the
-    // canvas is left with 507, and the canvas answers by drawing the route at
-    // 38% — a picture of the board nobody can read. So under this width the
-    // canvas takes the whole row, the palette becomes a strip above it and the
-    // panel a section under it. The panel is further away for a click; the
-    // route is legible, which is what the screen is for.
-    @media (max-width: 1200px) {
+    // The app's own window opens at 1024 wide, and the panel has to stay beside
+    // the canvas there: below it, the settings of whatever was just clicked are
+    // off the bottom of the dialog, and a click on a column looked like it did
+    // nothing. With the palette out of the row that costs 632px — the canvas
+    // still gets 300 of the 935 a 1024 window leaves. Only under this does the
+    // panel go below, where a canvas squeezed any further would be the thing
+    // nobody can read.
+    @media (max-width: 760px) {
         .AutomationEditor__body {
             flex-direction: column;
-        }
-
-        .AutomationEditor__palette {
-            flex: 0 0 auto;
-            flex-direction: row;
-            flex-wrap: wrap;
-            align-items: center;
-
-            // The strip's own caption gets a line to itself rather than a place
-            // in the row: four blocks and a sentence come to just over the
-            // width, and the one thing a flex row will not do is give any of it
-            // back — the caption was pushed out through the left edge instead.
-            > .AutomationEditor__label {
-                flex: 0 0 100%;
-            }
-        }
-
-        .AutomationEditor__block {
-            flex: 0 1 auto;
-            min-width: 0;
-            flex-direction: row;
-            align-items: baseline;
-            gap: 6px;
-            padding: 4px 8px;
         }
 
         .AutomationEditor__panel {

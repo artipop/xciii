@@ -4,30 +4,26 @@ import {For, Show, createSignal, onMount} from 'solid-js'
 
 import {useIntl, IntlShape} from '../../intl'
 
-import {Board, IPropertyOption, IPropertyTemplate} from '../../blocks/board'
+import {Board} from '../../blocks/board'
 import mutator from '../../mutator'
-import {Utils, IDType} from '../../utils'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
 import {agentBindings} from './bindings'
-import AutomationEditor from './automationEditor'
+import {actionLabel} from './automationEditor'
 import {
     Automation,
-    BoardColumn,
     BoardSetup,
     BoardSetupStep,
-    Flow,
-    FlowTrigger,
     SetupStepDef,
     boardAutomationProperties,
     boardColumns,
     columnProperty,
+    columnsOf,
     impliedSetupSteps,
     readBoardAutomation,
     readBoardSetup,
-    routeOptionMissing,
-    selectProperties,
+    specFor,
 } from './automation'
 
 import './templateEditor.scss'
@@ -36,16 +32,18 @@ import './templateEditor.scss'
 // in each of them, the routes cards take across it, and the questions it needs
 // answered about the machine before any of that can run.
 //
-// Focalboard's own answer to "edit a template" is to open the board and let you
-// move cards around on it, which says nothing about the three things this
-// product added. So a template is edited here instead, and the board behind is
-// still the board — this dialog only ever writes what the board itself cannot
-// show: the automation, and the setup the automation implies.
+// What is edited here is only the last of those, plus the three things the
+// template list shows — its name, its icon and what it is for. The automation
+// is **shown and not edited**: a template is made by building the board and
+// saving it («Сохранить как шаблон…»), so the routes it carries are already the
+// ones that worked, and the way to change them is to change the board and save
+// it again. It was the whole route canvas in a scrolling dialog, which put a
+// graph editor between somebody and the two fields they came to fill in — and
+// gave the same routes two places to be edited, one of them the copy nobody was
+// looking at.
 //
 // It writes into the template board's own properties, which is where Go reads
-// them from when a board is made from it (internal/acp/boardseed.go). A live
-// board's automation lives in the registry instead — same editor, different
-// container.
+// them from when a board is made from it (internal/acp/boardseed.go).
 
 type Props = {
     board: Board
@@ -60,99 +58,34 @@ const TemplateEditor = (props: Props) => {
     const [title, setTitle] = createSignal(props.board.title)
     const [icon, setIcon] = createSignal(props.board.icon || '')
     const [description, setDescription] = createSignal(props.board.description || '')
-    const [automation, setAutomation] = createSignal<Automation>(readBoardAutomation(props.board))
     const [setup, setSetup] = createSignal<BoardSetup | undefined>(readBoardSetup(props.board))
     const [defs, setDefs] = createSignal<SetupStepDef[]>([])
-    const [triggers, setTriggers] = createSignal<FlowTrigger[]>([])
-    const [agents, setAgents] = createSignal<Array<{name: string}>>([])
-    const [deploys, setDeploys] = createSignal<Array<{name: string}>>([])
-    const [property, setProperty] = createSignal<IPropertyTemplate | undefined>(columnProperty(props.board))
     const [error, setError] = createSignal('')
 
+    // The automation is the template's as it stands. Nothing here changes it;
+    // it is read to be shown, to work out the questions the template implies,
+    // and to be written back untouched when the rest is saved.
+    const automation: Automation = readBoardAutomation(props.board)
+
     onMount(async () => {
-        if (!bindings) {
+        if (!bindings?.ListSetupSteps) {
             return
         }
         try {
-            if (bindings.ListSetupSteps) {
-                setDefs(JSON.parse(await bindings.ListSetupSteps()) || [])
-            }
-            if (bindings.ListFlowTriggers) {
-                setTriggers(JSON.parse(await bindings.ListFlowTriggers()) || [])
-            }
-            if (bindings.ListAgents) {
-                setAgents(JSON.parse(await bindings.ListAgents()) || [])
-            }
-            if (bindings.ListDeployTargets) {
-                setDeploys(JSON.parse(await bindings.ListDeployTargets()) || [])
-            }
+            setDefs(JSON.parse(await bindings.ListSetupSteps()) || [])
         } catch (e) {
             setError(String(e))
         }
     })
 
-    // A template's automation names no board: the board it will run on does not
-    // exist yet, and stamping this one's id in would tie every copy to the
-    // template. Go fills it in when the copy is first opened.
-    const columns = () => boardColumns(props.board, property()?.name)
+    const columns = () => boardColumns(props.board, columnProperty(props.board)?.name)
 
-    const createColumn = async (name: string): Promise<BoardColumn | undefined> => {
-        const target = property()
-        if (!target) {
-            return undefined
-        }
-        setError('')
-        const option = {id: Utils.createGuid(IDType.BlockID), value: name, color: 'propColorDefault'} as IPropertyOption
-        try {
-            await mutator.insertPropertyOption(props.board.id, props.board.cardProperties, target, option, 'add column to template')
-            return {optionId: option.id, name}
-        } catch (e) {
-            setError(String(e))
-            return undefined
-        }
-    }
-
-    const renameColumn = async (column: BoardColumn, name: string) => {
-        const target = property()
-        const option = target?.options.find((o) => o.id === column.optionId)
-        if (!target || !option) {
-            return
-        }
-        setError('')
-        try {
-            await mutator.changePropertyOptionValue(props.board.id, props.board.cardProperties, target, option, name)
-        } catch (e) {
-            setError(String(e))
-        }
-    }
-
-    const addRouteOption = async (flow: Flow) => {
-        setError('')
-        const names = new Set(automation().flows.map((f) => f.name.trim().toLowerCase()))
-        const holder = selectProperties(props.board).find((p) =>
-            p.name !== property()?.name && (p.options || []).some((o) => names.has(o.value.trim().toLowerCase())))
-        const option = {id: Utils.createGuid(IDType.BlockID), value: flow.name, color: 'propColorDefault'} as IPropertyOption
-        try {
-            if (holder) {
-                await mutator.insertPropertyOption(props.board.id, props.board.cardProperties, holder, option, 'add route option')
-                return
-            }
-            const created: IPropertyTemplate = {
-                id: Utils.createGuid(IDType.BlockID),
-                name: intl.formatMessage({id: 'Automation.route-property', defaultMessage: 'Route'}),
-                type: 'select',
-                options: [option],
-            }
-            await mutator.updateBoardCardProperties(
-                props.board.id,
-                props.board.cardProperties,
-                [...props.board.cardProperties, created],
-                'add route property',
-            )
-        } catch (e) {
-            setError(String(e))
-        }
-    }
+    // What a column does, for the summary: the name alone where nothing runs,
+    // and the sentence beside it where something does.
+    const columnLine = () => columns().map((c) => {
+        const action = specFor(automation.columns, c)?.action || 'none'
+        return action === 'none' ? c.name : `${c.name} (${actionLabel(intl, action)})`
+    })
 
     const steps = () => setup()?.steps || []
     const stepAt = (kind: string) => steps().find((s) => s.kind === kind)
@@ -183,7 +116,7 @@ const TemplateEditor = (props: Props) => {
                 title: title().trim() || props.board.title,
                 icon: icon(),
                 description: description(),
-                properties: boardAutomationProperties(props.board, automation(), setup()),
+                properties: boardAutomationProperties(props.board, automation, setup()),
             }
             await mutator.updateBoard(next, props.board, 'edit template')
             props.onSaved?.()
@@ -197,7 +130,7 @@ const TemplateEditor = (props: Props) => {
         <Dialog
             class='TemplateEditor'
             title={<span>{intl.formatMessage({id: 'TemplateEditor.title', defaultMessage: 'Template'})}</span>}
-            subtitle={<span>{intl.formatMessage({id: 'TemplateEditor.subtitle', defaultMessage: 'What a board made from this template arrives knowing: its columns, what happens in them, the routes cards take, and what it has to ask about this machine.'})}</span>}
+            subtitle={<span>{intl.formatMessage({id: 'TemplateEditor.subtitle', defaultMessage: 'A board made from this template arrives with the columns and routes below. Its name, what it is for, and what it asks about this machine are set here.'})}</span>}
             onClose={props.onClose}
         >
             <div class='TemplateEditor__content'>
@@ -227,22 +160,31 @@ const TemplateEditor = (props: Props) => {
                     </label>
                 </div>
 
-                <AutomationEditor
-                    boardId=''
-                    property={property()}
-                    properties={selectProperties(props.board)}
-                    columns={columns()}
-                    automation={automation()}
-                    triggers={triggers()}
-                    agents={agents()}
-                    deploys={deploys()}
-                    onChange={setAutomation}
-                    onPropertyChange={setProperty}
-                    onCreateColumn={createColumn}
-                    onRenameColumn={renameColumn}
-                    onAddRouteOption={addRouteOption}
-                    routeOptionMissing={(flow) => routeOptionMissing(props.board, flow)}
-                />
+                {/* What the template carries, in the words the board uses. It is
+                    read here and changed on a board: the routes came off one,
+                    and «Как работает эта доска…» is where a route is drawn. */}
+                <div class='TemplateEditor__carries'>
+                    <div class='TemplateEditor__sectionTitle'>
+                        {intl.formatMessage({id: 'TemplateEditor.carries', defaultMessage: 'What the template carries'})}
+                    </div>
+                    <div class='TemplateEditor__carriesRow'>
+                        <span class='TemplateEditor__carriesLabel'>
+                            {intl.formatMessage({id: 'TemplateEditor.columns', defaultMessage: 'Columns'})}
+                        </span>
+                        <span>{columnLine().join(' · ') || '—'}</span>
+                    </div>
+                    <For each={automation.flows}>
+                        {(flow) => (
+                            <div class='TemplateEditor__carriesRow'>
+                                <span class='TemplateEditor__carriesLabel'>{flow.name}</span>
+                                <span>{columnsOf(flow, columns()).map((c) => c.name).join(' → ') || '—'}</span>
+                            </div>
+                        )}
+                    </For>
+                    <div class='TemplateEditor__hint'>
+                        {intl.formatMessage({id: 'TemplateEditor.carries-hint', defaultMessage: 'Columns and routes are edited on a board — "How this board works…" — and come back here when the board is saved as a template again.'})}
+                    </div>
+                </div>
 
                 <div class='TemplateEditor__setup'>
                     <div class='TemplateEditor__sectionTitle'>
@@ -253,7 +195,7 @@ const TemplateEditor = (props: Props) => {
                         fallback={
                             <div class='TemplateEditor__hint'>
                                 {intl.formatMessage({id: 'TemplateEditor.setup-implied', defaultMessage: 'Worked out from the automation above: a template that deploys asks where to, one that tests asks for a browser. Name the steps yourself if that is not what you want.'})}
-                                <Button onClick={() => setSetup({steps: impliedSetupSteps(automation(), defs())})}>
+                                <Button onClick={() => setSetup({steps: impliedSetupSteps(automation, defs())})}>
                                     {intl.formatMessage({id: 'TemplateEditor.setup-declare', defaultMessage: 'Name the steps'})}
                                 </Button>
                             </div>
@@ -329,6 +271,8 @@ export function stepTitle(intl: IntlShape, kind: string): string {
         return intl.formatMessage({id: 'TemplateEditor.step-deploy', defaultMessage: 'Somewhere to deploy to'})
     case 'browser':
         return intl.formatMessage({id: 'TemplateEditor.step-browser', defaultMessage: 'A browser for test runs'})
+    case 'source':
+        return intl.formatMessage({id: 'TemplateEditor.step-source', defaultMessage: 'Somewhere cards arrive from'})
     default:
         return intl.formatMessage({id: 'TemplateEditor.step-done', defaultMessage: 'How to use it (asks nothing)'})
     }

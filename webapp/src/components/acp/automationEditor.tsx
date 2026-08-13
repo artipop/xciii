@@ -7,7 +7,7 @@ import Button from '../../widgets/buttons/button'
 import Select from '../../widgets/select'
 import CompassIcon from '../../widgets/icons/compassIcon'
 
-import FlowDiagram, {BLOCK_DRAG_TYPE, NODE_HEIGHT, NODE_WIDTH, StageCount, condLabel, edgeId, edgeIndexOf} from './flowDiagram'
+import FlowDiagram, {BLOCK_DRAG_TYPE, NODE_HEIGHT, NODE_WIDTH, StageCount, condLabel, edgeId, edgeIndexOf, stageLabel} from './flowDiagram'
 import {
     ACTIONS,
     Automation,
@@ -404,6 +404,100 @@ const AutomationEditor = (props: Props) => {
     // property is excluded: a change of that is a move, not a mark.
     const condProperties = () => props.properties.filter((p) => p.name !== (flow()?.property || props.property?.name))
 
+    // Who works something, ticked off the registry. One component for both
+    // answers a stage has — the column's crew and the stage's own — because
+    // they are the same question asked of two owners, and two hand-written
+    // lists are how the two drifted apart.
+    const crewPicker = (
+        label: string,
+        chosen: () => string[],
+        write: (next: string[]) => void,
+        note?: () => string,
+    ) => (
+        <div class='AutomationEditor__crew'>
+            <span class='AutomationEditor__label'>{label}</span>
+            <Show when={props.agents.length === 0}>
+                <span class='AutomationEditor__hint'>
+                    {intl.formatMessage({id: 'Automation.no-agents', defaultMessage: 'No agents registered yet.'})}
+                </span>
+            </Show>
+            <For each={props.agents}>
+                {(a) => (
+                    <label class='AutomationEditor__agent'>
+                        <input
+                            type='checkbox'
+                            checked={chosen().includes(a.name)}
+                            onChange={() => {
+                                const crew = chosen()
+                                write(crew.includes(a.name) ? crew.filter((n) => n !== a.name) : [...crew, a.name])
+                            }}
+                        />
+                        {a.name}
+                    </label>
+                )}
+            </For>
+            <Show when={note?.()}>
+                <span class='AutomationEditor__hint'>{note?.()}</span>
+            </Show>
+
+            {/* Registering one is two answers, and asking them here beats
+                sending somebody to the settings and back with the stage
+                half-configured. */}
+            <Show when={props.onAddAgent}>
+                <button
+                    type='button'
+                    class='AutomationEditor__addAgent'
+                    onClick={() => props.onAddAgent?.()}
+                >
+                    {intl.formatMessage({id: 'Automation.add-agent', defaultMessage: 'Add an agent…'})}
+                </button>
+            </Show>
+        </div>
+    )
+
+    // What an unticked stage crew means: the column's answer, named. Nothing to
+    // say on a board where no agent is registered — the picker says that
+    // already.
+    const columnCrewNote = (node: FlowNode): string => {
+        if (props.agents.length === 0) {
+            return ''
+        }
+        const crew = specOf(node)?.agents || []
+        if (crew.length === 0) {
+            return intl.formatMessage({id: 'Automation.crew-column-none', defaultMessage: 'Nobody ticked, and the column names nobody either — whoever the board has will take it.'})
+        }
+        return intl.formatMessage(
+            {id: 'Automation.crew-column', defaultMessage: 'Nobody ticked — the column’s crew works it: {crew}'},
+            {crew: crew.join(', ')},
+        )
+    }
+
+    const deployPicker = (value: () => string, write: (next: string) => void, blank: string) => (
+        <>
+            <label>
+                {intl.formatMessage({id: 'Automation.deploy', defaultMessage: 'Deploy target'})}
+                <Select
+                    value={value()}
+                    options={[
+                        {value: '', label: blank},
+                        ...props.deploys.map((d) => ({value: d.name, label: d.name})),
+                    ]}
+                    onChange={write}
+                    label={intl.formatMessage({id: 'Automation.deploy', defaultMessage: 'Deploy target'})}
+                />
+            </label>
+
+            {/* The registry moved out of the app's settings, and this select is
+                exactly where somebody discovers it is empty — so this is where
+                the way to it is said. */}
+            <Show when={props.deploys.length === 0}>
+                <span class='AutomationEditor__hint'>
+                    {intl.formatMessage({id: 'Automation.no-deploys', defaultMessage: 'No deploy targets yet — the board’s ⋯ menu, "Where to deploy".'})}
+                </span>
+            </Show>
+        </>
+    )
+
     // The condition editor, shared by the node panel's rows and the edge panel:
     // one select for the kind of question, then the question's own fields.
     const condEditor = (index: number, edge: FlowEdge) => {
@@ -671,10 +765,18 @@ const AutomationEditor = (props: Props) => {
                                         <Select
                                             value={node().action || ''}
                                             options={[
-                                                {value: '', label: intl.formatMessage(
-                                                    {id: 'Automation.as-column', defaultMessage: '— as the column: {what} —'},
-                                                    {what: actionLabel(intl, specOf(node())?.action || 'none')},
-                                                )},
+                                                // The short name the box on the
+                                                // canvas uses, not the sentence:
+                                                // it has to fit in a select in a
+                                                // 300px panel, and the sentence
+                                                // was cut off mid-word.
+                                                {
+                                                    value: '',
+                                                    label: intl.formatMessage(
+                                                        {id: 'Automation.as-column', defaultMessage: '— as the column: {what} —'},
+                                                        {what: stageLabel(intl, specOf(node())?.action || 'none')},
+                                                    ),
+                                                },
                                                 ...ACTIONS.map((a) => ({value: a, label: actionLabel(intl, a)})),
                                             ]}
                                             onChange={(action) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {action}))}
@@ -784,84 +886,6 @@ const AutomationEditor = (props: Props) => {
                                             {intl.formatMessage({id: 'Automation.remove-from-route', defaultMessage: 'Take off this route'})}
                                         </Button>
                                     </div>
-
-                                    {/* An override is the exception, so it is
-                                        folded away: what a column does is the
-                                        board's answer, and a route only differs
-                                        from it when somebody says so. */}
-                                    <details
-                                        class='AutomationEditor__override'
-                                        open={Boolean(node().action) || (node().agentNames?.length || 0) > 0}
-                                    >
-                                        <summary>{intl.formatMessage({id: 'Automation.override', defaultMessage: 'Only on this route…'})}</summary>
-                                        <Select
-                                            value={node().action || ''}
-                                            options={[
-                                                {value: '', label: intl.formatMessage({id: 'Automation.override-none', defaultMessage: '— whatever the column does —'})},
-                                                ...ACTIONS.map((a) => ({value: a, label: actionLabel(intl, a)})),
-                                            ]}
-                                            onChange={(action) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {action}))}
-                                            label={intl.formatMessage({id: 'Automation.override', defaultMessage: 'Only on this route…'})}
-                                        />
-
-                                        {/* The stage's own crew — who works
-                                            this node of this route, over the
-                                            column's answer. This is what puts
-                                            different agents on different nodes
-                                            of one route; the engine already
-                                            preferred it (FlowNode.Crew), the
-                                            editor just could not say it. Ticks
-                                            write node.agentNames; none ticked
-                                            means the column decides, which is
-                                            why there is no explicit "as the
-                                            column" row to untick into. */}
-                                        {/* Where the stage works. It matters for
-                                            a repository and nowhere else: a QA
-                                            stage in the card's own workspace
-                                            checks the work before anything is
-                                            merged, one in the folder checks
-                                            what is already published. The
-                                            default is what the action has
-                                            always done, so a route nobody
-                                            touches keeps working. */}
-                                        <label>
-                                            {intl.formatMessage({id: 'Automation.run-in', defaultMessage: 'The stage works'})}
-                                            <Select
-                                                value={node().runIn || ''}
-                                                options={[
-                                                    {value: '', label: intl.formatMessage({id: 'Automation.run-in-default', defaultMessage: '— as this kind of stage usually does —'})},
-                                                    {value: 'owner', label: intl.formatMessage({id: 'Automation.run-in-owner', defaultMessage: 'on the card’s own branch'})},
-                                                    {value: 'workdir', label: intl.formatMessage({id: 'Automation.run-in-workdir', defaultMessage: 'in the folder itself'})},
-                                                ]}
-                                                onChange={(runIn) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {runIn: runIn || undefined}))}
-                                                label={intl.formatMessage({id: 'Automation.run-in', defaultMessage: 'The stage works'})}
-                                            />
-                                        </label>
-
-                                        <Show when={props.agents.length > 0}>
-                                            <div class='AutomationEditor__crew'>
-                                                <span class='AutomationEditor__label'>
-                                                    {intl.formatMessage({id: 'Automation.route-crew', defaultMessage: 'Worked here by'})}
-                                                </span>
-                                                <For each={props.agents}>
-                                                    {(a) => (
-                                                        <label class='AutomationEditor__agent'>
-                                                            <input
-                                                                type='checkbox'
-                                                                checked={(node().agentNames || []).includes(a.name)}
-                                                                onChange={() => {
-                                                                    const crew = node().agentNames || []
-                                                                    const next = crew.includes(a.name) ? crew.filter((n) => n !== a.name) : [...crew, a.name]
-                                                                    updateFlow(flow()!.name, (f) => withNode(f, node().id, {agentNames: next.length > 0 ? next : undefined}))
-                                                                }}
-                                                            />
-                                                            {a.name}
-                                                        </label>
-                                                    )}
-                                                </For>
-                                            </div>
-                                        </Show>
-                                    </details>
                                 </Show>
                             </div>
                         )}

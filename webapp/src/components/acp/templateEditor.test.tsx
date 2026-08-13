@@ -4,13 +4,10 @@ import '@testing-library/jest-dom'
 
 import Mutator from '../../mutator'
 import {wrapIntl} from '../../testUtils'
-import {setupReactFlowEnvironment} from '../../test/reactFlowEnvironment'
 import {Board, createBoard} from '../../blocks/board'
 
 import TemplateEditor from './templateEditor'
 import {BOARD_PROP_COLUMNS, BOARD_PROP_FLOWS, BOARD_PROP_SETUP, SUCCESS} from './automation'
-
-setupReactFlowEnvironment()
 
 vi.mock('../../mutator')
 
@@ -72,17 +69,25 @@ describe('components/acp/templateEditor', () => {
         vi.clearAllMocks()
     })
 
-    // A template is edited for what a board made from it will do, and that is
-    // in the board's own properties rather than on the board.
-    test('opens on the automation the template carries', async () => {
+    // What a board made from the template will do is said here and edited on a
+    // board: the routes came off one, and «Как работает эта доска…» is where a
+    // route is drawn.
+    test('says what the template carries, and does not offer to redraw it', async () => {
         stubBindings()
-        render(() => wrapIntl(() => (
+        const {container} = render(() => wrapIntl(() => (
             <TemplateEditor
                 board={template}
                 onClose={vi.fn()}
             />
         )))
-        expect(await screen.findByRole('button', {name: 'Фича'})).toBeInTheDocument()
+        const carries = await waitFor(() => {
+            const found = container.querySelector('.TemplateEditor__carries')
+            expect(found).toBeTruthy()
+            return found!
+        })
+        expect(carries.textContent).toContain('В работе (an agent works on the card)')
+        expect(carries.textContent).toContain('В работе → На ревью')
+        expect(container.querySelector('.FlowDiagram')).toBeNull()
         expect(screen.getByDisplayValue('Разработка')).toBeInTheDocument()
     })
 

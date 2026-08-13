@@ -6,22 +6,30 @@ happens in each column, where a card goes next, and what the app has to be told
 about **this machine** before any of that can run.
 
 None of those are visible on a board, so a template is not edited by opening it
-and moving cards about. It is edited in *«Шаблон»*, which is reached from:
+and moving cards about. *«Шаблон»* is the window that shows them, reached from:
 
+- the ⋯ menu of an ordinary board — *«Сохранить как шаблон…»*, which copies
+  the board, under the board's own name, and opens the copy;
 - the template picker — the pencil on any template of yours;
 - the banner on a template you already have open — *«Колонки, маршруты и
-  настройка…»*;
-- the ⋯ menu of an ordinary board — *«Сохранить как шаблон…»*, which copies
-  the board and opens the copy.
+  настройка…»*.
+
+**The columns and the routes are shown there and not edited there.** A template
+is made by building a board and saving it, so what it carries is what already
+worked; the way to change it is to change the board and save it as a template
+again. That window held the whole route canvas of [flows.md](flows.md) inside a
+scrolling dialog, which put a graph editor between somebody and the two fields
+they came to fill in — and gave one set of routes two places to be edited, the
+second of them a copy nobody was looking at.
 
 ## What a template carries
 
 | | Where it comes from | What it does when a board is made |
 |---|---|---|
-| **Columns and their behaviour** | the canvas, the same one as [flows.md](flows.md) | the new board's columns already run an agent, deploy, test |
-| **Routes** | the route tabs on that canvas | a card that names one moves along it by itself |
-| **Rules** | conditions on the arrows | the same outcome forks on the card's own properties, or on what the agent wrote |
-| **Questions to ask** | the list under the canvas | the setup wizard walks exactly these, in this order |
+| **Columns and their behaviour** | the board it was saved from | the new board's columns already run an agent, deploy, test |
+| **Routes** | the same board's route tabs | a card that names one moves along it by itself |
+| **Rules** | conditions on those arrows | the same outcome forks on the card's own properties, or on what the agent wrote |
+| **Questions to ask** | the list in *«Шаблон»*, the one thing edited there | the setup wizard walks exactly these, in this order |
 
 The first two live in the template board's own properties (`xciiiColumns`,
 `xciiiFlows`), and a board made from it takes them into this machine's registry the
@@ -81,7 +89,11 @@ Half of what a board does — what runs in each column, the routes — is regist
 state of this machine rather than anything on the board, so an ordinary copy
 would produce a template with the columns drawn and nothing happening in them.
 *«Сохранить как шаблон…»* reads that half back out and writes it into the copy,
-along with the questions the original declared. What it deliberately does not
+along with the questions the original declared and the board's own name. The
+registry is only asked first: a board reaches it when something first reads the
+board's automation, so a board made from a template and saved straight back has
+all of it on the board and none of it in the registry — and writing that empty
+answer over the copy erased exactly what the template was being made for. What it deliberately does not
 carry is the machine: the agents and deploy targets it named live in
 *«Настройки → Эта машина…»* and are this install's, the folders belong to the
 board they were added on, and a board made from the template asks for them

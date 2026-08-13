@@ -165,10 +165,11 @@ describe('components/acp/automationEditor', () => {
         expect(next.flows[1].nodes.map((n) => n.column)).toEqual(['В работе'])
     })
 
-    // The palette is how a board grows a column that does something: a block
-    // dropped on the canvas becomes a column of the board, a spec saying what
-    // it does and — on a route — a stage standing where it landed.
-    test('a palette block dropped on the canvas becomes a working column', async () => {
+    // The row above the canvas is how a board grows a column that does
+    // something: a block dropped on the canvas becomes a column of the board, a
+    // spec saying what it does and — on a route — a stage standing where it
+    // landed.
+    test('a block dropped on the canvas becomes a working column', async () => {
         const onCreateColumn = vi.fn().mockResolvedValue({optionId: 'opt-new', name: 'Deploy'})
         const {container, onChange} = renderEditor({onCreateColumn})
 
@@ -189,6 +190,22 @@ describe('components/acp/automationEditor', () => {
         const next: Automation = onChange.mock.calls.at(-1)![0]
         expect(next.columns.find((c) => c.optionId === 'opt-new')).toMatchObject({column: 'Deploy', action: 'deploy'})
         expect(next.flows[0].nodes.map((n) => n.column)).toContain('Deploy')
+    })
+
+    // The same row answers a click, because dragging to a spot on a canvas is a
+    // gesture and "I want a column that deploys" is a decision.
+    test('clicking a block adds the column too', async () => {
+        const onCreateColumn = vi.fn().mockResolvedValue({optionId: 'opt-new', name: 'Test'})
+        const {container, onChange} = renderEditor({onCreateColumn})
+
+        const test = [...container.querySelectorAll('.AutomationEditor__block')].
+            find((el) => el.textContent === 'Test')!
+        fireEvent.click(test)
+
+        await waitFor(() => expect(onCreateColumn).toHaveBeenCalledWith('Test'))
+        await waitFor(() => expect(onChange).toHaveBeenCalled())
+        const next: Automation = onChange.mock.calls.at(-1)![0]
+        expect(next.columns.find((c) => c.optionId === 'opt-new')).toMatchObject({action: 'test'})
     })
 
     // A transition can fork on the card: the success edge stays the fallback,
@@ -257,11 +274,11 @@ describe('components/acp/automationEditor', () => {
         expect(next.flows[0].edges[1].if).toEqual({property: 'Приоритет', value: ''})
     })
 
-    // Different agents on different nodes of one route: the stage's own crew is
-    // written on the node («Только в этом маршруте…»), and the engine already
-    // preferred it — the editor just could not say it. Nothing ticked means
-    // the column decides, which is why unticking the last one removes the
-    // override rather than storing an empty list.
+    // Different agents on different nodes of one route. On a route the panel is
+    // about the stage, so the crew it ticks is the stage's own — the column's
+    // is named underneath as what an empty one falls back to. Nothing ticked
+    // means the column decides, which is why unticking the last one removes the
+    // list rather than storing an empty one.
     test('a stage of a route can name its own crew', async () => {
         const {container, onChange} = renderEditor()
 
@@ -274,12 +291,13 @@ describe('components/acp/automationEditor', () => {
         })
         fireEvent.click(stage)
 
-        const override = await waitFor(() => {
-            const details = container.querySelector('.AutomationEditor__override')
-            expect(details).toBeTruthy()
-            return details!
+        const crew = await waitFor(() => {
+            const picker = container.querySelector('.AutomationEditor__crew')
+            expect(picker).toBeTruthy()
+            return picker!
         })
-        const codex = [...override.querySelectorAll('.AutomationEditor__agent')].
+        expect(crew.textContent).toContain('claude')
+        const codex = [...crew.querySelectorAll('.AutomationEditor__agent')].
             find((el) => el.textContent?.includes('codex'))!
         fireEvent.click(codex.querySelector('input')!)
 
@@ -304,7 +322,7 @@ describe('components/acp/automationEditor', () => {
             focusColumnId: 'opt-work',
         })
 
-        expect(screen.getByText(/add one in "Where to deploy" below/)).toBeInTheDocument()
+        expect(screen.getByText(/No deploy targets yet/)).toBeInTheDocument()
     })
 
     test('the hint is not shown once a target exists', () => {
@@ -317,6 +335,6 @@ describe('components/acp/automationEditor', () => {
             focusColumnId: 'opt-work',
         })
 
-        expect(screen.queryByText(/add one in "Where to deploy" below/)).toBeNull()
+        expect(screen.queryByText(/No deploy targets yet/)).toBeNull()
     })
 })

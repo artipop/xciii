@@ -5,7 +5,7 @@ import mutator from '../../mutator'
 import {IntlShape} from '../../intl'
 
 import {agentBindings} from './bindings'
-import {Automation, boardAutomationProperties, readBoardSetup} from './automation'
+import {Automation, boardAutomationProperties, readBoardAutomation, readBoardSetup} from './automation'
 
 // Turning a board somebody has built into a template other boards can start
 // from. The board part of it is Focalboard's own duplicate-as-template; what
@@ -37,7 +37,17 @@ export async function exportAutomation(boardId: string): Promise<Automation> {
 // automation the original runs. It returns the template board, which is what
 // the editor then opens.
 export async function saveBoardAsTemplate(board: Board, intl: IntlShape): Promise<Board> {
-    const automation = await exportAutomation(board.id)
+    const registry = await exportAutomation(board.id)
+
+    // A board's automation reaches the registry when something first reads it
+    // (SeedBoardAutomation), so a board made from a template and saved straight
+    // back has all of it on the board and none of it in the registry. Writing
+    // the registry's answer over the copy then erased the very thing the
+    // template was being made for — the copy carries the board's own keys,
+    // because duplicateBoard copies the properties too.
+    const carried = readBoardAutomation(board)
+    const automation = registry.columns.length > 0 || registry.flows.length > 0 ? registry : carried
+
     const copied = await mutator.duplicateBoard(
         board.id,
         intl.formatMessage({id: 'Mutator.new-template-from-board', defaultMessage: 'new template from board'}),
@@ -50,8 +60,14 @@ export async function saveBoardAsTemplate(board: Board, intl: IntlShape): Promis
 
     // The setup steps travel with it if the board declared any — a board made
     // from a template carries them, and this is that board going back.
+    //
+    // The name travels too. Focalboard's duplicate-as-template calls the copy
+    // "New board template", which is right for a template made from nothing and
+    // wrong for this: what was saved is a board somebody built and named, and
+    // the dialog that opens next is where the name is changed if it needs to be.
     const updated: Board = {
         ...template,
+        title: board.title || template.title,
         properties: boardAutomationProperties(template, automation, readBoardSetup(board)),
     }
     await mutator.updateBoard(updated, template, 'template automation')

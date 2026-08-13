@@ -316,22 +316,48 @@ using the board.
 
 The model is a graph, and the kanban is one projection of it: **nodes** are
 what a card stands on (a column is a node's face on the board), **edges** are
-the routes, a node names its worker (crew — the column's, overridden per route
-in the stage's «Только в этом маршруте…»), and a card carries one conversation
-per node (the terminal, above). Everything per-stage hangs off the node id,
-which is why it is the board option id and never regenerated.
+the routes, a node names its worker (crew — the stage's own, falling back to
+the column's), and a card carries one conversation per node (the terminal,
+above). Everything per-stage hangs off the node id, which is why it is the
+board option id and never regenerated.
 
 Both halves are edited over **the board's own columns**: `components/acp/
 automationEditor.tsx` draws every option of the board's column property as a box,
 and a route is that same set of boxes with arrows over it — a stage that is not a
-column is a stage no card can stand on, so there is no way to make one. The
-editor is source-agnostic and the container decides what it edits: `automation
-Dialog.tsx` points it at the registry of a live board (saving through
-`SaveBoardColumn`/`AddFlow`/…), `templateEditor.tsx` at a template board's own
-properties (`xciiiColumns`, `xciiiFlows`, `xciiiSetup`), which is where a board made
-from it will read them. `automation.ts` holds the types and every pure helper,
-which is what keeps the two containers from growing their own answers.
-`docs/templates.md` is the template half written for somebody using it.
+column is a stage no card can stand on, so there is no way to make one.
+`automationDialog.tsx` points it at the registry of a live board (saving through
+`SaveBoardColumn`/`AddFlow`/…), and it is the only container: `automation.ts`
+holds the types and every pure helper, so nothing else has to grow its own
+answers about the same shapes.
+
+**The panel beside the canvas is about whatever the tab is about**, and that is
+the whole of how a route says something a column does not. On «Колонки» it edits
+the column — its action, its crew, its limit, its target — which holds wherever
+a card lands. On a route's tab it edits *the stage*: action, crew, `runIn`,
+deploy target, transitions, each falling back to the column's answer and each
+**naming that answer in the control** («— как в колонке: агент работает над
+карточкой —», «Никто не отмечен — работают агенты колонки: …»), with a link back
+to the column's own settings. That is what puts a different agent on each node of
+one route — the engine always preferred `FlowNode.Crew`, and the editor could
+only say it inside a fold called «Только в этом маршруте…», under a second list
+of the same agents. Two crews for one question read as a bug rather than as an
+override, and the fold meant the commonest reason to open a route was the one
+thing hidden on it. Making a column is one line above the canvas rather than a
+column of blocks beside it — click a kind, or drag it if where it stands matters
+— because the palette repeated in prose what the panel says anyway and took a
+sixth of the screen the picture is for.
+
+A template is **shown and not edited**: `templateEditor.tsx` is a form — name,
+icon, what it is for, and the setup questions — with the columns and routes the
+template carries listed in words beside them. A template is made by building a
+board and saving it («Сохранить как шаблон…», `saveAsTemplate.ts`, which copies
+the board under the board's own name and carries its automation across), so what
+it carries is what already worked, and the way to change it is to change the
+board and save it again. It was the same route canvas inside a scrolling dialog,
+which put a graph editor between somebody and the two fields they came to fill
+in, and gave one set of routes two places to be edited — the second of them a
+copy nobody was looking at. `docs/templates.md` is that half written for
+somebody using it.
 
 And a board's automation **lives on the board** — `xciiiColumns`/`xciiiFlows` in the
 board's own properties, in the board database, which is why a live board and a

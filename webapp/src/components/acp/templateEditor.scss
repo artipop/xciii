@@ -1,10 +1,14 @@
 @import '../../styles/typography';
 
 .TemplateEditor {
-    // See automationDialog.scss: one class loses the tie with the base rule.
+    // A form and a summary, so an ordinary dialog width. It was as wide as the
+    // automation dialog because it carried the same canvas; it does not any
+    // more, and 1180px of dialog around three fields is a dialog that looks
+    // broken. See automationDialog.scss: one class loses the tie with the base
+    // rule.
     &.dialog-back .dialog {
-        max-width: 1180px;
-        width: min(1180px, 94vw);
+        max-width: 720px;
+        width: min(720px, 94vw);
     }
 
     .TemplateEditor__content {
@@ -17,12 +21,40 @@
         padding: 4px 24px 24px;
     }
 
-    // This dialog scrolls as a whole rather than giving the editor a height,
-    // so the flexible canvas (automationEditor.scss) has nothing to fill here
-    // and would sit at its minimum. State the height a template's route is
-    // read at.
-    .AutomationEditor__canvas .FlowDiagram {
-        min-height: 420px;
+    // What the template carries: read, not edited. Each line is a label and
+    // the answer beside it, so the routes read as a list of routes.
+    .TemplateEditor__carries {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-sm);
+    }
+
+    .TemplateEditor__carriesRow {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+
+        // The names in it are what a person typed, so they are prose: the
+        // dialog's own rules put text in the label voice, and a board's columns
+        // read as an inventory of parts in tracked caps.
+        @include prose;
+
+        font-size: 13px;
+
+        // A long route must wrap rather than widen the dialog.
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .TemplateEditor__carriesLabel {
+        @include label;
+
+        flex: 0 0 128px;
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 
     // The template's own name and icon, on one line: they are the smallest part
@@ -99,6 +131,8 @@
     }
 
     .TemplateEditor__hint {
+        @include prose;
+
         display: flex;
         align-items: center;
         flex-wrap: wrap;

@@ -9,8 +9,9 @@ is the same, just without the deploy.
 
 ## 1. Lay out the columns
 
-The **"Columns"** tab. Drag the missing blocks from the palette: "Agent",
-"Deploy", "Test", "Column". For the example: "In progress" (agent), "Review"
+The **"Columns"** tab. In the "Add a column" row above the canvas click the
+kind you need — "Agent", "Deploy", "Test" or "Column"; drag the block onto the
+canvas instead if where it stands matters. For the example: "In progress" (agent), "Review"
 (nothing), "Deploy" (deploy), "QA" (test), "Done" (nothing).
 
 Select "In progress" and in the panel on the right set "When a card lands
@@ -32,11 +33,15 @@ card stops without warning. Usually back to work, or to "Did not pass".
 
 ## 3. A stage's own agent
 
-Each stage can be worked by its own agent. Select a route stage, unfold "Only
-on this route…" — there is "Worked here by" with agent tickboxes. If empty, the
-stage uses its column's agents ("Worked by"). This way "In progress" is worked
-by one agent and "QA" by another; when a card enters a stage, the app sets that
+Each stage can be worked by its own agent. Select a route stage — the panel on
+the right is about that stage: "What happens at this stage" and "Worked here
+by" with agent tickboxes. While none is ticked, the line under the boxes says
+who works it instead — the column's crew. This way "In progress" is worked by
+one agent and "QA" by another; when a card enters a stage, the app sets that
 stage's agent in the assignment field.
+
+The column's own settings — what is true of it on any route — are on the
+"Columns" tab; the stage panel links there as "Settings of the column itself…".
 
 ## 4. Forks
 
