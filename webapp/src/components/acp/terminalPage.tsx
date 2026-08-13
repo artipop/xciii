@@ -29,6 +29,7 @@ type TerminalInfo = {
     title?: string
     task?: string
     cwd: string
+    boardFolder?: boolean
     branch?: string
     agent: string
     kind: string
@@ -218,8 +219,16 @@ const TerminalPage = (props: TerminalProps = {}): JSX.Element => {
                     <Show when={info()?.branch}>
                         <code>{info()?.branch}</code>
                     </Show>
+                    {/* «Папка доски» is what every surface calls the board's
+                        own directory — a path into the app's data would name
+                        a place nobody chose. */}
                     <Show when={info()?.cwd}>
-                        <code class='AcpTerminalPage__cwd'>{info()?.cwd}</code>
+                        <code
+                            class='AcpTerminalPage__cwd'
+                            title={info()?.cwd}
+                        >
+                            {info()?.boardFolder ? intl.formatMessage({id: 'Terminal.board-folder', defaultMessage: 'the board’s folder'}) : info()?.cwd}
+                        </code>
                     </Show>
                     <span class={`AcpTerminalPage__status AcpTerminalPage__status--${status()}`}>{statusText()}</span>
                 </div>

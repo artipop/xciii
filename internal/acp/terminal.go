@@ -92,6 +92,9 @@ type TerminalInfo struct {
 	Running   bool   `json:"running"`
 	ExitCode  int    `json:"exitCode"`
 	StartedAt string `json:"startedAt"`
+	// BoardFolder says Cwd is «папка доски» — the board's own directory under
+	// the app's data — so the UI can call it that instead of showing the path.
+	BoardFolder bool `json:"boardFolder,omitempty"`
 }
 
 // Info describes the session for the window that draws it.
@@ -111,6 +114,9 @@ func (t *TerminalSession) Info() TerminalInfo {
 		Command:   strings.Join(t.Argv, " "),
 		StartedAt: t.StartedAt.Format(time.RFC3339),
 		ExitCode:  t.exitCode,
+		// The UI names the board's folder «папка доски» rather than showing
+		// a path into the app's own data directory.
+		BoardFolder: t.m != nil && t.Cwd != "" && t.Cwd == t.m.boardFolder(t.BoardID),
 	}
 	select {
 	case <-t.done:
@@ -286,6 +292,19 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 	})
 }
 
+// boardFolder is «папка доски»: the board's own directory under the app's
+// data, where conversations with no folder of their own run — and where what
+// an agent leaves for one card is on hand for the next. Named by the board's
+// id and nothing else: a generated name (the herokuish kind) would have to be
+// remembered somewhere, an id needs no state at all — and no UI ever shows
+// the name, every surface says «папка доски».
+func (m *Manager) boardFolder(boardID string) string {
+	if boardID == "" {
+		return ""
+	}
+	return filepath.Join(filepath.Dir(m.cfg.WorktreeDir), "boards", boardID)
+}
+
 // cardStage is the stage the card stands on and who works it: the node's own
 // crew, else its column's. Both empty for a card outside any route.
 func (m *Manager) cardStage(cardID string) (string, []string) {
@@ -459,18 +478,20 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		t.Branch = wt.Branch
 	}
 
-	// A card's conversation with no folder still needs a working directory,
-	// and it has to be the card's own: the CLI's resume is directory-scoped,
-	// so a directory shared between cards would hand one card another card's
-	// conversation. <dataDir>/talks/<cardID>, derived the way trace.go derives
-	// the data dir.
+	// A conversation with no folder runs in «папка доски» — the board's own
+	// directory under the app's data, which is what every UI surface calls
+	// it. One folder per board, deliberately: what an agent writes there for
+	// one card (a brief, a draft) is on hand when another card of the same
+	// board is talked over. The price is that the CLI's directory-scoped
+	// resume is board-scoped here too — the same trade every non-git project
+	// folder already makes.
 	if t.Cwd == "" && spec.cardID != "" {
-		talks := filepath.Join(filepath.Dir(m.cfg.WorktreeDir), "talks", spec.cardID)
-		if err := os.MkdirAll(talks, 0o755); err != nil {
+		folder := m.boardFolder(spec.boardID)
+		if err := os.MkdirAll(folder, 0o755); err != nil {
 			m.closeBoardTools(boardToken, mcpConfig)
-			return nil, fmt.Errorf("не удалось создать папку разговора: %w", err)
+			return nil, fmt.Errorf("не удалось создать папку доски: %w", err)
 		}
-		t.Cwd = talks
+		t.Cwd = folder
 	}
 	t.startSHA = headSHA(m.rootCtx, t.Cwd)
 
@@ -919,10 +940,10 @@ func (m *Manager) TerminalHistoryForCard(cardID string) ResumableTerminal {
 		Branch:    rec.Branch,
 		Agent:     rec.Agent,
 	}
-	// A folderless conversation lives in the card's talk directory, which is
-	// not where any work lives — and the stamp under the card's title reads
-	// Cwd as the worktree. The conversation stays resumable; the address is
-	// nobody's business.
+	// A folderless conversation lives in «папка доски», which is not where
+	// any work lives — and the stamp under the card's title reads Cwd as the
+	// worktree. The conversation stays resumable; the address is nobody's
+	// business.
 	if rec.ProjectPath == "" {
 		out.Cwd = ""
 	}

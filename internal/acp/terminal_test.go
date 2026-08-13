@@ -470,8 +470,8 @@ func TestPlanningTerminalCarriesTheEditedInstructions(t *testing.T) {
 
 // A card can be talked over — wording, a plan, the brief — before anybody
 // decides where the work lives, so "the card names no folder" is not a
-// refusal: the conversation opens in the card's own talk directory, with no
-// worktree and no branch.
+// refusal: the conversation opens in «папка доски» — the board's own
+// directory under the app's data — with no worktree and no branch.
 func TestCardTerminalOpensWithoutAnyProject(t *testing.T) {
 	if _, err := exec.LookPath("sh"); err != nil {
 		t.Skip("no shell to stand in for an agent CLI")
@@ -489,12 +489,15 @@ func TestCardTerminalOpensWithoutAnyProject(t *testing.T) {
 	}
 	defer func() { _ = m.CloseTerminal(term.ID) }()
 
-	want := filepath.Join(filepath.Dir(m.cfg.WorktreeDir), "talks", "card-talk")
+	want := filepath.Join(filepath.Dir(m.cfg.WorktreeDir), "boards", "board1")
 	if term.Cwd != want {
-		t.Errorf("talking in %s, want the card's own %s", term.Cwd, want)
+		t.Errorf("talking in %s, want the board's own %s", term.Cwd, want)
 	}
 	if term.Branch != "" {
 		t.Errorf("a folderless conversation grew branch %q", term.Branch)
+	}
+	if !term.Info().BoardFolder {
+		t.Error("the info does not say this is «папка доски», so the UI would show the raw path")
 	}
 }
 

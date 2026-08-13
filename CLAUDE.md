@@ -599,17 +599,26 @@ person opening one is present.
 card can be talked over — wording, a plan, the brief — before anybody decides
 where the work lives, so "the card names no folder" is not a refusal:
 `resolveProject`'s two nothing-chosen errors are marked `errNoProject`
-(projects.go) and `StartCardTerminal` opens the conversation without one, in
-`<dataDir>/talks/<cardID>` — the card's own directory, because the CLI's
-resume is directory-scoped and a shared one would hand one card another
-card's conversation. The *panel*, though, asks before it starts one:
-`GetCardAgent.folder` (`CardFolder`) says whether the card resolves a folder,
-and a card that does not — with no conversation to reopen — gets the pick
-form, «— без папки, просто поговорить —» being a first-class answer with a
-note naming the temp directory. Go's own fallback stays for the windowed
-path, which has no form to ask with. A folder the card *does* name but which
-is broken stays an error: the person meant it. Sessions are untouched —
-automation without a folder has nowhere to work, so it stalls as before.
+(projects.go) and `StartCardTerminal` opens the conversation in **«папка
+доски»** — `<dataDir>/boards/<boardID>`, the board's own directory under the
+app's data, which is what every UI surface calls it (`TerminalInfo.
+BoardFolder` is how a surface knows to; the name is the board id and nothing
+else, because a generated name would need remembering somewhere). One folder
+per board on purpose: what an agent writes there for one card — a brief, a
+draft — is on hand when another card of the same board is talked over; the
+price is that the CLI's directory-scoped resume is board-scoped there, the
+same trade every non-git project folder makes. The *panel* asks before
+starting one: `GetCardAgent.folder` (`CardFolder`) says whether the card
+resolves a folder, and a card that does not — with no conversation to
+reopen — gets the dialog: «Для работы агента необходимо выбрать папку», with
+«Использовать папку доски» and «Выбрать папку…» as its answers, either of
+which starts the conversation. Go's own fallback (board folder) stays for the
+windowed path, which has no form to ask with. A conversation that already
+exists continues with the agent who held it — re-resolving refused every old
+conversation the moment a second agent was registered. A folder the card
+*does* name but which is broken stays an error: the person meant it. Sessions
+are untouched — automation without a folder has nowhere to work, so it stalls
+as before.
 
 **The panel asks only what Go refused to answer**: when `OpenCardTerminal`
 fails — which now means the agent, or a folder named but broken — the panel

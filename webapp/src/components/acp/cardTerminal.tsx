@@ -72,7 +72,6 @@ const CardTerminal = (props: Props) => {
     // сейчас», not an assignment — the card's «Кто занимается» stays whatever
     // a person set it to.
     const [choosing, setChoosing] = createSignal(false)
-    const [projects, setProjects] = createSignal<Array<{name: string}>>([])
     const [agents, setAgents] = createSignal<Array<{name: string}>>([])
     const [projectName, setProjectName] = createSignal('')
     const [agentName, setAgentName] = createSignal('')
@@ -119,24 +118,18 @@ const CardTerminal = (props: Props) => {
         }
     }
 
-    // What is on offer, fetched only when there is something to choose. One of
-    // a kind needs no choosing and is filled in rather than asked for.
+    // Who is on offer, fetched only when there is something to choose. One of
+    // a kind needs no choosing and is filled in rather than asked for. The
+    // folder is deliberately never prefilled from the registry: the dialog's
+    // first answer is «папка доски», and a lone registered project quietly
+    // standing in for it would redirect that button.
     const offerChoices = async () => {
-        if (!bindings) {
+        if (!bindings?.ListAgents) {
             return
         }
         try {
-            const [projectList, agentList] = await Promise.all([
-                bindings.ListAgentProjects ? bindings.ListAgentProjects(props.board.id) : '[]',
-                bindings.ListAgents ? bindings.ListAgents() : '[]',
-            ])
-            const parsedProjects = (JSON.parse(projectList) || []) as Array<{name: string}>
-            const parsedAgents = (JSON.parse(agentList) || []) as Array<{name: string}>
-            setProjects(parsedProjects)
+            const parsedAgents = (JSON.parse(await bindings.ListAgents()) || []) as Array<{name: string}>
             setAgents(parsedAgents)
-            if (parsedProjects.length === 1) {
-                setProjectName(parsedProjects[0].name)
-            }
             if (parsedAgents.length === 1) {
                 setAgentName(parsedAgents[0].name)
             }
@@ -147,8 +140,9 @@ const CardTerminal = (props: Props) => {
 
     // A folder is two answers — where it is and what to call it — and the
     // native picker gives both. It belongs to this board, like every project
-    // added anywhere but the "on every board" checkbox.
-    const addProject = async () => {
+    // added anywhere but the "on every board" checkbox — and picking one is
+    // the answer to the dialog, so the conversation starts with it.
+    const pickFolderAndStart = async () => {
         if (!bindings?.PickDirectory || !bindings.AddAgentProject) {
             return
         }
@@ -159,8 +153,8 @@ const CardTerminal = (props: Props) => {
             }
             const name = path.split('/').filter(Boolean).pop() || path
             await bindings.AddAgentProject(name, path, props.board.id, false)
-            await offerChoices()
             setProjectName(name)
+            await start(false)
         } catch (e: any) {
             setError(String(e?.message || e))
         }
@@ -301,41 +295,49 @@ const CardTerminal = (props: Props) => {
                 point at the settings instead: planning in place is the point,
                 and an errand to the settings is where planning goes to die. */}
             <Show when={choosing()}>
+                {/* Which of the two questions is actually open decides the
+                    form. No folder: the dialog Артём asked for — the sentence
+                    and two answers, «папка доски» (the board's own directory
+                    under the app's data, called that on every surface) or a
+                    picked folder. Folder known, agent refused: the agent is
+                    the whole question, so the folder buttons never show. */}
                 <div class='CardTerminal__ask'>
-                    {intl.formatMessage({id: 'CardTerminal.ask', defaultMessage: 'Who talks here, and where? Pick an agent; a folder is optional.'})}
+                    <Show
+                        when={state().folder}
+                        fallback={intl.formatMessage({id: 'CardTerminal.need-folder', defaultMessage: 'The agent needs a folder to work in.'})}
+                    >
+                        {intl.formatMessage({id: 'CardTerminal.ask-agent', defaultMessage: 'Who talks here? Pick an agent.'})}
+                    </Show>
                 </div>
 
-                {/* A form, not a strip: one question per row — who, then
-                    where — each with its answer and its escape hatch aligned,
-                    and the one action underneath. The agent comes first
-                    because it is the only required answer; «— без папки —»
-                    is a real choice, since a conversation needs no folder. */}
                 <div class='CardTerminal__picker'>
-                    <div class='CardTerminal__pickRow'>
-                        <span class='CardTerminal__pickLabel'>
-                            {intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
-                        </span>
-                        <div class='CardTerminal__pickControl'>
-                            <Select
-                                value={agentName()}
-                                options={[
-                                    {value: '', label: intl.formatMessage({id: 'CardTerminal.choose-agent', defaultMessage: 'Choose an agent…'})},
-                                    ...agents().map((a) => ({value: a.name, label: a.name})),
-                                ]}
-                                onChange={setAgentName}
-                                label={intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
-                            />
+                    <Show when={agents().length !== 1 || !agentName()}>
+                        <div class='CardTerminal__pickRow'>
+                            <span class='CardTerminal__pickLabel'>
+                                {intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
+                            </span>
+                            <div class='CardTerminal__pickControl'>
+                                <Select
+                                    value={agentName()}
+                                    options={[
+                                        {value: '', label: intl.formatMessage({id: 'CardTerminal.choose-agent', defaultMessage: 'Choose an agent…'})},
+                                        ...agents().map((a) => ({value: a.name, label: a.name})),
+                                    ]}
+                                    onChange={setAgentName}
+                                    label={intl.formatMessage({id: 'CardTerminal.agent', defaultMessage: 'Agent'})}
+                                />
+                            </div>
+                            <Show when={!addingAgent()}>
+                                <button
+                                    type='button'
+                                    class='CardTerminal__pickAdd'
+                                    onClick={() => setAddingAgent(true)}
+                                >
+                                    {intl.formatMessage({id: 'CardTerminal.add-agent', defaultMessage: 'Add an agent…'})}
+                                </button>
+                            </Show>
                         </div>
-                        <Show when={!addingAgent()}>
-                            <button
-                                type='button'
-                                class='CardTerminal__pickAdd'
-                                onClick={() => setAddingAgent(true)}
-                            >
-                                {intl.formatMessage({id: 'CardTerminal.add-agent', defaultMessage: 'Add an agent…'})}
-                            </button>
-                        </Show>
-                    </div>
+                    </Show>
 
                     <Show when={addingAgent()}>
                         <AgentQuickAdd
@@ -349,50 +351,44 @@ const CardTerminal = (props: Props) => {
                         />
                     </Show>
 
-                    <div class='CardTerminal__pickRow'>
-                        <span class='CardTerminal__pickLabel'>
-                            {intl.formatMessage({id: 'CardTerminal.project', defaultMessage: 'Folder'})}
-                        </span>
-                        <div class='CardTerminal__pickControl'>
-                            <Select
-                                value={projectName()}
-                                options={[
-                                    {value: '', label: intl.formatMessage({id: 'CardTerminal.choose-project', defaultMessage: '— no folder, just talk —'})},
-                                    ...projects().map((r) => ({value: r.name, label: r.name})),
-                                ]}
-                                onChange={setProjectName}
-                                label={intl.formatMessage({id: 'CardTerminal.project', defaultMessage: 'Folder'})}
-                            />
-                        </div>
-                        <Show when={Boolean(bindings?.PickDirectory)}>
-                            <button
-                                type='button'
-                                class='CardTerminal__pickAdd'
-                                onClick={addProject}
+                    <div class='CardTerminal__pickActions'>
+                        <Show
+                            when={!state().folder}
+                            fallback={
+                                <Button
+                                    filled={true}
+                                    onClick={() => start(false)}
+                                    disabled={busy() || !agentName()}
+                                >
+                                    {intl.formatMessage({id: 'CardTerminal.start', defaultMessage: 'Start the conversation'})}
+                                </Button>
+                            }
+                        >
+                            {/* Both answers start the conversation: the
+                                choice is the ask. */}
+                            <Button
+                                filled={true}
+                                onClick={() => start(false)}
+                                disabled={busy() || !agentName()}
                             >
-                                {intl.formatMessage({id: 'CardTerminal.add-project', defaultMessage: 'Add a folder…'})}
-                            </button>
+                                {intl.formatMessage({id: 'CardTerminal.board-folder', defaultMessage: 'Use the board’s folder'})}
+                            </Button>
+                            <Show when={Boolean(bindings?.PickDirectory)}>
+                                <Button
+                                    onClick={pickFolderAndStart}
+                                    disabled={busy() || !agentName()}
+                                >
+                                    {intl.formatMessage({id: 'CardTerminal.pick-folder', defaultMessage: 'Choose a folder…'})}
+                                </Button>
+                            </Show>
                         </Show>
                     </div>
 
-                    {/* «Без папки» must not read as "somewhere unspoken": the
-                        consequence is said before the start, not discovered
-                        in the terminal's prompt. */}
-                    <Show when={!projectName()}>
+                    <Show when={!state().folder}>
                         <div class='CardTerminal__pickNote'>
-                            {intl.formatMessage({id: 'CardTerminal.no-folder-note', defaultMessage: 'A temporary directory of the card’s own will be created — the agent sees no code there, only this conversation.'})}
+                            {intl.formatMessage({id: 'CardTerminal.board-folder-note', defaultMessage: 'The board’s folder is where its agents keep what they write for the board’s cards — briefs, drafts, notes. There is no code in it.'})}
                         </div>
                     </Show>
-
-                    <div class='CardTerminal__pickActions'>
-                        <Button
-                            filled={true}
-                            onClick={() => start(false)}
-                            disabled={busy() || !agentName()}
-                        >
-                            {intl.formatMessage({id: 'CardTerminal.start', defaultMessage: 'Start the conversation'})}
-                        </Button>
-                    </div>
                 </div>
 
                 <Show when={error()}>

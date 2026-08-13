@@ -55,16 +55,23 @@ There is no "Terminal" button if no agent is registered on the machine. The
 exception is a card that was already worked: it has a branch and a worktree, so
 the button stays even after the agent is removed.
 
-**A folder is optional — and never chosen silently.** A card can be talked
-over without one: wording, subtasks, a brief. If neither the «Проекты» field
-nor the registry names a folder, the panel does not decide for you — it asks:
-an agent, a folder, where "— no folder, just talk —" is as much an answer as
-any folder, with a note saying a temporary directory of the card's own will
-be created and the agent sees no code there. The same ask appears when the
-agent could not be determined; "Add an agent…" and "Add a folder…" stand
-beside the picks. The choice lasts one conversation and does not change the
-card's assignment. A folder the card names but which is missing on disk is
-still an error.
+**If no folder resolves, the panel asks.** A card can be talked over without
+code: wording, subtasks, a brief. When neither the «Проекты» field nor the
+registry names a folder, the question "The agent needs a folder to work in"
+appears with two answers:
+
+- **"Use the board's folder"** — the board's own folder in the app's data:
+  its agents keep what they write for its cards there — briefs, drafts,
+  notes. There is no code in it, and it is one per board: what was written
+  for one card is on hand when another is talked over;
+- **"Choose a folder…"** — the usual folder pick; it joins the board's
+  projects and the conversation starts in it.
+
+With more than one agent, an agent pick stands beside them (and "Add an
+agent…"). The choice lasts one conversation and does not change the card's
+assignment; a started conversation continues in the same place with the same
+agent. A folder the card names but which is missing on disk is still an
+error.
 
 The agent in such a conversation has the board's tools: it can fill the card
 in, split it into subtasks, set fields.
