@@ -20,7 +20,7 @@ exports[`src/components/kanban/kanbanCard > return kanbanCard and click on copy 
         />
       </button>
       <div
-        class="Menu noselect left "
+        class="Menu noselect left"
       >
         <div
           class="menu-contents"
@@ -220,12 +220,12 @@ exports[`src/components/kanban/kanbanCard > return kanbanCard and click on copy 
       </div>
     </div>
     <div
-      class="octo-tooltip tooltip-top"
-      data-tooltip="name"
+      class="octo-tooltip"
     >
       <div
         class="octo-propertyvalue octo-propertyvalue--readonly"
       />
+      
     </div>
     
   </div>
@@ -252,7 +252,7 @@ exports[`src/components/kanban/kanbanCard > return kanbanCard and click on delet
         />
       </button>
       <div
-        class="Menu noselect left "
+        class="Menu noselect left"
       >
         <div
           class="menu-contents"
@@ -452,12 +452,12 @@ exports[`src/components/kanban/kanbanCard > return kanbanCard and click on delet
       </div>
     </div>
     <div
-      class="octo-tooltip tooltip-top"
-      data-tooltip="name"
+      class="octo-tooltip"
     >
       <div
         class="octo-propertyvalue octo-propertyvalue--readonly"
       />
+      
     </div>
     
   </div>
@@ -484,7 +484,7 @@ exports[`src/components/kanban/kanbanCard > return kanbanCard and click on dupli
         />
       </button>
       <div
-        class="Menu noselect left "
+        class="Menu noselect left"
       >
         <div
           class="menu-contents"
@@ -684,12 +684,12 @@ exports[`src/components/kanban/kanbanCard > return kanbanCard and click on dupli
       </div>
     </div>
     <div
-      class="octo-tooltip tooltip-top"
-      data-tooltip="name"
+      class="octo-tooltip"
     >
       <div
         class="octo-propertyvalue octo-propertyvalue--readonly"
       />
+      
     </div>
     
   </div>
@@ -732,12 +732,12 @@ exports[`src/components/kanban/kanbanCard > should match snapshot 1`] = `
       </div>
     </div>
     <div
-      class="octo-tooltip tooltip-top"
-      data-tooltip="name"
+      class="octo-tooltip"
     >
       <div
         class="octo-propertyvalue octo-propertyvalue--readonly"
       />
+      
     </div>
     
   </div>
@@ -767,12 +767,12 @@ exports[`src/components/kanban/kanbanCard > should match snapshot with readonly 
       </div>
     </div>
     <div
-      class="octo-tooltip tooltip-top"
-      data-tooltip="name"
+      class="octo-tooltip"
     >
       <div
         class="octo-propertyvalue octo-propertyvalue--readonly"
       />
+      
     </div>
     
   </div>

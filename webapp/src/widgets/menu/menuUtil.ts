@@ -1,45 +1,38 @@
-import type {JSX} from 'solid-js'
+import {createContext, useContext} from 'solid-js'
+import type {Placement} from '@floating-ui/dom'
 
 // The ref shape the React version took from useRef; callers hand in
 // {current: element} so the calculation stays framework-free.
 export type AnchorRef = {current: HTMLElement | null}
 
-/**
- * Calculates the position where the menu should be open, aligning it with the
- * `anchorRef` and positioning it down or up around the ref.
- * This should be used to make sure the menues are always aligned regardless of
- * the scroll position and fullly visible in cases when opening them close to
- * the edges of screen.
- * @param anchorRef ref of the element with respect to which the menu position is to be calculated.
- * @param forceBottom forces the element to be aligned at the bottom of the ref
- * @param menuMargin a safe margin value to be ensured around the menu in the calculations.
- *  this ensures the menu stick to the edges of the screen ans has some space around for ease of use.
- */
-function openUp(anchorRef: AnchorRef, forceBottom = false, menuMargin = 40): {openUp: boolean, style: JSX.CSSProperties} {
-    const ret = {
-        openUp: false,
-        style: {} as JSX.CSSProperties,
-    }
-    if (!anchorRef.current) {
-        return ret
-    }
+export type MenuPlacement = 'top' | 'bottom' | 'left' | 'right' | 'auto'
 
-    const boundingRect = anchorRef.current.getBoundingClientRect()
-    const y = typeof boundingRect?.y === 'undefined' ? boundingRect?.top : boundingRect.y
-    const windowHeight = window.innerHeight
-    const totalSpace = windowHeight - menuMargin
-    const spaceOnTop = y || 0
-    const spaceOnBottom = totalSpace - spaceOnTop
-    ret.openUp = spaceOnTop > spaceOnBottom
+// This menu's own vocabulary, which is not floating-ui's. `left` never named
+// the side the menu opens on — it was `right: 0` against the wrapper, meaning
+// the menu lines its right edge up with the anchor's, which is `-end` here.
+// And `auto` asked for whichever side had room, which is what `flip` does to
+// any placement, so it is `bottom-start` like the default.
+const PLACEMENTS: Record<MenuPlacement, Placement> = {
+    top: 'top-start',
+    bottom: 'bottom-start',
+    right: 'bottom-start',
+    left: 'bottom-end',
+    auto: 'bottom-start',
+}
 
-    // Solid does not append px to numeric style values the way React did.
-    if (!forceBottom && ret.openUp) {
-        ret.style.bottom = `${spaceOnBottom + menuMargin}px`
-    } else {
-        ret.style.top = `${spaceOnTop + menuMargin}px`
-    }
+export function floatingPlacement(position?: MenuPlacement): Placement {
+    return PLACEMENTS[position || 'bottom'] || 'bottom-start'
+}
 
-    return ret
+// The element a menu was opened from, handed down rather than passed in. A
+// menu is written as JSX in MenuWrapper's `menu` prop at forty-odd call sites,
+// and none of them should have to learn that placing one needs a measurement.
+const MenuAnchorContext = createContext<() => HTMLElement | undefined>(() => undefined)
+
+export const MenuAnchorProvider = MenuAnchorContext.Provider
+
+export function useMenuAnchor(): () => HTMLElement | undefined {
+    return useContext(MenuAnchorContext)
 }
 
 // The options a keyboard walks, in the order they are on screen: the ones a
@@ -62,6 +55,3 @@ export function menuOptions(root: HTMLElement | undefined): HTMLElement[] {
         !option.classList.contains('menu-option--disabled'))
 }
 
-const MenuUtil = {openUp}
-
-export default MenuUtil

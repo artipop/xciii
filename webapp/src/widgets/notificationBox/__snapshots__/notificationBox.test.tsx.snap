@@ -17,8 +17,7 @@ exports[`widgets/NotificationBox > should match snapshot with close with tooltip
       CONTENT
     </div>
     <div
-      class="octo-tooltip tooltip-top"
-      data-tooltip="tooltip"
+      class="octo-tooltip"
     >
       <button
         class="IconButton"
@@ -28,6 +27,7 @@ exports[`widgets/NotificationBox > should match snapshot with close with tooltip
           class="CompassIcon icon-close CloseIcon"
         />
       </button>
+      
     </div>
   </div>
 </div>
@@ -107,8 +107,7 @@ exports[`widgets/NotificationBox > should match snapshot with icon and close wit
       CONTENT
     </div>
     <div
-      class="octo-tooltip tooltip-top"
-      data-tooltip="tooltip"
+      class="octo-tooltip"
     >
       <button
         class="IconButton"
@@ -118,6 +117,7 @@ exports[`widgets/NotificationBox > should match snapshot with icon and close wit
           class="CompassIcon icon-close CloseIcon"
         />
       </button>
+      
     </div>
   </div>
 </div>

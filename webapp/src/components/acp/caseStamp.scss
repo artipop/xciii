@@ -33,9 +33,4 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-
-    // A terminal that is open now is the only thing here worth a colour.
-    &__field--terminal &__value {
-        color: rgb(var(--sidebar-text-active-border-rgb));
-    }
 }

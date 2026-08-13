@@ -20,6 +20,13 @@
 
     transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 
+    // The strip the console button stands in, and only on the cards that have
+    // one. Without it a card of nothing but a title is shorter than the
+    // corner the button sits in, and the title runs under it.
+    &--agent {
+        padding-bottom: 32px;
+    }
+
     &:hover {
         box-shadow: 0 0 0 1px var(--border-strong), var(--elevation-3);
 
@@ -60,13 +67,19 @@
         }
     }
 
-    // The terminal on the card, from its top-right corner: the console glyph
-    // where the eye already looks for a card's controls. Quiet ink while it
-    // merely runs; the amber the design language keeps for attention, and the
-    // slow breath with it, while the agent is asking.
+    // The terminal on the card, from its bottom-right corner: quiet ink while
+    // it merely runs; the amber the design language keeps for attention, and
+    // the slow breath with it, while the agent is asking.
+    //
+    // It began in the top-right, which is where a card's controls are — and
+    // that is exactly why it moved: the ⋯ menu is there too, so the two spent
+    // their time stepping around each other and the title carried padding for
+    // a button that is only on some cards. The bottom-right corner is empty on
+    // every card (the badges run from the left) and it is the corner nearest
+    // the next card, which is where the eye already is.
     .KanbanCard__terminal {
         position: absolute;
-        top: 8px;
+        bottom: 8px;
         right: 10px;
         display: flex;
         align-items: center;
@@ -94,18 +107,6 @@
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
         }
-    }
-
-    // The ⋯ appears in the same corner on hover; with the terminal standing
-    // there it steps aside rather than covering the one control that is
-    // always on screen.
-    .KanbanCard__terminal ~ .optionsMenu {
-        right: 40px;
-    }
-
-    // And the title never runs under the button.
-    .KanbanCard__terminal ~ .octo-icontitle {
-        padding-right: 26px;
     }
 
     @keyframes kanbancard-attention {

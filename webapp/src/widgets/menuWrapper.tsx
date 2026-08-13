@@ -1,7 +1,7 @@
 import {Show, createEffect, createSignal, onCleanup} from 'solid-js'
 import type {JSX, ParentComponent} from 'solid-js'
 
-import {menuOptions} from './menu/menuUtil'
+import {MenuAnchorProvider, menuOptions} from './menu/menuUtil'
 
 import './menuWrapper.scss'
 
@@ -160,7 +160,14 @@ const MenuWrapper: ParentComponent<Props> = (props) => {
         >
             {props.children}
             <Show when={!props.disabled && open()}>
-                {props.menu}
+                {/* The wrapper is what the menu measures itself against, and it
+                    is handed down rather than passed: `menu` is JSX in prop
+                    position at every call site, and none of them should have to
+                    know that a menu is placed against the viewport. Read here,
+                    inside the provider, so the getter builds it underneath. */}
+                <MenuAnchorProvider value={() => node}>
+                    {props.menu}
+                </MenuAnchorProvider>
             </Show>
         </div>
     )

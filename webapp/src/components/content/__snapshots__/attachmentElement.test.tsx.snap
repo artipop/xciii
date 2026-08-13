@@ -17,12 +17,12 @@ exports[`component/content/FileBlock > archived file 1`] = `
       class="fileElement-file-details mt-3"
     >
       <div
-        class="octo-tooltip tooltip-bottom"
-        data-tooltip=""
+        class="octo-tooltip"
       >
         <div
           class="fileElement-file-name"
         />
+        
       </div>
       <div
         class="fileElement-file-ext-and-size"
@@ -52,8 +52,7 @@ exports[`component/content/FileBlock > archived file 1`] = `
         
       </div>
       <div
-        class="octo-tooltip tooltip-bottom"
-        data-tooltip="Download"
+        class="octo-tooltip"
       >
         <div
           class="fileElement-download-btn mt-3 mr-2"
@@ -62,6 +61,7 @@ exports[`component/content/FileBlock > archived file 1`] = `
             class="CompassIcon icon-download-outline"
           />
         </div>
+        
       </div>
     </div>
   </div>
@@ -85,12 +85,12 @@ exports[`component/content/FileBlock > should match snapshot 1`] = `
       class="fileElement-file-details mt-3"
     >
       <div
-        class="octo-tooltip tooltip-bottom"
-        data-tooltip=""
+        class="octo-tooltip"
       >
         <div
           class="fileElement-file-name"
         />
+        
       </div>
       <div
         class="fileElement-file-ext-and-size"
@@ -120,8 +120,7 @@ exports[`component/content/FileBlock > should match snapshot 1`] = `
         
       </div>
       <div
-        class="octo-tooltip tooltip-bottom"
-        data-tooltip="Download"
+        class="octo-tooltip"
       >
         <div
           class="fileElement-download-btn mt-3 mr-2"
@@ -130,6 +129,7 @@ exports[`component/content/FileBlock > should match snapshot 1`] = `
             class="CompassIcon icon-download-outline"
           />
         </div>
+        
       </div>
     </div>
   </div>

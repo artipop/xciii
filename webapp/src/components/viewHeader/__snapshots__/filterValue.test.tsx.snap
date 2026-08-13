@@ -38,7 +38,7 @@ exports[`components/viewHeader/filterValue > return filterValue 1`] = `
       
     </button>
     <div
-      class="Menu noselect bottom "
+      class="Menu noselect bottom"
     >
       <div
         class="menu-contents"
@@ -126,7 +126,7 @@ exports[`components/viewHeader/filterValue > return filterValue and click Status
       
     </button>
     <div
-      class="Menu noselect bottom "
+      class="Menu noselect bottom"
     >
       <div
         class="menu-contents"
@@ -214,7 +214,7 @@ exports[`components/viewHeader/filterValue > return filterValue and click Status
       
     </button>
     <div
-      class="Menu noselect bottom "
+      class="Menu noselect bottom"
     >
       <div
         class="menu-contents"

@@ -95,7 +95,7 @@ window, and with no card behind it this is the only place to find it again.
 ## The terminal button on a card
 
 You do not need to open a card to reach its terminal. A terminal-icon button
-appears in the top right corner of a card on the board:
+appears in the bottom right corner of a card on the board:
 
 - **amber, blinking** — the agent is asking something;
 - **grey** — a terminal is currently working on the card.

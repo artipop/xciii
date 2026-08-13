@@ -1487,8 +1487,7 @@ exports[`components/table/Table extended > should have Duplicate Button 1`] = `
               role="button"
             >
               <div
-                class="octo-tooltip tooltip-top"
-                data-tooltip="More actions"
+                class="octo-tooltip"
               >
                 <button
                   aria-label="MenuBtn"
@@ -1499,6 +1498,7 @@ exports[`components/table/Table extended > should have Duplicate Button 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               
             </div>
@@ -1615,8 +1615,7 @@ exports[`components/table/Table extended > should have Duplicate Button 1`] = `
               role="button"
             >
               <div
-                class="octo-tooltip tooltip-top"
-                data-tooltip="More actions"
+                class="octo-tooltip"
               >
                 <button
                   aria-label="MenuBtn"
@@ -1627,6 +1626,7 @@ exports[`components/table/Table extended > should have Duplicate Button 1`] = `
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               
             </div>
@@ -2369,8 +2369,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedBy 
               role="button"
             >
               <div
-                class="octo-tooltip tooltip-top"
-                data-tooltip="More actions"
+                class="octo-tooltip"
               >
                 <button
                   aria-label="MenuBtn"
@@ -2381,6 +2380,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedBy 
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               
             </div>
@@ -2497,8 +2497,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedBy 
               role="button"
             >
               <div
-                class="octo-tooltip tooltip-top"
-                data-tooltip="More actions"
+                class="octo-tooltip"
               >
                 <button
                   aria-label="MenuBtn"
@@ -2509,6 +2508,7 @@ exports[`components/table/Table extended > should match snapshot with CreatedBy 
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               
             </div>
@@ -2844,8 +2844,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedAt 
               role="button"
             >
               <div
-                class="octo-tooltip tooltip-top"
-                data-tooltip="More actions"
+                class="octo-tooltip"
               >
                 <button
                   aria-label="MenuBtn"
@@ -2856,6 +2855,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedAt 
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               
             </div>
@@ -2972,8 +2972,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedAt 
               role="button"
             >
               <div
-                class="octo-tooltip tooltip-top"
-                data-tooltip="More actions"
+                class="octo-tooltip"
               >
                 <button
                   aria-label="MenuBtn"
@@ -2984,6 +2983,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedAt 
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               
             </div>
@@ -3319,8 +3319,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedBy 
               role="button"
             >
               <div
-                class="octo-tooltip tooltip-top"
-                data-tooltip="More actions"
+                class="octo-tooltip"
               >
                 <button
                   aria-label="MenuBtn"
@@ -3331,6 +3330,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedBy 
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               
             </div>
@@ -3447,8 +3447,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedBy 
               role="button"
             >
               <div
-                class="octo-tooltip tooltip-top"
-                data-tooltip="More actions"
+                class="octo-tooltip"
               >
                 <button
                   aria-label="MenuBtn"
@@ -3459,6 +3458,7 @@ exports[`components/table/Table extended > should match snapshot with UpdatedBy 
                     class="CompassIcon icon-dots-horizontal OptionsIcon"
                   />
                 </button>
+                
               </div>
               
             </div>

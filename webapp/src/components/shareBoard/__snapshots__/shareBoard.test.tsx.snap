@@ -589,8 +589,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Rege
                 http://localhost/undefined?r=anotherToken
               </a>
               <div
-                class="octo-tooltip tooltip-top"
-                data-tooltip="Regenerate token"
+                class="octo-tooltip"
               >
                 <button
                   aria-label="Regenerate token"
@@ -601,6 +600,19 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Rege
                     class="CompassIcon icon-refresh"
                   />
                 </button>
+                <div
+                  class="octo-tooltip__body"
+                  role="tooltip"
+                >
+                  <span
+                    class="octo-tooltip__text"
+                  >
+                    Regenerate token
+                  </span>
+                  <div
+                    class="octo-tooltip__arrow"
+                  />
+                </div>
               </div>
             </div>
             <button
@@ -1863,8 +1875,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard, and click swi
                 http://localhost/undefined?r=oneToken
               </a>
               <div
-                class="octo-tooltip tooltip-top"
-                data-tooltip="Regenerate token"
+                class="octo-tooltip"
               >
                 <button
                   aria-label="Regenerate token"
@@ -1875,6 +1886,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard, and click swi
                     class="CompassIcon icon-refresh"
                   />
                 </button>
+                
               </div>
             </div>
             <button

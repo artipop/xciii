@@ -429,14 +429,14 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview > should 
               </div>
             </div>
             <div
-              class="octo-tooltip tooltip-top"
-              data-tooltip="name"
+              class="octo-tooltip"
             >
               <div
                 class="octo-propertyvalue octo-propertyvalue--readonly"
               >
                 test
               </div>
+              
             </div>
             
           </div>

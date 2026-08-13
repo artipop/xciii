@@ -3,7 +3,7 @@
 exports[`components/cardActionsMenu > should match snapshot 1`] = `
 <div>
   <div
-    class="Menu noselect left "
+    class="Menu noselect left"
   >
     <div
       class="menu-contents"
@@ -162,7 +162,7 @@ exports[`components/cardActionsMenu > should match snapshot 1`] = `
 exports[`components/cardActionsMenu > should match snapshot w/ children prop 1`] = `
 <div>
   <div
-    class="Menu noselect left "
+    class="Menu noselect left"
   >
     <div
       class="menu-contents"
@@ -322,7 +322,7 @@ exports[`components/cardActionsMenu > should match snapshot w/ children prop 1`]
 exports[`components/cardActionsMenu > should match snapshot w/ onClickDuplicate prop 1`] = `
 <div>
   <div
-    class="Menu noselect left "
+    class="Menu noselect left"
   >
     <div
       class="menu-contents"

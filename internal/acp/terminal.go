@@ -547,9 +547,9 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	m.emitTerminal(t)
 
 	// Opening it is not commented on the card: the window is in front of
-	// whoever opened it, and the card's stamp says a terminal is open. What
-	// the card is told is what the terminal left behind — terminalReport, when
-	// the CLI exits.
+	// whoever opened it, and the card's own face carries the console button
+	// while one runs. What the card is told is what the terminal left behind —
+	// terminalReport, when the CLI exits.
 
 	go t.pump()
 	return t, nil
@@ -810,15 +810,38 @@ func (m *Manager) emitTerminal(t *TerminalSession) {
 	})
 }
 
+// terminalEmulator is what the CLI is being drawn on, and it is written rather
+// than inherited: the other end of this pty is xterm.js, which is a 256-colour,
+// true-colour emulator whatever launched the app.
+//
+// Inheriting was the bug. A packaged .app is a child of launchd, which sets
+// neither of these, and a CLI with no TERM draws itself in black and white —
+// `wails3 dev` hid it for as long as it did because a build started from a
+// shell inherits the outer terminal's. And inheriting is wrong even when there
+// is something to inherit: tmux's `screen`, a CI runner's `dumb` and an ssh
+// session's `vt100` all describe a terminal that is not the one this output is
+// painted on.
+var terminalEmulator = []string{
+	"TERM=xterm-256color",
+	"COLORTERM=truecolor",
+}
+
 // terminalEnv applies spawnEnv's result to the current environment: drop first,
 // then add, so an agent's own value wins over an inherited one exactly as it
-// does for an ACP session.
+// does for an ACP session — terminalEmulator included, since an entry naming
+// its own TERM is somebody saying they know better.
 func terminalEnv(add []string, drop []string) []string {
-	dropped := make(map[string]bool, len(drop))
+	dropped := make(map[string]bool, len(drop)+len(terminalEmulator))
 	for _, name := range drop {
 		dropped[name] = true
 	}
-	env := make([]string, 0, len(add)+32)
+	for _, kv := range terminalEmulator {
+		if name, _, ok := strings.Cut(kv, "="); ok {
+			dropped[name] = true
+		}
+	}
+	env := make([]string, 0, len(add)+len(terminalEmulator)+32)
+	env = append(env, terminalEmulator...)
 	for _, kv := range environ() {
 		name, _, ok := strings.Cut(kv, "=")
 		if ok && dropped[name] {

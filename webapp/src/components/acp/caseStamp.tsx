@@ -56,9 +56,11 @@ const CaseStamp = (props: Props) => {
         if (status()) {
             out.push({key: 'session', label: 'session', value: status()})
         }
-        if (state().running) {
-            out.push({key: 'terminal', label: 'terminal', value: 'open'})
-        }
+
+        // A running terminal is deliberately not one of these. The card's own
+        // face already carries the console glyph while one is open, and the
+        // panel it opens is a click away from here — `TERMINAL open` was the
+        // stamp repeating what the board had already said.
         return out
     }
 

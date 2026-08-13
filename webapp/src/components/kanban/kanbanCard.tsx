@@ -129,15 +129,17 @@ const KanbanCard = (props: Props) => {
             <div
                 ref={props.readonly || props.dragDisabled ? undefined : cardRef}
                 class={classes()}
+                classList={{'KanbanCard--agent': showsAgent()}}
                 style={{opacity: isDragging() ? 0.5 : 1}}
                 onClick={handleOnClick}
             >
-                {/* The terminal, from the card's corner: a console button
-                    where the eye already looks for controls. The colour is
-                    the meaning — the board's ink while it merely runs, the
-                    amber kept for attention while the agent is asking — and
-                    the click is the way in. First in the DOM on purpose: the
-                    ⋯ menu and the title step aside with sibling selectors. */}
+                {/* The terminal, from the card's bottom-right corner: a
+                    console button whose colour is the meaning — the board's
+                    ink while it merely runs, the amber kept for attention
+                    while the agent is asking — and whose click is the way in.
+                    It stands in a strip the card reserves for it
+                    (`KanbanCard--agent`), so nothing on the card runs under
+                    it. */}
                 <Show when={showsAgent()}>
                     <Show
                         when={canOpenTerminal()}

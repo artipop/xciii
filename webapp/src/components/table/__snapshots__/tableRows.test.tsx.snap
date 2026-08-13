@@ -44,8 +44,7 @@ exports[`components/table/TableRows > should match snapshot, fire events 1`] = `
         role="button"
       >
         <div
-          class="octo-tooltip tooltip-top"
-          data-tooltip="More actions"
+          class="octo-tooltip"
         >
           <button
             aria-label="MenuBtn"
@@ -57,6 +56,7 @@ exports[`components/table/TableRows > should match snapshot, fire events 1`] = `
               class="CompassIcon icon-dots-horizontal OptionsIcon"
             />
           </button>
+          
         </div>
         
       </div>

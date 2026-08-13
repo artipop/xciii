@@ -692,7 +692,7 @@ exports[`components/cardDialog > return cardDialog menu content 1`] = `
                 />
               </button>
               <div
-                class="Menu noselect left "
+                class="Menu noselect left"
               >
                 <div
                   class="menu-contents"

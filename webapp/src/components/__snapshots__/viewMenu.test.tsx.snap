@@ -9,7 +9,7 @@ exports[`/components/viewMenu > should match snapshot 1`] = `
         class="ViewMenu"
       >
         <div
-          class="Menu noselect bottom "
+          class="Menu noselect bottom"
         >
           <div
             class="menu-contents"
@@ -244,7 +244,7 @@ exports[`/components/viewMenu > should match snapshot 1`] = `
       class="ViewMenu"
     >
       <div
-        class="Menu noselect bottom "
+        class="Menu noselect bottom"
       >
         <div
           class="menu-contents"
@@ -535,7 +535,7 @@ exports[`/components/viewMenu > should match snapshot, read only 1`] = `
         class="ViewMenu"
       >
         <div
-          class="Menu noselect bottom "
+          class="Menu noselect bottom"
         >
           <div
             class="menu-contents"
@@ -686,7 +686,7 @@ exports[`/components/viewMenu > should match snapshot, read only 1`] = `
       class="ViewMenu"
     >
       <div
-        class="Menu noselect bottom "
+        class="Menu noselect bottom"
       >
         <div
           class="menu-contents"

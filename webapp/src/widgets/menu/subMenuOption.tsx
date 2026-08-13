@@ -4,8 +4,6 @@ import type {JSX} from 'solid-js'
 import {useIntl} from '../../intl'
 import CompassIcon from '../../widgets/icons/compassIcon'
 
-import MenuUtil from './menuUtil'
-
 import TextOption from './textOption'
 
 import './subMenuOption.scss'
@@ -29,15 +27,15 @@ function SubMenuOption(props: SubMenuOptionProps): JSX.Element {
 
     const [style, setStyle] = createSignal<JSX.CSSProperties>({})
 
+    // A submenu is drawn inside the menu and flush against its option, so it
+    // is not placed against the viewport the way the menu itself is — all it
+    // asks is which end of the option to hang from, and the answer is the side
+    // of the screen with more room.
     onMount(() => {
         const newStyle: JSX.CSSProperties = {}
         if (props.position === 'auto' && ref) {
-            const openUp = MenuUtil.openUp({current: ref})
-            if (openUp.openUp) {
-                newStyle.bottom = '0'
-            } else {
-                newStyle.top = '0'
-            }
+            const box = ref.getBoundingClientRect()
+            newStyle[box.top > window.innerHeight - box.bottom ? 'bottom' : 'top'] = '0'
         }
 
         setStyle(newStyle)

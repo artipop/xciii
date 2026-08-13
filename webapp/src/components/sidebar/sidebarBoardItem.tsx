@@ -247,7 +247,6 @@ const SidebarBoardItem = (props: Props) => {
                         }}
                         menu={
                             <Menu
-                                fixed={true}
                                 position='auto'
                                 parentRef={{current: boardItemRef ?? null}}
                             >

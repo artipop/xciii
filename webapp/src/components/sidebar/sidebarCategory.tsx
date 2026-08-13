@@ -357,7 +357,6 @@ const SidebarCategory = (props: Props) => {
                                 menu={
                                     <Menu
                                         position='auto'
-                                        fixed={true}
                                         parentRef={{current: menuWrapperRef ?? null}}
                                     >
                                         <Show when={props.categoryBoards.type === 'custom'}>

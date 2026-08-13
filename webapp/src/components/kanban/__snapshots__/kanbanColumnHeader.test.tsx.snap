@@ -52,7 +52,7 @@ exports[`src/components/kanban/kanbanColumnHeader > return kanbanColumnHeader an
         />
       </button>
       <div
-        class="Menu noselect bottom "
+        class="Menu noselect bottom"
       >
         <div
           class="menu-contents"

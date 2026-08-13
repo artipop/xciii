@@ -49,7 +49,7 @@ exports[`src/components/gallery/GalleryCard > with a comment content > should ma
         />
       </button>
       <div
-        class="Menu noselect left "
+        class="Menu noselect left"
       >
         <div
           class="menu-contents"
@@ -276,7 +276,7 @@ exports[`src/components/gallery/GalleryCard > with an image content > should mat
         />
       </button>
       <div
-        class="Menu noselect left "
+        class="Menu noselect left"
       >
         <div
           class="menu-contents"
@@ -533,7 +533,7 @@ exports[`src/components/gallery/GalleryCard > with many contents > should match 
         />
       </button>
       <div
-        class="Menu noselect left "
+        class="Menu noselect left"
       >
         <div
           class="menu-contents"
@@ -760,7 +760,7 @@ exports[`src/components/gallery/GalleryCard > with many images content > should 
         />
       </button>
       <div
-        class="Menu noselect left "
+        class="Menu noselect left"
       >
         <div
           class="menu-contents"
@@ -1237,7 +1237,7 @@ exports[`src/components/gallery/GalleryCard > without block content > should mat
         />
       </button>
       <div
-        class="Menu noselect left "
+        class="Menu noselect left"
       >
         <div
           class="menu-contents"
@@ -1443,12 +1443,12 @@ exports[`src/components/gallery/GalleryCard > without block content > should mat
       class="gallery-props"
     >
       <div
-        class="octo-tooltip tooltip-top"
-        data-tooltip="testTemplateProperty"
+        class="octo-tooltip"
       >
         <div
           class="octo-propertyvalue octo-propertyvalue--readonly"
         />
+        
       </div>
     </div>
     

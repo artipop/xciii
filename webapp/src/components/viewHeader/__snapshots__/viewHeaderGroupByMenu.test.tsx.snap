@@ -24,7 +24,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
       
     </button>
     <div
-      class="Menu noselect bottom "
+      class="Menu noselect bottom"
     >
       <div
         class="menu-contents"
@@ -273,7 +273,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > For viewType table render
       
     </button>
     <div
-      class="Menu noselect bottom "
+      class="Menu noselect bottom"
     >
       <div
         class="menu-contents"
@@ -522,7 +522,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu 1`] =
       
     </button>
     <div
-      class="Menu noselect bottom "
+      class="Menu noselect bottom"
     >
       <div
         class="menu-contents"
@@ -736,7 +736,7 @@ exports[`components/viewHeader/viewHeaderGroupByMenu > return groupBy menu, hide
       
     </button>
     <div
-      class="Menu noselect bottom "
+      class="Menu noselect bottom"
     >
       <div
         class="menu-contents"

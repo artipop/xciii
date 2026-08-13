@@ -332,7 +332,7 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
           
         </button>
         <div
-          class="Menu noselect bottom "
+          class="Menu noselect bottom"
         >
           <div
             class="menu-contents"

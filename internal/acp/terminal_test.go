@@ -87,6 +87,60 @@ func TestTerminalCommandRefusesAKindItCannotKnow(t *testing.T) {
 	}
 }
 
+// The CLI in a terminal draws itself for whatever TERM says it is talking to,
+// and a packaged .app is a child of launchd, which sets no TERM at all: the
+// agent's own colours went away the moment the app stopped being started from
+// a shell. What the output is painted on is xterm.js, so that is what the pty
+// says — inherited or not.
+func TestTerminalTellsTheCLIWhatItIsDrawnOn(t *testing.T) {
+	cases := []struct {
+		name     string
+		inherits []string
+		entry    AgentEntry
+		want     map[string]string
+	}{
+		{
+			name:     "a packaged app inherits nothing and still gets colour",
+			inherits: []string{"PATH=/usr/bin:/bin"},
+			want:     map[string]string{"TERM": "xterm-256color", "COLORTERM": "truecolor"},
+		},
+		{
+			name:     "the terminal the app was launched from does not describe this one",
+			inherits: []string{"TERM=dumb", "COLORTERM="},
+			want:     map[string]string{"TERM": "xterm-256color", "COLORTERM": "truecolor"},
+		},
+		{
+			name:     "an entry naming its own TERM is somebody who knows better",
+			inherits: []string{"TERM=xterm"},
+			entry:    AgentEntry{Env: map[string]string{"TERM": "screen-256color"}},
+			want:     map[string]string{"TERM": "screen-256color", "COLORTERM": "truecolor"},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			restore := environ
+			environ = func() []string { return tc.inherits }
+			t.Cleanup(func() { environ = restore })
+
+			add, drop := spawnEnv(tc.entry, NetworkSettings{})
+			env := terminalEnv(add, drop)
+
+			// Later wins at exec, so the last value of a name is the one asked for.
+			got := map[string]string{}
+			for _, kv := range env {
+				if name, value, ok := strings.Cut(kv, "="); ok {
+					got[name] = value
+				}
+			}
+			for name, want := range tc.want {
+				if got[name] != want {
+					t.Errorf("%s = %q, want %q", name, got[name], want)
+				}
+			}
+		})
+	}
+}
+
 // The end of a terminal is the only thing a card hears about it, so it has to
 // carry the work: the branch, the commits and anything left uncommitted.
 func TestTerminalReportsWhatTheSessionLeftBehind(t *testing.T) {

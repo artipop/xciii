@@ -41,8 +41,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot 1`
           />
         </button>
         <div
-          class="Menu noselect left "
-          style="top: 40px;"
+          class="Menu noselect left"
         >
           <div
             class="menu-contents"
@@ -294,8 +293,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in
           />
         </button>
         <div
-          class="Menu noselect left "
-          style="top: 40px;"
+          class="Menu noselect left"
         >
           <div
             class="menu-contents"
@@ -547,8 +545,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot in
           />
         </button>
         <div
-          class="Menu noselect left "
-          style="top: 40px;"
+          class="Menu noselect left"
         >
           <div
             class="menu-contents"
@@ -777,8 +774,7 @@ exports[`src/components/shareBoard/userPermissionsRow > should match snapshot-ad
           />
         </button>
         <div
-          class="Menu noselect left "
-          style="top: 40px;"
+          class="Menu noselect left"
         >
           <div
             class="menu-contents"

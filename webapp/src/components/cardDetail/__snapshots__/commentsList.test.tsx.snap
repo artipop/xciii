@@ -42,14 +42,14 @@ exports[`components/cardDetail/CommentsList > comments show up 1`] = `
         />
         
         <div
-          class="octo-tooltip tooltip-top"
-          data-tooltip="a long time ago"
+          class="octo-tooltip"
         >
           <div
             class="comment-date"
           >
             a long time ago
           </div>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -90,14 +90,14 @@ exports[`components/cardDetail/CommentsList > comments show up 1`] = `
         />
         
         <div
-          class="octo-tooltip tooltip-top"
-          data-tooltip="a long time ago"
+          class="octo-tooltip"
         >
           <div
             class="comment-date"
           >
             a long time ago
           </div>
+          
         </div>
         <div
           aria-label="menuwrapper"
@@ -151,14 +151,14 @@ exports[`components/cardDetail/CommentsList > comments show up in readonly mode 
         />
         
         <div
-          class="octo-tooltip tooltip-top"
-          data-tooltip="a long time ago"
+          class="octo-tooltip"
         >
           <div
             class="comment-date"
           >
             a long time ago
           </div>
+          
         </div>
         
       </div>
@@ -185,14 +185,14 @@ exports[`components/cardDetail/CommentsList > comments show up in readonly mode 
         />
         
         <div
-          class="octo-tooltip tooltip-top"
-          data-tooltip="a long time ago"
+          class="octo-tooltip"
         >
           <div
             class="comment-date"
           >
             a long time ago
           </div>
+          
         </div>
         
       </div>

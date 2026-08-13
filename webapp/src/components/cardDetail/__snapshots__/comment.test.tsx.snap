@@ -19,14 +19,14 @@ exports[`components/cardDetail/comment > return comment 1`] = `
       </div>
       
       <div
-        class="octo-tooltip tooltip-top"
-        data-tooltip="October 01, 2020 at 12:00 AM"
+        class="octo-tooltip"
       >
         <div
           class="comment-date"
         >
           a day ago
         </div>
+        
       </div>
       <div
         aria-label="menuwrapper"
@@ -42,7 +42,7 @@ exports[`components/cardDetail/comment > return comment 1`] = `
           />
         </button>
         <div
-          class="Menu noselect left "
+          class="Menu noselect left"
         >
           <div
             class="menu-contents"
@@ -149,14 +149,14 @@ exports[`components/cardDetail/comment > return comment and delete comment 1`] =
       </div>
       
       <div
-        class="octo-tooltip tooltip-top"
-        data-tooltip="October 01, 2020 at 12:00 AM"
+        class="octo-tooltip"
       >
         <div
           class="comment-date"
         >
           a day ago
         </div>
+        
       </div>
       <div
         aria-label="menuwrapper"
@@ -172,7 +172,7 @@ exports[`components/cardDetail/comment > return comment and delete comment 1`] =
           />
         </button>
         <div
-          class="Menu noselect left "
+          class="Menu noselect left"
         >
           <div
             class="menu-contents"
@@ -279,14 +279,14 @@ exports[`components/cardDetail/comment > return comment readonly 1`] = `
       </div>
       
       <div
-        class="octo-tooltip tooltip-top"
-        data-tooltip="October 01, 2020 at 12:00 AM"
+        class="octo-tooltip"
       >
         <div
           class="comment-date"
         >
           a day ago
         </div>
+        
       </div>
       
     </div>
@@ -328,14 +328,14 @@ exports[`components/cardDetail/comment > return guest comment 1`] = `
         </div>
       </div>
       <div
-        class="octo-tooltip tooltip-top"
-        data-tooltip="October 01, 2020 at 12:00 AM"
+        class="octo-tooltip"
       >
         <div
           class="comment-date"
         >
           a day ago
         </div>
+        
       </div>
       <div
         aria-label="menuwrapper"
@@ -351,7 +351,7 @@ exports[`components/cardDetail/comment > return guest comment 1`] = `
           />
         </button>
         <div
-          class="Menu noselect left "
+          class="Menu noselect left"
         >
           <div
             class="menu-contents"
@@ -466,14 +466,14 @@ exports[`components/cardDetail/comment > return guest comment and delete comment
         </div>
       </div>
       <div
-        class="octo-tooltip tooltip-top"
-        data-tooltip="October 01, 2020 at 12:00 AM"
+        class="octo-tooltip"
       >
         <div
           class="comment-date"
         >
           a day ago
         </div>
+        
       </div>
       <div
         aria-label="menuwrapper"
@@ -489,7 +489,7 @@ exports[`components/cardDetail/comment > return guest comment and delete comment
           />
         </button>
         <div
-          class="Menu noselect left "
+          class="Menu noselect left"
         >
           <div
             class="menu-contents"
@@ -604,14 +604,14 @@ exports[`components/cardDetail/comment > return guest comment readonly 1`] = `
         </div>
       </div>
       <div
-        class="octo-tooltip tooltip-top"
-        data-tooltip="October 01, 2020 at 12:00 AM"
+        class="octo-tooltip"
       >
         <div
           class="comment-date"
         >
           a day ago
         </div>
+        
       </div>
       
     </div>

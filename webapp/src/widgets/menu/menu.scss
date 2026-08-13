@@ -13,8 +13,13 @@
     max-width: 320px;
     cursor: default;
 
-    &.fixed {
+    // Added once @floating-ui has placed the menu (menu.tsx). Its own corner is
+    // the top left of the screen and the position arrives as a transform, which
+    // is the shape floating-ui's fixed strategy hands back.
+    &.floating {
         position: fixed;
+        top: 0;
+        left: 0;
     }
 
     .menu-contents {
@@ -173,15 +178,11 @@
         flex: 0 0 auto;
     }
 
-    @media not screen and (max-width: 430px) {
-        &.top {
-            bottom: 100%;
-        }
-
-        &.left {
-            right: 0;
-        }
-    }
+    // `.top` and `.left` carried the placement here — `bottom: 100%` and
+    // `right: 0` against the wrapper — and no longer do: floating-ui places
+    // the menu (menu.tsx) and the class survives only as what a stylesheet
+    // elsewhere may be written against. Offsets here would fight the
+    // transform.
 }
 
 .Menu.noselect,

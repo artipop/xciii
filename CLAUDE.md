@@ -65,7 +65,12 @@ in a browser and as a Mattermost plugin.
   own rc files know. Fixing the *process* PATH rather than our lookups is the
   point: npx is a `#!/usr/bin/env node` script and the codex adapter drives the
   codex CLI, so finding a binary and spawning it with launchd's PATH only moves
-  the failure one process along.
+  the failure one process along. `TERM` is the same trap with a different
+  symptom: launchd sets none, so a CLI in the card's terminal drew itself in
+  black and white in the installed app and in colour under `wails3 dev`.
+  `terminalEnv` writes `TERM`/`COLORTERM` rather than inheriting them —
+  the other end of that pty is xterm.js whatever launched the app, and an
+  inherited value describes the wrong terminal even when there is one.
 - `npm test` in `webapp/` — the page's suite, **vitest** under jsdom, sharing
   `vite-plugin-solid` with the build through `vitest.config.ts`. Coverage is on by
   default (v8); `--coverage.enabled=false` while iterating, `npm run updatesnapshot`
@@ -199,6 +204,16 @@ React-only libraries were replaced rather than wrapped: `@dnd-kit/solid`,
 behind our own `src/intl.tsx` (same `IntlShape`, same message ids), and headless
 Lexical with a typeahead menu of our own under `markdownEditorInput/plugins/`.
 
+**Anything drawn over the page is placed by `@floating-ui/dom`** — the menus,
+the tooltips, the combobox list, the typeahead and both tour tips, always the
+same shape: `autoUpdate(anchor, floating, () => computePosition(…))` with
+`flip`/`shift`, the result written as a `transform`, and a class the stylesheet
+answers with `position: fixed`. Placing one inside the page is the bug this
+prevents: `.Kanban` scrolls and `.mainFrame` hides its overflow, so an
+absolutely positioned menu on a card was clipped by both and read as sliding
+under the sidebar. Hand-rolled geometry for a new popover is a rewrite of a
+dependency that is already here.
+
 Two rules the drag-and-drop earned the hard way, both silent when broken.
 `OptimisticSortingPlugin` is left out of every sortable, because it reorders
 nodes the framework owns — and the price is that a sortable's `index` and
@@ -247,9 +262,11 @@ answered. This is the only thing that raises attention: a terminal used to be a
 second reason and no longer is (below). `components/acp/attention.ts` is the one
 subscription behind it.
 
-**The button is also the way in.** A console-glyph button in the card's top
+**The button is also the way in.** A console-glyph button in the card's bottom
 right corner (`KanbanCard__terminal` — it began life as a dot, and the corner
-button is what it grew into) opens the card's terminal in a window, and it is
+button is what it grew into; it started in the *top* right, where a card's
+controls are, and moved because the ⋯ menu is there too and the two spent their
+time stepping around each other) opens the card's terminal in a window, and it is
 the same control whether it is amber because an agent is asking or the
 board's own ink because a terminal is merely running there — one thing on the
 card's face, its colour saying what is happening and its click saying where to
