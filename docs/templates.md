@@ -57,6 +57,15 @@ Each step takes a line of the template's own beside the usual explanation
 as one that cannot be skipped — a board whose route deploys cannot be set up
 without somewhere to deploy to.
 
+The browser step asks **who tests** before it asks what with, the way a card and
+the planning dialog ask it — the registry as name chips, quick-add beside them —
+because the answer is one agent and two writes: the server goes on that agent,
+and that agent goes into the test column's crew. The two cannot be told apart at
+run time, since a test session refuses to start unless the agent the column
+resolved carries a browser server, and the wizard used to put the server on
+whichever agent the registry listed first. The plan names the test column
+(`SetupPlan.TestColumn`) so the question can say which column the answer crews.
+
 A template that names nothing has its steps **worked out from the automation**
 above, which is the sensible default and is what the shipped templates other than
 «Разработка» rely on. *«Назвать шаги»* takes over from that guess; *«Снова

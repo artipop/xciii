@@ -488,6 +488,33 @@ func TestCrewedColumnWritesItsWorkerIntoTheAssignee(t *testing.T) {
 	}
 }
 
+// Testing is worked by the crew of the test column, so the field says so too:
+// «Кто занимается» answers "who is on this card now" wherever it stands, and a
+// card being tested by an agent the field did not name is the field lying.
+func TestCrewedTestColumnWritesItsTesterIntoTheAssignee(t *testing.T) {
+	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+		c.Agents = []AgentEntry{{
+			Name: "тестер", Kind: "claude",
+			MCPServers: MCPServerSet{"playwright": {Command: "npx"}},
+		}}
+		c.Columns = []ColumnSpec{{
+			Property: c.TriggerProperty, Column: c.TriggerColumn,
+			Action: FlowActionTest, Agents: []string{"тестер"},
+		}}
+	})
+	users := &fakeBoardUsers{}
+	m.SetBoardUsers(users)
+
+	// A test run needs somewhere to click: the card carries its preview.
+	ev := moveEvent("cardQA", project, "opt-backlog", "opt-agent")
+	ev.Props["preview_url"] = "https://feat-x.example.com"
+	events.ch <- ev
+
+	waitFor(t, 10*time.Second, "the tester lands in the assignee", func() bool {
+		return users.assignedTo("cardQA") == "тестер"
+	})
+}
+
 // A column with no crew of its own decides by the assignee or the single
 // registered agent — that is the card's or the machine's answer, not the
 // stage's, and the machine has nothing of its own to write into the field.

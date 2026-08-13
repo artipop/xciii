@@ -304,7 +304,15 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	// so either way. A person in the field never reaches this line
 	// (humanAssignee, above), and a card already saying this agent is left
 	// alone.
-	if len(opts.crew()) > 0 && !opts.deploy && !opts.test {
+	//
+	// Every crewed stage writes, a deploy and a test included. They were
+	// excluded once, on the grounds that machine work is not an assignment,
+	// and what that cost was a card being tested by an agent the field did not
+	// name: the crew of the column is who works the card while it stands
+	// there, and the field is the one answer to that question whatever the
+	// column does. An uncrewed stage still writes nothing — it has nothing of
+	// its own to record, and resolves by this very field.
+	if len(opts.crew()) > 0 {
 		m.assignCardAgent(ev, agent)
 	}
 	// The column's own limit: how many of its crew may work it at once. It is

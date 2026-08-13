@@ -534,3 +534,98 @@ func TestTheOfferIsRememberedAcrossRestarts(t *testing.T) {
 		t.Fatal("the offer did not survive the restart")
 	}
 }
+
+// The QA step names an agent, and the browser has to reach the agent that
+// actually works the test column: the crew is resolved per column, so a server
+// left on whichever agent was registered first is a session that dies saying it
+// has nothing to test with.
+func TestTheQAAnswerGivesTheBrowserToTheAgentThatTests(t *testing.T) {
+	m := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{
+			{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "В работе", Action: FlowActionAgent},
+			{PropertyID: "p", OptionID: "o3", Property: "Статус", Column: "QA", Action: FlowActionTest},
+		},
+	}))
+	m.cfg.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}, {Name: "тестер", Kind: "claude"}}
+
+	servers := MCPServerSet{"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest"}}}
+	if err := m.SetTestAgent("board1", "тестер", servers); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, a := range m.Agents() {
+		switch a.Name {
+		case "тестер":
+			if _, ok := a.MCPServers["playwright"]; !ok {
+				t.Error("the agent that tests was not given the browser")
+			}
+		case "клаус":
+			if len(a.MCPServers) > 0 {
+				t.Error("the browser went to an agent the QA column does not run")
+			}
+		}
+	}
+
+	for _, c := range m.BoardColumns("board1") {
+		switch c.Action {
+		case FlowActionTest:
+			if len(c.Agents) != 1 || c.Agents[0] != "тестер" {
+				t.Errorf("the test column's crew is %v, so the browser and the worker can part ways", c.Agents)
+			}
+		case FlowActionAgent:
+			if len(c.Agents) > 0 {
+				t.Errorf("answering the QA question crewed the column that works the card: %v", c.Agents)
+			}
+		}
+	}
+}
+
+// The wizard knows about a browser and nothing else about the agent it is
+// answering for. Rebuilding the entry from that is how an agent already set up
+// loses its model, its environment and its own prompt.
+func TestTheQAAnswerKeepsTheRestOfTheAgent(t *testing.T) {
+	m := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{{PropertyID: "p", OptionID: "o3", Property: "Статус", Column: "QA", Action: FlowActionTest}},
+	}))
+	m.cfg.Agents = []AgentEntry{{
+		Name: "тестер", Kind: "claude", Model: "opus",
+		Env: map[string]string{"CLAUDE_CONFIG_DIR": "/tmp/qa"},
+	}}
+
+	if err := m.SetTestAgent("board1", "ТЕСТЕР", MCPServerSet{"playwright": {Command: "npx"}}); err != nil {
+		t.Fatal(err)
+	}
+	saved := m.Agents()[0]
+	if saved.Model != "opus" || saved.Env["CLAUDE_CONFIG_DIR"] != "/tmp/qa" {
+		t.Errorf("the agent was rebuilt from the QA answer alone: %+v", saved)
+	}
+}
+
+// An answer for an agent that is not there is refused rather than filed against
+// nobody: the name comes from the page, and a typo would otherwise silently
+// leave the column crewed with an agent no session can resolve.
+func TestTheQAAnswerRefusesAnAgentNobodyRegistered(t *testing.T) {
+	m := setupManager(t, nil)
+	if err := m.SetTestAgent("board1", "призрак", nil); err == nil {
+		t.Fatal("an unregistered agent was accepted as the one that tests")
+	}
+}
+
+// The question is about a column, so the plan says which one — the same way it
+// already names the column a card is dragged into to be worked on.
+func TestThePlanNamesTheColumnThatTests(t *testing.T) {
+	m := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{
+			{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "В работе", Action: FlowActionAgent},
+			{PropertyID: "p", OptionID: "o3", Property: "Статус", Column: "QA", Action: FlowActionTest},
+		},
+	}))
+
+	plan := m.SetupPlanFor("board1")
+	if plan.AgentColumn != "В работе" {
+		t.Errorf("the column an agent works in is %q", plan.AgentColumn)
+	}
+	if plan.TestColumn != "QA" {
+		t.Errorf("the column that tests is %q", plan.TestColumn)
+	}
+}

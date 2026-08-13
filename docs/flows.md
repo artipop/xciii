@@ -394,7 +394,7 @@ adapters have no such channel.
 | "Колонка занята" | The crew is busy or the limit is reached; it starts by itself later |
 | "не задан ни project_path…" | The card matched no project: check the **Проекты** field against the registry |
 | Card never leaves *In Review* | Nobody is watching its branch — see [which branch is followed](#which-branch-is-followed), or the route has no edge for what happened |
-| Test stage refuses to start | The agent has no browser MCP server (*«Эта машина…» → «Агенты»* → MCP servers) |
+| Test stage refuses to start | The agent working the test column has no browser MCP server: the wizard's QA step gives one to the agent it crews the column with, or set it by hand (*«Эта машина…» → «Агенты»* → MCP servers) |
 
 A session writes one comment, at the end: what the agent did, or why it could not.
 Everything else it does is shown rather than written down — the card carries its

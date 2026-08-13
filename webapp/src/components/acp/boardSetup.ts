@@ -39,6 +39,10 @@ export type SetupPlan = {
     // What this board calls the column a card is dragged into to be worked on.
     agentColumn?: string
 
+    // What this board calls the column that tests. The QA step names an agent
+    // for it, so the question can say which column it is about.
+    testColumn?: string
+
     // The board named these steps itself, rather than them being worked out
     // from the automation it carries.
     declared: boolean

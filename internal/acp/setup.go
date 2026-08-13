@@ -152,6 +152,10 @@ type SetupPlan struct {
 	// one thing every board has and every board names differently, and the last
 	// thing the wizard has to say.
 	AgentColumn string `json:"agentColumn,omitempty"`
+	// TestColumn is the column that tests, as this board calls it. The QA step
+	// names an agent for it, so the question can say which column it is about
+	// and the answer knows where to write the crew.
+	TestColumn string `json:"testColumn,omitempty"`
 	// Offered says the wizard has already opened itself for this board once.
 	// Closing it half-way answers nothing, but it is still an answer to "have
 	// you seen this?", and asking again on every launch is how a dialog becomes
@@ -191,7 +195,8 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 		steps = impliedSetup(columns, flows)
 	}
 
-	plan.AgentColumn = agentColumnOf(columns)
+	plan.AgentColumn = columnOfAction(columns, FlowActionAgent)
+	plan.TestColumn = columnOfAction(columns, FlowActionTest)
 	states := m.setupStates(boardID)
 	plan.Offered = states[setupWizardStep] != ""
 	for _, step := range steps {
@@ -328,14 +333,68 @@ func (m *Manager) CheckSetupAnswer(boardID, step, value string) error {
 	return nil
 }
 
-// agentColumnOf is the column an agent works in, as this board calls it.
-func agentColumnOf(columns []ColumnSpec) string {
+// columnOfAction is the column that does something, as this board calls it —
+// the column an agent works in, the column that tests.
+func columnOfAction(columns []ColumnSpec, action string) string {
 	for _, c := range columns {
-		if c.Action == FlowActionAgent {
+		if c.Action == action {
 			return c.Column
 		}
 	}
 	return ""
+}
+
+// SetTestAgent answers the QA step: this agent tests this board, and it tests
+// with these servers.
+//
+// Both writes belong to that one answer. A test session refuses to start
+// without a browser MCP server on the agent it resolved (startSession), and
+// which agent it resolves is the column's business — so the server goes on the
+// agent, and the agent goes on the test column as its crew. Putting the server
+// on whichever agent the registry happened to list first is what this replaces:
+// on a board with two agents the browser landed on one and the QA column ran
+// the other, and the session died saying it had nothing to test with.
+//
+// The rest of the agent's entry is kept: the wizard knows about a browser and
+// nothing else, and rebuilding the entry from that dropped the model, the
+// environment and the proxy of an agent already set up.
+func (m *Manager) SetTestAgent(boardID, agentName string, servers MCPServerSet) error {
+	agentName = strings.TrimSpace(agentName)
+	entry, ok := m.agentNamed(agentName)
+	if !ok {
+		return fmt.Errorf("агент %q не найден в реестре", agentName)
+	}
+	entry.MCPServers = servers
+	if _, err := m.UpdateAgent(entry); err != nil {
+		return err
+	}
+
+	// Read the board first: the wizard runs before any card has been moved, so
+	// the test column may still be a property of the board rather than an entry
+	// of the registry. Seeding is idempotent, and SaveColumn does it anyway.
+	m.SeedBoard(boardID)
+	columns, _ := m.boardOwnAutomation(boardID)
+	for _, spec := range columns {
+		if spec.Action != FlowActionTest {
+			continue
+		}
+		spec.Agents = []string{entry.Name}
+		if _, err := m.SaveColumn(spec); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// agentNamed finds a registry entry by name, the way every other lookup does:
+// case-insensitively, because the name is what a person typed.
+func (m *Manager) agentNamed(name string) (AgentEntry, bool) {
+	for _, a := range m.Agents() {
+		if strings.EqualFold(a.Name, name) {
+			return a, true
+		}
+	}
+	return AgentEntry{}, false
 }
 
 // impliedSetup is the fallback for a board that says nothing: ask for what its

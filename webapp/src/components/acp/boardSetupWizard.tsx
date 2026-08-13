@@ -107,8 +107,13 @@ const BoardSetupWizard = (props: Props) => {
     // Step 3: a Dokku host.
     const [deploy, setDeploy] = createSignal({name: '', sshHost: '', sshUser: '', sshKey: '', baseDomain: ''})
 
-    // Step 4: what tests with.
+    // Step 4: who tests, and what it tests with. The two are one answer — a
+    // test session runs the crew of the test column, and refuses to start
+    // without a browser server on the agent it resolved — so the server is
+    // given to the agent chosen here and that agent becomes the column's crew.
     const [serversText, setServersText] = createSignal(BROWSER_SERVER)
+    const [testAgent, setTestAgent] = createSignal('')
+    const [addingTestAgent, setAddingTestAgent] = createSignal(false)
     const [sourceName, setSourceName] = createSignal('')
     const [sourceToken, setSourceToken] = createSignal('')
 
@@ -117,6 +122,12 @@ const BoardSetupWizard = (props: Props) => {
             const loaded = await readRegistry(props.board.id)
             if (loaded) {
                 setRegistry(loaded)
+
+                // One of a kind needs no choosing: the QA question is then
+                // about the browser alone.
+                if (!testAgent() && loaded.agents.length === 1) {
+                    setTestAgent(loaded.agents[0].name)
+                }
             }
         } catch (e) {
             setError(String(e))
@@ -211,17 +222,24 @@ const BoardSetupWizard = (props: Props) => {
         setSourceToken(created.token || '')
     }, STEP_SOURCE)
 
-    const addBrowser = () => run(async () => {
-        const agent = registry().agents[0]
-        if (!agent) {
+    // The answer is one call because it is one answer: Go puts the server on
+    // the chosen agent — keeping the rest of its entry, which a rebuilt one
+    // dropped — and writes that agent into the test column as its crew. Before
+    // this the server went to whoever the registry listed first, and on a board
+    // with two agents the column ran the other one and the session died saying
+    // it had nothing to test with.
+    const addBrowser = () => {
+        let servers
+        try {
+            servers = textToServers(serversText())
+        } catch {
+            setError(intl.formatMessage({id: 'BoardSetup.browser-invalid', defaultMessage: 'The browser server must be valid JSON: a server name mapped to its command and args, the same block any MCP client takes.'}))
             return
         }
-        await bindings!.UpdateAgent!(JSON.stringify({
-            name: agent.name,
-            kind: agent.kind,
-            mcpServers: textToServers(serversText()),
-        }))
-    }, STEP_BROWSER)
+        run(async () => {
+            await bindings!.SetBoardTestAgent!(props.board.id, testAgent(), JSON.stringify(servers))
+        }, STEP_BROWSER)
+    }
 
     const finish = async () => {
         // Take the board's own columns and routes now, so what it can do is
@@ -337,7 +355,66 @@ const BoardSetupWizard = (props: Props) => {
         case STEP_BROWSER:
             return (
                 <div class='BoardSetupWizard__step'>
-                    <p>{intl.formatMessage({id: 'BoardSetup.browser-why', defaultMessage: 'The "QA" column needs a browser, which the agent gets from a browser MCP server. Without one a test session will not start; the configuration below usually fits.'})}</p>
+                    <p>{intl.formatMessage({id: 'BoardSetup.browser-why', defaultMessage: 'Testing is an agent clicking through a browser, which it gets from a browser MCP server. Without one a test session will not start; the configuration below usually fits.'})}</p>
+
+                    {/* Who tests is asked the way a card and «обсудить с
+                        агентом» ask it — the names as chips, quick-add beside
+                        them — because it is the same question, and a wizard
+                        that quietly took the first agent in the registry
+                        answered it wrongly on every board with two. */}
+                    <div class='BoardSetupWizard__ask'>
+                        {intl.formatMessage({id: 'BoardSetup.browser-who', defaultMessage: 'Who tests?'})}
+                    </div>
+                    <div class='BoardSetupWizard__agentChoices'>
+                        <For each={registry().agents}>
+                            {(a) => (
+                                <button
+                                    type='button'
+                                    class='BoardSetupWizard__agentChoice'
+                                    classList={{'BoardSetupWizard__agentChoice--chosen': a.name === testAgent()}}
+                                    aria-pressed={a.name === testAgent()}
+                                    disabled={busy()}
+                                    onClick={() => setTestAgent(a.name)}
+                                >
+                                    {a.name}
+                                </button>
+                            )}
+                        </For>
+                        <Show when={!addingTestAgent()}>
+                            <button
+                                type='button'
+                                class='BoardSetupWizard__pickAdd'
+                                onClick={() => setAddingTestAgent(true)}
+                            >
+                                {intl.formatMessage({id: 'BoardSetup.add-agent', defaultMessage: 'Add an agent…'})}
+                            </button>
+                        </Show>
+                    </div>
+                    <Show when={addingTestAgent()}>
+                        <AgentQuickAdd
+                            board={props.board}
+                            onAdded={async (name) => {
+                                setAddingTestAgent(false)
+                                await refresh()
+                                setTestAgent(name)
+                            }}
+                            onCancel={() => setAddingTestAgent(false)}
+                        />
+                    </Show>
+
+                    {/* What the choice does beyond the server: the agent is
+                        written into the test column's crew, so the column that
+                        needs a browser runs the agent that has one — and the
+                        card being tested says who is on it. */}
+                    <p class='BoardSetupWizard__hint'>
+                        <Show
+                            when={plan()?.testColumn}
+                            fallback={intl.formatMessage({id: 'BoardSetup.browser-agent-note', defaultMessage: 'The server is set up for this agent, and it is the agent that works the column that tests.'})}
+                        >
+                            {intl.formatMessage({id: 'BoardSetup.browser-column-note', defaultMessage: 'The server is set up for this agent, and it is the agent that works the “{column}” column: a card that gets there is assigned to it and tested by it.'}, {column: plan()!.testColumn})}
+                        </Show>
+                    </p>
+
                     <textarea
                         rows={7}
                         value={serversText()}
@@ -431,9 +508,11 @@ const BoardSetupWizard = (props: Props) => {
         case STEP_BROWSER:
             return (
                 <>
+                    {/* Nobody chosen is nothing to save: the server belongs to
+                        an agent, and which one is the question. */}
                     <Button
                         emphasis='primary'
-                        disabled={busy() || !hasAgent()}
+                        disabled={busy() || !testAgent()}
                         onClick={addBrowser}
                     >
                         {intl.formatMessage({id: 'BoardSetup.save', defaultMessage: 'Save'})}

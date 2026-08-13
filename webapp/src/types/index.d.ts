@@ -63,6 +63,11 @@ export interface IAppWindow extends Window {
                 BoardSetupPlan(boardId: string): Promise<string>
                 RecordBoardSetupStep(boardId: string, step: string, status: string): Promise<void>
                 CheckBoardSetupAnswer(boardId: string, step: string, value: string): Promise<void>
+
+                // The QA step's answer: the agent that tests this board gets
+                // the browser server, and the board's test column gets that
+                // agent as its crew.
+                SetBoardTestAgent?(boardId: string, agentName: string, serversJson: string): Promise<void>
                 MarkBoardSetupOffered(boardId: string): Promise<void>
                 ListSetupSteps(): Promise<string>
                 AddFlow(entryJSON: string): Promise<string>

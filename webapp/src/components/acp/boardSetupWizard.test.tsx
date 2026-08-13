@@ -50,6 +50,7 @@ function stubBindings(overrides: Record<string, unknown> = {}) {
         AddAgentProject: vi.fn().mockResolvedValue('{}'),
         AddAgent: vi.fn().mockResolvedValue('{}'),
         UpdateAgent: vi.fn().mockResolvedValue('{}'),
+        SetBoardTestAgent: vi.fn().mockResolvedValue(undefined),
         SyncAgentUsers: vi.fn().mockResolvedValue('[]'),
         AddDeployTarget: vi.fn().mockResolvedValue('{}'),
         SeedBoardAutomation: vi.fn().mockResolvedValue(undefined),
@@ -188,7 +189,7 @@ describe('components/acp/boardSetupWizard', () => {
 
         await waitFor(() => expect(screen.getByRole('button', {name: 'Done'})).toBeInTheDocument())
         expect(bindings.AddDeployTarget).not.toHaveBeenCalled()
-        expect(bindings.UpdateAgent).not.toHaveBeenCalled()
+        expect(bindings.SetBoardTestAgent).not.toHaveBeenCalled()
 
         // A skip is the one answer no registry can be read for later, so it is
         // the one the app has to remember.
@@ -259,6 +260,9 @@ describe('components/acp/boardSetupWizard', () => {
         expect(screen.queryByText(/has to be under git/)).toBeNull()
     })
 
+    // The QA step is one answer with two halves: the browser goes to an agent,
+    // and that agent works the column that tests. A single registered agent
+    // answers "who" without being asked.
     test('the browser server is offered ready to accept', async () => {
         const bindings = stubBindings({
             ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
@@ -268,17 +272,74 @@ describe('components/acp/boardSetupWizard', () => {
                 {kind: 'agent', status: 'done'},
                 {kind: 'browser', optional: true},
                 {kind: 'done'},
-            ])),
+            ], {testColumn: 'QA'})),
         })
         renderWizard()
 
         await waitFor(() => expect(screen.getByText(/browser MCP server/)).toBeInTheDocument())
-        userEvent.click(screen.getByRole('button', {name: 'Save'}))
-        await waitFor(() => expect(bindings.UpdateAgent).toHaveBeenCalled())
 
-        const saved = JSON.parse(bindings.UpdateAgent.mock.calls[0][0])
-        expect(saved.name).toBe('claude')
-        expect(saved.mcpServers.playwright.command).toBe('npx')
+        // The question says which column the answer crews, by the board's own
+        // name for it.
+        expect(screen.getByText(/“QA”/)).toBeInTheDocument()
+
+        userEvent.click(screen.getByRole('button', {name: 'Save'}))
+        await waitFor(() => expect(bindings.SetBoardTestAgent).toHaveBeenCalled())
+
+        const [boardId, agentName, serversJson] = bindings.SetBoardTestAgent.mock.calls[0]
+        expect(boardId).toBe(testBoard.id)
+        expect(agentName).toBe('claude')
+        expect(JSON.parse(serversJson).playwright.command).toBe('npx')
+    })
+
+    // Several agents is a question, and it is the one a card asks: the names as
+    // chips, the answer a click. Taking the first of them is what this
+    // replaces — the browser then sat on an agent the QA column never ran.
+    test('the agent that tests is chosen from the registry, not guessed', async () => {
+        const bindings = stubBindings({
+            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'тестер'}])),
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan([
+                {kind: 'browser', optional: true},
+                {kind: 'done'},
+            ], {testColumn: 'QA'})),
+        })
+        renderWizard()
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'тестер'})).toBeInTheDocument())
+
+        // Nobody is chosen yet, so there is nothing to save.
+        expect(screen.getByRole('button', {name: 'Save'})).toBeDisabled()
+
+        userEvent.click(screen.getByRole('button', {name: 'тестер'}))
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled())
+        userEvent.click(screen.getByRole('button', {name: 'Save'}))
+
+        await waitFor(() => expect(bindings.SetBoardTestAgent).toHaveBeenCalled())
+        expect(bindings.SetBoardTestAgent.mock.calls[0][1]).toBe('тестер')
+    })
+
+    // An agent can be registered where the question is asked, exactly as on a
+    // card — and registering one here is answering the question.
+    test('an agent added on the QA step is the one that tests', async () => {
+        const bindings = stubBindings({
+            ListAgents: vi.fn().mockResolvedValue('[]'),
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan([{kind: 'browser', optional: true}, {kind: 'done'}])),
+        })
+        bindings.AddAgent.mockImplementation(async () => {
+            bindings.ListAgents.mockResolvedValue(JSON.stringify([{name: 'claude'}]))
+            return '{}'
+        })
+        renderWizard()
+
+        await waitFor(() => expect(screen.getByText(/browser MCP server/)).toBeInTheDocument())
+        userEvent.click(screen.getByRole('button', {name: 'Add an agent…'}))
+        await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
+        userEvent.click(screen.getByRole('button', {name: 'Add'}))
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'claude'})).toBeInTheDocument())
+        userEvent.click(screen.getByRole('button', {name: 'Save'}))
+        await waitFor(() => expect(bindings.SetBoardTestAgent).toHaveBeenCalled())
+        expect(bindings.SetBoardTestAgent.mock.calls[0][1]).toBe('claude')
     })
 
     // A source is asked for only by a board that says it wants one — no

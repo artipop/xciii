@@ -470,6 +470,23 @@ func (a *App) CheckBoardSetupAnswer(boardID, step, value string) error {
 	return a.mgr.CheckSetupAnswer(boardID, step, value)
 }
 
+// SetBoardTestAgent answers the wizard's QA step: which agent tests this board,
+// and what it drives a browser with — a JSON-encoded mcpServers block, the same
+// one the agents dialog takes. The agent is also written into the board's test
+// column as its crew, so the column runs the agent the browser was given to.
+func (a *App) SetBoardTestAgent(boardID, agentName, serversJSON string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	var servers acp.MCPServerSet
+	if strings.TrimSpace(serversJSON) != "" {
+		if err := json.Unmarshal([]byte(serversJSON), &servers); err != nil {
+			return err
+		}
+	}
+	return a.mgr.SetTestAgent(boardID, agentName, servers)
+}
+
 // RecordBoardSetupStep remembers what was done with a step — skipping above
 // all, which is the one answer no registry can be read for.
 func (a *App) RecordBoardSetupStep(boardID, step, status string) error {
