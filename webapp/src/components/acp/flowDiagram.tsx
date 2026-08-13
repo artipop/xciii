@@ -382,7 +382,7 @@ export function condLabel(intl: IntlShape, cond: EdgeCond | undefined): string {
         return ''
     }
     if (cond.commentContains) {
-        return intl.formatMessage({id: 'FlowDiagram.cond-comment', defaultMessage: 'agent said «{text}»'}, {text: cond.commentContains})
+        return intl.formatMessage({id: 'FlowDiagram.cond-comment', defaultMessage: 'agent said "{text}"'}, {text: cond.commentContains})
     }
     return `${cond.property} = ${cond.value}`
 }

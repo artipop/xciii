@@ -74,6 +74,13 @@
         border-radius: var(--radius-md);
     }
 
+    // Two rows in one section — the guide and the feedback — are two different
+    // things to do, and with no gap their borders touched and read as one box
+    // with a line through it.
+    .AppPanel__action + .AppPanel__action {
+        margin-top: 8px;
+    }
+
     .AppPanel__actionText {
         display: flex;
         flex-direction: column;

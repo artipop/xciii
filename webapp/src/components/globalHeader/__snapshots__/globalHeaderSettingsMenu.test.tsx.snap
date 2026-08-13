@@ -510,7 +510,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu > languages menu open shoul
                       />
                     </div>
                     <div
-                      aria-label="Pусский"
+                      aria-label="Русский"
                       class="MenuOption TextOption menu-option"
                       role="button"
                     >
@@ -527,7 +527,7 @@ exports[`components/sidebar/GlobalHeaderSettingsMenu > languages menu open shoul
                         <div
                           class="menu-name"
                         >
-                          Pусский
+                          Русский
                         </div>
                         
                       </div>

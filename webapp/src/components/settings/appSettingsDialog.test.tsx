@@ -1,9 +1,12 @@
 import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
+import {createSignal} from 'solid-js'
 
 import {TestRouter, mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
+import {IntlProvider} from '../../intl'
+import messagesRu from '../../../i18n/ru.json'
 
 import AppSettingsDialog from './appSettingsDialog'
 
@@ -116,5 +119,34 @@ describe('components/settings/appSettingsDialog', () => {
 
         await waitFor(() => expect(screen.getByRole('button', {name: 'Light theme'})).toBeInTheDocument())
         expect(screen.getByRole('button', {name: 'Deutsch'})).toBeInTheDocument()
+    })
+
+    // The language is picked in this dialog, so this dialog is the one place
+    // where a name formatted once, in the component body, is visibly wrong: the
+    // list down the side and the heading above the panel went on speaking the
+    // language the dialog opened in, while everything drawn inside JSX changed
+    // under them.
+    test('changes language with the rest of the app', async () => {
+        const [locale, setLocale] = createSignal('en')
+
+        render(() => (
+            <AppStoreProvider store={store}>
+                <IntlProvider
+                    locale={locale()}
+                    messages={locale() === 'ru' ? messagesRu : {}}
+                >
+                    <TestRouter>
+                        <AppSettingsDialog onClose={vi.fn()}/>
+                    </TestRouter>
+                </IntlProvider>
+            </AppStoreProvider>
+        ))
+
+        expect(screen.getByRole('button', {name: 'Import and export'})).toBeInTheDocument()
+
+        setLocale('ru')
+
+        expect(screen.getByRole('button', {name: 'Импорт и экспорт'})).toBeInTheDocument()
+        expect(screen.getByRole('heading', {name: 'Приложение'})).toBeInTheDocument()
     })
 })

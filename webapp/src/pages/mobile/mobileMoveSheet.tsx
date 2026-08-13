@@ -92,7 +92,7 @@ const MobileMoveSheet: Component<Props> = (props) => {
                     <h3 class='MobileSheet__heading'>
                         <FormattedMessage
                             id='Mobile.pick-column'
-                            defaultMessage='Which column on «{board}»?'
+                            defaultMessage='Which column on "{board}"?'
                             values={{board: target()!.title}}
                         />
                     </h3>

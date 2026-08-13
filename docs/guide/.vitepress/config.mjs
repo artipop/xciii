@@ -198,9 +198,11 @@ export default defineConfig({
     locales: {root: ru, en},
 
     themeConfig: {
-        socialLinks: [
-            {icon: 'github', link: 'https://github.com/artipop/xciii'},
-        ],
+
+        // No social links, and in particular no repository: the guide is for
+        // somebody using the product, and a source tree is not an answer to
+        // anything asked here. Where to write when something is broken is on
+        // the settings page, where the app itself offers it.
 
         search: {
             provider: 'local',

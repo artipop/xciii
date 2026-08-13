@@ -351,10 +351,17 @@ and are `settings/appPanel.tsx` with the link to the manual: they spent a while
 in the corner of the board on the grounds that they are changed while looking at
 it, and what that cost was two icon menus and a question mark standing in for
 three words, plus a corner that had to be published over the no-board screen to
-stay reachable. The link to the issue tracker went the same way and for the same
-reason — where to say something is broken is looked for once, and it is looked
-for where the manual is — so the corner is gone rather than reduced, and
-`topBar.tsx` with it. What a board runs — columns, routes, its folders, and
+stay reachable. The way to say something is broken went the same way and for the
+same reason — where to say it is looked for once, and it is looked for where the
+manual is — so the corner is gone rather than reduced, and `topBar.tsx` with it.
+**Neither of those two addresses is the repository.** The panel points at the
+guide (`Constants.guideUrl`, the doc site `docs/guide/` publishes) and at an
+email address (`Constants.feedbackEmail`), because the repository was standing
+in for both while there was no site: somebody who opens «Руководство» wants the
+manual and not a source tree, and a bug report should not cost a person an
+account on a hosting service. The address is printed on the panel as well as put
+in the `mailto:`, since a webview that refuses to open one leaves nothing to
+copy. What a board runs — columns, routes, its folders, and
 what its agents are told first (`boardPrompts`, keyed by board id) — is
 `automationDialog.tsx`. The board's ⋯ menu keeps only export and "save as a
 template" — the archive in the settings dialog is every board there is, and one

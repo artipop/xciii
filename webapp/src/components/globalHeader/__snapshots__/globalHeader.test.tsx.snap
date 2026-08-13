@@ -10,7 +10,7 @@ exports[`components/sidebar/GlobalHeader > header menu should match snapshot 1`]
     />
     <a
       class="GlobalHeaderComponent__button help-button"
-      href="https://github.com/artipop/xciii"
+      href="https://deffun.com/docs/"
       rel="noreferrer"
       target="_blank"
     >

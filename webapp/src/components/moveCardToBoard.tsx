@@ -119,7 +119,7 @@ const MoveCardToBoardDialog: Component<{cardId: string, onClose: () => void}> = 
                     <div class='MoveCardToBoard__step'>
                         <FormattedMessage
                             id='MoveCardToBoard.pick-column'
-                            defaultMessage='Which column on «{board}»?'
+                            defaultMessage='Which column on "{board}"?'
                             values={{board: target()!.title}}
                         />
                     </div>

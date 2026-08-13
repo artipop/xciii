@@ -55,18 +55,29 @@ describe('components/settings/appPanel', () => {
 
     // The question mark in the corner of the board was a link and nothing else,
     // which is a thing a person looks for in the settings and not on a board.
-    test('says where the app is written down', () => {
+    // Where it leads is the manual, not a source tree: somebody opening
+    // «Руководство» wants to be told how the board works.
+    test('leads to the guide', () => {
         open()
 
-        expect(screen.getByRole('link', {name: 'Open'})).toHaveAttribute('href', Constants.homeUrl)
+        expect(screen.getByRole('link', {name: 'Open'})).toHaveAttribute('href', Constants.guideUrl)
     })
 
     // The last thing left in the corner of the board, and the reason that
     // corner outlived the theme and the language. Somewhere to say that
-    // something is broken is looked for once, which is here.
+    // something is broken is looked for once, which is here — and it is a
+    // letter, so that saying it costs nobody an account anywhere.
     test('offers somewhere to say that something is broken', () => {
         open()
 
-        expect(screen.getByRole('link', {name: 'Write'})).toHaveAttribute('href', Constants.issuesUrl)
+        expect(screen.getByRole('link', {name: 'Write'})).toHaveAttribute('href', `mailto:${Constants.feedbackEmail}`)
+    })
+
+    // The address is on the panel and not only in the link, because a webview
+    // that refuses to open a mailto: leaves a person with nothing to copy.
+    test('shows the address it writes to', () => {
+        open()
+
+        expect(screen.getByText(`Bugs and requests go by email, to ${Constants.feedbackEmail}.`)).toBeInTheDocument()
     })
 })

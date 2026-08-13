@@ -25,7 +25,7 @@ const HeaderItems = () => {
             <div class='GlobalHeaderComponent'>
                 <span class='spacer'/>
                 <a
-                    href={Constants.homeUrl}
+                    href={Constants.guideUrl}
                     target='_blank'
                     rel='noreferrer'
                     class='GlobalHeaderComponent__button help-button'

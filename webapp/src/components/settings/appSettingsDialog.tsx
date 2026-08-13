@@ -35,9 +35,15 @@ import './appSettingsDialog.scss'
 // emptied the corner of the board, where the theme, the language and the way to
 // the manual had each become an icon standing in for a word.
 
+// The name is an accessor, not a string, and that is the whole of why the
+// language of this dialog follows the one picked inside it. A Solid component
+// body runs once, so a name formatted there is a name in whatever language was
+// current when the dialog opened — and the panel that changes the language is
+// two clicks away, inside this very dialog. The nav and the panel heading
+// stayed Russian while everything drawn inside JSX turned English.
 type Section = {
     id: string
-    name: string
+    name: () => string
     when: () => boolean
 
     // A component, not rendered JSX: switching sections has to build the panel
@@ -59,37 +65,37 @@ const AppSettingsDialog = (props: Props) => {
             // First, and therefore what opens: it is the one section every
             // install has something to say in, agents or no agents.
             id: 'app',
-            name: intl.formatMessage({id: 'Settings.section-app', defaultMessage: 'The app itself'}),
+            name: () => intl.formatMessage({id: 'Settings.section-app', defaultMessage: 'The app itself'}),
             when: () => true,
             body: AppPanel,
         },
         {
             id: 'agents',
-            name: intl.formatMessage({id: 'Machine.section-agents', defaultMessage: 'Agents'}),
+            name: () => intl.formatMessage({id: 'Machine.section-agents', defaultMessage: 'Agents'}),
             when: isAgentsAvailable,
             body: AgentsPanel,
         },
         {
             id: 'proxies',
-            name: intl.formatMessage({id: 'Proxies.title', defaultMessage: 'Proxy configurations'}),
+            name: () => intl.formatMessage({id: 'Proxies.title', defaultMessage: 'Proxy configurations'}),
             when: isProxiesAvailable,
             body: ProxiesPanel,
         },
         {
             id: 'tailnet',
-            name: intl.formatMessage({id: 'Tailnet.title', defaultMessage: 'Access from a phone'}),
+            name: () => intl.formatMessage({id: 'Tailnet.title', defaultMessage: 'Access from a phone'}),
             when: isTailnetAvailable,
             body: TailnetPanel,
         },
         {
             id: 'data',
-            name: intl.formatMessage({id: 'Settings.section-data', defaultMessage: 'Import and export'}),
+            name: () => intl.formatMessage({id: 'Settings.section-data', defaultMessage: 'Import and export'}),
             when: () => true,
             body: DataPanel,
         },
         {
             id: 'misc',
-            name: intl.formatMessage({id: 'Machine.section-misc', defaultMessage: 'Other'}),
+            name: () => intl.formatMessage({id: 'Machine.section-misc', defaultMessage: 'Other'}),
             when: () => true,
             body: MachineMiscPanel,
         },
@@ -114,7 +120,7 @@ const AppSettingsDialog = (props: Props) => {
                                 class={`AppSettingsDialog__navItem${entry.id === current() ? ' AppSettingsDialog__navItem--current' : ''}`}
                                 onClick={() => setCurrent(entry.id)}
                             >
-                                {entry.name}
+                                {entry.name()}
                             </button>
                         )}
                     </For>
@@ -123,7 +129,7 @@ const AppSettingsDialog = (props: Props) => {
                     <Show when={section()}>
                         {(entry) => (
                             <>
-                                <h3 class='AppSettingsDialog__panelTitle'>{entry().name}</h3>
+                                <h3 class='AppSettingsDialog__panelTitle'>{entry().name()}</h3>
                                 <Dynamic component={entry().body}/>
                             </>
                         )}

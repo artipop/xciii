@@ -296,7 +296,7 @@ const BoardSetupWizard = (props: Props) => {
         case STEP_DEPLOY:
             return (
                 <div class='BoardSetupWizard__step'>
-                    <p>{intl.formatMessage({id: 'BoardSetup.deploy-why', defaultMessage: 'Where a card’s branch is published from the "Deploy" column. Skip it if nothing is deployed from here — everything else still works.'})}</p>
+                    <p>{intl.formatMessage({id: 'BoardSetup.deploy-why', defaultMessage: 'Where a card’s branch is published from the "Деплой" column. Skip it if nothing is deployed from here — everything else still works.'})}</p>
                     <label>
                         {intl.formatMessage({id: 'BoardSetup.deploy-name', defaultMessage: 'Name'})}
                         <input

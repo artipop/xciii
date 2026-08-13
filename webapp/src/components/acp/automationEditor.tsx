@@ -682,7 +682,7 @@ const AutomationEditor = (props: Props) => {
                                         said. */}
                                     <Show when={props.deploys.length === 0}>
                                         <span class='AutomationEditor__hint'>
-                                            {intl.formatMessage({id: 'Automation.no-deploys', defaultMessage: 'No deploy targets yet — add one in «Where to deploy» below, under the canvas.'})}
+                                            {intl.formatMessage({id: 'Automation.no-deploys', defaultMessage: 'No deploy targets yet — add one in "Where to deploy" below, under the canvas.'})}
                                         </span>
                                     </Show>
                                 </Show>

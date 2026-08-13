@@ -48,7 +48,7 @@ describe('properties/link', () => {
         const {container} = render(() => wrapIntl(() => (
             <Url
                 {...baseData}
-                propertyValue='https://github.com/artipop/xciii'
+                propertyValue='https://deffun.com/xciii/'
             />
         )))
         expect(container).toMatchSnapshot()
@@ -58,7 +58,7 @@ describe('properties/link', () => {
         const {container} = render(() => wrapIntl(() => (
             <Url
                 {...baseData}
-                propertyValue='https://github.com/artipop/xciii'
+                propertyValue='https://deffun.com/xciii/'
                 readOnly={true}
             />
         )))
@@ -93,7 +93,7 @@ describe('properties/link', () => {
         )
 
         userEvent.click(screen.getByRole('button', {name: 'Edit'}))
-        const newURL = 'https://github.com/mattermost'
+        const newURL = 'https://deffun.com'
         const input = screen.getByRole('textbox')
         userEvent.clear(input)
         userEvent.type(input, `${newURL}{enter}`)

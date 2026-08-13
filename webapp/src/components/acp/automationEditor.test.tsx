@@ -304,7 +304,7 @@ describe('components/acp/automationEditor', () => {
             focusColumnId: 'opt-work',
         })
 
-        expect(screen.getByText(/add one in «Where to deploy» below/)).toBeInTheDocument()
+        expect(screen.getByText(/add one in "Where to deploy" below/)).toBeInTheDocument()
     })
 
     test('the hint is not shown once a target exists', () => {
@@ -317,6 +317,6 @@ describe('components/acp/automationEditor', () => {
             focusColumnId: 'opt-work',
         })
 
-        expect(screen.queryByText(/add one in «Where to deploy» below/)).toBeNull()
+        expect(screen.queryByText(/add one in "Where to deploy" below/)).toBeNull()
     })
 })

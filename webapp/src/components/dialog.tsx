@@ -24,7 +24,10 @@ type Props = {
 const Dialog: ParentComponent<Props> = (props) => {
     const intl = useIntl()
 
-    const closeDialogText = intl.formatMessage({
+    // An accessor, because the settings dialog is a dialog and the language is
+    // picked inside it: a string formatted in the body would be the close
+    // button's tooltip in whatever language the dialog was opened in.
+    const closeDialogText = () => intl.formatMessage({
         id: 'Dialog.closeDialog',
         defaultMessage: 'Close dialog',
     })
@@ -80,7 +83,7 @@ const Dialog: ParentComponent<Props> = (props) => {
                                     class='dialog__close'
                                     onClick={props.onClose}
                                     icon={<CloseIcon/>}
-                                    title={closeDialogText}
+                                    title={closeDialogText()}
                                     size='medium'
                                 />
                             </Show>

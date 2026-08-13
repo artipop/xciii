@@ -129,10 +129,13 @@ const MachineMiscPanel = () => {
                     </div>
                 </Show>
 
+                {/* The guide, not docs/flows.md: this line used to name a file
+                    of the source tree, which a person reading it off the
+                    settings panel has no way to open. */}
                 <p class='MachineMiscPanel__hint'>
                     {intl.formatMessage({
                         id: 'Machine.hint-config',
-                        defaultMessage: 'How many sessions run at once, how long a turn may take, which tools an agent may use without asking — those are edited by hand in the app\'s config.json, and are described in docs/flows.md.',
+                        defaultMessage: 'How many sessions run at once, how long a turn may take, which tools an agent may use without asking — those are edited by hand in the app\'s config.json. The guide says where the file is and what is in it.',
                     })}
                 </p>
 

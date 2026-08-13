@@ -113,18 +113,18 @@ const AppPanel = () => {
                     <div class='AppPanel__action'>
                         <div class='AppPanel__actionText'>
                             <span class='AppPanel__actionName'>
-                                {intl.formatMessage({id: 'Settings.help-page', defaultMessage: 'The guide and the source'})}
+                                {intl.formatMessage({id: 'Settings.help-page', defaultMessage: 'The guide'})}
                             </span>
                             <span class='AppPanel__actionHint'>
                                 {intl.formatMessage({
                                     id: 'Settings.help-hint',
-                                    defaultMessage: 'The guide to the board, its columns and routes, with the source code beside it.',
+                                    defaultMessage: 'How the board, its columns and its routes work, screen by screen.',
                                 })}
                             </span>
                         </div>
                         <a
                             class='AppPanel__actionLink'
-                            href={Constants.homeUrl}
+                            href={Constants.guideUrl}
                             target='_blank'
                             rel='noreferrer'
                         >
@@ -145,15 +145,13 @@ const AppPanel = () => {
                             <span class='AppPanel__actionHint'>
                                 {intl.formatMessage({
                                     id: 'Settings.feedback-hint',
-                                    defaultMessage: 'Bugs and requests go to the issue tracker.',
-                                })}
+                                    defaultMessage: 'Bugs and requests go by email, to {email}.',
+                                }, {email: Constants.feedbackEmail})}
                             </span>
                         </div>
                         <a
                             class='AppPanel__actionLink'
-                            href={Constants.issuesUrl}
-                            target='_blank'
-                            rel='noreferrer'
+                            href={Constants.feedbackUrl}
                         >
                             {intl.formatMessage({id: 'Settings.feedback-open', defaultMessage: 'Write'})}
                         </a>

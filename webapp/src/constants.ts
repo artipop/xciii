@@ -37,10 +37,16 @@ class Constants {
     static readonly versionString = '1.0.0'
     static readonly versionDisplayString = 'June 2024'
 
-    // The app has no marketing or documentation site: the repository is the
-    // only page the UI can point somebody at.
-    static readonly homeUrl = 'https://github.com/artipop/xciii'
-    static readonly issuesUrl = Constants.homeUrl + '/issues'
+    // The product's own pages, and the only addresses the UI hands out: what
+    // the app is, how it works, and where a person writes when it does not.
+    // The repository stood for all three while there was no site; it is not an
+    // answer to any of them — somebody who opens «Руководство» wants the manual,
+    // not a source tree, and a bug report is a letter rather than an account on
+    // a hosting service.
+    static readonly homeUrl = 'https://deffun.com/xciii/'
+    static readonly guideUrl = 'https://deffun.com/docs/'
+    static readonly feedbackEmail = 'hello@deffun.com'
+    static readonly feedbackUrl = `mailto:${Constants.feedbackEmail}`
 
     static readonly archiveHelpPage = 'https://docs.mattermost.com/boards/migrate-to-boards.html'
     static readonly imports = [
@@ -98,7 +104,7 @@ class Constants {
         {
             code: 'ru',
             name: 'russian',
-            displayName: 'Pусский',
+            displayName: 'Русский',
         },
         {
             code: 'zh-tw',

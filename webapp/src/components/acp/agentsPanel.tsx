@@ -783,7 +783,7 @@ const AgentsPanel = () => {
                             />
                         </label>
                         <div class='AgentsPanel__hint'>
-                            {intl.formatMessage({id: 'Agents.mcp-servers-hint', defaultMessage: 'Their tools run without confirmation prompts. A browser server (Playwright, say) is what the "To Test" column needs.'})}
+                            {intl.formatMessage({id: 'Agents.mcp-servers-hint', defaultMessage: 'Their tools run without confirmation prompts. A browser server (Playwright, say) is what the "QA" column needs.'})}
                         </div>
                         <label>
                             {intl.formatMessage({id: 'Agents.args', defaultMessage: 'Extra CLI args (space-separated)'})}

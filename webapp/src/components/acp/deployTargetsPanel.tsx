@@ -125,7 +125,7 @@ const DeployTargetsPanel = (props: Props) => {
     return (
         <div class='DeployTargetsPanel'>
             <div class='DeployTargetsPanel__subtitle'>
-                {intl.formatMessage({id: 'DeployTargets.subtitle', defaultMessage: 'Dokku hosts a card\'s branch is published to when it moves into the Deploy column. One branch becomes one app of its own, at “project-branch.base-domain”.'})}
+                {intl.formatMessage({id: 'DeployTargets.subtitle', defaultMessage: 'Dokku hosts a card\'s branch is published to when it moves into the "Деплой" column. One branch becomes one app of its own, at "project-branch.base-domain".'})}
             </div>
             <div class='DeployTargetsPanel__content'>
                 <Show when={targets().length === 0 && !form()}>
