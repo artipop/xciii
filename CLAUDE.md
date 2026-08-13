@@ -634,16 +634,18 @@ conversation the moment a second agent was registered. A folder the card
 are untouched — automation without a folder has nowhere to work, so it stalls
 as before.
 
-**The panel asks only what Go refused to answer**: when `OpenCardTerminal`
-fails — which now means the agent, or a folder named but broken — the panel
-offers the pick — the board's projects (with «— без папки, просто
-поговорить —» as a first-class answer), the registry's agents, quick-add for
-both — and starts the conversation with the choice. The choice lives that one
-conversation and writes nothing to the card: planning in place, not an
-assignment. (This deliberately reversed an earlier decision to point at the
-settings instead; the form that once overloaded the card stood on every card
-always, while this one appears only on refusal, in the panel the refusal is
-about.)
+**The pick is a stepped flow, one question per screen, the answers as
+buttons** (`cardTerminal.tsx`, mirrored by `planningDialog.tsx`): «Кто ведёт
+разговор?» with the agents as name-chips first — a single registered agent
+answers it unasked, quick-add beside the names — then the folder question,
+with the chosen name kept above it as the way back. Clicking a name when the
+folder is already known is also the start. Two selects asking both questions
+at once was the shape this replaced, twice: it read as one question
+interrupted by another. The choice lives that one conversation and writes
+nothing to the card: planning in place, not an assignment. (This deliberately
+reversed an earlier decision to point at the settings instead; the form that
+once overloaded the card stood on every card always, while this one appears
+only when there is something to ask, in the panel the question is about.)
 
 It is deliberately not an ACP session: an ACP agent speaks JSON-RPC on stdio and has
 no terminal UI, so one process cannot be both. What the two share is everything

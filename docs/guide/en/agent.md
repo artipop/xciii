@@ -60,7 +60,7 @@ code: wording, subtasks, a brief. When neither the «Проекты» field nor 
 registry names a folder, the question "The agent needs a folder to work in"
 appears with two answers:
 
-- **"Use the board's folder"** — the board's own folder in the app's data:
+- **"Use the board’s folder"** — the board's own folder in the app's data:
   its agents keep what they write for its cards there — briefs, drafts,
   notes. There is no code in it, and it is one per board: what was written
   for one card is on hand when another is talked over;
@@ -83,7 +83,7 @@ A task can be talked through before it becomes a card: the arrow next to the
 "New" button in the board header → **"Talk it over with an agent…"**. The
 same stepped pick as the card's terminal opens: "Who talks here?" — the
 agents' names are the answers — then "Where should the conversation live?" —
-this machine's project folders, "Use the board's folder" or "Choose a
+this machine's project folders, "Use the board’s folder" or "Choose a
 folder…". Answering the second question is what opens the terminal in a
 window.
 
@@ -111,8 +111,8 @@ place, or in the terminal window — the question is shown above the screen with
 its options.
 
 Notifications can be turned off in the
-[settings](./settings/index.md#agent-notifications); the dot on the card stays
-either way.
+[settings](./settings/index.md#agent-notifications); the terminal button on
+the card stays amber either way.
 
 ## Comments
 

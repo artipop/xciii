@@ -21,11 +21,15 @@ agents, "The app itself", "Import and export" and "Other" remain.
 
 - **Theme** — "Light theme", "Dark theme", "System theme". Applies
   immediately.
-- **Language** — the list of app languages.
+- **Language** — the list of app languages. When none was ever picked, the
+  system language applies.
 - **Help** — "The guide and the source", with an "Open" button. Below it —
   "Give feedback": a link to the issue tracker.
 
-All of this is available before the first board is created.
+All of this is available before the first board is created. The picked theme
+and language are kept by the install itself: they survive a restart and apply
+on the phone too, through
+["Access from a phone"](#access-from-a-phone).
 
 ## Access from a phone
 
@@ -45,7 +49,8 @@ the Inbox, Cards, Waiting and Terminals tabs.
 ## Agent notifications
 
 The **"Notify me when an agent is waiting"** switch is in the "Other" section.
-When off, it removes only the notifications; the amber dot on the card stays.
+When off, it removes only the notifications; the amber terminal button on
+the card stays.
 
 ## What is not here
 
