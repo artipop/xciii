@@ -35,7 +35,7 @@ const SidebarUserMenu = () => {
                 <MenuWrapper
                     menu={
                         <Menu>
-                            <Show when={user() && user()!.username !== 'single-user'}>
+                            <Show when={user() && user()!.id !== 'single-user'}>
                                 <Menu.Label><b>{user()!.username}</b></Menu.Label>
                                 <Menu.Text
                                     id='logout'

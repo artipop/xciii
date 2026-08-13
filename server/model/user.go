@@ -10,6 +10,13 @@ const (
 	GlobalTeamID                  = "0"
 	SystemUserID                  = "system"
 	PreferencesCategoryFocalboard = "focalboard"
+
+	// SingleUserName is the username the API synthesizes for the single-user
+	// session. The id above stays the identity everything checks; this is the
+	// display half — the board prints the username wherever it names an
+	// author, an assignee or a group header, and "single-user" was the one
+	// name on those screens no person chose.
+	SingleUserName = "Вы"
 )
 
 // User is a user

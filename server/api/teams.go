@@ -345,7 +345,7 @@ func (a *API) handleGetTeamUsersByID(w http.ResponseWriter, r *http.Request) {
 		now := utils.GetMillis()
 		user := &model.User{
 			ID:       model.SingleUser,
-			Username: model.SingleUser,
+			Username: model.SingleUserName,
 			Email:    model.SingleUser,
 			CreateAt: ws.UpdateAt,
 			UpdateAt: now,

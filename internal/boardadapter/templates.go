@@ -46,7 +46,10 @@ var templateFiles embed.FS
 // 15: «Мои задачи» stands beside «Входящие» — the column a card made with the
 // inbox's own «Создать» button lands in, so what a person typed is not filed
 // among what arrived and nobody has read.
-const TemplateVersion = 15
+// 16: the developer template's main view is «Задачи» — «Progress Tracker» was
+// the one English name left on a Russian screen, inherited from the upstream
+// board the template was built from.
+const TemplateVersion = 16
 
 // TemplateMarkerProperty is the board property each template carries its slug
 // in. Ids are regenerated on import and titles are the user's to change, so the
@@ -57,7 +60,53 @@ const TemplateMarkerProperty = "xciiiTemplate"
 // keeps them at the version this build ships. It is safe to call on every
 // launch: a template that is already there at the right version is left alone.
 func ImportTemplates(a *app.App, log mlog.LoggerIFace) error {
-	return importTemplates(a, log, TemplateVersion)
+	if err := importTemplates(a, log, TemplateVersion); err != nil {
+		return err
+	}
+	renameLegacyViews(a, log)
+	return nil
+}
+
+// renameLegacyViews catches up boards the old templates already made. A version
+// bump replaces the template, but a board made from it is the user's and is
+// never replaced — so a name the template got wrong lives on there until it is
+// mended in place. Only a title still byte-equal to what our own file shipped
+// is touched: one somebody renamed is theirs. Safe to run on every launch —
+// after the first pass nothing matches.
+func renameLegacyViews(a *app.App, log mlog.LoggerIFace) {
+	// The developer template's main view carried the name of the upstream
+	// board it was built from (template version 16).
+	const oldTitle, newTitle = "Progress Tracker", "Задачи"
+
+	boards, err := a.GetBoardsForUserAndTeam(model.SingleUser, model.GlobalTeamID, false)
+	if err != nil {
+		log.Warn("templates: cannot list boards for the view rename", mlog.Err(err))
+		return
+	}
+	for _, board := range boards {
+		if board.IsTemplate || templateSlug(board) != "developer-tasks" {
+			continue
+		}
+		// By type alone: a board duplicated from a template keeps its views'
+		// parentId pointing at the template's own id, so filtering on the
+		// board as parent finds nothing there.
+		views, err := a.GetBlocks(board.ID, "", model.TypeView)
+		if err != nil {
+			log.Warn("templates: cannot read views for the view rename", mlog.String("board", board.ID), mlog.Err(err))
+			continue
+		}
+		for _, view := range views {
+			if view.Title != oldTitle {
+				continue
+			}
+			title := newTitle
+			if _, err := a.PatchBlock(view.ID, &model.BlockPatch{Title: &title}, model.SystemUserID); err != nil {
+				log.Warn("templates: cannot rename the view", mlog.String("board", board.ID), mlog.Err(err))
+				continue
+			}
+			log.Info("templates: renamed the legacy view", mlog.String("board", board.ID))
+		}
+	}
 }
 
 // importTemplates takes the version as an argument so a test can install an

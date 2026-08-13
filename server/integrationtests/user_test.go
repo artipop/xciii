@@ -190,7 +190,7 @@ func TestGetUserListSingleUserWithRealAccounts(t *testing.T) {
 	for _, u := range users {
 		usernames[u.Username] = true
 	}
-	require.True(t, usernames[model.SingleUser], "single-user missing: %v", usernames)
+	require.True(t, usernames[model.SingleUserName], "single-user missing: %v", usernames)
 	require.True(t, usernames["agent-claude"], "agent account missing: %v", usernames)
 
 	// An id nobody owns (a card naming a deleted account) does not fail the

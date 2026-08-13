@@ -198,3 +198,65 @@ func TestAnInstalledTemplateKeepsItsCardsAndAutomation(t *testing.T) {
 		t.Error("the board arrived with no cards")
 	}
 }
+
+// A board somebody already made from the old developer template keeps saying
+// «Progress Tracker» for ever unless a launch mends it: the version bump only
+// replaces the template, and the board is the user's. Renamed only while the
+// title is still byte-equal to what the file shipped — a name the person
+// changed is theirs.
+func TestALegacyViewNameIsMendedOnLaunch(t *testing.T) {
+	a := newTestApp(t)
+	logger, _ := mlog.NewLogger()
+	if err := ImportTemplates(a, logger); err != nil {
+		t.Fatal(err)
+	}
+
+	template := installedTemplates(t, a)["developer-tasks"]
+	if template == nil {
+		t.Fatal("developer-tasks is not installed")
+	}
+	bab, _, err := a.DuplicateBoard(template.ID, model.SingleUser, model.GlobalTeamID, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	board := bab.Boards[0]
+
+	// An install that predates version 16: its main view still carries the
+	// upstream name, and a second view carries one the person typed.
+	views, err := a.GetBlocks(board.ID, "", model.TypeView)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(views) < 2 {
+		t.Fatalf("the board arrived with %d views", len(views))
+	}
+	old, kept := "Progress Tracker", "Задачи мои, не трогать"
+	if _, err = a.PatchBlock(views[0].ID, &model.BlockPatch{Title: &old}, model.SystemUserID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = a.PatchBlock(views[1].ID, &model.BlockPatch{Title: &kept}, model.SystemUserID); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = ImportTemplates(a, logger); err != nil {
+		t.Fatal(err)
+	}
+
+	views, err = a.GetBlocks(board.ID, "", model.TypeView)
+	if err != nil {
+		t.Fatal(err)
+	}
+	titles := map[string]bool{}
+	for _, view := range views {
+		titles[view.Title] = true
+	}
+	if titles["Progress Tracker"] {
+		t.Errorf("the legacy view kept its English name: %v", titles)
+	}
+	if !titles["Задачи"] {
+		t.Errorf("the legacy view was not renamed to «Задачи»: %v", titles)
+	}
+	if !titles[kept] {
+		t.Errorf("a view the person renamed was touched: %v", titles)
+	}
+}
