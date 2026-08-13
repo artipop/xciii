@@ -165,11 +165,14 @@ func (m *Manager) heldWorkspace(workdir, owner, mode string) (Workspace, bool) {
 		m.log.Warn("acp: cannot read the folder's workspaces", "workdir", workdir, "err", err)
 		return Workspace{}, false
 	}
-	if !ok || c.Mode != mode {
-		// A board that changed its mode gets a new workspace rather than the
-		// old one under a name that no longer describes it.
+	if !ok {
 		return Workspace{}, false
 	}
+	// Whatever the board says *now*, a card that already has a workspace keeps
+	// it: its work is in there. Changing how this board works in a repository
+	// is an answer about the cards to come, not a reason to take a running
+	// card's branch away and hand it another — which is what re-deciding here
+	// did, leaving the copy on disk with nothing pointing at it.
 	ws := Workspace{Cwd: c.Path, Branch: c.Branch, Base: c.Base, Mode: c.Mode}
 	if c.Mode != WorkModeWorktree {
 		return ws, true

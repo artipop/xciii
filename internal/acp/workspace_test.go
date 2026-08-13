@@ -192,3 +192,38 @@ func TestAnOrdinaryFolderIsItsOwnWorkspace(t *testing.T) {
 		t.Errorf("a folder that created nothing was recorded anyway (held=%v err=%v)", held, err)
 	}
 }
+
+// A card that already has a workspace keeps it, whatever the board decides
+// afterwards: its work is in there. And a card working in a copy of its own
+// holds nothing, so it can never keep another card out of the folder — which is
+// what "папка занята другой карточкой" said about a card that had finished.
+func TestChangingTheBoardsModeLeavesRunningCardsAlone(t *testing.T) {
+	m, repo := workspaceManager(t)
+	m.cfg.BoardGit = map[string]GitPolicy{"board1": {Mode: WorkModeWorktree}}
+
+	first, err := m.ClaimWorkspace(WorkSpec{Workdir: repo, Owner: "card-1", BoardID: "board1", Title: "Первая"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The board is switched to a branch in the folder itself.
+	m.cfg.BoardGit = map[string]GitPolicy{"board1": {Mode: WorkModeBranch}}
+
+	again, err := m.ClaimWorkspace(WorkSpec{Workdir: repo, Owner: "card-1", BoardID: "board1", Title: "Первая"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if again.Branch != first.Branch || again.Cwd != first.Cwd {
+		t.Errorf("the card was moved to %+v, want the workspace its work is in %+v", again, first)
+	}
+
+	// And the next card gets what the board now says, without being told the
+	// folder is held by a card sitting in a copy of its own.
+	second, err := m.ClaimWorkspace(WorkSpec{Workdir: repo, Owner: "card-2", BoardID: "board1", Title: "Вторая"})
+	if err != nil {
+		t.Fatalf("the next card was refused: %v", err)
+	}
+	if second.Mode != WorkModeBranch || second.Cwd != repo {
+		t.Errorf("the next card got %+v, want a branch in the folder itself", second)
+	}
+}

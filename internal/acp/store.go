@@ -831,12 +831,14 @@ func (s *Store) WorkspaceOf(workdir, owner string) (WorkspaceClaim, bool, error)
 	return scanClaim(row)
 }
 
-// WorkdirHeldBy is whoever holds this folder now, for a mode where only one
-// owner can. Empty when nobody does.
+// WorkdirHeldBy is whoever holds this folder now — and only a branch in the
+// folder itself holds one. A copy per card holds nothing: that is the whole
+// point of it, and counting those claims made a card that had finished months
+// ago keep every later card out of a folder it was never standing in.
 func (s *Store) WorkdirHeldBy(workdir string) (WorkspaceClaim, bool, error) {
 	row := s.db.QueryRow(`SELECT workdir, owner, mode, branch, path, base, created_at
-		FROM workdir_claim WHERE workdir=? AND released_at IS NULL
-		ORDER BY created_at LIMIT 1`, workdir)
+		FROM workdir_claim WHERE workdir=? AND released_at IS NULL AND mode=?
+		ORDER BY created_at LIMIT 1`, workdir, WorkModeBranch)
 	return scanClaim(row)
 }
 
