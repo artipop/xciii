@@ -19,6 +19,51 @@ export enum UserSettingKey {
     AgentNotifications = 'agentNotifications'
 }
 
+// The keys the install keeps for itself, in <dataDir>/ui-settings.json on the
+// Go side. localStorage is only a boot-time cache for these: the desktop
+// window opens on a loopback origin with a random port, and everything the
+// browser stored under the previous one is unreachable by the next launch —
+// docs/deferred.md, «Уйти из localStorage». The rest of the enum stays
+// browser-only on purpose: the emoji-mart keys are the library's own, and
+// welcomePageViewed lives in the user's server-side config.
+const installKept = new Set<string>([
+    UserSettingKey.Language,
+    UserSettingKey.Theme,
+    UserSettingKey.NameFormat,
+    UserSettingKey.LastTeamId,
+    UserSettingKey.LastBoardId,
+    UserSettingKey.LastViewId,
+    UserSettingKey.MobileWarningClosed,
+    UserSettingKey.AgentNotifications,
+])
+
+// The Wails bindings, when this bundle runs in the desktop app — the same
+// bundle also runs in a plain browser and as a Mattermost plugin, where
+// localStorage is the whole memory and these are absent.
+const preferenceBindings = () => (window as any).go?.main?.App
+
+// hydrateUserSettings fills localStorage with what the install remembers,
+// before the first render (main.tsx awaits it): the theme and the language
+// have to be right on the first paint, not a correction after it.
+export async function hydrateUserSettings(): Promise<void> {
+    const bindings = preferenceBindings()
+    if (!bindings?.GetUIPreferences) {
+        return
+    }
+    try {
+        // The Wails-generated Go bindings are PascalCase methods.
+        // eslint-disable-next-line new-cap
+        const prefs = JSON.parse((await bindings.GetUIPreferences()) || '{}')
+        for (const [key, value] of Object.entries(prefs)) {
+            if (installKept.has(key) && typeof value === 'string') {
+                localStorage.setItem(key, value)
+            }
+        }
+    } catch (e) {
+        // A refused read leaves the boot-time guesses in place.
+    }
+}
+
 export class UserSettings {
     static get(key: UserSettingKey): string | null {
         return localStorage.getItem(key)
@@ -32,6 +77,14 @@ export class UserSettings {
             localStorage.removeItem(key)
         } else {
             localStorage.setItem(key, value)
+        }
+
+        // Write-through: the localStorage write above answers this session,
+        // the install remembers for the next one. Fire and forget — a
+        // refused write must not block the switch being made.
+        if (installKept.has(key)) {
+            // eslint-disable-next-line new-cap
+            preferenceBindings()?.SetUIPreference?.(key, value ?? '')?.catch?.(() => undefined)
         }
         notifySettingsChanged(key)
     }

@@ -337,7 +337,16 @@ machine's (`config.json`, shared by every board that deploys), but a Dokku
 host only means anything to a board whose automation has a deploy stage, so
 the panel is a fold of that board's `automationDialog.tsx` (`usesDeploys`) and
 no other surface offers it — a settings section put a Dokku form one click
-from a board of shopping lists. **The theme and the language are settings like the rest of them**,
+from a board of shopping lists. **What a person picked for the UI is kept by the install**, not by the
+browser: `<dataDir>/ui-settings.json` (`GetUIPreferences`/`SetUIPreference`),
+because the desktop window opens on a loopback origin with a random port and
+localStorage forgot everything on every launch. `main.tsx` hydrates
+localStorage from it before the first render — the theme and the language
+have to be right on the first paint — and `UserSettings.set` writes through;
+`installKept` in `userSettings.ts` names the keys that travel, and the
+session token deliberately is not one of them. In a plain browser or as a
+Mattermost plugin there is no Go side, and localStorage stays the whole
+memory there. **The theme and the language are settings like the rest of them**,
 and are `settings/appPanel.tsx` with the link to the manual: they spent a while
 in the corner of the board on the grounds that they are changed while looking at
 it, and what that cost was two icon menus and a question mark standing in for

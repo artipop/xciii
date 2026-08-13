@@ -6,6 +6,7 @@ import App from './app'
 import {installPolyfills} from './polyfills'
 import {initThemes} from './theme'
 import {importNativeAppSettings} from './nativeApp'
+import {hydrateUserSettings} from './userSettings'
 
 import {IUser} from './user'
 import {getMe} from './store/users'
@@ -43,8 +44,6 @@ installPolyfills()
 initEmojiMart({data: emojiMartData})
 importNativeAppSettings()
 
-initThemes()
-
 const MainApp = () => {
     const me = useAppSelector<IUser|null>(getMe)
 
@@ -55,14 +54,26 @@ const MainApp = () => {
     )
 }
 
-// The store is created here, not in a module singleton, and everything that
-// writes to it from outside the component tree — the Mutator — gets its
-// actions handed over before the first render.
-const store = createAppStore()
-mutator.setActions(store.actions)
+// The first paint waits for the install's own memory: the desktop window's
+// localStorage is empty on every launch (a loopback origin with a random
+// port), and the theme and the language have to be right when the page
+// appears, not corrected after it. One binding call over loopback; a build
+// with no Go side resolves it at once.
+async function boot() {
+    await hydrateUserSettings()
+    initThemes()
 
-render(() => (
-    <AppStoreProvider store={store}>
-        <MainApp/>
-    </AppStoreProvider>
-), document.getElementById('xciii-app')!)
+    // The store is created here, not in a module singleton, and everything
+    // that writes to it from outside the component tree — the Mutator — gets
+    // its actions handed over before the first render.
+    const store = createAppStore()
+    mutator.setActions(store.actions)
+
+    render(() => (
+        <AppStoreProvider store={store}>
+            <MainApp/>
+        </AppStoreProvider>
+    ), document.getElementById('xciii-app')!)
+}
+
+boot()

@@ -2,22 +2,28 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 )
 
-// What the install remembers about its own UI — today the language a person
-// picked in the settings. It lives here, in the app's own data, rather than in
-// the browser: the desktop window opens on a loopback origin the browser has
-// no lasting memory for (a random port per launch — docs/deferred.md, «Уйти из
-// localStorage»), and a preference a person set is the install's to keep, the
-// way any desktop app keeps one. The page still falls back to localStorage
-// when there is no Go side — the same bundle runs in a plain browser and as a
-// Mattermost plugin — and to the OS language when nothing was ever picked.
+// What the install remembers about its own UI — the language and theme a
+// person picked, where they were last, every «больше не показывать». It lives
+// here, in the app's own data, rather than in the browser: the desktop window
+// opens on a loopback origin the browser has no lasting memory for (a random
+// port per launch — docs/deferred.md, «Уйти из localStorage»), and a
+// preference a person set is the install's to keep, the way any desktop app
+// keeps one. The page hydrates its localStorage from this before the first
+// render (userSettings.ts) and writes back through SetUIPreference; in a
+// plain browser or as a Mattermost plugin there is no Go side, and
+// localStorage stays the whole memory there.
 type uiSettings struct {
-	Language string `json:"language,omitempty"`
+	// Language predates Preferences by one release; it is folded into the map
+	// on read and never written again.
+	Language    string            `json:"language,omitempty"`
+	Preferences map[string]string `json:"preferences,omitempty"`
 }
 
 // One writer at a time: two bindings racing the read-modify-write would drop
@@ -33,17 +39,26 @@ func uiSettingsPath() (string, error) {
 }
 
 func readUISettings() uiSettings {
+	var s uiSettings
 	path, err := uiSettingsPath()
 	if err != nil {
-		return uiSettings{}
+		return s
 	}
 	b, err := os.ReadFile(path)
 	if err != nil {
-		return uiSettings{}
+		return s
 	}
-	var s uiSettings
 	if err := json.Unmarshal(b, &s); err != nil {
 		return uiSettings{}
+	}
+	if s.Language != "" {
+		if s.Preferences == nil {
+			s.Preferences = map[string]string{}
+		}
+		if s.Preferences["language"] == "" {
+			s.Preferences["language"] = s.Language
+		}
+		s.Language = ""
 	}
 	return s
 }
@@ -60,20 +75,44 @@ func writeUISettings(s uiSettings) error {
 	return os.WriteFile(path, append(b, '\n'), 0o644)
 }
 
-// GetUILanguage returns the language this install keeps for its UI — "" when
-// nobody ever picked one, which the page reads as "use the OS language".
-func (a *App) GetUILanguage() (string, error) {
+// GetUIPreferences returns everything the install keeps for its UI, as a JSON
+// object of key → value. Empty object when nothing was ever picked.
+func (a *App) GetUIPreferences() (string, error) {
 	uiSettingsMu.Lock()
 	defer uiSettingsMu.Unlock()
-	return readUISettings().Language, nil
+	prefs := readUISettings().Preferences
+	if prefs == nil {
+		prefs = map[string]string{}
+	}
+	out, err := json.Marshal(prefs)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }
 
-// SetUILanguage remembers the language picked in the settings. Empty forgets
-// it, handing the choice back to the OS.
-func (a *App) SetUILanguage(lang string) error {
+// SetUIPreference remembers one preference; an empty value forgets it. The
+// page sends only the keys it deliberately keeps with the install
+// (userSettings.ts names them); the caps below are a backstop, not a schema —
+// a runaway value must not grow the settings file without bound.
+func (a *App) SetUIPreference(key, value string) error {
+	key = strings.TrimSpace(key)
+	if key == "" || len(key) > 64 {
+		return fmt.Errorf("некорректный ключ настройки")
+	}
+	if len(value) > 16*1024 {
+		return fmt.Errorf("значение настройки слишком велико")
+	}
 	uiSettingsMu.Lock()
 	defer uiSettingsMu.Unlock()
 	s := readUISettings()
-	s.Language = strings.TrimSpace(lang)
+	if s.Preferences == nil {
+		s.Preferences = map[string]string{}
+	}
+	if value == "" {
+		delete(s.Preferences, key)
+	} else {
+		s.Preferences[key] = value
+	}
 	return writeUISettings(s)
 }

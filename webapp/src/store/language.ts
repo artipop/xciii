@@ -1,4 +1,4 @@
-import {fetchStoredLanguage, getCurrentLanguage, storeLanguage as i18nStoreLanguage} from '../i18n'
+import {getCurrentLanguage, storeLanguage as i18nStoreLanguage} from '../i18n'
 
 import type {StoreContext} from './context'
 
@@ -10,16 +10,11 @@ export const initialLanguageState = (): LanguageState => ({value: 'en'})
 
 export const createLanguageActions = ({setState}: StoreContext) => ({
 
-    // The synchronous guess first — localStorage, else the OS language — so
-    // the page paints in the right language at once; then the install's own
-    // answer, which is the one that survives restarts (ui-settings.json on
-    // the Go side, because the desktop window's localStorage does not).
-    async fetchLanguage() {
+    // Synchronous on purpose: by the time the store exists, main.tsx has
+    // already hydrated localStorage from the install's own memory
+    // (ui-settings.json), so this read is the right answer, not a guess.
+    fetchLanguage() {
         setState('language', 'value', getCurrentLanguage())
-        const stored = await fetchStoredLanguage()
-        if (stored) {
-            setState('language', 'value', stored)
-        }
     },
     storeLanguage(lang: string) {
         i18nStoreLanguage(lang)
