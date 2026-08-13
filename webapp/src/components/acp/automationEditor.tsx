@@ -105,10 +105,6 @@ const COLUMNS_VIEW = ''
 // How many columns stand in a row when there is no route to lay them out by.
 const COLUMNS_PER_ROW = 5
 
-// The canvas is the point of this screen, so it gets the room: a route with a
-// failure branch and a shelf of unused columns is three rows deep.
-const CANVAS_HEIGHT = 420
-
 // The palette: what a block dropped on the canvas becomes. 'none' is a plain
 // column — a place cards stand, nothing runs.
 const PALETTE = ['agent', 'deploy', 'test', 'none']
@@ -568,7 +564,6 @@ const AutomationEditor = (props: Props) => {
                         crewOf={crewOf}
                         selected={selected()}
                         onSelect={setSelected}
-                        height={CANVAS_HEIGHT}
                         onChange={flow() ? onCanvasChange : undefined}
                         onAddColumn={addColumnToRoute}
                         onDropBlock={props.onCreateColumn ? dropBlock : undefined}

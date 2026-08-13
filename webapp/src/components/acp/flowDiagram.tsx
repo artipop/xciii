@@ -92,8 +92,6 @@ type Props = {
     // is what the panel is about.
     selected?: {kind: 'node' | 'edge', id: string} | null
     onSelect?: (selection: {kind: 'node' | 'edge', id: string} | null) => void
-
-    height?: number
 }
 
 type StageData = {
@@ -624,7 +622,6 @@ const FlowDiagram = (props: Props) => {
             <div
                 class={`FlowDiagram${editable() ? ' FlowDiagram--editable' : ''}`}
                 data-testid='flow-diagram'
-                style={props.height ? {height: `${props.height}px`} : undefined}
                 onDragOver={onDragOver}
                 onDrop={onDrop}
             >

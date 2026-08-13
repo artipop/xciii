@@ -1,7 +1,9 @@
 @import '../../styles/typography';
 
-// The route as a canvas. The canvas needs a sized container: without a height
-// the graph renders into nothing.
+// The route as a canvas. The canvas needs a size: without a height the graph
+// renders into nothing. This height is only the fallback — the automation
+// editor stretches the canvas into whatever its dialog has (automationEditor
+// .scss), and the template editor states its own.
 .FlowDiagram {
     height: 320px;
     width: 100%;

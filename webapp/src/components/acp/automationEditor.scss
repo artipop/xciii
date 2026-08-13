@@ -7,7 +7,6 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    min-height: 520px;
 
     .AutomationEditor__routes {
         display: flex;
@@ -47,6 +46,12 @@
         display: flex;
         gap: 12px;
         align-items: stretch;
+
+        // The row takes whatever height the container gives the editor — the
+        // canvas is the part that stretches (below). The editor itself never
+        // shrinks below its content (automationDialog.scss), so this only ever
+        // distributes growth.
+        flex: 1 1 auto;
     }
 
     // The palette: blocks a route is built from. Dragging one onto the canvas
@@ -104,7 +109,25 @@
 
     .AutomationEditor__canvas {
         flex: 1 1 auto;
-        min-width: 0;
+
+        // Never below this: the palette and the panel are fixed columns, and on
+        // a narrow window `min-width: 0` let them squeeze the canvas — the
+        // point of the screen — into a sliver.
+        min-width: 320px;
+
+        // A column, so the canvas above the hint can take the row's height.
+        display: flex;
+        flex-direction: column;
+
+        // The canvas fills what the dialog has rather than standing at a fixed
+        // height: a fixed one was either clipped on a small screen or wasting
+        // half of a big one. The minimum keeps a route legible; below it the
+        // dialog's own scrollbar takes over.
+        .FlowDiagram {
+            flex: 1 1 auto;
+            height: auto;
+            min-height: 300px;
+        }
     }
 
     .AutomationEditor__panel {
@@ -115,6 +138,10 @@
         // the edge — the panel is where a column is actually configured, so it
         // is the last place that may overflow.
         min-width: 0;
+
+        // Capped so a long form never dictates the row's height — the canvas
+        // does, and the panel scrolls inside what it gets. The narrow layout
+        // below lifts this, where the panel is a section of the page instead.
         max-height: 460px;
         overflow-y: auto;
         padding: 12px;

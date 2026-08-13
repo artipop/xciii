@@ -18,7 +18,11 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
-        padding: 4px 0;
+
+        // Inset like every other dialog body; the title above is padded by the
+        // toolbar, and content flush with the dialog's edge read as content
+        // cut off by it.
+        padding: 4px 24px 0;
 
         // The base dialog gives every direct child `flex-shrink: 0`, which is
         // right for a toolbar and wrong for the only part meant to give way:
@@ -34,6 +38,20 @@
         // to scroll down to it. This column scrolls; it does not compress.
         > * {
             flex: 0 0 auto;
+        }
+
+        // …except the editor, which may grow — its canvas is the one part that
+        // can use every spare pixel — and still may not compress: grown or
+        // not, its height is at least its content, so the canvas stands at its
+        // own minimum and the scrollbar answers a window shorter than that. A
+        // fixed-height canvas was the clipping the folded sections and the
+        // window's own size kept re-creating: on a 768-tall screen its bottom
+        // — zoom buttons included — sat under the sticky Save row. Allowing
+        // shrink instead of scroll was tried and lost: a content-based flex
+        // minimum does not survive this depth of nesting, the editor shrank
+        // past its canvas, and the canvas painted over the folded sections.
+        > .AutomationEditor {
+            flex: 1 0 auto;
         }
     }
 

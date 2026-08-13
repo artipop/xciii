@@ -11,7 +11,18 @@
         display: flex;
         flex-direction: column;
         gap: 14px;
-        padding: 4px 0;
+
+        // Inset like the automation dialog's body: content flush with the
+        // dialog's edge read as content cut off by it.
+        padding: 4px 24px 24px;
+    }
+
+    // This dialog scrolls as a whole rather than giving the editor a height,
+    // so the flexible canvas (automationEditor.scss) has nothing to fill here
+    // and would sit at its minimum. State the height a template's route is
+    // read at.
+    .AutomationEditor__canvas .FlowDiagram {
+        min-height: 420px;
     }
 
     // The template's own name and icon, on one line: they are the smallest part
