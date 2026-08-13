@@ -167,6 +167,36 @@ describe('components/acp/boardSetupWizard', () => {
         expect(bindings.AddAgent).not.toHaveBeenCalled()
     })
 
+    // The step that says «Уже добавлены: …» is also the step to add another
+    // one on: a board is worked by a crew often enough, and the alternative was
+    // an errand to the settings for the one thing this screen is about.
+    test('another agent can be added on a step that already has one', async () => {
+        const bindings = stubBindings({
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan([{kind: 'agent', ready: true}, {kind: 'done'}])),
+        })
+        bindings.AddAgent.mockImplementation(async () => {
+            bindings.ListAgents.mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'тестер'}]))
+            return '{}'
+        })
+        renderWizard()
+
+        await waitFor(() => expect(screen.getByText('Already registered: клаус')).toBeInTheDocument())
+
+        userEvent.click(screen.getByRole('button', {name: 'Add an agent…'}))
+        await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
+        await userEvent.clear(screen.getByDisplayValue('claude'))
+        await userEvent.type(screen.getByRole('textbox'), 'тестер')
+        userEvent.click(screen.getByRole('button', {name: 'Add'}))
+
+        await waitFor(() => expect(screen.getByText('Already registered: клаус, тестер')).toBeInTheDocument())
+
+        // Adding one is not answering the step: «Next» is what moves on, so a
+        // second agent can be added straight after the first.
+        expect(bindings.RecordBoardSetupStep).not.toHaveBeenCalledWith(testBoard.id, 'agent', 'done')
+        expect(screen.getByRole('button', {name: 'Next'})).toBeInTheDocument()
+    })
+
     test('deploy and testing are skippable, and skipping is remembered', async () => {
         const bindings = stubBindings({
             ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),

@@ -104,6 +104,9 @@ const BoardSetupWizard = (props: Props) => {
     const [projectPath, setProjectPath] = createSignal('')
     const [projectName, setProjectName] = createSignal('')
 
+    // Step 2: another agent, on a step that already has one.
+    const [addingAgent, setAddingAgent] = createSignal(false)
+
     // Step 3: a Dokku host.
     const [deploy, setDeploy] = createSignal({name: '', sshHost: '', sshUser: '', sshKey: '', baseDomain: ''})
 
@@ -302,11 +305,46 @@ const BoardSetupWizard = (props: Props) => {
                     {/* The same two questions a card asks when it needs an
                         agent and has none, asked by the same component: a
                         second form here is how a kind ends up offered in one
-                        place and not the other. */}
-                    <Show when={!hasAgent()}>
+                        place and not the other.
+
+                        With nobody registered the form stands open — there is
+                        nothing else on the step to do. Once somebody is, it
+                        goes behind a link, because the step is then answered
+                        and adding a second agent is an offer rather than the
+                        question; the step used to show the names and no way to
+                        add to them, which sent a person to the settings for the
+                        one thing this screen exists for. Adding an extra one
+                        stays on the step: «Дальше» is what moves on, and a
+                        board is worked by a crew often enough. */}
+                    <Show
+                        when={!hasAgent() || addingAgent()}
+                        fallback={
+
+                            // In the row the QA step puts it in: on its own in
+                            // the step's column the link stretched the width of
+                            // the dialog and centred itself.
+                            <div class='BoardSetupWizard__agentChoices'>
+                                <button
+                                    type='button'
+                                    class='BoardSetupWizard__pickAdd'
+                                    onClick={() => setAddingAgent(true)}
+                                >
+                                    {intl.formatMessage({id: 'BoardSetup.add-agent', defaultMessage: 'Add an agent…'})}
+                                </button>
+                            </div>
+                        }
+                    >
                         <AgentQuickAdd
                             board={props.board}
-                            onAdded={() => run(async () => {}, STEP_AGENT)}
+                            onAdded={async () => {
+                                if (addingAgent()) {
+                                    setAddingAgent(false)
+                                    await refresh()
+                                    return
+                                }
+                                run(async () => {}, STEP_AGENT)
+                            }}
+                            onCancel={addingAgent() ? () => setAddingAgent(false) : undefined}
                         />
                     </Show>
                 </div>
