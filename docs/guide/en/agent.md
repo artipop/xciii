@@ -77,6 +77,21 @@ card names but which is missing on disk is still an error.
 The agent in such a conversation has the board's tools: it can fill the card
 in, split it into subtasks, set fields.
 
+## Talking it over before there is a card
+
+A task can be talked through before it becomes a card: the arrow next to the
+"New" button in the board header → **"Talk it over with an agent…"**. The
+same stepped pick as the card's terminal opens: "Who talks here?" — the
+agents' names are the answers — then "Where should the conversation live?" —
+this machine's project folders, "Use the board's folder" or "Choose a
+folder…". Answering the second question is what opens the terminal in a
+window.
+
+The agent changes nothing in the project — the instructions forbid it — and
+the cards you agree on it creates right on this board. Terminals still
+running are listed at the bottom of the dialog: a conversation outlives its
+window, and with no card behind it this is the only place to find it again.
+
 ## The terminal button on a card
 
 You do not need to open a card to reach its terminal. A terminal-icon button

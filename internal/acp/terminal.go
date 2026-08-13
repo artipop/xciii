@@ -356,7 +356,18 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 		return nil, err
 	}
 	if project.Path == "" {
-		return nil, fmt.Errorf("для терминала нужен проект: выберите его в списке")
+		// Planning with no project talks in «папка доски» — the same answer
+		// the card's dialog gives, for a conversation that is about the
+		// board's cards rather than about code. The name is what the prompt
+		// shows the agent; every UI surface says the same words.
+		folder := m.boardFolder(boardID)
+		if folder == "" {
+			return nil, fmt.Errorf("для терминала нужен проект: выберите его в списке")
+		}
+		if err := os.MkdirAll(folder, 0o755); err != nil {
+			return nil, fmt.Errorf("не удалось создать папку доски: %w", err)
+		}
+		project = ProjectEntry{Name: "папка доски", Path: folder}
 	}
 	// The same rule a card's terminal follows: asking twice means "show me the
 	// one I have", not "start another CLI". A planning terminal has no card to

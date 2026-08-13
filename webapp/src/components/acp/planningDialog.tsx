@@ -6,10 +6,11 @@ import {useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
 import Button from '../../widgets/buttons/button'
-import Select from '../../widgets/select'
+import CompassIcon from '../../widgets/icons/compassIcon'
 import Dialog from '../dialog'
 
 import {agentBindings} from './bindings'
+import AgentQuickAdd from './agentQuickAdd'
 
 import './planningDialog.scss'
 
@@ -23,13 +24,14 @@ import './planningDialog.scss'
 // ones already open: a terminal outlives its window, and one with no card
 // behind it has nothing else to be found through.
 //
-// What such a terminal opens saying used to be edited here too, which made a
-// setting of the machine look like part of the act of opening one. It is in
-// Settings → This machine now, with the other things that are true of the
-// install rather than of a board.
+// The choosing is the same stepped flow the card's terminal asks with
+// (cardTerminal.tsx): one question per screen, the answers as things to click —
+// who first, then where — because two selects and a button asked both questions
+// at once and neither plainly. «Папка доски» is an answer here exactly as it is
+// there: planning with no code is how a board of briefs gets talked over.
 
 type NamedEntry = {name: string}
-type LiveTerminal = {id: string, agent: string, cwd: string}
+type LiveTerminal = {id: string, agent: string, cwd: string, boardFolder?: boolean}
 
 export function isPlanningAvailable(): boolean {
     return Boolean(agentBindings()?.OpenPlanningTerminal)
@@ -49,11 +51,15 @@ const PlanningDialog = (props: Props) => {
 
     const [projects, setProjects] = createSignal<NamedEntry[]>([])
     const [agents, setAgents] = createSignal<NamedEntry[]>([])
-    const [projectName, setProjectName] = createSignal('')
     const [agentName, setAgentName] = createSignal('')
+    const [addingAgent, setAddingAgent] = createSignal(false)
     const [terminals, setTerminals] = createSignal<LiveTerminal[]>([])
     const [busy, setBusy] = createSignal(false)
     const [error, setError] = createSignal('')
+
+    // Who first, where second: the agent question is open while nobody is
+    // named, and a single registered agent answers it without being asked.
+    const askingAgent = () => !agentName()
 
     const refreshTerminals = async () => {
         if (!bindings?.ListTerminals) {
@@ -67,8 +73,7 @@ const PlanningDialog = (props: Props) => {
         }
     }
 
-    onMount(async () => {
-        refreshTerminals()
+    const refreshChoices = async () => {
         if (!bindings) {
             return
         }
@@ -80,21 +85,20 @@ const PlanningDialog = (props: Props) => {
                 bindings.ListAgentProjects(''),
                 bindings.ListAgents(),
             ])
-            const parsedRepos: NamedEntry[] = JSON.parse(repoList) || []
             const parsedAgents: NamedEntry[] = JSON.parse(agentList) || []
-            setProjects(parsedRepos)
+            setProjects(JSON.parse(repoList) || [])
             setAgents(parsedAgents)
-
-            // One of a kind needs no choosing.
-            if (parsedRepos.length === 1) {
-                setProjectName(parsedRepos[0].name)
-            }
             if (parsedAgents.length === 1) {
                 setAgentName(parsedAgents[0].name)
             }
         } catch (e: any) {
             setError(String(e?.message || e))
         }
+    }
+
+    onMount(() => {
+        refreshTerminals()
+        refreshChoices()
     })
 
     // The desktop app has already opened the window by the time the binding
@@ -105,19 +109,42 @@ const PlanningDialog = (props: Props) => {
         }
     }
 
-    const start = async () => {
+    // Clicking an answer is what starts: a project by name, or '' for «папка
+    // доски» — the board's own folder, resolved on the Go side.
+    const start = async (projectName: string) => {
         if (!bindings?.OpenPlanningTerminal) {
             return
         }
         setError('')
         setBusy(true)
         try {
-            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(projectName(), agentName(), props.board.id)))
+            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(projectName, agentName(), props.board.id)))
             await refreshTerminals()
         } catch (e: any) {
             setError(String(e?.message || e))
         } finally {
             setBusy(false)
+        }
+    }
+
+    // A folder is two answers — where it is and what to call it — and the
+    // native picker gives both; picking is the answer, so the terminal opens
+    // with it.
+    const pickFolderAndStart = async () => {
+        if (!bindings?.PickDirectory || !bindings.AddAgentProject) {
+            return
+        }
+        try {
+            const path = await bindings.PickDirectory(intl.formatMessage({id: 'CardTerminal.pick-project', defaultMessage: 'Choose a folder to work in'}))
+            if (!path) {
+                return
+            }
+            const name = path.split('/').filter(Boolean).pop() || path
+            await bindings.AddAgentProject(name, path, props.board.id, false)
+            await refreshChoices()
+            await start(name)
+        } catch (e: any) {
+            setError(String(e?.message || e))
         }
     }
 
@@ -131,6 +158,13 @@ const PlanningDialog = (props: Props) => {
             setError(String(e?.message || e))
             refreshTerminals()
         }
+    }
+
+    const terminalLabel = (t: LiveTerminal) => {
+        const where = t.boardFolder ?
+            intl.formatMessage({id: 'Terminal.board-folder', defaultMessage: 'the board’s folder'}) :
+            t.cwd.split('/').pop()
+        return `${t.agent} · ${where}`
     }
 
     return (
@@ -147,39 +181,112 @@ const PlanningDialog = (props: Props) => {
                     })}
                 </p>
 
-                <div class='PlanningDialog__pickers'>
-                    <label>
-                        {intl.formatMessage({id: 'Planning.project', defaultMessage: 'Folder'})}
-                        <Select
-                            value={projectName()}
-                            options={[
-                                {value: '', label: intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})},
-                                ...projects().map((r) => ({value: r.name, label: r.name})),
-                            ]}
-                            onChange={setProjectName}
-                            label={intl.formatMessage({id: 'Planning.project', defaultMessage: 'Folder'})}
-                        />
-                    </label>
-                    <label>
-                        {intl.formatMessage({id: 'Planning.agent', defaultMessage: 'Agent'})}
-                        <Select
-                            value={agentName()}
-                            options={[
-                                {value: '', label: intl.formatMessage({id: 'Planning.choose', defaultMessage: 'Choose…'})},
-                                ...agents().map((a) => ({value: a.name, label: a.name})),
-                            ]}
-                            onChange={setAgentName}
-                            label={intl.formatMessage({id: 'Planning.agent', defaultMessage: 'Agent'})}
-                        />
-                    </label>
-                    <Button
-                        filled={true}
-                        onClick={start}
-                        disabled={busy() || !agentName() || !projectName()}
-                    >
-                        {intl.formatMessage({id: 'Planning.start-terminal', defaultMessage: 'Open a terminal'})}
-                    </Button>
-                </div>
+                <Show
+                    when={askingAgent()}
+                    fallback={
+                        <>
+                            <div class='PlanningDialog__ask'>
+                                {intl.formatMessage({id: 'Planning.where', defaultMessage: 'Where should the conversation live?'})}
+                            </div>
+                            <div class='PlanningDialog__picker'>
+                                {/* The answered question, kept in sight: the
+                                    name is the way back to it. */}
+                                <Show when={agents().length > 1}>
+                                    <button
+                                        type='button'
+                                        class='PlanningDialog__pickBack'
+                                        title={intl.formatMessage({id: 'CardTerminal.change-agent', defaultMessage: 'Change the agent'})}
+                                        onClick={() => setAgentName('')}
+                                    >
+                                        <CompassIcon icon='account-outline'/>
+                                        {agentName()}
+                                    </button>
+                                </Show>
+
+                                {/* The machine's projects are answers here,
+                                    not options in a list: planning has no
+                                    card to name one for it. */}
+                                <Show when={projects().length > 0}>
+                                    <div class='PlanningDialog__folderChoices'>
+                                        <For each={projects()}>
+                                            {(r) => (
+                                                <button
+                                                    type='button'
+                                                    class='PlanningDialog__folderChoice'
+                                                    disabled={busy()}
+                                                    onClick={() => start(r.name)}
+                                                >
+                                                    {r.name}
+                                                </button>
+                                            )}
+                                        </For>
+                                    </div>
+                                </Show>
+
+                                <div class='PlanningDialog__pickActions'>
+                                    <Button
+                                        filled={true}
+                                        onClick={() => start('')}
+                                        disabled={busy()}
+                                    >
+                                        {intl.formatMessage({id: 'CardTerminal.board-folder', defaultMessage: 'Use the board’s folder'})}
+                                    </Button>
+                                    <Show when={Boolean(bindings?.PickDirectory)}>
+                                        <Button
+                                            onClick={pickFolderAndStart}
+                                            disabled={busy()}
+                                        >
+                                            {intl.formatMessage({id: 'CardTerminal.pick-folder', defaultMessage: 'Choose a folder…'})}
+                                        </Button>
+                                    </Show>
+                                </div>
+                                <div class='PlanningDialog__pickNote'>
+                                    {intl.formatMessage({id: 'CardTerminal.board-folder-note', defaultMessage: 'The board’s folder is where its agents keep what they write for the board’s cards — briefs, drafts, notes. There is no code in it.'})}
+                                </div>
+                            </div>
+                        </>
+                    }
+                >
+                    <div class='PlanningDialog__ask'>
+                        {intl.formatMessage({id: 'CardTerminal.ask-agent', defaultMessage: 'Who talks here?'})}
+                    </div>
+                    <div class='PlanningDialog__picker'>
+                        <div class='PlanningDialog__agentChoices'>
+                            <For each={agents()}>
+                                {(a) => (
+                                    <button
+                                        type='button'
+                                        class='PlanningDialog__agentChoice'
+                                        disabled={busy()}
+                                        onClick={() => setAgentName(a.name)}
+                                    >
+                                        {a.name}
+                                    </button>
+                                )}
+                            </For>
+                            <Show when={!addingAgent()}>
+                                <button
+                                    type='button'
+                                    class='PlanningDialog__pickAdd'
+                                    onClick={() => setAddingAgent(true)}
+                                >
+                                    {intl.formatMessage({id: 'CardTerminal.add-agent', defaultMessage: 'Add an agent…'})}
+                                </button>
+                            </Show>
+                        </div>
+                        <Show when={addingAgent()}>
+                            <AgentQuickAdd
+                                board={props.board}
+                                onAdded={async (name) => {
+                                    setAddingAgent(false)
+                                    await refreshChoices()
+                                    setAgentName(name)
+                                }}
+                                onCancel={() => setAddingAgent(false)}
+                            />
+                        </Show>
+                    </div>
+                </Show>
 
                 <Show when={error()}>
                     <div class='PlanningDialog__error'>{error()}</div>
@@ -194,7 +301,7 @@ const PlanningDialog = (props: Props) => {
                                     onClick={() => show(t.id)}
                                     title={t.cwd}
                                 >
-                                    {`${t.agent} · ${t.cwd.split('/').pop()}`}
+                                    {terminalLabel(t)}
                                 </Button>
                             )}
                         </For>

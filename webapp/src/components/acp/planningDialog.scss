@@ -28,30 +28,98 @@
         color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 
-    .PlanningDialog__pickers {
+    // The stepped pick, in the card terminal's own shapes (cardTerminal.scss
+    // is the original): the ask, name-chips as answers, the answered agent as
+    // the quiet way back, the two folder buttons stacked and equally wide.
+    .PlanningDialog__ask {
+        font-size: 14px;
+    }
+
+    .PlanningDialog__picker {
         display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .PlanningDialog__agentChoices,
+    .PlanningDialog__folderChoices {
+        display: flex;
+        align-items: center;
         flex-wrap: wrap;
-        align-items: flex-end;
-        gap: 12px;
+        gap: 8px;
+    }
 
-        label {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-width: 0;
-            font-size: 12px;
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+    .PlanningDialog__agentChoice,
+    .PlanningDialog__folderChoice {
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: var(--radius-pill);
+        background: transparent;
+        color: rgb(var(--center-channel-color-rgb));
+        font: inherit;
+        padding: 4px 14px;
+        cursor: pointer;
+
+        &:hover {
+            border-color: rgb(var(--button-bg-rgb));
+            color: rgb(var(--button-bg-rgb));
         }
 
-        .Select__trigger {
-            padding: 6px 8px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
-            border-radius: var(--radius-sm);
-            background: rgb(var(--surface-bg-rgb));
-            color: rgba(var(--center-channel-color-rgb), 1);
-            font-family: inherit;
+        &:disabled {
+            opacity: 0.5;
+            cursor: progress;
+        }
+    }
+
+    .PlanningDialog__pickAdd {
+        border: 0;
+        background: transparent;
+        padding: 2px 0;
+        font: inherit;
+        font-size: var(--text-small);
+        color: rgb(var(--link-color-rgb));
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .PlanningDialog__pickBack {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        align-self: flex-start;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font: inherit;
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+
+        &:hover {
+            color: rgb(var(--link-color-rgb));
+        }
+
+        .CompassIcon {
             font-size: 14px;
+            line-height: 1;
         }
+    }
+
+    .PlanningDialog__pickActions {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        max-width: 340px;
+
+        .Button {
+            justify-content: center;
+        }
+    }
+
+    .PlanningDialog__pickNote {
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
     }
 
     .PlanningDialog__error {

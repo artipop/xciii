@@ -577,3 +577,29 @@ func TestResumedConversationKeepsItsAgent(t *testing.T) {
 		t.Errorf("the conversation changed hands to %q", term.AgentName)
 	}
 }
+
+// Planning without a project is the board's own conversation: it opens in
+// «папка доски», exactly as a card's folderless conversation does, and says
+// so through the info the window reads.
+func TestPlanningTerminalTalksInTheBoardsFolder(t *testing.T) {
+	if _, err := exec.LookPath("sh"); err != nil {
+		t.Skip("no shell to stand in for an agent CLI")
+	}
+	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
+		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}}}
+	})
+
+	term, err := m.StartPlanningTerminal("", "", "board1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(term.ID) }()
+
+	want := filepath.Join(filepath.Dir(m.cfg.WorktreeDir), "boards", "board1")
+	if term.Cwd != want {
+		t.Errorf("planning in %s, want the board's own %s", term.Cwd, want)
+	}
+	if !term.Info().BoardFolder {
+		t.Error("the info does not say this is «папка доски»")
+	}
+}
