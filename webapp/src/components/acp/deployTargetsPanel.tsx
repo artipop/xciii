@@ -125,7 +125,7 @@ const DeployTargetsPanel = (props: Props) => {
     return (
         <div class='DeployTargetsPanel'>
             <div class='DeployTargetsPanel__subtitle'>
-                {intl.formatMessage({id: 'DeployTargets.subtitle', defaultMessage: 'Dokku hosts a card\'s branch is published to when it moves into the "Деплой" column. One branch becomes one app of its own, at "project-branch.base-domain".'})}
+                {intl.formatMessage({id: 'DeployTargets.subtitle', defaultMessage: 'Dokku hosts a card\'s branch is published to when it moves into the "Деплой" column. One branch becomes one app of its own, at "folder-branch.base-domain".'})}
             </div>
             <div class='DeployTargetsPanel__content'>
                 <Show when={targets().length === 0 && !form()}>
@@ -203,10 +203,10 @@ const DeployTargetsPanel = (props: Props) => {
                             />
                         </label>
                         <label>
-                            {intl.formatMessage({id: 'DeployTargets.baseApp', defaultMessage: 'App name (optional) — the project name by default'})}
+                            {intl.formatMessage({id: 'DeployTargets.baseApp', defaultMessage: 'App name (optional) — the folder name by default'})}
                             <input
                                 value={form()!.baseApp || ''}
-                                placeholder={intl.formatMessage({id: 'DeployTargets.baseApp-placeholder', defaultMessage: 'project name'})}
+                                placeholder={intl.formatMessage({id: 'DeployTargets.baseApp-placeholder', defaultMessage: 'folder name'})}
                                 onInput={(e) => updateForm({baseApp: e.currentTarget.value})}
                             />
                         </label>

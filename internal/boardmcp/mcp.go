@@ -55,7 +55,7 @@ const instructions = `Инструменты доски XCIII. Через них
 Доска уже выбрана, указать другую нельзя. Колонка решает, что с карточкой
 произойдёт дальше, маршрут — что произойдёт после этого: сначала посмотри
 list_columns и list_flows, потом клади карточку туда, где работа начинается,
-если только человек не попросил иначе. Проект, агента, маршрут и любые другие
+если только человек не попросил иначе. Папку, агента, маршрут и любые другие
 значения задавай именами — так, как они называются на доске.
 
 Карточку, над которой ты работаешь, называть не нужно: там, где просят id,
@@ -70,7 +70,7 @@ type Card struct {
 	Title       string   `json:"title" jsonschema:"заголовок карточки — одна строка, что нужно сделать"`
 	Description string   `json:"description,omitempty" jsonschema:"описание задачи: контекст, что менять, как проверить"`
 	Column      string   `json:"column,omitempty" jsonschema:"колонка доски по имени; см. list_columns"`
-	Options     []string `json:"options,omitempty" jsonschema:"остальные поля карточки именами значений: проект, агент, маршрут"`
+	Options     []string `json:"options,omitempty" jsonschema:"остальные поля карточки именами значений: папка, агент, маршрут"`
 }
 
 // CardResult is what became of one card.
@@ -175,7 +175,7 @@ type cardInput struct {
 type updateInput struct {
 	CardID  string   `json:"cardId,omitempty" jsonschema:"id карточки; пусто — та карточка, над которой идёт работа"`
 	Title   string   `json:"title,omitempty" jsonschema:"новый заголовок; пусто — оставить как есть"`
-	Options []string `json:"options,omitempty" jsonschema:"значения свойств карточки именами: проект, агент, маршрут, ответ, которого ждёт маршрут"`
+	Options []string `json:"options,omitempty" jsonschema:"значения свойств карточки именами: папка, агент, маршрут, ответ, которого ждёт маршрут"`
 }
 
 type moveInput struct {
@@ -313,7 +313,7 @@ func NewServer(board Board) *mcp.Server {
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name: "update_card",
-		Description: "Изменить карточку: заголовок и значения её свойств именами — проект, агент, " +
+		Description: "Изменить карточку: заголовок и значения её свойств именами — папка, агент, " +
 			"маршрут, ответ, которого ждёт маршрут. Колонку этим менять нельзя, для неё есть move_card.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in updateInput) (*mcp.CallToolResult, any, error) {
 		if strings.TrimSpace(in.Title) == "" && len(in.Options) == 0 {

@@ -315,7 +315,7 @@ func TestParkedCardsOfANewBoardAreIndexedFromIt(t *testing.T) {
 	m.rootCtx = context.Background()
 	m.SetBoardMeta(&fakeBoardMeta{props: map[string]any{BoardPropPrompt: "Отвечай по-русски."}})
 	m.SetBoardCardState(&fakeCardState{
-		state: map[string]FlowState{"cardOne": {CardID: "cardOne", Flow: "Фича", NodeID: "review", Branch: "feat/x", ProjectPath: "/tmp/p"}},
+		state: map[string]FlowState{"cardOne": {CardID: "cardOne", Flow: "Фича", NodeID: "review", Branch: "feat/x", WorkdirPath: "/tmp/p"}},
 		board: map[string]string{"cardOne": "board1"},
 	})
 
@@ -366,7 +366,7 @@ func TestABoardCarryingTheOldKeyNamesIsReadAndMigrated(t *testing.T) {
 		"acpColumns": []ColumnSpec{{Property: "Статус", Column: "В работе", Action: FlowActionNone}},
 		"acpFlows":   []FlowEntry{{Name: "Фича", Nodes: []FlowNode{{ID: "agent", Column: "В работе"}}}},
 		"acpPrompt":  "Отвечай по-русски.",
-		"acpSetup":   BoardSetup{Steps: []BoardSetupStep{{Kind: SetupStepProject}}},
+		"acpSetup":   BoardSetup{Steps: []BoardSetupStep{{Kind: SetupStepWorkdir}}},
 	}
 
 	m.SeedBoard("board1")

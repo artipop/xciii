@@ -143,7 +143,7 @@ describe('components/cardDetail/CardDetail', () => {
             GetCardFlow: vi.fn().mockResolvedValue('null'),
             OpenCardTerminal: vi.fn(),
             ListAgents: vi.fn().mockResolvedValue('[]'),
-            ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue('[]'),
         };
         (window as any).go = {main: {App: bindings}}
 

@@ -113,7 +113,7 @@ func terminalReport(ctx context.Context, t *TerminalSession) string {
 	commits := gitLines(ctx, t.Cwd, "log", "--oneline", "--no-decorate", t.startSHA+"..HEAD")
 	switch {
 	case t.startSHA == "":
-		// A project with no commits yet, or one git would not talk about.
+		// A folder with no commits yet, or one git would not talk about.
 	case len(commits) == 0:
 		b.WriteString("\n\nНовых коммитов нет.")
 	default:

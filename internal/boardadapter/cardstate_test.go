@@ -25,7 +25,7 @@ func TestACardsPlaceOnItsRouteIsKeptOnTheCard(t *testing.T) {
 		Flow:        "Фича",
 		NodeID:      "review",
 		Branch:      "feature/x",
-		ProjectPath: "/tmp/project",
+		WorkdirPath: "/tmp/project",
 		EnteredAt:   time.Now().Truncate(time.Second),
 		Visited:     []string{"agent"},
 	}
@@ -40,7 +40,7 @@ func TestACardsPlaceOnItsRouteIsKeptOnTheCard(t *testing.T) {
 	if got.Flow != want.Flow || got.NodeID != want.NodeID || got.Branch != want.Branch {
 		t.Errorf("the card stands at %+v", got)
 	}
-	if got.ProjectPath != want.ProjectPath || !got.EnteredAt.Equal(want.EnteredAt) {
+	if got.WorkdirPath != want.WorkdirPath || !got.EnteredAt.Equal(want.EnteredAt) {
 		t.Errorf("the card stands at %+v", got)
 	}
 	if len(got.Visited) != 1 || got.Visited[0] != "agent" {

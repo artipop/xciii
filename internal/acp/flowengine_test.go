@@ -75,7 +75,7 @@ func TestFlowAdvancesOnSessionSuccess(t *testing.T) {
 	if err != nil || !ok || st.NodeID != "review" || st.Flow != "feature" {
 		t.Fatalf("flow state: %+v, %v, %v", st, ok, err)
 	}
-	if st.Branch != "feat/x" || st.ProjectPath != project {
+	if st.Branch != "feat/x" || st.WorkdirPath != project {
 		t.Fatalf("flow state lost the card's project/branch: %+v", st)
 	}
 
@@ -175,7 +175,7 @@ func TestFlowVCSEventAdvancesAndOnlyOnce(t *testing.T) {
 
 	// Only what somebody is waiting for is polled for.
 	targets := m.FlowTargets()
-	if len(targets) != 1 || targets[0].Branch != "feat/x" || targets[0].ProjectPath != project {
+	if len(targets) != 1 || targets[0].Branch != "feat/x" || targets[0].WorkdirPath != project {
 		t.Fatalf("poll targets: %+v", targets)
 	}
 	if len(targets[0].Triggers) != 2 ||
@@ -184,7 +184,7 @@ func TestFlowVCSEventAdvancesAndOnlyOnce(t *testing.T) {
 		t.Fatalf("poll triggers: %+v", targets[0].Triggers)
 	}
 
-	ev := VCSEvent{Kind: TriggerBranchMerged, ProjectPath: project, Branch: "feat/x", Detail: "ветка влита"}
+	ev := VCSEvent{Kind: TriggerBranchMerged, WorkdirPath: project, Branch: "feat/x", Detail: "ветка влита"}
 	m.OnVCSEvent(ev)
 	waitFor(t, 10*time.Second, "card advanced to Done", func() bool {
 		moves := writer.cardMoves()
@@ -256,7 +256,7 @@ func TestLegacyColumnsStillWorkWithoutAFlow(t *testing.T) {
 // The card that never names a branch is the usual case: with worktrees on, the
 // agent commits to a branch of its own and the card never learns its name. The
 // route has to follow that branch anyway — otherwise it waits for a merge of
-// whatever the project happened to have checked out, which never comes.
+// whatever the folder happened to have checked out, which never comes.
 func TestRouteFollowsTheBranchTheAgentWorkedOn(t *testing.T) {
 	m, _, events, project := flowManager(t, fakeClaudeHappy, sampleFlow())
 

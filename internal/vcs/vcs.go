@@ -29,7 +29,7 @@ const (
 
 // Target is one branch somebody is waiting on.
 type Target struct {
-	ProjectPath string   // local git project
+	WorkdirPath string   // local git project
 	Branch      string   // branch the card is about
 	Remote      string   // remote to consult; empty means "origin"
 	Triggers    []string // event kinds the caller cares about
@@ -60,7 +60,7 @@ func (t Target) Wants(kind string) bool {
 // Event is something that happened to a branch.
 type Event struct {
 	Kind        string
-	ProjectPath string
+	WorkdirPath string
 	Branch      string
 	Detail      string // human phrasing for the card comment
 	URL         string // pull request URL, when there is one

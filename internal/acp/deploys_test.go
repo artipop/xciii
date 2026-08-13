@@ -89,7 +89,7 @@ func TestResolveDeployTarget(t *testing.T) {
 		t.Error("two unrelated targets should not resolve")
 	}
 	// A single registered target is the answer by default, which is the usual
-	// case now that a target is a host rather than a per-project setting.
+	// case now that a target is a host rather than a per-folder setting.
 	m.cfg.Deploys = []DeployEntry{prod}
 	got, err = m.resolveDeployTarget(CardMoved{})
 	if err != nil || got.Name != "prod" {
@@ -103,12 +103,12 @@ func TestResolveDeployTarget(t *testing.T) {
 }
 
 func TestResolveDeployNamesTheAppAfterTheRepository(t *testing.T) {
-	project := initTestProject(t)
+	project := initTestWorkdir(t)
 	m := agentManager(t, "")
 	entry := deployEntry("preview")
 	entry.Target.BaseApp = "" // the ordinary case: one target, many projects
 	m.cfg.Deploys = []DeployEntry{entry}
-	m.cfg.Projects = []ProjectEntry{{Name: "My Webapp", Path: project}}
+	m.cfg.Workdirs = []WorkdirEntry{{Name: "My Webapp", Path: project}}
 
 	got, branch, err := m.resolveDeploy(CardMoved{}, project, true, "")
 	if err != nil {
@@ -124,8 +124,8 @@ func TestResolveDeployNamesTheAppAfterTheRepository(t *testing.T) {
 		t.Errorf("branch %q", branch)
 	}
 
-	// An unregistered project is named after its directory.
-	m.cfg.Projects = nil
+	// An unregistered folder is named after its directory.
+	m.cfg.Workdirs = nil
 	got, _, err = m.resolveDeploy(CardMoved{}, project, true, "")
 	if err != nil {
 		t.Fatal(err)
@@ -147,7 +147,7 @@ func TestResolveDeployNamesTheAppAfterTheRepository(t *testing.T) {
 }
 
 func TestResolveDeployBranch(t *testing.T) {
-	project := initTestProject(t)
+	project := initTestWorkdir(t)
 
 	// The card property wins, so a card can deploy a branch that is not checked out.
 	branch, err := resolveDeployBranch(CardMoved{Props: map[string]string{"branch": "feat/x"}}, project)
@@ -209,13 +209,13 @@ func TestComposeDeployPromptCarriesTheFacts(t *testing.T) {
 }
 
 func TestSessionMCPServersOnlyForDeploySessions(t *testing.T) {
-	if specs, err := sessionMCPServers(&Session{ProjectPath: "/project"}, Config{}); err != nil || specs != nil {
+	if specs, err := sessionMCPServers(&Session{WorkdirPath: "/project"}, Config{}); err != nil || specs != nil {
 		t.Fatalf("an ordinary session must get no MCP servers: %+v, %v", specs, err)
 	}
 
 	target := deployEntry("prod")
 	target.SSHKey = "/keys/id_ed25519"
-	specs, err := sessionMCPServers(&Session{ProjectPath: "/project", Deploy: &target, DeployBranch: "feat/x"}, Config{})
+	specs, err := sessionMCPServers(&Session{WorkdirPath: "/project", Deploy: &target, DeployBranch: "feat/x"}, Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -258,7 +258,7 @@ func TestDeploySessionMayUseItsOwnTools(t *testing.T) {
 	// MCP?" prompt, which some agents send with no tool name to match on.
 	target := deployEntry("prod")
 	cfg := DefaultConfig(t.TempDir())
-	deploySession := &Session{ProjectPath: "/project", Deploy: &target, DeployBranch: "feat/x"}
+	deploySession := &Session{WorkdirPath: "/project", Deploy: &target, DeployBranch: "feat/x"}
 	if _, err := sessionMCPServers(deploySession, cfg); err != nil {
 		t.Fatal(err)
 	}
@@ -267,14 +267,14 @@ func TestDeploySessionMayUseItsOwnTools(t *testing.T) {
 	}
 	// A test session brings its own browser server; without one it is given
 	// nothing, and startSession refuses it before it can start.
-	testSession := &Session{ProjectPath: "/project", Test: &TestRun{URL: "http://preview.example.com", Artifacts: t.TempDir()}}
+	testSession := &Session{WorkdirPath: "/project", Test: &TestRun{URL: "http://preview.example.com", Artifacts: t.TempDir()}}
 	specs, err := sessionMCPServers(testSession, cfg)
 	if err != nil || len(specs) != 0 {
 		t.Errorf("a test session without a browser server: %+v, %v", specs, err)
 	}
 
 	// An ordinary session gets neither.
-	plain := &Session{ProjectPath: "/project"}
+	plain := &Session{WorkdirPath: "/project"}
 	if _, err := sessionMCPServers(plain, cfg); err != nil {
 		t.Fatal(err)
 	}
@@ -379,7 +379,7 @@ func TestDeployColumnStartsASessionWithTheDokkuTools(t *testing.T) {
 		t.Errorf("the agent was not given the dokku MCP server:\n%s", servers)
 	}
 
-	// The branch it deploys is recorded, unlike an ordinary in-project session.
+	// The branch it deploys is recorded, unlike an ordinary in-folder session.
 	sessions, _, _ := m.store.SessionsForCard("cardD")
 	if sessions[0].Branch != "main" {
 		t.Errorf("branch not persisted: %q", sessions[0].Branch)
@@ -445,12 +445,12 @@ func TestStartDeployForCardPublishesTheGivenBranch(t *testing.T) {
 	if s.Deploy == nil || s.Deploy.Name != "prod" {
 		t.Fatalf("deploy target: %+v", s.Deploy)
 	}
-	// The app is named after the project, and the host doubles as the domain.
+	// The app is named after the folder, and the host doubles as the domain.
 	if want := dokku.AppLabel(filepath.Base(project)); s.Deploy.BaseApp != want {
 		t.Errorf("base app %q, want %q", s.Deploy.BaseApp, want)
 	}
-	if s.ProjectPath != project {
-		t.Errorf("a deploy must run in the project itself, ran in %q", s.ProjectPath)
+	if s.WorkdirPath != project {
+		t.Errorf("a deploy must run in the project itself, ran in %q", s.WorkdirPath)
 	}
 
 	waitFor(t, 15*time.Second, "deploy session done", func() bool {
@@ -476,7 +476,7 @@ func TestStartDeployForCardPublishesTheGivenBranch(t *testing.T) {
 }
 
 func TestDeployRunsAlongsideTheCardsOwnSession(t *testing.T) {
-	// Worktrees off is the strict case: the project-busy rule would otherwise
+	// Worktrees off is the strict case: the folder-busy rule would otherwise
 	// refuse, even though a deploy only pushes an existing branch.
 	m, _, events, project := testManager(t, fakeClaudeHang, func(c *Config) {
 		c.WorktreeMode = "never"

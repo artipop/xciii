@@ -144,7 +144,7 @@ func TestTerminalTellsTheCLIWhatItIsDrawnOn(t *testing.T) {
 // The end of a terminal is the only thing a card hears about it, so it has to
 // carry the work: the branch, the commits and anything left uncommitted.
 func TestTerminalReportsWhatTheSessionLeftBehind(t *testing.T) {
-	project := initTestProject(t)
+	project := initTestWorkdir(t)
 	start := headSHA(t.Context(), project)
 
 	write(t, filepath.Join(project, "done.txt"), "work")
@@ -167,7 +167,7 @@ func TestTerminalReportsWhatTheSessionLeftBehind(t *testing.T) {
 }
 
 func TestTerminalReportSaysWhenNothingWasCommitted(t *testing.T) {
-	project := initTestProject(t)
+	project := initTestWorkdir(t)
 	report := terminalReport(t.Context(), &TerminalSession{
 		AgentName: "clauuus",
 		Cwd:       project,
@@ -195,9 +195,8 @@ func TestTerminalStreamsBothWaysAndReportsToTheCard(t *testing.T) {
 		cardID:      "card-term",
 		boardID:     "board1",
 		title:       "Терминальная задача",
-		projectPath: project,
+		workdirPath: project,
 		agent:       agent,
-		worktree:    true,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -209,7 +208,7 @@ func TestTerminalStreamsBothWaysAndReportsToTheCard(t *testing.T) {
 		t.Logf("history already had %d bytes, which is fine", len(history))
 	}
 
-	// The terminal must be the card's worktree, not the project: two of them
+	// The terminal must be the card's worktree, not the folder: two of them
 	// sharing one checkout is exactly what worktrees are for.
 	if term.Cwd == project {
 		t.Errorf("terminal ran in the project itself: %s", term.Cwd)
@@ -279,7 +278,7 @@ func TestATerminalNeverAsksForAttention(t *testing.T) {
 		cardID:      "card-quiet",
 		boardID:     "board1",
 		title:       "Тихая задача",
-		projectPath: project,
+		workdirPath: project,
 		agent: AgentEntry{Name: "shellish", Kind: AgentKindClaude,
 			TerminalCommand: []string{"sh", "-c", "echo banner; sleep 5"}},
 	})
@@ -318,7 +317,7 @@ func TestTerminalResumesWhereTheCardLeftOff(t *testing.T) {
 	cwd := t.TempDir()
 
 	if err := m.store.InsertTerminal(TerminalRecord{
-		ID: "earlier", CardID: "card-r", ProjectPath: project, Cwd: cwd,
+		ID: "earlier", CardID: "card-r", WorkdirPath: project, Cwd: cwd,
 		Branch: "acp/earlier", Agent: "clauuus", Kind: AgentKindClaude,
 		StartedAt: time.Now().Add(-time.Hour),
 	}); err != nil {
@@ -326,7 +325,7 @@ func TestTerminalResumesWhereTheCardLeftOff(t *testing.T) {
 	}
 
 	agent := AgentEntry{Name: "clauuus", Kind: AgentKindClaude}
-	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-r", projectPath: project, agent: agent})
+	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-r", workdirPath: project, agent: agent})
 	if !resume {
 		t.Fatal("a card with a worktree still on disk should resume")
 	}
@@ -345,7 +344,7 @@ func TestTerminalResumesWhereTheCardLeftOff(t *testing.T) {
 	if err := os.RemoveAll(cwd); err != nil {
 		t.Fatal(err)
 	}
-	if _, resume := m.terminalResumePoint(terminalSpec{cardID: "card-r", projectPath: project, agent: agent}); resume {
+	if _, resume := m.terminalResumePoint(terminalSpec{cardID: "card-r", workdirPath: project, agent: agent}); resume {
 		t.Error("resumed into a directory that is gone")
 	}
 }
@@ -359,9 +358,9 @@ func TestTerminalResumeIsPerStage(t *testing.T) {
 	agent := AgentEntry{Name: "clauuus", Kind: AgentKindClaude}
 
 	for _, rec := range []TerminalRecord{
-		{ID: "at-a", CardID: "card-n", NodeID: "work", ProjectPath: project, Cwd: cwdA,
+		{ID: "at-a", CardID: "card-n", NodeID: "work", WorkdirPath: project, Cwd: cwdA,
 			Agent: "clauuus", Kind: AgentKindClaude, StartedAt: time.Now().Add(-2 * time.Hour)},
-		{ID: "at-b", CardID: "card-n", NodeID: "review", ProjectPath: project, Cwd: cwdB,
+		{ID: "at-b", CardID: "card-n", NodeID: "review", WorkdirPath: project, Cwd: cwdB,
 			Agent: "clauuus", Kind: AgentKindClaude, StartedAt: time.Now().Add(-time.Hour)},
 	} {
 		if err := m.store.InsertTerminal(rec); err != nil {
@@ -369,11 +368,11 @@ func TestTerminalResumeIsPerStage(t *testing.T) {
 		}
 	}
 
-	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-n", nodeID: "work", projectPath: project, agent: agent})
+	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-n", nodeID: "work", workdirPath: project, agent: agent})
 	if !resume || rec.ID != "at-a" {
 		t.Fatalf("stage work should resume its own conversation, got %+v (resume=%v)", rec, resume)
 	}
-	rec, resume = m.terminalResumePoint(terminalSpec{cardID: "card-n", nodeID: "review", projectPath: project, agent: agent})
+	rec, resume = m.terminalResumePoint(terminalSpec{cardID: "card-n", nodeID: "review", workdirPath: project, agent: agent})
 	if !resume || rec.ID != "at-b" {
 		t.Fatalf("stage review should resume its own conversation, got %+v (resume=%v)", rec, resume)
 	}
@@ -388,19 +387,19 @@ func TestStageWithNoConversationContinuesTheCardsOwn(t *testing.T) {
 	agent := AgentEntry{Name: "clauuus", Kind: AgentKindClaude}
 
 	if err := m.store.InsertTerminal(TerminalRecord{
-		ID: "planned", CardID: "card-p", NodeID: "", ProjectPath: project, Cwd: cwd,
+		ID: "planned", CardID: "card-p", NodeID: "", WorkdirPath: project, Cwd: cwd,
 		Agent: "clauuus", Kind: AgentKindClaude, StartedAt: time.Now().Add(-time.Hour),
 	}); err != nil {
 		t.Fatal(err)
 	}
 
-	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-p", nodeID: "work", projectPath: project, agent: agent})
+	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-p", nodeID: "work", workdirPath: project, agent: agent})
 	if !resume || rec.ID != "planned" {
 		t.Fatalf("the first stage should continue the card's own conversation, got %+v (resume=%v)", rec, resume)
 	}
 }
 
-// write and git are the two things a report test needs a project to do.
+// write and git are the two things a report test needs a folder to do.
 func write(t *testing.T, path, content string) {
 	t.Helper()
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
@@ -447,9 +446,9 @@ func TestPlanningTerminalIsHandedBackRatherThanStartedTwice(t *testing.T) {
 	if _, err := exec.LookPath("sh"); err != nil {
 		t.Skip("no shell to stand in for an agent CLI")
 	}
-	project := initTestProject(t)
+	project := initTestWorkdir(t)
 	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
-		cfg.Projects = []ProjectEntry{{Name: "testrepo", Path: project}}
+		cfg.Workdirs = []WorkdirEntry{{Name: "testrepo", Path: project}}
 		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}}}
 	})
 
@@ -484,15 +483,15 @@ func TestPlanningTerminalIsHandedBackRatherThanStartedTwice(t *testing.T) {
 // A planning terminal opens on a conversation, and what starts that
 // conversation is a setting a person edits. It has to reach the CLI: the board
 // prompt and the agent's own come first, the edited instructions next, and the
-// project last, because that is the one line nobody should have to type.
+// folder last, because that is the one line nobody should have to type.
 func TestPlanningTerminalCarriesTheEditedInstructions(t *testing.T) {
 	if _, err := exec.LookPath("sh"); err != nil {
 		t.Skip("no shell to stand in for an agent CLI")
 	}
-	project := initTestProject(t)
+	project := initTestWorkdir(t)
 	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
 		cfg.BoardPrompts = map[string]string{"board1": "Отвечай по-русски."}
-		cfg.Projects = []ProjectEntry{{Name: "testrepo", Path: project}}
+		cfg.Workdirs = []WorkdirEntry{{Name: "testrepo", Path: project}}
 		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, Prompt: "Ты архитектор.", TerminalCommand: []string{"sh"}}}
 	})
 	if err := m.SetPlanningPrompt("Спроси про сроки."); err != nil {
@@ -534,7 +533,7 @@ func TestCardTerminalOpensWithoutAnyProject(t *testing.T) {
 		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}}}
 	})
 
-	// A card that says nothing about a folder, on a machine with no projects.
+	// A card that says nothing about a folder, on a machine with no folders.
 	m.SetBoardReader(&fakeReader{ev: CardMoved{BoardID: "board1", Title: "Обсудить формулировку"}})
 
 	term, err := m.StartCardTerminal("card-talk", "", "")
@@ -665,7 +664,7 @@ func TestARefusedResumeStillOpensATerminal(t *testing.T) {
 	m, writer, _, project := testManager(t, "idle", nil)
 
 	if err := m.store.InsertTerminal(TerminalRecord{
-		ID: "before-the-restart", CardID: "card-refused", ProjectPath: project, Cwd: project,
+		ID: "before-the-restart", CardID: "card-refused", WorkdirPath: project, Cwd: project,
 		Agent: "cl", Kind: AgentKindClaude, StartedAt: time.Now().Add(-time.Hour),
 	}); err != nil {
 		t.Fatal(err)
@@ -674,7 +673,7 @@ func TestARefusedResumeStillOpensATerminal(t *testing.T) {
 	agent := AgentEntry{Name: "cl", Kind: AgentKindClaude}
 	term, err := m.startTerminal(terminalSpec{
 		cardID: "card-refused", boardID: "board1", title: "Продолжить нечего",
-		projectPath: project, agent: agent,
+		workdirPath: project, agent: agent,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -734,7 +733,7 @@ func TestAConversationKeepsItsNameAndItsRecap(t *testing.T) {
 
 	term, err := m.startTerminal(terminalSpec{
 		cardID: "card-named", boardID: "board1", title: "Починить окно",
-		projectPath: project, agent: agent,
+		workdirPath: project, agent: agent,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -770,7 +769,7 @@ func TestAConversationKeepsItsNameAndItsRecap(t *testing.T) {
 	// own title must not take the name back.
 	next, err := m.startTerminal(terminalSpec{
 		cardID: "card-named", boardID: "board1", title: "Починить окно",
-		projectPath: project, agent: agent,
+		workdirPath: project, agent: agent,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -806,7 +805,7 @@ func TestAClosedTerminalDoesNotComeBack(t *testing.T) {
 
 	term, err := m.startTerminal(terminalSpec{
 		cardID: "card-closed", boardID: "board1", title: "Закрытый терминал",
-		projectPath: project, agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		workdirPath: project, agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -874,7 +873,7 @@ func TestOnlyARefusedResumeIsRestarted(t *testing.T) {
 	}
 }
 
-// Planning without a project is the board's own conversation: it opens in
+// Planning without a folder is the board's own conversation: it opens in
 // «черновики доски», exactly as a card's folderless conversation does, and says
 // so through the info the window reads.
 func TestPlanningTerminalTalksInTheBoardsFolder(t *testing.T) {

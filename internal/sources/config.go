@@ -151,7 +151,7 @@ const (
 )
 
 // OfferedOn reports whether this board may see the source. It mirrors
-// ProjectEntry.OfferedOn: an empty board id asks for the whole registry.
+// WorkdirEntry.OfferedOn: an empty board id asks for the whole registry.
 func (s SourceEntry) OfferedOn(boardID string) bool {
 	if boardID == "" || s.Global {
 		return true

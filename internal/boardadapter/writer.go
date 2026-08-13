@@ -160,6 +160,16 @@ func (w *Writer) UpdateCard(ctx context.Context, cardID string, edit acp.CardEdi
 	return w.patchCard(cardID, patch, false)
 }
 
+// SetCardText writes one text property of a card, by id. Silent: it is the
+// machine recording where a card's work lives, and it must not set the column's
+// automation off the way a person's edit does.
+func (w *Writer) SetCardText(ctx context.Context, cardID, propertyID, value string) error {
+	if strings.TrimSpace(propertyID) == "" {
+		return nil
+	}
+	return w.patchCard(cardID, &model.CardPatch{UpdatedProperties: map[string]any{propertyID: value}}, true)
+}
+
 // patchCard applies a card patch as a block patch. app.PatchCard would do the
 // same and then convert the result back into a Card, which fails for a card
 // whose contentOrder is not a list — and a write that landed must not be

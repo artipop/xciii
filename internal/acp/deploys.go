@@ -93,7 +93,7 @@ func (m *Manager) RemoveDeploy(name string) error {
 
 // resolveDeployTarget maps a card to a Dokku destination: a select/multiSelect
 // option naming an entry, otherwise the single registered entry. A target is a
-// host rather than a per-project setting, so one entry usually answers for
+// host rather than a per-folder setting, so one entry usually answers for
 // everything and a card names one only where there are several hosts.
 func (m *Manager) resolveDeployTarget(ev CardMoved) (DeployEntry, error) {
 	m.cfgMu.RLock()
@@ -120,25 +120,25 @@ func (m *Manager) resolveDeployTarget(ev CardMoved) (DeployEntry, error) {
 // to publish. For an ordinary session it returns nothing and no error, so the
 // launch path can call it unconditionally. override names the target a flow
 // node pinned, which wins over the card's own resolution.
-func (m *Manager) resolveDeploy(ev CardMoved, projectPath string, deploy bool, override string) (*DeployEntry, string, error) {
+func (m *Manager) resolveDeploy(ev CardMoved, workdirPath string, deploy bool, override string) (*DeployEntry, string, error) {
 	if !deploy {
 		return nil, "", nil
 	}
-	// Publishing means pushing a branch, and a project that is not under git
+	// Publishing means pushing a branch, and a folder that is not under git
 	// has none. Said here rather than three steps later, where it would read as
 	// "branch not found" on a card that never had one.
-	if !IsGitProject(m.rootCtx, projectPath) {
-		return nil, "", fmt.Errorf("проект %s не под git — публиковать нечего: деплой работает с веткой", projectPath)
+	if !IsGitWorkdir(m.rootCtx, workdirPath) {
+		return nil, "", fmt.Errorf("папка %s не под git — публиковать нечего: деплой работает с веткой", workdirPath)
 	}
 	target, err := m.resolveDeployTargetNamed(ev, override)
 	if err != nil {
 		return nil, "", err
 	}
-	target.Target = target.Target.WithBaseApp(m.deployAppName(projectPath))
+	target.Target = target.Target.WithBaseApp(m.deployAppName(workdirPath))
 
 	// What to publish: what the card says, else the branch its own sessions
 	// have been committing to — with worktrees the agent works on a branch the
-	// card never learns about, and deploying the project's checked-out one
+	// card never learns about, and deploying the folder's checked-out one
 	// would publish somebody else's work. That is also what the Deploy button
 	// next to the branch does, so the column and the button agree.
 	branch := strings.TrimSpace(ev.Props["branch"])
@@ -147,7 +147,7 @@ func (m *Manager) resolveDeploy(ev CardMoved, projectPath string, deploy bool, o
 	}
 	if branch == "" {
 		var err error
-		if branch, err = resolveDeployBranch(ev, projectPath); err != nil {
+		if branch, err = resolveDeployBranch(ev, workdirPath); err != nil {
 			return nil, "", err
 		}
 	}
@@ -173,20 +173,20 @@ func (m *Manager) resolveDeployTargetNamed(ev CardMoved, name string) (DeployEnt
 }
 
 // deployAppName is what a target without an explicit base app names its apps
-// and its level of the hostname after: the project's own name in the
-// registry, or the directory it sits in for a project that is not registered.
-func (m *Manager) deployAppName(projectPath string) string {
-	if strings.TrimSpace(projectPath) == "" {
+// and its level of the hostname after: the folder's own name in the
+// registry, or the directory it sits in for a folder that is not registered.
+func (m *Manager) deployAppName(workdirPath string) string {
+	if strings.TrimSpace(workdirPath) == "" {
 		return ""
 	}
 	m.cfgMu.RLock()
-	projects := append([]ProjectEntry(nil), m.cfg.Projects...)
+	workdirs := append([]WorkdirEntry(nil), m.cfg.Workdirs...)
 	m.cfgMu.RUnlock()
 
-	if name := rrojectNameForPath(projects, projectPath); name != "" {
+	if name := workdirNameForPath(workdirs, workdirPath); name != "" {
 		return name
 	}
-	return filepath.Base(filepath.Clean(projectPath))
+	return filepath.Base(filepath.Clean(workdirPath))
 }
 
 // deployTools are the dokku tools a deploy session may use without asking, for
@@ -204,18 +204,18 @@ func deployTools() map[string]bool {
 }
 
 // resolveDeployBranch is the branch a deploy session publishes: the card's
-// explicit "branch" property, otherwise whatever the project has checked out.
-func resolveDeployBranch(ev CardMoved, projectPath string) (string, error) {
+// explicit "branch" property, otherwise whatever the folder has checked out.
+func resolveDeployBranch(ev CardMoved, workdirPath string) (string, error) {
 	if b := strings.TrimSpace(ev.Props["branch"]); b != "" {
 		return b, nil
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	return dokku.CurrentBranch(ctx, nil, projectPath)
+	return dokku.CurrentBranch(ctx, nil, workdirPath)
 }
 
-func rrojectNameForPath(projects []ProjectEntry, path string) string {
-	for _, r := range projects {
+func workdirNameForPath(workdirs []WorkdirEntry, path string) string {
+	for _, r := range workdirs {
 		if r.Path == path {
 			return r.Name
 		}

@@ -7,7 +7,7 @@ import (
 	"github.com/artipop/xciii/internal/vcs"
 )
 
-// The second input of the flow engine: what happens in the project. The app
+// The second input of the flow engine: what happens in the folder. The app
 // sits on a laptop, so there is nowhere for a webhook to arrive — everything is
 // polled, and only for the branches a parked card actually waits on. With no
 // card waiting, no request is made at all.
@@ -15,12 +15,12 @@ import (
 // vcsPollTimeout bounds one watcher call, so a hung network cannot stall the loop.
 const vcsPollTimeout = 60 * time.Second
 
-// SetWatchers replaces the project watchers (tests use it to inject a fake).
+// SetWatchers replaces the folder watchers (tests use it to inject a fake).
 func (m *Manager) SetWatchers(w ...vcs.Watcher) { m.watchers = w }
 
-// defaultWatchers are the ones built from the config: the local project
+// defaultWatchers are the ones built from the config: the local folder
 // always, and GitHub — which only spends a request when a route actually waits
-// for a pull request. Its token is optional: public projects answer without
+// for a pull request. Its token is optional: public folders answer without
 // one, at a rate limit low enough that the watcher paces itself.
 func defaultWatchers(cfg Config) []vcs.Watcher {
 	return []vcs.Watcher{
@@ -54,7 +54,7 @@ func (m *Manager) PollVCS() {
 	remote := m.gitRemote()
 	for _, ft := range targets {
 		target := vcs.Target{
-			ProjectPath: ft.ProjectPath,
+			WorkdirPath: ft.WorkdirPath,
 			Branch:      ft.Branch,
 			Remote:      remote,
 			Triggers:    ft.Triggers,
@@ -65,7 +65,7 @@ func (m *Manager) PollVCS() {
 			cancel()
 			if err != nil {
 				m.log.Warn("acp: project poll failed", "watcher", w.Name(),
-					"project", ft.ProjectPath, "branch", ft.Branch, "err", err)
+					"project", ft.WorkdirPath, "branch", ft.Branch, "err", err)
 			}
 			for _, e := range events {
 				m.deliverVCSEvent(e)
@@ -79,7 +79,7 @@ func (m *Manager) PollVCS() {
 // without this the card would move on every poll.
 func (m *Manager) deliverVCSEvent(e vcs.Event) {
 	if m.store != nil {
-		fresh, err := m.store.ClaimVCSEvent(e.ProjectPath, e.Branch, e.Kind, e.Marker)
+		fresh, err := m.store.ClaimVCSEvent(e.WorkdirPath, e.Branch, e.Kind, e.Marker)
 		if err != nil {
 			m.log.Error("acp: vcs dedup failed", "err", err)
 			return
@@ -88,8 +88,8 @@ func (m *Manager) deliverVCSEvent(e vcs.Event) {
 			return
 		}
 	}
-	m.log.Info("acp: project event", "kind", e.Kind, "project", e.ProjectPath, "branch", e.Branch)
-	m.OnVCSEvent(VCSEvent{Kind: e.Kind, ProjectPath: e.ProjectPath, Branch: e.Branch, Detail: e.Detail})
+	m.log.Info("acp: project event", "kind", e.Kind, "project", e.WorkdirPath, "branch", e.Branch)
+	m.OnVCSEvent(VCSEvent{Kind: e.Kind, WorkdirPath: e.WorkdirPath, Branch: e.Branch, Detail: e.Detail})
 }
 
 func (m *Manager) gitRemote() string {

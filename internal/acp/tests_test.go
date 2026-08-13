@@ -9,9 +9,9 @@ import (
 
 func TestResolvePreviewURL(t *testing.T) {
 	m := agentManager(t, "")
-	m.cfg.Projects = []ProjectEntry{{Name: "webapp", Path: "/projects/webapp"}}
+	m.cfg.Workdirs = []WorkdirEntry{{Name: "webapp", Path: "/projects/webapp"}}
 	// A target is a host now, so the single registered entry answers for the
-	// card without being tied to its project.
+	// card without being tied to its folder.
 	m.cfg.Deploys = []DeployEntry{deployEntry("preview")}
 
 	// 1. An explicit preview_url on the card wins — whatever put it there.
@@ -43,7 +43,7 @@ func TestResolvePreviewURL(t *testing.T) {
 		t.Fatalf("derived branch: %q, %v", branch, err)
 	}
 	// The address is composed the way a deploy composes it: one label carrying
-	// the app name (the project, or the target's override) and the branch.
+	// the app name (the folder, or the target's override) and the branch.
 	if url != "http://api-feat-big-thing.example.com" {
 		t.Fatalf("derived url: %q", url)
 	}
@@ -132,7 +132,7 @@ func TestSessionMCPServersForATestSession(t *testing.T) {
 	agent := AgentEntry{Name: "jojo", Kind: "junie", MCPServers: map[string]AgentMCPServer{
 		"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest", "--headless"}},
 	}}
-	s := &Session{ProjectPath: "/project", Agent: agent, Test: &TestRun{URL: "https://feat-x.example.com", Artifacts: "/data/run"}}
+	s := &Session{WorkdirPath: "/project", Agent: agent, Test: &TestRun{URL: "https://feat-x.example.com", Artifacts: "/data/run"}}
 
 	specs, err := sessionMCPServers(s, cfg)
 	if err != nil {
@@ -154,10 +154,10 @@ func TestSessionMCPServersForATestSession(t *testing.T) {
 }
 
 func TestTestSessionNeedsABrowserServer(t *testing.T) {
-	project := initTestProject(t)
+	project := initTestWorkdir(t)
 	m := agentManager(t, "", AgentEntry{Name: "bare", Kind: "claude"})
 	m.cfg.Deploys = []DeployEntry{deployEntry("prod")}
-	m.cfg.Projects = []ProjectEntry{{Name: "webapp", Path: project}}
+	m.cfg.Workdirs = []WorkdirEntry{{Name: "webapp", Path: project}}
 
 	ev := CardMoved{CardID: "cardT", Title: "Проверить", Props: map[string]string{"repo_path": project, "branch": "feat/x"}}
 	_, err := m.startSession(ev, startOptions{test: true})

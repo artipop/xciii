@@ -128,16 +128,16 @@ const PlanningDialog = (props: Props) => {
         }
     }
 
-    // Answering the folder question is what starts: a project by name, or '' for
+    // Answering the folder question is what starts: a workdir by name, or '' for
     // the board's own drafts folder, resolved on the Go side.
-    const start = async (projectName: string) => {
+    const start = async (workdirName: string) => {
         if (!bindings?.OpenPlanningTerminal) {
             return
         }
         setError('')
         setBusy(true)
         try {
-            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(projectName, agentName(), props.board.id)))
+            openWindow(JSON.parse(await bindings.OpenPlanningTerminal(workdirName, agentName(), props.board.id)))
             await refreshTerminals()
         } catch (e: any) {
             setError(String(e?.message || e))

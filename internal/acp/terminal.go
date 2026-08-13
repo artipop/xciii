@@ -17,12 +17,12 @@ import (
 
 // A terminal session is the agent's own CLI, running in a pseudo-terminal in
 // the card's working directory — the same thing a developer would open a shell
-// and type, with the project, the worktree, the branch and the agent's
+// and type, with the folder, the worktree, the branch and the agent's
 // environment already set up.
 //
 // It is deliberately *not* an ACP session: an ACP agent speaks JSON-RPC on
 // stdio and has no terminal UI, so a session cannot be both. What the two share
-// is everything around them — which project a card is about, which agent
+// is everything around them — which folder a card is about, which agent
 // works it, which proxy and API keys that agent runs with, and where the branch
 // goes — and that is what this reuses. Where an ACP session reports every step
 // as it goes, a terminal session reports once, when it ends: what the CLI left
@@ -58,7 +58,7 @@ type TerminalSession struct {
 	// window is open.
 	Title       string
 	Task        string
-	ProjectPath string
+	WorkdirPath string
 	Cwd         string
 	Branch      string
 	AgentName   string
@@ -277,7 +277,7 @@ func (t *TerminalSession) finish() {
 	}
 }
 
-// StartCardTerminal opens the agent's CLI on a card: same project, same
+// StartCardTerminal opens the agent's CLI on a card: same folder, same
 // worktree rules and same agent as a session on that card would get.
 // projectName/agentName override what the card says, for the case where it says
 // nothing.
@@ -301,16 +301,16 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		return nil, fmt.Errorf("не удалось прочитать карточку: %w", err)
 	}
 
-	projectPath, err := m.resolveProject(ev)
+	workdirPath, err := m.resolveWorkdir(ev)
 	if projectName != "" {
-		projectPath, err = m.resolveNamedProject(projectName)
-	} else if errors.As(err, &errNoProject{}) {
+		workdirPath, err = m.resolveNamedWorkdir(projectName)
+	} else if errors.As(err, &errNoWorkdir{}) {
 		// The card names no folder, and a terminal does not need one: the
 		// conversation opens in the card's own talk directory (startTerminal),
 		// where wording and plans are discussed before any folder exists. A
 		// folder the card *does* name but which is broken stays an error — the
 		// person meant it, and silently talking beside it would mislead.
-		projectPath, err = "", nil
+		workdirPath, err = "", nil
 	}
 	if err != nil {
 		return nil, err
@@ -347,12 +347,12 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		boardID:     ev.BoardID,
 		title:       ev.Title,
 		task:        ev.Body,
-		projectPath: projectPath,
+		workdirPath: workdirPath,
 		base:        ev.Props["branch"],
 		agent:       agent,
-		// A project that is not under git has no worktrees to give, and a
-		// terminal in one is a terminal in the folder itself.
-		worktree: projectPath != "" && m.cfg.UseWorktrees() && IsGitProject(m.rootCtx, projectPath),
+		// A folder that is not a repository has no copies to give, and a
+		// terminal in one is a terminal in the folder itself. Which of the two
+		// a repository gets is the board's answer (BoardPropGit).
 	})
 }
 
@@ -408,10 +408,10 @@ func (m *Manager) terminalAgent(ev CardMoved, crew []string) (AgentEntry, error)
 }
 
 // StartPlanningTerminal opens the CLI with no card behind it — the terminal
-// half of "Plan a task". It runs in the project itself and never creates a
+// half of "Plan a task". It runs in the folder itself and never creates a
 // branch: there is nothing yet to put on one.
 func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) (*TerminalSession, error) {
-	project, err := m.planningRepo(projectName)
+	project, err := m.planningWorkdir(projectName)
 	if err != nil {
 		return nil, err
 	}
@@ -420,18 +420,18 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 		return nil, err
 	}
 	if project.Path == "" {
-		// Planning with no project talks in «черновики доски» — the same answer
+		// Planning with no folder talks in «черновики доски» — the same answer
 		// the card's dialog gives, for a conversation that is about the
 		// board's cards rather than about code. The name is what the prompt
 		// shows the agent; every UI surface says the same words.
 		folder := m.boardFolder(boardID)
 		if folder == "" {
-			return nil, fmt.Errorf("для терминала нужен проект: выберите его в списке")
+			return nil, fmt.Errorf("для терминала нужна папка: выберите её в списке")
 		}
 		if err := os.MkdirAll(folder, 0o755); err != nil {
 			return nil, fmt.Errorf("не удалось создать папку черновиков доски: %w", err)
 		}
-		project = ProjectEntry{Name: "черновики доски", Path: folder}
+		project = WorkdirEntry{Name: "черновики доски", Path: folder}
 	}
 	// The same rule a card's terminal follows: asking twice means "show me the
 	// one I have", not "start another CLI". A planning terminal has no card to
@@ -450,9 +450,8 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 		// input when it starts, so the terminal page offers it as a button
 		// rather than typing it in.
 		task:        planningPrompt(m.BoardPrompt(boardID), m.PlanningPrompt(), agent, project),
-		projectPath: project.Path,
+		workdirPath: project.Path,
 		agent:       agent,
-		worktree:    false,
 	})
 }
 
@@ -468,10 +467,9 @@ type terminalSpec struct {
 	boardID     string
 	title       string
 	task        string
-	projectPath string
+	workdirPath string
 	base        string
 	agent       AgentEntry
-	worktree    bool
 }
 
 func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
@@ -531,8 +529,8 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		BoardID:     spec.boardID,
 		Title:       spec.title,
 		Task:        spec.task,
-		ProjectPath: spec.projectPath,
-		Cwd:         spec.projectPath,
+		WorkdirPath: spec.workdirPath,
+		Cwd:         spec.workdirPath,
 		AgentName:   spec.agent.Name,
 		AgentKind:   spec.agent.Kind,
 		Argv:        argv,
@@ -558,21 +556,30 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 			t.Title = resumeAt.Title
 		}
 		t.summary = resumeAt.Summary
-	// A terminal gets a worktree for the same reason a session does: two of
-	// them, or a terminal beside a running session, must not share one checkout.
-	case spec.worktree && spec.cardID != "":
-		wt, err := CreateWorktree(m.rootCtx, spec.projectPath, spec.base, spec.title, spec.cardID, id, m.cfg.WorktreeDir)
+	// A terminal takes the card's workspace — the same branch and the same
+	// directory its sessions work in. It used to make one of its own, so a
+	// person talking to an agent about a card was in a different copy from the
+	// agent working on it.
+	case spec.workdirPath != "" && spec.cardID != "":
+		ws, err := m.ClaimWorkspace(WorkSpec{
+			Workdir: spec.workdirPath,
+			Owner:   spec.cardID,
+			BoardID: spec.boardID,
+			Title:   spec.title,
+		})
 		if err != nil {
 			// Every failure below the grant has to give it back: the token
 			// lives in m.grants and in a temp file, and a terminal that never
 			// started is a door nobody will ever close.
 			m.closeBoardTools(boardToken, mcpConfig)
-			return nil, fmt.Errorf("не удалось создать git worktree: %w", err)
+			return nil, err
 		}
-		t.worktree = wt
-		t.usedWorktree = true
-		t.Cwd = wt.Path
-		t.Branch = wt.Branch
+		t.worktree = WorktreeInfo{Path: ws.Cwd, Branch: ws.Branch, BaseRef: ws.Base}
+		// Only a copy this terminal *made* is its to put away; the card's
+		// branch outlives every conversation held on it.
+		t.usedWorktree = ws.Fresh && ws.Mode == WorkModeWorktree
+		t.Cwd = ws.Cwd
+		t.Branch = ws.Branch
 	}
 
 	// A conversation with no folder runs in «черновики доски» — the board's own
@@ -580,7 +587,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// it. One folder per board, deliberately: what an agent writes there for
 	// one card (a brief, a draft) is on hand when another card of the same
 	// board is talked over. The price is that the CLI's directory-scoped
-	// resume is board-scoped here too — the same trade every non-git project
+	// resume is board-scoped here too — the same trade every non-git folder
 	// folder already makes.
 	if t.Cwd == "" && spec.cardID != "" {
 		folder := m.boardFolder(spec.boardID)
@@ -631,7 +638,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// being closed — which is the only reason a terminal can be resumed at all.
 	if err := m.store.InsertTerminal(TerminalRecord{
 		ID: id, CardID: t.CardID, NodeID: t.NodeID, BoardID: t.BoardID, Title: t.Title,
-		ProjectPath: t.ProjectPath, Cwd: t.Cwd, Branch: t.Branch,
+		WorkdirPath: t.WorkdirPath, Cwd: t.Cwd, Branch: t.Branch,
 		Agent: t.AgentName, Kind: t.AgentKind, Summary: t.summary, StartedAt: t.StartedAt,
 	}); err != nil {
 		m.log.Warn("acp: failed to record terminal session", "terminal", id, "err", err)
@@ -788,7 +795,7 @@ func (m *Manager) releaseTerminalWorktree(t *TerminalSession) {
 	if !t.usedWorktree {
 		return
 	}
-	removed, err := RemoveWorktreeIfClean(m.rootCtx, t.ProjectPath, t.worktree)
+	removed, err := RemoveWorktreeIfClean(m.rootCtx, t.WorkdirPath, t.worktree)
 	if err != nil {
 		m.log.Warn("acp: failed to clean up terminal worktree", "terminal", t.ID, "err", err)
 		return
@@ -833,13 +840,13 @@ func (m *Manager) TerminalForCardNode(cardID, nodeID string) *TerminalSession {
 	return nil
 }
 
-// planningTerminal is the live card-less terminal for this project and
+// planningTerminal is the live card-less terminal for this folder and
 // agent, if one is open.
-func (m *Manager) planningTerminal(projectPath, agentName string) *TerminalSession {
+func (m *Manager) planningTerminal(workdirPath, agentName string) *TerminalSession {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for _, t := range m.terminals {
-		if t.CardID == "" && t.ProjectPath == projectPath && t.AgentName == agentName {
+		if t.CardID == "" && t.WorkdirPath == workdirPath && t.AgentName == agentName {
 			return t
 		}
 	}
@@ -1114,7 +1121,7 @@ func (m *Manager) terminalResumePoint(spec terminalSpec) (TerminalRecord, bool) 
 		m.log.Warn("acp: failed to read the card's last terminal", "card", spec.cardID, "err", err)
 		return TerminalRecord{}, false
 	}
-	if !ok || rec.Cwd == "" || rec.ProjectPath != spec.projectPath {
+	if !ok || rec.Cwd == "" || rec.WorkdirPath != spec.workdirPath {
 		return TerminalRecord{}, false
 	}
 	if info, err := os.Stat(rec.Cwd); err != nil || !info.IsDir() {
@@ -1223,7 +1230,7 @@ func (m *Manager) TerminalHistoryForCard(cardID string) ResumableTerminal {
 	// any work lives — and the stamp under the card's title reads Cwd as the
 	// worktree. The conversation stays resumable; the address is nobody's
 	// business.
-	if rec.ProjectPath == "" {
+	if rec.WorkdirPath == "" {
 		out.Cwd = ""
 	}
 	if rec.EndedAt != nil {

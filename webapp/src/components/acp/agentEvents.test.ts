@@ -37,7 +37,7 @@ describe('components/acp/agentEvents', () => {
         FakeSocket.instances = []
         realWebSocket = anyGlobal.WebSocket
         anyGlobal.WebSocket = FakeSocket
-        anyWindow.go = {main: {App: {ListAgentProjects: vi.fn()}}}
+        anyWindow.go = {main: {App: {ListAgentWorkdirs: vi.fn()}}}
     })
 
     afterEach(() => {

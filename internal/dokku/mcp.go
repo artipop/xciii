@@ -28,17 +28,17 @@ const version = "0.1.0"
 // instructions tell the model what this server is for. They arrive with the
 // tool list, before any prompt we write elsewhere.
 const instructions = `Инструменты деплоя ветки на Dokku. Одна ветка — одно приложение,
-доступное на адресе «проект-ветка.базовый-домен». Хост, ключ, имя приложения
+доступное на адресе «папка-ветка.базовый-домен». Хост, ключ, имя приложения
 и домен уже заданы: их нельзя переопределить из инструментов, ты выбираешь только ветку.
 Если деплой упал, посмотри app_logs — там вывод сборки и приложения.`
 
 // deployInput is shared by every tool: an explicit branch, or the session's own.
 type deployInput struct {
-	Branch string `json:"branch,omitempty" jsonschema:"ветка проекта; по умолчанию — ветка карточки"`
+	Branch string `json:"branch,omitempty" jsonschema:"ветка репозитория; по умолчанию — ветка карточки"`
 }
 
 type logsInput struct {
-	Branch string `json:"branch,omitempty" jsonschema:"ветка проекта; по умолчанию — ветка карточки"`
+	Branch string `json:"branch,omitempty" jsonschema:"ветка репозитория; по умолчанию — ветка карточки"`
 	Lines  int    `json:"lines,omitempty" jsonschema:"сколько последних строк лога вернуть (по умолчанию 200)"`
 }
 

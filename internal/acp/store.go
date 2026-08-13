@@ -185,7 +185,19 @@ CREATE TABLE IF NOT EXISTS vcs_seen (
 	marker TEXT NOT NULL DEFAULT '',
 	created_at INTEGER NOT NULL,
 	PRIMARY KEY (project, branch, kind)
-);`)
+);
+CREATE TABLE IF NOT EXISTS workdir_claim (
+	workdir TEXT NOT NULL,
+	owner TEXT NOT NULL,
+	mode TEXT NOT NULL,
+	branch TEXT NOT NULL DEFAULT '',
+	path TEXT NOT NULL DEFAULT '',
+	base TEXT NOT NULL DEFAULT '',
+	created_at INTEGER NOT NULL,
+	released_at INTEGER,
+	PRIMARY KEY (workdir, owner)
+);
+CREATE INDEX IF NOT EXISTS idx_workdir_claim_live ON workdir_claim(workdir, released_at);`)
 	return err
 }
 
@@ -224,7 +236,7 @@ func (s *Store) SetupSteps(boardID string) ([]SetupStepState, error) {
 	return out, rows.Err()
 }
 
-// ClaimVCSEvent reports whether a project event is new, and remembers it. A
+// ClaimVCSEvent reports whether a folder event is new, and remembers it. A
 // watcher sees the same state on every poll — the branch stays merged — so the
 // event fires once per marker (the commit it refers to) instead of once a minute.
 func (s *Store) ClaimVCSEvent(project, branch, kind, marker string) (bool, error) {
@@ -260,7 +272,7 @@ type FlowState struct {
 	Flow        string    `json:"flow"`
 	NodeID      string    `json:"nodeId"`
 	Branch      string    `json:"branch"`
-	ProjectPath string    `json:"projectPath"`
+	WorkdirPath string    `json:"workdirPath"`
 	EnteredAt   time.Time `json:"enteredAt"`
 	// Visited are the stages the card has already left, which is what "done"
 	// means on a route with a loop — the graph cannot say it, only the card's
@@ -292,7 +304,7 @@ func (s *Store) SaveFlowState(st FlowState) error {
 		ON CONFLICT(card_id) DO UPDATE SET
 			board_id=excluded.board_id, flow=excluded.flow, node_id=excluded.node_id,
 			branch=excluded.branch, repo_path=excluded.repo_path, entered_at=excluded.entered_at`,
-		st.CardID, st.BoardID, st.Flow, st.NodeID, st.Branch, st.ProjectPath, st.EnteredAt.UnixMilli())
+		st.CardID, st.BoardID, st.Flow, st.NodeID, st.Branch, st.WorkdirPath, st.EnteredAt.UnixMilli())
 	return err
 }
 
@@ -417,7 +429,7 @@ type scanner interface{ Scan(dest ...any) error }
 func scanFlowState(row scanner) (FlowState, error) {
 	var st FlowState
 	var entered int64
-	if err := row.Scan(&st.CardID, &st.BoardID, &st.Flow, &st.NodeID, &st.Branch, &st.ProjectPath, &entered); err != nil {
+	if err := row.Scan(&st.CardID, &st.BoardID, &st.Flow, &st.NodeID, &st.Branch, &st.WorkdirPath, &entered); err != nil {
 		return FlowState{}, err
 	}
 	st.EnteredAt = time.UnixMilli(entered)
@@ -625,7 +637,7 @@ func (s *Store) DequeueStage(cardID string) error {
 // LatestBranchForCard is the branch the card was last worked on: the worktree
 // branch of its most recent session. With worktrees on — the default — that is
 // the branch the agent commits to, and the card itself never learns its name,
-// so this is where anything watching the project has to ask.
+// so this is where anything watching the folder has to ask.
 func (s *Store) LatestBranchForCard(cardID string) (string, error) {
 	var branch string
 	err := s.db.QueryRow(`SELECT branch FROM agent_session
@@ -649,20 +661,20 @@ type TerminalRecord struct {
 	// NodeID is the stage of the card's route this conversation belongs to.
 	// Empty for a card outside any route — and for every record from before
 	// stages existed, which is the same thing: the card's one conversation.
-	NodeID      string     `json:"nodeId,omitempty"`
-	BoardID     string     `json:"boardId,omitempty"`
-	Title       string     `json:"title,omitempty"`
-	ProjectPath string     `json:"projectPath,omitempty"`
-	Cwd         string     `json:"cwd"`
-	Branch      string     `json:"branch,omitempty"`
-	Agent string `json:"agent,omitempty"`
-	Kind  string `json:"kind,omitempty"`
+	NodeID      string `json:"nodeId,omitempty"`
+	BoardID     string `json:"boardId,omitempty"`
+	Title       string `json:"title,omitempty"`
+	WorkdirPath string `json:"workdirPath,omitempty"`
+	Cwd         string `json:"cwd"`
+	Branch      string `json:"branch,omitempty"`
+	Agent       string `json:"agent,omitempty"`
+	Kind        string `json:"kind,omitempty"`
 	// Summary is the agent's own line about the conversation, kept so it comes
 	// back with the conversation it describes.
-	Summary     string     `json:"summary,omitempty"`
-	StartedAt   time.Time  `json:"startedAt"`
-	EndedAt     *time.Time `json:"endedAt,omitempty"`
-	ExitCode    int        `json:"exitCode"`
+	Summary   string     `json:"summary,omitempty"`
+	StartedAt time.Time  `json:"startedAt"`
+	EndedAt   *time.Time `json:"endedAt,omitempty"`
+	ExitCode  int        `json:"exitCode"`
 }
 
 // InsertTerminal records a terminal session as it starts.
@@ -670,7 +682,7 @@ func (s *Store) InsertTerminal(r TerminalRecord) error {
 	_, err := s.db.Exec(`INSERT INTO terminal_session
 		(id, card_id, node_id, board_id, title, repo_path, cwd, branch, agent, kind, summary, started_at)
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-		r.ID, r.CardID, r.NodeID, r.BoardID, r.Title, r.ProjectPath, r.Cwd, r.Branch, r.Agent, r.Kind,
+		r.ID, r.CardID, r.NodeID, r.BoardID, r.Title, r.WorkdirPath, r.Cwd, r.Branch, r.Agent, r.Kind,
 		r.Summary, r.StartedAt.UnixMilli())
 	return err
 }
@@ -766,7 +778,7 @@ func scanTerminal(row scanner) (TerminalRecord, error) {
 		started int64
 		ended   sql.NullInt64
 	)
-	if err := row.Scan(&rec.ID, &rec.CardID, &rec.NodeID, &rec.BoardID, &rec.Title, &rec.ProjectPath, &rec.Cwd,
+	if err := row.Scan(&rec.ID, &rec.CardID, &rec.NodeID, &rec.BoardID, &rec.Title, &rec.WorkdirPath, &rec.Cwd,
 		&rec.Branch, &rec.Agent, &rec.Kind, &rec.Summary, &started, &ended, &rec.ExitCode); err != nil {
 		return TerminalRecord{}, err
 	}
@@ -776,4 +788,110 @@ func scanTerminal(row scanner) (TerminalRecord, error) {
 		rec.EndedAt = &t
 	}
 	return rec, nil
+}
+
+// WorkspaceClaim is a folder handed to one owner: which branch was made for it,
+// which directory the work happens in, and what it was cut from. A row exists
+// only for a folder that is a repository — an ordinary folder creates nothing
+// and so has nothing to record.
+//
+// The owner is a card, or "board:<id>" for a conversation with no card. It is
+// what makes a workspace outlive the run that made it: the second stage of a
+// route, and the terminal a person opens beside it, get the same branch and the
+// same directory as the first, instead of each making its own.
+type WorkspaceClaim struct {
+	Workdir   string
+	Owner     string
+	Mode      string
+	Branch    string
+	Path      string
+	Base      string
+	CreatedAt time.Time
+}
+
+// ClaimWorkdir records a workspace. Called once, when it is created.
+func (s *Store) ClaimWorkdir(c WorkspaceClaim) error {
+	if c.CreatedAt.IsZero() {
+		c.CreatedAt = time.Now()
+	}
+	_, err := s.db.Exec(`INSERT INTO workdir_claim (workdir, owner, mode, branch, path, base, created_at, released_at)
+		VALUES (?,?,?,?,?,?,?,NULL)
+		ON CONFLICT(workdir, owner) DO UPDATE SET
+			mode=excluded.mode, branch=excluded.branch, path=excluded.path,
+			base=excluded.base, created_at=excluded.created_at, released_at=NULL`,
+		c.Workdir, c.Owner, c.Mode, c.Branch, c.Path, c.Base, c.CreatedAt.UnixMilli())
+	return err
+}
+
+// WorkspaceOf is the workspace this owner holds in this folder, if it still
+// holds one.
+func (s *Store) WorkspaceOf(workdir, owner string) (WorkspaceClaim, bool, error) {
+	row := s.db.QueryRow(`SELECT workdir, owner, mode, branch, path, base, created_at
+		FROM workdir_claim WHERE workdir=? AND owner=? AND released_at IS NULL`, workdir, owner)
+	return scanClaim(row)
+}
+
+// WorkdirHeldBy is whoever holds this folder now, for a mode where only one
+// owner can. Empty when nobody does.
+func (s *Store) WorkdirHeldBy(workdir string) (WorkspaceClaim, bool, error) {
+	row := s.db.QueryRow(`SELECT workdir, owner, mode, branch, path, base, created_at
+		FROM workdir_claim WHERE workdir=? AND released_at IS NULL
+		ORDER BY created_at LIMIT 1`, workdir)
+	return scanClaim(row)
+}
+
+// ReleaseWorkdir gives a folder back. The row stays: what branch a card worked
+// on is worth remembering after the folder is free again.
+func (s *Store) ReleaseWorkdir(workdir, owner string) error {
+	_, err := s.db.Exec(`UPDATE workdir_claim SET released_at=?
+		WHERE workdir=? AND owner=? AND released_at IS NULL`,
+		time.Now().UnixMilli(), workdir, owner)
+	return err
+}
+
+// ReleaseBranch gives back whatever workspace was on this branch, whoever holds
+// it — how a merge frees the folder for the next card.
+func (s *Store) ReleaseBranch(workdir, branch string) (string, error) {
+	row := s.db.QueryRow(`SELECT owner FROM workdir_claim
+		WHERE workdir=? AND branch=? AND released_at IS NULL`, workdir, branch)
+	var owner string
+	switch err := row.Scan(&owner); {
+	case err == sql.ErrNoRows:
+		return "", nil
+	case err != nil:
+		return "", err
+	}
+	return owner, s.ReleaseWorkdir(workdir, owner)
+}
+
+func scanClaim(row scanner) (WorkspaceClaim, bool, error) {
+	var (
+		c       WorkspaceClaim
+		created int64
+	)
+	switch err := row.Scan(&c.Workdir, &c.Owner, &c.Mode, &c.Branch, &c.Path, &c.Base, &created); {
+	case err == sql.ErrNoRows:
+		return WorkspaceClaim{}, false, nil
+	case err != nil:
+		return WorkspaceClaim{}, false, err
+	}
+	c.CreatedAt = time.UnixMilli(created)
+	return c, true, nil
+}
+
+// BranchForOwner is the branch this owner works on, in whichever folder it
+// holds one — the card's own workspace, in other words. What a deploy
+// publishes when the card names no branch itself.
+func (s *Store) BranchForOwner(owner string) (string, error) {
+	row := s.db.QueryRow(`SELECT branch FROM workdir_claim
+		WHERE owner=? AND released_at IS NULL AND branch<>''
+		ORDER BY created_at DESC LIMIT 1`, owner)
+	var branch string
+	switch err := row.Scan(&branch); {
+	case err == sql.ErrNoRows:
+		return "", nil
+	case err != nil:
+		return "", err
+	}
+	return branch, nil
 }

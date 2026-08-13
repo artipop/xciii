@@ -50,7 +50,7 @@ func (g *GitHub) Poll(ctx context.Context, t Target) ([]Event, error) {
 			break
 		}
 	}
-	if !wanted || t.ProjectPath == "" || t.Branch == "" {
+	if !wanted || t.WorkdirPath == "" || t.Branch == "" {
 		return nil, nil
 	}
 	if !g.due(t) {
@@ -77,7 +77,7 @@ func (g *GitHub) Poll(ctx context.Context, t Target) ([]Event, error) {
 			return
 		}
 		events = append(events, Event{
-			Kind: kind, ProjectPath: t.ProjectPath, Branch: t.Branch, Detail: detail,
+			Kind: kind, WorkdirPath: t.WorkdirPath, Branch: t.Branch, Detail: detail,
 			URL: pr.HTMLURL, Number: pr.Number, Marker: marker, At: time.Now(),
 		})
 	}
@@ -124,7 +124,7 @@ func (g *GitHub) due(t Target) bool {
 			interval = time.Minute
 		}
 	}
-	key := t.ProjectPath + "\x00" + t.Branch
+	key := t.WorkdirPath + "\x00" + t.Branch
 
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -147,7 +147,7 @@ func (g *GitHub) project(ctx context.Context, t Target) (owner, project string, 
 	if run == nil {
 		run = Exec
 	}
-	out, err := run(ctx, t.ProjectPath, "remote", "get-url", remote)
+	out, err := run(ctx, t.WorkdirPath, "remote", "get-url", remote)
 	if err != nil {
 		return "", "", fmt.Errorf("не удалось прочитать адрес remote %s: %w", remote, err)
 	}

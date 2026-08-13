@@ -75,7 +75,7 @@ describe('components/acp/cardTerminal', () => {
         stubBindings({
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({folder: '/tmp/app'})),
             OpenCardTerminal: open,
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'кодекс'}])),
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
@@ -146,7 +146,7 @@ describe('components/acp/cardTerminal', () => {
         stubBindings({
             OpenCardTerminal: open,
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
@@ -167,7 +167,7 @@ describe('components/acp/cardTerminal', () => {
         stubBindings({
             OpenCardTerminal: open,
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
@@ -184,15 +184,15 @@ describe('components/acp/cardTerminal', () => {
         stubBindings({
             OpenCardTerminal: open,
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
-            ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue('[]'),
             PickDirectory: vi.fn().mockResolvedValue('/home/me/proj'),
-            AddAgentProject: addProject,
+            AddAgentWorkdir: addProject,
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
         await userEvent.click(await screen.findByRole('button', {name: 'Add a folder…'}))
 
-        await waitFor(() => expect(addProject).toHaveBeenCalledWith('proj', '/home/me/proj', board.id, false))
+        await waitFor(() => expect(addProject).toHaveBeenCalledWith('proj', '/home/me/proj', board.id, '', false))
         await waitFor(() => expect(open).toHaveBeenLastCalledWith('card-1', 'proj', 'клаус', false))
     })
 

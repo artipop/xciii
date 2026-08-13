@@ -24,7 +24,7 @@ import './folderChoices.scss'
 // a quiet «Добавить папку…» link — exactly the shape «Добавить агента…» has in
 // the question before this one.
 //
-// The folders offered are the board's own (its registered projects and the ones
+// The folders offered are the board's own (its registered workdirs and the ones
 // marked "on every board"), not every folder on the machine: this is one board's
 // conversation, and a folder that is not on it is one click away through the
 // picker, which registers it here.
@@ -34,9 +34,9 @@ type Props = {
     // Whose folders to offer, and where a folder added by hand is registered.
     board: Board
 
-    // Called with the answer: a project's name, or '' for the board's own drafts
+    // Called with the answer: a workdir's name, or '' for the board's own drafts
     // folder, which is what Go resolves an empty name into.
-    onPick: (projectName: string) => void
+    onPick: (workdirName: string) => void
     disabled?: boolean
 }
 
@@ -46,15 +46,15 @@ const FolderChoices = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [projects, setProjects] = createSignal<NamedEntry[]>([])
+    const [workdirs, setWorkdirs] = createSignal<NamedEntry[]>([])
     const [error, setError] = createSignal('')
 
     const load = async () => {
-        if (!bindings?.ListAgentProjects) {
+        if (!bindings?.ListAgentWorkdirs) {
             return
         }
         try {
-            setProjects(JSON.parse(await bindings.ListAgentProjects(props.board.id)) || [])
+            setWorkdirs(JSON.parse(await bindings.ListAgentWorkdirs(props.board.id)) || [])
         } catch (e: any) {
             // A registry we could not read leaves the drafts folder as the
             // answer, which is better than a dialog that refuses to draw.
@@ -68,7 +68,7 @@ const FolderChoices = (props: Props) => {
     // picker gives both. It is registered on this board (never globally: that is
     // a checkbox in the settings), and picking is itself the answer.
     const addFolder = async () => {
-        if (!bindings?.PickDirectory || !bindings.AddAgentProject) {
+        if (!bindings?.PickDirectory || !bindings.AddAgentWorkdir) {
             return
         }
         try {
@@ -77,7 +77,7 @@ const FolderChoices = (props: Props) => {
                 return
             }
             const name = path.split('/').filter(Boolean).pop() || path
-            await bindings.AddAgentProject(name, path, props.board.id, false)
+            await bindings.AddAgentWorkdir(name, path, props.board.id, '', false)
             await load()
             props.onPick(name)
         } catch (e: any) {
@@ -88,15 +88,15 @@ const FolderChoices = (props: Props) => {
     return (
         <div class='FolderChoices'>
             <div class='FolderChoices__chips'>
-                <For each={projects()}>
-                    {(project) => (
+                <For each={workdirs()}>
+                    {(workdir) => (
                         <button
                             type='button'
                             class='FolderChoices__chip'
                             disabled={props.disabled}
-                            onClick={() => props.onPick(project.name)}
+                            onClick={() => props.onPick(workdir.name)}
                         >
-                            {project.name}
+                            {workdir.name}
                         </button>
                     )}
                 </For>

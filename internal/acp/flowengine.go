@@ -14,15 +14,15 @@ import (
 // by itself.
 
 // cardIdleWait bounds how long a transition waits for the card's previous
-// session to let go of its project before starting the next one.
+// session to let go of its folder before starting the next one.
 const cardIdleWait = 20 * time.Second
 
 // handleFlowMove routes a board event through the card's flow. It reports
 // whether the flow took charge of the event: a card with a route is never also
 // handled by the standalone trigger columns, or the two would fight.
 func (m *Manager) handleFlowMove(ev CardMoved) bool {
-	projectPath, _ := m.resolveProject(ev)
-	flow := m.resolveFlow(ev, projectPath)
+	workdirPath, _ := m.resolveWorkdir(ev)
+	flow := m.resolveFlow(ev, workdirPath)
 	if flow == nil {
 		return false
 	}
@@ -81,7 +81,7 @@ func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bo
 	// one is over.
 	m.clearStall(ev.CardID)
 
-	projectPath, _ := m.resolveProject(ev)
+	workdirPath, _ := m.resolveWorkdir(ev)
 	from, previousBranch := "", ""
 	var visited []string
 	if st, ok, _ := m.flowState(ev.CardID); ok {
@@ -97,8 +97,8 @@ func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bo
 		BoardID:     ev.BoardID,
 		Flow:        flow.Name,
 		NodeID:      node.ID,
-		Branch:      m.flowBranch(ev, projectPath, previousBranch),
-		ProjectPath: projectPath,
+		Branch:      m.flowBranch(ev, workdirPath, previousBranch),
+		WorkdirPath: workdirPath,
 		Visited:     visited,
 	})
 	m.appendFlowEvent(FlowEventRecord{
@@ -115,12 +115,12 @@ func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bo
 //  1. what the card says, since that is somebody's decision;
 //  2. the branch its last session worked on — with worktrees (the default) the
 //     agent commits to a branch of its own that the card never learns about, so
-//     without this the route would watch whatever the project had checked
+//     without this the route would watch whatever the folder had checked
 //     out and wait for a merge that never comes;
 //  3. what the route already carried, so a card that stops mentioning its
 //     branch does not silently stop being watched;
-//  4. the project's checked-out branch, for a card nobody has worked yet.
-func (m *Manager) flowBranch(ev CardMoved, projectPath, previous string) string {
+//  4. the folder's checked-out branch, for a card nobody has worked yet.
+func (m *Manager) flowBranch(ev CardMoved, workdirPath, previous string) string {
 	if b := strings.TrimSpace(ev.Props["branch"]); b != "" {
 		return b
 	}
@@ -130,10 +130,10 @@ func (m *Manager) flowBranch(ev CardMoved, projectPath, previous string) string 
 	if previous != "" {
 		return previous
 	}
-	if projectPath == "" {
+	if workdirPath == "" {
 		return ""
 	}
-	branch, err := resolveDeployBranch(ev, projectPath)
+	branch, err := resolveDeployBranch(ev, workdirPath)
 	if err != nil {
 		return ""
 	}
@@ -150,6 +150,17 @@ func (m *Manager) cardBranch(cardID string) string {
 	branch, err := m.store.LatestBranchForCard(cardID)
 	if err != nil {
 		m.log.Warn("acp: cannot read the card's branch", "card", cardID, "err", err)
+		return ""
+	}
+	if branch != "" {
+		return branch
+	}
+	// The card's own workspace, for a card whose branch was made before any
+	// session ran in it — a person opening the terminal first, which is the
+	// ordinary way to start now.
+	branch, err = m.store.BranchForOwner(cardID)
+	if err != nil {
+		m.log.Warn("acp: cannot read the card's workspace", "card", cardID, "err", err)
 		return ""
 	}
 	return branch
@@ -181,8 +192,12 @@ func (m *Manager) runNodeAction(ev CardMoved, flow FlowEntry, node FlowNode) {
 		m.log.Warn("acp: unknown flow action", "flow", flow.Name, "node", node.ID, "action", action)
 		return
 	}
+	// Where the stage works is the stage's own answer, with the default for
+	// its action filled in — a QA stage told to run in the card's workspace is
+	// how a route checks the work before anything is merged.
+	opts.runIn = node.RunsIn(action)
 
-	// The previous stage's session may still be releasing its project.
+	// The previous stage's session may still be releasing its folder.
 	m.waitForCardIdle(ev.CardID)
 
 	s, err := m.startSession(ev, opts)
@@ -200,6 +215,13 @@ func (m *Manager) runNodeAction(ev CardMoved, flow FlowEntry, node FlowNode) {
 	if err != nil {
 		m.log.Warn("acp: flow action not started", "card", ev.CardID, "node", node.ID, "err", err)
 		m.stallCard(ev.CardID, node.ID, fmt.Sprintf("стадия «%s» не запустилась: %v", node.Column, err))
+		// A folder held by another card, or one with unsaved work in it, is a
+		// "not yet" rather than a "no": the card keeps its place on the route
+		// and starts when the folder is free, instead of being carried off to
+		// the failure branch by something that is not about the work at all.
+		if errors.Is(err, errWorkdirBusy) || errors.Is(err, errWorkdirDirty) {
+			return
+		}
 		m.advanceFlow(ev.CardID, TriggerFailure, "шаг не удалось запустить")
 		return
 	}
@@ -340,7 +362,7 @@ func (m *Manager) flowAfterSession(s *Session) {
 }
 
 // waitForCardIdle waits until the card has no live session, so the next stage
-// does not collide with the previous one over the project.
+// does not collide with the previous one over the folder.
 func (m *Manager) waitForCardIdle(cardID string) {
 	deadline := time.Now().Add(cardIdleWait)
 	for time.Now().Before(deadline) {
@@ -359,25 +381,33 @@ func (m *Manager) waitForCardIdle(cardID string) {
 	m.log.Warn("acp: previous session still running, starting the next stage anyway", "card", cardID)
 }
 
-// VCSEvent is one project event the watcher observed. It is the engine's
+// VCSEvent is one folder event the watcher observed. It is the engine's
 // second input, next to session outcomes.
 type VCSEvent struct {
 	Kind        string
-	ProjectPath string
+	WorkdirPath string
 	Branch      string
 	Detail      string
 }
 
 // OnVCSEvent advances every card parked on a node that waits for this event in
-// this project and branch.
+// this folder and branch.
 func (m *Manager) OnVCSEvent(ev VCSEvent) {
+	// A merged branch is work that is over: the folder it held is somebody
+	// else's turn now. This is the only thing that frees one by itself — a
+	// board working on a branch in the folder itself takes one card at a time,
+	// and «влито в основную» is what says the card is finished with it.
+	if ev.Kind == TriggerBranchMerged || ev.Kind == TriggerPRMerged {
+		m.ReleaseMergedBranch(ev.WorkdirPath, ev.Branch)
+	}
+
 	states, err := m.flowStates()
 	if err != nil {
 		m.log.Error("acp: cannot read flow states", "err", err)
 		return
 	}
 	for _, st := range states {
-		if !strings.EqualFold(st.Branch, ev.Branch) || st.ProjectPath != ev.ProjectPath {
+		if !strings.EqualFold(st.Branch, ev.Branch) || st.WorkdirPath != ev.WorkdirPath {
 			continue
 		}
 		detail := ev.Detail
@@ -388,11 +418,11 @@ func (m *Manager) OnVCSEvent(ev VCSEvent) {
 	}
 }
 
-// FlowTargets is what the VCS watcher has to poll: one entry per (project,
+// FlowTargets is what the VCS watcher has to poll: one entry per (folder,
 // branch) a parked card is waiting on, with the triggers it waits for. Nothing
 // waiting means no polling at all.
 type FlowTarget struct {
-	ProjectPath string
+	WorkdirPath string
 	Branch      string
 	Triggers    []string
 }
@@ -406,7 +436,7 @@ func (m *Manager) FlowTargets() []FlowTarget {
 	}
 	byKey := map[string]*FlowTarget{}
 	for _, st := range states {
-		if st.ProjectPath == "" || st.Branch == "" {
+		if st.WorkdirPath == "" || st.Branch == "" {
 			continue
 		}
 		flow, ok := m.FlowByName(st.Flow)
@@ -417,10 +447,10 @@ func (m *Manager) FlowTargets() []FlowTarget {
 		if len(waits) == 0 {
 			continue
 		}
-		key := st.ProjectPath + "\x00" + st.Branch
+		key := st.WorkdirPath + "\x00" + st.Branch
 		t, ok := byKey[key]
 		if !ok {
-			t = &FlowTarget{ProjectPath: st.ProjectPath, Branch: st.Branch}
+			t = &FlowTarget{WorkdirPath: st.WorkdirPath, Branch: st.Branch}
 			byKey[key] = t
 		}
 		for _, w := range waits {

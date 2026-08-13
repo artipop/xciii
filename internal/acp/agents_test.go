@@ -658,7 +658,7 @@ func TestAgentMCPServersTravelWithEverySession(t *testing.T) {
 
 	// An ordinary card task gets the agent's own server even though the card
 	// itself configures none.
-	s := &Session{ProjectPath: "/project", Agent: agent}
+	s := &Session{WorkdirPath: "/project", Agent: agent}
 	specs, err := sessionMCPServers(s, cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -680,7 +680,7 @@ func TestAgentMCPServersTravelWithEverySession(t *testing.T) {
 
 	// A deploy session keeps ours first and appends the agent's.
 	target := deployEntry("prod")
-	deploySession := &Session{ProjectPath: "/project", Agent: agent, Deploy: &target, DeployBranch: "feat/x"}
+	deploySession := &Session{WorkdirPath: "/project", Agent: agent, Deploy: &target, DeployBranch: "feat/x"}
 	specs, err = sessionMCPServers(deploySession, cfg)
 	if err != nil {
 		t.Fatal(err)

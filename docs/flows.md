@@ -48,8 +48,8 @@ environment, MCP servers, proxy, CLI arguments — is in the machine's settings
 and has a working default until you go there.
 
 Folders are part of *running an agent*, not part of having a board. A board with
-no agent column is never asked for one, gets no «Проекты» field, and shows no
-«Проекты» section.
+no agent column is never asked for one, gets no «Папки» field, and shows no
+«Папки» section.
 
 ## Where both halves are edited
 
@@ -114,19 +114,19 @@ takes a route by **naming** it, so a route with no option of that name anywhere
 on the board is a route no card can ever be put on. It says so where the route is
 edited, and the button beside it adds the option.
 
-A **project** is the exception, and deliberately: it belongs to the board it was
+A **folder** is the exception, and deliberately: it belongs to the board it was
 added on, and only that board offers it. The folder of household notes has no
 business on the board about code, and vice versa — before this, opening the
-projects list anywhere copied every project anybody had ever added into that
-board's «Проекты» field. One checkout worked from several boards is a real case,
-so the add form has **«На всех досках»** for it, and such a project is marked as
-everyone's in the list. Such a project is still not pushed onto a board that
-knows nothing about folders: it joins the «Проекты» field of a board that has
+folders list anywhere copied every folder anybody had ever added into that
+board's «Папки» field. One checkout worked from several boards is a real case,
+so the add form has **«На всех досках»** for it, and such a folder is marked as
+everyone's in the list. Such a folder is still not pushed onto a board that
+knows nothing about folders: it joins the «Папки» field of a board that has
 one already, and creates that field for nobody.
 
-A project registered before boards owned them belongs to none of them, so no
+A folder registered before boards owned them belongs to none of them, so no
 board offers it — that is the whole point, and "it used to be everywhere" is the
-state being fixed. It is not lost either: the «Проекты» section lists them under
+state being fixed. It is not lost either: the «Папки» section lists them under
 **«Пока ни на одной доске»**, and one click makes them the board's. That click
 is also the only way back in, since adding their folder again would be refused
 as a duplicate path.
@@ -138,7 +138,7 @@ and «QA». The other two are the same machinery pointed at ordinary life
 reading as examples, because they show what is left when deploys and browser
 tests are taken away: one column where an agent works, and a route that waits
 for a person. There the agent writes into a folder of household notes — an
-ordinary folder, added on the card or in «Проекты», with nothing to set up in it and no
+ordinary folder, added on the card or in «Папки», with nothing to set up in it and no
 git anywhere near it: a plan for the cleaning, a menu and a shopping list for
 the week. When it is done the card moves itself to the
 stage where somebody looks, and no further: «На проверке» and «Проверить список»
@@ -148,10 +148,10 @@ and close the card as soon as the agent is done.
 
 Git is asked for by what a board does, not by which template it came from. A
 board that publishes a branch or waits for one — a deploy or test stage, or a
-transition the VCS watcher has to poll for — needs its project under git, and
-the setup wizard says so and refuses a folder that is not. A board that does
-neither takes any folder, gets no worktree (the agent works in the folder
-itself, one card at a time) and has no branch-driven transitions to miss.
+transition the VCS watcher has to poll for — needs its folder to be a git
+repository, and the setup wizard says so and refuses a folder that is not. A
+board that does neither takes any folder, gets no branch (the agent works in the
+folder itself, one card at a time) and has no branch-driven transitions to miss.
 
 ## What happens when a card lands in a column
 
@@ -164,12 +164,14 @@ flowchart TD
     C -- no --> D{"Column full?<br/>crew busy or limit reached"}
     D -- yes --> Q["Card waits in the queue.<br/>Starts by itself when a place frees up"]
     D -- no --> E["Pick an agent:<br/>assignee within the stage's crew →<br/>the crew → the only one registered.<br/>A crewed stage writes its worker<br/>into the assignee"]
-    E --> F["Find the project:<br/>project_path → Проекты option → source column name"]
-    F --> G{"worktreeMode"}
-    G -- always, the default --> H["Create a git worktree<br/>on a new branch acp/card-title-abcd1234"]
-    G -- never --> I["Work in the project itself.<br/>A second card is refused while one is running"]
+    E --> F["Find the folder:<br/>project_path → Папки option → source column name"]
+    F --> G{"Is the folder a repository,<br/>and how does the board work in one?"}
+    G -- "not a repository" --> I["Work in the folder itself.<br/>A second card is refused while one is running"]
+    G -- "a copy per card" --> H["The card's own copy,<br/>on branch card-title-abcd1234"]
+    G -- "a branch in the folder" --> N["The card's branch, in the folder itself.<br/>The next card waits for the merge"]
     H --> J["Session runs: the agent works,<br/>and the result lands as one card comment"]
     I --> J
+    N --> J
     J --> K{"Is the card on a route?"}
     K -- no --> L["Card stays where it is.<br/>A person moves it on"]
     K -- yes --> M["The route takes the outcome<br/>and moves the card to the next stage"]
@@ -185,39 +187,61 @@ is a **stall record** (`card_stall`), shown in amber on the card's route strip
 while it is true and deleted by any progress. Route dead-ends write softly, so
 the first reason (the root cause) is the one that stays visible.
 
-## When a worktree appears, and what becomes of it
+## Where the work happens, and what becomes of it
 
-With `worktreeMode: "always"` (the default) every card-triggered coding session
-gets its own git worktree:
+A card's work lives in **one place, and that place is the card's**: every stage
+of its route, and every terminal somebody opens beside them, get the same
+directory and the same branch. What that means depends on the folder and on
+the board's own answer, chosen under «Папки» in «Как работает эта доска…»:
 
-- **created** when the session starts, under `~/Library/Application Support/XCIII/acp/worktrees`, on a new
-  branch named `acp/<card title>-<session id>` — so the branch reads like the
-  task and the preview address built from it does too;
-- **based on** the card's `branch` property if it has one, otherwise on `HEAD`;
-- **kept** when the session finishes successfully — the work is in it;
-- **removed** when the session failed or was cancelled *and* the worktree is
-  clean: no uncommitted changes and no commits ahead of its base. Anything the
-  agent actually wrote survives even a failed session. `keepFailedWorktrees`
-  keeps them all.
+| The folder | The board says | The card gets |
+|---|---|---|
+| an ordinary folder | — | the folder itself, no branch, one card at a time |
+| a repository | «в отдельной копии» (default) | a copy under `~/Library/Application Support/XCIII/acp/worktrees`, on `<card title>-<card id>` |
+| a repository | «в самой папке» | that branch in the folder itself; the next card waits |
 
-Three kinds of session never get a worktree, and run in the project itself: a
-**deploy** (it publishes an existing branch), a **test** (it reads the code it
-is checking), and a **planning** session (it changes nothing).
+The branch is **cut from** the folder's own base branch — a setting, filled in
+from the repository when the folder was added and editable beside it — and it is
+written onto the card's «Ветка» field, so it travels with the card to another
+board or another machine.
+
+What becomes of the copy:
+
+- **folded away** when the stage finished and nothing is uncommitted: the branch
+  is the product, the directory is only where it was made, and the next terminal
+  on that card remakes it from the branch;
+- **kept** when anything is uncommitted, or a CLI is still running in it;
+- **removed with its branch** when the session failed or was cancelled *and*
+  nothing was written: no uncommitted changes, no commits ahead of the base.
+  `keepFailedWorktrees` keeps those too.
+
+In «в самой папке» the folder is **held** by one card until its branch is merged.
+A second card does not fail — its route strip says the folder is held and what
+will free it — and a folder with somebody's uncommitted work in it is never
+switched under them.
+
+A **planning** session always runs in the folder itself: it changes nothing, so a
+branch of its own would be a branch left behind by a conversation. A **deploy**
+and a **test** run there too by default — one publishes a branch that already
+exists, the other checks something already published — and a route that wants QA
+on the card's own code before anything is merged says so on the stage («Стадия
+работает» → «в ветке карточки»).
 
 ## Which branch is followed
 
-The card rarely names its branch, and with worktrees the agent's branch is
-invented by us — so anything that watches a project asks in this order:
+The card rarely names its branch itself, and the agent's branch is invented by
+us — so anything that watches a folder asks in this order:
 
 ```mermaid
 flowchart LR
     A["Card property<br/>branch"] --> B["The branch this card's<br/>sessions worked on"]
     B --> C["What the route<br/>already carried"]
-    C --> D["The project's<br/>checked-out branch"]
+    C --> D["The folder's<br/>checked-out branch"]
 ```
 
-The second one is what makes worktrees and routes work together: without it a
-stage waiting for a merge would watch whatever happened to be checked out. The
+The second one is what makes a card's own branch and its route work together:
+without it a stage waiting for a merge would watch whatever happened to be
+checked out. The
 deploy column resolves its branch the same way, so it publishes what the agent
 wrote — the same branch as the **Deploy** button next to it on the card.
 
@@ -393,7 +417,9 @@ adapters have no such channel.
 | Card sits, no comment | The column is not configured, or the property that changed is not the one the columns are on |
 | "Агент не запускается" | Somebody is assigned to the card |
 | "Колонка занята" | The crew is busy or the limit is reached; it starts by itself later |
-| "не задан ни project_path…" | The card matched no project: check the **Проекты** field against the registry |
+| "папка занята другой карточкой" | The board works on a branch in the folder itself and another card holds it until its branch is merged |
+| "в папке есть несохранённые изменения" | The same, with your own uncommitted work in the way: commit or stash it |
+| "не задан ни project_path…" | The card matched no folder: check the **Папки** field against the registry |
 | Card never leaves *In Review* | Nobody is watching its branch — see [which branch is followed](#which-branch-is-followed), or the route has no edge for what happened |
 | Test stage refuses to start | The agent working the test column has no browser MCP server: the wizard's QA step gives one to the agent it crews the column with, or set it by hand (*«Эта машина…» → «Агенты»* → MCP servers) |
 
@@ -409,12 +435,12 @@ by hand:
 
 | | |
 |---|---|
-| `worktreeMode` | `always` (default) or `never` |
+| `worktreeMode` | the default for a board that was never asked: `always` → a copy per card, `never` → a branch in the folder itself. The board's own answer (*«Как работает эта доска…» → «Папки»*) wins |
 | `maxConcurrent` | how many sessions run at once on this machine (3) |
 | `sessionTimeoutMinutes` / `testTimeoutMinutes` | one turn (15) and one browser pass (30) |
 | `sessionIdleMinutes` | how long a console session sits between turns (30) |
 | `boardPrompts` | what each board tells its agents first, keyed by board id — written by *«Как работает эта доска…»*, not by hand |
-| `vcsPollSeconds` / `gitRemote` / `githubToken` | watching projects |
+| `vcsPollSeconds` / `gitRemote` / `githubToken` | watching folders |
 | `autoAllowTools` | what an agent may do without asking. A card-triggered session has nobody to ask, so anything not on the list is refused |
 | `artifactsDir` | screenshots and verdicts of test runs |
 

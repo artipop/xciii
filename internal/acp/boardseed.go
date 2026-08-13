@@ -21,7 +21,7 @@ import (
 // reads on every card move — a board read per move would be absurd — but it is
 // a cache of what the boards say, and every edit is written through to the
 // board it belongs to (persistBoardLocked). What stays in the file is what the
-// machine owns: agents, projects, deploy targets, prompts.
+// machine owns: agents, folders, deploy targets, prompts.
 //
 // A template's automation is still a **seed** for a board made from it: it is
 // imported once, tagged with the new board's id, and from then on that board
@@ -55,6 +55,19 @@ const (
 	// code board want different first words, and a board carried to another
 	// machine that arrived without them would run its agents unbriefed.
 	BoardPropPrompt = "xciiiPrompt"
+	// BoardPropGit is how this board works in a folder that is a repository —
+	// a copy per card or a branch in the folder itself (GitPolicy). It is the
+	// board's because it decides what the board's routes can be made of, and it
+	// travels with the board for the same reason the columns do. Where the
+	// copies live on disk stays in config.json: that is the machine's.
+	BoardPropGit = "xciiiGit"
+	// BoardPropBranch is the id of the text property a card's branch is
+	// written into. An id and not a name, for the reason every other field of
+	// ours is found by one: «Ветка» is what this app calls it when it makes
+	// one, and a person may call it anything.
+	//
+	// Written by the page (it owns the board's card properties), read here.
+	BoardPropBranch = "xciiiBranchProperty"
 )
 
 // The names these keys had before, still read because every board made until
@@ -209,6 +222,9 @@ func (m *Manager) seedFromBoard(boardID string) {
 	if m.adoptPrompt(boardID, boardPromptFrom(props)) {
 		m.log.Info("acp: the board's own instructions taken from the board itself", "board", boardID)
 	}
+	if m.adoptGitPolicy(boardID, boardGitFrom(props)) {
+		m.log.Info("acp: how to work in a repository taken from the board itself", "board", boardID)
+	}
 	m.indexBoardCardFlows(boardID)
 
 	// The board is the store, so what the registry ended up with for this board
@@ -255,6 +271,39 @@ func boardPromptFrom(props map[string]any) string {
 	}
 	text, _ := raw.(string)
 	return strings.TrimSpace(text)
+}
+
+// boardGitFrom reads how the board works in a repository. Unreadable is
+// treated as unset, for the same reason the prompt is: a board whose one key is
+// malformed still has columns and routes worth taking.
+func boardGitFrom(props map[string]any) GitPolicy {
+	raw, ok := boardProp(props, BoardPropGit)
+	if !ok {
+		return GitPolicy{}
+	}
+	var p GitPolicy
+	if err := reinterpret(raw, &p); err != nil {
+		return GitPolicy{}
+	}
+	return p
+}
+
+// adoptGitPolicy takes the board's own answer unless this machine already has
+// one for that board — the same rule as a column or a prompt.
+func (m *Manager) adoptGitPolicy(boardID string, p GitPolicy) bool {
+	if strings.TrimSpace(p.Mode) == "" {
+		return false
+	}
+	m.cfgMu.Lock()
+	defer m.cfgMu.Unlock()
+	if _, ok := m.cfg.BoardGit[boardID]; ok {
+		return false
+	}
+	if m.cfg.BoardGit == nil {
+		m.cfg.BoardGit = map[string]GitPolicy{}
+	}
+	m.cfg.BoardGit[boardID] = p
+	return true
 }
 
 // adoptPrompt takes the board's own instructions, unless this machine already
@@ -363,7 +412,7 @@ func (m *Manager) adoptFlows(boardID string, flows []FlowEntry) (int, []FlowEntr
 	var unusable []FlowEntry
 	for _, f := range flows {
 		f.BoardID = boardID
-		valid, err := validateFlow(f, m.cfg.Projects, m.cfg.Agents, m.cfg.Deploys)
+		valid, err := validateFlow(f, m.cfg.Workdirs, m.cfg.Agents, m.cfg.Deploys)
 		if err != nil {
 			m.log.Warn("acp: the board offers a route that cannot be used", "board", boardID, "flow", f.Name, "err", err)
 			unusable = append(unusable, f)
@@ -569,6 +618,13 @@ func (m *Manager) persistBoardLocked(boardID string) {
 		BoardPropFlows:   flows,
 		BoardPropPrompt:  m.cfg.BoardPrompts[boardID],
 	}
+	// Only when the board has an answer: writing the resolved default would
+	// make every board this machine opens claim a mode it was never asked
+	// about, and that answer would then travel with the board to a machine
+	// whose own default is the other one.
+	if p, ok := m.cfg.BoardGit[boardID]; ok {
+		props[BoardPropGit] = p
+	}
 
 	parent := m.rootCtx
 	if parent == nil {
@@ -700,6 +756,15 @@ func (m *Manager) configToStore() Config {
 			}
 		}
 		cfg.BoardPrompts = prompts
+	}
+	if len(cfg.BoardGit) > 0 {
+		git := make(map[string]GitPolicy, len(cfg.BoardGit))
+		for boardID, p := range cfg.BoardGit {
+			if !m.boardStored[boardID] {
+				git[boardID] = p
+			}
+		}
+		cfg.BoardGit = git
 	}
 	return cfg
 }

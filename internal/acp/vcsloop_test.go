@@ -23,7 +23,7 @@ func (w *fakeWatcher) Poll(_ context.Context, t vcs.Target) ([]vcs.Event, error)
 	out := make([]vcs.Event, 0, len(w.events))
 	for _, e := range w.events {
 		if t.Wants(e.Kind) && e.Branch == t.Branch {
-			e.ProjectPath = t.ProjectPath
+			e.WorkdirPath = t.WorkdirPath
 			out = append(out, e)
 		}
 	}
@@ -58,7 +58,7 @@ func TestPollVCSMovesTheCardOnceAndOnlyWhereSomebodyWaits(t *testing.T) {
 		moves := writer.cardMoves()
 		return len(moves) == 2 && moves[1].option == "Done"
 	})
-	if got := watcher.targets[0]; got.Branch != "feat/x" || got.ProjectPath != project ||
+	if got := watcher.targets[0]; got.Branch != "feat/x" || got.WorkdirPath != project ||
 		!got.Wants(TriggerBranchMerged) || got.Remote != "origin" {
 		t.Fatalf("poll target: %+v", got)
 	}

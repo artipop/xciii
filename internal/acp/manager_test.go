@@ -24,8 +24,9 @@ type fakeWriter struct {
 	comments    map[string][]string // cardID → comments
 	moves       []cardMove          // moves by column name, in order
 	attachments []attachment
-	created     []NewCard           // cards asked for through the board tools
-	edits       map[string]CardEdit // changes asked for through the board tools
+	created     []NewCard                    // cards asked for through the board tools
+	texts       map[string]map[string]string // cardID → property id → text written
+	edits       map[string]CardEdit          // changes asked for through the board tools
 	createErr   error
 	editErr     error
 }
@@ -92,6 +93,25 @@ func (w *fakeWriter) UpdateCard(ctx context.Context, cardID string, edit CardEdi
 	}
 	w.edits[cardID] = edit
 	return nil
+}
+
+func (w *fakeWriter) SetCardText(ctx context.Context, cardID, propertyID, value string) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.texts == nil {
+		w.texts = map[string]map[string]string{}
+	}
+	if w.texts[cardID] == nil {
+		w.texts[cardID] = map[string]string{}
+	}
+	w.texts[cardID][propertyID] = value
+	return nil
+}
+
+func (w *fakeWriter) cardText(cardID, propertyID string) string {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.texts[cardID][propertyID]
 }
 
 func (w *fakeWriter) cardEdit(cardID string) (CardEdit, bool) {
@@ -192,7 +212,7 @@ func testManager(t *testing.T, scenario string, mutate func(*Config)) (*Manager,
 
 func testManagerWithEmitter(t *testing.T, scenario string, mutate func(*Config)) (*Manager, *fakeWriter, *fakeEvents, string, *fakeEmitter) {
 	t.Helper()
-	project := initTestProject(t)
+	project := initTestWorkdir(t)
 	dir := t.TempDir()
 	cfg := DefaultConfig(dir)
 	// Every kind is an ACP process now, so the fallback path is the one that
@@ -292,7 +312,7 @@ func TestTriggerRunsSessionToDone(t *testing.T) {
 	if sessions[0].Cwd != sessions[0].WorktreePath {
 		t.Errorf("session ran in %q, not in its worktree %q", sessions[0].Cwd, sessions[0].WorktreePath)
 	}
-	if branch := sessions[0].Branch; !strings.HasPrefix(branch, "acp/test-task-") {
+	if branch := sessions[0].Branch; !strings.HasPrefix(branch, "test-task-") {
 		t.Errorf("branch %q is not named after the card", branch)
 	}
 	if !strings.Contains(comments[0], sessions[0].WorktreePath) {
@@ -323,9 +343,9 @@ func TestWorktreeModeAlways(t *testing.T) {
 	}
 }
 
-func TestProjectBusyRejectedWithoutWorktrees(t *testing.T) {
-	// Worktrees are the default now, so this rule only applies to an install
-	// that has turned them off.
+// A board that works on a branch in the folder itself takes one card at a
+// time: the second one waits, and its strip says what it is waiting for.
+func TestABranchInTheFolderItselfHoldsItUntilTheCardIsDone(t *testing.T) {
 	m, writer, events, project := testManager(t, fakeClaudeHang, func(c *Config) {
 		c.WorktreeMode = "never"
 	})
@@ -338,15 +358,15 @@ func TestProjectBusyRejectedWithoutWorktrees(t *testing.T) {
 
 	events.ch <- moveEvent("cardB", project, "opt-backlog", "opt-agent")
 
-	// The busy project is the card's current state, told on its strip rather
+	// The busy folder is the card's current state, told on its strip rather
 	// than left behind as a comment.
-	waitFor(t, 5*time.Second, "busy-project stall on second card", func() bool {
+	waitFor(t, 5*time.Second, "the second card says the folder is held", func() bool {
 		_, ok, _ := m.store.Stall("cardB")
 		return ok
 	})
 	stall, _, _ := m.store.Stall("cardB")
-	if !strings.Contains(stall.Reason, "уже работает") {
-		t.Errorf("expected busy-project reason, got %q", stall.Reason)
+	if !strings.Contains(stall.Reason, "занята") {
+		t.Errorf("expected the folder-is-held reason, got %q", stall.Reason)
 	}
 	if got := writer.cardComments("cardB"); len(got) != 0 {
 		t.Errorf("a failed start must not comment on the card: %q", got)
@@ -376,7 +396,7 @@ func TestRapidMovesStartOneSession(t *testing.T) {
 	}
 }
 
-func TestInvalidProjectPathStallsTheCard(t *testing.T) {
+func TestInvalidWorkdirPathStallsTheCard(t *testing.T) {
 	m, writer, events, _ := testManager(t, fakeClaudeHappy, nil)
 
 	ev := moveEvent("card3", "/nonexistent/path", "opt-backlog", "opt-agent")
@@ -452,7 +472,7 @@ func TestMoveBackCancelsSession(t *testing.T) {
 }
 
 func TestRecoveryMarksStaleFailed(t *testing.T) {
-	project := initTestProject(t)
+	project := initTestWorkdir(t)
 	dir := t.TempDir()
 	cfg := DefaultConfig(dir)
 	cfg.AgentMode = agentModeCommand

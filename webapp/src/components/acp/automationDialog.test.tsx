@@ -51,7 +51,8 @@ function stubBindings(overrides: Record<string, unknown> = {}) {
         ListFlowTemplates: vi.fn().mockResolvedValue('[]'),
         ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
         ListDeployTargets: vi.fn().mockResolvedValue('[]'),
-        GetWorktreeMode: vi.fn().mockResolvedValue('always'),
+        GetBoardGit: vi.fn().mockResolvedValue(JSON.stringify({mode: 'worktree'})),
+        SetBoardGit: vi.fn().mockResolvedValue('{}'),
         GetBoardFlowOverview: vi.fn().mockResolvedValue('[]'),
         SaveBoardColumn: vi.fn().mockResolvedValue('{}'),
         RemoveBoardColumn: vi.fn().mockResolvedValue(undefined),
@@ -174,6 +175,26 @@ describe('components/acp/automationDialog', () => {
         userEvent.click(await screen.findByText('Where to deploy'))
 
         await waitFor(() => expect(screen.getByText('No deploy targets yet.')).toBeInTheDocument())
+    })
+
+    // How work in a repository is arranged is the board's answer, and it is
+    // asked among the folders, because it is about them.
+    test('the board says how an agent works in a repository', async () => {
+        const bindings = stubBindings({
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'code', path: '/tmp/code', git: true}])),
+        })
+        render(() => wrapIntl(() => (
+            <AutomationDialog
+                board={board}
+                onClose={vi.fn()}
+            />
+        )))
+
+        userEvent.click(await screen.findByText('Folders'))
+        await waitFor(() => expect(screen.getByText('In a repository an agent works')).toBeInTheDocument())
+
+        userEvent.click(screen.getByText('in the folder itself'))
+        await waitFor(() => expect(bindings.SetBoardGit).toHaveBeenCalledWith(board.id, JSON.stringify({mode: 'branch'})))
     })
 
     test('a board that deploys nowhere is not asked where to', async () => {

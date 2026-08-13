@@ -51,8 +51,8 @@ export {isCardTerminalAvailable}
 type Props = {
     cardId: string
 
-    // Whose folders to offer when the card cannot say which project it is
-    // about — a project belongs to the board it was added on.
+    // Whose folders to offer when the card cannot say which workdir it is
+    // about — a workdir belongs to the board it was added on.
     board: Board
     onClose: () => void
 }
@@ -72,7 +72,7 @@ const CardTerminal = (props: Props) => {
     // a person set it to.
     const [choosing, setChoosing] = createSignal(false)
     const [agents, setAgents] = createSignal<Array<{name: string}>>([])
-    const [projectName, setProjectName] = createSignal('')
+    const [workdirName, setWorkdirName] = createSignal('')
     const [agentName, setAgentName] = createSignal('')
     const [addingAgent, setAddingAgent] = createSignal(false)
 
@@ -88,7 +88,7 @@ const CardTerminal = (props: Props) => {
         setBusy(true)
         setError('')
         try {
-            const handle = JSON.parse(await bindings.OpenCardTerminal(props.cardId, projectName(), agentName(), inWindow))
+            const handle = JSON.parse(await bindings.OpenCardTerminal(props.cardId, workdirName(), agentName(), inWindow))
 
             // The desktop app has already opened the window by now; a server
             // build has no windows, so the browser opens a tab instead.
@@ -157,7 +157,7 @@ const CardTerminal = (props: Props) => {
     // Go resolves an empty name into. The answers themselves are FolderChoices,
     // shared with «Обсудить с агентом» — one question in one shape.
     const chooseFolder = async (name: string) => {
-        setProjectName(name)
+        setWorkdirName(name)
         await start(false)
     }
 

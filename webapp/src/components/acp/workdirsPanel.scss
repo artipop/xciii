@@ -1,5 +1,5 @@
-.AgentProjectsPanel {
-    .AgentProjectsPanel__content {
+.WorkdirsPanel {
+    .WorkdirsPanel__content {
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -7,12 +7,12 @@
         min-width: 480px;
     }
 
-    .AgentProjectsPanel__empty {
+    .WorkdirsPanel__empty {
         color: rgba(var(--center-channel-color-rgb), 0.64);
         padding: 8px 0;
     }
 
-    .AgentProjectsPanel__orphans {
+    .WorkdirsPanel__orphans {
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -20,22 +20,22 @@
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     }
 
-    .AgentProjectsPanel__orphansTitle {
+    .WorkdirsPanel__orphansTitle {
         font-size: 12px;
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
-    .AgentProjectsPanel__row {
+    .WorkdirsPanel__row {
         display: flex;
         align-items: center;
         gap: 12px;
 
-        .AgentProjectsPanel__name {
+        .WorkdirsPanel__name {
             font-weight: 600;
             white-space: nowrap;
         }
 
-        .AgentProjectsPanel__path {
+        .WorkdirsPanel__path {
             flex: 1;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             overflow: hidden;
@@ -48,7 +48,7 @@
         // Said on the entry rather than only in the add form: which board a
         // project belongs to is invisible otherwise, and "why is it here"
         // becomes a question with no answer on screen.
-        .AgentProjectsPanel__global {
+        .WorkdirsPanel__global {
             font-size: 12px;
             white-space: nowrap;
             padding: 1px 8px;
@@ -57,7 +57,30 @@
             color: rgba(var(--center-channel-color-rgb), 0.72);
         }
 
-        .AgentProjectsPanel__globalToggle {
+        // What the folder is, in the same shape as the "all boards" badge:
+        // both are facts about the entry, and a second shape would read as a
+        // second kind of thing.
+        .WorkdirsPanel__kind {
+            font-size: 12px;
+            white-space: nowrap;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        .WorkdirsPanel__broken {
+            color: rgb(var(--error-text-rgb, 210, 75, 78));
+        }
+
+        .WorkdirsPanel__base {
+            width: 96px;
+            font-size: 12px;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: var(--radius-sm);
+            padding: 2px 6px;
+            background: rgb(var(--surface-bg-rgb));
+            color: rgb(var(--center-channel-color-rgb));
+        }
+
+        .WorkdirsPanel__globalToggle {
             display: flex;
             align-items: center;
             gap: 6px;
@@ -66,7 +89,7 @@
             color: rgba(var(--center-channel-color-rgb), 0.72);
         }
 
-        .AgentProjectsPanel__nameInput {
+        .WorkdirsPanel__nameInput {
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             border-radius: var(--radius-sm);
             padding: 4px 8px;
@@ -75,11 +98,11 @@
         }
     }
 
-    .AgentProjectsPanel__actions {
+    .WorkdirsPanel__actions {
         padding-top: 4px;
     }
 
-    .AgentProjectsPanel__sync {
+    .WorkdirsPanel__sync {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -88,7 +111,7 @@
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     }
 
-    .AgentProjectsPanel__error {
+    .WorkdirsPanel__error {
         color: rgb(var(--error-text-rgb, 210, 75, 78));
         padding-top: 8px;
     }

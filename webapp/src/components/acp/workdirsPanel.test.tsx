@@ -1,4 +1,4 @@
-import {render, screen, waitFor} from '@solidjs/testing-library'
+import {fireEvent, render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -6,14 +6,14 @@ import {wrapIntl} from '../../testUtils'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import mutator from '../../mutator'
 
-import AgentProjectsPanel, {isAgentProjectsAvailable} from './agentProjectsPanel'
+import WorkdirsPanel, {isWorkdirsAvailable} from './workdirsPanel'
 
 vi.mock('../../mutator')
 const mockedMutator = vi.mocked(mutator)
 
 const anyWindow = window as any
 
-describe('components/acp/agentProjectsPanel', () => {
+describe('components/acp/workdirsPanel', () => {
     const board = TestBlockFactory.createBoard()
 
     afterEach(() => {
@@ -21,56 +21,93 @@ describe('components/acp/agentProjectsPanel', () => {
         vi.clearAllMocks()
     })
 
-    test('isAgentProjectsAvailable is false without desktop bindings', () => {
-        expect(isAgentProjectsAvailable()).toBe(false)
+    test('isWorkdirsAvailable is false without desktop bindings', () => {
+        expect(isWorkdirsAvailable()).toBe(false)
     })
 
-    test('lists projects and adds a picked directory', async () => {
+    test('lists workdirs and adds a picked directory', async () => {
         const bindings = {
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
             PickDirectory: vi.fn().mockResolvedValue('/tmp/beta'),
-            AddAgentProject: vi.fn().mockResolvedValue(JSON.stringify({name: 'beta', path: '/tmp/beta'})),
-            RemoveAgentProject: vi.fn().mockResolvedValue(undefined),
+            AddAgentWorkdir: vi.fn().mockResolvedValue(JSON.stringify({name: 'beta', path: '/tmp/beta'})),
+            RemoveAgentWorkdir: vi.fn().mockResolvedValue(undefined),
         }
         anyWindow.go = {main: {App: bindings}}
-        expect(isAgentProjectsAvailable()).toBe(true)
+        expect(isWorkdirsAvailable()).toBe(true)
 
         render(() => wrapIntl(() =>
-            <AgentProjectsPanel
+            <WorkdirsPanel
                 board={board}
                 onClose={vi.fn()}
             />,
         ))
         await waitFor(() => expect(screen.getByText('alpha')).toBeInTheDocument())
 
-        userEvent.click(screen.getByRole('button', {name: 'Add project…'}))
+        userEvent.click(screen.getByRole('button', {name: 'Add a folder…'}))
         await waitFor(() => expect(bindings.PickDirectory).toHaveBeenCalled())
         await waitFor(() => expect(screen.getByDisplayValue('beta')).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Add'}))
 
-        // The board it was added on, and not global unless asked: a project is
+        // The board it was added on, and not global unless asked: a workdir is
         // this board's business until somebody says it is everyone's.
-        await waitFor(() => expect(bindings.AddAgentProject).toHaveBeenCalledWith('beta', '/tmp/beta', board.id, false))
-        expect(bindings.ListAgentProjects).toHaveBeenCalledWith(board.id)
+        await waitFor(() => expect(bindings.AddAgentWorkdir).toHaveBeenCalledWith('beta', '/tmp/beta', board.id, '', false))
+        expect(bindings.ListAgentWorkdirs).toHaveBeenCalledWith(board.id)
     })
 
-    // A project registered before projects belonged to a board is offered
-    // nowhere — and its folder cannot be added again, the path is taken. So it
-    // is listed apart, with the one action that puts it back into use.
-    test('offers a project no board has claimed to this one', async () => {
+    // What a folder is decides what work in it looks like, so the list says
+    // it — and says the one setting a repository has, the branch work starts
+    // from.
+    test('says which folders are repositories, and lets the base branch be changed', async () => {
+        const setBase = vi.fn().mockResolvedValue('{}')
         const bindings = {
-            ListAgentProjects: vi.fn().mockResolvedValue('[]'),
-            ListUnattachedProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'legacy', path: '/tmp/legacy'}])),
-            AttachAgentProject: vi.fn().mockResolvedValue('{}'),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([
+                {name: 'code', path: '/tmp/code', git: true, base: 'main'},
+                {name: 'notes', path: '/tmp/notes'},
+                {name: 'gone', path: '/tmp/gone', kind: 'git', broken: true},
+            ])),
             PickDirectory: vi.fn(),
-            AddAgentProject: vi.fn(),
-            RemoveAgentProject: vi.fn(),
+            AddAgentWorkdir: vi.fn(),
+            RemoveAgentWorkdir: vi.fn(),
+            SetAgentWorkdirBase: setBase,
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentProjectsPanel
+            <WorkdirsPanel
+                board={board}
+                onClose={vi.fn()}
+            />,
+        ))
+
+        await waitFor(() => expect(screen.getByText('repository')).toBeInTheDocument())
+        expect(screen.getByText('folder')).toBeInTheDocument()
+
+        // A folder added as a repository whose git is gone says so: everything
+        // that waits for a branch will fail on it.
+        expect(screen.getByText('added as a repository, no git in it')).toBeInTheDocument()
+
+        const base = screen.getByDisplayValue('main')
+        fireEvent.change(base, {target: {value: 'develop'}})
+        await waitFor(() => expect(setBase).toHaveBeenCalledWith('code', 'develop'))
+    })
+
+    // A workdir registered before workdirs belonged to a board is offered
+    // nowhere — and its folder cannot be added again, the path is taken. So it
+    // is listed apart, with the one action that puts it back into use.
+    test('offers a workdir no board has claimed to this one', async () => {
+        const bindings = {
+            ListAgentWorkdirs: vi.fn().mockResolvedValue('[]'),
+            ListUnattachedWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'legacy', path: '/tmp/legacy'}])),
+            AttachAgentWorkdir: vi.fn().mockResolvedValue('{}'),
+            PickDirectory: vi.fn(),
+            AddAgentWorkdir: vi.fn(),
+            RemoveAgentWorkdir: vi.fn(),
+        }
+        anyWindow.go = {main: {App: bindings}}
+
+        render(() => wrapIntl(() =>
+            <WorkdirsPanel
                 board={board}
                 onClose={vi.fn()}
             />,
@@ -78,52 +115,52 @@ describe('components/acp/agentProjectsPanel', () => {
 
         expect(await screen.findByText('Not on any board yet')).toBeInTheDocument()
         await userEvent.click(screen.getByRole('button', {name: 'Add to this board'}))
-        await waitFor(() => expect(bindings.AttachAgentProject).toHaveBeenCalledWith('legacy', board.id))
+        await waitFor(() => expect(bindings.AttachAgentWorkdir).toHaveBeenCalledWith('legacy', board.id))
     })
 
     // The registry is per machine, so without the board on the call every board
-    // ended up offering every project anybody had ever added — including the
+    // ended up offering every workdir anybody had ever added — including the
     // code checkout on the board about the shopping.
-    test('a project can be made every board’s on purpose', async () => {
+    test('a workdir can be made every board’s on purpose', async () => {
         const bindings = {
-            ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue('[]'),
             PickDirectory: vi.fn().mockResolvedValue('/tmp/shared'),
-            AddAgentProject: vi.fn().mockResolvedValue(JSON.stringify({name: 'shared', path: '/tmp/shared', global: true})),
-            RemoveAgentProject: vi.fn().mockResolvedValue(undefined),
+            AddAgentWorkdir: vi.fn().mockResolvedValue(JSON.stringify({name: 'shared', path: '/tmp/shared', global: true})),
+            RemoveAgentWorkdir: vi.fn().mockResolvedValue(undefined),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentProjectsPanel
+            <WorkdirsPanel
                 board={board}
                 onClose={vi.fn()}
             />,
         ))
 
-        userEvent.click(screen.getByRole('button', {name: 'Add project…'}))
+        userEvent.click(screen.getByRole('button', {name: 'Add a folder…'}))
         await waitFor(() => expect(screen.getByDisplayValue('shared')).toBeInTheDocument())
 
         await userEvent.click(screen.getByRole('checkbox'))
         userEvent.click(screen.getByRole('button', {name: 'Add'}))
 
-        await waitFor(() => expect(bindings.AddAgentProject).toHaveBeenCalledWith('shared', '/tmp/shared', board.id, true))
+        await waitFor(() => expect(bindings.AddAgentWorkdir).toHaveBeenCalledWith('shared', '/tmp/shared', board.id, '', true))
     })
 
-    test('creates a Projects field and adds missing project options', async () => {
+    test('creates the folder field and adds missing options', async () => {
         const bindings = {
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'alpha', path: '/tmp/alpha'},
                 {name: 'beta', path: '/tmp/beta'},
             ])),
             PickDirectory: vi.fn(),
-            AddAgentProject: vi.fn(),
-            RemoveAgentProject: vi.fn(),
+            AddAgentWorkdir: vi.fn(),
+            RemoveAgentWorkdir: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
 
         render(() => wrapIntl(() =>
-            <AgentProjectsPanel
+            <WorkdirsPanel
                 board={board}
                 onClose={vi.fn()}
             />,
@@ -135,7 +172,7 @@ describe('components/acp/agentProjectsPanel', () => {
         await waitFor(() => expect(mockedMutator.updateBoardCardProperties).toHaveBeenCalledTimes(1))
 
         const newProps = mockedMutator.updateBoardCardProperties.mock.calls[0][2]
-        const projectProp = newProps.find((p) => p.name === 'Проекты')!
+        const projectProp = newProps.find((p) => p.name === 'Папки')!
         expect(projectProp).toBeDefined()
         expect(projectProp.type).toBe('multiSelect')
         expect(projectProp.options.map((o) => o.value)).toEqual(['alpha', 'beta'])
@@ -151,19 +188,19 @@ describe('components/acp/agentProjectsPanel', () => {
         })
         boardWithProjects.properties = {...boardWithProjects.properties, xciiiProjectProperty: 'projectprop'}
         const bindings = {
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([
                 {name: 'alpha', path: '/tmp/alpha'}, // already an option
                 {name: 'beta', path: '/tmp/beta'},
             ])),
             PickDirectory: vi.fn(),
-            AddAgentProject: vi.fn(),
-            RemoveAgentProject: vi.fn(),
+            AddAgentWorkdir: vi.fn(),
+            RemoveAgentWorkdir: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
 
         render(() => wrapIntl(() =>
-            <AgentProjectsPanel
+            <WorkdirsPanel
                 board={boardWithProjects}
                 onClose={vi.fn()}
             />,
@@ -182,10 +219,10 @@ describe('components/acp/agentProjectsPanel', () => {
         expect(mockedMutator.updateBoard).not.toHaveBeenCalled()
     })
 
-    // A board with a multiSelect of its own is not a board with a projects
+    // A board with a multiSelect of its own is not a board with a workdirs
     // field: nothing is recognised by what it is called, so the field is made
     // and the board is told which one it is.
-    test('does not mistake another field for the projects one', async () => {
+    test('does not mistake another field for the workdirs one', async () => {
         const boardFromBefore = TestBlockFactory.createBoard()
         boardFromBefore.cardProperties.push({
             id: 'tags-prop',
@@ -194,16 +231,16 @@ describe('components/acp/agentProjectsPanel', () => {
             options: [{id: 'o1', value: 'alpha', color: 'propColorDefault'}],
         })
         const bindings = {
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
             PickDirectory: vi.fn(),
-            AddAgentProject: vi.fn(),
-            RemoveAgentProject: vi.fn(),
+            AddAgentWorkdir: vi.fn(),
+            RemoveAgentWorkdir: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
         mockedMutator.updateBoardCardProperties.mockResolvedValue()
 
         render(() => wrapIntl(() =>
-            <AgentProjectsPanel
+            <WorkdirsPanel
                 board={boardFromBefore}
                 onClose={vi.fn()}
             />,
@@ -211,7 +248,7 @@ describe('components/acp/agentProjectsPanel', () => {
         await waitFor(() => expect(mockedMutator.updateBoardCardProperties).toHaveBeenCalledTimes(1))
 
         const newProps = mockedMutator.updateBoardCardProperties.mock.calls[0][2]
-        const made = newProps.find((p) => p.name === 'Проекты')!
+        const made = newProps.find((p) => p.name === 'Папки')!
         expect(made).toBeDefined()
         expect(made.id).not.toBe('tags-prop')
         expect(newProps.find((p) => p.id === 'tags-prop')!.options).toHaveLength(1)
@@ -221,7 +258,7 @@ describe('components/acp/agentProjectsPanel', () => {
         expect(mockedMutator.updateBoard.mock.calls[0][0].properties.xciiiProjectProperty).toBe(made.id)
     })
 
-    test('leaves the board alone when its field already lists every project', async () => {
+    test('leaves the board alone when its field already lists every workdir', async () => {
         const boardWithProjects = TestBlockFactory.createBoard()
         boardWithProjects.cardProperties.push({
             id: 'projectprop',
@@ -234,15 +271,15 @@ describe('components/acp/agentProjectsPanel', () => {
         // carries it, and the panel has to go on finding the field.
         boardWithProjects.properties = {...boardWithProjects.properties, acpProjectProperty: 'projectprop'}
         const bindings = {
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'alpha', path: '/tmp/alpha'}])),
             PickDirectory: vi.fn(),
-            AddAgentProject: vi.fn(),
-            RemoveAgentProject: vi.fn(),
+            AddAgentWorkdir: vi.fn(),
+            RemoveAgentWorkdir: vi.fn(),
         }
         anyWindow.go = {main: {App: bindings}}
 
         render(() => wrapIntl(() =>
-            <AgentProjectsPanel
+            <WorkdirsPanel
                 board={boardWithProjects}
                 onClose={vi.fn()}
             />,

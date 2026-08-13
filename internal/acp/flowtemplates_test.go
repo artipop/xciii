@@ -317,9 +317,9 @@ func TestEveryTemplateAsksForStepsThatExist(t *testing.T) {
 				seen[step.Kind] = true
 			}
 
-			// Nothing runs without a project and an agent, whatever else the
+			// Nothing runs without a folder and an agent, whatever else the
 			// board does or does not need.
-			for _, required := range []string{SetupStepProject, SetupStepAgent} {
+			for _, required := range []string{SetupStepWorkdir, SetupStepAgent} {
 				if !seen[required] {
 					t.Errorf("does not ask for %q, without which nothing runs", required)
 				}

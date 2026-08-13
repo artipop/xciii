@@ -84,7 +84,7 @@ func (m *Manager) handleEnter(ev CardMoved, spec ColumnSpec) {
 		m.stallCard(ev.CardID, "", fmt.Sprintf("%s: %v", failed, err))
 		return
 	}
-	m.log.Info("acp: session started", "session", s.ID, "card", ev.CardID, "kind", kind, "project", s.ProjectPath)
+	m.log.Info("acp: session started", "session", s.ID, "card", ev.CardID, "kind", kind, "workdir", s.WorkdirPath)
 }
 
 // claimIdempotent collapses the burst of patches one drag-and-drop produces

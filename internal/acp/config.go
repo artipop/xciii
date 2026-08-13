@@ -13,38 +13,65 @@ import (
 	"github.com/artipop/xciii/internal/dokku"
 )
 
-// ProjectEntry is one named local project in the registry.
-type ProjectEntry struct {
+// WorkdirEntry is one named local folder in the registry.
+type WorkdirEntry struct {
 	Name string `json:"name"`
 	Path string `json:"path"`
-	// BoardID is the board the project was added on, and the only board that
+	// BoardID is the board the folder was added on, and the only board that
 	// offers it. A folder of household notes has no business being on the board
 	// about code, and the registry is per machine, so without this every board
-	// ends up offering every project anybody ever added.
+	// ends up offering every folder anybody ever added.
 	//
-	// Empty means no board has claimed it — an entry written before projects
+	// Empty means no board has claimed it — an entry written before folders
 	// belonged to a board. Such an entry is offered nowhere and worked in by
-	// nothing; the projects dialog lists it apart and attaches it to the board
+	// nothing; the folders dialog lists it apart and attaches it to the board
 	// somebody is on (Attached), which is the only way back into use.
 	BoardID string `json:"boardId,omitempty"`
-	// Global says the project belongs to all of them on purpose — the same
+	// Global says the folder belongs to all of them on purpose — the same
 	// checkout worked from several boards.
 	Global bool `json:"global,omitempty"`
+
+	// Kind is what somebody said this folder is, not what it happens to be.
+	// WorkdirGit means a repository was asked for — the board's setup step
+	// demanded one — so a folder that turns out not to be under git is an
+	// error rather than a quiet fall back to working in it as it stands.
+	// Empty is the ordinary case and means nobody said: git is asked at the
+	// moment it matters (IsGitWorkdir), which is what every entry written
+	// before this field does, and what lets a folder become a repository
+	// later without anybody re-adding it.
+	Kind string `json:"kind,omitempty"`
+
+	// BaseBranch is what work here branches from, and what "merged" means for
+	// it. It is a setting, and it is filled in when the folder is added by
+	// asking git (DefaultBaseBranch) so that nobody types "main" for every
+	// folder they own — after that it is whatever the person says, which is
+	// the point: branching off `develop` is somebody's ordinary arrangement.
+	// Empty on an entry added before this field, and asked of git then.
+	BaseBranch string `json:"baseBranch,omitempty"`
 }
 
-// OfferedOn reports whether this board may see the project. A board asking
+// The kinds a folder can be declared as. A third value would be "plain", and
+// there is none on purpose: not declaring is already that, and two ways to say
+// the same thing is a rule about which of them wins.
+const WorkdirGit = "git"
+
+// DeclaredGit reports that this folder was added as a repository, and must
+// still be one.
+func (p WorkdirEntry) DeclaredGit() bool { return strings.EqualFold(p.Kind, WorkdirGit) }
+
+// OfferedOn reports whether this board may see the folder. A board asking
 // under no name at all (the planning dialog, which has no board) sees the whole
 // registry, unattached entries included — it is choosing a folder to think in,
 // not sending an agent anywhere.
-func (p ProjectEntry) OfferedOn(boardID string) bool {
+func (p WorkdirEntry) OfferedOn(boardID string) bool {
 	if boardID == "" {
 		return true
 	}
 	return p.Global || (p.BoardID != "" && p.BoardID == boardID)
 }
 
-// Attached reports whether any board has claimed the project.
-func (p ProjectEntry) Attached() bool { return p.Global || p.BoardID != "" }
+// Attached reports whether any board has claimed the folder.
+func (p WorkdirEntry) Attached() bool { return p.Global || p.BoardID != "" }
 
 // AgentEntry is one named coding agent in the registry. A card is mapped to an
 // agent when its assignee matches the entry name. Its Env is injected per-process at spawn time, which
@@ -315,7 +342,7 @@ type ProxyEntry struct {
 
 // DeployEntry is one named Dokku destination in the registry: where the branch
 // of a card moved into the deploy column is published. A card is mapped to an
-// entry by a select option carrying its name, by the project it resolved to,
+// entry by a select option carrying its name, by the folder it resolved to,
 // or — with a single entry registered — by default.
 //
 // The Dokku half is dokku.Target verbatim, because that is exactly what the MCP
@@ -325,7 +352,7 @@ type DeployEntry struct {
 
 	// An entry is the host and the domain, nothing else: what a preview needs
 	// beyond that — environment, TLS, how long a build may take — is a property
-	// of the project being deployed, not of the machine it lands on.
+	// of the folder being deployed, not of the machine it lands on.
 	dokku.Target
 }
 
@@ -558,7 +585,7 @@ func knownAdapter(kind string) bool {
 }
 
 // Config controls the agent integration. It is stored as JSON in the app data
-// directory; the project registry is edited through the desktop UI, the rest by
+// directory; the folder registry is edited through the desktop UI, the rest by
 // hand for now.
 type Config struct {
 	Enabled bool `json:"enabled"`
@@ -592,13 +619,13 @@ type Config struct {
 	// under. Empty means every project_path is rejected (explicit opt-in).
 	ProjectWhitelist []string `json:"projectWhitelist"`
 
-	// Projects is the registry of named local projects. A card is mapped to
-	// a project when one of its select/multiSelect option names (e.g. a tag)
+	// Workdirs is the registry of named local folders. A card is mapped to
+	// a folder when one of its select/multiSelect option names (e.g. a tag)
 	// matches a registry entry name. Registered paths are implicitly allowed.
 	//
-	// A project is a git repository; the product stopped calling it one because
+	// A folder is a git repository; the product stopped calling it one because
 	// a board that runs agents is not only for software.
-	Projects []ProjectEntry `json:"projects"`
+	Workdirs []WorkdirEntry `json:"projects"`
 
 	// Agents is the registry of named coding agents (claude/codex, with their
 	// own prompt, model and env). A card is mapped to an agent by its assignee,
@@ -641,17 +668,24 @@ type Config struct {
 	// never set one.
 	BoardPrompts map[string]string `json:"boardPrompts,omitempty"`
 
+	// BoardGit is how each board works in a folder that is a repository. It
+	// lives on the board (BoardPropGit) and is mirrored here for the same
+	// reason the columns are: the engine reads it on every card move, and a
+	// board that refuses a write keeps its answer in the file until one gets
+	// through.
+	BoardGit map[string]GitPolicy `json:"boardGit,omitempty"`
+
 	// DeployPrompt is what a deploy session is told to do; the concrete facts
-	// (project, branch, target, expected URL) are appended to it.
+	// (folder, branch, target, expected URL) are appended to it.
 	DeployPrompt string `json:"deployPrompt"`
 
 	// TestPrompt is what a test session is told to do; the preview URL and the
 	// card's own description (which is the scenario) are appended to it.
 	TestPrompt string `json:"testPrompt"`
 
-	// PlanningPrompt is what a planning terminal is opened with; the project it
+	// PlanningPrompt is what a planning terminal is opened with; the folder it
 	// stands in is appended to it. Unlike the three above it is edited where it
-	// is used — in the planning dialog, beside the project and the agent.
+	// is used — in the planning dialog, beside the folder and the agent.
 	PlanningPrompt string `json:"planningPrompt"`
 
 	// TestTimeoutMinutes replaces SessionTimeoutMinutes for a test turn, which
@@ -663,21 +697,21 @@ type Config struct {
 	// ArtifactsDir is where screenshots and result.json of test runs are kept.
 	ArtifactsDir string `json:"artifactsDir"`
 
-	// VCSPollSeconds is how often the projects cards wait on are polled for
-	// branch and pull-request events. Zero disables project watching.
+	// VCSPollSeconds is how often the folders cards wait on are polled for
+	// branch and pull-request events. Zero disables folder watching.
 	VCSPollSeconds int `json:"vcsPollSeconds"`
 	// GitRemote is the remote consulted for those events.
 	GitRemote string `json:"gitRemote"`
 	// GithubToken authorizes the pull-request triggers. Empty falls back to
-	// GITHUB_TOKEN in the environment; without either, only public projects
+	// GITHUB_TOKEN in the environment; without either, only public folders
 	// answer, and slowly (60 requests an hour).
 	GithubToken string `json:"githubToken,omitempty"`
 
 	// WorktreeMode controls where sessions run: "always" (default) — a
 	// dedicated git worktree per session, which is what gives a card its own
-	// branch to show and to deploy; "never" — directly in the project
-	// working tree, with concurrent sessions per project rejected. A smarter
-	// "auto" (escalate to a worktree when the project is busy/dirty) may come later.
+	// branch to show and to deploy; "never" — directly in the folder
+	// working tree, with concurrent sessions per folder rejected. A smarter
+	// "auto" (escalate to a worktree when the folder is busy/dirty) may come later.
 	WorktreeMode string `json:"worktreeMode"`
 
 	MaxConcurrent int `json:"maxConcurrent"`
@@ -730,7 +764,7 @@ func DefaultConfig(dataDir string) Config {
 		TestPassColumn:           "Проверено",
 		TestFailColumn:           "Не прошло",
 		ProjectWhitelist:         []string{},
-		Projects:                 []ProjectEntry{},
+		Workdirs:                 []WorkdirEntry{},
 		Agents:                   []AgentEntry{},
 		Proxies:                  []ProxyEntry{},
 		Deploys:                  []DeployEntry{},
@@ -773,7 +807,7 @@ func DefaultConfig(dataDir string) Config {
 // the agent to that, a terminal is the CLI's own with the person's own
 // permissions. Here the instruction is all there is, which is also why it is
 // editable: whoever plans is the one who knows what "don't touch" means for
-// their project.
+// their folder.
 //
 // It says nothing about creating cards on purpose. The board tools describe
 // themselves — an MCP server's instructions arrive with its tool list — so an
@@ -782,10 +816,10 @@ func DefaultConfig(dataDir string) Config {
 // be the same sentence written twice, in the one place a person edits by hand.
 const DefaultPlanningPrompt = `Мы планируем новую задачу.
 
-Код проекта у тебя есть — читай файлы, ищи по ним, смотри историю git: опирайся
+Код в этой папке у тебя есть — читай файлы, ищи по ним, смотри историю git: опирайся
 на код, а не на догадки.
 
-Ничего не меняй в проекте: ни файлов, ни состояния, ни веток. Это обсуждение,
+Ничего не меняй в папке: ни файлов, ни состояния, ни веток. Это обсуждение,
 а не выполнение.
 
 Начни с короткого вопроса о том, что нужно сделать.`
@@ -845,7 +879,7 @@ func LoadConfig(path, dataDir string) (Config, error) {
 	b, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
 		// A new install seeds no routes: the board brings its own (the "My
-		// Project Tasks" template ships them), and the editor offers the same
+		// Folder Tasks" template ships them), and the editor offers the same
 		// ones to a board that does not. Columns are still derived from the
 		// trigger-column keys, so a hand-made board behaves as it always did.
 		cfg := withColumns(DefaultConfig(dataDir))
@@ -958,7 +992,7 @@ func (c Config) GithubTokenValue() string {
 	return strings.TrimSpace(os.Getenv("GITHUB_TOKEN"))
 }
 
-// VCSPoll is how often projects are polled; zero turns watching off.
+// VCSPoll is how often folders are polled; zero turns watching off.
 func (c Config) VCSPoll() time.Duration {
 	if c.VCSPollSeconds <= 0 {
 		return 0
@@ -987,7 +1021,7 @@ func (c Config) ToolAllowed(toolName string, input any) bool {
 	return ToolPolicy(c.AutoAllowTools).Allows(toolName, input)
 }
 
-// SaveConfig writes cfg to path (used when the UI edits the project registry).
+// SaveConfig writes cfg to path (used when the UI edits the folder registry).
 func SaveConfig(path string, cfg Config) error {
 	out, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
@@ -1002,16 +1036,16 @@ func SaveConfig(path string, cfg Config) error {
 	return os.Chmod(path, 0o600)
 }
 
-// ValidateProjectPath checks a card's repo_path against the whitelist, the project
+// ValidateWorkdirPath checks a card's repo_path against the whitelist, the folder
 // registry and the filesystem. It returns the cleaned absolute path.
-func (c Config) ValidateProjectPath(projectPath string) (string, error) {
-	if strings.TrimSpace(projectPath) == "" {
+func (c Config) ValidateWorkdirPath(workdirPath string) (string, error) {
+	if strings.TrimSpace(workdirPath) == "" {
 		return "", fmt.Errorf("repo_path is empty")
 	}
-	if !filepath.IsAbs(projectPath) {
-		return "", fmt.Errorf("repo_path must be absolute: %s", projectPath)
+	if !filepath.IsAbs(workdirPath) {
+		return "", fmt.Errorf("repo_path must be absolute: %s", workdirPath)
 	}
-	clean := filepath.Clean(projectPath)
+	clean := filepath.Clean(workdirPath)
 	info, err := os.Stat(clean)
 	if err != nil {
 		return "", fmt.Errorf("repo_path does not exist: %s", clean)
@@ -1020,7 +1054,7 @@ func (c Config) ValidateProjectPath(projectPath string) (string, error) {
 		return "", fmt.Errorf("repo_path is not a directory: %s", clean)
 	}
 	roots := append([]string(nil), c.ProjectWhitelist...)
-	for _, r := range c.Projects {
+	for _, r := range c.Workdirs {
 		roots = append(roots, r.Path)
 	}
 	for _, root := range roots {

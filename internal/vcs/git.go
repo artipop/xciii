@@ -48,14 +48,14 @@ func (g *Git) Poll(ctx context.Context, t Target) ([]Event, error) {
 	if !wantsPushed && !wantsMerged {
 		return nil, nil
 	}
-	if t.ProjectPath == "" || t.Branch == "" {
+	if t.WorkdirPath == "" || t.Branch == "" {
 		return nil, nil
 	}
 	remote := t.RemoteOr(g.Remote)
 
 	// One fetch answers both questions. --prune keeps a deleted branch from
 	// looking alive forever.
-	if _, err := g.run(ctx, t.ProjectPath, "fetch", "--quiet", "--prune", remote); err != nil {
+	if _, err := g.run(ctx, t.WorkdirPath, "fetch", "--quiet", "--prune", remote); err != nil {
 		return nil, fmt.Errorf("не удалось обновить %s: %w", remote, err)
 	}
 
@@ -66,7 +66,7 @@ func (g *Git) Poll(ctx context.Context, t Target) ([]Event, error) {
 	}
 	if wantsPushed && onRemote {
 		events = append(events, Event{
-			Kind: KindBranchPushed, ProjectPath: t.ProjectPath, Branch: t.Branch,
+			Kind: KindBranchPushed, WorkdirPath: t.WorkdirPath, Branch: t.Branch,
 			Detail: fmt.Sprintf("ветка `%s` запушена в %s", t.Branch, remote),
 			Marker: remoteSHA, At: time.Now(),
 		})
@@ -78,7 +78,7 @@ func (g *Git) Poll(ctx context.Context, t Target) ([]Event, error) {
 		}
 		if merged {
 			events = append(events, Event{
-				Kind: KindBranchMerged, ProjectPath: t.ProjectPath, Branch: t.Branch,
+				Kind: KindBranchMerged, WorkdirPath: t.WorkdirPath, Branch: t.Branch,
 				Detail: fmt.Sprintf("ветка `%s` влита в `%s`", t.Branch, base),
 				Marker: base + ":" + t.Branch, At: time.Now(),
 			})
@@ -90,7 +90,7 @@ func (g *Git) Poll(ctx context.Context, t Target) ([]Event, error) {
 // remoteSHA is the commit the branch points at on the remote, and whether it is
 // there at all.
 func (g *Git) remoteSHA(ctx context.Context, t Target, remote string) (string, bool) {
-	out, err := g.run(ctx, t.ProjectPath, "ls-remote", "--heads", remote, "refs/heads/"+t.Branch)
+	out, err := g.run(ctx, t.WorkdirPath, "ls-remote", "--heads", remote, "refs/heads/"+t.Branch)
 	if err != nil || strings.TrimSpace(out) == "" {
 		return "", false
 	}
@@ -103,7 +103,7 @@ func (g *Git) remoteSHA(ctx context.Context, t Target, remote string) (string, b
 
 // merged reports whether the branch has landed on the remote's default branch.
 func (g *Git) merged(ctx context.Context, t Target, remote string) (bool, string, error) {
-	base, err := g.defaultBranch(ctx, t.ProjectPath, remote)
+	base, err := g.defaultBranch(ctx, t.WorkdirPath, remote)
 	if err != nil {
 		return false, "", err
 	}
@@ -116,7 +116,7 @@ func (g *Git) merged(ctx context.Context, t Target, remote string) (bool, string
 	if err != nil || tip == "" {
 		return false, base, err
 	}
-	_, err = g.run(ctx, t.ProjectPath, "merge-base", "--is-ancestor", tip, remote+"/"+base)
+	_, err = g.run(ctx, t.WorkdirPath, "merge-base", "--is-ancestor", tip, remote+"/"+base)
 	if err != nil {
 		// A non-zero exit is the answer "not merged", not a failure. Anything
 		// else (a missing ref) surfaces as an error only when the tip is gone,
@@ -142,7 +142,7 @@ func (g *Git) rememberTip(ctx context.Context, t Target, sha string) {
 	}
 	// Failing to remember only costs us the post-deletion answer; it must not
 	// fail the poll.
-	_, _ = g.run(ctx, t.ProjectPath, "update-ref", seenRef(t.Branch), sha)
+	_, _ = g.run(ctx, t.WorkdirPath, "update-ref", seenRef(t.Branch), sha)
 }
 
 // branchTip is the commit to test for ancestry: the local branch, what the
@@ -154,7 +154,7 @@ func (g *Git) branchTip(ctx context.Context, t Target, remote string) (string, e
 		seenRef(t.Branch),
 	}
 	for _, ref := range refs {
-		if out, err := g.run(ctx, t.ProjectPath, "rev-parse", "--verify", "--quiet", ref); err == nil {
+		if out, err := g.run(ctx, t.WorkdirPath, "rev-parse", "--verify", "--quiet", ref); err == nil {
 			if sha := strings.TrimSpace(out); sha != "" {
 				return sha, nil
 			}

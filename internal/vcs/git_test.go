@@ -53,7 +53,7 @@ func writeFile(path, content string) error {
 func TestGitReportsAPushedBranch(t *testing.T) {
 	clone, _ := twoRepos(t)
 	w := &Git{}
-	target := Target{ProjectPath: clone, Branch: "feat/x", Triggers: []string{KindBranchPushed}}
+	target := Target{WorkdirPath: clone, Branch: "feat/x", Triggers: []string{KindBranchPushed}}
 
 	// A branch that exists only locally is not pushed.
 	git(t, clone, "checkout", "-q", "-b", "feat/x")
@@ -79,7 +79,7 @@ func TestGitReportsAPushedBranch(t *testing.T) {
 	if len(events) != 1 || events[0].Kind != KindBranchPushed {
 		t.Fatalf("events: %+v", events)
 	}
-	if events[0].Marker == "" || events[0].Branch != "feat/x" || events[0].ProjectPath != clone {
+	if events[0].Marker == "" || events[0].Branch != "feat/x" || events[0].WorkdirPath != clone {
 		t.Fatalf("event: %+v", events[0])
 	}
 	// The marker follows the commit, so pushing again is a new occurrence.
@@ -99,7 +99,7 @@ func TestGitReportsAPushedBranch(t *testing.T) {
 func TestGitReportsAMergedBranch(t *testing.T) {
 	clone, _ := twoRepos(t)
 	w := &Git{}
-	target := Target{ProjectPath: clone, Branch: "feat/y", Triggers: []string{KindBranchMerged}}
+	target := Target{WorkdirPath: clone, Branch: "feat/y", Triggers: []string{KindBranchMerged}}
 
 	git(t, clone, "checkout", "-q", "-b", "feat/y")
 	if err := writeFile(filepath.Join(clone, "c.txt"), "c\n"); err != nil {
@@ -150,7 +150,7 @@ func TestGitDoesNotMergeTheDefaultBranchIntoItself(t *testing.T) {
 	clone, _ := twoRepos(t)
 	w := &Git{}
 	events, err := w.Poll(context.Background(), Target{
-		ProjectPath: clone, Branch: "main", Triggers: []string{KindBranchMerged, KindBranchPushed},
+		WorkdirPath: clone, Branch: "main", Triggers: []string{KindBranchMerged, KindBranchPushed},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -172,7 +172,7 @@ func TestGitAsksForNothingItIsNotWaitedOn(t *testing.T) {
 
 	// Only GitHub triggers: the git watcher must not even fetch.
 	if _, err := w.Poll(context.Background(), Target{
-		ProjectPath: clone, Branch: "feat/x", Triggers: []string{KindPRMerged},
+		WorkdirPath: clone, Branch: "feat/x", Triggers: []string{KindPRMerged},
 	}); err != nil {
 		t.Fatal(err)
 	}

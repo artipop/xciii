@@ -39,6 +39,7 @@ const ru = {
                 items: [
                     {text: 'Название, описание, меню', link: '/board'},
                     {text: 'Агент на карточке', link: '/agent'},
+                    {text: 'Папки и ветки', link: '/folders'},
                 ],
             },
             {
@@ -121,6 +122,7 @@ const en = {
                 items: [
                     {text: 'Title, description, menu', link: '/en/board'},
                     {text: 'The agent on a card', link: '/en/agent'},
+                    {text: 'Folders and branches', link: '/en/folders'},
                 ],
             },
             {

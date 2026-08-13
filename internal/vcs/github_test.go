@@ -77,7 +77,7 @@ func prJSON(state, mergedAt string) string {
 }
 
 func target(kinds ...string) Target {
-	return Target{ProjectPath: "/project", Branch: "feat/x", Triggers: kinds}
+	return Target{WorkdirPath: "/project", Branch: "feat/x", Triggers: kinds}
 }
 
 func TestGitHubReportsPullRequestState(t *testing.T) {

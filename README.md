@@ -2,7 +2,7 @@
 
 A desktop board that runs coding agents from the board itself. Moving a card
 into a column starts an agent on it; opening a terminal on a card puts you in that
-agent's own CLI, in the card's worktree, with the branch and environment already
+agent's own CLI, where the card's work lives, with the branch and environment already
 set up. One binary, built with [Wails v3](https://v3.wails.io), with the board
 server running **in-process** — no spawned server process, no Node.js of our
 own — and the same code builds a **headless server** (`-tags server`) that serves
@@ -84,16 +84,16 @@ The Go code is platform-agnostic — the same files build for every OS:
   browser and plugin builds, where nothing injects this script.
 - `internal/acp/terminal.go`, `terminalws.go` — **the way a person works a card with
   an agent**, and the only one: the agent's own CLI running in a pty in the card's
-  worktree, drawn by xterm.js in a second window of the app and wired to the pty over
+  own directory, drawn by xterm.js in a second window of the app and wired to the pty over
   a WebSocket on the front door. The session console this module used to carry — the
   transcript, the prompt box, the permission buttons — is gone with everything behind
   it, so a session is now one turn (a card's task, run and reported) and a tool
   outside the policy is refused rather than put to somebody who is not there.
   It is not an ACP session (an ACP agent speaks JSON-RPC on stdio and has no terminal
-  UI) — it reuses everything around one: the project, the worktree and branch, the
+  UI) — it reuses everything around one: the folder, the card's directory and branch, the
   agent's environment and proxy. The card is told when it opens and what it left on
   the branch when the CLI exits, and the next terminal on that card returns to the
-  same worktree with `claude --continue` / `codex resume --last`.
+  same place with `claude --continue` / `codex resume --last`.
 - `tsnetdoor.go` — **the board on your own tailnet**, which is how a phone
   reaches it. The app becomes a Tailscale node itself
   ([`tsnet`](https://tailscale.com/docs/features/tsnet): userspace, no daemon,
@@ -137,7 +137,7 @@ name through the bridge above, which is what v2's `-skipbindings` meant.
 
 **[How a card gets worked on](docs/flows.md)** walks through the whole thing for
 somebody using the board: what happens when a card lands in a column, when a
-worktree appears and what becomes of it, which branch is followed, the routes
+a branch appears and what becomes of it, which branch is followed, the routes
 the template ships, and what to look at when nothing happens.
 
 ## What this app requires of the frontend
@@ -212,7 +212,7 @@ the one thing a rewrite must not quietly drop.
   columns and routes it needs in the board's own properties — «Разработка»
   for code, and «Домашние дела» and «Покупки и меню» for the
   ordinary life the same machinery turns out to fit: an agent that prepares a
-  plan, a checklist or a shopping list in a project of household notes, and a
+  plan, a checklist or a shopping list in a folder of household notes, and a
   route that closes the card once the branch it wrote is merged. Every other
   upstream template is hidden, because a board the automation knows nothing
   about arrives empty — the server module's own templates are the upstream's
@@ -242,8 +242,8 @@ the one thing a rewrite must not quietly drop.
   terminal and the column's crew list both offer the short form (a name and a
   kind) where the choice is being made, and the full form stays in the
   settings. **Folders are part of running an agent, not of having a board**: a
-  board with no agent column is never asked for one and never grows a «Проекты»
-  field, and a project marked "on every board" joins only boards that already
+  board with no agent column is never asked for one and never grows a «Папки»
+  field, and a folder marked "on every board" joins only boards that already
   have that field.
 - **What a board tells its agents first is the board's** (`boardPrompts` in the
   config, keyed by board id, edited in *«Как работает эта доска…»*). It was one
@@ -254,7 +254,7 @@ the one thing a rewrite must not quietly drop.
   spread over every board named by a column or a route, and the global field is
   blanked.
 - **First run**: a board made from a template opens a setup wizard by itself
-  when the registries are still empty — a project and an agent are asked for
+  when the registries are still empty — a folder and an agent are asked for
   (nothing runs without them), Dokku and a browser MCP server are offered and
   skippable. **Which steps it has is the board's own answer.** A template
   declares them in `xciiiSetup`, beside the columns and routes it carries, and may
@@ -262,13 +262,13 @@ the one thing a rewrite must not quietly drop.
   or insist on one the app calls optional. It may only name steps from the
   closed set `internal/acp/setup.go` implements — like the flow triggers, the
   list is the app's, so a board cannot ask for something nothing can fill.
-  **A project does not have to be a git repository.** What git buys — a
-  worktree per session, a branch to publish, every transition that waits for one
-  — is offered to the projects that have it and simply absent from the ones that
+  **A folder does not have to be a git repository.** What git buys — a branch
+  per card, something to publish, every transition that waits for one — is
+  offered to the folders that have it and simply absent from the ones that
   do not, so a board of household chores sends an agent into a folder of notes
   and nobody is told to `git init` their shopping list. Which boards do need it
   is worked out, not declared: a step of the plan carries what its answer must
-  satisfy (`requires: ["git"]`), and the project step asks for git exactly when
+  satisfy (`requires: ["git"]`), and the folder step asks for git exactly when
   the board publishes a branch or waits for one — a deploy or test stage, or an
   edge whose trigger the VCS watcher polls. `CheckBoardSetupAnswer` enforces it
   where the question is asked, rather than on a card three steps later.
@@ -298,8 +298,9 @@ the one thing a rewrite must not quietly drop.
   and starts by itself as soon as a place frees up. The old
   `triggerColumn`/`deployColumn`/`testColumn` keys are migrated into this
   registry on first load, so nothing changes until you edit it. A crew of several
-  agents needs `worktreeMode: "always"` (the default) — without worktrees two
-  agents cannot share one project, and the crew works one card at a time.
+  agents needs the board's «в отдельной копии» (the default) — with one branch
+  in the folder itself two agents cannot share it, and the crew works one card
+  at a time.
 - **Taking a card yourself**: assign it to yourself and no agent starts on it —
   the card keeps its place on the route and waits for you to move it on. Deploy
   and test still run, since that is machine work; assigning a registered agent,
@@ -311,8 +312,8 @@ the one thing a rewrite must not quietly drop.
   `GITHUB_TOKEN`) — public repositories work without one, more slowly. The
   interval is `vcsPollSeconds` (default 60) and the remote is `gitRemote`
   (default `origin`). Which branch is watched: the card's `branch` property if
-  it has one, otherwise the branch the card's own sessions worked on — with
-  worktrees that is the agent's branch, which the card never names itself. A fresh config is seeded with three routes — «Фича»,
+  it has one, otherwise the branch the card's own work is on, which the card
+  never names itself. A fresh config is seeded with three routes — «Фича»,
   «Хотфикс» and «Только ревью» — and the «Разработка» board template ships
   the columns they name plus a «Сценарий» property to pick one with, so a new
   board runs them without any setup. Picking a route stays optional: a card with

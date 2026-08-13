@@ -8,7 +8,7 @@ import (
 // A flow is the route a card takes across the board: a graph of nodes (a column
 // plus what runs when a card lands in it) and edges (which event moves the card
 // on, and where). Several routes coexist — not every task is deployed — so a
-// flow is a named registry entry a card is matched to, exactly like the project,
+// flow is a named registry entry a card is matched to, exactly like the folder,
 // agent and deploy-target registries.
 //
 // The set of edge triggers is closed and implemented in Go (see FlowTriggers):
@@ -51,8 +51,8 @@ const (
 // has to poll for.
 const (
 	SourceOutcome = "outcome" // the node's own action finished
-	SourceGit     = "git"     // local project, no authentication
-	SourceGitHub  = "github"  // GitHub API, needs a token for private projects
+	SourceGit     = "git"     // local folder, no authentication
+	SourceGitHub  = "github"  // GitHub API, needs a token for private repositories
 	SourceBoard   = "board"   // the card itself changed; no polling, the board pushes
 )
 
@@ -90,9 +90,9 @@ type FlowEntry struct {
 	// what a route configured before boards were told apart means.
 	BoardID string `json:"boardId,omitempty"`
 
-	// ProjectName ties the flow to an entry of the project registry, so a card that
-	// only names its project still finds its route.
-	ProjectName string `json:"projectName,omitempty"`
+	// WorkdirName ties the flow to an entry of the folder registry, so a card that
+	// only names its folder still finds its route.
+	WorkdirName string `json:"projectName,omitempty"`
 	// Property is the select property whose options are the flow's columns.
 	// Empty means Config.TriggerProperty.
 	Property string `json:"property,omitempty"`
@@ -122,10 +122,46 @@ type FlowNode struct {
 	// DeployName overrides the column's deploy target for this stage.
 	DeployName string `json:"deployName,omitempty"`
 
+	// RunIn is where this stage's work happens: RunInOwner — the card's own
+	// workspace, so the stage sees the card's branch; RunInWorkdir — the folder
+	// itself, on whatever is checked out there.
+	//
+	// It exists because the answer is the board's to choose rather than ours:
+	// checking a card's own code before anything is merged is a QA stage in the
+	// card's workspace, and checking what was published is a QA stage in the
+	// folder. Empty keeps the sensible default for the action (RunsIn).
+	RunIn string `json:"runIn,omitempty"`
+
 	// X and Y are where the builder left the stage on its canvas. Absent means
 	// "lay it out for me" — a route written by hand never has to place anything.
 	X float64 `json:"x,omitempty"`
 	Y float64 `json:"y,omitempty"`
+}
+
+// Where a stage's work happens.
+const (
+	// RunInOwner is the card's own workspace — its branch, its copy.
+	RunInOwner = "owner"
+	// RunInWorkdir is the folder itself, whatever is checked out there.
+	RunInWorkdir = "workdir"
+)
+
+// RunsIn is where this stage runs, with the default for its action filled in.
+// The defaults are what the code did before the field existed: an agent writes
+// code, so it works in the card's own workspace; a deploy publishes a branch
+// that already exists and a test drives a browser against something already
+// published, so neither needs a checkout of the card's.
+func (n FlowNode) RunsIn(action string) string {
+	switch strings.ToLower(strings.TrimSpace(n.RunIn)) {
+	case RunInOwner:
+		return RunInOwner
+	case RunInWorkdir:
+		return RunInWorkdir
+	}
+	if action == FlowActionDeploy || action == FlowActionTest {
+		return RunInWorkdir
+	}
+	return RunInOwner
 }
 
 // Crew is the agents this stage may run on, if it names any.
@@ -219,7 +255,7 @@ func TriggerLabel(kind string) string {
 	return kind
 }
 
-// IsVCSTrigger reports whether the trigger comes from the project — the ones
+// IsVCSTrigger reports whether the trigger comes from the folder — the ones
 // the watcher has to poll for. Board triggers are pushed, not polled, so they
 // are deliberately not here.
 func IsVCSTrigger(kind string) bool {
@@ -360,16 +396,16 @@ func boardFlows(flows []FlowEntry, boardID string) []FlowEntry {
 	return out
 }
 
-// validateFlow normalizes and checks one route. projects/agents/deploys are the
+// validateFlow normalizes and checks one route. folders/agents/deploys are the
 // registries its nodes may reference.
-func validateFlow(f FlowEntry, projects []ProjectEntry, agents []AgentEntry, deploys []DeployEntry) (FlowEntry, error) {
+func validateFlow(f FlowEntry, workdirs []WorkdirEntry, agents []AgentEntry, deploys []DeployEntry) (FlowEntry, error) {
 	f.Name = strings.TrimSpace(f.Name)
 	if f.Name == "" {
 		return FlowEntry{}, fmt.Errorf("имя флоу не может быть пустым")
 	}
-	f.ProjectName = strings.TrimSpace(f.ProjectName)
-	if f.ProjectName != "" && !hasRepo(projects, f.ProjectName) {
-		return FlowEntry{}, fmt.Errorf("проект %q не найден в реестре (%s)", f.ProjectName, projectNames(projects))
+	f.WorkdirName = strings.TrimSpace(f.WorkdirName)
+	if f.WorkdirName != "" && !hasWorkdir(workdirs, f.WorkdirName) {
+		return FlowEntry{}, fmt.Errorf("папка %q не найдена в реестре (%s)", f.WorkdirName, workdirNames(workdirs))
 	}
 	f.Property = strings.TrimSpace(f.Property)
 	if len(f.Nodes) == 0 {
@@ -509,7 +545,7 @@ func (m *Manager) AddFlow(f FlowEntry) (FlowEntry, error) {
 	m.listenBeforeSpeaking(f.BoardID)
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
-	f, err := validateFlow(f, m.cfg.Projects, m.cfg.Agents, m.cfg.Deploys)
+	f, err := validateFlow(f, m.cfg.Workdirs, m.cfg.Agents, m.cfg.Deploys)
 	if err != nil {
 		return FlowEntry{}, err
 	}
@@ -528,7 +564,7 @@ func (m *Manager) UpdateFlow(f FlowEntry) (FlowEntry, error) {
 	m.listenBeforeSpeaking(f.BoardID)
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
-	f, err := validateFlow(f, m.cfg.Projects, m.cfg.Agents, m.cfg.Deploys)
+	f, err := validateFlow(f, m.cfg.Workdirs, m.cfg.Agents, m.cfg.Deploys)
 	if err != nil {
 		return FlowEntry{}, err
 	}
@@ -562,15 +598,15 @@ func (m *Manager) RemoveFlow(boardID, name string) error {
 
 // resolveFlow maps a card to its route. Priority mirrors every other registry:
 //  1. a "flow" property or a select option naming an entry;
-//  2. the flow tied to the project the card resolved to;
+//  2. the flow tied to the folder the card resolved to;
 //  3. the single registered flow.
 //
 // Nothing matched is not an error: the card simply has no route, and the legacy
 // trigger columns keep working for it.
-func (m *Manager) resolveFlow(ev CardMoved, projectPath string) *FlowEntry {
+func (m *Manager) resolveFlow(ev CardMoved, workdirPath string) *FlowEntry {
 	m.cfgMu.RLock()
 	flows := boardFlows(m.cfg.Flows, ev.BoardID)
-	projects := append([]ProjectEntry(nil), m.cfg.Projects...)
+	workdirs := append([]WorkdirEntry(nil), m.cfg.Workdirs...)
 	m.cfgMu.RUnlock()
 
 	if len(flows) == 0 {
@@ -594,9 +630,9 @@ func (m *Manager) resolveFlow(ev CardMoved, projectPath string) *FlowEntry {
 			return f
 		}
 	}
-	if projectName := rrojectNameForPath(projects, projectPath); projectName != "" {
+	if workdirName := workdirNameForPath(workdirs, workdirPath); workdirName != "" {
 		for i := range flows {
-			if strings.EqualFold(flows[i].ProjectName, projectName) {
+			if strings.EqualFold(flows[i].WorkdirName, workdirName) {
 				return &flows[i]
 			}
 		}
@@ -619,8 +655,8 @@ func (m *Manager) FlowByName(name string) (FlowEntry, bool) {
 	return FlowEntry{}, false
 }
 
-func hasRepo(projects []ProjectEntry, name string) bool {
-	for _, r := range projects {
+func hasWorkdir(workdirs []WorkdirEntry, name string) bool {
+	for _, r := range workdirs {
 		if strings.EqualFold(r.Name, name) {
 			return true
 		}

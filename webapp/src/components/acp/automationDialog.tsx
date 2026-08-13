@@ -12,7 +12,7 @@ import Dialog from '../dialog'
 
 import {agentBindings} from './bindings'
 import AutomationEditor from './automationEditor'
-import AgentProjectsPanel, {isAgentProjectsAvailable} from './agentProjectsPanel'
+import WorkdirsPanel, {isWorkdirsAvailable} from './workdirsPanel'
 import DeployTargetsPanel, {isDeployTargetsAvailable} from './deployTargetsPanel'
 import AgentQuickAdd from './agentQuickAdd'
 import {isAgentsAvailable} from './agentsPanel'
@@ -77,7 +77,13 @@ const AutomationDialog = (props: Props) => {
     const [deploys, setDeploys] = createSignal<Array<{name: string}>>([])
     const [ready, setReady] = createSignal<Flow[]>([])
     const [counts, setCounts] = createSignal<Record<string, StageCount[]>>({})
-    const [worktrees, setWorktrees] = createSignal(true)
+
+    // How this board works in a folder that is a repository: a copy per card,
+    // or a branch in the folder itself. It is the board's answer and it shapes
+    // the routes — a QA stage that checks the card's own code before anything
+    // is merged needs a copy per card — so it is edited here, with them.
+    const [gitMode, setGitMode] = createSignal('worktree')
+    const worktrees = () => gitMode() === 'worktree'
     const [property, setProperty] = createSignal<IPropertyTemplate | undefined>(columnProperty(props.board))
     const [error, setError] = createSignal('')
     const [dirty, setDirty] = createSignal(false)
@@ -87,12 +93,12 @@ const AutomationDialog = (props: Props) => {
     const [prompt, setPrompt] = createSignal('')
     const [savedPrompt, setSavedPrompt] = createSignal('')
 
-    // Projects are a folder an agent writes in, and plenty of boards have no
+    // Folders are where an agent writes, and plenty of boards have no
     // agent at all — so the section is offered only to a board that has folders
     // already or a column that would need one. A board of shopping lists is
     // never asked about a checkout.
-    const [projectCount, setProjectCount] = createSignal(0)
-    const [showProjects, setShowProjects] = createSignal(false)
+    const [workdirCount, setWorkdirCount] = createSignal(0)
+    const [showWorkdirs, setShowWorkdirs] = createSignal(false)
     const [showDeploys, setShowDeploys] = createSignal(false)
     const [showSetup, setShowSetup] = createSignal(false)
     const [addingAgent, setAddingAgent] = createSignal(false)
@@ -100,8 +106,8 @@ const AutomationDialog = (props: Props) => {
 
     const columns = (): BoardColumn[] => boardColumns(props.board, property()?.name)
 
-    const usesProjects = () => isAgentProjectsAvailable() && (
-        projectCount() > 0 ||
+    const usesWorkdirs = () => isWorkdirsAvailable() && (
+        workdirCount() > 0 ||
         draft().columns.some((c) => c.action === 'agent' || c.action === 'test'))
 
     // Deploy targets used to be a section of the app's own settings, and that
@@ -122,6 +128,20 @@ const AutomationDialog = (props: Props) => {
             setDeploys(JSON.parse(await bindings.ListDeployTargets()) || [])
         }
         refreshPlan()
+    }
+
+    // Saved on the click rather than with the columns: it is one of two
+    // answers, and «сохранить» beside a pair of chips is a step for nothing.
+    const saveGitMode = async (mode: string) => {
+        setGitMode(mode)
+        if (!bindings?.SetBoardGit) {
+            return
+        }
+        try {
+            await bindings.SetBoardGit(props.board.id, JSON.stringify({mode}))
+        } catch (e) {
+            setError(String(e))
+        }
     }
 
     const refresh = async () => {
@@ -150,8 +170,8 @@ const AutomationDialog = (props: Props) => {
             if (bindings.ListDeployTargets) {
                 setDeploys(JSON.parse(await bindings.ListDeployTargets()) || [])
             }
-            if (bindings.GetWorktreeMode) {
-                setWorktrees((await bindings.GetWorktreeMode()) !== 'never')
+            if (bindings.GetBoardGit) {
+                setGitMode((JSON.parse(await bindings.GetBoardGit(props.board.id)) || {}).mode || 'worktree')
             }
             if (bindings.ListFlowTemplates) {
                 setReady(JSON.parse(await bindings.ListFlowTemplates()) || [])
@@ -165,8 +185,8 @@ const AutomationDialog = (props: Props) => {
                 setPrompt(stored)
                 setSavedPrompt(stored)
             }
-            if (bindings.ListAgentProjects) {
-                setProjectCount((JSON.parse(await bindings.ListAgentProjects(props.board.id)) || []).length)
+            if (bindings.ListAgentWorkdirs) {
+                setWorkdirCount((JSON.parse(await bindings.ListAgentWorkdirs(props.board.id)) || []).length)
             }
         } catch (e) {
             setError(String(e))
@@ -389,20 +409,53 @@ const AutomationDialog = (props: Props) => {
 
                 {/* Folders are what an agent writes in, so a board with no
                     agent column and no folders of its own is never asked. */}
-                <Show when={usesProjects()}>
+                <Show when={usesWorkdirs()}>
                     <details
-                        class='AutomationDialog__projects'
-                        open={showProjects()}
-                        onToggle={(e) => setShowProjects(e.currentTarget.open)}
+                        class='AutomationDialog__workdirs'
+                        open={showWorkdirs()}
+                        onToggle={(e) => setShowWorkdirs(e.currentTarget.open)}
                     >
                         <summary>
-                            {intl.formatMessage({id: 'AgentProjects.title', defaultMessage: 'Projects'})}
+                            {intl.formatMessage({id: 'Workdirs.title', defaultMessage: 'Folders'})}
                         </summary>
-                        <Show when={showProjects()}>
-                            <AgentProjectsPanel
+                        <Show when={showWorkdirs()}>
+                            <WorkdirsPanel
                                 board={props.board}
                                 onChange={refreshPlan}
                             />
+
+                            {/* Asked inside the folders, because it is about
+                                them: the two answers are what «работать в этой
+                                папке» can mean when the folder is a repository.
+                                A board with no repository among its folders
+                                never notices which one is chosen. */}
+                            <div class='AutomationDialog__gitMode'>
+                                <span class='AutomationDialog__gitModeLabel'>
+                                    {intl.formatMessage({id: 'Automation.git-mode', defaultMessage: 'In a repository an agent works'})}
+                                </span>
+                                <div class='AutomationDialog__gitModeChoices'>
+                                    <For each={['worktree', 'branch']}>
+                                        {(mode) => (
+                                            <button
+                                                type='button'
+                                                class={`AutomationDialog__gitModeChip ${gitMode() === mode ? 'AutomationDialog__gitModeChip--on' : ''}`}
+                                                onClick={() => saveGitMode(mode)}
+                                            >
+                                                <span class='AutomationDialog__gitModeName'>
+                                                    {mode === 'worktree' ?
+                                                        intl.formatMessage({id: 'Automation.git-worktree', defaultMessage: 'in a copy of its own'}) :
+                                                        intl.formatMessage({id: 'Automation.git-branch', defaultMessage: 'in the folder itself'})}
+                                                </span>
+                                                <span class='AutomationDialog__gitModeWhy'>
+                                                    {mode === 'worktree' ?
+                                                        intl.formatMessage({id: 'Automation.git-worktree-why', defaultMessage: 'a branch and a checkout per card — several cards of one repository at once, and your own checkout is left alone'}) :
+                                                        intl.formatMessage({id: 'Automation.git-branch-why', defaultMessage: 'a branch in the folder itself — one card at a time, and you see the work in your editor as it happens'})}
+                                                </span>
+                                            </button>
+                                        )}
+                                    </For>
+                                </div>
+                            </div>
                         </Show>
                     </details>
                 </Show>

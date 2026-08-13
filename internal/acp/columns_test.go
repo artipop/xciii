@@ -545,7 +545,7 @@ func TestAssignedCardIsStillDeployed(t *testing.T) {
 		Props: map[string]string{"branch": "feat/x"}}
 
 	// The launch path gets past the veto for a deploy session; it stops later,
-	// for want of a project, which is a different complaint.
+	// for want of a folder, which is a different complaint.
 	_, err := m.startSession(ev, startOptions{deploy: true})
 	var mine AssignedToHumanError
 	if errors.As(err, &mine) {

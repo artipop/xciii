@@ -19,16 +19,20 @@ export interface IAppWindow extends Window {
     go?: {
         main?: {
             App?: {
-                ListAgentProjects(boardId: string): Promise<string>
+                ListAgentWorkdirs(boardId: string): Promise<string>
                 PickDirectory(title: string): Promise<string>
-                AddAgentProject(name: string, path: string, boardId: string, global: boolean): Promise<string>
+                AddAgentWorkdir(name: string, path: string, boardId: string, kind: string, global: boolean): Promise<string>
+
+                // What work in a folder branches from, and what «влито в
+                // основную» waits for. Empty falls back to what git says.
+                SetAgentWorkdirBase?(name: string, branch: string): Promise<string>
 
                 // Registry entries no board has claimed — what an install from
-                // before board-owned projects is left with — and the call that
+                // before board-owned workdirs is left with — and the call that
                 // gives one to a board.
-                ListUnattachedProjects?(): Promise<string>
-                AttachAgentProject?(name: string, boardId: string): Promise<string>
-                RemoveAgentProject(name: string): Promise<void>
+                ListUnattachedWorkdirs?(): Promise<string>
+                AttachAgentWorkdir?(name: string, boardId: string): Promise<string>
+                RemoveAgentWorkdir(name: string): Promise<void>
                 ListAgents(): Promise<string>
 
                 // The registry as the board knows it: [{name, username}]. The
@@ -56,7 +60,12 @@ export interface IAppWindow extends Window {
                 ListBoardColumns(boardId: string): Promise<string>
                 SaveBoardColumn(specJSON: string): Promise<string>
                 RemoveBoardColumn(boardId: string, optionId: string, column: string): Promise<void>
-                GetWorktreeMode(): Promise<string>
+
+                // How this board works in a folder that is a repository:
+                // {"mode":"worktree"|"branch"}. Always one of the two — a
+                // board never asked gets the machine's own default.
+                GetBoardGit?(boardId: string): Promise<string>
+                SetBoardGit?(boardId: string, policyJSON: string): Promise<string>
                 GetCardFlow(cardId: string): Promise<string>
                 GetBoardFlowOverview(boardId: string): Promise<string>
                 SeedBoardAutomation(boardId: string): Promise<void>
@@ -83,8 +92,8 @@ export interface IAppWindow extends Window {
                 // Terminals: the agent's own CLI on a card. `window` asks for a
                 // window of the desktop app; without it the card draws the
                 // terminal inside itself, which is what its chevron opens.
-                OpenCardTerminal?(cardId: string, projectName: string, agentName: string, window: boolean): Promise<string>
-                OpenPlanningTerminal?(projectName: string, agentName: string, boardId: string): Promise<string>
+                OpenCardTerminal?(cardId: string, workdirName: string, agentName: string, window: boolean): Promise<string>
+                OpenPlanningTerminal?(workdirName: string, agentName: string, boardId: string): Promise<string>
                 GetTerminalInfo?(terminalId: string): Promise<string>
                 GetCardAgent?(cardId: string): Promise<string>
                 CancelSession(cardId: string): Promise<boolean>
@@ -137,6 +146,7 @@ export interface IAppWindow extends Window {
                 // knows. With MCP a manifest is the whole adapter, so a new
                 // service is a JSON file in <dataDir>/sources/manifests.
                 ListSourcePlugins?(): Promise<string>
+
                 // The token a source has to *present* — the other direction
                 // from ResetSourceToken, which authorizes what is sent to it.
                 SetSourceCredential?(name: string, token: string): Promise<void>

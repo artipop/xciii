@@ -43,11 +43,11 @@ function stubBindings(overrides: Record<string, unknown> = {}) {
         BoardSetupPlan: vi.fn().mockResolvedValue(FULL_PLAN),
         RecordBoardSetupStep: vi.fn().mockResolvedValue(undefined),
         CheckBoardSetupAnswer: vi.fn().mockResolvedValue(undefined),
-        ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+        ListAgentWorkdirs: vi.fn().mockResolvedValue('[]'),
         ListAgents: vi.fn().mockResolvedValue('[]'),
         PickDirectory: vi.fn().mockResolvedValue('/Users/me/src/webapp'),
         ListAgentAdapters: vi.fn().mockResolvedValue('[]'),
-        AddAgentProject: vi.fn().mockResolvedValue('{}'),
+        AddAgentWorkdir: vi.fn().mockResolvedValue('{}'),
         AddAgent: vi.fn().mockResolvedValue('{}'),
         UpdateAgent: vi.fn().mockResolvedValue('{}'),
         SetBoardTestAgent: vi.fn().mockResolvedValue(undefined),
@@ -81,7 +81,7 @@ describe('components/acp/boardSetupWizard', () => {
     test('the project step will not pass until there is one', async () => {
         const bindings = stubBindings()
         renderWizard()
-        await waitFor(() => expect(bindings.ListAgentProjects).toHaveBeenCalled())
+        await waitFor(() => expect(bindings.ListAgentWorkdirs).toHaveBeenCalled())
 
         expect(screen.getByRole('button', {name: 'Next'})).toBeDisabled()
 
@@ -91,16 +91,16 @@ describe('components/acp/boardSetupWizard', () => {
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
 
         // Filed against the board being set up: the wizard is that board's.
-        await waitFor(() => expect(bindings.AddAgentProject).toHaveBeenCalledWith('webapp', '/Users/me/src/webapp', testBoard.id, false))
+        await waitFor(() => expect(bindings.AddAgentWorkdir).toHaveBeenCalledWith('webapp', '/Users/me/src/webapp', testBoard.id, '', false))
 
         // And having added it, the wizard is on the agent step.
         await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
     })
 
     test('a refusal from Go is shown rather than swallowed', async () => {
-        const bindings = stubBindings({AddAgentProject: vi.fn().mockRejectedValue('/Users/me/src не является git-проектом')})
+        const bindings = stubBindings({AddAgentWorkdir: vi.fn().mockRejectedValue('/Users/me/src не является git-проектом')})
         renderWizard()
-        await waitFor(() => expect(bindings.ListAgentProjects).toHaveBeenCalled())
+        await waitFor(() => expect(bindings.ListAgentWorkdirs).toHaveBeenCalled())
 
         userEvent.click(screen.getByRole('button', {name: 'Choose a folder…'}))
         await waitFor(() => expect(screen.getByDisplayValue('webapp')).toBeInTheDocument())
@@ -114,7 +114,7 @@ describe('components/acp/boardSetupWizard', () => {
 
     test('an agent is registered and made assignable', async () => {
         const bindings = stubBindings({
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
             BoardSetupPlan: vi.fn().mockResolvedValue(
                 plan([{kind: 'project', status: 'done'}, {kind: 'agent'}, {kind: 'done'}]),
             ),
@@ -144,7 +144,7 @@ describe('components/acp/boardSetupWizard', () => {
     // board, or the second board you make is created in silence.
     test('a step passed because the machine already has one is answered too', async () => {
         const bindings = stubBindings({
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
             BoardSetupPlan: vi.fn().mockResolvedValue(plan([
                 {kind: 'project', ready: true},
@@ -157,7 +157,7 @@ describe('components/acp/boardSetupWizard', () => {
 
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
         await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'project', 'done'))
-        expect(bindings.AddAgentProject).not.toHaveBeenCalled()
+        expect(bindings.AddAgentWorkdir).not.toHaveBeenCalled()
 
         // The machine already has an agent, so the step says so and offers Next
         // rather than a form. ("claude" is the agent; the project is "webapp".)
@@ -199,7 +199,7 @@ describe('components/acp/boardSetupWizard', () => {
 
     test('deploy and testing are skippable, and skipping is remembered', async () => {
         const bindings = stubBindings({
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
             BoardSetupPlan: vi.fn().mockResolvedValue(plan([
                 {kind: 'project', status: 'done'},
@@ -233,7 +233,7 @@ describe('components/acp/boardSetupWizard', () => {
 
     test('a board is asked only what it asked to be asked', async () => {
         const bindings = stubBindings({
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'notes', path: '/src'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'notes', path: '/src'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
             BoardSetupPlan: vi.fn().mockResolvedValue(CHORES_PLAN),
         })
@@ -272,14 +272,14 @@ describe('components/acp/boardSetupWizard', () => {
             CheckBoardSetupAnswer: vi.fn().mockRejectedValue('в каталоге /Users/me/src/webapp нет git-репозитория, а этой доске он нужен'),
         })
         renderWizard()
-        await waitFor(() => expect(screen.getByText(/has to be under git/)).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByText(/has to be a git repository/)).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Choose a folder…'}))
         await waitFor(() => expect(screen.getByDisplayValue('webapp')).toBeInTheDocument())
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
 
         await waitFor(() => expect(screen.getByText(/нет git-репозитория/)).toBeInTheDocument())
-        expect(bindings.AddAgentProject).not.toHaveBeenCalled()
+        expect(bindings.AddAgentWorkdir).not.toHaveBeenCalled()
     })
 
     // …and a board of personal tasks is never told about git at all.
@@ -287,7 +287,7 @@ describe('components/acp/boardSetupWizard', () => {
         stubBindings({BoardSetupPlan: vi.fn().mockResolvedValue(CHORES_PLAN)})
         renderWizard()
         await waitFor(() => expect(screen.getByText('Папка с домашними заметками')).toBeInTheDocument())
-        expect(screen.queryByText(/has to be under git/)).toBeNull()
+        expect(screen.queryByText(/has to be a git repository/)).toBeNull()
     })
 
     // The QA step is one answer with two halves: the browser goes to an agent,
@@ -295,7 +295,7 @@ describe('components/acp/boardSetupWizard', () => {
     // answers "who" without being asked.
     test('the browser server is offered ready to accept', async () => {
         const bindings = stubBindings({
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'claude'}])),
             BoardSetupPlan: vi.fn().mockResolvedValue(plan([
                 {kind: 'project', status: 'done'},
@@ -326,7 +326,7 @@ describe('components/acp/boardSetupWizard', () => {
     // replaces — the browser then sat on an agent the QA column never ran.
     test('the agent that tests is chosen from the registry, not guessed', async () => {
         const bindings = stubBindings({
-            ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'тестер'}])),
             BoardSetupPlan: vi.fn().mockResolvedValue(plan([
                 {kind: 'browser', optional: true},

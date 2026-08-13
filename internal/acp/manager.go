@@ -21,7 +21,7 @@ import (
 // and policies, and reports results back to the board and the UI.
 type Manager struct {
 	cfg   Config
-	cfgMu sync.RWMutex // guards the UI-mutable parts of cfg (Projects, Agents, BoardPrompts)
+	cfgMu sync.RWMutex // guards the UI-mutable parts of cfg (Workdirs, Agents, BoardPrompts)
 	// registryProbes answer for registries another package owns — see
 	// SetRegistryProbe. Guarded by cfgMu, since they are read where the config
 	// is.
@@ -110,7 +110,7 @@ func (m *Manager) SetBoardUsers(u BoardUsers) { m.users = u }
 // arrives elsewhere with every card back at the start of its route.
 func (m *Manager) SetBoardCardState(c BoardCardState) { m.cards = c }
 
-// NewManager wires the manager. cfgPath is where project-registry edits are
+// NewManager wires the manager. cfgPath is where folder-registry edits are
 // persisted (may be empty in tests). Call Start to begin consuming events.
 func NewManager(cfg Config, cfgPath string, st *Store, w BoardWriter, ui UIEmitter, log *slog.Logger) *Manager {
 	if log == nil {
@@ -180,7 +180,7 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 	m.wg.Add(1)
 	go m.triggerLoop(ch)
 
-	// Project polling only matters once some card waits on a branch, but the
+	// Folder polling only matters once some card waits on a branch, but the
 	// loop itself is cheap: it does nothing at all until FlowTargets is non-empty.
 	if m.cfg.VCSPoll() > 0 && len(m.watchers) > 0 {
 		m.wg.Add(1)
@@ -213,7 +213,7 @@ type startOptions struct {
 	// test makes this a test session: it resolves the card's preview address, is
 	// given the browser MCP tools and gets the tester prompt.
 	test bool
-	// projectName picks a project explicitly, for a console opened on a card
+	// projectName picks a folder explicitly, for a console opened on a card
 	// that does not say which one it is about.
 	projectName string
 	// flowName/flowNodeID tie the session to the stage of a route that started
@@ -226,6 +226,10 @@ type startOptions struct {
 	// column is the column the card landed in: who works it, how many at once,
 	// and where it deploys to. What a flow node names wins over it.
 	column ColumnSpec
+	// runIn is where the stage works: the card's own workspace (RunInOwner) or
+	// the folder itself (RunInWorkdir). Empty falls back to the action's own
+	// default, which is what a session started outside a route gets.
+	runIn string
 }
 
 // crew is who may work this session: the stage's own list if it has one, else
@@ -247,7 +251,7 @@ func (m *Manager) StartSessionForEvent(ev CardMoved) (*Session, error) {
 // deploy, a browser test — is started here, runs its one turn and ends.
 func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error) {
 	// Asked before anything is resolved: a card somebody took for themselves is
-	// theirs, and there is no point working out which project an agent would
+	// theirs, and there is no point working out which folder an agent would
 	// not be using. Deploy and test are unaffected — that is machine work, not
 	// the assignee's. Somebody who wants to work the card *with* an agent opens
 	// a terminal on it, which is not a session and not vetoed here; somebody
@@ -262,11 +266,11 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		}
 	}
 
-	projectPath, err := m.resolveProject(ev)
+	workdirPath, err := m.resolveWorkdir(ev)
 	if opts.projectName != "" {
 		// An explicit choice wins: the console offers one exactly when the card
-		// itself does not say which project it is about.
-		projectPath, err = m.resolveNamedProject(opts.projectName)
+		// itself does not say which folder it is about.
+		workdirPath, err = m.resolveNamedWorkdir(opts.projectName)
 	}
 	if err != nil {
 		return nil, err
@@ -275,7 +279,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	if deployName == "" {
 		deployName = opts.column.DeployName
 	}
-	deploy, deployBranch, err := m.resolveDeploy(ev, projectPath, opts.deploy, deployName)
+	deploy, deployBranch, err := m.resolveDeploy(ev, workdirPath, opts.deploy, deployName)
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +288,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	if err != nil {
 		return nil, err
 	}
-	test, err := m.resolveTestRun(ev, projectPath, artifacts, opts.test)
+	test, err := m.resolveTestRun(ev, workdirPath, artifacts, opts.test)
 	if err != nil {
 		return nil, err
 	}
@@ -331,26 +335,37 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	if test != nil && len(agent.MCPServers) == 0 {
 		return nil, fmt.Errorf("агенту %q не задан MCP-сервер браузера — тестировать нечем (меню доски → «Агенты…» → «MCP-серверы»)", agent.Name)
 	}
-	// A project that will not get a worktree — either because worktrees are off
-	// or because it is not under git — is one working copy, and two agents must
-	// never share it (spec §7): reject while another live session uses it. A
-	// deploy session is exempt for the same reason a planning one is: it only
-	// pushes an existing branch and never touches the checkout.
-	worktreeAvailable := m.cfg.UseWorktrees() && IsGitProject(m.rootCtx, projectPath)
+	// An ordinary folder is one working copy with nothing to hold it, and two
+	// agents must never share it (spec §7): reject while another live session
+	// uses it. A repository needs none of this — a copy per card cannot
+	// collide, and a branch in the folder itself is held by the card that has
+	// it (folderIsFree). A deploy session is exempt for the same reason a
+	// planning one is: it only pushes an existing branch and never touches the
+	// checkout.
+	mode := m.WorkModeFor(ev.BoardID, workdirPath)
+	worktreeAvailable := mode != WorkModePlain
 	if !worktreeAvailable && !opts.deploy {
 		m.mu.Lock()
 		var busyCard string
 		for _, other := range m.active {
 			// A planning session only reads, so it neither claims the working
 			// copy nor keeps a card's session out of it.
-			if other.ProjectPath == projectPath && !other.Planning {
+			if other.WorkdirPath == workdirPath && !other.Planning {
 				busyCard = other.CardID
 				break
 			}
 		}
 		m.mu.Unlock()
 		if busyCard != "" {
-			return nil, fmt.Errorf("в проекте %s уже работает сессия другой карточки (%s) — дождитесь её завершения или закройте её консоль", projectPath, busyCard)
+			return nil, fmt.Errorf("%w: в папке %s уже работает сессия другой карточки (%s) — дождитесь её завершения", errWorkdirBusy, workdirPath, busyCard)
+		}
+	}
+	// A branch in the folder itself is held by one card until its branch is
+	// merged, so the answer is known before a session is made rather than
+	// after — a card that cannot start must not leave a cancelled run behind.
+	if mode == WorkModeBranch && !opts.deploy {
+		if err := m.folderIsFree(workdirPath, ev.CardID); err != nil {
+			return nil, err
 		}
 	}
 
@@ -379,7 +394,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		CardID:       ev.CardID,
 		Title:        ev.Title,
 		BoardID:      ev.BoardID,
-		ProjectPath:  projectPath,
+		WorkdirPath:  workdirPath,
 		BaseBranch:   ev.Props["branch"],
 		Agent:        agent,
 		Net:          net,
@@ -391,6 +406,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		Artifacts:    artifacts,
 		FlowName:     opts.flowName,
 		FlowNodeID:   opts.flowNodeID,
+		RunIn:        opts.runIn,
 		PromptText:   prompt,
 		Policy:       agentPolicy(agent),
 		status:       StatusQueued,
@@ -461,8 +477,8 @@ func (m *Manager) CancelSessionForCard(cardID, reason string) bool {
 // worktree branch (the one the agent is actually committing to) gets deployed;
 // empty falls back to the card property and then to the checked-out branch.
 //
-// The branch lives in the project's shared object store even when it was
-// created in a worktree, so pushing it from the project itself — which is
+// The branch lives in the folder's shared object store even when it was
+// created in a worktree, so pushing it from the folder itself — which is
 // where a deploy session always runs — reaches it.
 func (m *Manager) StartDeployForCard(cardID, branch string) (*Session, error) {
 	if m.reader == nil {
@@ -483,19 +499,19 @@ func (m *Manager) StartDeployForCard(cardID, branch string) (*Session, error) {
 	return m.startSession(ev, startOptions{deploy: true})
 }
 
-// planningRepo picks the registry entry to plan against. An empty name means
-// planning without a project, which is a valid choice rather than a default:
+// planningWorkdir picks the registry entry to plan against. An empty name means
+// planning without a folder, which is a valid choice rather than a default:
 // the dialog preselects a lone entry, so nothing here has to guess.
-func (m *Manager) planningRepo(name string) (ProjectEntry, error) {
+func (m *Manager) planningWorkdir(name string) (WorkdirEntry, error) {
 	if name == "" {
-		return ProjectEntry{}, nil
+		return WorkdirEntry{}, nil
 	}
-	for _, r := range m.Projects() {
+	for _, r := range m.Workdirs() {
 		if strings.EqualFold(r.Name, name) {
 			return r, nil
 		}
 	}
-	return ProjectEntry{}, fmt.Errorf("проект %q не найден в реестре", name)
+	return WorkdirEntry{}, fmt.Errorf("папка %q не найдена в реестре", name)
 }
 
 // planningAgent picks the registry entry that will do the planning.
@@ -743,13 +759,13 @@ func resolveArgv0(argv []string) []string {
 
 // planningPrompt is what a planning terminal is opened with: the board's system
 // prompt, the agent's own, the planning instructions a person can edit, and the
-// one fact nobody should have to type — which project the CLI is standing in.
+// one fact nobody should have to type — which folder the CLI is standing in.
 //
 // It reaches the CLI as the terminal's task text, pasted by the button on the
 // terminal page, rather than as an argv flag: what a CLI is told at startup is
 // its own business (terminalCommand says why), and this is the same road a
 // card's task already travels.
-func planningPrompt(systemPrompt, planning string, agent AgentEntry, project ProjectEntry) string {
+func planningPrompt(systemPrompt, planning string, agent AgentEntry, workdir WorkdirEntry) string {
 	var b []byte
 	if p := strings.TrimSpace(systemPrompt); p != "" {
 		b = fmt.Appendf(b, "%s\n\n", p)
@@ -762,7 +778,7 @@ func planningPrompt(systemPrompt, planning string, agent AgentEntry, project Pro
 	} else {
 		b = fmt.Appendf(b, "%s\n\n", p)
 	}
-	b = fmt.Appendf(b, "Проект: `%s` (%s).", project.Name, project.Path)
+	b = fmt.Appendf(b, "Папка: `%s` (%s).", workdir.Name, workdir.Path)
 	return string(b)
 }
 
@@ -784,7 +800,7 @@ func composePrompt(ev CardMoved, agent AgentEntry, systemPrompt string, useWorkt
 	if useWorktree {
 		b = fmt.Appendf(b, "\nРаботай в текущем каталоге — это отдельный git worktree, созданный специально для этой задачи. Можешь делать локальные коммиты. Не выполняй git push.")
 	} else {
-		b = fmt.Appendf(b, "\nРаботай в текущем каталоге — это рабочая копия проекта пользователя. Не переключай ветки, не делай коммитов и git push: оставь изменения незакоммиченными для ревью.")
+		b = fmt.Appendf(b, "\nРаботай в текущем каталоге — это рабочая папка пользователя. Не переключай ветки, не делай коммитов и git push: оставь изменения незакоммиченными для ревью.")
 	}
 	return string(b)
 }

@@ -52,6 +52,11 @@ func (w *recordingWriter) UpdateCard(_ context.Context, cardID string, edit acp.
 	return nil
 }
 
+// The machine's own bookkeeping — the branch a card's work is on. Nothing in
+// these tests reads it back; it is here because the board tools speak through
+// the same writer.
+func (w *recordingWriter) SetCardText(context.Context, string, string, string) error { return nil }
+
 // recordingReader is the board read back: two cards on the granted board and one
 // on another, which is the case the grant has to refuse.
 type recordingReader struct{}

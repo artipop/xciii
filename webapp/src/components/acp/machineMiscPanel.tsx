@@ -31,7 +31,6 @@ const MachineMiscPanel = () => {
 
     const [prompt, setPrompt] = createSignal('')
     const [savedPrompt, setSavedPrompt] = createSignal('')
-    const [worktrees, setWorktrees] = createSignal('')
     const [error, setError] = createSignal('')
 
     onMount(async () => {
@@ -40,9 +39,6 @@ const MachineMiscPanel = () => {
                 const stored = await bindings.GetPlanningPrompt()
                 setPrompt(stored)
                 setSavedPrompt(stored)
-            }
-            if (bindings?.GetWorktreeMode) {
-                setWorktrees(await bindings.GetWorktreeMode())
             }
         } catch (e: any) {
             setError(String(e?.message || e))
@@ -116,17 +112,6 @@ const MachineMiscPanel = () => {
                             </Button>
                         </Show>
                     </PromptField>
-                </Show>
-
-                <Show when={worktrees()}>
-                    <div class='MachineMiscPanel__fact'>
-                        <span class='MachineMiscPanel__factName'>
-                            {intl.formatMessage({id: 'Machine.worktrees', defaultMessage: 'A session gets a git worktree of its own'})}
-                        </span>
-                        <span class='MachineMiscPanel__factValue'>
-                            {worktrees() === 'always' ? intl.formatMessage({id: 'Machine.worktrees-always', defaultMessage: 'yes — agents can work several cards of one project at once'}) : intl.formatMessage({id: 'Machine.worktrees-never', defaultMessage: 'no — one card of a project at a time, in the folder itself'})}
-                        </span>
-                    </div>
                 </Show>
 
                 {/* The guide, not docs/flows.md: this line used to name a file

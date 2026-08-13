@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -94,14 +95,16 @@ func (a *App) CancelSession(cardID string) bool {
 	return a.mgr.CancelSessionForCard(cardID, "отменено пользователем")
 }
 
-// ListAgentProjects returns the project registry as JSON: [{"name","path"}, …].
-// boardID is the board asking; "" asks for the whole registry, which is what a
-// place with no board behind it (the planning dialog) wants.
-func (a *App) ListAgentProjects(boardID string) (string, error) {
+// ListAgentWorkdirs returns the folder registry as JSON, each entry carrying
+// what git says about it right now ("git", "base", "broken" — see
+// acp.WorkdirStatus). boardID is the board asking; "" asks for the whole
+// registry, which is what a place with no board behind it (the planning
+// dialog) wants.
+func (a *App) ListAgentWorkdirs(boardID string) (string, error) {
 	if a.mgr == nil {
 		return "[]", nil
 	}
-	out, err := json.Marshal(a.mgr.ProjectsForBoard(boardID))
+	out, err := json.Marshal(a.mgr.WorkdirStatusesForBoard(boardID))
 	if err != nil {
 		return "", err
 	}
@@ -120,15 +123,16 @@ func (a *App) PickDirectory(title string) (string, error) {
 	return pickDirectory(wapp, title)
 }
 
-// AddAgentProject registers a local project (name defaults to the directory
+// AddAgentWorkdir registers a local folder (name defaults to the directory
 // basename when empty) and returns the created entry as JSON. It belongs to
 // boardID — the board it was added on and the only one that offers it — unless
-// global says every board should.
-func (a *App) AddAgentProject(name, path, boardID string, global bool) (string, error) {
+// global says every board should. kind is what was asked for: "git" when the
+// screen demanded a repository, "" everywhere else (see acp.AddWorkdir).
+func (a *App) AddAgentWorkdir(name, path, boardID, kind string, global bool) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
-	entry, err := a.mgr.AddProject(name, path, boardID, global)
+	entry, err := a.mgr.AddWorkdir(name, path, boardID, kind, global)
 	if err != nil {
 		return "", err
 	}
@@ -136,26 +140,40 @@ func (a *App) AddAgentProject(name, path, boardID string, global bool) (string, 
 	return string(out), nil
 }
 
-// ListUnattachedProjects returns the registry entries no board has claimed, as
-// JSON. They are what an install upgrading into board-owned projects is left
+// SetAgentWorkdirBase changes what work in a folder branches from, and what
+// «влито в основную» waits for. Empty falls the folder back to what git says.
+func (a *App) SetAgentWorkdirBase(name, branch string) (string, error) {
+	if a.mgr == nil {
+		return "", errACPDisabled
+	}
+	entry, err := a.mgr.SetWorkdirBase(name, branch)
+	if err != nil {
+		return "", err
+	}
+	out, _ := json.Marshal(entry)
+	return string(out), nil
+}
+
+// ListUnattachedWorkdirs returns the registry entries no board has claimed, as
+// JSON. They are what an install upgrading into board-owned folders is left
 // with, and the dialog offers them to the board somebody is on.
-func (a *App) ListUnattachedProjects() (string, error) {
+func (a *App) ListUnattachedWorkdirs() (string, error) {
 	if a.mgr == nil {
 		return "[]", nil
 	}
-	out, err := json.Marshal(a.mgr.UnattachedProjects())
+	out, err := json.Marshal(a.mgr.UnattachedWorkdirs())
 	if err != nil {
 		return "", err
 	}
 	return string(out), nil
 }
 
-// AttachAgentProject gives an unattached project to a board.
-func (a *App) AttachAgentProject(name, boardID string) (string, error) {
+// AttachAgentWorkdir gives an unattached folder to a board.
+func (a *App) AttachAgentWorkdir(name, boardID string) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
-	entry, err := a.mgr.AttachProject(name, boardID)
+	entry, err := a.mgr.AttachWorkdir(name, boardID)
 	if err != nil {
 		return "", err
 	}
@@ -163,12 +181,12 @@ func (a *App) AttachAgentProject(name, boardID string) (string, error) {
 	return string(out), nil
 }
 
-// RemoveAgentProject deletes a project registry entry by name.
-func (a *App) RemoveAgentProject(name string) error {
+// RemoveAgentWorkdir deletes a folder registry entry by name.
+func (a *App) RemoveAgentWorkdir(name string) error {
 	if a.mgr == nil {
 		return errACPDisabled
 	}
-	return a.mgr.RemoveProject(name)
+	return a.mgr.RemoveWorkdir(name)
 }
 
 // ListAgentAdapters reports, per agent kind, whether it can be started on this
@@ -464,7 +482,7 @@ func (a *App) MarkBoardSetupOffered(boardID string) error {
 }
 
 // CheckBoardSetupAnswer says whether an answer fits the step it answers on this
-// board — a project under git for a board that publishes a branch or waits for
+// board — a folder under git for a board that publishes a branch or waits for
 // one, and any requirement a step grows later. Called before the answer is
 // filed, so the question can refuse it where it was asked.
 func (a *App) CheckBoardSetupAnswer(boardID, step, value string) error {
@@ -678,14 +696,38 @@ func (a *App) GetBoardFlowOverview(boardID string) (string, error) {
 	return string(out), nil
 }
 
-// GetWorktreeMode reports where sessions run ("always" or "never"). The column
-// editor asks, because a crew of several agents in one project only works
-// when each session gets its own worktree.
-func (a *App) GetWorktreeMode() (string, error) {
+// GetBoardGit reports how this board works in a folder that is a repository,
+// as JSON: {"mode":"worktree|branch","branchPrefix":…}. The mode is always one
+// of the two — a board that has never been asked gets the machine's own
+// default filled in.
+func (a *App) GetBoardGit(boardID string) (string, error) {
 	if a.mgr == nil {
 		return "", nil
 	}
-	return a.mgr.WorktreeMode(), nil
+	a.mgr.SeedBoard(boardID)
+	out, err := json.Marshal(a.mgr.BoardGitPolicy(boardID))
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// SetBoardGit records how this board works in a repository. The JSON is the
+// same shape GetBoardGit returns.
+func (a *App) SetBoardGit(boardID, policyJSON string) (string, error) {
+	if a.mgr == nil {
+		return "", errACPDisabled
+	}
+	var p acp.GitPolicy
+	if err := json.Unmarshal([]byte(policyJSON), &p); err != nil {
+		return "", fmt.Errorf("не удалось разобрать настройку: %w", err)
+	}
+	saved, err := a.mgr.SetBoardGitPolicy(boardID, p)
+	if err != nil {
+		return "", err
+	}
+	out, _ := json.Marshal(saved)
+	return string(out), nil
 }
 
 // GetTailnetAccess reports whether the board is published on the user's tailnet
@@ -786,7 +828,7 @@ func (a *App) StartCardDeploy(cardID, branch string) (string, error) {
 
 // ---- terminal windows ----
 
-// A terminal is the agent's own CLI in a window of ours: the same project,
+// A terminal is the agent's own CLI in a window of ours: the same folder,
 // worktree, branch and environment a session would get, with a human at the
 // keyboard instead of a prompt loop. These bindings start one and hand back
 // where to draw it; the drawing is xterm.js on a WebSocket (terminalws.go).
@@ -803,7 +845,7 @@ type terminalHandle struct {
 }
 
 // OpenCardTerminal opens (or focuses) the agent CLI for a card and returns the
-// terminal as JSON. projectName/agentName may be empty, in which case the card
+// terminal as JSON. workdirName/agentName may be empty, in which case the card
 // decides exactly as it does for a session.
 //
 // window says whether it gets a window of its own. The card draws the terminal
@@ -811,11 +853,11 @@ type terminalHandle struct {
 // would be a second view of the same pty opening behind the one being looked
 // at. It is still what the ⤢ beside the panel asks for, and a screen of its own
 // is worth having.
-func (a *App) OpenCardTerminal(cardID, projectName, agentName string, window bool) (string, error) {
+func (a *App) OpenCardTerminal(cardID, workdirName, agentName string, window bool) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
-	t, err := a.mgr.StartCardTerminal(cardID, projectName, agentName)
+	t, err := a.mgr.StartCardTerminal(cardID, workdirName, agentName)
 	if err != nil {
 		return "", err
 	}
@@ -829,11 +871,11 @@ func (a *App) OpenCardTerminal(cardID, projectName, agentName string, window boo
 // of "Plan a task". boardID is the board the dialog was opened from: the
 // conversation has no card, but it may leave cards, and that is the only board
 // it may leave them on.
-func (a *App) OpenPlanningTerminal(projectName, agentName, boardID string) (string, error) {
+func (a *App) OpenPlanningTerminal(workdirName, agentName, boardID string) (string, error) {
 	if a.mgr == nil {
 		return "", errACPDisabled
 	}
-	t, err := a.mgr.StartPlanningTerminal(projectName, agentName, boardID)
+	t, err := a.mgr.StartPlanningTerminal(workdirName, agentName, boardID)
 	if err != nil {
 		return "", err
 	}

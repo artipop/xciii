@@ -18,8 +18,8 @@ import {agentColumn, checkSetupAnswer, createSetupPlan, recordSetupStep, SetupSt
 import './boardSetupWizard.scss'
 
 // A board made from a template arrives knowing how the work is organised — its
-// columns, its routes, the fields a card picks a project and an agent with.
-// What it cannot know is the machine: which agent runs, in which project, where
+// columns, its routes, the fields a card picks a folder and an agent with.
+// What it cannot know is the machine: which agent runs, in which folder, where
 // it deploys, what it tests with. That lives in the desktop registries, and
 // until this existed the only way to find out one was empty was to drag a card
 // and read the complaint afterwards.
@@ -39,18 +39,18 @@ const BROWSER_SERVER = JSON.stringify({
 
 type Registry = {
     agents: Array<{name: string, kind: string}>
-    projects: Array<{name: string, path: string}>
+    workdirs: Array<{name: string, path: string}>
 }
 
 // readRegistry is what the steps show back: the names already registered. The
 // plan says whether a question is answered; this says what the answer was.
 export async function readRegistry(boardId: string): Promise<Registry | null> {
     const bindings = agentBindings()
-    if (!bindings?.ListAgentProjects || !bindings.ListAgents) {
+    if (!bindings?.ListAgentWorkdirs || !bindings.ListAgents) {
         return null
     }
-    const [projects, agents] = await Promise.all([bindings.ListAgentProjects(boardId), bindings.ListAgents()])
-    return {projects: JSON.parse(projects) || [], agents: JSON.parse(agents) || []}
+    const [workdirs, agents] = await Promise.all([bindings.ListAgentWorkdirs(boardId), bindings.ListAgents()])
+    return {workdirs: JSON.parse(workdirs) || [], agents: JSON.parse(agents) || []}
 }
 
 type Props = {
@@ -58,7 +58,7 @@ type Props = {
     onClose: () => void
 }
 
-const STEP_PROJECT: SetupStepKind = 'project'
+const STEP_WORKDIR: SetupStepKind = 'project'
 const STEP_AGENT: SetupStepKind = 'agent'
 const STEP_DEPLOY: SetupStepKind = 'deploy'
 const STEP_BROWSER: SetupStepKind = 'browser'
@@ -70,8 +70,8 @@ const BoardSetupWizard = (props: Props) => {
     const bindings = agentBindings()
 
     const [plan, refreshPlan] = createSetupPlan(() => props.board)
-    const [step, setStep] = createSignal<SetupStepKind>(STEP_PROJECT)
-    const [registry, setRegistry] = createSignal<Registry>({agents: [], projects: []})
+    const [step, setStep] = createSignal<SetupStepKind>(STEP_WORKDIR)
+    const [registry, setRegistry] = createSignal<Registry>({agents: [], workdirs: []})
     const [error, setError] = createSignal('')
     const [busy, setBusy] = createSignal(false)
 
@@ -100,9 +100,9 @@ const BoardSetupWizard = (props: Props) => {
         setStep(after(kind))
     }
 
-    // Step 1: a project.
-    const [projectPath, setProjectPath] = createSignal('')
-    const [projectName, setProjectName] = createSignal('')
+    // Step 1: a folder.
+    const [workdirPath, setWorkdirPath] = createSignal('')
+    const [workdirName, setWorkdirName] = createSignal('')
 
     // Step 2: another agent, on a step that already has one.
     const [addingAgent, setAddingAgent] = createSignal(false)
@@ -176,32 +176,38 @@ const BoardSetupWizard = (props: Props) => {
         }
     }
 
-    // Passing a step the machine can already answer — there is a project, an
+    // Passing a step the machine can already answer — there is a folder, an
     // agent — is answering it too, and has to be recorded as one.
     const pass = (answering: SetupStepKind) => run(async () => {}, answering)
 
-    const pickProject = async () => {
+    const pickWorkdir = async () => {
         if (!bindings?.PickDirectory) {
             return
         }
         setError('')
         try {
-            const picked = await bindings.PickDirectory(intl.formatMessage({id: 'BoardSetup.pick-project', defaultMessage: 'Choose a project folder'}))
+            const picked = await bindings.PickDirectory(intl.formatMessage({id: 'BoardSetup.pick-folder', defaultMessage: 'Choose a folder'}))
             if (picked) {
-                setProjectPath(picked)
-                setProjectName((current) => current || picked.split('/').filter(Boolean).pop() || '')
+                setWorkdirPath(picked)
+                setWorkdirName((current) => current || picked.split('/').filter(Boolean).pop() || '')
             }
         } catch (e) {
             setError(String(e))
         }
     }
 
-    const addProject = () => run(async () => {
+    const addWorkdir = () => run(async () => {
         // Asked before it is filed: a board that publishes a branch needs a
-        // project under git, and this is where that can still be answered.
-        await checkSetupAnswer(props.board.id, STEP_PROJECT, projectPath())
-        await bindings!.AddAgentProject!(projectName().trim(), projectPath(), props.board.id, false)
-    }, STEP_PROJECT)
+        // folder under git, and this is where that can still be answered.
+        await checkSetupAnswer(props.board.id, STEP_WORKDIR, workdirPath())
+
+        // Filed as a repository when that is what was asked for, so the answer
+        // outlives the question: a folder that stops being one later says so
+        // instead of quietly becoming an ordinary folder on a board whose
+        // every route waits for a branch.
+        const kind = stepRequires(stepAt(STEP_WORKDIR), 'git') ? 'git' : ''
+        await bindings!.AddAgentWorkdir!(workdirName().trim(), workdirPath(), props.board.id, kind, false)
+    }, STEP_WORKDIR)
 
     const addDeploy = () => run(async () => {
         await bindings!.AddDeployTarget!(JSON.stringify({
@@ -258,35 +264,35 @@ const BoardSetupWizard = (props: Props) => {
         props.onClose()
     }
 
-    const hasProject = () => registry().projects.length > 0
+    const hasWorkdir = () => registry().workdirs.length > 0
     const hasAgent = () => registry().agents.length > 0
 
     const body = () => {
         switch (step()) {
-        case STEP_PROJECT:
+        case STEP_WORKDIR:
             return (
                 <div class='BoardSetupWizard__step'>
-                    <p>{intl.formatMessage({id: 'BoardSetup.project-why', defaultMessage: 'An agent works in a project on your machine. A card is matched to one by its "Projects" field, which this fills in for you.'})}</p>
-                    <Show when={stepRequires(stepAt(STEP_PROJECT), 'git')}>
+                    <p>{intl.formatMessage({id: 'BoardSetup.folder-why', defaultMessage: 'An agent works in a folder on your machine. A card is matched to one by its folder field, which this fills in for you.'})}</p>
+                    <Show when={stepRequires(stepAt(STEP_WORKDIR), 'git')}>
                         <p class='BoardSetupWizard__hint'>
-                            {intl.formatMessage({id: 'BoardSetup.project-git', defaultMessage: 'This board publishes a branch or waits for one, so its project has to be under git. A board that does neither takes any folder.'})}
+                            {intl.formatMessage({id: 'BoardSetup.folder-git', defaultMessage: 'This board publishes a branch or waits for one, so its folder has to be a git repository. A board that does neither takes any folder.'})}
                         </p>
                     </Show>
-                    <Show when={hasProject()}>
+                    <Show when={hasWorkdir()}>
                         <div class='BoardSetupWizard__known'>
-                            {intl.formatMessage({id: 'BoardSetup.project-known', defaultMessage: 'Already registered: {names}'}, {names: registry().projects.map((r) => r.name).join(', ')})}
+                            {intl.formatMessage({id: 'BoardSetup.folder-known', defaultMessage: 'Already registered: {names}'}, {names: registry().workdirs.map((r) => r.name).join(', ')})}
                         </div>
                     </Show>
-                    <Button onClick={pickProject}>
+                    <Button onClick={pickWorkdir}>
                         {intl.formatMessage({id: 'BoardSetup.choose-folder', defaultMessage: 'Choose a folder…'})}
                     </Button>
-                    <Show when={projectPath()}>
-                        <span class='BoardSetupWizard__path'>{projectPath()}</span>
+                    <Show when={workdirPath()}>
+                        <span class='BoardSetupWizard__path'>{workdirPath()}</span>
                         <label>
-                            {intl.formatMessage({id: 'BoardSetup.project-name', defaultMessage: 'Name'})}
+                            {intl.formatMessage({id: 'BoardSetup.folder-name', defaultMessage: 'Name'})}
                             <input
-                                value={projectName()}
-                                onInput={(e) => setProjectName(e.currentTarget.value)}
+                                value={workdirName()}
+                                onInput={(e) => setWorkdirName(e.currentTarget.value)}
                             />
                         </label>
                     </Show>
@@ -503,12 +509,12 @@ const BoardSetupWizard = (props: Props) => {
 
     const actions = () => {
         switch (step()) {
-        case STEP_PROJECT:
+        case STEP_WORKDIR:
             return (
                 <Button
                     emphasis='primary'
-                    disabled={busy() || (!hasProject() && !(projectPath() && projectName().trim()))}
-                    onClick={() => (projectPath() && projectName().trim() ? addProject() : pass(STEP_PROJECT))}
+                    disabled={busy() || (!hasWorkdir() && !(workdirPath() && workdirName().trim()))}
+                    onClick={() => (workdirPath() && workdirName().trim() ? addWorkdir() : pass(STEP_WORKDIR))}
                 >
                     {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
                 </Button>
@@ -589,8 +595,8 @@ const BoardSetupWizard = (props: Props) => {
 
     const title = (of: SetupStepKind) => {
         switch (of) {
-        case STEP_PROJECT:
-            return intl.formatMessage({id: 'BoardSetup.step-project', defaultMessage: 'Project'})
+        case STEP_WORKDIR:
+            return intl.formatMessage({id: 'BoardSetup.step-folder', defaultMessage: 'Folder'})
         case STEP_AGENT:
             return intl.formatMessage({id: 'BoardSetup.step-agent', defaultMessage: 'Agent'})
         case STEP_DEPLOY:

@@ -21,7 +21,7 @@ export type SetupStep = {
     hint?: string
     status: SetupStepStatus
 
-    // The machine can already answer this step — there is a project, an agent.
+    // The machine can already answer this step — there is a folder, an agent.
     // Not the same as this board having answered it: the registries are the
     // machine's, and every board is asked for itself.
     ready?: boolean

@@ -23,7 +23,7 @@ import (
 
 // builtinMCPNames are the servers a session spawns itself, with per-session
 // configuration the agent must not be able to supply: the deploy target, the
-// project and the branch arrive in the dokku server's environment, which is
+// folder and the branch arrive in the dokku server's environment, which is
 // what leaves the model choosing the branch and nothing else. An agent's own
 // entry may not take one of these names.
 var builtinMCPNames = []string{dokku.ServerName}
@@ -63,7 +63,7 @@ func sessionMCPServers(s *Session, _ Config) ([]mcpServerSpec, error) {
 			Args:    []string{"mcp", dokku.ServerName},
 			Env: map[string]string{
 				dokku.EnvTarget:    string(target),
-				dokku.EnvRepo:      s.ProjectPath,
+				dokku.EnvRepo:      s.WorkdirPath,
 				dokku.EnvBranch:    s.DeployBranch,
 				dokku.EnvArtifacts: s.Artifacts,
 			},

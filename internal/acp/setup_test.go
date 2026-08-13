@@ -71,7 +71,7 @@ func equal(a, b []string) bool {
 func TestATemplateIsAskedForNothing(t *testing.T) {
 	asks := boardProps(t, map[string]any{
 		BoardPropSetup: BoardSetup{Steps: []BoardSetupStep{
-			{Kind: SetupStepProject},
+			{Kind: SetupStepWorkdir},
 			{Kind: SetupStepAgent},
 		}},
 	})
@@ -97,7 +97,7 @@ func TestATemplateIsAskedForNothing(t *testing.T) {
 func TestABoardAsksForTheStepsItNames(t *testing.T) {
 	m := setupManager(t, boardProps(t, map[string]any{
 		BoardPropSetup: BoardSetup{Steps: []BoardSetupStep{
-			{Kind: SetupStepProject, Hint: "Папка с домашними заметками"},
+			{Kind: SetupStepWorkdir, Hint: "Папка с домашними заметками"},
 			{Kind: SetupStepAgent},
 			{Kind: SetupStepDone},
 		}},
@@ -107,7 +107,7 @@ func TestABoardAsksForTheStepsItNames(t *testing.T) {
 	if !plan.Declared {
 		t.Error("the plan does not say the board asked for it")
 	}
-	if want := []string{SetupStepProject, SetupStepAgent, SetupStepDone}; !equal(kinds(plan), want) {
+	if want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDone}; !equal(kinds(plan), want) {
 		t.Fatalf("steps %v, expected %v", kinds(plan), want)
 	}
 	if plan.Steps[0].Hint == "" {
@@ -168,13 +168,13 @@ func TestASourceIsAskedForOnlyByABoardThatWantsOne(t *testing.T) {
 func TestAStepThisBuildCannotDoIsLeftOut(t *testing.T) {
 	m := setupManager(t, boardProps(t, map[string]any{
 		BoardPropSetup: BoardSetup{Steps: []BoardSetupStep{
-			{Kind: SetupStepProject},
+			{Kind: SetupStepWorkdir},
 			{Kind: "telepathy"},
 			{Kind: SetupStepDone},
 		}},
 	}))
 
-	if want := []string{SetupStepProject, SetupStepDone}; !equal(kinds(m.SetupPlanFor("board1")), want) {
+	if want := []string{SetupStepWorkdir, SetupStepDone}; !equal(kinds(m.SetupPlanFor("board1")), want) {
 		t.Fatalf("steps %v, expected %v", kinds(m.SetupPlanFor("board1")), want)
 	}
 }
@@ -205,7 +205,7 @@ func TestABoardThatSaysNothingIsAskedWhatItsAutomationNeeds(t *testing.T) {
 	if !plan.Automated {
 		t.Error("a board carrying columns and routes is not marked as automated")
 	}
-	if want := []string{SetupStepProject, SetupStepAgent, SetupStepDone}; !equal(kinds(plan), want) {
+	if want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDone}; !equal(kinds(plan), want) {
 		t.Fatalf("steps %v, expected %v", kinds(plan), want)
 	}
 }
@@ -220,7 +220,7 @@ func TestABoardThatDeploysAndTestsIsAskedForBoth(t *testing.T) {
 		},
 	}))
 
-	want := []string{SetupStepProject, SetupStepAgent, SetupStepDeploy, SetupStepBrowser, SetupStepDone}
+	want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDeploy, SetupStepBrowser, SetupStepDone}
 	if got := kinds(m.SetupPlanFor("board1")); !equal(got, want) {
 		t.Fatalf("steps %v, expected %v", got, want)
 	}
@@ -236,7 +236,7 @@ func TestABoardWithNoAutomationIsOfferedEverythingAndOpensNothing(t *testing.T) 
 	if plan.Automated {
 		t.Error("a board with no columns and no routes is marked as automated")
 	}
-	want := []string{SetupStepProject, SetupStepAgent, SetupStepDeploy, SetupStepBrowser, SetupStepDone}
+	want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDeploy, SetupStepBrowser, SetupStepDone}
 	if got := kinds(plan); !equal(got, want) {
 		t.Fatalf("steps %v, expected %v", got, want)
 	}
@@ -248,7 +248,7 @@ func TestABoardWithNoAutomationIsOfferedEverythingAndOpensNothing(t *testing.T) 
 // wizard, no reminder, nothing asked.
 func TestAFilledRegistryOffersAnAnswerRatherThanBeingOne(t *testing.T) {
 	m := setupManager(t, nil)
-	m.cfg.Projects = []ProjectEntry{{Name: "notes", Path: "/tmp/notes"}}
+	m.cfg.Workdirs = []WorkdirEntry{{Name: "notes", Path: "/tmp/notes"}}
 	m.cfg.Agents = []AgentEntry{{Name: "claude", Kind: "claude"}}
 
 	byKind := func(boardID string) map[string]SetupStep {
@@ -260,7 +260,7 @@ func TestAFilledRegistryOffersAnAnswerRatherThanBeingOne(t *testing.T) {
 	}
 
 	first := byKind("board1")
-	for _, kind := range []string{SetupStepProject, SetupStepAgent} {
+	for _, kind := range []string{SetupStepWorkdir, SetupStepAgent} {
 		if first[kind].Status != SetupPending {
 			t.Errorf("%s: %q — a board nobody set up counts as set up", kind, first[kind].Status)
 		}
@@ -283,15 +283,15 @@ func TestAFilledRegistryOffersAnAnswerRatherThanBeingOne(t *testing.T) {
 	}
 
 	// Answering it for one board leaves the next one asking.
-	for _, kind := range []string{SetupStepProject, SetupStepAgent} {
+	for _, kind := range []string{SetupStepWorkdir, SetupStepAgent} {
 		if err := m.RecordSetupStep("board1", kind, SetupDone); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if got := byKind("board1")[SetupStepProject].Status; got != SetupDone {
+	if got := byKind("board1")[SetupStepWorkdir].Status; got != SetupDone {
 		t.Errorf("board1 project after answering: %q", got)
 	}
-	if got := byKind("board2")[SetupStepProject].Status; got != SetupPending {
+	if got := byKind("board2")[SetupStepWorkdir].Status; got != SetupPending {
 		t.Errorf("board2 project: %q — one board's answer stood in for another's", got)
 	}
 }
@@ -350,7 +350,7 @@ func TestABoardCanMakeAnOptionalStepRequired(t *testing.T) {
 }
 
 // Git is asked for by what a board does, not by which template it came from: a
-// board that publishes a branch or waits for one needs a project under git, and
+// board that publishes a branch or waits for one needs a folder under git, and
 // a board of personal tasks must take any folder — telling somebody to `git
 // init` their shopping list is telling them to learn git for a shopping list.
 func TestGitIsAskedForByWhatTheBoardDoes(t *testing.T) {
@@ -368,7 +368,7 @@ func TestGitIsAskedForByWhatTheBoardDoes(t *testing.T) {
 			Edges: []FlowEdge{{From: "agent", To: "done", On: TriggerSuccess}},
 		}},
 	}))
-	if got := requirementsOf(chores.SetupPlanFor("board1"), SetupStepProject); len(got) != 0 {
+	if got := requirementsOf(chores.SetupPlanFor("board1"), SetupStepWorkdir); len(got) != 0 {
 		t.Errorf("a board that only runs an agent asks for %v", got)
 	}
 
@@ -379,7 +379,7 @@ func TestGitIsAskedForByWhatTheBoardDoes(t *testing.T) {
 			{PropertyID: "p", OptionID: "o2", Property: "Status", Column: "Deploy", Action: FlowActionDeploy},
 		},
 	}))
-	if got := requirementsOf(deploying.SetupPlanFor("board1"), SetupStepProject); !containsString(got, SetupRequiresGit) {
+	if got := requirementsOf(deploying.SetupPlanFor("board1"), SetupStepWorkdir); !containsString(got, SetupRequiresGit) {
 		t.Errorf("a board that publishes asks for %v", got)
 	}
 
@@ -396,7 +396,7 @@ func TestGitIsAskedForByWhatTheBoardDoes(t *testing.T) {
 			Edges: []FlowEdge{{From: "agent", To: "done", On: TriggerBranchMerged}},
 		}},
 	}))
-	if got := requirementsOf(waiting.SetupPlanFor("board1"), SetupStepProject); !containsString(got, SetupRequiresGit) {
+	if got := requirementsOf(waiting.SetupPlanFor("board1"), SetupStepWorkdir); !containsString(got, SetupRequiresGit) {
 		t.Errorf("a board that waits for a branch asks for %v", got)
 	}
 }
@@ -418,7 +418,7 @@ func TestAnAnswerIsCheckedAgainstWhatItsStepRequires(t *testing.T) {
 	chores := setupManager(t, boardProps(t, BoardAutomation{
 		Columns: []ColumnSpec{{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "Агент готовит", Action: FlowActionAgent}},
 	}))
-	if err := chores.CheckSetupAnswer("board1", SetupStepProject, plain); err != nil {
+	if err := chores.CheckSetupAnswer("board1", SetupStepWorkdir, plain); err != nil {
 		t.Errorf("an ordinary folder was refused: %v", err)
 	}
 
@@ -428,10 +428,10 @@ func TestAnAnswerIsCheckedAgainstWhatItsStepRequires(t *testing.T) {
 			{PropertyID: "p", OptionID: "o2", Property: "Status", Column: "Deploy", Action: FlowActionDeploy},
 		},
 	}))
-	if err := deploying.CheckSetupAnswer("board1", SetupStepProject, plain); err == nil {
+	if err := deploying.CheckSetupAnswer("board1", SetupStepWorkdir, plain); err == nil {
 		t.Error("a board that publishes accepted a folder with no git in it")
 	}
-	if err := deploying.CheckSetupAnswer("board1", SetupStepProject, initTestProject(t)); err != nil {
+	if err := deploying.CheckSetupAnswer("board1", SetupStepWorkdir, initTestWorkdir(t)); err != nil {
 		t.Errorf("a git project was refused: %v", err)
 	}
 
@@ -448,7 +448,7 @@ func TestAnAnswerIsCheckedAgainstWhatItsStepRequires(t *testing.T) {
 // The bug this fixes: on a machine configured before boards were told apart,
 // the registry carries a deploy column and a test column that name no board at
 // all, and every board inherited them — so opening a board of household chores
-// demanded a git project for a folder of notes. A board is set up for what it
+// demanded a git folder for a folder of notes. A board is set up for what it
 // runs, not for what the machine happens to have lying about.
 func TestABoardIsNotAskedForWhatOnlyTheMachineHas(t *testing.T) {
 	chores := setupManager(t, boardProps(t, BoardAutomation{
@@ -465,7 +465,7 @@ func TestABoardIsNotAskedForWhatOnlyTheMachineHas(t *testing.T) {
 	}
 
 	plan := chores.SetupPlanFor("board1")
-	if got := requirementsOf(plan, SetupStepProject); len(got) != 0 {
+	if got := requirementsOf(plan, SetupStepWorkdir); len(got) != 0 {
 		t.Errorf("the board was asked for %v because the machine has a deploy column", got)
 	}
 	for _, s := range plan.Steps {
@@ -473,7 +473,7 @@ func TestABoardIsNotAskedForWhatOnlyTheMachineHas(t *testing.T) {
 			t.Errorf("the board is asked about %q, which nothing on it does", s.Kind)
 		}
 	}
-	if err := chores.CheckSetupAnswer("board1", SetupStepProject, t.TempDir()); err != nil {
+	if err := chores.CheckSetupAnswer("board1", SetupStepWorkdir, t.TempDir()); err != nil {
 		t.Errorf("an ordinary folder was refused: %v", err)
 	}
 
@@ -481,7 +481,7 @@ func TestABoardIsNotAskedForWhatOnlyTheMachineHas(t *testing.T) {
 	// has to be set up for.
 	plain := setupManager(t, nil)
 	plain.cfg.Columns = chores.cfg.Columns
-	if got := requirementsOf(plain.SetupPlanFor("board2"), SetupStepProject); !containsString(got, SetupRequiresGit) {
+	if got := requirementsOf(plain.SetupPlanFor("board2"), SetupStepWorkdir); !containsString(got, SetupRequiresGit) {
 		t.Errorf("a board run by the machine's own columns asks for %v", got)
 	}
 }

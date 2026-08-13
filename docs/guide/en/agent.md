@@ -32,7 +32,7 @@ starts by itself.
 
 - if a terminal for this card is already running, the same one opens, with its
   history;
-- if the card was worked before, the agent returns to the same worktree and
+- if the card was worked before, the agent returns to the same place and
   continues the conversation (`--continue`);
 - if there turned out to be nothing to continue — the terminal was opened last
   time and nothing was typed in it, so the CLI saved no conversation — the
@@ -56,11 +56,11 @@ reachable until its CLI exits. A conversation started before the route is
 continued by the first stage.
 
 There is no "Terminal" button if no agent is registered on the machine. The
-exception is a card that was already worked: it has a branch and a worktree, so
+exception is a card that was already worked: it has a branch of its own, so
 the button stays even after the agent is removed.
 
 **If no folder resolves, the panel asks.** A card can be talked over without
-code: wording, subtasks, a brief. When neither the «Проекты» field nor the
+code: wording, subtasks, a brief. When neither the «Папки» field nor the
 registry names a folder, the question "Which folder will the agent work in?"
 appears, and the answers are chips:
 
@@ -137,7 +137,7 @@ the card stays amber either way.
 ## Comments
 
 A session leaves one comment on the card, at the end: what the agent did or why
-it could not. The branch and the worktree are shown in the line under the card
+it could not. The branch and the directory are shown in the line under the card
 title, the position on the route — in the route strip. When you exit the
 terminal, it adds its report: which commits appeared and what was left
 uncommitted.

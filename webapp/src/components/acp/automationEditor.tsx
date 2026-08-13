@@ -656,7 +656,7 @@ const AutomationEditor = (props: Props) => {
 
                                     <Show when={props.worktrees === false && (specOf(node())?.agents || []).length > 1}>
                                         <div class='AutomationEditor__warning'>
-                                            {intl.formatMessage({id: 'Automation.no-worktrees', defaultMessage: 'worktreeMode is “never”, so two agents cannot work one project at the same time: the crew will take cards one after another.'})}
+                                            {intl.formatMessage({id: 'Automation.no-worktrees', defaultMessage: 'This board works on a branch in the folder itself, so two agents cannot work one repository at the same time: the crew will take cards one after another.'})}
                                         </div>
                                     </Show>
                                 </Show>
@@ -772,6 +772,29 @@ const AutomationEditor = (props: Props) => {
                                             means the column decides, which is
                                             why there is no explicit "as the
                                             column" row to untick into. */}
+                                        {/* Where the stage works. It matters for
+                                            a repository and nowhere else: a QA
+                                            stage in the card's own workspace
+                                            checks the work before anything is
+                                            merged, one in the folder checks
+                                            what is already published. The
+                                            default is what the action has
+                                            always done, so a route nobody
+                                            touches keeps working. */}
+                                        <label>
+                                            {intl.formatMessage({id: 'Automation.run-in', defaultMessage: 'The stage works'})}
+                                            <Select
+                                                value={node().runIn || ''}
+                                                options={[
+                                                    {value: '', label: intl.formatMessage({id: 'Automation.run-in-default', defaultMessage: '— as this kind of stage usually does —'})},
+                                                    {value: 'owner', label: intl.formatMessage({id: 'Automation.run-in-owner', defaultMessage: 'on the card’s own branch'})},
+                                                    {value: 'workdir', label: intl.formatMessage({id: 'Automation.run-in-workdir', defaultMessage: 'in the folder itself'})},
+                                                ]}
+                                                onChange={(runIn) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {runIn: runIn || undefined}))}
+                                                label={intl.formatMessage({id: 'Automation.run-in', defaultMessage: 'The stage works'})}
+                                            />
+                                        </label>
+
                                         <Show when={props.agents.length > 0}>
                                             <div class='AutomationEditor__crew'>
                                                 <span class='AutomationEditor__label'>
@@ -861,10 +884,10 @@ const AutomationEditor = (props: Props) => {
                                     </div>
                                 </Show>
                                 <label>
-                                    {intl.formatMessage({id: 'Automation.route-project', defaultMessage: 'Project (optional)'})}
+                                    {intl.formatMessage({id: 'Automation.route-project', defaultMessage: 'Folder (optional)'})}
                                     <input
                                         value={current().projectName || ''}
-                                        placeholder={intl.formatMessage({id: 'Automation.route-project-placeholder', defaultMessage: 'Cards of this project take this route'})}
+                                        placeholder={intl.formatMessage({id: 'Automation.route-project-placeholder', defaultMessage: 'Cards of this folder take this route'})}
                                         onChange={(e) => updateFlow(current().name, (f) => ({...f, projectName: e.currentTarget.value.trim()}))}
                                     />
                                 </label>

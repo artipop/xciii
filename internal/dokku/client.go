@@ -74,7 +74,7 @@ func New(t Target, project, branch string) (*Client, error) {
 		return nil, err
 	}
 	if t.BaseApp == "" {
-		return nil, fmt.Errorf("у цели не определено имя приложения: оно берётся из названия проекта, задайте его явно (baseApp)")
+		return nil, fmt.Errorf("у цели не определено имя приложения: оно берётся из названия папки, задайте его явно (baseApp)")
 	}
 	return &Client{Target: t, Project: project, Branch: strings.TrimSpace(branch)}, nil
 }
@@ -175,7 +175,7 @@ func (c *Client) Deploy(ctx context.Context, branch string) (Result, error) {
 		return Result{}, fmt.Errorf("не указана ветка для деплоя")
 	}
 	if c.Project == "" {
-		return Result{}, fmt.Errorf("не задан локальный проект")
+		return Result{}, fmt.Errorf("не задана локальная папка")
 	}
 	slug := AppSlug(branch)
 	app := c.Target.AppName(slug)
@@ -271,7 +271,7 @@ func CurrentBranch(ctx context.Context, run Runner, project string) (string, err
 	}
 	branch := strings.TrimSpace(out)
 	if branch == "" || branch == "HEAD" {
-		return "", fmt.Errorf("проект %s не на ветке (detached HEAD) — укажи ветку явно", project)
+		return "", fmt.Errorf("папка %s не на ветке (detached HEAD) — укажи ветку явно", project)
 	}
 	return branch, nil
 }

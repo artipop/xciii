@@ -74,7 +74,7 @@ func (m *Manager) RunInbox(ctx context.Context, run InboxRun) (string, error) {
 		Net:   net,
 		// No card and no board: comments and events check for these and do
 		// nothing, which is what a run nobody is watching should do.
-		ProjectPath: dir,
+		WorkdirPath: dir,
 		// Planning is "reads, does not write" — it is what keeps a worktree
 		// from being made for a session that has no repository to make one in.
 		Planning:   true,

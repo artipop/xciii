@@ -2,6 +2,7 @@ package acp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -40,7 +41,7 @@ type Session struct {
 	// branch is named after — and therefore what a preview address reads like.
 	Title       string
 	BoardID     string
-	ProjectPath string
+	WorkdirPath string
 	BaseBranch  string
 	PromptText  string
 	Agent       AgentEntry      // resolved agent (kind/bin/model/env/prompt)
@@ -75,20 +76,24 @@ type Session struct {
 	// outcome is then the event that moves the card on.
 	FlowName   string
 	FlowNodeID string
+	// RunIn is where this session works: the card's own workspace or the
+	// folder itself. The stage decides (FlowNode.RunsIn); a session outside a
+	// route leaves it empty and gets the default for what it is doing.
+	RunIn string
 
 	Worktree     WorktreeInfo
 	usedWorktree bool // a dedicated worktree was actually created
 
 	// Planning is a session with no card behind it: it exists only to talk
-	// through a task before one is created. It reads the project but never
-	// writes, so it neither takes the project lock nor reports to a card.
+	// through a task before one is created. It reads the folder but never
+	// writes, so it neither takes the folder lock nor reports to a card.
 	Planning bool
 	// Policy decides which tool calls run without asking. It is resolved once
 	// at start — planning is held read-only, an agent may carry its own list,
 	// otherwise the global one applies — so the rule cannot drift mid-session.
 	Policy ToolPolicy
 	// scratchDir is a throwaway working directory made for a session that has
-	// no project, removed when the session ends.
+	// no folder, removed when the session ends.
 	scratchDir string
 
 	mu            sync.Mutex
@@ -121,7 +126,7 @@ func (s *Session) Status() SessionStatus {
 }
 
 // recordedBranch is the branch the session is filed under: the worktree it
-// created, or — for a deploy session, which works in the project itself — the
+// created, or — for a deploy session, which works in the folder itself — the
 // branch it publishes.
 func (s *Session) recordedBranch() string {
 	switch {
@@ -247,7 +252,7 @@ func (m *Manager) runSession(s *Session) {
 	defer m.wg.Done()
 	// Deferred before releaseSession, so they run after it: the next stage of a
 	// flow, and the next card waiting for this column, must not race the
-	// finished session for the project or for its own place.
+	// finished session for the folder or for its own place.
 	defer m.drainColumn(s.ColumnKey)
 	defer m.flowAfterSession(s)
 	defer m.releaseSession(s)
@@ -257,8 +262,18 @@ func (m *Manager) runSession(s *Session) {
 		return
 	}
 
-	// 1. Working directory: a dedicated worktree, or the project itself.
+	// 1. Working directory: the card's own workspace, or the folder itself.
 	if err := m.prepareWorkdir(s); err != nil {
+		// A folder held by another card, or one with somebody's unsaved work in
+		// it, is not a failure of this card's task: it is true until the other
+		// card's branch is merged or the changes are saved, and then it is not.
+		// So it is state — the reason on the card — and never a comment or a
+		// failed stage that carries the card off to «Заблокировано».
+		if errors.Is(err, errWorkdirBusy) || errors.Is(err, errWorkdirDirty) {
+			m.finishSession(s, StatusCancelled, err.Error())
+			m.stallCard(s.CardID, s.FlowNodeID, err.Error())
+			return
+		}
 		m.finishSession(s, StatusFailed, err.Error())
 		m.comment(s, failComment(s, err.Error()))
 		return
@@ -289,29 +304,65 @@ func (m *Manager) runSession(s *Session) {
 // stamp the moment the worktree exists. The card is left for the two things
 // only it can carry: what the agent did, and why it could not.
 func (m *Manager) prepareWorkdir(s *Session) error {
-	// Three kinds of session run in the project itself even under
-	// worktreeMode "always": a planning session only reads, so a worktree would
-	// cost a checkout and leave a branch behind for a conversation that changes
-	// nothing; a deploy session publishes an existing branch rather than writing
-	// code, so a throwaway branch is not the one anybody deploys; and a test
-	// session only reads the code it is checking.
-	if m.cfg.UseWorktrees() && !s.Planning && s.Deploy == nil && s.Test == nil && IsGitProject(m.rootCtx, s.ProjectPath) {
-		wt, err := CreateWorktree(m.rootCtx, s.ProjectPath, s.BaseBranch, s.Title, s.CardID, s.ID, m.cfg.WorktreeDir)
-		if err != nil {
-			return fmt.Errorf("не удалось создать git worktree: %w", err)
-		}
-		s.Worktree = wt
-		s.usedWorktree = true
-		if err := m.store.UpdateSession(s.ID, StatusRunning, "", wt.Path, wt.Path, wt.Branch, "", nil); err != nil {
-			m.log.Warn("acp: failed to persist worktree info", "session", s.ID, "err", err)
-		}
-		// The card shows the branch and offers to deploy it, and this is the
-		// first moment it exists.
-		m.emitSession(s, "")
-		return nil
+	// A planning session only reads, so a branch of its own would be a branch
+	// left behind by a conversation that changed nothing. It is the one case
+	// nothing may override.
+	if s.Planning {
+		return m.workInTheFolderItself(s)
 	}
-	s.Worktree = WorktreeInfo{Path: s.ProjectPath, BaseRef: "HEAD"}
-	if err := m.store.UpdateSession(s.ID, StatusRunning, "", s.ProjectPath, "", s.recordedBranch(), "", nil); err != nil {
+	// Everything else works where its stage says. The defaults are what the
+	// code did before that was a question: an agent writes code and works in
+	// the card's own workspace; a deploy publishes a branch that already exists
+	// and a test drives a browser against something already published, so both
+	// stand in the folder itself. A route that wants QA on the card's own code
+	// before anything is merged says so on the stage.
+	runIn := s.RunIn
+	if runIn == "" {
+		runIn = FlowNode{}.RunsIn(sessionAction(s))
+	}
+	if runIn == RunInWorkdir {
+		return m.workInTheFolderItself(s)
+	}
+
+	ws, err := m.ClaimWorkspace(WorkSpec{
+		Workdir: s.WorkdirPath,
+		Owner:   s.CardID,
+		BoardID: s.BoardID,
+		Title:   s.Title,
+	})
+	if err != nil {
+		return err
+	}
+	if ws.Mode == WorkModePlain {
+		return m.workInTheFolderItself(s)
+	}
+
+	s.Worktree = WorktreeInfo{Path: ws.Cwd, Branch: ws.Branch, BaseRef: ws.Base}
+	s.usedWorktree = ws.Mode == WorkModeWorktree
+	if err := m.store.UpdateSession(s.ID, StatusRunning, "", ws.Cwd, ws.Cwd, ws.Branch, "", nil); err != nil {
+		m.log.Warn("acp: failed to persist workspace info", "session", s.ID, "err", err)
+	}
+	// The card shows the branch and offers to deploy it, and this is the
+	// first moment it exists.
+	m.emitSession(s, "")
+	return nil
+}
+
+// sessionAction is what this session is doing, in the vocabulary a stage uses.
+func sessionAction(s *Session) string {
+	switch {
+	case s.Deploy != nil:
+		return FlowActionDeploy
+	case s.Test != nil:
+		return FlowActionTest
+	default:
+		return FlowActionAgent
+	}
+}
+
+func (m *Manager) workInTheFolderItself(s *Session) error {
+	s.Worktree = WorktreeInfo{Path: s.WorkdirPath, BaseRef: "HEAD"}
+	if err := m.store.UpdateSession(s.ID, StatusRunning, "", s.WorkdirPath, "", s.recordedBranch(), "", nil); err != nil {
 		m.log.Warn("acp: failed to persist session cwd", "session", s.ID, "err", err)
 	}
 	return nil
@@ -323,14 +374,53 @@ func (m *Manager) cleanupWorktree(s *Session) {
 			m.log.Warn("acp: failed to remove planning scratch dir", "session", s.ID, "err", err)
 		}
 	}
-	if !s.usedWorktree || s.Status() == StatusDone || m.cfg.KeepFailedWorktrees {
+	if !s.usedWorktree {
 		return
 	}
-	if removed, err := RemoveWorktreeIfClean(context.Background(), s.ProjectPath, s.Worktree); err != nil {
+	// A copy somebody is sitting in is never touched: the terminal beside the
+	// card runs in this very directory, and a person watching an agent work is
+	// the last thing a tidy-up may interrupt.
+	if m.terminalLivesIn(s.Worktree.Path) {
+		return
+	}
+	if s.Status() == StatusDone {
+		// The work is done and committed: the branch is the product and stays,
+		// the copy is the workshop and can be put away — the next terminal on
+		// this card remakes it from the branch (heldWorkspace). A copy with
+		// anything uncommitted in it is left exactly where it is.
+		if folded, err := FoldWorktree(context.Background(), s.WorkdirPath, s.Worktree); err != nil {
+			m.log.Warn("acp: could not put the card's copy away", "session", s.ID, "err", err)
+		} else if folded {
+			s.Worktree.Path = ""
+		}
+		return
+	}
+	if m.cfg.KeepFailedWorktrees {
+		return
+	}
+	if removed, err := RemoveWorktreeIfClean(context.Background(), s.WorkdirPath, s.Worktree); err != nil {
 		m.log.Warn("acp: worktree cleanup failed", "session", s.ID, "err", err)
 	} else if removed {
+		m.ReleaseWorkspace(s.WorkdirPath, s.CardID)
 		s.Worktree = WorktreeInfo{}
 	}
+}
+
+// terminalLivesIn reports that a CLI is running in this directory.
+func (m *Manager) terminalLivesIn(dir string) bool {
+	if dir == "" {
+		return false
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	// The map holds the live ones: a terminal is taken out of it when its CLI
+	// exits (finishTerminal).
+	for _, t := range m.terminals {
+		if t.Cwd == dir {
+			return true
+		}
+	}
+	return false
 }
 
 // runCardTask runs the card's task, reports it and ends. There is no second
@@ -466,7 +556,7 @@ func (m *Manager) runTurn(s *Session, conn *acpsdk.ClientSideConnection, acpSess
 	// A cancel that arrived before this turn existed still applies to it: the
 	// card was dragged out of the column while the agent was starting up, and
 	// there was no turn to stop yet. Starting the work anyway would leave a
-	// session nobody asked for holding the project.
+	// session nobody asked for holding the folder.
 	pending := s.cancelPending
 	s.cancelPending = false
 	s.cancelSent = pending
@@ -783,15 +873,15 @@ func doneComment(s *Session, finalText string) string {
 		slug := dokku.AppSlug(s.DeployBranch)
 		fmt.Fprintf(&b, "Ветка: `%s`\nПриложение Dokku: `%s`\nАдрес: %s\n",
 			s.DeployBranch, s.Deploy.AppName(slug), s.Deploy.URL(slug))
-		fmt.Fprintf(&b, "Если агент правил файлы, изменения не закоммичены: `git -C %s diff`", s.ProjectPath)
+		fmt.Fprintf(&b, "Если агент правил файлы, изменения не закоммичены: `git -C %s diff`", s.WorkdirPath)
 		return b.String()
 	}
 	if s.usedWorktree {
 		fmt.Fprintf(&b, "Worktree: `%s`\nВетка: `%s`\n", s.Worktree.Path, s.Worktree.Branch)
 		fmt.Fprintf(&b, "Посмотреть дифф: `git -C %s diff %s`", s.Worktree.Path, s.Worktree.BaseRef)
 	} else {
-		fmt.Fprintf(&b, "Изменения не закоммичены и лежат в рабочей копии `%s`.\n", s.ProjectPath)
-		fmt.Fprintf(&b, "Посмотреть дифф: `git -C %s diff`", s.ProjectPath)
+		fmt.Fprintf(&b, "Изменения не закоммичены и лежат в рабочей копии `%s`.\n", s.WorkdirPath)
+		fmt.Fprintf(&b, "Посмотреть дифф: `git -C %s diff`", s.WorkdirPath)
 	}
 	return b.String()
 }

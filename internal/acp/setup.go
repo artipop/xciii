@@ -8,7 +8,7 @@ import (
 )
 
 // A board arrives knowing how the work on it is organised. What it cannot know
-// is the machine: which agent runs, in which project, where it publishes, what
+// is the machine: which agent runs, in which folder, where it publishes, what
 // it drives a browser with. The setup wizard asks for that — and *what* it asks
 // is the board's business, because a board of household chores has nowhere to
 // deploy to and nothing to test, and an unanswerable question reads as a broken
@@ -30,7 +30,7 @@ import (
 
 // Setup step kinds.
 const (
-	SetupStepProject = "project" // a folder on this machine an agent works in
+	SetupStepWorkdir = "project" // a folder on this machine an agent works in
 	SetupStepAgent   = "agent"   // the agent that picks a card up
 	SetupStepDeploy  = "deploy"  // a Dokku host to publish a branch to
 	SetupStepBrowser = "browser" // the MCP server a test session drives
@@ -56,7 +56,7 @@ const setupWizardStep = "wizard"
 // Setup requirements: what an answer to a step has to satisfy on this machine.
 // A closed set like the steps themselves, and derived from what the board's
 // automation actually does rather than named by anybody: a board that publishes
-// a branch or waits for one needs a project under git, and a board that does
+// a branch or waits for one needs a folder under git, and a board that does
 // neither must not be asked to make its folder of notes into a repository.
 const (
 	SetupRequiresGit = "git"
@@ -77,9 +77,9 @@ type SetupStepDef struct {
 
 // SetupStepDefs is the closed set, in the order a wizard walks them. The order
 // is the order the work needs them in: an agent has nowhere to work without a
-// project, and neither publishing nor testing means anything without an agent.
+// folder, and neither publishing nor testing means anything without an agent.
 var SetupStepDefs = []SetupStepDef{
-	{Kind: SetupStepProject, Registry: "projects"},
+	{Kind: SetupStepWorkdir, Registry: "projects"},
 	{Kind: SetupStepAgent, Registry: "agents"},
 	{Kind: SetupStepDeploy, Registry: "deploys", Optional: true},
 	{Kind: SetupStepBrowser, Registry: "agentMCP", Optional: true},
@@ -229,7 +229,7 @@ func (m *Manager) boardSetupSources(boardID string) (BoardSetup, []ColumnSpec, [
 	// machine-wide entries (the ones migrated from the old config keys, which
 	// name no board at all) are deliberately not read here: they describe a
 	// board that deploys and tests, and reading them made every board ask for a
-	// project under git, including one whose whole job is a shopping list.
+	// folder under git, including one whose whole job is a shopping list.
 	columns, flows := m.boardOwnAutomation(boardID)
 
 	var declared BoardSetup
@@ -287,7 +287,7 @@ func (m *Manager) boardOwnAutomation(boardID string) ([]ColumnSpec, []FlowEntry)
 // that cannot work without it: publishing a branch, and any transition that
 // waits for one.
 func setupRequirements(kind string, columns []ColumnSpec, flows []FlowEntry) []string {
-	if kind != SetupStepProject {
+	if kind != SetupStepWorkdir {
 		return nil
 	}
 	for _, c := range columns {
@@ -302,7 +302,7 @@ func setupRequirements(kind string, columns []ColumnSpec, flows []FlowEntry) []s
 			}
 		}
 		for _, e := range f.Edges {
-			// A trigger the watcher polls a project for — a merged branch, a
+			// A trigger the watcher polls a folder for — a merged branch, a
 			// pull request, a check — has nothing to watch without git.
 			if t, ok := Trigger(e.On); ok && t.Source != SourceOutcome {
 				return []string{SetupRequiresGit}
@@ -325,7 +325,7 @@ func (m *Manager) CheckSetupAnswer(boardID, step, value string) error {
 			continue
 		}
 		for _, req := range s.Requires {
-			if req == SetupRequiresGit && !IsGitProject(m.rootCtx, value) {
+			if req == SetupRequiresGit && !IsGitWorkdir(m.rootCtx, value) {
 				return fmt.Errorf("в каталоге %s нет git-репозитория, а этой доске он нужен: она публикует ветку или ждёт её — выполните `git init` или выберите другой каталог", value)
 			}
 		}
@@ -410,7 +410,7 @@ func impliedSetup(columns []ColumnSpec, flows []FlowEntry) []BoardSetupStep {
 			actions[n.Action] = true
 		}
 	}
-	steps := []BoardSetupStep{{Kind: SetupStepProject}, {Kind: SetupStepAgent}}
+	steps := []BoardSetupStep{{Kind: SetupStepWorkdir}, {Kind: SetupStepAgent}}
 	blank := len(columns) == 0 && len(flows) == 0
 	if blank || actions[FlowActionDeploy] {
 		steps = append(steps, BoardSetupStep{Kind: SetupStepDeploy})
@@ -435,7 +435,7 @@ func (m *Manager) setupStatus(def SetupStepDef, states map[string]string) string
 }
 
 // registryFilled says the machine can already answer this step — there is a
-// project, an agent, somewhere to deploy to, a browser. It is deliberately not
+// folder, an agent, somewhere to deploy to, a browser. It is deliberately not
 // the same as the step being *answered*: setting up one board must not mark the
 // next one set up, or every board after the first is created in silence, which
 // is what this used to do. The wizard shows it as "already registered" and lets
@@ -452,7 +452,7 @@ func (m *Manager) registryFilled(registry string) bool {
 	defer m.cfgMu.RUnlock()
 	switch registry {
 	case "projects":
-		return len(m.cfg.Projects) > 0
+		return len(m.cfg.Workdirs) > 0
 	case "agents":
 		return len(m.cfg.Agents) > 0
 	case "deploys":

@@ -98,7 +98,7 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
             anyWindow.go = {main: {App: {
                 ListAgents: vi.fn(),
                 ListDeployTargets: vi.fn(),
-                ListAgentProjects: vi.fn(),
+                ListAgentWorkdirs: vi.fn(),
                 ListFlows: vi.fn(),
                 ListSources: vi.fn().mockResolvedValue('[]'),
                 ExportBoardAutomation: vi.fn(),

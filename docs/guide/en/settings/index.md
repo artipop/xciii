@@ -74,7 +74,7 @@ Close the app before editing the file: it reads the file at startup.
 | `testTimeoutMinutes` | how long one test run may take (30) |
 | `sessionIdleMinutes` | how long a session waits between turns (30) |
 | `autoAllowTools` | which tools an agent may use without asking. A session started by a card has nobody to ask, so anything not on the list is refused for it |
-| `worktreeMode` | `always` — a git worktree of its own per session, `never` — one card of a project at a time. The "Other" section shows which it is |
+| `worktreeMode` | what to do in a repository on a board that was never asked: `always` — a copy of its own per card, `never` — a branch in the folder itself. The board's own answer (board menu → "How this board works…" → Folders) wins — see [Folders and branches](../folders.md) |
 | `artifactsDir` | where screenshots and reports of test runs are kept |
 
 Columns and routes are not in this file: the automation lives on the board

@@ -133,7 +133,7 @@ describe('components/viewHeader/newCardButton', () => {
             anyWindow.go = {main: {App: {
                 OpenPlanningTerminal: vi.fn(),
                 ListTerminals: vi.fn().mockResolvedValue('[]'),
-                ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+                ListAgentWorkdirs: vi.fn().mockResolvedValue('[]'),
                 ListAgents: vi.fn().mockResolvedValue('[]'),
             }}}
             openMenu()

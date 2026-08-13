@@ -270,14 +270,10 @@ func migratedColumns(cfg Config) []ColumnSpec {
 // card waits for a free member instead of taking its failure branch.
 var errStageBusy = errors.New("состав колонки занят")
 
-// WorktreeMode is where sessions run: "always" — each in its own git worktree,
-// "never" — directly in the project. It decides whether a column's crew can
-// work in parallel at all, which is why the editor asks.
-func (m *Manager) WorktreeMode() string {
-	m.cfgMu.RLock()
-	defer m.cfgMu.RUnlock()
-	if m.cfg.UseWorktrees() {
-		return "always"
-	}
-	return "never"
+// WorkModeOfBoard is how this board works in a repository — WorkModeWorktree
+// (a copy per card) or WorkModeBranch (a branch in the folder itself). It
+// decides whether a column's crew can work in parallel at all, which is why the
+// editor asks.
+func (m *Manager) WorkModeOfBoard(boardID string) string {
+	return m.BoardGitPolicy(boardID).Mode
 }

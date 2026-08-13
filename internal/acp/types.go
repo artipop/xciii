@@ -61,6 +61,16 @@ type BoardWriter interface {
 	// column it stands in. Alone among the writes here it is *not* silent — see
 	// CardEdit for why.
 	UpdateCard(ctx context.Context, cardID string, edit CardEdit) error
+	// SetCardText writes one text property of a card, by id. Silent, like every
+	// other write the machine makes about its own bookkeeping: this is how the
+	// branch a card's work is on gets onto the card, where it survives the card
+	// being carried to another board — or another machine — and where a deploy
+	// reads it before anything of ours.
+	//
+	// By id and never by name, because the name is the board's to choose: the
+	// board records which property this is (BoardPropBranch), and a board that
+	// records none has no field to keep truthful, which is not an error.
+	SetCardText(ctx context.Context, cardID, propertyID, value string) error
 }
 
 // NewCard is a card asked for from outside the board — by an agent through the
@@ -76,10 +86,10 @@ type NewCard struct {
 	// for without one lands wherever a card with no column lands.
 	Property string
 	Column   string
-	// Options are the card's other select values by option name — a project, an
+	// Options are the card's other select values by option name — a folder, an
 	// agent, a route. Which property each belongs to is the board's business,
 	// not the caller's: that is already how a card is read back (CardMoved
-	// carries OptionNames, and project/agent/flow resolution matches against
+	// carries OptionNames, and folder/agent/flow resolution matches against
 	// them without caring which property they came from).
 	Options []string
 }
@@ -104,7 +114,7 @@ type CardEdit struct {
 	// config names it rather than by option id.
 	Property string
 	Column   string
-	// Options are the card's other select values by option name — a project, a
+	// Options are the card's other select values by option name — a folder, a
 	// route, the answer a stage is waiting for. Which property each belongs to
 	// is the board's business, as it is for NewCard.
 	Options []string

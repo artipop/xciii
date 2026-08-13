@@ -16,7 +16,7 @@ const anyWindow = window as any
 
 function planningBindings() {
     return {
-        ListAgentProjects: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app', path: '/src/app'}])),
+        ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app', path: '/src/app'}])),
         ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'planner', kind: 'claude'}])),
         OpenPlanningTerminal: vi.fn().mockResolvedValue(JSON.stringify({
             id: 'term-1', url: 'http://127.0.0.1:1234/acp/terminal/term-1', windowed: true,

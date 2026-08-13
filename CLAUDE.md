@@ -92,7 +92,7 @@ installers are native-tool jobs (AppImage shells out to `ldd`, NSIS is `makensis
 
 ## Architecture
 
-Eight ideas hold this together. Read them before changing anything structural.
+Nine ideas hold this together. Read them before changing anything structural.
 
 ### The front door owns the origin
 
@@ -434,6 +434,73 @@ Folders belong to **running an agent**, not to having a board: a board with no
 `agent`/`test` column is never asked for one, never grows a «Папки» property,
 and a folder marked global joins only boards that already have that property.
 
+### A folder hands out a workspace, and the card owns it
+
+`internal/acp/workdirs.go` is the registry — named folders on this machine, one
+of which a card names in its «Папки» field. The code calls them working
+directories (`WorkdirEntry`), the screen calls them папки, and neither ever
+calls them projects again: a folder of household notes is not a project, and
+the word made every board of shopping lists look like it was missing one. The
+keys in `config.json` (`projects`), on the board (`xciiiProjectProperty`) and on
+a card (`project_path`, `repo_path`) keep their old spelling, because they are
+other people's stored data.
+
+**A repository is an ordinary folder with a superpower, not a second kind of
+thing.** One registry, one adder, one list: in «Обсудить с агентом» and in «В
+какой папке будет работать агент?» the repositories stand among the plain
+folders, marked and nothing else (`folderChoices.tsx`). What a folder *is* is
+asked of git every time it is listed (`WorkdirStatus`), never remembered — `git
+init` in a folder added last month makes it a repository and the registry hears
+nothing. `Kind` records only a declaration: the setup step of a board that
+publishes a branch demands a repository (`SetupRequiresGit`), and answering it
+with a folder that has no git is refused where the answer is given.
+
+**A branch appears because somebody took the folder to work on a card, not
+because the folder is a repository.** `workspace.go` is the one entry point —
+`ClaimWorkspace(WorkSpec)` — and who asks does not change the answer: the
+session, the terminal beside it and the next stage of the route all get the same
+directory and the same branch, because a workspace belongs to the **owner** (the
+card id, or `board:<id>` for a conversation with no card) rather than to the
+run. Each run used to make its own, so a card that travelled a three-stage route
+left three branches and three checkouts, and the conversation about a card sat
+in a copy the agent working on it never saw. A conversation with no card gets
+the folder itself and creates nothing.
+
+Two ways to work in a repository, and the **board** chooses (`xciiiGit`, a
+`GitPolicy`): `worktree` — a copy and a branch per card, several cards of one
+repository at once; `branch` — a branch in the folder itself, one card at a
+time, the person's own checkout moving with it. There is no third answer for a
+repository, because "work on whatever is checked out" is what an ordinary folder
+already does. The choice is the board's because it decides what the board's
+routes can be made of — QA before a merge needs a copy per card — while
+`worktreeDir` and `keepFailedWorktrees` stay in `config.json`, being about this
+machine's disk. `worktreeMode` survives as the default for a board that has
+never been asked (`always`→worktree, `never`→branch).
+
+`branch` mode is the one that can refuse: the folder is held by one card
+(`workdir_claim`) until its branch is merged, and it will not switch under
+somebody's uncommitted work. Both refusals are **state, not failure** —
+`errWorkdirBusy`/`errWorkdirDirty` become the card's stall reason and the route
+keeps its place, instead of the card being carried off to «Заблокировано» by
+something that is not about the work. A merge is what frees the folder
+(`ReleaseMergedBranch`, from the VCS watcher); picking the next card up
+automatically is deliberately not built (`docs/deferred.md`).
+
+**The branch is the product, the copy is the workshop.** After a stage finishes
+the directory is folded away (`FoldWorktree`) and the branch stays; the next
+terminal on that card remakes the copy from the branch, which is what makes
+folding it safe — and it never touches a copy with uncommitted work in it or one
+a CLI is still running in. The branch is also written onto the card, into the
+text property the board records as `xciiiBranchProperty`: a machine's database
+does not travel, and the card does — to another board (`MoveCardToBoard`) or
+another machine. The path is not written, because a path means nothing there.
+
+Where a stage works is the stage's own answer (`FlowNode.RunIn`, `RunsIn`),
+defaulting to what that kind of stage has always done: an agent in the card's
+workspace, a deploy and a test in the folder itself. That field is the whole of
+"QA before the merge" — a test stage told to run in the card's workspace, and an
+edge waiting for «ветка влита» after it.
+
 ### An agent talks back through MCP, not through its output
 
 Everything above is us talking to an agent. `internal/boardmcp` is the way back:
@@ -711,8 +778,11 @@ reloading on its own, since the recap arrives mid-turn, while it is open.
 
 It is deliberately not an ACP session: an ACP agent speaks JSON-RPC on stdio and has
 no terminal UI, so one process cannot be both. What the two share is everything
-around them — repository, worktree, branch, the agent entry's env and proxy — and
-that is what `startTerminal` reuses. Which binary is the interactive half of a kind
+around them — the card's workspace (its directory and its branch, claimed the
+same way a session claims it), the agent entry's env and proxy — and that is
+what `startTerminal` reuses. It used to make a copy of its own, which is how a
+person ended up talking about a card in a checkout the agent working on it never
+saw. Which binary is the interactive half of a kind
 is a column in the same table that knows the adapters (`cliBin`: `claude-agent-acp`
 → `claude`); `terminalCommand` on an entry replaces the argv outright.
 
@@ -720,7 +790,7 @@ The card still hears about it, once: a comment when the CLI exits, saying what i
 left on the branch. Opening the terminal is not commented — it is on the card, in
 front of whoever opened it. Terminals outlive the panel and the window and
 resume — every one is recorded, so the next terminal on that card returns to the
-same worktree with `claude --continue`.
+card's own workspace with `claude --continue`.
 
 **Our record of a terminal is not the CLI's own history, so a refused resume
 opens a new conversation rather than a dead window** (`restartFresh`). A terminal

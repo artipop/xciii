@@ -24,6 +24,11 @@ export type FlowNode = {
     agentNames?: string[]
     deployName?: string
 
+    // Where the stage works: 'owner' — the card's own workspace, so it sees the
+    // card's branch; 'workdir' — the folder itself. Empty is the default for
+    // what the stage does (Go's FlowNode.RunsIn).
+    runIn?: string
+
     // Where the stage was left on the canvas. Absent means "lay it out for me".
     x?: number
     y?: number
@@ -305,11 +310,28 @@ export const BOARD_PROP_SETUP = 'xciiiSetup'
 // anything that rebuilds a board's properties has to leave it alone.
 export const BOARD_PROP_PROMPT = 'xciiiPrompt'
 
-// Which card property holds the projects, by id. A name would have been a
+// How this board works in a folder that is a repository — a copy per card, or
+// a branch in the folder itself. Nothing here writes it either (GetBoardGit/
+// SetBoardGit), and it is named for the same reason the prompt is: a template
+// carries it, and a save must leave it alone.
+export const BOARD_PROP_GIT = 'xciiiGit'
+
+// Which card property holds the folders, by id. A name would have been a
 // worse answer twice over: the field is a person's to rename, and the name
 // this app gives it is Russian, so a board in any other language could only
 // ever have been matched by luck.
 export const BOARD_PROP_PROJECT_PROPERTY = 'xciiiProjectProperty'
+
+// And which one holds the branch a card's work is on, by id for the same
+// reason. Go writes into it (workspace.go); the page is what creates it,
+// because the board's card properties are the page's to patch.
+export const BOARD_PROP_BRANCH_PROPERTY = 'xciiiBranchProperty'
+
+// boardBranchProperty is the id of that field, or '' for a board without one.
+export function boardBranchProperty(board: {properties?: Record<string, unknown>}): string {
+    const recorded = board.properties?.[BOARD_PROP_BRANCH_PROPERTY]
+    return typeof recorded === 'string' ? recorded : ''
+}
 
 // What these keys were called before. Every board made until now carries them,
 // so they are read; they are never written, and a save drops them (see

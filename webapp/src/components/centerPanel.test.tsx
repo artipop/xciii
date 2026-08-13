@@ -159,7 +159,7 @@ describe('components/centerPanel', () => {
                     return Promise.resolve()
                 }),
                 RecordBoardSetupStep: vi.fn().mockResolvedValue(undefined),
-                ListAgentProjects: vi.fn().mockResolvedValue('[]'),
+                ListAgentWorkdirs: vi.fn().mockResolvedValue('[]'),
                 ListAgents: vi.fn().mockResolvedValue('[]'),
             }}}
         }
@@ -188,7 +188,7 @@ describe('components/centerPanel', () => {
         test('opens by itself for a board that has not been through it', async () => {
             stubPlan([{kind: 'project', optional: false, status: 'pending'}, {kind: 'done', optional: false, status: 'done'}])
             renderPanel()
-            await waitFor(() => expect(screen.getByText('Set up this board: Project')).toBeInTheDocument())
+            await waitFor(() => expect(screen.getByText('Set up this board: Folder')).toBeInTheDocument())
         })
 
         // Closing it half-way is an answer to "have you seen this?", not to any
@@ -202,13 +202,13 @@ describe('components/centerPanel', () => {
         test('does not open twice, and nothing nags afterwards', async () => {
             stubPlan([{kind: 'project', optional: false, status: 'pending'}, {kind: 'done', optional: false, status: 'done'}])
             const first = renderPanel()
-            await waitFor(() => expect(screen.getByText('Set up this board: Project')).toBeInTheDocument())
+            await waitFor(() => expect(screen.getByText('Set up this board: Folder')).toBeInTheDocument())
             await waitFor(() => expect(anyWindow.go.main.App.MarkBoardSetupOffered).toHaveBeenCalledWith(setupBoard.id))
             first.unmount()
 
             localStorage.clear()
             renderPanel()
-            await waitFor(() => expect(screen.queryByText('Set up this board: Project')).toBeNull())
+            await waitFor(() => expect(screen.queryByText('Set up this board: Folder')).toBeNull())
             expect(screen.queryByText('This board is not set up yet')).toBeNull()
         })
 
@@ -216,10 +216,10 @@ describe('components/centerPanel', () => {
         test('leaving through «Разберусь сам» closes the wizard', async () => {
             stubPlan([{kind: 'project', optional: false, status: 'pending'}, {kind: 'done', optional: false, status: 'done'}])
             renderPanel()
-            await waitFor(() => expect(screen.getByText('Set up this board: Project')).toBeInTheDocument())
+            await waitFor(() => expect(screen.getByText('Set up this board: Folder')).toBeInTheDocument())
 
             screen.getByText('I’ll find my way around').click()
-            await waitFor(() => expect(screen.queryByText('Set up this board: Project')).toBeNull())
+            await waitFor(() => expect(screen.queryByText('Set up this board: Folder')).toBeNull())
         })
     })
     test('should match snapshot for Kanban, not shared', () => {
