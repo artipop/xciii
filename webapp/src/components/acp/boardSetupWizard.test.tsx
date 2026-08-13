@@ -1,4 +1,4 @@
-import {render, screen, waitFor} from '@solidjs/testing-library'
+import {fireEvent, render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -114,6 +114,31 @@ describe('components/acp/boardSetupWizard', () => {
 
         // And having added it, the wizard is on the agent step.
         await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
+    })
+
+    // The name is filled in from the folder, so changing the folder has to
+    // refill it: a second choice registered under the first one's name is a
+    // folder nobody can find by what it is called.
+    test('picking another folder renames it with it, unless the name was typed', async () => {
+        const bindings = stubBindings({
+            PickDirectory: vi.fn().
+                mockResolvedValueOnce('/Users/me/src/webapp').
+                mockResolvedValueOnce('/Users/me/src/server').
+                mockResolvedValue('/Users/me/src/mobile'),
+        })
+        renderWizard()
+        await waitFor(() => expect(bindings.ListAgentWorkdirs).toHaveBeenCalled())
+
+        userEvent.click(screen.getByRole('button', {name: 'Choose a folder…'}))
+        await waitFor(() => expect(screen.getByDisplayValue('webapp')).toBeInTheDocument())
+
+        userEvent.click(screen.getByRole('button', {name: 'Choose a folder…'}))
+        await waitFor(() => expect(screen.getByDisplayValue('server')).toBeInTheDocument())
+
+        // A name somebody typed is theirs and survives the next pick.
+        fireEvent.input(screen.getByDisplayValue('server'), {target: {value: 'мой сервер'}})
+        userEvent.click(screen.getByRole('button', {name: 'Choose a folder…'}))
+        await waitFor(() => expect(screen.getByDisplayValue('мой сервер')).toBeInTheDocument())
     })
 
     test('a refusal from Go is shown rather than swallowed', async () => {

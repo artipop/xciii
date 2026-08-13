@@ -104,6 +104,7 @@ const BoardSetupWizard = (props: Props) => {
     // Step 1: a folder.
     const [workdirPath, setWorkdirPath] = createSignal('')
     const [workdirName, setWorkdirName] = createSignal('')
+    const basename = (path: string) => path.split('/').filter(Boolean).pop() || ''
 
     // Step 2: another agent, on a step that already has one.
     const [addingAgent, setAddingAgent] = createSignal(false)
@@ -189,8 +190,14 @@ const BoardSetupWizard = (props: Props) => {
         try {
             const picked = await bindings.PickDirectory(intl.formatMessage({id: 'BoardSetup.pick-folder', defaultMessage: 'Choose a folder'}))
             if (picked) {
+                // The name follows the folder while nobody has typed one: it
+                // was filled in from the last pick, so picking again must
+                // refill it — a second choice with the first one's name is a
+                // folder registered under the wrong word. A name somebody
+                // actually typed is theirs and survives the change.
+                const previous = basename(workdirPath())
+                setWorkdirName((current) => (!current || current === previous ? basename(picked) : current))
                 setWorkdirPath(picked)
-                setWorkdirName((current) => current || picked.split('/').filter(Boolean).pop() || '')
             }
         } catch (e) {
             setError(String(e))

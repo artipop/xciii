@@ -419,11 +419,6 @@ const AutomationDialog = (props: Props) => {
                             {intl.formatMessage({id: 'Workdirs.title', defaultMessage: 'Folders'})}
                         </summary>
                         <Show when={showWorkdirs()}>
-                            <WorkdirsPanel
-                                board={props.board}
-                                onChange={refreshPlan}
-                            />
-
                             {/* Asked inside the folders, because it is about
                                 them: the two answers are what «работать в этой
                                 папке» can mean when the folder is a repository.
@@ -456,6 +451,11 @@ const AutomationDialog = (props: Props) => {
                                     </For>
                                 </div>
                             </div>
+                            <WorkdirsPanel
+                                board={props.board}
+                                onChange={refreshPlan}
+                            />
+
                         </Show>
                     </details>
                 </Show>

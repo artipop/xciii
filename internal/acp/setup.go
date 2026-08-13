@@ -212,13 +212,36 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 		plan.Steps = append(plan.Steps, SetupStep{
 			Kind:     def.Kind,
 			Optional: optional,
-			Hint:     strings.TrimSpace(step.Hint),
+			Hint:     currentHint(step.Hint),
 			Status:   m.setupStatus(def, states),
 			Ready:    def.Registry != "" && m.registryFilled(def.Registry),
 			Requires: setupRequirements(def.Kind, columns, flows),
 		})
 	}
 	return plan
+}
+
+// retiredHints are sentences the templates shipped and no longer say. A board
+// made from a template carries its own copy of them, so a wording fixed in the
+// template would go on being wrong on every board already made — and this is
+// the app's own sentence, not a person's, exactly as the name of a field this
+// app creates is. Matched whole, so a hint somebody edited is theirs and stays.
+//
+// Deletable once boards made before the wording changed are gone; each entry
+// says what it was fixing.
+var retiredHints = map[string]string{
+	// Said what the machinery does («в отдельном worktree»), and how a
+	// repository is worked in is now the board's own answer rather than a fact
+	// about the step. What the step needs to know is what to point at.
+	"Репозиторий с кодом: агент работает в отдельном worktree и оставляет ветку.": "Папка с файлами по проекту или git-репозиторий",
+}
+
+func currentHint(hint string) string {
+	hint = strings.TrimSpace(hint)
+	if current, ok := retiredHints[hint]; ok {
+		return current
+	}
+	return hint
 }
 
 // boardSetupSources reads the three properties a template writes: what it asks
