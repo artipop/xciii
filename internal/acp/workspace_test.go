@@ -138,17 +138,35 @@ func TestABranchInTheFolderIsHeldUntilItIsMerged(t *testing.T) {
 	}
 }
 
-// Somebody's unsaved work is never switched out from under them.
-func TestABranchIsRefusedInADirtyFolder(t *testing.T) {
+// Somebody's unsaved work is never switched out from under them — but an
+// untracked file is not that: git carries it across a branch switch untouched,
+// and every real checkout has one (a build directory, a scratch clone, an
+// .env). Counting them meant a repository with a single untracked folder in it
+// could never start a card.
+func TestABranchIsRefusedOnlyForUnsavedTrackedWork(t *testing.T) {
 	m, repo := workspaceManager(t)
 	if _, err := m.SetWorkdirMode("code", "board1", WorkModeBranch); err != nil {
 		t.Fatal(err)
 	}
+
 	if err := os.WriteFile(filepath.Join(repo, "notes.txt"), []byte("half a thought\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	if _, err := m.ClaimWorkspace(WorkSpec{Workdir: repo, Owner: "card-1", BoardID: "board1", Title: "Задача"}); err != nil {
+		t.Fatalf("an untracked file stopped the card: %v", err)
+	}
 
-	_, err := m.ClaimWorkspace(WorkSpec{Workdir: repo, Owner: "card-1", BoardID: "board1", Title: "Задача"})
+	// A tracked file with unsaved changes in it is the real case, and it does
+	// stop: the switch would carry them onto the card's branch. Its own folder,
+	// because the first one is held by the card that just took it.
+	other, repo2 := workspaceManager(t)
+	if _, err := other.SetWorkdirMode("code", "board1", WorkModeBranch); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(repo2, "README.md"), []byte("half a thought\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, err := other.ClaimWorkspace(WorkSpec{Workdir: repo2, Owner: "card-2", BoardID: "board1", Title: "Вторая"})
 	if !errors.Is(err, errWorkdirDirty) {
 		t.Fatalf("got %v, want the folder's unsaved changes to stop it", err)
 	}

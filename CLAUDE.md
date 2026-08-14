@@ -577,7 +577,9 @@ once, and the key taken off it (`moveGitPolicyToWorkdirs`).
 
 `branch` mode is the one that can refuse: the folder is held by one card
 (`workdir_claim`) until its branch is merged, and it will not switch under
-somebody's uncommitted work. Both refusals are **state, not failure** —
+somebody's uncommitted work — tracked work, since untracked files survive a
+switch untouched and every checkout has some. Both refusals are **state, not
+failure** —
 `errWorkdirBusy`/`errWorkdirDirty` become the card's stall reason and the route
 keeps its place, instead of the card being carried off to «Заблокировано» by
 something that is not about the work. A merge is what frees the folder

@@ -54,8 +54,10 @@ repository and its own branch in it.
   another directory;
 - one card at a time: until the first card's branch is merged, the next one
   waits and says on its strip what it is waiting for;
-- if the folder has uncommitted changes, the agent will not start: the app will
-  not switch a branch under your unsaved work. Commit or stash it.
+- if the folder has **uncommitted changes to tracked files**, the agent will not
+  start: the app will not switch a branch under your unsaved work. Commit or
+  stash it. Untracked files — a build directory, an `.env`, a scratch clone —
+  do not get in the way: they survive a branch switch untouched.
 
 There is no third answer for a repository: "work on whatever is checked out" is
 what an ordinary folder already does.

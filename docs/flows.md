@@ -250,7 +250,8 @@ What becomes of the copy:
 In «в самой папке» the folder is **held** by one card until its branch is merged.
 A second card does not fail — its route strip says the folder is held and what
 will free it — and a folder with somebody's uncommitted work in it is never
-switched under them.
+switched under them. Uncommitted *tracked* work, that is: untracked files
+survive a branch switch untouched, and every real checkout has some.
 
 A **planning** session always runs in the folder itself: it changes nothing, so a
 branch of its own would be a branch left behind by a conversation. A **deploy**
@@ -451,7 +452,7 @@ adapters have no such channel.
 | "Агент не запускается" | Somebody is assigned to the card |
 | "Колонка занята" | The crew is busy or the limit is reached; it starts by itself later |
 | "папка занята другой карточкой" | The board works on a branch in the folder itself and another card holds it until its branch is merged |
-| "в папке есть несохранённые изменения" | The same, with your own uncommitted work in the way: commit or stash it |
+| "в папке есть несохранённые изменения" | The same, with your own uncommitted changes to tracked files in the way: commit or stash them (untracked files are fine) |
 | "не задан ни project_path…" | The card matched no folder: check the **Папки** field against the registry |
 | Card never leaves *In Review* | Nobody is watching its branch — see [which branch is followed](#which-branch-is-followed), or the route has no edge for what happened |
 | Test stage refuses to start | The agent working the test column has no browser MCP server: the wizard's QA step gives one to the agent it crews the column with, or set it by hand (*«Эта машина…» → «Агенты»* → MCP servers) |

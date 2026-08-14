@@ -142,11 +142,22 @@ func SwitchToBranch(ctx context.Context, workdir, branch, baseBranch string) (Wo
 	return WorktreeInfo{Path: workdir, Branch: branch, BaseRef: baseRef}, nil
 }
 
-// WorkdirIsClean reports that nothing is uncommitted in the folder. Asked
-// before the folder's own checkout is moved: switching under somebody's
+// WorkdirIsClean reports that nothing *tracked* is uncommitted in the folder.
+// Asked before the folder's own checkout is moved: switching under somebody's
 // unsaved work is the one thing this must never do.
+//
+// Untracked files are deliberately not unsaved work here. Git carries them
+// across a branch switch untouched, so refusing on them refuses for something
+// that cannot be lost — and every real checkout has some: a build directory, a
+// scratch clone, a `.env`. It counted them once and a repository with a single
+// untracked folder in it could never start a card.
+//
+// The one case untracked files do break — a file the target branch tracks under
+// the same name — is git's own refusal, and it arrives as the error from the
+// switch, which says exactly which file. That is a better message than any
+// guess made here.
 func WorkdirIsClean(ctx context.Context, workdir string) (bool, error) {
-	out, err := gitCmd(ctx, workdir, "status", "--porcelain")
+	out, err := gitCmd(ctx, workdir, "status", "--porcelain", "--untracked-files=no")
 	if err != nil {
 		return false, err
 	}
