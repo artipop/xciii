@@ -387,19 +387,23 @@ in, and gave one set of routes two places to be edited — the second of them a
 copy nobody was looking at. `docs/templates.md` is that half written for
 somebody using it.
 
-**What an agent is told first is three texts, and each lives where its owner
-does** (`internal/acp/boardprompts.go`, `BoardBrief`). The board's own —
-`boardPrompts`, on the board as `xciiiPrompt` — goes to everybody working here.
-The agent's own — `AgentEntry.Prompt`, in the registry — holds on every board
-this machine has. And what *this board* says to *that agent* —
-`boardAgentPrompts`, on the board as `xciiiAgentPrompts`, keyed by the agent's
-registry name — is what a crew of two doing different jobs needed and had
-nowhere to be told: «клаус пишет тесты, кодекс только ревьюит». `lead()` puts
-them in that order, widest first, so the narrowest is the one still in front of
-the model when two of them disagree; every session and the planning terminal
-take the same lead. Two of the three travel with the board, which is why they
-are on it and not only in `config.json`, and an agent this machine has no entry
-for keeps its text rather than having it dropped on the way through.
+**What an agent is told first is two texts, and there are two because there are
+two owners** (`internal/acp/boardprompts.go`). The board's — `boardPrompts`, on
+the board as `xciiiPrompt`, so it travels with it — goes to everybody working
+here, and is «Системный промпт доски…» in the board's ⋯ menu. The agent's own —
+`AgentEntry.Prompt`, in the registry — holds on every board this machine has,
+and is «Настройки → Агенты». `promptLead` puts them in that order in front of
+whatever the caller appends, which is the one place four call sites used to
+write the same two blocks by hand.
+
+**A third was built and taken out again**, and the reason is the rule rather
+than the feature: a text per (board, agent) is the only one of them that
+belongs to no single thing a person can point at — a cell of a table, not a
+setting of the board or of the agent — and a person cannot reason about what an
+agent was told if the layers outnumber the nouns on screen. What a *folder*
+wants said is already said in the folder, in the `AGENTS.md` its own CLI reads,
+and what one card wants said is the card. So the dialog prints the order it
+composes, and the count it prints is two.
 
 And a board's automation **lives on the board** — `xciiiColumns`/`xciiiFlows` in the
 board's own properties, in the board database, which is why a live board and a

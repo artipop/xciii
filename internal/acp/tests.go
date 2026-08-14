@@ -99,8 +99,8 @@ func cardPreviewURL(ev CardMoved) string {
 // composeTestPrompt builds the task text of a test session: the same brief
 // every session gets, then the tester instructions, then the concrete
 // facts — what to open and what the card asked for, which is the scenario.
-func composeTestPrompt(ev CardMoved, agent AgentEntry, brief BoardBrief, testPrompt string, run TestRun) string {
-	b := []byte(brief.lead(agent))
+func composeTestPrompt(ev CardMoved, agent AgentEntry, systemPrompt, testPrompt string, run TestRun) string {
+	b := []byte(promptLead(systemPrompt, agent))
 	if p := strings.TrimSpace(testPrompt); p != "" {
 		b = fmt.Appendf(b, "%s\n\n", p)
 	} else {

@@ -91,10 +91,8 @@ export interface IAppWindow extends Window {
                 RemoveFlow(boardId: string, name: string): Promise<void>
                 ExportBoardAutomation?(boardId: string): Promise<string>
 
-                // What this board tells its agents: JSON of {board, agents},
-                // the board's own text and one per agent name.
-                GetBoardPrompts?(boardId: string): Promise<string>
-                SetBoardPrompts?(boardId: string, briefJson: string): Promise<void>
+                GetBoardPrompt?(boardId: string): Promise<string>
+                SetBoardPrompt?(boardId: string, text: string): Promise<void>
                 GetPlanningPrompt?(): Promise<string>
                 SetPlanningPrompt?(text: string): Promise<void>
 

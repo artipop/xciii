@@ -5,47 +5,25 @@ import (
 	"testing"
 )
 
-// A board's crew can be told different things: what the board says to
-// everybody, and what it says to one agent. Both reach the agent, and the one
-// about this agent on this board comes last — it answers the smallest question,
-// so it must be the one still in front of the model.
-func TestWhatABoardTellsOneAgentComesAfterWhatItTellsThemAll(t *testing.T) {
-	brief := BoardBrief{
-		Board:  "Отвечай по-русски.",
-		Agents: map[string]string{"клаус": "Пиши тесты к каждому изменению.", "кодекс": "Только ревью, код не правь."},
-	}
-	agent := AgentEntry{Name: "клаус", Prompt: "Ты работаешь в проекте Shop."}
+// Two prompts reach an agent and no more: the board's, which every agent
+// working here is told, and the agent's own, which it carries onto every board.
+// The order is the one the dialog and the guide print, so what a person reads
+// is what the agent gets.
+func TestAnAgentIsToldTheBoardsWordsThenItsOwn(t *testing.T) {
+	lead := promptLead("Отвечай по-русски.", AgentEntry{Name: "клаус", Prompt: "Ты работаешь в проекте Shop."})
 
-	lead := brief.lead(agent)
-	for _, want := range []string{"Отвечай по-русски.", "Ты работаешь в проекте Shop.", "Пиши тесты к каждому изменению."} {
-		if !strings.Contains(lead, want) {
-			t.Fatalf("the agent was not told %q:\n%s", want, lead)
-		}
+	if !strings.Contains(lead, "Отвечай по-русски.") || !strings.Contains(lead, "Ты работаешь в проекте Shop.") {
+		t.Fatalf("something was left out:\n%s", lead)
 	}
-	if strings.Index(lead, "Ты работаешь") > strings.Index(lead, "Пиши тесты") {
-		t.Errorf("the board's words for this agent came before the agent's own:\n%s", lead)
-	}
-
-	// What the board keeps for the other agent is the other agent's business.
-	if strings.Contains(lead, "Только ревью") {
-		t.Errorf("one agent was told what the board says to another:\n%s", lead)
-	}
-
-	// An agent the board says nothing about still gets the board's own words.
-	plain := brief.lead(AgentEntry{Name: "джуни"})
-	if !strings.Contains(plain, "Отвечай по-русски.") || strings.Contains(plain, "Пиши тесты") {
-		t.Errorf("an unbriefed agent got:\n%s", plain)
+	if strings.Index(lead, "Отвечай") > strings.Index(lead, "Ты работаешь") {
+		t.Errorf("the agent's own prompt came before the board's:\n%s", lead)
 	}
 }
 
-// Blank is the same as unsaid, in both halves: a board whose text was cleared
-// keeps no key, so nothing about it survives to be handed back.
-func TestABlankBriefKeepsNothing(t *testing.T) {
-	brief := BoardBrief{Board: "   ", Agents: map[string]string{"клаус": "  ", "": "нечей"}}.trimmed()
-	if !brief.empty() {
-		t.Fatalf("blanks were kept: %+v", brief)
-	}
-	if lead := brief.lead(AgentEntry{Name: "клаус"}); lead != "" {
-		t.Errorf("an empty brief said %q", lead)
+// Blank is the same as unsaid: a board that says nothing adds nothing, and the
+// task text starts where it would have started anyway.
+func TestNothingSaidAddsNothing(t *testing.T) {
+	if lead := promptLead("   ", AgentEntry{Name: "клаус"}); lead != "" {
+		t.Errorf("an empty board and a bare agent led with %q", lead)
 	}
 }

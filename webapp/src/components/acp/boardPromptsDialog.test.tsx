@@ -11,11 +11,10 @@ const anyWindow = window as any
 
 const board: Board = {...createBoard(), id: 'board-1'}
 
-function stubBindings(brief: unknown = {}) {
+function stubBindings(stored = '') {
     const bindings = {
-        GetBoardPrompts: vi.fn().mockResolvedValue(JSON.stringify(brief)),
-        SetBoardPrompts: vi.fn().mockResolvedValue(undefined),
-        ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'кодекс'}])),
+        GetBoardPrompt: vi.fn().mockResolvedValue(stored),
+        SetBoardPrompt: vi.fn().mockResolvedValue(undefined),
     }
     anyWindow.go = {main: {App: bindings}}
     return bindings
@@ -36,36 +35,24 @@ describe('components/acp/boardPromptsDialog', () => {
         vi.clearAllMocks()
     })
 
-    // The board's own words and the words it keeps for one agent are two
-    // answers, and both are saved in one go — it is one screen and one Save.
-    test('saves what the board says to everybody and to one agent', async () => {
-        const bindings = stubBindings({board: 'Отвечай по-русски.'})
+    test('opens on what the board says and saves what was typed', async () => {
+        const bindings = stubBindings('Отвечай по-русски.')
         open()
 
-        const shared = await screen.findByRole('textbox', {name: 'To every agent of this board'})
-        expect(shared).toHaveValue('Отвечай по-русски.')
-
-        userEvent.click(await screen.findByText('кодекс'))
-        const mine = await screen.findByRole('textbox', {name: 'кодекс'})
-        fireEvent.input(mine, {target: {value: 'Только ревью, код не правь.'}})
+        const box = await screen.findByRole('textbox', {name: 'The board’s system prompt'})
+        expect(box).toHaveValue('Отвечай по-русски.')
+        fireEvent.input(box, {target: {value: 'Отвечай по-русски. Тесты обязательны.'}})
 
         userEvent.click(screen.getByRole('button', {name: 'Save'}))
-        await waitFor(() => expect(bindings.SetBoardPrompts).toHaveBeenCalled())
-        const [boardId, payload] = bindings.SetBoardPrompts.mock.calls[0]
-        expect(boardId).toBe('board-1')
-        expect(JSON.parse(payload)).toEqual({
-            board: 'Отвечай по-русски.',
-            agents: {'кодекс': 'Только ревью, код не правь.'},
-        })
+        await waitFor(() => expect(bindings.SetBoardPrompt).toHaveBeenCalledWith('board-1', 'Отвечай по-русски. Тесты обязательны.'))
     })
 
-    // An agent this machine has no entry for is still listed when the board
-    // carries words for it: the text came with the board, and dropping it would
-    // be this machine quietly undoing what another machine set up.
-    test('lists an agent the board names but this machine has not got', async () => {
-        stubBindings({agents: {'джуни': 'Только документация.'}})
+    // There are two prompts, and which one this is only means something beside
+    // where the other lives and which of them the agent reads first.
+    test('says what else the agent is given, and in what order', async () => {
+        stubBindings()
         open()
 
-        expect(await screen.findByText('джуни — set')).toBeInTheDocument()
+        expect(await screen.findByText(/then its own prompt from "Settings → Agents"/)).toBeInTheDocument()
     })
 })

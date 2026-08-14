@@ -542,7 +542,7 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 		// card's terminal already does with its card: the CLI is not ready for
 		// input when it starts, so the terminal page offers it as a button
 		// rather than typing it in.
-		task:        planningPrompt(m.BoardBriefOf(boardID), m.PlanningPrompt(), agent, project),
+		task:        planningPrompt(m.BoardPrompt(boardID), m.PlanningPrompt(), agent, project),
 		workdirPath: project.Path,
 		agent:       agent,
 	})

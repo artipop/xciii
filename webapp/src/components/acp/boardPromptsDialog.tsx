@@ -1,6 +1,6 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import {For, Show, createSignal, onMount} from 'solid-js'
+import {Show, createSignal, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
@@ -9,7 +9,6 @@ import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
 import {agentBindings} from './bindings'
-import PromptField from './promptField'
 
 import './boardPromptsDialog.scss'
 
@@ -22,19 +21,15 @@ import './boardPromptsDialog.scss'
 // nobody scrolls to. The board's ⋯ menu asks each of the board's questions in
 // its own item («Папки…», «Куда деплоить…»), and this is one of them.
 //
-// Two layers, because they answer two questions: the board's own text goes to
-// every agent working here, and each agent may be given a text of its own for
-// this board — «клаус пишет тесты, кодекс только ревьюит». What an agent is
-// like on *every* board is a third thing and stays in the registry
-// («Настройки → Агенты»), where the agent itself is.
+// There are exactly two prompts and the screen says so. This one is the
+// board's; the other is the agent's own, in «Настройки → Агенты», and it holds
+// on every board this machine has. A third — a text per (board, agent) — was
+// built and taken out again: it is the only one of them that belongs to no
+// single thing a person can point at, and what a folder wants said is already
+// said in the folder, by the AGENTS.md its CLI reads.
 
 export function isBoardPromptsAvailable(): boolean {
-    return Boolean(agentBindings()?.GetBoardPrompts)
-}
-
-type Brief = {
-    board?: string
-    agents?: Record<string, string>
+    return Boolean(agentBindings()?.GetBoardPrompt)
 }
 
 type Props = {
@@ -46,53 +41,28 @@ const BoardPromptsDialog = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
 
-    const [board, setBoard] = createSignal('')
-    const [agents, setAgents] = createSignal<Record<string, string>>({})
-    const [names, setNames] = createSignal<string[]>([])
+    const [prompt, setPrompt] = createSignal('')
     const [error, setError] = createSignal('')
     const [saving, setSaving] = createSignal(false)
 
     onMount(async () => {
         try {
-            if (bindings?.GetBoardPrompts) {
-                const brief: Brief = JSON.parse(await bindings.GetBoardPrompts(props.board.id)) || {}
-                setBoard(brief.board || '')
-                setAgents(brief.agents || {})
-            }
-            if (bindings?.ListAgents) {
-                const registered: Array<{name: string}> = JSON.parse(await bindings.ListAgents()) || []
-                setNames(registered.map((a) => a.name))
+            if (bindings?.GetBoardPrompt) {
+                setPrompt(await bindings.GetBoardPrompt(props.board.id))
             }
         } catch (e) {
             setError(String(e))
         }
     })
 
-    // An agent the board has something to say to but this machine has no entry
-    // for is still listed: the text came with the board, and hiding it would be
-    // this machine quietly dropping what another machine set up.
-    const listed = () => {
-        const all = [...names()]
-        for (const name of Object.keys(agents())) {
-            if (!all.includes(name)) {
-                all.push(name)
-            }
-        }
-        return all
-    }
-
-    const setAgentText = (name: string, text: string) => {
-        setAgents({...agents(), [name]: text})
-    }
-
     const save = async () => {
-        if (!bindings?.SetBoardPrompts) {
+        if (!bindings?.SetBoardPrompt) {
             return
         }
         setError('')
         setSaving(true)
         try {
-            await bindings.SetBoardPrompts(props.board.id, JSON.stringify({board: board(), agents: agents()}))
+            await bindings.SetBoardPrompt(props.board.id, prompt())
             props.onClose()
         } catch (e) {
             setError(String(e))
@@ -109,46 +79,21 @@ const BoardPromptsDialog = (props: Props) => {
             onClose={props.onClose}
         >
             <div class='BoardPromptsDialog__content'>
-                <label class='BoardPromptsDialog__board'>
-                    {intl.formatMessage({id: 'BoardPrompts.board', defaultMessage: 'To every agent of this board'})}
-                    <textarea
-                        rows={6}
-                        value={board()}
-                        placeholder={intl.formatMessage({id: 'BoardPrompts.board-placeholder', defaultMessage: 'What this board is about, and how work is done on it'})}
-                        onInput={(e) => setBoard(e.currentTarget.value)}
-                    />
-                </label>
+                <textarea
+                    rows={10}
+                    value={prompt()}
+                    aria-label={intl.formatMessage({id: 'BoardPrompts.title', defaultMessage: 'The board’s system prompt'})}
+                    placeholder={intl.formatMessage({id: 'BoardPrompts.placeholder', defaultMessage: 'What this board is about, and how work is done on it'})}
+                    onInput={(e) => setPrompt(e.currentTarget.value)}
+                />
 
-                <div class='BoardPromptsDialog__agents'>
-                    <div class='BoardPromptsDialog__sectionTitle'>
-                        {intl.formatMessage({id: 'BoardPrompts.agents', defaultMessage: 'To one agent, on this board'})}
-                    </div>
-                    <Show
-                        when={listed().length > 0}
-                        fallback={
-                            <p class='BoardPromptsDialog__hint'>
-                                {intl.formatMessage({id: 'BoardPrompts.no-agents', defaultMessage: 'No agents registered yet — "Settings → Agents".'})}
-                            </p>
-                        }
-                    >
-                        <p class='BoardPromptsDialog__hint'>
-                            {intl.formatMessage({id: 'BoardPrompts.agents-hint', defaultMessage: 'Added after the text above and after the agent’s own prompt, which holds on every board. This one is about this board only.'})}
-                        </p>
-                        <For each={listed()}>
-                            {(name) => (
-                                <PromptField
-                                    label={agents()[name]?.trim() ?
-                                        intl.formatMessage({id: 'BoardPrompts.agent-set', defaultMessage: '{name} — set'}, {name}) :
-                                        name}
-                                    value={agents()[name] || ''}
-                                    rows={5}
-                                    placeholder={intl.formatMessage({id: 'BoardPrompts.agent-placeholder', defaultMessage: 'What this agent does on this board'})}
-                                    onInput={(text) => setAgentText(name, text)}
-                                />
-                            )}
-                        </For>
-                    </Show>
-                </div>
+                {/* The order, printed. An agent is given three texts and a
+                    person can only reason about that if the screen says which
+                    ones and in what order — the whole reason the third prompt
+                    this dialog once had is not here. */}
+                <p class='BoardPromptsDialog__hint'>
+                    {intl.formatMessage({id: 'BoardPrompts.order', defaultMessage: 'The agent is given this text, then its own prompt from "Settings → Agents" — which holds on every board — and then the card’s task.'})}
+                </p>
 
                 <div class='BoardPromptsDialog__actions'>
                     <Button

@@ -162,7 +162,7 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
                 ListFlows: vi.fn(),
                 ListSources: vi.fn().mockResolvedValue('[]'),
                 ExportBoardAutomation: vi.fn(),
-                GetBoardPrompts: vi.fn().mockResolvedValue('{}'),
+                GetBoardPrompt: vi.fn().mockResolvedValue(''),
                 BoardSetupPlan: vi.fn().mockResolvedValue(JSON.stringify({
                     steps: [
                         {kind: 'project', optional: false, status: 'pending'},
