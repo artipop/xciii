@@ -147,7 +147,7 @@ describe('components/settings/updatesPanel', () => {
         anyWindow.go = {main: {App: bindings({
             status: 'error',
             errorStage: 'check',
-            error: 'updater: all providers failed: dial tcp: lookup updates.deffun.com: no such host',
+            error: 'updater: all providers failed: dial tcp: lookup updates.deffun.org: no such host',
         })}}
 
         open()

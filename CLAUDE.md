@@ -1055,7 +1055,7 @@ key authenticates it. `wails3 updater manifest` in CI is the whole publishing
 side.
 
 **The address is the part that cannot be taken back.** `updateManifestURL` is
-`https://updates.deffun.com/stable.json`, a domain of ours rather than a
+`https://updates.deffun.org/stable.json`, a domain of ours rather than a
 release page on somebody's platform, because every copy already installed asks
 there and nowhere else: where the *files* are kept is a decision that can be
 revisited every release, and that one line cannot. So the manifest sits at one

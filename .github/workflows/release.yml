@@ -207,7 +207,7 @@ jobs:
           merge-multiple: true
 
       # Both numbers come out of the source. The base URL is read from the same
-      # constant the running app asks — `https://updates.deffun.com/stable.json`
+      # constant the running app asks — `https://updates.deffun.org/stable.json`
       # minus its last segment — so the address the release is published under
       # and the address an installed copy looks at cannot drift apart.
       - name: Work out the version and the release address

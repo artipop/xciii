@@ -63,7 +63,7 @@ var updaterPublicKey []byte
 // It is also the only place the release address is written down: the workflow
 // reads the prefix out of this constant to build the artifact URLs, so the app
 // and the release cannot come to disagree about where a release lives.
-const updateManifestURL = "https://updates.deffun.com/stable.json"
+const updateManifestURL = "https://updates.deffun.org/stable.json"
 
 // updateCheckInterval is our own timer rather than updater.Config.CheckInterval.
 // Init may be called once and StopPeriodicCheck cannot be undone, so the
@@ -163,7 +163,7 @@ type updateState struct {
 	LastCheckedAt  string `json:"lastCheckedAt,omitempty"`
 
 	// Error is what went wrong, verbatim and in the framework's English:
-	// "dial tcp: lookup updates.deffun.com: no such host". ErrorStage is which
+	// "dial tcp: lookup updates.deffun.org: no such host". ErrorStage is which
 	// step it went wrong at (check | download | verify | install), and it is
 	// there because the panel says the actionable half itself, in the reader's
 	// language — the verbatim text stays underneath it, in small print, since
