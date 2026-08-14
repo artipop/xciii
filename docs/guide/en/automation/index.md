@@ -99,20 +99,24 @@ offers a button to add it.
 A card without a route is still served by the columns, but does not move on its
 own.
 
-## What else is in this window
+## What is set elsewhere
 
-- **"Projects"** — folders on your machine where this board's agents work; a
-  card picks its folder with the "Projects" field;
-- **"Where to deploy"** — deploy targets: the Dokku host, the SSH user and
-  key, the preview domain. The section only appears on a board that has a
-  deploy column — a board that deploys nothing has no use for it. Of the
-  shipped templates only **«Разработка»** has one: a board made from it
-  arrives with the «Деплой» column and the section is there at once; any
-  other board grows it the moment you give a column the "deploy the card’s
-  branch" action. The targets themselves are shared by the whole machine: one
-  added here is visible to any other deploying board;
-- **"What every agent on this board is told first"** — the board's instruction,
-  added before the card description.
+The board's other questions are their own items in the board menu (⋯ in the
+header), and which of them a board has depends on the template it was made
+from:
+
+- **"The board's system prompt…"** — what is said first to every agent of this
+  board, and what is said to one of them in particular (see
+  [The board's system prompt](./prompt.md));
+- **"Folders…"** — folders on your machine where this board's agents work, and
+  how one that is a repository is worked in (see [Folders and branches](../folders.md));
+- **"Where to deploy…"** — deploy targets: the Dokku host, the SSH user and
+  key, the preview domain. The item is only on a board that asks about
+  deploying — of the shipped templates that is «Разработка». The targets
+  themselves are shared by the whole machine: one added here is visible to any
+  other deploying board;
+- **"Walk the setup again…"** — the same questions the board asked when it was
+  first opened.
 
 ## Saving
 

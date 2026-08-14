@@ -1,0 +1,95 @@
+@import '../../styles/typography';
+
+// A form, so an ordinary dialog: one box that is the whole point of the screen,
+// and a fold per agent under it.
+.BoardPromptsDialog {
+    &.dialog-back .dialog {
+        max-width: 680px;
+        width: min(680px, 94vw);
+    }
+
+    .BoardPromptsDialog__content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        // Inset like the other board dialogs; content flush with the edge reads
+        // as content cut off by it.
+        padding: 4px 24px 24px;
+    }
+
+    .BoardPromptsDialog__board {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        @include label;
+
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    // Same recipe as PromptField's box: instructions are written by a person
+    // and read by a machine, and they carry paths, names and tool ids.
+    textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: var(--radius-sm);
+        background: rgb(var(--surface-bg-rgb));
+        color: rgba(var(--center-channel-color-rgb), 1);
+        font-family: var(--font-mono);
+        font-size: 12px;
+        line-height: 1.5;
+        resize: vertical;
+    }
+
+    .BoardPromptsDialog__agents {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: var(--radius-sm);
+    }
+
+    // An agent's name is a word a person chose, so the fold that carries it is
+    // prose: the dialog's own rules put text in the label voice, and «клаус»
+    // in tracked caps reads as a constant rather than as somebody's agent.
+    .PromptField > summary {
+        @include prose;
+
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    .BoardPromptsDialog__sectionTitle {
+        @include label;
+
+        font-size: 13px;
+        color: rgba(var(--center-channel-color-rgb), 1);
+    }
+
+    // A hint is somebody explaining, so it is prose: the dialog's own rules put
+    // text in the label voice, and a sentence in tracked caps is a sentence
+    // nobody reads.
+    .BoardPromptsDialog__hint {
+        @include prose;
+
+        margin: 0;
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .BoardPromptsDialog__actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .BoardPromptsDialog__error {
+        white-space: pre-wrap;
+        color: rgb(var(--error-text-rgb));
+        font-size: 12px;
+    }
+}

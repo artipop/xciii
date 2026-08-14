@@ -134,7 +134,7 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
         // A board that asks for nothing is offered nothing: the setup steps in
         // the menu are this board's own, not a fixed list.
         test('a board with no setup questions is offered none of them', () => {
-            for (const gone of ['Folders…', 'Where to deploy…', 'Walk the setup again…']) {
+            for (const gone of ['Folders…', 'Where to deploy…', 'Walk the setup again…', 'The board’s system prompt…']) {
                 expect(screen.queryByRole('button', {name: gone})).toBeNull()
             }
         })
@@ -162,9 +162,11 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
                 ListFlows: vi.fn(),
                 ListSources: vi.fn().mockResolvedValue('[]'),
                 ExportBoardAutomation: vi.fn(),
+                GetBoardPrompts: vi.fn().mockResolvedValue('{}'),
                 BoardSetupPlan: vi.fn().mockResolvedValue(JSON.stringify({
                     steps: [
                         {kind: 'project', optional: false, status: 'pending'},
+                        {kind: 'agent', optional: false, status: 'pending'},
                         {kind: 'deploy', optional: true, status: 'pending'},
                     ],
                 })),
@@ -189,6 +191,12 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
         test('the folders and the deploy targets are each their own item', async () => {
             await waitFor(() => expect(screen.getByRole('button', {name: 'Folders…'})).toBeInTheDocument())
             expect(screen.getByRole('button', {name: 'Where to deploy…'})).toBeInTheDocument()
+        })
+
+        // What the board's agents are told first is the board's own answer
+        // too, and it was a fold at the bottom of the route canvas.
+        test('and so is what the board tells its agents', async () => {
+            await waitFor(() => expect(screen.getByRole('button', {name: 'The board’s system prompt…'})).toBeInTheDocument())
         })
 
         // The way back to the questions, which used to be a button at the

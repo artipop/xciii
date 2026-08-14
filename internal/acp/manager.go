@@ -379,14 +379,14 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	}
 
 	m.cfgMu.RLock()
-	systemPrompt, deployPrompt, testPrompt := m.cfg.BoardPrompts[ev.BoardID], m.cfg.DeployPrompt, m.cfg.TestPrompt
+	brief, deployPrompt, testPrompt := m.boardBriefLocked(ev.BoardID), m.cfg.DeployPrompt, m.cfg.TestPrompt
 	m.cfgMu.RUnlock()
-	prompt := composePrompt(ev, agent, systemPrompt, worktreeAvailable)
+	prompt := composePrompt(ev, agent, brief, worktreeAvailable)
 	switch {
 	case deploy != nil:
-		prompt = composeDeployPrompt(ev, agent, systemPrompt, deployPrompt, *deploy, deployBranch)
+		prompt = composeDeployPrompt(ev, agent, brief, deployPrompt, *deploy, deployBranch)
 	case test != nil:
-		prompt = composeTestPrompt(ev, agent, systemPrompt, testPrompt, *test)
+		prompt = composeTestPrompt(ev, agent, brief, testPrompt, *test)
 	}
 	// The tools of the deploy server are allowed up front: nobody is watching a
 	// card-triggered run, and an unanswered prompt is a rejected one. Seeding
@@ -767,21 +767,16 @@ func resolveArgv0(argv []string) []string {
 }
 
 // planningPrompt is what a planning terminal is opened with: the board's system
-// prompt, the agent's own, the planning instructions a person can edit, and the
-// one fact nobody should have to type — which folder the CLI is standing in.
+// prompt, the agent's own, what the board says to that agent, the planning
+// instructions a person can edit, and the one fact nobody should have to type —
+// which folder the CLI is standing in.
 //
 // It reaches the CLI as the terminal's task text, pasted by the button on the
 // terminal page, rather than as an argv flag: what a CLI is told at startup is
 // its own business (terminalCommand says why), and this is the same road a
 // card's task already travels.
-func planningPrompt(systemPrompt, planning string, agent AgentEntry, workdir WorkdirEntry) string {
-	var b []byte
-	if p := strings.TrimSpace(systemPrompt); p != "" {
-		b = fmt.Appendf(b, "%s\n\n", p)
-	}
-	if p := strings.TrimSpace(agent.Prompt); p != "" {
-		b = fmt.Appendf(b, "%s\n\n", p)
-	}
+func planningPrompt(brief BoardBrief, planning string, agent AgentEntry, workdir WorkdirEntry) string {
+	b := []byte(brief.lead(agent))
 	if p := strings.TrimSpace(planning); p == "" {
 		b = fmt.Appendf(b, "%s\n\n", DefaultPlanningPrompt)
 	} else {
@@ -791,17 +786,11 @@ func planningPrompt(systemPrompt, planning string, agent AgentEntry, workdir Wor
 	return string(b)
 }
 
-// composePrompt builds the agent task text from the card. The final prompt is
-// the board/column system prompt, then the agent's own system prompt, then the
-// card task.
-func composePrompt(ev CardMoved, agent AgentEntry, systemPrompt string, useWorktree bool) string {
-	var b []byte
-	if p := strings.TrimSpace(systemPrompt); p != "" {
-		b = fmt.Appendf(b, "%s\n\n", p)
-	}
-	if p := strings.TrimSpace(agent.Prompt); p != "" {
-		b = fmt.Appendf(b, "%s\n\n", p)
-	}
+// composePrompt builds the agent task text from the card: what the board says
+// (BoardBrief.lead — the board's own words, the agent's own, and the board's
+// for this agent), then the card task.
+func composePrompt(ev CardMoved, agent AgentEntry, brief BoardBrief, useWorktree bool) string {
+	b := []byte(brief.lead(agent))
 	b = fmt.Appendf(b, "Задача: %s\n", ev.Title)
 	if ev.Body != "" {
 		b = fmt.Appendf(b, "\n%s\n", ev.Body)
@@ -814,17 +803,11 @@ func composePrompt(ev CardMoved, agent AgentEntry, systemPrompt string, useWorkt
 	return string(b)
 }
 
-// composeDeployPrompt builds the task text of a deploy session: the same system
-// prompts an ordinary task gets, then the deploy instructions, then the concrete
+// composeDeployPrompt builds the task text of a deploy session: the same brief
+// an ordinary task gets, then the deploy instructions, then the concrete
 // facts — which branch goes where, and what the resulting address should be.
-func composeDeployPrompt(ev CardMoved, agent AgentEntry, systemPrompt, deployPrompt string, target DeployEntry, branch string) string {
-	var b []byte
-	if p := strings.TrimSpace(systemPrompt); p != "" {
-		b = fmt.Appendf(b, "%s\n\n", p)
-	}
-	if p := strings.TrimSpace(agent.Prompt); p != "" {
-		b = fmt.Appendf(b, "%s\n\n", p)
-	}
+func composeDeployPrompt(ev CardMoved, agent AgentEntry, brief BoardBrief, deployPrompt string, target DeployEntry, branch string) string {
+	b := []byte(brief.lead(agent))
 	if p := strings.TrimSpace(deployPrompt); p != "" {
 		b = fmt.Appendf(b, "%s\n\n", p)
 	} else {

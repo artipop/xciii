@@ -15,7 +15,6 @@ import AutomationEditor from './automationEditor'
 import AgentQuickAdd from './agentQuickAdd'
 import {isAgentsAvailable} from './agentsPanel'
 import {syncAgentsToBoard} from './agentSync'
-import PromptField from './promptField'
 import {StageCount} from './flowDiagram'
 import {
     Automation,
@@ -84,11 +83,6 @@ const AutomationDialog = (props: Props) => {
     const [error, setError] = createSignal('')
     const [dirty, setDirty] = createSignal(false)
 
-    // What every session of this board is told first. It is registry state like
-    // the columns, so it is saved with them rather than on its own.
-    const [prompt, setPrompt] = createSignal('')
-    const [savedPrompt, setSavedPrompt] = createSignal('')
-
     const [addingAgent, setAddingAgent] = createSignal(false)
 
     const columns = (): BoardColumn[] => boardColumns(props.board, property()?.name)
@@ -128,11 +122,6 @@ const AutomationDialog = (props: Props) => {
             if (bindings.GetBoardFlowOverview) {
                 const overview: FlowOverview[] = JSON.parse(await bindings.GetBoardFlowOverview(props.board.id)) || []
                 setCounts(Object.fromEntries(overview.map((o) => [o.flow, o.stages])))
-            }
-            if (bindings.GetBoardPrompt) {
-                const stored = await bindings.GetBoardPrompt(props.board.id)
-                setPrompt(stored)
-                setSavedPrompt(stored)
             }
         } catch (e) {
             setError(String(e))
@@ -257,10 +246,6 @@ const AutomationDialog = (props: Props) => {
         }
         /* eslint-enable no-await-in-loop */
 
-        if (bindings.SetBoardPrompt && prompt() !== savedPrompt()) {
-            await attempt(() => bindings.SetBoardPrompt!(props.board.id, prompt()))
-        }
-
         // Whatever happened, the registry is now the truth — reloading is what
         // shows which half of a refused save did land.
         await refresh()
@@ -272,7 +257,7 @@ const AutomationDialog = (props: Props) => {
         props.onClose()
     }
 
-    const unsaved = () => dirty() || prompt() !== savedPrompt()
+    const unsaved = () => dirty()
 
     // A shipped route is offered only when this board has every column it
     // names: a route drawn over columns that are not there is not a start, it
@@ -335,21 +320,6 @@ const AutomationDialog = (props: Props) => {
                                 <Button onClick={() => takeReady(flow)}>{flow.name}</Button>
                             )}
                         </For>
-                    </div>
-                </Show>
-
-                {/* What the agents of this board are told before anything
-                    else. Per board, because the board is what the instruction
-                    is about — one text shared by the household board and the
-                    code board was one nobody could write anything useful in. */}
-                <Show when={Boolean(bindings?.GetBoardPrompt)}>
-                    <div class='AutomationDialog__prompt'>
-                        <PromptField
-                            label={intl.formatMessage({id: 'Automation.board-prompt', defaultMessage: 'What every agent on this board is told first'})}
-                            value={prompt()}
-                            rows={6}
-                            onInput={setPrompt}
-                        />
                     </div>
                 </Show>
 

@@ -305,7 +305,7 @@ export const BOARD_PROP_FLOWS = 'xciiiFlows'
 export const BOARD_PROP_SETUP = 'xciiiSetup'
 
 // What this board's agents are told first. Nothing here writes it — the page
-// asks Go for it (GetBoardPrompt/SetBoardPrompt) and Go keeps it on the board —
+// asks Go for it (GetBoardPrompts/SetBoardPrompts) and Go keeps it on the board —
 // but it is named here because it is one of the keys a template carries, and
 // anything that rebuilds a board's properties has to leave it alone.
 export const BOARD_PROP_PROMPT = 'xciiiPrompt'

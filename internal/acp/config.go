@@ -699,6 +699,13 @@ type Config struct {
 	// never set one.
 	BoardPrompts map[string]string `json:"boardPrompts,omitempty"`
 
+	// BoardAgentPrompts is the same thing said to one agent rather than to all
+	// of them: board id, then the agent's registry name. A crew of two doing
+	// different jobs on one board is what it is for, and it comes after the
+	// agent's own prompt because it answers the smaller question. See
+	// BoardBrief.
+	BoardAgentPrompts map[string]map[string]string `json:"boardAgentPrompts,omitempty"`
+
 	// DeployPrompt is what a deploy session is told to do; the concrete facts
 	// (folder, branch, target, expected URL) are appended to it.
 	DeployPrompt string `json:"deployPrompt"`

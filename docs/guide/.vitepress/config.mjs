@@ -48,6 +48,7 @@ const ru = {
                     {text: 'Колонки и маршруты', link: '/automation/'},
                     {text: 'Правила на стрелках', link: '/automation/rules'},
                     {text: 'Собрать маршрут', link: '/automation/flow'},
+                    {text: 'Системный промпт доски', link: '/automation/prompt'},
                 ],
             },
             {
@@ -131,6 +132,7 @@ const en = {
                     {text: 'Columns and routes', link: '/en/automation/'},
                     {text: 'Conditions on arrows', link: '/en/automation/rules'},
                     {text: 'Build a route', link: '/en/automation/flow'},
+                    {text: 'The board’s system prompt', link: '/en/automation/prompt'},
                 ],
             },
             {

@@ -472,7 +472,8 @@ by hand:
 | `maxConcurrent` | how many sessions run at once on this machine (3) |
 | `sessionTimeoutMinutes` / `testTimeoutMinutes` | one turn (15) and one browser pass (30) |
 | `sessionIdleMinutes` | how long a console session sits between turns (30) |
-| `boardPrompts` | what each board tells its agents first, keyed by board id — written by *«Как работает эта доска…»*, not by hand |
+| `boardPrompts` | what each board tells its agents first, keyed by board id — written by *«Системный промпт доски…»* in the board's ⋯ menu, not by hand |
+| `boardAgentPrompts` | what a board tells *one* agent, board id then agent name, from the same screen. Added after the agent's own prompt, being the narrower answer |
 | `vcsPollSeconds` / `gitRemote` / `githubToken` | watching folders |
 | `autoAllowTools` | what an agent may do without asking. A card-triggered session has nobody to ask, so anything not on the list is refused |
 | `artifactsDir` | screenshots and verdicts of test runs |

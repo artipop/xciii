@@ -387,6 +387,20 @@ in, and gave one set of routes two places to be edited — the second of them a
 copy nobody was looking at. `docs/templates.md` is that half written for
 somebody using it.
 
+**What an agent is told first is three texts, and each lives where its owner
+does** (`internal/acp/boardprompts.go`, `BoardBrief`). The board's own —
+`boardPrompts`, on the board as `xciiiPrompt` — goes to everybody working here.
+The agent's own — `AgentEntry.Prompt`, in the registry — holds on every board
+this machine has. And what *this board* says to *that agent* —
+`boardAgentPrompts`, on the board as `xciiiAgentPrompts`, keyed by the agent's
+registry name — is what a crew of two doing different jobs needed and had
+nowhere to be told: «клаус пишет тесты, кодекс только ревьюит». `lead()` puts
+them in that order, widest first, so the narrowest is the one still in front of
+the model when two of them disagree; every session and the planning terminal
+take the same lead. Two of the three travel with the board, which is why they
+are on it and not only in `config.json`, and an agent this machine has no entry
+for keeps its text rather than having it dropped on the way through.
+
 And a board's automation **lives on the board** — `xciiiColumns`/`xciiiFlows` in the
 board's own properties, in the board database, which is why a live board and a
 template are the same two keys and why a template can carry automation at all.
@@ -432,13 +446,13 @@ in for both while there was no site: somebody who opens «Руководство
 manual and not a source tree, and a bug report should not cost a person an
 account on a hosting service. The address is printed on the panel as well as put
 in the `mailto:`, since a webview that refuses to open one leaves nothing to
-copy. What a board *runs* — its columns, its routes, and what its agents are
-told first (`boardPrompts`, keyed by board id) — is `automationDialog.tsx`.
+copy. What a board *runs* — its columns and its routes — is
+`automationDialog.tsx`.
 
 **What a board had to be asked before it can run is not that, and each question
-is its own item in the board's ⋯ menu**: «Папки…» (`workdirsDialog.tsx`),
-«Куда деплоить…» (`deployTargetsDialog.tsx`), «Пройти настройку заново…» (the
-wizard). Which of them a board has is **the board's own setup plan**
+is its own item in the board's ⋯ menu**: «Системный промпт доски…»
+(`boardPromptsDialog.tsx`), «Папки…» (`workdirsDialog.tsx`), «Куда деплоить…»
+(`deployTargetsDialog.tsx`), «Пройти настройку заново…» (the wizard). Which of them a board has is **the board's own setup plan**
 (`BoardSetupPlan` → the steps its template declared in `xciiiSetup`), so the
 menu differs by template exactly as the questions do: a board made from
 «Разработка» offers folders and a deploy host, one made from «Домашние дела»

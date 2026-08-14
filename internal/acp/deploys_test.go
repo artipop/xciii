@@ -194,10 +194,11 @@ func TestComposeDeployPromptCarriesTheFacts(t *testing.T) {
 	prompt := composeDeployPrompt(
 		CardMoved{Title: "Логин через SSO", Body: "детали"},
 		AgentEntry{Name: "claude", Kind: "claude", Prompt: "агентский промпт"},
-		"системный промпт", "", target, "feature/SSO",
+		BoardBrief{Board: "системный промпт", Agents: map[string]string{"claude": "промпт этой доски для клода"}},
+		"", target, "feature/SSO",
 	)
 	for _, want := range []string{
-		"системный промпт", "агентский промпт",
+		"системный промпт", "агентский промпт", "промпт этой доски для клода",
 		"mcp__dokku__", // the default deploy prompt
 		"Логин через SSO", "feature/SSO", "prod",
 		"api-feature-sso", "http://api-feature-sso.example.com", "детали",

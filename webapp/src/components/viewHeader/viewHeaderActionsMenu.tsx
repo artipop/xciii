@@ -19,6 +19,7 @@ import ModalWrapper from '../modalWrapper'
 import {sendFlashMessage} from '../flashMessages'
 import AutomationDialog, {isAutomationAvailable} from '../acp/automationDialog'
 import WorkdirsDialog from '../acp/workdirsDialog'
+import BoardPromptsDialog, {isBoardPromptsAvailable} from '../acp/boardPromptsDialog'
 import DeployTargetsDialog from '../acp/deployTargetsDialog'
 import BoardSetupWizard from '../acp/boardSetupWizard'
 import {createSetupPlan, isBoardSetupAvailable} from '../acp/boardSetup'
@@ -79,6 +80,7 @@ const ViewHeaderActionsMenu = (props: Props) => {
     const [showSources, setShowSources] = createSignal(false)
     const [showWorkdirs, setShowWorkdirs] = createSignal(false)
     const [showDeploys, setShowDeploys] = createSignal(false)
+    const [showPrompts, setShowPrompts] = createSignal(false)
     const [showSetup, setShowSetup] = createSignal(false)
 
     // Which of the setup questions this board asks is the board's own answer,
@@ -131,6 +133,20 @@ const ViewHeaderActionsMenu = (props: Props) => {
                                         id='workflows'
                                         name={intl.formatMessage({id: 'ViewHeader.automation', defaultMessage: 'How this board works…'})}
                                         onClick={() => setShowWorkflows(true)}
+                                    />
+                                </Show>
+
+                                {/* What the board's agents are told first. Its
+                                    own item for the same reason the folders
+                                    have one: it was a fold at the bottom of the
+                                    route canvas, and a fold under a canvas is
+                                    somewhere nobody scrolls to. Offered where
+                                    the board is one agents work on. */}
+                                <Show when={isBoardPromptsAvailable() && asks('agent')}>
+                                    <Menu.Text
+                                        id='boardPrompts'
+                                        name={intl.formatMessage({id: 'ViewHeader.board-prompts', defaultMessage: 'The board’s system prompt…'})}
+                                        onClick={() => setShowPrompts(true)}
                                     />
                                 </Show>
 
@@ -197,6 +213,12 @@ const ViewHeaderActionsMenu = (props: Props) => {
                         setShowWorkdirs(false)
                         refreshPlan()
                     }}
+                />
+            </Show>
+            <Show when={showPrompts()}>
+                <BoardPromptsDialog
+                    board={props.board}
+                    onClose={() => setShowPrompts(false)}
                 />
             </Show>
             <Show when={showDeploys()}>

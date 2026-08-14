@@ -793,20 +793,31 @@ func (a *App) SetTailnetAccess(entryJSON string) (string, error) {
 	return string(out), nil
 }
 
-// GetBoardPrompt returns what every session of this board is told first.
-func (a *App) GetBoardPrompt(boardID string) (string, error) {
+// GetBoardPrompts returns what this board tells its agents: the text every one
+// of them is told, and the text it keeps for one agent in particular.
+func (a *App) GetBoardPrompts(boardID string) (string, error) {
 	if a.mgr == nil {
-		return "", nil
+		return "{}", nil
 	}
-	return a.mgr.BoardPrompt(boardID), nil
+	out, err := json.Marshal(a.mgr.BoardBriefOf(boardID))
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }
 
-// SetBoardPrompt stores that instruction for one board.
-func (a *App) SetBoardPrompt(boardID, text string) error {
+// SetBoardPrompts stores both halves at once, from a JSON-encoded BoardBrief.
+// One call because they are one screen and one Save: writing them separately
+// would put the board through two write-backs to say one thing.
+func (a *App) SetBoardPrompts(boardID, payload string) error {
 	if a.mgr == nil {
 		return errACPDisabled
 	}
-	return a.mgr.SetBoardPrompt(boardID, text)
+	var brief acp.BoardBrief
+	if err := json.Unmarshal([]byte(payload), &brief); err != nil {
+		return err
+	}
+	return a.mgr.SetBoardBrief(boardID, brief)
 }
 
 // GetPlanningPrompt returns the instructions a planning terminal is opened

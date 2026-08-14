@@ -55,6 +55,11 @@ const (
 	// code board want different first words, and a board carried to another
 	// machine that arrived without them would run its agents unbriefed.
 	BoardPropPrompt = "xciiiPrompt"
+	// BoardPropAgentPrompts is what this board says to one agent rather than
+	// to all of them, keyed by the agent's registry name. On the board for the
+	// same reason the one above is: it is about this board's work, and a board
+	// that arrived without it would run its crew unbriefed.
+	BoardPropAgentPrompts = "xciiiAgentPrompts"
 	// BoardPropGit is how this board *used* to say a repository is worked in.
 	// The answer belongs to the folder (WorkdirEntry.Mode) — it is a fact about
 	// the repository and not about the board — so this key is read once, moved
@@ -218,7 +223,7 @@ func (m *Manager) seedFromBoard(boardID string) {
 	}
 	m.migrateLegacyProps(boardID, props)
 	m.rememberUnadopted(boardID, unusableColumns, unusableFlows)
-	if m.adoptPrompt(boardID, boardPromptFrom(props)) {
+	if m.adoptBrief(boardID, briefFrom(props)) {
 		m.log.Info("acp: the board's own instructions taken from the board itself", "board", boardID)
 	}
 	if moved := m.moveGitPolicyToWorkdirs(boardID, props); moved > 0 {
@@ -258,18 +263,6 @@ func parseBoardAutomation(props map[string]any) ([]ColumnSpec, []FlowEntry, erro
 		}
 	}
 	return columns, flows, nil
-}
-
-// boardPromptFrom reads the board's own instructions. Unreadable is treated as
-// absent rather than as an error: the prompt is a string beside two lists, and
-// a board whose prompt is malformed still has columns worth taking.
-func boardPromptFrom(props map[string]any) string {
-	raw, ok := boardProp(props, BoardPropPrompt)
-	if !ok {
-		return ""
-	}
-	text, _ := raw.(string)
-	return strings.TrimSpace(text)
 }
 
 // moveGitPolicyToWorkdirs takes a board's old answer about repositories and
@@ -321,28 +314,6 @@ func (m *Manager) moveGitPolicyToWorkdirs(boardID string, props map[string]any) 
 		m.log.Warn("acp: cannot take the old repository setting off the board", "board", boardID, "err", err)
 	}
 	return moved
-}
-
-// adoptPrompt takes the board's own instructions, unless this machine already
-// has an answer for that board — the same rule as a column: what somebody
-// edited here is theirs until they say otherwise.
-func (m *Manager) adoptPrompt(boardID, text string) bool {
-	if text == "" {
-		return false
-	}
-	m.cfgMu.Lock()
-	defer m.cfgMu.Unlock()
-	if strings.TrimSpace(m.cfg.BoardPrompts[boardID]) != "" {
-		return false
-	}
-	if m.cfg.BoardPrompts == nil {
-		m.cfg.BoardPrompts = map[string]string{}
-	}
-	m.cfg.BoardPrompts[boardID] = text
-	if err := m.persistConfigLocked(); err != nil {
-		m.log.Warn("acp: cannot persist the board's instructions", "board", boardID, "err", err)
-	}
-	return true
 }
 
 func reinterpret(from any, into any) error {
@@ -630,10 +601,12 @@ func (m *Manager) persistBoardLocked(boardID string) {
 	// Written as `null` rather than left out when a board's last route is
 	// deleted: an absent property is one the board never had, and patching
 	// with an absent value is how a deletion turns into "no change at all".
+	brief := m.boardBriefLocked(boardID)
 	props := map[string]any{
-		BoardPropColumns: columns,
-		BoardPropFlows:   flows,
-		BoardPropPrompt:  m.cfg.BoardPrompts[boardID],
+		BoardPropColumns:      columns,
+		BoardPropFlows:        flows,
+		BoardPropPrompt:       brief.Board,
+		BoardPropAgentPrompts: brief.Agents,
 	}
 
 	parent := m.rootCtx
@@ -642,7 +615,7 @@ func (m *Manager) persistBoardLocked(boardID string) {
 	}
 	ctx, cancel := context.WithTimeout(parent, 10*time.Second)
 	defer cancel()
-	remove := legacyNamesOf(BoardPropColumns, BoardPropFlows, BoardPropPrompt)
+	remove := legacyNamesOf(BoardPropColumns, BoardPropFlows, BoardPropPrompt, BoardPropAgentPrompts)
 	if err := m.meta.SetBoardProperties(ctx, boardID, props, remove); err != nil {
 		m.log.Warn("acp: cannot save the board's automation on the board", "board", boardID, "err", err)
 		delete(m.boardStored, boardID)
@@ -722,6 +695,12 @@ func (m *Manager) moveAutomationToBoards() {
 			boards = append(boards, boardID)
 		}
 	}
+	for boardID := range m.cfg.BoardAgentPrompts {
+		if boardID != "" && !seen[boardID] {
+			seen[boardID] = true
+			boards = append(boards, boardID)
+		}
+	}
 	if len(boards) == 0 {
 		return
 	}
@@ -766,6 +745,15 @@ func (m *Manager) configToStore() Config {
 			}
 		}
 		cfg.BoardPrompts = prompts
+	}
+	if len(cfg.BoardAgentPrompts) > 0 {
+		prompts := make(map[string]map[string]string, len(cfg.BoardAgentPrompts))
+		for boardID, texts := range cfg.BoardAgentPrompts {
+			if !m.boardStored[boardID] {
+				prompts[boardID] = texts
+			}
+		}
+		cfg.BoardAgentPrompts = prompts
 	}
 	return cfg
 }

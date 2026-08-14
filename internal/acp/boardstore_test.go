@@ -210,7 +210,8 @@ func TestReadingABoardNeverTakesAutomationOffIt(t *testing.T) {
 func TestTheBoardsInstructionsAreSavedOnTheBoard(t *testing.T) {
 	m, meta, cfgPath := storeManager(t)
 
-	if err := m.SetBoardPrompt("board1", "Отвечай по-русски."); err != nil {
+	brief := BoardBrief{Board: "Отвечай по-русски.", Agents: map[string]string{"клаус": "Пиши тесты."}}
+	if err := m.SetBoardBrief("board1", brief); err != nil {
 		t.Fatal(err)
 	}
 	if got := meta.written["board1"][BoardPropPrompt]; got != "Отвечай по-русски." {
@@ -220,13 +221,26 @@ func TestTheBoardsInstructionsAreSavedOnTheBoard(t *testing.T) {
 		t.Errorf("the machine's file still carries the board's instructions: %q", got)
 	}
 
+	// What the board says to one agent travels the same way, and is not the
+	// agent's own prompt: that one is the registry's and holds everywhere.
+	written, _ := meta.written["board1"][BoardPropAgentPrompts].(map[string]string)
+	if written["клаус"] != "Пиши тесты." {
+		t.Fatalf("the board was told %v about its crew", meta.written["board1"][BoardPropAgentPrompts])
+	}
+	if got := storedConfig(t, cfgPath).BoardAgentPrompts["board1"]; len(got) != 0 {
+		t.Errorf("the machine's file still carries them: %v", got)
+	}
+
 	// A board that unsaid it says so on the board, or the next launch would
 	// hand the old text straight back.
-	if err := m.SetBoardPrompt("board1", ""); err != nil {
+	if err := m.SetBoardBrief("board1", BoardBrief{}); err != nil {
 		t.Fatal(err)
 	}
 	if got := meta.written["board1"][BoardPropPrompt]; got != "" {
 		t.Errorf("the board still holds %q after it was cleared", got)
+	}
+	if got, _ := meta.written["board1"][BoardPropAgentPrompts].(map[string]string); len(got) != 0 {
+		t.Errorf("the board still holds %v after it was cleared", got)
 	}
 }
 
@@ -234,12 +248,18 @@ func TestTheBoardsInstructionsAreSavedOnTheBoard(t *testing.T) {
 // agents here without anybody retyping them.
 func TestTheBoardsInstructionsAreTakenFromTheBoard(t *testing.T) {
 	m, meta, _ := storeManager(t)
-	meta.props = map[string]any{BoardPropPrompt: "Отвечай по-русски."}
+	meta.props = map[string]any{
+		BoardPropPrompt:       "Отвечай по-русски.",
+		BoardPropAgentPrompts: map[string]any{"клаус": "Пиши тесты."},
+	}
 
 	m.SeedBoard("board1")
 
 	if got := m.BoardPrompt("board1"); got != "Отвечай по-русски." {
 		t.Fatalf("the machine took %q from the board", got)
+	}
+	if got := m.BoardBriefOf("board1").Agents["клаус"]; got != "Пиши тесты." {
+		t.Fatalf("what the board says to one agent came out as %q", got)
 	}
 }
 
@@ -341,7 +361,7 @@ func TestAnEditBeforeTheBoardWasEverReadKeepsItsAutomation(t *testing.T) {
 		BoardPropFlows:   []FlowEntry{{Name: "Фича", Nodes: []FlowNode{{ID: "agent", Column: "В работе"}}}},
 	}
 
-	if err := m.SetBoardPrompt("board1", "Отвечай по-русски."); err != nil {
+	if err := m.SetBoardBrief("board1", BoardBrief{Board: "Отвечай по-русски."}); err != nil {
 		t.Fatal(err)
 	}
 

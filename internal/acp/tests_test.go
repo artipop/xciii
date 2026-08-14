@@ -101,7 +101,7 @@ func TestComposeTestPromptCarriesTheScenario(t *testing.T) {
 	prompt := composeTestPrompt(
 		CardMoved{Title: "Оформление заказа", Body: "Кнопка «Купить» должна вести в корзину"},
 		AgentEntry{Prompt: "Ты работаешь в проекте Shop."},
-		"Отвечай по-русски.", "", run,
+		BoardBrief{Board: "Отвечай по-русски."}, "", run,
 	)
 	for _, want := range []string{
 		"Отвечай по-русски.",          // board system prompt
@@ -118,7 +118,7 @@ func TestComposeTestPromptCarriesTheScenario(t *testing.T) {
 
 	// A configured prompt replaces the default; a card without a description
 	// still gets a job.
-	prompt = composeTestPrompt(CardMoved{Title: "Смоук"}, AgentEntry{}, "", "Проверь только главную.", run)
+	prompt = composeTestPrompt(CardMoved{Title: "Смоук"}, AgentEntry{}, BoardBrief{}, "Проверь только главную.", run)
 	if strings.Contains(prompt, "browser_snapshot") || !strings.Contains(prompt, "Проверь только главную.") {
 		t.Fatalf("custom prompt not used:\n%s", prompt)
 	}
