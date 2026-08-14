@@ -707,7 +707,7 @@ const BoardSetupWizard = (props: Props) => {
                         sendFlashMessage({
                             content: intl.formatMessage({
                                 id: 'BoardSetup.come-back',
-                                defaultMessage: 'You can walk this again any time: ⋯ → “How this board works…” → “Walk the setup again…”.',
+                                defaultMessage: 'You can walk this again any time: the board’s ⋯ menu → “Walk the setup again…”.',
                             }),
                             severity: 'normal',
                             notice: true,

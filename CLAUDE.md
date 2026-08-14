@@ -466,11 +466,15 @@ columns and routes, and a fold under a canvas is a place nobody opens, which is
 how somebody who had just answered "which folder" in the wizard ended up with a
 card that could not name one.
 
-The rest of the ⋯ menu is export and "save as a template" — the archive in the
-settings dialog is every board there is, and one board's own is the board's own
-business, which is also the whole of why import is not offered per board: what
-an archive brings is boards, plural, and Trello/Notion/Todoist are instructions
-for making one rather than an importer of ours. Registering an agent needs none
+The rest of the ⋯ menu is export — the archive in the settings dialog is every
+board there is, and one board's own is the board's own business, which is also
+the whole of why import is not offered per board: what an archive brings is
+boards, plural, and Trello/Notion/Todoist are instructions for making one rather
+than an importer of ours. **"Сохранить как шаблон…" is parked there**
+(`OFFER_SAVE_AS_TEMPLATE`, one line in `viewHeaderActionsMenu.tsx`): the
+machinery is untouched and still reached by the template picker's pencil, but
+making a template is the rarest thing anybody does on a board and it stood one
+slot from the things a board is set up with. Registering an agent needs none
 of these screens: `agentQuickAdd.tsx` is the two-field form, used by the card,
 the column's crew list and the setup wizard alike.
 
@@ -510,7 +514,7 @@ be assigned to — and it needs no board: an account is a row in the board
 server's own users table, which is what every board reads when it offers people
 to assign a card to. There was a sync instead, `syncAgentsToBoard`, run from
 wherever a board happened to be open, and it was a sync in search of an event:
-register an agent in the settings, never open «Как работает эта доска…», and
+register an agent in the settings, never open «Колонки и маршруты…», and
 the agent had no account anywhere. Running it on every board render was worse —
 finding-then-creating is not atomic, so one agent got three accounts. A
 registry that predates this is caught up once, at startup (`ensureAgentAccounts`

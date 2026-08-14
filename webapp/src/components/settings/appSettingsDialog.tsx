@@ -24,7 +24,7 @@ import './appSettingsDialog.scss'
 //
 // Deploy targets are deliberately not here, although their registry is the
 // machine's too: a deploy target only means anything to a board whose route
-// deploys, so it is offered in that board's «Как работает эта доска…» — and a
+// deploys, so it is offered in that board's «Колонки и маршруты…» — and a
 // board of shopping lists never shows a Dokku form. What a setting depends on
 // is where it is offered, even when where it is stored is the same file.
 //

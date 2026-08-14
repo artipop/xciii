@@ -8,11 +8,15 @@ about **this machine** before any of that can run.
 None of those are visible on a board, so a template is not edited by opening it
 and moving cards about. *«Шаблон»* is the window that shows them, reached from:
 
-- the ⋯ menu of an ordinary board — *«Сохранить как шаблон…»*, which copies
-  the board, under the board's own name, and opens the copy;
 - the template picker — the pencil on any template of yours;
 - the banner on a template you already have open — *«Колонки, маршруты и
-  настройка…»*.
+  настройка…»*;
+- the ⋯ menu of an ordinary board — *«Сохранить как шаблон…»*, which copies the
+  board, under the board's own name, and opens the copy. **That door is parked**
+  (`OFFER_SAVE_AS_TEMPLATE` in `viewHeaderActionsMenu.tsx`): everything behind
+  it works and is tested, it simply has no reason to stand in the menu of every
+  board, where making a template is the rarest thing anybody does and it sat one
+  slot from the things a board is set up with.
 
 **The columns and the routes are shown there and not edited there.** A template
 is made by building a board and saving it, so what it carries is what already

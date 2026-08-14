@@ -641,7 +641,13 @@ const FlowDiagram = (props: Props) => {
                     edgesFocusable={editable()}
                     deleteKey={editable() ? ['Backspace', 'Delete'] : null}
                     fitView={true}
-                    fitViewOptions={{padding: 0.2, maxZoom: 1}}
+
+                    // Fill the canvas rather than sit 1:1 in the middle of it.
+                    // The dialog is nearly the whole window now, and a route of
+                    // five boxes drawn at 100% left two thirds of it as dots —
+                    // the point of the width was the picture, not the margin.
+                    // Capped so a two-box route is not blown up into a poster.
+                    fitViewOptions={{padding: 0.15, maxZoom: 1.5}}
                     minZoom={0.3}
 
                     // Solid Flow is MIT and its own attribution says to feel free to

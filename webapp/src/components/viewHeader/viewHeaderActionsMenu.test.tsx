@@ -122,7 +122,13 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
         })
 
         test('the one screen that says what this board does is offered', async () => {
-            await waitFor(() => expect(screen.getByRole('button', {name: 'How this board works…'})).toBeInTheDocument())
+            await waitFor(() => expect(screen.getByRole('button', {name: 'Columns and routes…'})).toBeInTheDocument())
+        })
+
+        // Making a template is a rare, deliberate act and no longer stands in
+        // the menu of every board (OFFER_SAVE_AS_TEMPLATE).
+        test('saving the board as a template is not', () => {
+            expect(screen.queryByRole('button', {name: 'Save as a template…'})).toBeNull()
         })
 
         test('the machine registries are not', () => {
@@ -148,7 +154,7 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
     })
 
     // The setup questions a board asks are its own screens in its own menu.
-    // They used to be folds of «Как работает эта доска…», where setting up
+    // They used to be folds of «Колонки и маршруты…», where setting up
     // where an agent works was filed under columns and routes — and a fold
     // under a canvas is a place nobody opens.
     describe('a board offers the setup steps it asks for', () => {
@@ -240,7 +246,7 @@ describe('components/viewHeader/viewHeaderActionsMenu', () => {
 
         test('the board menu is not', async () => {
             await waitFor(() => expect(screen.getByRole('button', {name: 'Sources…'})).toBeInTheDocument())
-            for (const gone of ['Export to CSV', 'Export board archive', 'How this board works…', 'Save as a template…']) {
+            for (const gone of ['Export to CSV', 'Export board archive', 'Columns and routes…', 'Save as a template…']) {
                 expect(screen.queryByRole('button', {name: gone})).toBeNull()
             }
         })

@@ -1,9 +1,9 @@
 # Columns and routes
 
-The board's behaviour is configured in the **"How this board works"** window:
+The board's behaviour is configured in the **"Columns and routes"** window:
 what each column does and where a card moves next. Two ways to open it:
 
-- the board menu (⋯ in the header) → **"How this board works"**;
+- the board menu (⋯ in the header) → **"Columns and routes"**;
 - any column's menu → **"What happens in this column…"** — the same window with
   that column already selected.
 
@@ -131,14 +131,11 @@ itself — those already applied).
 
 ## Templates
 
-A board that is set up the way you want it is the template: the board menu →
-**"Save as a template…"**. The board is copied with its columns and routes, and
-the **"Template"** window opens: the name, the icon, what it is for, and the
-**questions** the setup wizard will ask when a board is created from it —
-project folder, agent, deploy target, browser for tests. Until set explicitly,
-the questions are derived from the automation.
+A board is born from a template: "+ Add board" → a template in the list on the
+left → "Use this template". The template brings the columns, what they do, the
+routes, and the **questions** the setup wizard asks when a board is created
+from it — project folder, agent, deploy target, browser for tests.
 
-Columns and routes are only listed in that window. They are changed on a board
-("How this board works…") and reach the template when the board is saved as a
-template again. The pencil on your own template in the template list opens the
-same window.
+Your own template is edited with the pencil beside it in that same list: the
+name, the icon, what it is for, and those questions. Columns and routes are
+only listed there — they are changed on a board, in "Columns and routes…".

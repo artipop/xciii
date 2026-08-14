@@ -30,15 +30,15 @@ SSH keys, tokens and environment variables are not valid on another computer.
 | What | Where to set it up after the move |
 |---|---|
 | Agents — model, environment, MCP servers, proxies | "Settings" → [Agents](./settings/agents.md) |
-| Where to deploy — the Dokku host and the SSH key | on the deploying board: ["How this board works"](./automation/index.md) → "Where to deploy" |
+| Where to deploy — the Dokku host and the SSH key | on the deploying board: ["Columns and routes"](./automation/index.md) → "Where to deploy" |
 | Proxies | "Settings" → "Proxy configurations" |
 | Access from a phone | "Settings" → [Access from a phone](./settings/index.md#access-from-a-phone) |
-| Project folders | in ["How this board works"](./automation/index.md) |
+| Project folders | in ["Columns and routes"](./automation/index.md) |
 | Theme and language | "Settings" → "The app itself" |
 | Sources — the token is issued anew | the board's setup wizard, or [Sources](./inbox/sources.md) |
 
 The setup wizard asks only for what is missing; it can be walked again any
-time: ⋯ → "How this board works…" → "Walk the setup again…".
+time: ⋯ → "Columns and routes…" → "Walk the setup again…".
 
 Agent names are remembered: the assignment field travels with the card, so
 registering an agent under the same name is enough. A column that refers to an

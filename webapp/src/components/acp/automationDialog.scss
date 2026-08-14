@@ -5,13 +5,18 @@
     // .dialog` and a single class here loses the tie and leaves the canvas
     // 975px wide — narrow enough to push the inspector off screen.
     &.dialog-back .dialog {
-        max-width: 1320px;
-        width: min(1320px, 96vw);
+        // As wide as the window all but gives, and capped only so a route on a
+        // 32-inch monitor is not drawn across a metre of glass. The canvas is
+        // the whole screen: every pixel the dialog does not take is one the
+        // route is not drawn in, and a board of ten columns was being read at
+        // a third of its size.
+        max-width: 2000px;
+        width: min(2000px, 98vw);
 
         // Taller than the base dialog too: the canvas, the panel beside it and
-        // the two folded sections under it do not fit in 144px of margin.
-        height: calc(100% - 96px);
-        margin: 48px auto;
+        // the sections under it do not fit in 144px of margin.
+        height: calc(100% - 40px);
+        margin: 20px auto;
     }
 
     .AutomationDialog__content {

@@ -162,7 +162,7 @@ const TemplateEditor = (props: Props) => {
 
                 {/* What the template carries, in the words the board uses. It is
                     read here and changed on a board: the routes came off one,
-                    and «Как работает эта доска…» is where a route is drawn. */}
+                    and «Колонки и маршруты…» is where a route is drawn. */}
                 <div class='TemplateEditor__carries'>
                     <div class='TemplateEditor__sectionTitle'>
                         {intl.formatMessage({id: 'TemplateEditor.carries', defaultMessage: 'What the template carries'})}
@@ -182,7 +182,7 @@ const TemplateEditor = (props: Props) => {
                         )}
                     </For>
                     <div class='TemplateEditor__hint'>
-                        {intl.formatMessage({id: 'TemplateEditor.carries-hint', defaultMessage: 'Columns and routes are edited on a board — "How this board works…" — and come back here when the board is saved as a template again.'})}
+                        {intl.formatMessage({id: 'TemplateEditor.carries-hint', defaultMessage: 'Columns and routes are changed on a board, in its ⋯ menu, and come back here when the board is saved as a template again.'})}
                     </div>
                 </div>
 

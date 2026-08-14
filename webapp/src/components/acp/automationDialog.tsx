@@ -273,7 +273,7 @@ const AutomationDialog = (props: Props) => {
     return (
         <Dialog
             class='AutomationDialog'
-            title={<span>{intl.formatMessage({id: 'Automation.title', defaultMessage: 'How this board works'})}</span>}
+            title={<span>{intl.formatMessage({id: 'Automation.title', defaultMessage: 'Columns and routes'})}</span>}
             subtitle={<span>{intl.formatMessage({id: 'Automation.subtitle', defaultMessage: 'A column says what is done to a card that lands in it. A route says where the card goes afterwards.'})}</span>}
             onClose={props.onClose}
         >

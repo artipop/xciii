@@ -36,7 +36,7 @@ menu:
   **"Move To..."** — move the board to another category of the list.
 
 The board's behaviour — columns, routes, project folders, agent instructions —
-is configured elsewhere: in the **"How this board works"** window, opened from
+is configured elsewhere: in the **"Columns and routes"** window, opened from
 the «⋯» menu in the board header, right of the view tabs. See
 ["Columns and routes"](./automation/index.md).
 

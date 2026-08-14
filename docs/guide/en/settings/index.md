@@ -84,7 +84,7 @@ itself and travels with it into an export and into a template.
 
 Settings of a specific board — columns, routes, project folders, agent
 instructions — are set on the board itself, in the
-["How this board works"](../automation/index.md) window.
+["Columns and routes"](../automation/index.md) window.
 
 **"Where to deploy"** is there too: deploy targets are only shown on a board
 that has a deploy column, because no other board has any use for them.

@@ -70,7 +70,7 @@ describe('components/acp/templateEditor', () => {
     })
 
     // What a board made from the template will do is said here and edited on a
-    // board: the routes came off one, and «Как работает эта доска…» is where a
+    // board: the routes came off one, and «Колонки и маршруты…» is where a
     // route is drawn.
     test('says what the template carries, and does not offer to redraw it', async () => {
         stubBindings()

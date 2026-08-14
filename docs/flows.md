@@ -9,7 +9,7 @@ moves the card on. Written for a person using the board; the code is in
 
 | | Where it lives | What it answers |
 |---|---|---|
-| **Column** | board menu → *«Как работает эта доска…»*, or the column's own menu | what happens when a card lands here, who works it, how many at once |
+| **Column** | board menu → *«Колонки и маршруты…»*, or the column's own menu | what happens when a card lands here, who works it, how many at once |
 | **Flow (route)** | the same editor, a route tab | where the card goes next, and on what event |
 | **Registries** | sidebar → *«Настройки → Эта машина…»*; folders in the board's own screen | the machine: which agents exist, where to deploy, how they reach the network |
 
@@ -30,7 +30,7 @@ Three kinds of thing get set up, and each is edited where it belongs:
 | What | Where | Why there |
 |---|---|---|
 | Which agents are installed, where they deploy, how they reach the network, whether the board is on your tailnet | *«Настройки → Эта машина…»* in the sidebar | none of it is about a board, so none of it needs one open |
-| What each column does, where a card goes next, which folders this board's agents work in, what they are told first | *«Как работает эта доска…»* in the board's ⋯ menu | all of it is this board's, and changing it changes only this board |
+| What each column does, where a card goes next, which folders this board's agents work in, what they are told first | *«Колонки и маршруты…»* in the board's ⋯ menu | all of it is this board's, and changing it changes only this board |
 | Which folder and which agent *this card* uses | the card itself | asked when a terminal is opened and the answer is not already known |
 
 Карточка называет своего агента **исполнителем** — каждый зарегистрированный
@@ -53,7 +53,7 @@ no agent column is never asked for one, gets no «Папки» field, and shows 
 
 ## Where both halves are edited
 
-*«Как работает эта доска…»* is one screen for the two of them, and the picture on
+*«Колонки и маршруты…»* is one screen for the two of them, and the picture on
 it is the board itself: **every column is a box on the canvas**, whatever
 happens in it. Along the top are the routes; **«Колонки»** is the same canvas
 with no route chosen, which is where you say what each column does.
@@ -469,7 +469,7 @@ by hand:
 
 | | |
 |---|---|
-| `worktreeMode` | the default for a board that was never asked: `always` → a copy per card, `never` → a branch in the folder itself. The board's own answer (*«Как работает эта доска…» → «Папки»*) wins |
+| `worktreeMode` | the default for a board that was never asked: `always` → a copy per card, `never` → a branch in the folder itself. The board's own answer (*«Колонки и маршруты…» → «Папки»*) wins |
 | `maxConcurrent` | how many sessions run at once on this machine (3) |
 | `sessionTimeoutMinutes` / `testTimeoutMinutes` | one turn (15) and one browser pass (30) |
 | `sessionIdleMinutes` | how long a console session sits between turns (30) |

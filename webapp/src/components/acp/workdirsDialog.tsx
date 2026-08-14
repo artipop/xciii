@@ -6,7 +6,7 @@ import Dialog from '../dialog'
 import WorkdirsPanel from './workdirsPanel'
 
 // Where this board's agents work, on its own screen — reached from the board's
-// ⋯ menu rather than folded into «Как работает эта доска…». How a repository
+// ⋯ menu rather than folded into «Колонки и маршруты…». How a repository
 // among them is worked in is asked on the repository's own row: it is a fact
 // about that repository and holds on every board it is offered on.
 //

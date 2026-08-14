@@ -15,7 +15,7 @@ import './boardPromptsDialog.scss'
 // What this board's agents are told before anything else — the system prompt of
 // the board, on its own screen.
 //
-// It was a fold at the bottom of «Как работает эта доска…», under the route
+// It was a fold at the bottom of «Колонки и маршруты…», under the route
 // canvas, which is the wrong place twice over: what an agent is told is not a
 // question about columns and arrows, and a fold under a canvas is somewhere
 // nobody scrolls to. The board's ⋯ menu asks each of the board's questions in

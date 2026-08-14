@@ -50,6 +50,16 @@ import {isInboxView} from '../acp/inboxView'
 // Otherwise the only way to make an inbox would be through a screen that only
 // exists once you have.
 
+// «Сохранить как шаблон…» is parked rather than deleted, and this is the one
+// line that parks it. A board set up the way somebody wants it is still the
+// best template there is, and everything behind the door — saveAsTemplate.ts,
+// templateEditor.tsx, their tests — is untouched and still reached by the
+// pencil in the template picker. What it has not got is a reason to stand in
+// the menu of every board: making a template is a rare and deliberate act, and
+// here it sat one slot away from the things a board is set up with. Flip it
+// back to open the door.
+const OFFER_SAVE_AS_TEMPLATE = false
+
 type Props = {
     board: Board
     activeView: BoardView
@@ -86,7 +96,7 @@ const ViewHeaderActionsMenu = (props: Props) => {
     // Which of the setup questions this board asks is the board's own answer,
     // and the menu follows it: a board of shopping lists is offered folders and
     // nothing else, a board that deploys is offered somewhere to deploy to.
-    // They were folds of «Как работает эта доска…», where setting up where an
+    // They were folds of «Колонки и маршруты…», where setting up where an
     // agent works was a question about columns and routes — which it is not —
     // and a fold under a canvas is a place nobody opens.
     const [plan, refreshPlan] = createSetupPlan(() => props.board)
@@ -131,7 +141,7 @@ const ViewHeaderActionsMenu = (props: Props) => {
                                 <Show when={isAutomationAvailable()}>
                                     <Menu.Text
                                         id='workflows'
-                                        name={intl.formatMessage({id: 'ViewHeader.automation', defaultMessage: 'How this board works…'})}
+                                        name={intl.formatMessage({id: 'ViewHeader.automation', defaultMessage: 'Columns and routes…'})}
                                         onClick={() => setShowWorkflows(true)}
                                     />
                                 </Show>
@@ -174,11 +184,7 @@ const ViewHeaderActionsMenu = (props: Props) => {
                                     />
                                 </Show>
 
-                                {/* A board that has been set up the way somebody
-                                    wants it is the best template there is, and
-                                    until now the only way to make one was to
-                                    build it twice. */}
-                                <Show when={isSaveAsTemplateAvailable() && !props.board.isTemplate}>
+                                <Show when={OFFER_SAVE_AS_TEMPLATE && isSaveAsTemplateAvailable() && !props.board.isTemplate}>
                                     <Menu.Text
                                         id='saveAsTemplate'
                                         name={intl.formatMessage({id: 'ViewHeader.save-as-template', defaultMessage: 'Save as a template…'})}

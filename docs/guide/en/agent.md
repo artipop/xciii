@@ -22,7 +22,7 @@ board member under its own name: open the field and pick it.
 The agent reads its task from the **card description** — there is no separate
 task field. The board's instruction, shared by all its agents, is added in
 front of the description; it is set in
-["How this board works"](./automation/index.md).
+["Columns and routes"](./automation/index.md).
 
 ## The terminal: discussing a card
 
