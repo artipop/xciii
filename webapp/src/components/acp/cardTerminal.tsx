@@ -1,10 +1,12 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import {For, Index, Show, Suspense, createSignal, lazy, onCleanup, onMount} from 'solid-js'
+import {For, Index, Show, Suspense, createEffect, createSignal, lazy, on, onCleanup, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
+import {getCard} from '../../store/cards'
+import {useAppSelector} from '../../store/hooks'
 import CompassIcon from '../../widgets/icons/compassIcon'
 
 import {agentBindings} from './bindings'
@@ -67,6 +69,12 @@ const CardTerminal = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
     const state = cardAgentState(props.cardId)
+
+    // The card as the board sees it, watched for one reason: the conversation
+    // belongs to the card's column, so a card moved while this panel is open
+    // has a different current row — and the move arrives over the board's own
+    // socket, which acp:terminal knows nothing about.
+    const card = useAppSelector((s) => getCard(props.cardId)(s))
 
     const [terminalId, setTerminalId] = createSignal('')
     const [error, setError] = createSignal('')
@@ -182,10 +190,9 @@ const CardTerminal = (props: Props) => {
         await refreshCardAgent(props.cardId)
         const known = state()
 
-        // The card's *own* conversation, not a stage's: a stage running on this
-        // card is not a reason to skip asking where a new discussion should
-        // happen.
-        const hasConversation = (known.conversations || []).some((c) => c.brainstorm)
+        // The current node's conversation, when there is one to continue —
+        // or a card that resolves a folder, which opens without a question.
+        const hasConversation = (known.conversations || []).some((c) => c.current && (c.running || c.startedAt))
         if (known.running || hasConversation || known.folder) {
             start(false)
             return
@@ -195,57 +202,53 @@ const CardTerminal = (props: Props) => {
         setBusy(false)
     })
 
-    const conversations = () => state().conversations || []
-    const brainstorm = () => conversations().find((c) => c.brainstorm)
-    const stages = () => conversations().filter((c) => !c.brainstorm)
+    // Re-read the list when the card's properties change — a move most of all.
+    // `on` with defer skips the mount, which already refreshes.
+    createEffect(on(() => JSON.stringify(card()?.fields?.properties || {}), () => {
+        refreshCardAgent(props.cardId)
+    }, {defer: true}))
 
-    // The card's own conversation is the panel's own subject, so it is drawn
-    // even before it exists: the pick below is how it comes to.
-    const rows = () => {
-        const own = brainstorm()
-        return own ? [own, ...stages()] : stages()
-    }
+    // One row per node the card has stood on, the current node's first — Go
+    // orders and synthesizes it, because it is the one the panel opens.
+    const rows = () => state().conversations || []
 
     const rowName = (c: CardConversation) => {
         if (c.title) {
             return c.title
         }
-        if (c.brainstorm) {
-            return intl.formatMessage({id: 'CardTerminal.brainstorm', defaultMessage: 'Discussion'})
+        if (c.column) {
+            return c.column
         }
-        return c.column || intl.formatMessage({id: 'CardTerminal.no-stage', defaultMessage: 'before the route'})
+        return intl.formatMessage({id: 'CardTerminal.no-column', defaultMessage: 'No column'})
     }
 
-    // Who is talking and where, plus which stage this is — the one thing a
-    // card's conversation has that a planning one has not.
+    // Who is talking and where — and the column, when a name of its own has
+    // taken the row's first line.
     const rowMeta = (c: CardConversation) => {
         const where = c.boardFolder ? intl.formatMessage({id: 'Terminal.board-drafts', defaultMessage: 'the board’s drafts'}) : c.folder
         const parts = [c.agent, where].filter(Boolean)
-        if (!c.brainstorm && c.title && c.column) {
+        if (c.title && c.column) {
             parts.push(c.column)
         }
         return parts.join(' · ')
     }
 
     const rowTitle = (c: CardConversation) => {
-        if (c.brainstorm) {
-            return intl.formatMessage({id: 'CardTerminal.brainstorm-hint', defaultMessage: 'The card’s own conversation — this panel opens it, and it is kept between sessions'})
-        }
-        if (c.running) {
-            return intl.formatMessage({id: 'CardTerminal.stage-running', defaultMessage: 'A stage of the route, still running — reachable until its CLI exits'})
+        if (c.running && c.stage) {
+            return intl.formatMessage({id: 'CardTerminal.stage-running', defaultMessage: 'A route is running this conversation — reachable until its CLI exits'})
         }
         if (c.current) {
-            return intl.formatMessage({id: 'CardTerminal.stage-current', defaultMessage: 'The stage the card is standing on'})
+            return intl.formatMessage({id: 'CardTerminal.stage-current', defaultMessage: 'The column the card is standing on — this is the conversation the panel opens'})
         }
-        return intl.formatMessage({id: 'CardTerminal.stage-passed', defaultMessage: 'A passed stage — its conversation returns if the card does'})
+        return intl.formatMessage({id: 'CardTerminal.stage-passed', defaultMessage: 'A column the card has been in — its conversation continues if the card returns'})
     }
 
-    // Which conversation the panel draws. The card's own starts (or resumes) on
-    // a click, because that is what this panel is for; a stage's is shown while
-    // its CLI runs and is otherwise nothing to open — the route opens those, and
-    // a passed stage's comes back when the card does.
+    // Which conversation the panel draws. The current node's starts (or
+    // resumes) on a click, because that is what this panel is for; another
+    // node's is shown while its CLI runs and otherwise has nothing to open —
+    // it continues when the card comes back to that column.
     const pick = (c: CardConversation) => {
-        if (c.brainstorm) {
+        if (c.current) {
             setError('')
             start(false)
             return
@@ -257,7 +260,10 @@ const CardTerminal = (props: Props) => {
     }
 
     const inWindow = async (c: CardConversation) => {
-        if (c.brainstorm) {
+        // The current node's handover goes through the start path: Go hands
+        // back the same live terminal when one runs, and the desktop opens the
+        // window either way.
+        if (c.current) {
             await start(true)
             return
         }
@@ -305,9 +311,10 @@ const CardTerminal = (props: Props) => {
         }
     }
 
-    // Throwing the card's own conversation away: the CLI ends and the record
-    // goes with it, so the next one starts on a blank screen. It is the only
-    // way this conversation ends — everything else about a terminal is kept.
+    // Throwing a conversation away: the CLI ends and the record goes with it,
+    // so the next conversation on that node starts on a blank screen. It is
+    // the only way a conversation ends for good — everything else about a
+    // terminal is kept.
     const discard = async (c: CardConversation) => {
         if (!bindings?.DeleteCardConversation) {
             return
@@ -315,11 +322,18 @@ const CardTerminal = (props: Props) => {
         setBusy(true)
         try {
             await bindings.DeleteCardConversation(props.cardId, c.nodeId || '')
-            setTerminalId('')
             setError('')
+            if (c.terminalId && c.terminalId === terminalId()) {
+                setTerminalId('')
+            }
             await refreshCardAgent(props.cardId)
-            await offerChoices()
-            setChoosing(true)
+
+            // Deleting the conversation being read leaves the panel with
+            // nothing open, which is the ask again.
+            if (c.current) {
+                await offerChoices()
+                setChoosing(true)
+            }
         } catch (e: any) {
             setError(String(e?.message || e))
         } finally {
@@ -329,17 +343,17 @@ const CardTerminal = (props: Props) => {
 
     // Which row the terminal below belongs to, and what to call it there. A
     // conversation that has just been started is drawn before the list has been
-    // read back, so the name falls back to the card's own conversation — which
-    // is the only one this panel starts.
+    // read back, so the name falls back to the current node's row — the only
+    // one this panel starts.
     const openRow = () => rows().find((c) => c.terminalId && c.terminalId === terminalId())
     const openName = () => {
-        const row = openRow()
-        return row ? rowName(row) : intl.formatMessage({id: 'CardTerminal.brainstorm', defaultMessage: 'Discussion'})
+        const row = openRow() || rows().find((c) => c.current)
+        return row ? rowName(row) : ''
     }
 
     const actionsFor = (c: CardConversation) => {
         const actions: ConversationAction[] = []
-        if (c.brainstorm || c.terminalId) {
+        if (c.current || c.terminalId) {
             actions.push({
                 icon: 'open-in-new',
                 title: intl.formatMessage({id: 'CardTerminal.window', defaultMessage: 'Open in a separate window'}),
@@ -353,7 +367,11 @@ const CardTerminal = (props: Props) => {
                 run: () => askName(c),
             })
         }
-        if (c.brainstorm) {
+
+        // Any conversation can be thrown away except the one a route is
+        // running — the route is waiting on it — and the empty placeholder,
+        // which has nothing to delete yet.
+        if ((c.startedAt || c.running) && !(c.running && c.stage)) {
             actions.push({
                 icon: 'trash-can-outline',
                 title: intl.formatMessage({id: 'Conversation.delete', defaultMessage: 'Delete the conversation'}),
@@ -417,7 +435,7 @@ const CardTerminal = (props: Props) => {
                                 meta={rowMeta(c())}
                                 running={c().running}
                                 selected={Boolean(c().terminalId) && c().terminalId === terminalId()}
-                                onPick={c().brainstorm || c().terminalId ? () => pick(c()) : undefined}
+                                onPick={c().current || c().terminalId ? () => pick(c()) : undefined}
                                 onRename={c().terminalId ? (title) => rename(c(), title) : undefined}
                                 actions={actionsFor(c())}
                                 title={rowTitle(c())}

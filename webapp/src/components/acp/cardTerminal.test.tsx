@@ -2,7 +2,7 @@ import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
-import {wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl, wrapStore} from '../../testUtils'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 
 import CardTerminal from './cardTerminal'
@@ -38,39 +38,42 @@ describe('components/acp/cardTerminal', () => {
         stubBindings({
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({folder: '/tmp/proj'})),
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>)))
         expect(await screen.findByTestId('terminal')).toHaveTextContent('term-1')
     })
 
-    // The panel lists the card's conversations: its own first, then one per
-    // stage the route worked it. A row carries what the planning screen's rows
-    // carry — the name, the agent's own recap, who is talking where — because
-    // it is the same list.
-    it('lists the card’s own conversation and the route’s stages', async () => {
+    // The panel lists one conversation per node the card has stood on: the
+    // current column's first, then the others. A row carries what the planning
+    // screen's rows carry — the name, the agent's own recap, who is talking
+    // where — because it is the same list.
+    it('lists a conversation per node, the current column’s first', async () => {
         stubBindings({
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
                 conversations: [
-                    {nodeId: '@brainstorm',
-                        brainstorm: true,
+                    {nodeId: 'opt-review',
+                        column: 'Ревью',
                         agent: 'клаус',
                         current: true,
                         summary: 'пишем ТЗ на импорт',
-                        boardFolder: true},
-                    {nodeId: 'work', column: 'В работе', agent: 'кодекс', current: false, folder: 'app'},
+                        boardFolder: true,
+                        startedAt: '2026-08-14T10:00:00Z'},
+                    {nodeId: 'opt-work', column: 'В работе', agent: 'кодекс', folder: 'app', startedAt: '2026-08-14T09:00:00Z'},
                 ],
             })),
         })
-        const {container} = render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+        const {container} = render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>)))
 
         await waitFor(() => expect(container.querySelectorAll('.ConversationRow').length).toBe(2))
-        expect(screen.getByText('Discussion')).toBeInTheDocument()
         expect(screen.getByText('пишем ТЗ на импорт')).toBeInTheDocument()
         expect(screen.getByText('клаус · the board’s drafts')).toBeInTheDocument()
 
-        // A passed stage has nothing to open: the route opens its conversation
-        // again when the card comes back to it.
+        // A past column's row has nothing to open while nothing runs in it:
+        // its conversation continues when the card comes back.
         const passed = screen.getByText('В работе')
         expect(passed.closest('button')).toBeNull()
+
+        // The current column's row is the click that starts or resumes.
+        expect(screen.getByText('Ревью').closest('button')).not.toBeNull()
     })
 
     // A stage the route is running right now is a conversation to look at, and
@@ -81,38 +84,45 @@ describe('components/acp/cardTerminal', () => {
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
                 folder: '/tmp/proj',
                 conversations: [
-                    {nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', current: true},
-                    {nodeId: 'work', column: 'В работе', agent: 'кодекс', running: true, terminalId: 'term-stage'},
+                    {nodeId: 'opt-review', column: 'Ревью', agent: 'клаус', current: true},
+                    {nodeId: 'opt-work', column: 'В работе', agent: 'кодекс', running: true, stage: true, terminalId: 'term-stage'},
                 ],
             })),
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-stage' board={board} onClose={vi.fn()}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-stage' board={board} onClose={vi.fn()}/>)))
 
         expect(await screen.findByTestId('terminal')).toHaveTextContent('term-1')
         await userEvent.click(screen.getByRole('button', {name: 'В работе'}))
         await waitFor(() => expect(screen.getByTestId('terminal')).toHaveTextContent('term-stage'))
     })
 
-    // The card's own conversation is the only one that can be thrown away by
-    // hand — and it is asked about first, because the CLI in it ends and the
-    // record goes with it.
-    it('deletes the card’s own conversation, once', async () => {
+    // Any conversation can be thrown away except one a route is running — and
+    // it is asked about first, because the CLI in it ends and the record goes
+    // with it.
+    it('deletes a conversation, once, and never a running stage’s', async () => {
         const remove = vi.fn().mockResolvedValue(undefined)
         stubBindings({
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
                 folder: '/tmp/proj',
-                conversations: [{nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', running: true, terminalId: 'term-1'}],
+                conversations: [
+                    {nodeId: 'opt-review', column: 'Ревью', agent: 'клаус', current: true, running: true, terminalId: 'term-1'},
+                    {nodeId: 'opt-work', column: 'В работе', agent: 'кодекс', running: true, stage: true, terminalId: 'term-2'},
+                ],
             })),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
             DeleteCardConversation: remove,
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-del' board={board} onClose={vi.fn()}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-del' board={board} onClose={vi.fn()}/>)))
 
-        await userEvent.click(await screen.findByRole('button', {name: 'Delete the conversation'}))
+        // One bin: the running stage's row has none.
+        const bins = await screen.findAllByRole('button', {name: 'Delete the conversation'})
+        expect(bins.length).toBe(1)
+
+        await userEvent.click(bins[0])
         expect(remove).not.toHaveBeenCalled()
 
         await userEvent.click(screen.getByRole('button', {name: 'Delete'}))
-        await waitFor(() => expect(remove).toHaveBeenCalledWith('card-del', '@brainstorm'))
+        await waitFor(() => expect(remove).toHaveBeenCalledWith('card-del', 'opt-review'))
     })
 
     // Nothing but the agent knows what a conversation in a pty is about, so it
@@ -123,13 +133,13 @@ describe('components/acp/cardTerminal', () => {
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
                 folder: '/tmp/proj',
                 conversations: [
-                    {nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', running: true, terminalId: 'term-1', tools: true},
-                    {nodeId: 'work', column: 'В работе', agent: 'кодекс', running: true, terminalId: 'term-2'},
+                    {nodeId: 'opt-review', column: 'Ревью', agent: 'клаус', current: true, running: true, terminalId: 'term-1', tools: true},
+                    {nodeId: 'opt-work', column: 'В работе', agent: 'кодекс', running: true, terminalId: 'term-2'},
                 ],
             })),
             AskTerminalName: ask,
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-name' board={board} onClose={vi.fn()}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-name' board={board} onClose={vi.fn()}/>)))
 
         // One row can answer, the other was handed no tools.
         const buttons = await screen.findAllByRole('button', {name: 'Ask the agent to name this conversation'})
@@ -153,7 +163,7 @@ describe('components/acp/cardTerminal', () => {
             ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'кодекс'}])),
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>)))
 
         // Two agents need choosing. The folder is known, so the agent is the
         // whole question — the names are the answers, no folder buttons. The
@@ -182,7 +192,7 @@ describe('components/acp/cardTerminal', () => {
             OpenCardTerminal: open,
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'кодекс'}])),
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>)))
 
         // Who — and nothing about folders on screen yet.
         expect(await screen.findByText('Choosing an agent')).toBeInTheDocument()
@@ -206,7 +216,7 @@ describe('components/acp/cardTerminal', () => {
             OpenCardTerminal: open,
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>)))
 
         await screen.findByText('Which folder will the agent work in?')
 
@@ -223,7 +233,7 @@ describe('components/acp/cardTerminal', () => {
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
             ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>)))
 
         // The single agent filled itself in; the note says what the drafts
         // folder is before anything runs.
@@ -244,7 +254,7 @@ describe('components/acp/cardTerminal', () => {
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
             ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'app'}])),
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>)))
 
         await userEvent.click(await screen.findByRole('button', {name: 'app'}))
         await waitFor(() => expect(open).toHaveBeenLastCalledWith('card-1', 'app', 'клаус', false))
@@ -263,7 +273,7 @@ describe('components/acp/cardTerminal', () => {
             PickDirectory: vi.fn().mockResolvedValue('/home/me/proj'),
             AddAgentWorkdir: addProject,
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>)))
 
         await userEvent.click(await screen.findByRole('button', {name: 'Add a folder…'}))
 
@@ -278,7 +288,7 @@ describe('components/acp/cardTerminal', () => {
         stubBindings({
             ListAgents: vi.fn().mockResolvedValue('[]'),
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>)))
 
         await screen.findByText('Choosing an agent')
         expect(screen.queryByRole('button', {name: 'Open in a separate window'})).toBeNull()
@@ -291,11 +301,11 @@ describe('components/acp/cardTerminal', () => {
         stubBindings({
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
                 folder: '/tmp/proj',
-                conversations: [{nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', running: true, terminalId: 'term-1'}],
+                conversations: [{nodeId: 'opt-review', column: 'Ревью', agent: 'клаус', current: true, running: true, terminalId: 'term-1'}],
             })),
             OpenCardTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-1', windowed: true})),
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-terminal-window' board={board} onClose={onClose}/>))
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-terminal-window' board={board} onClose={onClose}/>)))
         await screen.findByTestId('terminal')
 
         // The row offers it, and so does the head of the terminal itself —
@@ -313,10 +323,10 @@ describe('components/acp/cardTerminal', () => {
         stubBindings({
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
                 folder: '/tmp/proj',
-                conversations: [{nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', running: true, terminalId: 'term-1'}],
+                conversations: [{nodeId: 'opt-review', column: 'Ревью', agent: 'клаус', current: true, running: true, terminalId: 'term-1'}],
             })),
         })
-        const {container} = render(() => wrapIntl(() => <CardTerminal cardId='card-away' board={board} onClose={vi.fn()}/>))
+        const {container} = render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-away' board={board} onClose={vi.fn()}/>)))
         await screen.findByTestId('terminal')
 
         await userEvent.click(screen.getByRole('button', {name: 'Put the terminal away'}))
@@ -324,17 +334,20 @@ describe('components/acp/cardTerminal', () => {
         expect(container.querySelectorAll('.ConversationRow').length).toBe(1)
     })
 
-    // A card the route has not worked has one conversation, and the list is one
-    // row: the panel says what there is rather than a heading about it.
-    it('lists one row for a card the route has not worked', async () => {
+    // A card that has stood in one column has one conversation, and the list
+    // is one row — named after the column, or «Без колонки» when there is none.
+    it('lists one row for a card that has not travelled', async () => {
         stubBindings({
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
-                conversations: [{nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', current: true}],
+                conversations: [{nodeId: '@none', noColumn: true, agent: 'клаус', current: true, startedAt: '2026-08-14T10:00:00Z'}],
             })),
         })
-        const {container} = render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+        const {container} = render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>)))
 
         await waitFor(() => expect(screen.getByTestId('terminal')).toBeInTheDocument())
         expect(container.querySelectorAll('.ConversationRow').length).toBe(1)
+
+        // Twice: the row's name and the open terminal's head say the same.
+        expect(screen.getAllByText('No column').length).toBe(2)
     })
 })

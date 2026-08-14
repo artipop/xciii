@@ -76,6 +76,12 @@ type Session struct {
 	// outcome is then the event that moves the card on.
 	FlowName   string
 	FlowNodeID string
+	// NodeID is the node this session's conversation is keyed under: the flow
+	// node when a route started it, else the option id of the column that did.
+	// It exists because a column can run an agent with no route behind it, and
+	// that stage's conversation still belongs to its column — the same place a
+	// person opening a terminal there lands.
+	NodeID string
 	// RunIn is where this session works: the card's own workspace or the
 	// folder itself. The stage decides (FlowNode.RunsIn); a session outside a
 	// route leaves it empty and gets the default for what it is doing.

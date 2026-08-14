@@ -172,17 +172,24 @@ func (m *Manager) runCardTaskInTerminal(s *Session) {
 // have the card's terminal for this stage open — that *is* this conversation, so
 // the task goes into it rather than into a second CLI beside it.
 func (m *Manager) startStageTerminal(s *Session) (*TerminalSession, error) {
-	// A stage with no route behind it still has a conversation of its own
-	// (stageNode): under an empty key it would be the card's own conversation,
-	// which is a different thing that a person is in the middle of.
-	node := stageNode(s.FlowNodeID)
-	if live := m.TerminalForCardNode(s.CardID, node); live != nil {
+	// A conversation already open on this node — a person sat down at the
+	// column before the stage started — *is* this conversation: the node model
+	// puts them in one place on purpose, so the task is typed into it rather
+	// than into a second CLI beside it. The route adopts it: the terminal is a
+	// running stage from here on, which is what keeps the bin off its row and
+	// the card's comment single (stageComment reports; terminalEnded stays
+	// quiet about stages).
+	if live := m.TerminalForCardNode(s.CardID, s.NodeID); live != nil {
+		live.mu.Lock()
+		live.stage = true
+		live.mu.Unlock()
 		go live.deliverPrompt(s.PromptText)
 		return live, nil
 	}
 	return m.startTerminal(terminalSpec{
 		cardID:      s.CardID,
-		nodeID:      node,
+		nodeID:      s.NodeID,
+		columnName:  s.ColumnName,
 		boardID:     s.BoardID,
 		title:       s.Title,
 		task:        s.PromptText,
@@ -195,8 +202,49 @@ func (m *Manager) startStageTerminal(s *Session) (*TerminalSession, error) {
 		cwd:    s.Worktree.Path,
 		branch: s.Worktree.Branch,
 		prompt: s.PromptText,
-		stage:  true,
+		// Why the card is back, when it is: a resumed conversation knows its
+		// task, and what it needs is the delta — see returnBrief.
+		returnPrompt: m.returnBrief(s.CardID, s.NodeID),
+		stage:        true,
 	})
+}
+
+// returnBrief is what a stage's conversation is told when the card comes back
+// to its node: not the task — the conversation already had it, and a resumed
+// CLI reads a repeated brief as a fresh instruction — but why it is back, in
+// the words of whatever sent it. The latest arrival on this node carries the
+// trigger and, for a stage's own verdict, what that stage reported
+// (FlowEventRecord.Said): «ревьюер вернул с такими-то замечаниями» is exactly
+// the new input the resumed session works from. Empty when the card has not
+// been away, and the resume then delivers the ordinary prompt.
+func (m *Manager) returnBrief(cardID, nodeID string) string {
+	events, err := m.store.FlowEvents(cardID)
+	if err != nil || len(events) == 0 {
+		return ""
+	}
+	var arrival *FlowEventRecord
+	for i := len(events) - 1; i >= 0; i-- {
+		if events[i].ToNode == nodeID {
+			arrival = &events[i]
+			break
+		}
+	}
+	if arrival == nil || arrival.FromNode == "" || arrival.FromNode == nodeID {
+		return ""
+	}
+	from := arrival.FromNode
+	if flow, ok := m.FlowByName(arrival.Flow); ok {
+		if node, has := flow.Node(from); has {
+			from = node.Column
+		}
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "The card is back on this stage. It went to «%s» and returned: %s.", from, firstNonEmpty(arrival.Detail, TriggerLabel(arrival.On)))
+	if said := strings.TrimSpace(arrival.Said); said != "" {
+		fmt.Fprintf(&b, "\n\nWhat that stage reported:\n%s", truncateRunes(said, 4000))
+	}
+	b.WriteString("\n\nThe original task still stands; continue from where this conversation left off.")
+	return b.String()
 }
 
 // closeStageTerminal ends the conversation once the stage is over, after the

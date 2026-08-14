@@ -49,10 +49,12 @@ const resumeRefusedWindow = 30 * time.Second
 type TerminalSession struct {
 	ID     string
 	CardID string
-	// NodeID is the stage of the card's route this conversation belongs to;
-	// empty for a card outside any route, and for planning terminals.
-	NodeID  string
-	BoardID string
+	// NodeID is the node this conversation belongs to — the option id of the
+	// card's column, or nodeNone; empty only for planning terminals.
+	NodeID string
+	// ColumnName is what that node was called when the conversation started.
+	ColumnName string
+	BoardID    string
 	// Title is what this conversation is called. It starts as the card's title
 	// (or «Планирование»), and both a person and the agent may change it: read
 	// it through Info, never off the field, since either can happen while a
@@ -270,6 +272,13 @@ func (t *TerminalSession) isDiscarded() bool {
 	return t.discarded
 }
 
+// isStage reports a conversation a route is running rather than a person.
+func (t *TerminalSession) isStage() bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.stage
+}
+
 // startupFailure reports a CLI that exited within window of being launched, and
 // exited badly: it never got as far as the work, so whatever it printed is the
 // whole story. A stage reads this to tell "the agent could not be started" from
@@ -355,63 +364,50 @@ func (t *TerminalSession) finish() {
 	}
 }
 
-// nodeBrainstorm is the card's own conversation — the one a person opens from
-// the card to think about it, as opposed to the conversations the route opens to
-// work it (stageterminal.go). It is a node id no board can produce: stage nodes
-// are board option ids, and `@` is not a character those are made of.
+// A conversation is keyed by the card's node: the option id of the column the
+// card stands in — the same id a route's stage hangs off (FlowNode.ID), so the
+// stage that runs in a column and the person who opens a terminal there are in
+// **one** conversation, with the column's own agent, workspace and prompt.
+// Come back to the node and you come back to the session.
 //
-// It exists because the two used to share a key. A card's terminal was keyed by
-// the stage the card stood on, so opening one to talk about a card that was
-// standing on a stage handed back the stage's own CLI — and a stage starting
-// while somebody was talking typed the card's task straight into their
-// conversation. They are different things with different lifetimes: a stage's
-// conversation belongs to that stage and closes when it reports, while this one
-// belongs to the card and is still there tomorrow.
-const nodeBrainstorm = "@brainstorm"
-
-// nodeStageless is the key a stage gets when it stands on no route at all — a
-// column that runs an agent, with no flow behind it. Its conversation is the
-// column's, not the card's, and it needs a key of its own for exactly one
-// reason: an empty one is what every conversation held before stages had keys
-// was recorded under, and the card's own conversation is what those were. Two
-// different things under one key is two identical rows in the panel — the same
-// card title, the same agent, the same folder — and no way to tell which is
-// which.
-const nodeStageless = "@stage"
-
-// stageNode is the key a stage's conversation is kept under: the node of the
-// route it stands on, or nodeStageless when there is no route.
-func stageNode(flowNodeID string) string {
-	if flowNodeID == "" {
-		return nodeStageless
-	}
-	return flowNodeID
-}
-
-// StartCardTerminal opens the card's own conversation — «обсудить эту
-// карточку»: the same agent a session on it would get, and a place to talk
-// before, during or instead of any work. projectName/agentName override what the
-// card says, for the case where it says nothing.
+// This replaced a special key for "the card's own conversation, apart from
+// every stage's" (@brainstorm). That split existed to stop a stage typing the
+// card's task into a person's discussion, and the node model answers the same
+// problem at the source: what a column means — who works there and what they
+// are told — is the column's setting, so the conversation a stage joins is the
+// conversation a person deliberately opened *about that stage*.
 //
-// It asks nothing of the card. A card with no folder is the ordinary case here,
-// not a refusal — wording, a brief and a plan all come before anybody decides
-// where the work lives — and it never claims a workspace, so no branch appears
-// because somebody wanted to think out loud. Where it runs, in order: the copy
-// the card already has, so the talk is beside the work; else the folder itself;
-// else the board's drafts (startTerminal).
+// nodeNone is the node of a card that has no column at all, spelled with `@`
+// because option ids are not made of it: a card can be talked over the moment
+// it exists, before anybody files it anywhere.
+const nodeNone = "@none"
+
+// StartCardTerminal opens the conversation of the node the card stands on —
+// «обсудить эту карточку», and, on a column that runs an agent, «сесть рядом с
+// работой»: person and stage share the node's one conversation.
+// projectName/agentName override what the card says, for the case where it
+// says nothing.
+//
+// It asks little of the card. A card with no folder is an ordinary case —
+// wording, a brief and a plan all come before anybody decides where the work
+// lives — and on a column that runs no agent it claims no workspace, so no
+// branch appears because somebody wanted to think out loud. On an agent
+// column the opposite is deliberate: the conversation *is* the stage's, so it
+// works where the stage works — the card's workspace — and a stage starting
+// later joins it there instead of opening a second CLI beside it.
 func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*TerminalSession, error) {
 	if m.reader == nil {
 		return nil, fmt.Errorf("чтение карточек недоступно")
-	}
-	_, crew := m.cardStage(cardID)
-	if live := m.TerminalForCardNode(cardID, nodeBrainstorm); live != nil {
-		return live, nil
 	}
 	ctx, cancel := context.WithTimeout(m.rootCtx, 10*time.Second)
 	defer cancel()
 	ev, err := m.reader.CardByID(ctx, cardID)
 	if err != nil {
 		return nil, fmt.Errorf("не удалось прочитать карточку: %w", err)
+	}
+	place := m.cardPlace(ev)
+	if live := m.TerminalForCardNode(cardID, place.node); live != nil {
+		return live, nil
 	}
 
 	workdirPath, err := m.resolveWorkdir(ev)
@@ -438,37 +434,131 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		// registered, and the transcript `--continue` picks up is the held
 		// agent's CLI's anyway. An agent since removed falls through to the
 		// usual resolution.
-		if rec, ok, recErr := m.store.LastTerminalForCardNode(cardID, nodeBrainstorm); recErr == nil && ok && rec.Agent != "" {
+		if rec, ok, recErr := m.store.LastTerminalForCardNode(cardID, place.node); recErr == nil && ok && rec.Agent != "" {
 			if held, heldErr := m.planningAgent(rec.Agent); heldErr == nil {
 				agent = held
 				break
 			}
 		}
-		// The same resolution a session at this stage would go through: the
-		// stage's own crew first, then the card's assignee, then the single
+		// The same resolution a session at this node would go through: the
+		// node's own crew first, then the card's assignee, then the single
 		// registered agent. A fully busy crew does not block a *terminal* —
 		// the person opening one is the person watching, so the first crew
 		// member answers even mid-session elsewhere.
-		agent, err = m.terminalAgent(ev, crew)
+		agent, err = m.terminalAgent(ev, place.crew)
 	}
 	if err != nil {
 		return nil, err
 	}
-	cwd, branch := m.talkingPlace(ev.BoardID, ev.CardID, workdirPath)
-	return m.startTerminal(terminalSpec{
+	spec := terminalSpec{
 		cardID:      ev.CardID,
-		nodeID:      nodeBrainstorm,
+		nodeID:      place.node,
+		columnName:  place.column,
 		boardID:     ev.BoardID,
 		title:       ev.Title,
 		task:        ev.Body,
-		intro:       cardIntro(ev),
+		intro:       joinPrompts(place.prompt, cardIntro(ev)),
 		workdirPath: workdirPath,
 		base:        ev.Props["branch"],
 		agent:       agent,
-		cwd:         cwd,
-		branch:      branch,
-	})
+	}
+	// Where the conversation runs is the node's answer. An agent column works
+	// the card, so its conversation claims the card's workspace exactly as its
+	// stage would (startTerminal's own claim path; a stage told to run in the
+	// folder runs there). Every other column's conversation stands beside the
+	// work and creates nothing: the copy the card already has, else the folder,
+	// else the board's drafts.
+	if place.works && workdirPath != "" {
+		if place.runIn == RunInWorkdir {
+			spec.cwd = workdirPath
+		}
+	} else {
+		spec.cwd, spec.branch = m.talkingPlace(ev.BoardID, ev.CardID, workdirPath)
+	}
+	return m.startTerminal(spec)
 }
+
+// cardPlace is the node a card stands on, with what that node has to say about
+// a conversation held there: what the column is called, who works it, whether
+// it runs an agent at all, where, and with which instructions.
+type cardPlace struct {
+	node   string
+	column string
+	crew   []string
+	works  bool // the node runs an agent, so its conversation is the stage's
+	runIn  string
+	prompt string
+}
+
+// cardPlace resolves where the card is. The route's own record answers first —
+// its node ids survive column renames — and is checked against the column the
+// card actually shows, so a card dragged off its route by hand is placed where
+// it stands, not where the route last saw it. A card outside any route is
+// placed by the value of the trigger property; one with no value at all stands
+// on nodeNone, which is still a place to talk.
+func (m *Manager) cardPlace(ev CardMoved) cardPlace {
+	property := m.triggerProperty()
+	if st, ok, _ := m.flowState(ev.CardID); ok {
+		if flow, found := m.FlowByName(st.Flow); found {
+			property = flow.PropertyOr(property)
+			if node, has := flow.Node(st.NodeID); has && columnMatchesCard(ev, property, node.Column) {
+				place := cardPlace{node: st.NodeID, column: node.Column, crew: node.Crew(), runIn: node.RunIn}
+				spec, _ := m.columnByName(property, node.Column)
+				if len(place.crew) == 0 {
+					place.crew = spec.Agents
+				}
+				action := node.Action
+				if action == "" {
+					action = spec.Action
+				}
+				place.works = action == FlowActionAgent
+				place.runIn = node.RunsIn(action)
+				place.prompt = firstNonEmpty(node.Prompt, spec.Prompt)
+				return place
+			}
+		}
+	}
+	for _, opt := range ev.SelectedOptions {
+		if !strings.EqualFold(opt.PropertyName, property) || opt.OptionID == "" {
+			continue
+		}
+		place := cardPlace{node: opt.OptionID, column: opt.Name}
+		if spec, ok := m.columnFor(ev.BoardID, opt); ok {
+			place.crew = spec.Agents
+			place.works = spec.Action == FlowActionAgent
+			place.prompt = spec.Prompt
+		}
+		return place
+	}
+	return cardPlace{node: nodeNone}
+}
+
+// columnMatchesCard reports whether the card's value on the property is this
+// column — or whether the card cannot say (no options carried, as in a test
+// fake), in which case the route's record is trusted.
+func columnMatchesCard(ev CardMoved, property, column string) bool {
+	if len(ev.SelectedOptions) == 0 {
+		return true
+	}
+	for _, opt := range ev.SelectedOptions {
+		if strings.EqualFold(opt.PropertyName, property) {
+			return strings.EqualFold(opt.Name, column)
+		}
+	}
+	return true
+}
+
+// joinPrompts is texts separated by blank lines, empties dropped.
+func joinPrompts(parts ...string) string {
+	var out []string
+	for _, p := range parts {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
+		}
+	}
+	return strings.Join(out, "\n\n")
+}
+
 
 // cardIntro is what the card's own conversation opens with: which card it is
 // about, in the card's own words.
@@ -532,30 +622,6 @@ func (m *Manager) boardFolder(boardID string) string {
 		return ""
 	}
 	return filepath.Join(filepath.Dir(m.cfg.WorktreeDir), "boards", boardID)
-}
-
-// cardStage is the stage the card stands on and who works it: the node's own
-// crew, else its column's. Both empty for a card outside any route.
-func (m *Manager) cardStage(cardID string) (string, []string) {
-	st, ok, err := m.flowState(cardID)
-	if err != nil || !ok {
-		return "", nil
-	}
-	flow, found := m.FlowByName(st.Flow)
-	if !found {
-		return st.NodeID, nil
-	}
-	node, found := flow.Node(st.NodeID)
-	if !found {
-		return st.NodeID, nil
-	}
-	crew := node.Crew()
-	if len(crew) == 0 {
-		if spec, ok := m.columnByName(flow.PropertyOr(m.triggerProperty()), node.Column); ok {
-			crew = spec.Agents
-		}
-	}
-	return st.NodeID, crew
 }
 
 // terminalAgent resolves who a terminal on this card speaks as. It is the
@@ -623,9 +689,13 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 // terminalSpec is everything startTerminal needs, resolved by the caller.
 type terminalSpec struct {
 	cardID string
-	// nodeID is the stage of the card's route this conversation belongs to.
-	// Empty for cards outside any route and for planning.
+	// nodeID is the node this conversation belongs to — the option id of the
+	// card's column, or nodeNone. Empty only for planning, which has no card.
 	nodeID string
+	// columnName is what that node is called right now, frozen into the record:
+	// past columns are facts about the past, and the board no longer remembers
+	// an option somebody deleted.
+	columnName string
 	// boardID is also the board this terminal may write to through the board
 	// tools. A card's terminal has its card's board; planning has the board it
 	// was opened from, which is the only reason that dialog knows about one.
@@ -644,6 +714,12 @@ type terminalSpec struct {
 	// dropped on a resume, where the conversation already knows — a stage's
 	// prompt is not, because a stage hands over a task every time it runs.
 	intro string
+	// returnPrompt replaces prompt when the conversation is *resumed*: the card
+	// came back to this node, and the conversation already knows its task — what
+	// it does not know is why it is back, which is what this carries (the
+	// trigger, and what the stage it returned from reported). Empty resumes
+	// deliver prompt as before.
+	returnPrompt string
 	// cwd/branch are where this conversation runs, when the caller has already
 	// worked it out. A stage of a route has: the session claimed the card's
 	// workspace before the terminal existed, and a stage told to run in the
@@ -668,9 +744,14 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 
 	// A conversation that is starting opens with what the card says (cardIntro);
 	// one that is being continued opens with nothing, because it was told a
-	// while ago and repeating it would read as a new instruction.
+	// while ago and repeating it would read as a new instruction. A stage
+	// resuming after the card came back says only what is new — why it is back
+	// and what the previous stage reported — for the same reason.
 	if !resume && spec.prompt == "" {
 		spec.prompt = spec.intro
+	}
+	if resume && spec.returnPrompt != "" {
+		spec.prompt = spec.returnPrompt
 	}
 
 	// Minted before anything can fail, because the grant carries it: the tools
@@ -719,6 +800,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		ID:          id,
 		CardID:      spec.cardID,
 		NodeID:      spec.nodeID,
+		ColumnName:  spec.columnName,
 		BoardID:     spec.boardID,
 		Title:       spec.title,
 		Task:        spec.task,
@@ -845,8 +927,8 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// Recorded even for a planning terminal, so "where was I" survives the app
 	// being closed — which is the only reason a terminal can be resumed at all.
 	if err := m.store.InsertTerminal(TerminalRecord{
-		ID: id, CardID: t.CardID, NodeID: t.NodeID, BoardID: t.BoardID, Title: t.Title,
-		WorkdirPath: t.WorkdirPath, Cwd: t.Cwd, Branch: t.Branch,
+		ID: id, CardID: t.CardID, NodeID: t.NodeID, ColumnName: t.ColumnName, BoardID: t.BoardID,
+		Title: t.Title, WorkdirPath: t.WorkdirPath, Cwd: t.Cwd, Branch: t.Branch,
 		Agent: t.AgentName, Kind: t.AgentKind, Summary: t.summary, StartedAt: t.StartedAt,
 	}); err != nil {
 		m.log.Warn("acp: failed to record terminal session", "terminal", id, "err", err)
@@ -1181,24 +1263,23 @@ func (m *Manager) SetTerminalSummary(id, summary string) error {
 // for a sentence, short enough that the list stays a list.
 const terminalSummaryLimit = 200
 
-// DeleteCardConversation throws a conversation away: the CLI in it is ended and
-// the record goes with it, so the next conversation on that card opens on a
-// blank screen instead of continuing this one.
+// DeleteCardConversation throws one node's conversation away: the CLI in it is
+// ended and the record goes with it, so the next conversation on that node
+// opens on a blank screen instead of continuing this one.
 //
-// It is the only way a card's own conversation ends. Everything about a terminal
-// is kept on purpose — that is the whole of what makes «продолжить» possible —
-// so somebody who has finished thinking about a card, or whose conversation went
-// somewhere useless, has nothing else to do about it. A stage's conversation is
-// deliberately not deletable: the route opened it and may still be waiting on
-// it, and a card standing on a stage whose CLI was taken out from under it is a
-// stall nobody asked for.
+// It is the only way a conversation ends for good — everything about a terminal
+// is kept on purpose, which is the whole of what makes «продолжить» possible —
+// so somebody whose conversation went somewhere useless has nothing else to do
+// about it. The one refusal is a stage the route is running right now: the
+// route opened it and is waiting on it, and a card standing on a stage whose
+// CLI was taken out from under it is a stall nobody asked for.
 func (m *Manager) DeleteCardConversation(cardID, nodeID string) error {
 	if strings.TrimSpace(cardID) == "" {
 		return fmt.Errorf("не сказано, у какой карточки удалить разговор")
 	}
 	if live := m.TerminalForCardNode(cardID, nodeID); live != nil {
-		if live.stage {
-			return fmt.Errorf("это разговор стадии маршрута — его ведёт маршрут")
+		if live.isStage() {
+			return fmt.Errorf("это разговор работающей стадии маршрута — его ведёт маршрут")
 		}
 		live.mu.Lock()
 		live.discarded = true
@@ -1209,15 +1290,6 @@ func (m *Manager) DeleteCardConversation(cardID, nodeID string) error {
 	}
 	if err := m.store.DeleteTerminalsForCardNode(cardID, nodeID); err != nil {
 		return fmt.Errorf("не удалось забыть разговор: %w", err)
-	}
-	// The card's own conversation is also every conversation held on it before
-	// stages existed: those records carry no node at all, and they are what
-	// LastTerminalForCardNode falls back to. Leaving them would delete a
-	// conversation that came straight back on the next click.
-	if nodeID == nodeBrainstorm {
-		if err := m.store.DeleteTerminalsForCardNode(cardID, ""); err != nil {
-			return fmt.Errorf("не удалось забыть разговор: %w", err)
-		}
 	}
 	m.log.Info("acp: conversation discarded", "card", cardID, "node", nodeID)
 	return nil
@@ -1478,17 +1550,16 @@ type ResumableTerminal struct {
 	EndedAt   string `json:"endedAt,omitempty"`
 }
 
-// CardConversation is one stage's conversation as the card's panel lists them:
-// which stage, who spoke there, whether it is running, and whether the card is
-// standing on it — the only one a new terminal can open.
+// CardConversation is one node's conversation as the card's panel lists them:
+// which column, who spoke there, whether it is running, and whether the card
+// is standing on it — the one the panel opens.
 type CardConversation struct {
 	NodeID string `json:"nodeId,omitempty"`
 	Column string `json:"column,omitempty"`
-	// Brainstorm marks the card's own conversation rather than a stage's — the
-	// one the card's terminal button opens, which has no column to be named
-	// after. A flag rather than a name, because what it is called is the
-	// screen's business and the screen is in Russian.
-	Brainstorm bool   `json:"brainstorm,omitempty"`
+	// NoColumn marks the conversation of a card that had no column when it was
+	// held (nodeNone). A flag rather than a name, because what it is called is
+	// the screen's business and the screen is in Russian.
+	NoColumn   bool   `json:"noColumn,omitempty"`
 	Agent      string `json:"agent,omitempty"`
 	Running    bool   `json:"running,omitempty"`
 	Current    bool   `json:"current,omitempty"`
@@ -1496,6 +1567,9 @@ type CardConversation struct {
 	StartedAt  string `json:"startedAt,omitempty"`
 	EndedAt    string `json:"endedAt,omitempty"`
 	ExitCode   int    `json:"exitCode,omitempty"`
+	// Stage says a route is running this conversation right now — the one row
+	// that cannot be deleted, since the route is waiting on it.
+	Stage bool `json:"stage,omitempty"`
 
 	// What the row says about itself, so the card's panel reads like the list of
 	// open terminals rather than like a row of stage labels: what the
@@ -1511,69 +1585,66 @@ type CardConversation struct {
 	Tools bool `json:"tools,omitempty"`
 }
 
-// CardConversations lists the card's conversations, newest first: its own, and
-// one per stage it was worked on. A passed stage's entry is history until the
-// card comes back; the card's own is what the panel opens.
+// CardConversations lists the card's conversations, one per node it has stood
+// on: the current node's first — synthesized when nothing has been said there
+// yet, because it is the one the panel opens — then the others, newest first.
 func (m *Manager) CardConversations(cardID string) []CardConversation {
 	recs, err := m.store.TerminalsForCard(cardID)
 	if err != nil {
 		m.log.Warn("acp: cannot read the card's terminals", "card", cardID, "err", err)
 		return nil
 	}
-	if len(recs) == 0 {
-		return nil
+	// The card itself answers two questions the records cannot: which node it
+	// stands on now, and what it is called — so a conversation nobody has named
+	// is not named after it (every terminal starts out titled with the card's
+	// title, and a list where every row says the same thing is a list of one
+	// thing repeated).
+	var place cardPlace
+	var cardTitle string
+	if m.reader != nil {
+		ctx, cancel := context.WithTimeout(m.rootCtx, 5*time.Second)
+		if ev, err := m.reader.CardByID(ctx, cardID); err == nil {
+			place = m.cardPlace(ev)
+			cardTitle = ev.Title
+		}
+		cancel()
 	}
-	currentNode, _ := m.cardStage(cardID)
 	columns := m.stageColumns(cardID)
-	// What the card is called, so a conversation nobody has named is not named
-	// after it: every terminal starts out titled with the card's title, and a
-	// list where every row says the same thing is a list of one thing repeated.
-	cardTitle := m.cardTitle(cardID)
+	columnOf := func(node, recorded string) string {
+		// The route's own name for the node wins — it survives renames — then
+		// what the record froze, then what the card shows for the node it is
+		// standing on.
+		if name := columns[node]; name != "" {
+			return name
+		}
+		if recorded != "" {
+			return recorded
+		}
+		if node == place.node {
+			return place.column
+		}
+		return ""
+	}
 
-	out := make([]CardConversation, 0, len(recs))
-	seen := make(map[string]bool, len(recs))
+	out := make([]CardConversation, 0, len(recs)+1)
 	for _, rec := range recs {
-		// A record with no key at all is the card's *one* conversation, from
-		// before stages had keys of their own — which is what resume already
-		// treats it as (LastTerminalForCardNode). Folded rather than listed
-		// beside the card's own conversation, or the two read as one thing
-		// twice.
-		node := rec.NodeID
-		if node == "" {
-			node = nodeBrainstorm
-		}
-		if seen[node] {
-			continue
-		}
-		seen[node] = true
-
-		brainstorm := node == nodeBrainstorm
 		c := CardConversation{
-			NodeID:      node,
-			Column:      columns[node],
-			Brainstorm:  brainstorm,
+			NodeID:      rec.NodeID,
+			Column:      columnOf(rec.NodeID, rec.ColumnName),
+			NoColumn:    rec.NodeID == nodeNone,
 			Agent:       rec.Agent,
 			Title:       conversationTitle(rec.Title, cardTitle),
 			Summary:     rec.Summary,
 			Folder:      m.folderLabel(rec.WorkdirPath),
 			BoardFolder: rec.WorkdirPath == "",
-			// The card's own conversation is always the one the panel opens, so
-			// it is always current; a stage's is current only while the card
-			// stands on it.
-			Current:   brainstorm || node == currentNode,
-			StartedAt: rec.StartedAt.Format(time.RFC3339),
-			ExitCode:  rec.ExitCode,
+			Current:     rec.NodeID == place.node,
+			StartedAt:   rec.StartedAt.Format(time.RFC3339),
+			ExitCode:    rec.ExitCode,
 		}
 		if rec.EndedAt != nil {
 			c.EndedAt = rec.EndedAt.Format(time.RFC3339)
 		}
-		// Under either spelling, for the same reason the records are folded: a
-		// live conversation recorded before stages had keys is this one.
-		live := m.TerminalForCardNode(cardID, rec.NodeID)
-		if live == nil && brainstorm {
-			live = m.TerminalForCardNode(cardID, nodeBrainstorm)
-		}
-		if live != nil {
+		if live := m.TerminalForCardNode(cardID, rec.NodeID); live != nil {
 			info := live.Info()
 			c.Running = true
 			c.TerminalID = info.ID
@@ -1581,8 +1652,22 @@ func (m *Manager) CardConversations(cardID string) []CardConversation {
 			c.Title = conversationTitle(info.Title, cardTitle)
 			c.Summary = info.Summary
 			c.Tools = info.Tools
+			c.Stage = live.isStage()
 		}
 		out = append(out, c)
+	}
+
+	// The current node's row exists even before anybody has spoken there: it is
+	// what a click opens, and a card that moved to «Ревью» five seconds ago has
+	// a place to talk about the review.
+	sort.SliceStable(out, func(i, j int) bool { return out[i].Current && !out[j].Current })
+	if place.node != "" && (len(out) == 0 || !out[0].Current) {
+		out = append([]CardConversation{{
+			NodeID:   place.node,
+			Column:   place.column,
+			NoColumn: place.node == nodeNone,
+			Current:  true,
+		}}, out...)
 	}
 	return out
 }
@@ -1598,22 +1683,6 @@ func conversationTitle(title, cardTitle string) string {
 		return ""
 	}
 	return title
-}
-
-// cardTitle reads what the card is called, and answers "" for anything that
-// goes wrong: the title is used to *drop* a default name, so not knowing it
-// leaves the list as it was rather than failing a panel over it.
-func (m *Manager) cardTitle(cardID string) string {
-	if m.reader == nil || cardID == "" {
-		return ""
-	}
-	ctx, cancel := context.WithTimeout(m.rootCtx, 5*time.Second)
-	defer cancel()
-	ev, err := m.reader.CardByID(ctx, cardID)
-	if err != nil {
-		return ""
-	}
-	return ev.Title
 }
 
 // folderLabel is what a conversation's folder is called on screen: the name it

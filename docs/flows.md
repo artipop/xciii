@@ -60,14 +60,18 @@ with no route chosen, which is where you say what each column does.
 
 - **choose a column** on «Колонки» and the panel on the right is about it: what
   happens when a card lands there, who works it, how many at once, where it
-  deploys. That answer holds for every route at once, because it is the
-  column's;
+  deploys — and **what the agent is told here** («Что сказать агенту здесь»):
+  the column's own instructions, put in front of the card's task for anybody
+  working a card in this column — the reviewer's brief on «Ревью», the
+  builder's on «В работе». That answer holds for every route at once, because
+  it is the column's;
 - **choose a route** and its arrows are drawn over the same boxes. The columns
   the route does not use stay on the canvas, faded — **clicking one puts it on
   the route**, and so does drawing an arrow to it. There is no separate "add a
   stage and then pick its column": a stage a card can stand on *is* a column;
 - **choose a stage of a route** and the panel is about *the stage*: what happens
-  at it, who works it here, where it works, where the card goes next. Each of
+  at it, who works it here, where it works, what the agent is told at this
+  stage, where the card goes next. Each of
   those falls back to the column's answer, which is named in the control rather
   than left to be guessed — «— как в колонке: агент работает над карточкой —»,
   and under the crew boxes «Никто не отмечен — работают агенты колонки: …».
@@ -212,6 +216,14 @@ A terminal does not end by itself, so the agent declares the work over with
 the card's comment and the event the route acts on. If the terminal is closed
 without it, the card stays where it is and says so — no verdict was given, so
 none is invented.
+
+**The conversation is the node's, and a returning card comes back to it.** A
+person opening the card's terminal in a column joins the same conversation the
+stage runs in — same agent, same workspace, same instructions — and a card sent
+back (say, from «Ревью» to «В работе») resumes the conversation it had there.
+It is not handed its task again: it is told why it is back, with what the stage
+it returned from reported — the reviewer's own words are the new input the
+resumed session works from.
 
 Two things are still done the old way, without a terminal: a **deploy** and a
 **test**. Nobody is watching those, and their result is read by the machine

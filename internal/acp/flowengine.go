@@ -52,14 +52,14 @@ func (m *Manager) handleFlowMove(ev CardMoved) bool {
 	m.wg.Add(1)
 	go func() {
 		defer m.wg.Done()
-		m.enterNode(ev, f, n, false, "", "перенос вручную")
+		m.enterNode(ev, f, n, false, "", "перенос вручную", "")
 	}()
 	return true
 }
 
 // enterNode is what "the card is now on this stage" means: move it if we are
 // the ones advancing it, remember the position, say why, and run the stage.
-func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bool, on, detail string) {
+func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bool, on, detail, said string) {
 	if move {
 		property := flow.PropertyOr(m.triggerProperty())
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -103,6 +103,10 @@ func (m *Manager) enterNode(ev CardMoved, flow FlowEntry, node FlowNode, move bo
 	})
 	m.appendFlowEvent(FlowEventRecord{
 		CardID: ev.CardID, Flow: flow.Name, FromNode: from, ToNode: node.ID, On: on, Detail: detail,
+		// The agent's own words on the transition, kept because the stage the
+		// card returns to is briefed from them (returnBrief): «ревьюер вернул с
+		// такими-то замечаниями» is the input the resumed session works from.
+		Said: said,
 	})
 	m.log.Info("acp: flow node entered", "card", ev.CardID, "flow", flow.Name, "node", node.ID, "on", on)
 
@@ -174,7 +178,7 @@ func (m *Manager) runNodeAction(ev CardMoved, flow FlowEntry, node FlowNode) {
 	// many at once. The stage overrides only what it names itself.
 	spec, _ := m.columnFor(ev.BoardID, node.asColumn(flow.PropertyOr(m.triggerProperty())))
 	opts := startOptions{flowName: flow.Name, flowNodeID: node.ID, column: spec,
-		deployOverride: node.DeployName, agentCrew: node.Crew()}
+		deployOverride: node.DeployName, agentCrew: node.Crew(), stagePrompt: node.Prompt}
 
 	action := node.Action
 	if action == "" {
@@ -303,7 +307,7 @@ func (m *Manager) advanceFlowWith(cardID, on, detail, agentText string) {
 	if desc := cond.Describe(); desc != "" {
 		detail += ", " + desc
 	}
-	m.enterNode(ev, flow, next, true, on, detail)
+	m.enterNode(ev, flow, next, true, on, detail, agentText)
 }
 
 // handleCardChanged advances a parked card when a select option set on it is

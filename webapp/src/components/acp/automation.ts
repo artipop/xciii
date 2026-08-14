@@ -24,6 +24,10 @@ export type FlowNode = {
     agentNames?: string[]
     deployName?: string
 
+    // The stage's own instructions, said to whoever works it here — overriding
+    // the column's (ColumnSpec.prompt). Empty inherits.
+    prompt?: string
+
     // Where the stage works: 'owner' — the card's own workspace, so it sees the
     // card's branch; 'workdir' — the folder itself. Empty is the default for
     // what the stage does (Go's FlowNode.RunsIn).
@@ -83,6 +87,11 @@ export type ColumnSpec = {
     agents?: string[]
     deployName?: string
     maxRunning?: number
+
+    // What working in this column means, said to the agent: the reviewer's
+    // brief on «Ревью», the builder's on «В работе». A route node may override
+    // it for its stage alone (FlowNode.prompt).
+    prompt?: string
 }
 
 // Automation is a board's whole answer: what its columns do and where its

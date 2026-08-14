@@ -239,6 +239,15 @@ type startOptions struct {
 	// the folder itself (RunInWorkdir). Empty falls back to the action's own
 	// default, which is what a session started outside a route gets.
 	runIn string
+	// stagePrompt is the node's own instructions, overriding the column's
+	// (FlowNode.Prompt). Empty falls back to opts.column.Prompt.
+	stagePrompt string
+}
+
+// prompt is what this stage wants said to whoever works it: the node's own
+// instructions, else the column's.
+func (o startOptions) prompt() string {
+	return firstNonEmpty(o.stagePrompt, o.column.Prompt)
 }
 
 // crew is who may work this session: the stage's own list if it has one, else
@@ -381,12 +390,12 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	m.cfgMu.RLock()
 	systemPrompt, deployPrompt, testPrompt := m.cfg.BoardPrompts[ev.BoardID], m.cfg.DeployPrompt, m.cfg.TestPrompt
 	m.cfgMu.RUnlock()
-	prompt := composePrompt(ev, agent, systemPrompt, worktreeAvailable)
+	prompt := composePrompt(ev, agent, systemPrompt, opts.prompt(), worktreeAvailable)
 	switch {
 	case deploy != nil:
-		prompt = composeDeployPrompt(ev, agent, systemPrompt, deployPrompt, *deploy, deployBranch)
+		prompt = composeDeployPrompt(ev, agent, systemPrompt, deployPrompt, opts.prompt(), *deploy, deployBranch)
 	case test != nil:
-		prompt = composeTestPrompt(ev, agent, systemPrompt, testPrompt, *test)
+		prompt = composeTestPrompt(ev, agent, systemPrompt, testPrompt, opts.prompt(), *test)
 	}
 	// The tools of the deploy server are allowed up front: nobody is watching a
 	// card-triggered run, and an unanswered prompt is a rejected one. Seeding
@@ -415,6 +424,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		Artifacts:    artifacts,
 		FlowName:     opts.flowName,
 		FlowNodeID:   opts.flowNodeID,
+		NodeID:       firstNonEmpty(opts.flowNodeID, ev.ToColumn.OptionID, opts.column.OptionID, nodeNone),
 		RunIn:        opts.runIn,
 		PromptText:   prompt,
 		Policy:       agentPolicy(agent),
@@ -786,9 +796,14 @@ func planningPrompt(systemPrompt, planning string, agent AgentEntry, workdir Wor
 }
 
 // composePrompt builds the agent task text from the card: what the board says
-// and what the agent carries (promptLead), then the card task.
-func composePrompt(ev CardMoved, agent AgentEntry, systemPrompt string, useWorktree bool) string {
+// and what the agent carries (promptLead), what the stage wants said
+// (stagePrompt — the column's instructions, or its route node's), then the
+// card task.
+func composePrompt(ev CardMoved, agent AgentEntry, systemPrompt, stagePrompt string, useWorktree bool) string {
 	b := []byte(promptLead(systemPrompt, agent))
+	if p := strings.TrimSpace(stagePrompt); p != "" {
+		b = fmt.Appendf(b, "%s\n\n", p)
+	}
 	b = fmt.Appendf(b, "Task: %s\n", ev.Title)
 	if ev.Body != "" {
 		b = fmt.Appendf(b, "\n%s\n", ev.Body)
@@ -804,12 +819,15 @@ func composePrompt(ev CardMoved, agent AgentEntry, systemPrompt string, useWorkt
 // composeDeployPrompt builds the task text of a deploy session: the same brief
 // an ordinary task gets, then the deploy instructions, then the concrete
 // facts — which branch goes where, and what the resulting address should be.
-func composeDeployPrompt(ev CardMoved, agent AgentEntry, systemPrompt, deployPrompt string, target DeployEntry, branch string) string {
+func composeDeployPrompt(ev CardMoved, agent AgentEntry, systemPrompt, deployPrompt, stagePrompt string, target DeployEntry, branch string) string {
 	b := []byte(promptLead(systemPrompt, agent))
 	if p := strings.TrimSpace(deployPrompt); p != "" {
 		b = fmt.Appendf(b, "%s\n\n", p)
 	} else {
 		b = fmt.Appendf(b, "%s\n\n", DefaultDeployPrompt)
+	}
+	if p := strings.TrimSpace(stagePrompt); p != "" {
+		b = fmt.Appendf(b, "%s\n\n", p)
 	}
 	slug := dokku.AppSlug(branch)
 	b = fmt.Appendf(b, "Card: %s\nBranch: %s\nTarget: %s\nDokku application: %s\nExpected address: %s\n",

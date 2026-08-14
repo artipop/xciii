@@ -24,34 +24,37 @@ task field. The board's instruction, shared by all its agents, is added in
 front of the description; it is set in
 ["Columns and routes"](./automation/index.md).
 
-## The terminal: discussing a card
+## The terminal: the column's conversation
 
 Open a card: in the top right corner of the dialog, next to "Attach", there is
 a "Terminal" button. It opens a panel on the right, and the terminal in it
 starts by itself.
 
-This is the **card's own conversation** — where you think about it: the wording,
-the plan, the brief, whether it is worth doing at all. It asks nothing of the
-card: no folder, no route, nobody assigned — you can open it the moment the card
-exists. With no folder the conversation happens in the board's drafts; if the
-card has been worked, it happens in the card's own working copy, beside the work.
-It creates no branch of its own.
+**A card has one conversation per column it has stood in.** The conversation
+belongs to the column: wording and plans are talked over in «Не начата», the
+work happens in «В работе», the review in «Ревью». The panel opens the
+conversation of the column the card stands in now, and a person and the route's
+agent in one column talk in **one** conversation — with that column's agent, in
+its working folder, with its instructions (see
+["Columns and routes"](./automation/index.md)).
+
+It asks for nothing: a card with no column, no folder and nobody assigned can
+be talked over at once — with no folder the conversation happens in the board's
+drafts. A column that runs an agent works in the card's own working copy; every
+other column's conversation stands beside the work and creates nothing.
 
 **The conversation opens with what the card says**: the agent is handed its
-title and description as the first message, and waits for your question. It is
-not handed them twice — a conversation being continued already knows them.
+title and description as the first message (and the column's instructions,
+when there are any), and waits for your question. It is not handed them twice —
+a conversation being continued already knows them.
 
-It is kept. Close the panel, close the app — next time the same conversation
-opens and continues where it stopped.
+It is kept. Close the panel, close the app, move the card away and back — the
+column's conversation continues where it stopped. **A returning card brings the
+new input with it**: sent back from «Ревью», the resumed conversation is told
+why it is back and what the reviewer said — not the task again.
 
-The conversations a route opens are separate (see below). They used to be one
-and the same, and a stage starting would type the card's task straight into what
-you were discussing.
-
-- if a terminal for this card is already running, the same one opens, with its
+- if this column's terminal is already running, the same one opens, with its
   history;
-- if the card was worked before, the agent returns to the same place and
-  continues the conversation (`--continue`);
 - if there turned out to be nothing to continue — the terminal was opened last
   time and nothing was typed in it, so the CLI saved no conversation — the
   terminal says «Продолжить прошлый разговор не удалось — открыт новый» and
@@ -65,18 +68,17 @@ asks its questions right there.
 ### The list of conversations
 
 The panel reads top to bottom: a **"Terminals"** plate with a ✕ that closes the
-panel itself; under it the list of this card's conversations — its own, and one
-per stage that worked it; and below that the conversation being read, with a
-head of its own. That head's ✕ puts the terminal away without ending it: the CLI
-keeps running, the row keeps its green dot, and ending a conversation is the bin
-on the row.
+panel itself; under it the card's conversations — one per column, the current
+one first; and below that the conversation being read, with a head of its own.
+That head's ✕ puts the terminal away without ending it: the CLI keeps running,
+the row keeps its green dot.
 
 A row is built the same way as in "Talk it over with an agent":
 
 - **the name** — clicking it opens the conversation in the panel; the dot on
   the left is green while a CLI is running in it. Until somebody names it, a
-  conversation is called what it is: "Discussion" for the card's own, the column
-  for a stage's;
+  conversation is called after its column; a conversation of a card that had no
+  column is "No column";
 - **the line under the name** — what the conversation is doing: the agent
   writes it;
 - **who and where** — the agent and the conversation's folder;
@@ -89,22 +91,13 @@ A row is built the same way as in "Talk it over with an agent":
   row. The button is there while the CLI is running and was given the board's
   tools;
 - **the bin** — delete the conversation. It asks first: the CLI ends and the
-  record of the conversation goes with it, so the next one starts on a blank
-  screen. This is the only way the card's own conversation ends; the route's
-  conversations have no such button — the route runs them.
+  record of the conversation goes with it, so the column's next conversation
+  starts on a blank screen. Every row has it except the conversation a route is
+  running right now — that one cannot be deleted, the route is waiting on it.
 
-## The route's conversations
-
-When a card lands in a column that does something, the route opens a
-conversation of **its own** — one per stage, because different stages can be
-worked by different agents. They stand in the same list, under the card's own
-conversation, named after the stage's column until the agent gives them a name.
-
-While a stage is running, its conversation opens on a click, exactly as the
-card's own does. A passed stage cannot be opened: the route runs its
-conversation, and it comes back by itself if the card returns to that stage,
-continuing where it stopped. A running terminal of a passed stage stays
-reachable until its CLI exits.
+A click opens the current column's conversation, and any one with a CLI running
+in it. A past column's conversation cannot be opened — it continues when the
+card comes back to that column.
 
 The terminal button in the corner of the card on the board also leads to a
 running one: it turns amber when the agent is waiting, and it opens that

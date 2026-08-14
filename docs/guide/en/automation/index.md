@@ -52,7 +52,12 @@ The **"Columns"** tab, select a column — in the panel:
   the card determines the agent;
 - **"At once"** — how many cards the column runs at a time; the rest queue and
   start as slots free up;
-- **deploy target** — on a deploy column.
+- **deploy target** — on a deploy column;
+- **"What the agent is told here"** — the column's instructions. The agent gets
+  them in front of the card's task, and they open a conversation a person
+  starts in this column too: "You are the reviewer — find defects, fix
+  nothing" on «Ревью» makes the same agent a reviewer. Written in any language —
+  passed through as it is.
 
 These settings apply on every route. An exception for one route is set in the
 stage panel — select the stage on the route's tab.
@@ -70,6 +75,9 @@ A route tab, select a box — in the panel:
   matters for a repository: checking before the branch is merged happens on the
   card's branch, checking what is already published happens in the folder;
 - **deploy target** — on a deploy stage;
+- **"What the agent is told at this stage"** — instructions for this route
+  alone. While the field is empty the column's apply, and the placeholder names
+  them;
 - **"From here the card goes"** — this stage's arrows;
 - **"Settings of the column itself…"** — over to the "Columns" tab, to what is
   true of the column on any route.

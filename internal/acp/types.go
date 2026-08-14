@@ -33,9 +33,15 @@ type CardMoved struct {
 	// card — the "Assignee" route to an agent, which works because a registered
 	// agent is provisioned as a board user (see BoardUsers).
 	PersonNames []string
-	FromColumn  Column
-	ToColumn    Column
-	At          time.Time
+	// SelectedOptions is every single-select value currently set on the card,
+	// with the property and option ids OptionNames drops. It is how a card read
+	// on demand (CardByID, which carries no columns because nothing moved)
+	// still says which node it stands on: the value of the trigger property is
+	// the card's current column, and its option id is the conversation's key.
+	SelectedOptions []Column
+	FromColumn      Column
+	ToColumn        Column
+	At              time.Time
 }
 
 // BoardEvents delivers normalized card-move events from the board.

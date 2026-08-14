@@ -168,6 +168,27 @@
             cursor: pointer;
             accent-color: rgb(var(--button-bg-rgb));
         }
+
+        // The stage's instructions: a small page of text in a panel of selects,
+        // dressed like the inputs above and allowed to grow downward only.
+        .AutomationEditor__prompt {
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            resize: vertical;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: var(--radius-sm);
+            padding: 5px 8px;
+            background: rgb(var(--surface-bg-rgb));
+            color: rgb(var(--center-channel-color-rgb));
+            font-family: inherit;
+            font-size: 12px;
+
+            &:focus {
+                border-color: rgba(var(--button-bg-rgb), 0.64);
+                outline: none;
+            }
+        }
     }
 
     .AutomationEditor__section {

@@ -194,7 +194,7 @@ func TestComposeDeployPromptCarriesTheFacts(t *testing.T) {
 	prompt := composeDeployPrompt(
 		CardMoved{Title: "Логин через SSO", Body: "детали"},
 		AgentEntry{Name: "claude", Kind: "claude", Prompt: "агентский промпт"},
-		"системный промпт", "", target, "feature/SSO",
+		"системный промпт", "", "", target, "feature/SSO",
 	)
 	for _, want := range []string{
 		"системный промпт", "агентский промпт",

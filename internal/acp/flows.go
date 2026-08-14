@@ -122,6 +122,10 @@ type FlowNode struct {
 	// DeployName overrides the column's deploy target for this stage.
 	DeployName string `json:"deployName,omitempty"`
 
+	// Prompt overrides the column's instructions for this stage alone
+	// (ColumnSpec.Prompt). Empty inherits, exactly as Action and the crew do.
+	Prompt string `json:"prompt,omitempty"`
+
 	// RunIn is where this stage's work happens: RunInOwner — the card's own
 	// workspace, so the stage sees the card's branch; RunInWorkdir — the folder
 	// itself, on whatever is checked out there.

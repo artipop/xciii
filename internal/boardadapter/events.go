@@ -137,11 +137,42 @@ func (b *EventsBackend) CardByID(ctx context.Context, cardID string) (acp.CardMo
 		BoardID:     board.ID,
 		Title:       block.Title,
 		Body:        b.cardBody(board.ID, block),
-		Props:       namedProperties(block, schema, resolver),
-		OptionNames: selectedOptionNames(rawProperties(block), schema),
-		PersonNames: personNames(rawProperties(block), schema, resolver),
-		At:          time.Now(),
+		Props:           namedProperties(block, schema, resolver),
+		OptionNames:     selectedOptionNames(rawProperties(block), schema),
+		SelectedOptions: selectedOptions(rawProperties(block), schema),
+		PersonNames:     personNames(rawProperties(block), schema, resolver),
+		At:              time.Now(),
 	}, nil
+}
+
+// selectedOptions is selectedOptionNames with the ids kept: every single-select
+// value on the card as a full Column. It is what tells a caller which node a
+// card read on demand stands on — the value of the trigger property — where the
+// names alone cannot say which property they belong to.
+func selectedOptions(props map[string]any, schema model.PropSchema) []acp.Column {
+	var out []acp.Column
+	for propID, def := range schema {
+		if def.Type != "select" {
+			continue
+		}
+		v, ok := props[propID]
+		if !ok || v == nil {
+			continue
+		}
+		id, ok := v.(string)
+		if !ok {
+			continue
+		}
+		if opt, ok := def.Options[id]; ok && opt.Value != "" {
+			out = append(out, acp.Column{
+				PropertyID:   propID,
+				PropertyName: def.Name,
+				OptionID:     id,
+				Name:         opt.Value,
+			})
+		}
+	}
+	return out
 }
 
 // cardListLimit is how many cards one listing reads. A board is a person's

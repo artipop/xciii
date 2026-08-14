@@ -109,6 +109,13 @@ const COLUMNS_PER_ROW = 5
 // stand, nothing runs.
 const PALETTE = ['agent', 'deploy', 'test', 'none']
 
+// promptPreview is the column's instructions squeezed into a placeholder: just
+// enough to say what "as the column" would mean here.
+const promptPreview = (prompt: string): string => {
+    const line = prompt.split('\n')[0].trim()
+    return line.length > 60 ? line.slice(0, 60) + '…' : line
+}
+
 const AutomationEditor = (props: Props) => {
     const intl = useIntl()
     const [route, setRoute] = createSignal(COLUMNS_VIEW)
@@ -749,6 +756,24 @@ const AutomationEditor = (props: Props) => {
                                             intl.formatMessage({id: 'Automation.deploy-default', defaultMessage: '— the card’s own —'}),
                                         )}
                                     </Show>
+
+                                    {/* What working in this column means, said
+                                        to the agent before the card's task —
+                                        and into a conversation somebody opens
+                                        here. In whatever language the board
+                                        works in: it is passed through as
+                                        written. */}
+                                    <Show when={(specOf(node())?.action || 'none') !== 'none'}>
+                                        <label>
+                                            {intl.formatMessage({id: 'Automation.column-prompt', defaultMessage: 'What the agent is told here'})}
+                                            <textarea
+                                                class='AutomationEditor__prompt'
+                                                rows={4}
+                                                value={specOf(node())?.prompt || ''}
+                                                onChange={(e) => updateNodeSpec(node(), {prompt: e.currentTarget.value.trim() || undefined})}
+                                            />
+                                        </label>
+                                    </Show>
                                 </Show>
 
                                 {/* A route's panel is about the stage. Everything
@@ -765,6 +790,7 @@ const AutomationEditor = (props: Props) => {
                                         <Select
                                             value={node().action || ''}
                                             options={[
+
                                                 // The short name the box on the
                                                 // canvas uses, not the sentence:
                                                 // it has to fit in a select in a
@@ -820,6 +846,24 @@ const AutomationEditor = (props: Props) => {
                                             (deployName) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {deployName})),
                                             intl.formatMessage({id: 'Automation.deploy-as-column', defaultMessage: '— as the column —'}),
                                         )}
+                                    </Show>
+
+                                    {/* The stage's own instructions, overriding
+                                        the column's — «Ревью» on this route may
+                                        brief its reviewer differently. Empty
+                                        inherits, and the placeholder names the
+                                        answer it falls back to. */}
+                                    <Show when={actionOf(node()) !== 'none'}>
+                                        <label>
+                                            {intl.formatMessage({id: 'Automation.stage-prompt', defaultMessage: 'What the agent is told at this stage'})}
+                                            <textarea
+                                                class='AutomationEditor__prompt'
+                                                rows={4}
+                                                value={node().prompt || ''}
+                                                placeholder={specOf(node())?.prompt ? intl.formatMessage({id: 'Automation.prompt-as-column', defaultMessage: '— as the column: “{prompt}” —'}, {prompt: promptPreview(specOf(node())!.prompt!)}) : intl.formatMessage({id: 'Automation.prompt-as-column-none', defaultMessage: '— as the column: nothing extra —'})}
+                                                onChange={(e) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {prompt: e.currentTarget.value.trim() || undefined}))}
+                                            />
+                                        </label>
                                     </Show>
 
                                     {/* The way to the other half of the answer.

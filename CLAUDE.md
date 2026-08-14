@@ -355,9 +355,10 @@ using the board.
 The model is a graph, and the kanban is one projection of it: **nodes** are
 what a card stands on (a column is a node's face on the board), **edges** are
 the routes, a node names its worker (crew — the stage's own, falling back to
-the column's), and a card carries one conversation per node (the terminal,
-above). Everything per-stage hangs off the node id, which is why it is the
-board option id and never regenerated.
+the column's) and its instructions (`Prompt`, same inheritance), and a card
+carries one conversation per node (the terminal, above). Everything per-node
+hangs off the node id, which is why it is the board option id and never
+regenerated.
 
 Both halves are edited over **the board's own columns**: `components/acp/
 automationEditor.tsx` draws every option of the board's column property as a box,
@@ -840,72 +841,73 @@ because a screen of its own is the one thing a panel beside a card cannot be. An
 ours was built to go beside it**: the terminal *is* what a session looks like,
 since the agent's own CLI already draws its work and asks its own questions.
 
-**A card has one conversation of its own, and one per stage the route worked
-it** — keyed (card, node). A stage's node is the board option id it stands on;
-the card's own is `nodeBrainstorm` (`@brainstorm`), a key no board can produce,
-since option ids are not made of `@`.
+**A conversation is keyed (card, node): one per column the card has stood on.**
+The node is the option id of the column — the same id a route's stage hangs off
+(`FlowNode.ID`) — so the person who opens a terminal on a column and the stage
+that runs there are in **one** conversation, with the column's agent, workspace
+and prompt. Come back to the node and you come back to the session. A card with
+no column at all stands on `nodeNone` (`@none`, spelled with `@` because option
+ids are not made of it) and can still be talked over. A stage with no route
+behind it keys by its column's option id too (`Session.NodeID`).
 
-The two are different things and were one for a while, which is the bug this
-split fixes. A card's terminal was keyed by the stage the card stood on, so
-opening one to *think about* a card standing on a stage handed back that
-stage's working CLI — and a stage starting while somebody was talking typed the
-card's task straight into their conversation. They have different lifetimes:
-a stage's belongs to the stage and is closed when it reports (`stageterminal.go`),
-the card's own belongs to the card and is still there tomorrow.
+There was a special key for "the card's own conversation, apart from every
+stage's" (`@brainstorm`). That split existed to stop a stage typing the card's
+task into a person's discussion, and the node model answers the same problem at
+the source: what a column means — who works there, what they are told — is the
+column's setting, so the conversation a stage joins is one a person deliberately
+opened *about that stage*, and `startStageTerminal` **adopts** it (marks it a
+stage, types the task in) rather than opening a second CLI beside it.
 
-**The card's own conversation asks nothing of the card** — no folder, no route,
-nobody assigned — because it is where those get decided. `StartCardTerminal` is
-only ever that one, and it **claims no workspace**: `talkingPlace` takes the copy
-the card already has when it has one (so the talk stands beside the work), else
-the folder itself, else «черновики доски». A conversation that claimed one would
-leave a branch behind on every card somebody thought about.
+**Where a conversation runs is the node's answer** (`cardPlace`). On a column
+that runs an agent it claims the card's workspace exactly as the stage would —
+so the stage joins it in the right directory — honouring the node's `RunIn`. On
+every other column `talkingPlace` stands it beside the work: the copy the card
+already has, else the folder, else «черновики доски». And it asks little of the
+card: no folder is an ordinary case, nobody assigned is answered by the node's
+crew, then the assignee, then the single agent — a fully busy crew does not
+block a terminal, since the person opening one is present.
 
-The route's conversations are opened by the route alone. A passed stage's is
-closed; the card coming back makes that stage current and its conversation
-reopens where it left off. A still-running CLI on a passed stage stays reachable
-by id until it exits — a person's terminal is never killed — which is why the
-board's terminal button shows a live terminal via `ShowTerminal(id)` rather than
-reopening "the card's terminal" beside it. `LastTerminalForCardNode` still falls
-back to the node-less record, which is what carries every conversation held
-before this split into the card's own. Resume metadata is per conversation; the
-transcript `claude --continue` picks up is directory-scoped, so two conversations
-sharing a directory share a transcript — the same trade every non-git folder
-already makes. Who a terminal speaks as
-follows the stage — its crew, then the assignee, then the single agent — and a
-fully busy crew does not block it: the person opening one is present.
+**A card returning to a node resumes that node's conversation with a brief, not
+the task** (`returnBrief` → `terminalSpec.returnPrompt`): the conversation
+already had its task, and what it lacks is why the card is back — the trigger
+and what the stage it returned from reported, which `flow_event.said` keeps
+(the agent's closing words, threaded through `advanceFlowWith` → `enterNode`).
+A still-running CLI on a passed node stays reachable by id until it exits — a
+person's terminal is never killed. Resume metadata is per conversation; the
+transcript `claude --continue` picks up is directory-scoped, so two
+conversations sharing a directory share a transcript — the same trade every
+non-git folder already makes.
+
+**A stage has a prompt of its own, inherited like its crew**: what working in
+this column *means* — the reviewer's brief on «Ревью» — lives on the column
+(`ColumnSpec.Prompt`, the textarea on the «Колонки» tab) and a route node may
+override it for its stage alone (`FlowNode.Prompt`, whose placeholder names the
+column's answer). It lands after `promptLead` and before the card's task in
+every compose path (agent, deploy, test) and opens a person's conversation on
+that node too (`joinPrompts(place.prompt, cardIntro(ev))`). Typed by a person,
+so it passes through as data in whatever language the board works in.
 
 **The panel is «Терминалы», the list, and the conversation being read under
-them** (`GetCardAgent.conversations`, `Brainstorm`) — in that order, and each
-part owns its own ✕: the head's closes the panel, the one over the terminal puts
-that terminal away (the CLI keeps running; ending it is the bin on the row). A
-head saying «Терминал» above a list of them made its ✕ read as belonging to the
-terminal further down. The row is the row
-«Обсудить с агентом» draws — `conversationRow.tsx`, shared, because the two
-screens list the same thing and had drifted into two shapes of it: the card's
-said «Разработка — клаус» in a chip, the planning screen said everything else.
-A stage the route is running opens in the panel like any other; a passed stage's
-has nothing to open, since the route reopens it when the card comes back. What
-the card's own conversation adds is a bin: it ends the CLI **and** deletes the
-record (`DeleteCardConversation`), so the next one starts on a blank screen
-rather than continuing this one, and the card is told nothing about an exit
-somebody asked for (`discarded`). It is the only way that conversation ends —
-everything else about a terminal is kept, which is what makes «продолжить»
-possible. A stage's is refused: the route may still be waiting on it.
-Rows are drawn with `Index` rather than `For` — the list is re-read on every
-`acp:terminal` event, and identity-keyed rows would take a half-typed rename
-with them.
-
-**Two rows must never be one conversation twice**, and that took two fixes.
-A stage standing on no route at all — a column that runs an agent with no flow
-behind it — was recorded under an empty key, which is also what every
-conversation held before stages had keys was recorded under; the panel then drew
-the card's own conversation and that stage as two rows saying the same thing.
-So a stage with no node gets `nodeStageless`, and `CardConversations` folds a
-node-less record into the card's own conversation, which is what resume already
-treats it as (`LastTerminalForCardNode`). The other half is the name: a terminal
-starts out titled after its card, so keeping that title named *every* row after
-the card — `conversationTitle` drops it, and the row falls back to «Обсуждение»
-or to the column of its stage. What survives is a name somebody gave.
+them** (`GetCardAgent.conversations`) — one row per node, the current column's
+first and always present (`CardConversations` synthesizes it before anything has
+been said there, because it is the one a click opens) — and each part owns its
+own ✕: the head's closes the panel, the one over the terminal puts that terminal
+away (the CLI keeps running; ending it is the bin on the row). The row is the
+row «Обсудить с агентом» draws — `conversationRow.tsx`, shared, because the two
+screens list the same thing and had drifted into two shapes of it. The current
+node's row starts or resumes on a click; another node's opens only while its CLI
+runs, and otherwise continues when the card returns to that column. **Every row
+has the bin except a running stage's** (`CardConversation.Stage`): deleting ends
+the CLI and the record (`DeleteCardConversation`), so the next conversation on
+that node starts blank, and the card is told nothing about an exit somebody
+asked for (`discarded`); the running stage's is refused because the route is
+waiting on it. Rows are drawn with `Index` rather than `For` — the list is
+re-read on every `acp:terminal` event, and identity-keyed rows would take a
+half-typed rename with them. A row is never named after the card
+(`conversationTitle` drops a title that is just the card's): it falls back to
+its column, or «Без колонки» (`NoColumn`), so two rows cannot read as one thing
+twice — what survives is a name somebody gave, by hand or through
+`name_conversation`.
 
 **A conversation opens with what the card says** (`cardIntro`): the person
 clicking the button has the card in front of them and the agent has nothing, so
@@ -919,7 +921,7 @@ task every time it runs.
 card can be talked over — wording, a plan, the brief — before anybody decides
 where the work lives, so "the card names no folder" is not a refusal:
 `resolveWorkdir`'s two nothing-chosen errors are marked `errNoWorkdir`
-(workdirs.go) and `StartCardTerminal` opens the conversation in **«черновики
+(workdirs.go) and `StartCardTerminal` opens the node's conversation in **«черновики
 доски»** — `<dataDir>/boards/<boardID>`, the board's own directory under the
 app's data, which is what every UI surface calls it (`TerminalInfo.
 BoardFolder` is how a surface knows to; the name is the board id and nothing

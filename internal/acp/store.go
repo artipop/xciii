@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -58,36 +57,7 @@ func OpenStore(path string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
-	if err := s.evolve(); err != nil {
-		db.Close()
-		return nil, err
-	}
 	return s, nil
-}
-
-// evolve adds what CREATE TABLE IF NOT EXISTS cannot: columns on tables that
-// already exist. Every step must be safe to run twice, since nothing records
-// which have run — a duplicate-column error is the step saying it has.
-func (s *Store) evolve() error {
-	// A terminal is a conversation on a stage of the card's route, so the
-	// record carries the stage. Rows from before this column are the card's
-	// one conversation from when it only had one, node '' — which is also what
-	// a card outside any route uses, so they stay resumable.
-	if _, err := s.db.Exec(`ALTER TABLE terminal_session ADD COLUMN node_id TEXT NOT NULL DEFAULT ''`); err != nil &&
-		!strings.Contains(err.Error(), "duplicate column") {
-		return err
-	}
-	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_terminal_session_card_node
-		ON terminal_session(card_id, node_id, started_at)`); err != nil {
-		return err
-	}
-	// What the agent said the conversation is about. Rows from before it have
-	// none, which reads the same as an agent that has not said anything yet.
-	if _, err := s.db.Exec(`ALTER TABLE terminal_session ADD COLUMN summary TEXT NOT NULL DEFAULT ''`); err != nil &&
-		!strings.Contains(err.Error(), "duplicate column") {
-		return err
-	}
-	return nil
 }
 
 func (s *Store) migrate() error {
@@ -119,6 +89,8 @@ CREATE INDEX IF NOT EXISTS idx_session_event_session ON session_event(session_id
 CREATE TABLE IF NOT EXISTS terminal_session (
 	id TEXT PRIMARY KEY,
 	card_id TEXT NOT NULL DEFAULT '',
+	node_id TEXT NOT NULL DEFAULT '',
+	column_name TEXT NOT NULL DEFAULT '',
 	board_id TEXT NOT NULL DEFAULT '',
 	title TEXT NOT NULL DEFAULT '',
 	repo_path TEXT NOT NULL DEFAULT '',
@@ -126,11 +98,13 @@ CREATE TABLE IF NOT EXISTS terminal_session (
 	branch TEXT NOT NULL DEFAULT '',
 	agent TEXT NOT NULL DEFAULT '',
 	kind TEXT NOT NULL DEFAULT '',
+	summary TEXT NOT NULL DEFAULT '',
 	started_at INTEGER NOT NULL,
 	ended_at INTEGER,
 	exit_code INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_terminal_session_card ON terminal_session(card_id, started_at);
+CREATE INDEX IF NOT EXISTS idx_terminal_session_card_node ON terminal_session(card_id, node_id, started_at);
 CREATE TABLE IF NOT EXISTS idempotency (
 	key TEXT PRIMARY KEY,
 	session_id TEXT NOT NULL,
@@ -153,6 +127,7 @@ CREATE TABLE IF NOT EXISTS flow_event (
 	to_node TEXT NOT NULL,
 	on_kind TEXT NOT NULL,
 	detail TEXT NOT NULL DEFAULT '',
+	said TEXT NOT NULL DEFAULT '',
 	created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_flow_event_card ON flow_event(card_id, id);
@@ -198,6 +173,14 @@ CREATE TABLE IF NOT EXISTS workdir_claim (
 	PRIMARY KEY (workdir, owner)
 );
 CREATE INDEX IF NOT EXISTS idx_workdir_claim_live ON workdir_claim(workdir, released_at);`)
+	if err != nil {
+		return err
+	}
+	// The version the schema above *is*. Nothing reads it yet: it exists so the
+	// first post-release change can be a `PRAGMA user_version` ladder of ALTERs
+	// (docs/db-schema-review.md) instead of another CREATE-only migration —
+	// pre-release, the schema changes in place and databases are recreated.
+	_, err = s.db.Exec(`PRAGMA user_version = 1`)
 	return err
 }
 
@@ -284,13 +267,17 @@ type FlowState struct {
 
 // FlowEventRecord is one transition, kept as the card's route history.
 type FlowEventRecord struct {
-	ID        int64     `json:"id"`
-	CardID    string    `json:"cardId"`
-	Flow      string    `json:"flow"`
-	FromNode  string    `json:"fromNode"`
-	ToNode    string    `json:"toNode"`
-	On        string    `json:"on"`
-	Detail    string    `json:"detail"`
+	ID       int64  `json:"id"`
+	CardID   string `json:"cardId"`
+	Flow     string `json:"flow"`
+	FromNode string `json:"fromNode"`
+	ToNode   string `json:"toNode"`
+	On       string `json:"on"`
+	Detail   string `json:"detail"`
+	// Said is the agent's own closing words on the transition that raised this
+	// event — what the reviewer reported, in full where Detail is a label. It
+	// is what a conversation resumed on a return is told instead of its task.
+	Said      string    `json:"said,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
@@ -349,15 +336,15 @@ func (s *Store) ClearFlowState(cardID string) error {
 
 // AppendFlowEvent records one transition.
 func (s *Store) AppendFlowEvent(r FlowEventRecord) error {
-	_, err := s.db.Exec(`INSERT INTO flow_event (card_id, flow, from_node, to_node, on_kind, detail, created_at)
-		VALUES (?,?,?,?,?,?,?)`,
-		r.CardID, r.Flow, r.FromNode, r.ToNode, r.On, r.Detail, time.Now().UnixMilli())
+	_, err := s.db.Exec(`INSERT INTO flow_event (card_id, flow, from_node, to_node, on_kind, detail, said, created_at)
+		VALUES (?,?,?,?,?,?,?,?)`,
+		r.CardID, r.Flow, r.FromNode, r.ToNode, r.On, r.Detail, r.Said, time.Now().UnixMilli())
 	return err
 }
 
 // FlowEvents returns a card's route history, oldest first.
 func (s *Store) FlowEvents(cardID string) ([]FlowEventRecord, error) {
-	rows, err := s.db.Query(`SELECT id, card_id, flow, from_node, to_node, on_kind, detail, created_at
+	rows, err := s.db.Query(`SELECT id, card_id, flow, from_node, to_node, on_kind, detail, said, created_at
 		FROM flow_event WHERE card_id=? ORDER BY id`, cardID)
 	if err != nil {
 		return nil, err
@@ -367,7 +354,7 @@ func (s *Store) FlowEvents(cardID string) ([]FlowEventRecord, error) {
 	for rows.Next() {
 		var r FlowEventRecord
 		var created int64
-		if err := rows.Scan(&r.ID, &r.CardID, &r.Flow, &r.FromNode, &r.ToNode, &r.On, &r.Detail, &created); err != nil {
+		if err := rows.Scan(&r.ID, &r.CardID, &r.Flow, &r.FromNode, &r.ToNode, &r.On, &r.Detail, &r.Said, &created); err != nil {
 			return nil, err
 		}
 		r.CreatedAt = time.UnixMilli(created)
@@ -658,10 +645,13 @@ func (s *Store) LatestBranchForCard(cardID string) (string, error) {
 type TerminalRecord struct {
 	ID     string `json:"id"`
 	CardID string `json:"cardId,omitempty"`
-	// NodeID is the stage of the card's route this conversation belongs to.
-	// Empty for a card outside any route — and for every record from before
-	// stages existed, which is the same thing: the card's one conversation.
-	NodeID      string `json:"nodeId,omitempty"`
+	// NodeID is the node this conversation belongs to: the option id of the
+	// card's column, or nodeNone for a card that has no column at all.
+	NodeID string `json:"nodeId,omitempty"`
+	// ColumnName is what the node was called when the conversation was held,
+	// frozen on purpose: past columns are facts about the past, and the board
+	// no longer remembers an option somebody deleted.
+	ColumnName  string `json:"columnName,omitempty"`
 	BoardID     string `json:"boardId,omitempty"`
 	Title       string `json:"title,omitempty"`
 	WorkdirPath string `json:"workdirPath,omitempty"`
@@ -680,9 +670,9 @@ type TerminalRecord struct {
 // InsertTerminal records a terminal session as it starts.
 func (s *Store) InsertTerminal(r TerminalRecord) error {
 	_, err := s.db.Exec(`INSERT INTO terminal_session
-		(id, card_id, node_id, board_id, title, repo_path, cwd, branch, agent, kind, summary, started_at)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-		r.ID, r.CardID, r.NodeID, r.BoardID, r.Title, r.WorkdirPath, r.Cwd, r.Branch, r.Agent, r.Kind,
+		(id, card_id, node_id, column_name, board_id, title, repo_path, cwd, branch, agent, kind, summary, started_at)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		r.ID, r.CardID, r.NodeID, r.ColumnName, r.BoardID, r.Title, r.WorkdirPath, r.Cwd, r.Branch, r.Agent, r.Kind,
 		r.Summary, r.StartedAt.UnixMilli())
 	return err
 }
@@ -716,18 +706,12 @@ func (s *Store) FinishTerminal(id string, endedAt time.Time, exitCode int) error
 	return err
 }
 
-const terminalColumns = `id, card_id, node_id, board_id, title, repo_path, cwd, branch, agent, kind, summary, started_at, ended_at, exit_code`
+const terminalColumns = `id, card_id, node_id, column_name, board_id, title, repo_path, cwd, branch, agent, kind, summary, started_at, ended_at, exit_code`
 
-// LastTerminalForCardNode is the most recent conversation on one stage of the
-// card — the one a new terminal there continues. When the stage has none yet
-// and a stage was asked for, the card's node-less conversation answers: the
-// planning that happened before the card had stages flows into its first one.
+// LastTerminalForCardNode is the most recent conversation on one node of the
+// card — the one a new terminal there continues.
 func (s *Store) LastTerminalForCardNode(cardID, nodeID string) (TerminalRecord, bool, error) {
-	rec, ok, err := s.lastTerminal(cardID, nodeID)
-	if err != nil || ok || nodeID == "" {
-		return rec, ok, err
-	}
-	return s.lastTerminal(cardID, "")
+	return s.lastTerminal(cardID, nodeID)
 }
 
 func (s *Store) lastTerminal(cardID, nodeID string) (TerminalRecord, bool, error) {
@@ -787,7 +771,7 @@ func scanTerminal(row scanner) (TerminalRecord, error) {
 		started int64
 		ended   sql.NullInt64
 	)
-	if err := row.Scan(&rec.ID, &rec.CardID, &rec.NodeID, &rec.BoardID, &rec.Title, &rec.WorkdirPath, &rec.Cwd,
+	if err := row.Scan(&rec.ID, &rec.CardID, &rec.NodeID, &rec.ColumnName, &rec.BoardID, &rec.Title, &rec.WorkdirPath, &rec.Cwd,
 		&rec.Branch, &rec.Agent, &rec.Kind, &rec.Summary, &started, &ended, &rec.ExitCode); err != nil {
 		return TerminalRecord{}, err
 	}

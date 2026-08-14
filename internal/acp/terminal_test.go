@@ -378,27 +378,6 @@ func TestTerminalResumeIsPerStage(t *testing.T) {
 	}
 }
 
-// The conversation from before the card had stages — node "" — flows into the
-// first stage that asks, so planning done on the card is not orphaned by
-// putting the card onto a route.
-func TestStageWithNoConversationContinuesTheCardsOwn(t *testing.T) {
-	m, _, _, project := testManager(t, "idle", nil)
-	cwd := t.TempDir()
-	agent := AgentEntry{Name: "clauuus", Kind: AgentKindClaude}
-
-	if err := m.store.InsertTerminal(TerminalRecord{
-		ID: "planned", CardID: "card-p", NodeID: "", WorkdirPath: project, Cwd: cwd,
-		Agent: "clauuus", Kind: AgentKindClaude, StartedAt: time.Now().Add(-time.Hour),
-	}); err != nil {
-		t.Fatal(err)
-	}
-
-	rec, resume := m.terminalResumePoint(terminalSpec{cardID: "card-p", nodeID: "work", workdirPath: project, agent: agent})
-	if !resume || rec.ID != "planned" {
-		t.Fatalf("the first stage should continue the card's own conversation, got %+v (resume=%v)", rec, resume)
-	}
-}
-
 // write and git are the two things a report test needs a folder to do.
 func write(t *testing.T, path, content string) {
 	t.Helper()
@@ -613,7 +592,7 @@ func TestResumedConversationKeepsItsAgent(t *testing.T) {
 
 	talk := t.TempDir()
 	if err := m.store.InsertTerminal(TerminalRecord{
-		ID: "held", CardID: "card-held", Cwd: talk,
+		ID: "held", CardID: "card-held", NodeID: nodeNone, Cwd: talk,
 		Agent: "клаус", Kind: AgentKindClaude,
 		StartedAt: time.Now().Add(-time.Hour),
 	}); err != nil {
@@ -969,16 +948,20 @@ func TestADiscardedConversationIsForgottenQuietly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := m.DeleteCardConversation("card-gone", nodeBrainstorm); err != nil {
+	if err := m.DeleteCardConversation("card-gone", nodeNone); err != nil {
 		t.Fatal(err)
 	}
 	<-term.Done()
 
-	if _, ok, err := m.store.LastTerminalForCardNode("card-gone", nodeBrainstorm); err != nil || ok {
+	if _, ok, err := m.store.LastTerminalForCardNode("card-gone", nodeNone); err != nil || ok {
 		t.Errorf("the conversation is still on record (%v, %v)", ok, err)
 	}
-	if len(m.CardConversations("card-gone")) != 0 {
-		t.Error("the card still lists a conversation that was thrown away")
+	// What is left is the empty place to talk, not the conversation: a row with
+	// nobody in it and nothing said.
+	for _, row := range m.CardConversations("card-gone") {
+		if row.Agent != "" || row.StartedAt != "" {
+			t.Errorf("the card still lists a conversation that was thrown away: %+v", row)
+		}
 	}
 	// Give the exit path its moment: it runs on the pty's own goroutine.
 	waitFor(t, 5*time.Second, "the terminal to be forgotten", func() bool {
@@ -1077,37 +1060,29 @@ func TestACLIWithNoToolsIsNotAskedForAName(t *testing.T) {
 	}
 }
 
-// A card's own conversation and a stage's are two rows, and they have to read
-// as two: the panel drew both named after the card, in the same folder, with
-// the same agent — «два терминала, но они одинаковые». A stage that stands on
-// no route is what made them collide, since an empty key is what every
-// conversation held before stages had keys was recorded under.
-func TestTheCardsConversationAndAStagesAreTwoDifferentRows(t *testing.T) {
+// Conversations are keyed by node, and two nodes are two rows that have to
+// read as two: the panel once drew a pair both named after the card, in the
+// same folder, with the same agent — «два терминала, но они одинаковые».
+func TestConversationsOnTwoNodesAreTwoDifferentRows(t *testing.T) {
 	fakeCLIOnPath(t, "claude", "sleep 30")
 	m, _, _, project := testManager(t, "idle", func(cfg *Config) {
 		cfg.Agents = []AgentEntry{{Name: "cl", Kind: AgentKindClaude}}
 	})
 	m.SetOrigin("http://127.0.0.1:8088/")
 
-	// A conversation held before stages had keys of their own, and the card's
-	// own conversation now: one thing, one row.
-	if err := m.store.InsertTerminal(TerminalRecord{
-		ID: "before-the-split", CardID: "card-two", Title: "Test task",
-		WorkdirPath: project, Cwd: project, Agent: "cl", Kind: AgentKindClaude,
-		StartedAt: time.Now().Add(-time.Hour),
-	}); err != nil {
-		t.Fatal(err)
-	}
+	// The conversation of the node the card stands on — nodeNone here, since
+	// the test's card carries no column at all.
 	own, err := m.StartCardTerminal("card-two", "", "cl")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer func() { _ = m.CloseTerminal(own.ID) }()
 
-	// And a stage of a column with no route behind it, which is a conversation
-	// of the column's rather than of the card's.
+	// And a stage on a column of its own: a different node, a different row,
+	// keyed by the column's option id exactly as a routed stage would be.
 	stage, err := m.startStageTerminal(&Session{
-		CardID: "card-two", BoardID: "board1", Title: "Test task", PromptText: "Task: Test task",
+		CardID: "card-two", BoardID: "board1", NodeID: "opt-work", ColumnName: "В работе",
+		Title: "Test task", PromptText: "Task: Test task",
 		WorkdirPath: project, Agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
@@ -1117,22 +1092,33 @@ func TestTheCardsConversationAndAStagesAreTwoDifferentRows(t *testing.T) {
 
 	rows := m.CardConversations("card-two")
 	if len(rows) != 2 {
-		t.Fatalf("the card has %d rows, want its own conversation and the stage's: %+v", len(rows), rows)
+		t.Fatalf("the card has %d rows, want the current node's and the stage's: %+v", len(rows), rows)
 	}
 	// Neither is named after the card: a terminal starts out titled with it, so
-	// keeping that would name every row of the list the same thing.
+	// keeping that would name every row of the list the same thing. The stage's
+	// row is named by its column instead.
 	for _, row := range rows {
 		if row.Title != "" {
 			t.Errorf("a row is named %q, which is what the card is called", row.Title)
 		}
 	}
-	if !rows[0].Brainstorm && !rows[1].Brainstorm {
-		t.Errorf("neither row is the card's own conversation: %+v", rows)
+	var stageRow *CardConversation
+	for i := range rows {
+		if rows[i].NodeID == "opt-work" {
+			stageRow = &rows[i]
+		}
 	}
-	if rows[0].Brainstorm && rows[1].Brainstorm {
-		t.Errorf("both rows are the card's own conversation: %+v", rows)
+	if stageRow == nil {
+		t.Fatalf("the stage's node has no row: %+v", rows)
 	}
-	if stage.NodeID != nodeStageless {
-		t.Errorf("a stage with no route is keyed %q, which is the key of a conversation held before stages had one", stage.NodeID)
+	if stageRow.Column != "В работе" {
+		t.Errorf("the stage's row is called %q, want the column it ran in", stageRow.Column)
+	}
+	if !stageRow.Stage || !stageRow.Running {
+		t.Errorf("the stage's row does not say a route is running it: %+v", *stageRow)
+	}
+	// The current node's row is first: it is the one the panel opens.
+	if !rows[0].Current || rows[1].Current {
+		t.Errorf("the current node's row is not first: %+v", rows)
 	}
 }

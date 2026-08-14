@@ -288,3 +288,105 @@ func TestACardSaysWhenItsAgentHasGoneQuiet(t *testing.T) {
 		t.Error("the wait is not in the list the UI asks for on reconnect")
 	}
 }
+
+// A stage's prompt is the column's answer with the node's override on top —
+// the same inheritance Crew and Action follow — and it lands between the
+// board's texts and the card's task.
+func TestTheStagePromptLandsInTheBrief(t *testing.T) {
+	prompt := composePrompt(
+		CardMoved{Title: "Починить логин", Body: "Падает на пустом пароле."},
+		AgentEntry{Prompt: "агентский промпт"},
+		"системный промпт", "Ты ревьюер: ищи дефекты, ничего не чини.", true,
+	)
+	for _, want := range []string{"системный промпт", "агентский промпт", "Ты ревьюер", "Task: Починить логин"} {
+		if !strings.Contains(prompt, want) {
+			t.Errorf("the brief is missing %q:\n%s", want, prompt)
+		}
+	}
+	if strings.Index(prompt, "Ты ревьюер") > strings.Index(prompt, "Task:") {
+		t.Errorf("the stage prompt came after the task:\n%s", prompt)
+	}
+
+	// The node's own answer outranks the column's, empty inherits.
+	opts := startOptions{stagePrompt: "нодовый", column: ColumnSpec{Prompt: "колоночный"}}
+	if got := opts.prompt(); got != "нодовый" {
+		t.Errorf("the node's prompt lost to the column's: %q", got)
+	}
+	opts.stagePrompt = ""
+	if got := opts.prompt(); got != "колоночный" {
+		t.Errorf("an empty node prompt did not inherit: %q", got)
+	}
+}
+
+// A card that comes back to a node resumes that node's conversation, and what
+// is typed into it is why it is back — the trigger and what the stage it
+// returned from reported — never the task again: the conversation already had
+// it, and a repeated brief reads as a fresh instruction.
+func TestAReturnedCardBriefsTheResumedConversationWithTheDelta(t *testing.T) {
+	m, _, _, _ := testManager(t, "idle", nil)
+	m.cfg.Flows = []FlowEntry{{Name: "Разработка", Nodes: []FlowNode{
+		{ID: "opt-work", Column: "В работе"},
+		{ID: "opt-review", Column: "Ревью"},
+	}, Edges: []FlowEdge{{From: "opt-work", To: "opt-review", On: TriggerSuccess}}}}
+
+	// The card went В работе → Ревью → В работе, and the reviewer said why.
+	for _, r := range []FlowEventRecord{
+		{CardID: "card-b", Flow: "Разработка", FromNode: "", ToNode: "opt-work", On: "manual"},
+		{CardID: "card-b", Flow: "Разработка", FromNode: "opt-work", ToNode: "opt-review", On: TriggerSuccess},
+		{CardID: "card-b", Flow: "Разработка", FromNode: "opt-review", ToNode: "opt-work", On: TriggerFailure,
+			Detail: "работа не принята", Said: "Кнопка входа всё ещё падает на пустом пароле — почини валидацию."},
+	} {
+		if err := m.store.AppendFlowEvent(r); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	brief := m.returnBrief("card-b", "opt-work")
+	for _, want := range []string{"Ревью", "работа не принята", "почини валидацию", "original task still stands"} {
+		if !strings.Contains(brief, want) {
+			t.Errorf("the return brief is missing %q:\n%s", want, brief)
+		}
+	}
+
+	// A node the card has only arrived at has no delta to speak of.
+	if brief := m.returnBrief("card-b", "opt-review"); !strings.Contains(brief, "В работе") {
+		t.Errorf("returning to the review stage should name where the card came from:\n%s", brief)
+	}
+	if brief := m.returnBrief("card-none", "opt-work"); brief != "" {
+		t.Errorf("a card with no history got a brief: %q", brief)
+	}
+}
+
+// A person who sat down at an agent column before the stage started is in the
+// stage's conversation: the route adopts it — the task is typed into it, no
+// second CLI opens, and the row becomes the route's for as long as it runs.
+func TestAStageAdoptsTheConversationAPersonOpenedOnItsNode(t *testing.T) {
+	fakeCLIOnPath(t, "claude", "while read line; do echo \"got:$line\"; done")
+	m, _, _, project := testManager(t, "idle", nil)
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	mine, err := m.startTerminal(terminalSpec{
+		cardID: "card-adopt", nodeID: "opt-agent", columnName: "В работе", boardID: "board1",
+		title: "Починить логин", workdirPath: project,
+		agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(mine.ID) }()
+
+	stage, err := m.startStageTerminal(&Session{
+		CardID: "card-adopt", BoardID: "board1", NodeID: "opt-agent", ColumnName: "В работе",
+		Title: "Починить логин", PromptText: "Task: Починить логин",
+		WorkdirPath: project, Agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stage.ID != mine.ID {
+		t.Fatalf("the stage opened a second CLI (%s) beside the conversation (%s)", stage.ID, mine.ID)
+	}
+	if !stage.isStage() {
+		t.Error("the adopted conversation is not marked as the route's")
+	}
+}
