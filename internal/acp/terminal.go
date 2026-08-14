@@ -369,6 +369,25 @@ func (t *TerminalSession) finish() {
 // belongs to the card and is still there tomorrow.
 const nodeBrainstorm = "@brainstorm"
 
+// nodeStageless is the key a stage gets when it stands on no route at all — a
+// column that runs an agent, with no flow behind it. Its conversation is the
+// column's, not the card's, and it needs a key of its own for exactly one
+// reason: an empty one is what every conversation held before stages had keys
+// was recorded under, and the card's own conversation is what those were. Two
+// different things under one key is two identical rows in the panel — the same
+// card title, the same agent, the same folder — and no way to tell which is
+// which.
+const nodeStageless = "@stage"
+
+// stageNode is the key a stage's conversation is kept under: the node of the
+// route it stands on, or nodeStageless when there is no route.
+func stageNode(flowNodeID string) string {
+	if flowNodeID == "" {
+		return nodeStageless
+	}
+	return flowNodeID
+}
+
 // StartCardTerminal opens the card's own conversation — «обсудить эту
 // карточку»: the same agent a session on it would get, and a place to talk
 // before, during or instead of any work. projectName/agentName override what the
@@ -1492,9 +1511,9 @@ type CardConversation struct {
 	Tools bool `json:"tools,omitempty"`
 }
 
-// CardConversations lists the card's conversations, one per stage it was
-// worked on, newest first. A passed stage's entry is history until the card
-// comes back; the current stage's is what the terminal button opens.
+// CardConversations lists the card's conversations, newest first: its own, and
+// one per stage it was worked on. A passed stage's entry is history until the
+// card comes back; the card's own is what the panel opens.
 func (m *Manager) CardConversations(cardID string) []CardConversation {
 	recs, err := m.store.TerminalsForCard(cardID)
 	if err != nil {
@@ -1506,41 +1525,95 @@ func (m *Manager) CardConversations(cardID string) []CardConversation {
 	}
 	currentNode, _ := m.cardStage(cardID)
 	columns := m.stageColumns(cardID)
+	// What the card is called, so a conversation nobody has named is not named
+	// after it: every terminal starts out titled with the card's title, and a
+	// list where every row says the same thing is a list of one thing repeated.
+	cardTitle := m.cardTitle(cardID)
 
 	out := make([]CardConversation, 0, len(recs))
+	seen := make(map[string]bool, len(recs))
 	for _, rec := range recs {
-		brainstorm := rec.NodeID == nodeBrainstorm
+		// A record with no key at all is the card's *one* conversation, from
+		// before stages had keys of their own — which is what resume already
+		// treats it as (LastTerminalForCardNode). Folded rather than listed
+		// beside the card's own conversation, or the two read as one thing
+		// twice.
+		node := rec.NodeID
+		if node == "" {
+			node = nodeBrainstorm
+		}
+		if seen[node] {
+			continue
+		}
+		seen[node] = true
+
+		brainstorm := node == nodeBrainstorm
 		c := CardConversation{
-			NodeID:      rec.NodeID,
-			Column:      columns[rec.NodeID],
+			NodeID:      node,
+			Column:      columns[node],
 			Brainstorm:  brainstorm,
 			Agent:       rec.Agent,
-			Title:       rec.Title,
+			Title:       conversationTitle(rec.Title, cardTitle),
 			Summary:     rec.Summary,
 			Folder:      m.folderLabel(rec.WorkdirPath),
 			BoardFolder: rec.WorkdirPath == "",
-			// The card's own conversation is always the one the button opens, so
+			// The card's own conversation is always the one the panel opens, so
 			// it is always current; a stage's is current only while the card
 			// stands on it.
-			Current:   brainstorm || rec.NodeID == currentNode,
+			Current:   brainstorm || node == currentNode,
 			StartedAt: rec.StartedAt.Format(time.RFC3339),
 			ExitCode:  rec.ExitCode,
 		}
 		if rec.EndedAt != nil {
 			c.EndedAt = rec.EndedAt.Format(time.RFC3339)
 		}
-		if live := m.TerminalForCardNode(cardID, rec.NodeID); live != nil {
+		// Under either spelling, for the same reason the records are folded: a
+		// live conversation recorded before stages had keys is this one.
+		live := m.TerminalForCardNode(cardID, rec.NodeID)
+		if live == nil && brainstorm {
+			live = m.TerminalForCardNode(cardID, nodeBrainstorm)
+		}
+		if live != nil {
 			info := live.Info()
 			c.Running = true
 			c.TerminalID = info.ID
 			c.Agent = info.Agent
-			c.Title = info.Title
+			c.Title = conversationTitle(info.Title, cardTitle)
 			c.Summary = info.Summary
 			c.Tools = info.Tools
 		}
 		out = append(out, c)
 	}
 	return out
+}
+
+// conversationTitle is the name a row carries, and the card's own title is not
+// one: a terminal starts out titled after its card, so keeping that would name
+// every row of the list after the card it is on. What is left is a name
+// somebody gave — a person through RenameTerminal, or the agent through
+// name_conversation — and where there is none the screen says what the
+// conversation *is*: «Обсуждение», or the column of its stage.
+func conversationTitle(title, cardTitle string) string {
+	if cardTitle != "" && strings.TrimSpace(title) == strings.TrimSpace(cardTitle) {
+		return ""
+	}
+	return title
+}
+
+// cardTitle reads what the card is called, and answers "" for anything that
+// goes wrong: the title is used to *drop* a default name, so not knowing it
+// leaves the list as it was rather than failing a panel over it.
+func (m *Manager) cardTitle(cardID string) string {
+	if m.reader == nil || cardID == "" {
+		return ""
+	}
+	ctx, cancel := context.WithTimeout(m.rootCtx, 5*time.Second)
+	defer cancel()
+	ev, err := m.reader.CardByID(ctx, cardID)
+	if err != nil {
+		return ""
+	}
+	return ev.Title
 }
 
 // folderLabel is what a conversation's folder is called on screen: the name it

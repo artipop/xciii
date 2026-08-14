@@ -1076,3 +1076,63 @@ func TestACLIWithNoToolsIsNotAskedForAName(t *testing.T) {
 		t.Error("a CLI with nothing to answer through was asked for a name")
 	}
 }
+
+// A card's own conversation and a stage's are two rows, and they have to read
+// as two: the panel drew both named after the card, in the same folder, with
+// the same agent — «два терминала, но они одинаковые». A stage that stands on
+// no route is what made them collide, since an empty key is what every
+// conversation held before stages had keys was recorded under.
+func TestTheCardsConversationAndAStagesAreTwoDifferentRows(t *testing.T) {
+	fakeCLIOnPath(t, "claude", "sleep 30")
+	m, _, _, project := testManager(t, "idle", func(cfg *Config) {
+		cfg.Agents = []AgentEntry{{Name: "cl", Kind: AgentKindClaude}}
+	})
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	// A conversation held before stages had keys of their own, and the card's
+	// own conversation now: one thing, one row.
+	if err := m.store.InsertTerminal(TerminalRecord{
+		ID: "before-the-split", CardID: "card-two", Title: "Test task",
+		WorkdirPath: project, Cwd: project, Agent: "cl", Kind: AgentKindClaude,
+		StartedAt: time.Now().Add(-time.Hour),
+	}); err != nil {
+		t.Fatal(err)
+	}
+	own, err := m.StartCardTerminal("card-two", "", "cl")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(own.ID) }()
+
+	// And a stage of a column with no route behind it, which is a conversation
+	// of the column's rather than of the card's.
+	stage, err := m.startStageTerminal(&Session{
+		CardID: "card-two", BoardID: "board1", Title: "Test task", PromptText: "Task: Test task",
+		WorkdirPath: project, Agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(stage.ID) }()
+
+	rows := m.CardConversations("card-two")
+	if len(rows) != 2 {
+		t.Fatalf("the card has %d rows, want its own conversation and the stage's: %+v", len(rows), rows)
+	}
+	// Neither is named after the card: a terminal starts out titled with it, so
+	// keeping that would name every row of the list the same thing.
+	for _, row := range rows {
+		if row.Title != "" {
+			t.Errorf("a row is named %q, which is what the card is called", row.Title)
+		}
+	}
+	if !rows[0].Brainstorm && !rows[1].Brainstorm {
+		t.Errorf("neither row is the card's own conversation: %+v", rows)
+	}
+	if rows[0].Brainstorm && rows[1].Brainstorm {
+		t.Errorf("both rows are the card's own conversation: %+v", rows)
+	}
+	if stage.NodeID != nodeStageless {
+		t.Errorf("a stage with no route is keyed %q, which is the key of a conversation held before stages had one", stage.NodeID)
+	}
+}

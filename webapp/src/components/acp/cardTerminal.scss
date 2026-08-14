@@ -28,16 +28,20 @@
         color: rgba(var(--center-channel-color-rgb), 0.56);
     }
 
-    // The card's conversations, above the one being read. It takes what it
-    // needs and no more: the terminal below is what the panel is for, so the
-    // list scrolls at a third of the height rather than pushing the screen out
-    // of the panel on a card that has been round a long route.
+    // The card's conversations, above the one being read.
     &__conversations {
         flex: 0 1 auto;
         overflow-y: auto;
-        max-height: 33%;
         padding: 8px 12px;
         border-bottom: 1px solid var(--border-subtle);
+
+        // With a terminal open below it the list takes what it needs and no
+        // more: the conversation being read is what the panel is for, and a
+        // card that has been round a long route would otherwise push it off
+        // the bottom.
+        &--capped {
+            max-height: 33%;
+        }
     }
 
     &__actions {
@@ -67,8 +71,35 @@
         }
     }
 
-    // The terminal takes whatever the panel has left. It is the only thing in
-    // here, so there is nothing to share the height with.
+    // The conversation being read: its own head, then the terminal, which takes
+    // whatever height the list above has left.
+    &__open {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    &__openHead {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 8px 6px 12px;
+        flex: 0 0 auto;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    &__openName {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-size: var(--text-small);
+        font-weight: 600;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     &__screen {
         flex: 1 1 auto;
         min-height: 0;

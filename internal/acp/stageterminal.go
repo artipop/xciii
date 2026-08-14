@@ -172,13 +172,17 @@ func (m *Manager) runCardTaskInTerminal(s *Session) {
 // have the card's terminal for this stage open — that *is* this conversation, so
 // the task goes into it rather than into a second CLI beside it.
 func (m *Manager) startStageTerminal(s *Session) (*TerminalSession, error) {
-	if live := m.TerminalForCardNode(s.CardID, s.FlowNodeID); live != nil {
+	// A stage with no route behind it still has a conversation of its own
+	// (stageNode): under an empty key it would be the card's own conversation,
+	// which is a different thing that a person is in the middle of.
+	node := stageNode(s.FlowNodeID)
+	if live := m.TerminalForCardNode(s.CardID, node); live != nil {
 		go live.deliverPrompt(s.PromptText)
 		return live, nil
 	}
 	return m.startTerminal(terminalSpec{
 		cardID:      s.CardID,
-		nodeID:      s.FlowNodeID,
+		nodeID:      node,
 		boardID:     s.BoardID,
 		title:       s.Title,
 		task:        s.PromptText,

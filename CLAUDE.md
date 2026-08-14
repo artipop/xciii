@@ -874,8 +874,12 @@ already makes. Who a terminal speaks as
 follows the stage — its crew, then the assignee, then the single agent — and a
 fully busy crew does not block it: the person opening one is present.
 
-**The panel is a list of the card's conversations with one of them drawn under
-it** (`GetCardAgent.conversations`, `Brainstorm`), and the row is the row
+**The panel is «Терминалы», the list, and the conversation being read under
+them** (`GetCardAgent.conversations`, `Brainstorm`) — in that order, and each
+part owns its own ✕: the head's closes the panel, the one over the terminal puts
+that terminal away (the CLI keeps running; ending it is the bin on the row). A
+head saying «Терминал» above a list of them made its ✕ read as belonging to the
+terminal further down. The row is the row
 «Обсудить с агентом» draws — `conversationRow.tsx`, shared, because the two
 screens list the same thing and had drifted into two shapes of it: the card's
 said «Разработка — клаус» in a chip, the planning screen said everything else.
@@ -890,6 +894,18 @@ possible. A stage's is refused: the route may still be waiting on it.
 Rows are drawn with `Index` rather than `For` — the list is re-read on every
 `acp:terminal` event, and identity-keyed rows would take a half-typed rename
 with them.
+
+**Two rows must never be one conversation twice**, and that took two fixes.
+A stage standing on no route at all — a column that runs an agent with no flow
+behind it — was recorded under an empty key, which is also what every
+conversation held before stages had keys was recorded under; the panel then drew
+the card's own conversation and that stage as two rows saying the same thing.
+So a stage with no node gets `nodeStageless`, and `CardConversations` folds a
+node-less record into the card's own conversation, which is what resume already
+treats it as (`LastTerminalForCardNode`). The other half is the name: a terminal
+starts out titled after its card, so keeping that title named *every* row after
+the card — `conversationTitle` drops it, and the row falls back to «Обсуждение»
+or to the column of its stage. What survives is a name somebody gave.
 
 **A conversation opens with what the card says** (`cardIntro`): the person
 clicking the button has the card in front of them and the agent has nothing, so

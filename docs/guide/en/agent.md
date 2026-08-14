@@ -64,16 +64,25 @@ asks its questions right there.
 
 ### The list of conversations
 
-Above the terminal are this card's conversations: its own, and one per stage
-that worked it. A row is built the same way as in "Talk it over with an agent":
+The panel reads top to bottom: a **"Terminals"** plate with a ✕ that closes the
+panel itself; under it the list of this card's conversations — its own, and one
+per stage that worked it; and below that the conversation being read, with a
+head of its own. That head's ✕ puts the terminal away without ending it: the CLI
+keeps running, the row keeps its green dot, and ending a conversation is the bin
+on the row.
+
+A row is built the same way as in "Talk it over with an agent":
 
 - **the name** — clicking it opens the conversation in the panel; the dot on
-  the left is green while a CLI is running in it;
+  the left is green while a CLI is running in it. Until somebody names it, a
+  conversation is called what it is: "Discussion" for the card's own, the column
+  for a stage's;
 - **the line under the name** — what the conversation is doing: the agent
   writes it;
 - **who and where** — the agent and the conversation's folder;
-- **⧉** — open the same terminal in a separate window. The panel then gives way
-  to the window: two views of one terminal argue about its size;
+- **⧉** — open the same terminal in a separate window (the head of the open
+  conversation offers the same). The panel then gives way to the window: two
+  views of one terminal argue about its size;
 - **✎** — rename the conversation;
 - **✨** — ask the agent to name it. The request is typed into the conversation
   itself, because only the one having it can name it; the answer appears in the

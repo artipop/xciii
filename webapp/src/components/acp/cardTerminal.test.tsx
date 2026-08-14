@@ -295,11 +295,33 @@ describe('components/acp/cardTerminal', () => {
             })),
             OpenCardTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-1', windowed: true})),
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={onClose}/>))
+        render(() => wrapIntl(() => <CardTerminal cardId='card-terminal-window' board={board} onClose={onClose}/>))
         await screen.findByTestId('terminal')
 
-        await userEvent.click(screen.getByRole('button', {name: 'Open in a separate window'}))
+        // The row offers it, and so does the head of the terminal itself —
+        // which is where somebody reading it is looking.
+        const windows = screen.getAllByRole('button', {name: 'Open in a separate window'})
+        expect(windows.length).toBe(2)
+        await userEvent.click(windows[windows.length - 1])
         await waitFor(() => expect(onClose).toHaveBeenCalled())
+    })
+
+    // The ✕ over the terminal puts the terminal away, and that is all it does:
+    // the CLI keeps running and the row keeps its place, because ending a
+    // conversation is the bin on the row.
+    it('puts the terminal away without ending it', async () => {
+        stubBindings({
+            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
+                folder: '/tmp/proj',
+                conversations: [{nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', running: true, terminalId: 'term-1'}],
+            })),
+        })
+        const {container} = render(() => wrapIntl(() => <CardTerminal cardId='card-away' board={board} onClose={vi.fn()}/>))
+        await screen.findByTestId('terminal')
+
+        await userEvent.click(screen.getByRole('button', {name: 'Put the terminal away'}))
+        await waitFor(() => expect(screen.queryByTestId('terminal')).toBeNull())
+        expect(container.querySelectorAll('.ConversationRow').length).toBe(1)
     })
 
     // A card the route has not worked has one conversation, and the list is one

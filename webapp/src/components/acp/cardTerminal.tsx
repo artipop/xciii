@@ -327,6 +327,16 @@ const CardTerminal = (props: Props) => {
         }
     }
 
+    // Which row the terminal below belongs to, and what to call it there. A
+    // conversation that has just been started is drawn before the list has been
+    // read back, so the name falls back to the card's own conversation — which
+    // is the only one this panel starts.
+    const openRow = () => rows().find((c) => c.terminalId && c.terminalId === terminalId())
+    const openName = () => {
+        const row = openRow()
+        return row ? rowName(row) : intl.formatMessage({id: 'CardTerminal.brainstorm', defaultMessage: 'Discussion'})
+    }
+
     const actionsFor = (c: CardConversation) => {
         const actions: ConversationAction[] = []
         if (c.brainstorm || c.terminalId) {
@@ -357,9 +367,14 @@ const CardTerminal = (props: Props) => {
 
     return (
         <div class='CardTerminal'>
+            {/* The panel's own head, and it is about the panel rather than
+                about whatever is open in it: «Терминалы», the list under it,
+                and the conversation being read below that. The head used to say
+                «Терминал» over a list of them, so its ✕ read as closing the
+                terminal that was drawn further down. */}
             <div class='CardTerminal__head'>
                 <span class='CardTerminal__title'>
-                    {intl.formatMessage({id: 'CardTerminal.title', defaultMessage: 'Terminal'})}
+                    {intl.formatMessage({id: 'CardTerminal.title', defaultMessage: 'Terminals'})}
                 </span>
                 <Show when={state().session?.status}>
                     <span class='CardTerminal__status'>{state().session?.status}</span>
@@ -383,7 +398,10 @@ const CardTerminal = (props: Props) => {
                 same row «Обсудить с агентом» draws, because it is the same
                 thing being listed. */}
             <Show when={rows().length > 0}>
-                <ul class='ConversationList CardTerminal__conversations'>
+                <ul
+                    class='ConversationList CardTerminal__conversations'
+                    classList={{'CardTerminal__conversations--capped': Boolean(terminalId())}}
+                >
                     {/* Index, not For: the list is re-read whenever a terminal
                         starts, ends or is named, and For keys by identity — so
                         every refresh would replace the rows and take a rename
@@ -409,12 +427,43 @@ const CardTerminal = (props: Props) => {
                 </ul>
             </Show>
 
+            {/* The conversation being read, under the list it was picked from,
+                with a head of its own: which one this is, a window to move it
+                to, and a ✕ that puts it away. That ✕ closes the *view* and
+                nothing else — the CLI keeps running, and the row above keeps
+                its green dot, because a person who wanted it ended has the bin
+                on the row. */}
             <Show when={terminalId()}>
                 {(id) => (
-                    <div class='CardTerminal__screen'>
-                        <Suspense fallback={null}>
-                            <InlineTerminal terminalId={id()}/>
-                        </Suspense>
+                    <div class='CardTerminal__open'>
+                        <div class='CardTerminal__openHead'>
+                            <span class='CardTerminal__openName'>{openName()}</span>
+                            <Show when={openRow()}>
+                                <button
+                                    type='button'
+                                    class='CardTerminal__button'
+                                    title={intl.formatMessage({id: 'CardTerminal.window', defaultMessage: 'Open in a separate window'})}
+                                    aria-label={intl.formatMessage({id: 'CardTerminal.window', defaultMessage: 'Open in a separate window'})}
+                                    onClick={() => inWindow(openRow() as CardConversation)}
+                                >
+                                    <CompassIcon icon='open-in-new'/>
+                                </button>
+                            </Show>
+                            <button
+                                type='button'
+                                class='CardTerminal__button'
+                                title={intl.formatMessage({id: 'CardTerminal.collapse', defaultMessage: 'Put the terminal away'})}
+                                aria-label={intl.formatMessage({id: 'CardTerminal.collapse', defaultMessage: 'Put the terminal away'})}
+                                onClick={() => setTerminalId('')}
+                            >
+                                <CompassIcon icon='close'/>
+                            </button>
+                        </div>
+                        <div class='CardTerminal__screen'>
+                            <Suspense fallback={null}>
+                                <InlineTerminal terminalId={id()}/>
+                            </Suspense>
+                        </div>
                     </div>
                 )}
             </Show>
