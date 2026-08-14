@@ -889,9 +889,15 @@ func doneComment(s *Session, finalText string) string {
 		fmt.Fprintf(&b, "Если агент правил файлы, изменения не закоммичены: `git -C %s diff`", s.WorkdirPath)
 		return b.String()
 	}
-	if s.usedWorktree {
-		fmt.Fprintf(&b, "Worktree: `%s`\nВетка: `%s`\n", s.Worktree.Path, s.Worktree.Branch)
-		fmt.Fprintf(&b, "Посмотреть дифф: `git -C %s diff %s`", s.Worktree.Path, s.Worktree.BaseRef)
+	if s.Worktree.Branch != "" {
+		// One fact: the branch. A copy is that branch checked out elsewhere —
+		// naming both made the card read as if two things had been created —
+		// and the copy is the workshop anyway: folded away once the work is
+		// committed, shown in the terminal panel while it exists. The diff
+		// runs from the folder itself, since the branch lives in the shared
+		// object store: nobody is sent into the app's data directory.
+		fmt.Fprintf(&b, "Ветка: `%s`\n", s.Worktree.Branch)
+		fmt.Fprintf(&b, "Посмотреть дифф: `git -C %s diff %s..%s`", s.WorkdirPath, s.Worktree.BaseRef, s.Worktree.Branch)
 	} else {
 		fmt.Fprintf(&b, "Изменения не закоммичены и лежат в рабочей копии `%s`.\n", s.WorkdirPath)
 		fmt.Fprintf(&b, "Посмотреть дифф: `git -C %s diff`", s.WorkdirPath)

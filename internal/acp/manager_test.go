@@ -315,8 +315,14 @@ func TestTriggerRunsSessionToDone(t *testing.T) {
 	if branch := sessions[0].Branch; !strings.HasPrefix(branch, "test-task-") {
 		t.Errorf("branch %q is not named after the card", branch)
 	}
-	if !strings.Contains(comments[0], sessions[0].WorktreePath) {
-		t.Errorf("final comment lacks the worktree: %q", comments[0])
+	// The comment names the branch — the durable half — and not the copy's
+	// path: the copy is the workshop, folded away once the work is committed,
+	// and a path into the app's data directory is not where anybody is sent.
+	if !strings.Contains(comments[0], sessions[0].Branch) {
+		t.Errorf("final comment lacks the branch: %q", comments[0])
+	}
+	if strings.Contains(comments[0], sessions[0].WorktreePath) {
+		t.Errorf("final comment points into the copy: %q", comments[0])
 	}
 }
 
@@ -334,12 +340,13 @@ func TestWorktreeModeAlways(t *testing.T) {
 	sessions, _, _ := m.store.SessionsForCard("cardWT")
 	if wt := sessions[0].WorktreePath; wt == "" {
 		t.Error("worktree path missing in always mode")
-	} else if _, err := os.Stat(wt); err != nil {
-		t.Errorf("worktree of done session was removed: %v", err)
 	}
+	// What the card is told is the branch; the copy's fate (folded away once
+	// the work is committed, remade from the branch on the next ask) is
+	// TestAFoldedCopyComesBackOnItsOwnBranch's business.
 	comments := writer.cardComments("cardWT")
-	if last := comments[len(comments)-1]; !strings.Contains(last, "Worktree") {
-		t.Errorf("final comment lacks worktree info: %q", last)
+	if last := comments[len(comments)-1]; !strings.Contains(last, "Ветка") || !strings.Contains(last, sessions[0].Branch) {
+		t.Errorf("final comment lacks the branch: %q", last)
 	}
 }
 

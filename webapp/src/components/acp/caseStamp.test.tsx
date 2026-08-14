@@ -25,9 +25,11 @@ describe('components/acp/caseStamp', () => {
         await waitFor(() => expect(container.querySelector('.CaseStamp')).toBeNull())
     })
 
-    // Where the work lives is the thing a person opening a card wants first,
-    // and it used to be reachable only by scrolling to the agent's own row.
-    it('stamps the branch, the worktree and the session on a card that has been worked', async () => {
+    // Where the work lives is the thing a person opening a card wants first —
+    // and it is one place, not two. A copy is the branch checked out
+    // elsewhere, and stamping «branch» and «worktree» side by side read as the
+    // app having created two things: the complaint this screen started from.
+    it('stamps one line for where the work lives, plus the session', async () => {
         anyWindow.go = {
             main: {
                 App: cardBindings({
@@ -45,10 +47,11 @@ describe('components/acp/caseStamp', () => {
         expect(await screen.findByText('xciii/card-1')).toBeInTheDocument()
         expect(await screen.findByText('finished')).toBeInTheDocument()
 
-        // The worktree is an absolute path; the stamp shows what identifies it
-        // and keeps the rest in the tooltip.
-        expect(await screen.findByText('xciii-card-1')).toBeInTheDocument()
+        // The copy's path rides in the branch line's tooltip; it is not a
+        // second line, because it is not a second thing.
         expect(screen.getByTitle('/Users/someone/work/xciii-card-1')).toBeInTheDocument()
+        expect(screen.queryByText('xciii-card-1')).toBeNull()
+        expect(screen.queryByText('worktree')).toBeNull()
     })
 
     // A resumable terminal is a case still open, and it names its branch even
@@ -65,6 +68,22 @@ describe('components/acp/caseStamp', () => {
         render(() => <CaseStamp cardId='card-3'/>)
 
         expect(await screen.findByText('xciii/card-9')).toBeInTheDocument()
-        expect(await screen.findByText('card-9')).toBeInTheDocument()
+        expect(screen.queryByText('card-9')).toBeNull()
+    })
+
+    // A folder with no branch — an ordinary folder, or the board's drafts —
+    // is the one case the directory itself is the fact worth stamping.
+    it('stamps the folder when there is no branch', async () => {
+        anyWindow.go = {
+            main: {
+                App: cardBindings({
+                    resume: {available: true, cwd: '/Users/someone/notes'},
+                }),
+            },
+        }
+
+        render(() => <CaseStamp cardId='card-4'/>)
+
+        expect(await screen.findByText('notes')).toBeInTheDocument()
     })
 })

@@ -47,11 +47,18 @@ const CaseStamp = (props: Props) => {
 
     const fields = () => {
         const out: Array<{key: string, label: string, value: string, title?: string}> = []
+
+        // One fact about where the work lives, never two. A copy is the
+        // branch checked out elsewhere — one workspace, not a branch *and* a
+        // worktree — and stamping both was what made it read as if the app
+        // had created two things. The branch is the durable half (the copy is
+        // folded away once the work is committed), so the branch is the line;
+        // the copy's path rides in the tooltip. Only a folder with no branch
+        // shows the directory instead.
         if (branch()) {
-            out.push({key: 'branch', label: 'branch', value: branch()})
-        }
-        if (worktree()) {
-            out.push({key: 'worktree', label: 'worktree', value: worktreeName(worktree()), title: worktree()})
+            out.push({key: 'branch', label: 'branch', value: branch(), title: worktree() || undefined})
+        } else if (worktree()) {
+            out.push({key: 'worktree', label: 'folder', value: worktreeName(worktree()), title: worktree()})
         }
         if (status()) {
             out.push({key: 'session', label: 'session', value: status()})
