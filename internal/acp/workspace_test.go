@@ -59,6 +59,12 @@ func TestOneCardIsOneWorkspace(t *testing.T) {
 		}
 	}
 
+	// And the card can say which arrangement it is in — the stamp names its
+	// line after this, so the word on the card matches the setting.
+	if got := m.WorkspaceModeForCard("card-1"); got != WorkModeWorktree {
+		t.Errorf("the card's workspace reads as %q, want %q", got, WorkModeWorktree)
+	}
+
 	// Another card of the same folder gets its own, which is the whole point
 	// of a copy per card.
 	other, err := m.ClaimWorkspace(WorkSpec{Workdir: repo, Owner: "card-2", BoardID: "board1", Title: "Другая"})

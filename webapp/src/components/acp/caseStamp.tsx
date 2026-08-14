@@ -42,6 +42,7 @@ const CaseStamp = (props: Props) => {
     })
 
     const branch = () => state().session?.branch || state().resume?.branch || ''
+    const workMode = () => state().workMode || ''
     const worktree = () => state().session?.worktree || state().resume?.cwd || ''
     const status = () => state().session?.status || ''
 
@@ -51,12 +52,16 @@ const CaseStamp = (props: Props) => {
         // One fact about where the work lives, never two. A copy is the
         // branch checked out elsewhere — one workspace, not a branch *and* a
         // worktree — and stamping both was what made it read as if the app
-        // had created two things. The branch is the durable half (the copy is
-        // folded away once the work is committed), so the branch is the line;
-        // the copy's path rides in the tooltip. Only a folder with no branch
+        // had created two things. The line is *named after the folder's own
+        // setting* — «отдельная копия» stamps worktree, «в самой папке»
+        // stamps branch — because a person who chose one word and reads the
+        // other concludes the setting did not take. The value is the branch
+        // either way: it is the one handle git commands accept, and the
+        // copy's path rides in the tooltip. Only a folder with no branch
         // shows the directory instead.
         if (branch()) {
-            out.push({key: 'branch', label: 'branch', value: branch(), title: worktree() || undefined})
+            const label = workMode() === 'worktree' ? 'worktree' : 'branch'
+            out.push({key: 'branch', label, value: branch(), title: worktree() || undefined})
         } else if (worktree()) {
             out.push({key: 'worktree', label: 'folder', value: worktreeName(worktree()), title: worktree()})
         }

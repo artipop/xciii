@@ -250,3 +250,18 @@ func (m *Manager) ReleaseMergedBranch(workdir, branch string) {
 		m.log.Info("acp: the folder is free again", "workdir", workdir, "branch", branch, "owner", owner)
 	}
 }
+
+// WorkspaceModeForCard is which of the two arrangements this card's workspace
+// is, for the surfaces that say it out loud. Empty for a card with none — an
+// ordinary folder records no claim.
+func (m *Manager) WorkspaceModeForCard(cardID string) string {
+	if m.store == nil || cardID == "" {
+		return ""
+	}
+	mode, err := m.store.WorkspaceModeForOwner(cardID)
+	if err != nil {
+		m.log.Warn("acp: cannot read the card's workspace mode", "card", cardID, "err", err)
+		return ""
+	}
+	return mode
+}

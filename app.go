@@ -990,6 +990,13 @@ func (a *App) GetCardAgent(cardID string) (string, error) {
 	if folder, ok := a.mgr.CardFolder(cardID); ok {
 		payload["folder"] = folder
 	}
+	// Which arrangement the card's workspace is ("worktree" or "branch"), so
+	// the stamp can name its line the way the folder's setting does. Two
+	// vocabularies for one thing — «копия» in the settings, `branch` on the
+	// card — read as the setting not having worked.
+	if mode := a.mgr.WorkspaceModeForCard(cardID); mode != "" {
+		payload["workMode"] = mode
+	}
 	out, err := json.Marshal(payload)
 	if err != nil {
 		return "", err

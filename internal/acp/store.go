@@ -897,3 +897,21 @@ func (s *Store) BranchForOwner(owner string) (string, error) {
 	}
 	return branch, nil
 }
+
+// WorkspaceModeForOwner is how the owner's live workspace is arranged —
+// "worktree" or "branch" — or "" when it holds none. The card's stamp names
+// its line after it: a person who set «отдельная копия» should read worktree
+// off the card, not a bare branch label that spells the *other* setting.
+func (s *Store) WorkspaceModeForOwner(owner string) (string, error) {
+	row := s.db.QueryRow(`SELECT mode FROM workdir_claim
+		WHERE owner=? AND released_at IS NULL
+		ORDER BY created_at DESC LIMIT 1`, owner)
+	var mode string
+	switch err := row.Scan(&mode); {
+	case err == sql.ErrNoRows:
+		return "", nil
+	case err != nil:
+		return "", err
+	}
+	return mode, nil
+}
