@@ -1,120 +1,309 @@
+@import '../../styles/typography';
+
+// One card per folder. Everything a person wrote or a machine keeps — the
+// name, the path, a branch — is prose or data rather than the dialog's label
+// voice: a path in tracked caps is not a path anybody can read, and it is not
+// even the case the path is written in.
 .WorkdirsPanel {
+    .WorkdirsPanel__subtitle {
+        @include prose;
+
+        margin: 0;
+        padding: 0 24px 8px;
+        font-size: 13px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
     .WorkdirsPanel__content {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
         padding: 0 24px 24px;
         min-width: 480px;
     }
 
     .WorkdirsPanel__empty {
+        @include prose;
+
         color: rgba(var(--center-channel-color-rgb), 0.64);
         padding: 8px 0;
+    }
+
+    .WorkdirsPanel__list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    // The same card the terminals list uses, for the same reason: a thing with
+    // a name, a line of detail and one action that removes it.
+    .WorkdirsPanel__folder {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: var(--radius-lg);
+        min-width: 0;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+    }
+
+    .WorkdirsPanel__folderMain {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .WorkdirsPanel__head {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .WorkdirsPanel__name {
+        @include prose;
+
+        font-weight: 600;
+        font-size: 14px;
+        color: rgb(var(--center-channel-color-rgb));
+    }
+
+    // Facts about the entry, all in one shape: a second shape would read as a
+    // second kind of thing.
+    .WorkdirsPanel__badge {
+        @include prose;
+
+        font-size: 11px;
+        white-space: nowrap;
+        padding: 1px 8px;
+        border-radius: 10px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    .WorkdirsPanel__badge--broken {
+        background: rgba(var(--error-text-rgb, 210, 75, 78), 0.16);
+        color: rgb(var(--error-text-rgb, 210, 75, 78));
+    }
+
+    // A path is data the machine keeps, so it is set as data. Truncated from
+    // the left: the tail is the half that tells two checkouts apart, and the
+    // whole of it is in the tooltip.
+    // Two spans rather than one: the folder itself is always drawn and what is
+    // above it gives way (pathParts). One box with an ellipsis eats whichever
+    // end CSS decides, and the end it eats is the one that tells two checkouts
+    // apart.
+    .WorkdirsPanel__path {
+        display: flex;
+        min-width: 0;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        text-transform: none;
+        letter-spacing: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .WorkdirsPanel__pathHead {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .WorkdirsPanel__pathTail {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    // A repository's two questions. Each is a question and its answer on one
+    // line, which is what the row of unlabelled controls was missing.
+    .WorkdirsPanel__repo {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 20px;
+        margin-top: 4px;
+    }
+
+    .WorkdirsPanel__field {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .WorkdirsPanel__label {
+        @include label;
+
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    .WorkdirsPanel__modes {
+        display: flex;
+        gap: 4px;
+    }
+
+    .WorkdirsPanel__mode {
+        @include prose;
+
+        font-size: 12px;
+        white-space: nowrap;
+        cursor: pointer;
+        padding: 2px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+
+        &--on {
+            border-color: rgb(var(--button-bg-rgb));
+            background: rgba(var(--button-bg-rgb), 0.08);
+            color: rgb(var(--center-channel-color-rgb));
+        }
+    }
+
+    .WorkdirsPanel__base,
+    .WorkdirsPanel__nameInput {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        text-transform: none;
+        letter-spacing: 0;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: var(--radius-sm);
+        padding: 3px 8px;
+        background: rgb(var(--surface-bg-rgb));
+        color: rgb(var(--center-channel-color-rgb));
+
+        &:focus {
+            border-color: rgba(var(--button-bg-rgb), 0.64);
+            outline: none;
+        }
+    }
+
+    .WorkdirsPanel__base {
+        width: 120px;
+    }
+
+    .WorkdirsPanel__nameInput {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-family: inherit;
+    }
+
+    .WorkdirsPanel__iconButton {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        padding: 2px;
+
+        &:hover {
+            color: rgb(var(--center-channel-color-rgb));
+        }
+    }
+
+    // Asked, because a mis-click loses the folder's settings and leaves the
+    // cards that named it pointing at nothing.
+    .WorkdirsPanel__confirm {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .WorkdirsPanel__confirmAsk {
+        @include prose;
+
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    .WorkdirsPanel__confirmYes,
+    .WorkdirsPanel__confirmNo {
+        @include prose;
+
+        font-size: 12px;
+        cursor: pointer;
+        border-radius: var(--radius-md);
+        padding: 2px 10px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    .WorkdirsPanel__confirmYes {
+        border-color: rgba(var(--error-text-rgb, 210, 75, 78), 0.48);
+        color: rgb(var(--error-text-rgb, 210, 75, 78));
     }
 
     .WorkdirsPanel__orphans {
         display: flex;
         flex-direction: column;
         gap: 8px;
-        padding-top: 8px;
+        padding-top: 12px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     }
 
-    .WorkdirsPanel__orphansTitle {
+    .WorkdirsPanel__sectionTitle {
+        @include label;
+
         font-size: 12px;
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
-    .WorkdirsPanel__row {
+    // The folder being added, and the one already added somewhere else: the
+    // same card, marked as not yet part of the list.
+    .WorkdirsPanel__pending {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px dashed rgba(var(--button-bg-rgb), 0.64);
+        border-radius: var(--radius-lg);
+        min-width: 0;
+    }
+
+    .WorkdirsPanel__pendingActions {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
+    }
 
-        .WorkdirsPanel__name {
-            font-weight: 600;
-            white-space: nowrap;
-        }
+    .WorkdirsPanel__taken {
+        @include prose;
 
-        .WorkdirsPanel__path {
-            flex: 1;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            direction: rtl;
-            text-align: left;
-        }
+        font-size: 13px;
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+    }
 
-        // Said on the entry rather than only in the add form: which board a
-        // project belongs to is invisible otherwise, and "why is it here"
-        // becomes a question with no answer on screen.
-        .WorkdirsPanel__global {
-            font-size: 12px;
-            white-space: nowrap;
-            padding: 1px 8px;
-            border-radius: 10px;
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-        }
+    .WorkdirsPanel__globalToggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
 
-        // What the folder is, in the same shape as the "all boards" badge:
-        // both are facts about the entry, and a second shape would read as a
-        // second kind of thing.
-        .WorkdirsPanel__kind {
-            font-size: 12px;
-            white-space: nowrap;
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-        }
+        @include prose;
 
-        .WorkdirsPanel__broken {
-            color: rgb(var(--error-text-rgb, 210, 75, 78));
-        }
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
 
-        // The two answers, on the repository's own row: small, side by side,
-        // the one in force filled in. A select would hide the answer behind a
-        // click; these say it while the list is being read.
-        .WorkdirsPanel__mode {
-            font-size: 12px;
-            white-space: nowrap;
+        input[type='checkbox'] {
             cursor: pointer;
-            padding: 2px 8px;
-            border-radius: 10px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            background: transparent;
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-
-            &--on {
-                border-color: rgb(var(--button-bg-rgb));
-                background: rgba(var(--button-bg-rgb), 0.08);
-                color: rgb(var(--center-channel-color-rgb));
-            }
-        }
-
-        .WorkdirsPanel__base {
-            width: 96px;
-            font-size: 12px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            border-radius: var(--radius-sm);
-            padding: 2px 6px;
-            background: rgb(var(--surface-bg-rgb));
-            color: rgb(var(--center-channel-color-rgb));
-        }
-
-        .WorkdirsPanel__globalToggle {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-            font-size: 12px;
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-        }
-
-        .WorkdirsPanel__nameInput {
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            border-radius: var(--radius-sm);
-            padding: 4px 8px;
-            background: rgb(var(--surface-bg-rgb));
-            color: rgb(var(--center-channel-color-rgb));
+            accent-color: rgb(var(--button-bg-rgb));
         }
     }
 
@@ -122,16 +311,9 @@
         padding-top: 4px;
     }
 
-    .WorkdirsPanel__sync {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 16px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    }
-
     .WorkdirsPanel__error {
+        @include prose;
+
         color: rgb(var(--error-text-rgb, 210, 75, 78));
         padding-top: 8px;
     }

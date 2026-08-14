@@ -8,12 +8,15 @@ Which items a board's menu has is decided by the template it was made from: the
 has "Folders…" and "Where to deploy…"; a board of household chores asks about a
 folder alone.
 
-A folder is one of two kinds, and the list says which:
+Every folder in the list is a card of its own: the name, the path under it,
+and — for a repository — its two settings.
 
-- **folder** — an ordinary directory: notes, texts, lists. The agent works in it
-  as it stands, one card at a time;
-- **repository** — a directory under git. Here every card gets a branch of its
-  own, and the card shows it in its «Ветка» field.
+A folder is one of two kinds:
+
+- **an ordinary folder** — notes, texts, lists. The agent works in it as it
+  stands, one card at a time; in the list it carries nothing but its name;
+- **a repository** — a directory under git, marked **"repository"**. Here every
+  card gets a branch of its own, and the card shows it in its «Ветка» field.
 
 The kind is not recorded once and for all: the app asks git every time it lists
 them. Run `git init` in a folder you added a month ago and it is a repository —
@@ -25,9 +28,8 @@ will you work in?".
 
 ## The base branch
 
-A repository has one setting beside its name — the **base branch**. Work on a
-card starts from it, and the "branch merged into the main one" transitions wait
-for it.
+A repository has a **"Work branches from"** field. Work on a card starts from
+that branch, and the "branch merged into the main one" transitions wait for it.
 
 The value is filled in when the folder is added: the app asks git which branch
 the repository treats as its main one. Change it if you work off another —
@@ -35,8 +37,8 @@ the repository treats as its main one. Change it if you work off another —
 
 ## How an agent works in a repository
 
-This is a choice about **that folder on this board** — two buttons on the
-repository's row in "Folders…". A folder belongs to one board anyway, so for it
+This is a choice about **that folder on this board** — the two buttons under
+**"The agent works"** on the repository's card in "Folders…". A folder belongs to one board anyway, so for it
 this reads as "how this folder works"; a folder marked «на всех досках» can be
 used differently by two boards.
 

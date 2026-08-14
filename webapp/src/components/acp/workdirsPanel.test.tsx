@@ -81,7 +81,11 @@ describe('components/acp/workdirsPanel', () => {
         ))
 
         await waitFor(() => expect(screen.getByText('repository')).toBeInTheDocument())
-        expect(screen.getByText('folder')).toBeInTheDocument()
+
+        // An ordinary folder is marked by nothing: it has no branch, no base
+        // and no way of being worked in, so a badge saying «folder» beside its
+        // own name was a word that ruled nothing out.
+        expect(screen.queryByText('folder')).toBeNull()
 
         // A folder added as a repository whose git is gone says so: everything
         // that waits for a branch will fail on it.
