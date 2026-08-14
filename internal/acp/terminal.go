@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -249,6 +250,43 @@ func (t *TerminalSession) closeTTY() {
 
 // Done is closed when the CLI exits.
 func (t *TerminalSession) Done() <-chan struct{} { return t.done }
+
+// startupFailure reports a CLI that exited within window of being launched, and
+// exited badly: it never got as far as the work, so whatever it printed is the
+// whole story. A stage reads this to tell "the agent could not be started" from
+// "somebody closed the window", which look identical from outside — one is a
+// failure to say out loud, the other is a person's own doing.
+func (t *TerminalSession) startupFailure(window time.Duration) (int, bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	// A negative code is a kill, which is this app closing the terminal.
+	if t.exitCode <= 0 {
+		return 0, false
+	}
+	return t.exitCode, time.Since(t.launchedAt) <= window
+}
+
+// tail is the last of what the CLI drew, as plain text: what it said on the way
+// out, for a card that has to be told why nothing happened. The escapes a TUI
+// paints with are dropped — a comment is read, not rendered.
+func (t *TerminalSession) tail(n int) string {
+	t.mu.Lock()
+	buf := append([]byte(nil), t.buf...)
+	t.mu.Unlock()
+	text := strings.TrimSpace(stripANSI(string(buf)))
+	if r := []rune(text); len(r) > n {
+		return "…" + string(r[len(r)-n:])
+	}
+	return text
+}
+
+// ansiEscape matches what a TUI paints with: CSI sequences and the OSC ones
+// that set a window title. Enough to make a dying CLI's last words readable in
+// a card comment, which is all this is for — nothing here tries to be an
+// emulator, xterm.js on the other end of the pty is that.
+var ansiEscape = regexp.MustCompile(`\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[@-Z\\-_]|\r`)
+
+func stripANSI(s string) string { return ansiEscape.ReplaceAllString(s, "") }
 
 // quietFor reports how long the CLI has drawn nothing. Zero output at all
 // counts from the launch, so a CLI that never started is not read as busy.

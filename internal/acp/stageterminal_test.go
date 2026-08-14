@@ -97,6 +97,25 @@ func TestAStageIsTheAgentsOwnCLIWithTheTaskInIt(t *testing.T) {
 	}
 }
 
+// The card's task is a positional argument, and everything before it on that
+// command line is flags — one of which, `--mcp-config`, takes a list. Without an
+// end-of-options marker the CLI reads the task as a second config file, dies
+// with "MCP config file not found: почини логин", and every card of the board
+// stalls saying the agent never reported.
+func TestTheTaskIsNotEatenByTheFlagBeforeIt(t *testing.T) {
+	argv, taken, err := terminalCommand(
+		AgentEntry{Name: "clauuus", Kind: AgentKindClaude},
+		false, "/tmp/mcp.json", "почини логин",
+	)
+	if err != nil || !taken {
+		t.Fatalf("the task did not reach the command line: taken=%v err=%v", taken, err)
+	}
+	last := argv[len(argv)-2:]
+	if last[0] != "--" || last[1] != "почини логин" {
+		t.Errorf("argv ends %q, want the task behind an end-of-options marker:\n%q", last, argv)
+	}
+}
+
 // Until the agent says the work is over the card stands where it is: an
 // interactive CLI does not exit when a turn ends, so nothing else can stand in
 // for the answer.
@@ -124,6 +143,31 @@ func TestACardWaitsUntilTheAgentSaysTheWorkIsDone(t *testing.T) {
 			}
 		}
 		return false
+	})
+}
+
+// A CLI that dies on the way up is not "the agent did not report": the stage
+// never happened. The card is told so, in the CLI's own words — the terminal has
+// closed by the time anybody looks, so what it printed exists nowhere else.
+func TestACLIThatCannotStartSaysWhyOnTheCard(t *testing.T) {
+	m, writer, events, project, _ := stageManager(t, "echo 'MCP config file not found: почини логин' >&2; exit 1", nil)
+
+	events.ch <- moveEvent("cardBroken", project, "opt-backlog", "opt-agent")
+
+	waitFor(t, 20*time.Second, "the card to be told why", func() bool {
+		for _, c := range writer.cardComments("cardBroken") {
+			if strings.Contains(c, "MCP config file not found") && strings.Contains(c, "кодом 1") {
+				return true
+			}
+		}
+		return false
+	})
+
+	// And it is a failure, so a route has an event to act on — a card that
+	// cannot start its agent must not sit there looking like work in progress.
+	waitFor(t, 10*time.Second, "the session to fail", func() bool {
+		s := cardSession(m, "cardBroken")
+		return s != nil && s.Status() == StatusFailed
 	})
 }
 

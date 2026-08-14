@@ -527,6 +527,15 @@ type acpAdapter struct {
 	// "do you trust the files in this folder?", which must not be answered with
 	// a task. A kind that leaves this empty has the task pasted once its CLI
 	// has settled, which is the same answer a resumed conversation gets.
+	//
+	// **It carries its own end-of-options marker**, because the task is a
+	// positional argument and everything before it on that command line is
+	// flags. `--mcp-config <configs...>` is variadic, so `claude --mcp-config
+	// f.json "почини логин"` reads the card's task as a second config file and
+	// dies with "MCP config file not found: почини логин" — the terminal opened
+	// and shut in the same breath, and every card of that board stalled saying
+	// the agent had not reported. Whatever this returns goes last, so the
+	// separator belongs to the kind that knows how its own parser spells one.
 	cliPromptArgs func(prompt string) []string
 	// dropEnv names variables the process must not inherit from ours.
 	dropEnv []string
@@ -555,10 +564,11 @@ var acpNative = map[string]acpAdapter{
 		cliBin:        "claude",
 		cliResumeArgs: []string{"--continue"},
 		cliMCPArgs:    func(path string) []string { return []string{"--mcp-config", path} },
-		// `claude "…"` opens the TUI with that as the first message, which is
+		// `claude -- "…"` opens the TUI with that as the first message, which is
 		// exactly what a stage needs: the CLI is interactive from the first
-		// frame and the task is already in it.
-		cliPromptArgs: func(prompt string) []string { return []string{prompt} },
+		// frame and the task is already in it. The `--` is not decoration —
+		// commander's `--mcp-config` is variadic and eats the next argument.
+		cliPromptArgs: func(prompt string) []string { return []string{"--", prompt} },
 		// Claude Code refuses to start inside another Claude Code session, and
 		// the desktop app may well have been launched from one: `wails3 dev` is
 		// started from a terminal, and that terminal is sometimes a CLI's own.
@@ -594,7 +604,10 @@ var acpNative = map[string]acpAdapter{
 		// `codex resume --last` picks up the newest conversation of this
 		// directory, the same rule as claude's --continue.
 		cliResumeArgs: []string{"resume", "--last"},
-		// Same shape: `codex "…"` starts the TUI on that message.
+		// `codex "…"` starts the TUI on that message. No separator: nothing can
+		// precede the prompt here — this kind is handed no MCP config, and CLI
+		// arguments are refused for it (validateCLIArgs) — and clap's own `--`
+		// is not something to write down without a CLI to try it on.
 		cliPromptArgs: func(prompt string) []string { return []string{prompt} },
 		// It starts read-only, which is not what a card asked for: a session
 		// that may not edit anything would spend its turn saying so.

@@ -39,6 +39,12 @@ import (
 // believes.
 const terminalQuietFor = 45 * time.Second
 
+// stageStartWindow is how soon after the launch an exit still counts as the CLI
+// failing to start rather than as work somebody ended. Wide enough for a login
+// prompt or a trust question to be answered by whoever is watching, narrow
+// enough that a conversation somebody actually had is never called broken.
+const stageStartWindow = 30 * time.Second
+
 // stageGrace is how long the CLI is left alone after it reports. The report is a
 // tool call, and killing the process that made it before its result is delivered
 // is how an agent ends its turn on a broken pipe.
@@ -138,9 +144,23 @@ func (m *Manager) runCardTaskInTerminal(s *Session) {
 	case m.rootCtx.Err() != nil:
 		m.finishSession(s, StatusCancelled, "приложение завершается")
 	default:
-		// The CLI is gone and never said what it did. That is not a failed
-		// stage — a person may simply have closed the window — so the card keeps
-		// its place on the route and says why it is standing there.
+		// The CLI is gone and never said what it did, and there are two very
+		// different reasons for that.
+		if code, broken := t.startupFailure(stageStartWindow); broken {
+			// It died on the way up — a flag it did not understand, a folder it
+			// would not run in, a missing login. The stage never happened, so
+			// this is a failure the route can act on, and the card is told what
+			// the CLI said rather than that "the agent did not report": a
+			// variadic --mcp-config swallowing the card's task once put every
+			// board on that stall message with the actual error visible only in
+			// a window that had already closed.
+			reason := fmt.Sprintf("CLI агента %s не запустился (код %d)", t.AgentName, code)
+			m.finishSession(s, StatusFailed, reason)
+			m.comment(s, startupFailComment(t, code))
+			return
+		}
+		// Otherwise a person closed the window, which is not a verdict: the card
+		// keeps its place on the route and says why it is standing there.
 		m.finishSession(s, StatusCancelled, "терминал закрыт без ответа")
 		m.stallCard(s.CardID, s.FlowNodeID,
 			fmt.Sprintf("терминал агента %s закрыт, а о результате работы не сказано — откройте терминал и доведите стадию до конца", t.AgentName))
@@ -312,6 +332,22 @@ func (m *Manager) stageAttention() []Attention {
 		out = append(out, a)
 	}
 	return out
+}
+
+// startupFailComment tells the card that the agent could not be started, in the
+// CLI's own words. Those words are the whole value of it: the terminal has
+// closed by the time anybody looks, so what it printed on the way out exists
+// nowhere else.
+func startupFailComment(t *TerminalSession, code int) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "Не удалось запустить агента %s: CLI завершился сразу после старта с кодом %d.", t.AgentName, code)
+	if said := t.tail(1500); said != "" {
+		b.WriteString("\n\nЧто он сказал:\n\n```\n")
+		b.WriteString(said)
+		b.WriteString("\n```")
+	}
+	fmt.Fprintf(&b, "\n\nКоманда: `%s`", strings.Join(t.Argv, " "))
+	return b.String()
 }
 
 // stageComment is the one thing the card is told about a stage: what the agent
