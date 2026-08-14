@@ -42,30 +42,101 @@ describe('components/acp/cardTerminal', () => {
         expect(await screen.findByTestId('terminal')).toHaveTextContent('term-1')
     })
 
-    // This panel is the card's own conversation and says so, whatever the route
-    // is doing. The route's stages are listed beside it as chips, not buttons:
-    // a stage's conversation is reached from the card's own terminal button,
-    // and only Go decides which of them is open.
-    it('names its own conversation and lists the route’s stages beside it', async () => {
+    // The panel lists the card's conversations: its own first, then one per
+    // stage the route worked it. A row carries what the planning screen's rows
+    // carry — the name, the agent's own recap, who is talking where — because
+    // it is the same list.
+    it('lists the card’s own conversation and the route’s stages', async () => {
         stubBindings({
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
                 conversations: [
-                    {nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', current: true},
-                    {nodeId: 'review', column: 'Ревью', agent: 'клаус', current: true},
-                    {nodeId: 'work', column: 'В работе', agent: 'кодекс', current: false},
+                    {nodeId: '@brainstorm',
+                        brainstorm: true,
+                        agent: 'клаус',
+                        current: true,
+                        summary: 'пишем ТЗ на импорт',
+                        boardFolder: true},
+                    {nodeId: 'work', column: 'В работе', agent: 'кодекс', current: false, folder: 'app'},
                 ],
             })),
         })
         const {container} = render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
-        await waitFor(() => expect(screen.getByText('· Discussion', {exact: false})).toBeInTheDocument())
-        const passed = screen.getByText('В работе', {exact: false})
-        expect(passed.closest('.CardTerminal__stageChip')).not.toBeNull()
-        expect(passed.closest('button')).toBeNull()
+        await waitFor(() => expect(container.querySelectorAll('.ConversationRow').length).toBe(2))
+        expect(screen.getByText('Discussion')).toBeInTheDocument()
+        expect(screen.getByText('пишем ТЗ на импорт')).toBeInTheDocument()
+        expect(screen.getByText('клаус · the board’s drafts')).toBeInTheDocument()
 
-        // The card's own conversation is the panel, not a chip about itself.
-        const chips = container.querySelectorAll('.CardTerminal__stageChip')
-        expect(chips.length).toBe(2)
+        // A passed stage has nothing to open: the route opens its conversation
+        // again when the card comes back to it.
+        const passed = screen.getByText('В работе')
+        expect(passed.closest('button')).toBeNull()
+    })
+
+    // A stage the route is running right now is a conversation to look at, and
+    // clicking it draws that pty in the panel rather than a second view of the
+    // card's own.
+    it('draws a running stage’s conversation when its row is clicked', async () => {
+        stubBindings({
+            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
+                folder: '/tmp/proj',
+                conversations: [
+                    {nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', current: true},
+                    {nodeId: 'work', column: 'В работе', agent: 'кодекс', running: true, terminalId: 'term-stage'},
+                ],
+            })),
+        })
+        render(() => wrapIntl(() => <CardTerminal cardId='card-stage' board={board} onClose={vi.fn()}/>))
+
+        expect(await screen.findByTestId('terminal')).toHaveTextContent('term-1')
+        await userEvent.click(screen.getByRole('button', {name: 'В работе'}))
+        await waitFor(() => expect(screen.getByTestId('terminal')).toHaveTextContent('term-stage'))
+    })
+
+    // The card's own conversation is the only one that can be thrown away by
+    // hand — and it is asked about first, because the CLI in it ends and the
+    // record goes with it.
+    it('deletes the card’s own conversation, once', async () => {
+        const remove = vi.fn().mockResolvedValue(undefined)
+        stubBindings({
+            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
+                folder: '/tmp/proj',
+                conversations: [{nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', running: true, terminalId: 'term-1'}],
+            })),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
+            DeleteCardConversation: remove,
+        })
+        render(() => wrapIntl(() => <CardTerminal cardId='card-del' board={board} onClose={vi.fn()}/>))
+
+        await userEvent.click(await screen.findByRole('button', {name: 'Delete the conversation'}))
+        expect(remove).not.toHaveBeenCalled()
+
+        await userEvent.click(screen.getByRole('button', {name: 'Delete'}))
+        await waitFor(() => expect(remove).toHaveBeenCalledWith('card-del', '@brainstorm'))
+    })
+
+    // Nothing but the agent knows what a conversation in a pty is about, so it
+    // is asked — and only where there are tools for it to answer through.
+    it('asks the agent to name a running conversation', async () => {
+        const ask = vi.fn().mockResolvedValue(undefined)
+        stubBindings({
+            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
+                folder: '/tmp/proj',
+                conversations: [
+                    {nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', running: true, terminalId: 'term-1', tools: true},
+                    {nodeId: 'work', column: 'В работе', agent: 'кодекс', running: true, terminalId: 'term-2'},
+                ],
+            })),
+            AskTerminalName: ask,
+        })
+        render(() => wrapIntl(() => <CardTerminal cardId='card-name' board={board} onClose={vi.fn()}/>))
+
+        // One row can answer, the other was handed no tools.
+        const buttons = await screen.findAllByRole('button', {name: 'Ask the agent to name this conversation'})
+        expect(buttons.length).toBe(1)
+
+        await userEvent.click(buttons[0])
+        await waitFor(() => expect(ask).toHaveBeenCalledWith('term-1'))
     })
 
     // Go could not resolve the agent: the one moment the pick is a real
@@ -218,7 +289,10 @@ describe('components/acp/cardTerminal', () => {
     it('hands the conversation to the window and closes the panel', async () => {
         const onClose = vi.fn()
         stubBindings({
-            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({folder: '/tmp/proj'})),
+            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
+                folder: '/tmp/proj',
+                conversations: [{nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', running: true, terminalId: 'term-1'}],
+            })),
             OpenCardTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-1', windowed: true})),
         })
         render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={onClose}/>))
@@ -228,9 +302,9 @@ describe('components/acp/cardTerminal', () => {
         await waitFor(() => expect(onClose).toHaveBeenCalled())
     })
 
-    // The card's own conversation is the whole story until a route has worked
-    // the card: a row of chips about itself would be noise.
-    it('draws no stage chips for a card the route has not worked', async () => {
+    // A card the route has not worked has one conversation, and the list is one
+    // row: the panel says what there is rather than a heading about it.
+    it('lists one row for a card the route has not worked', async () => {
         stubBindings({
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
                 conversations: [{nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', current: true}],
@@ -239,6 +313,6 @@ describe('components/acp/cardTerminal', () => {
         const {container} = render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
         await waitFor(() => expect(screen.getByTestId('terminal')).toBeInTheDocument())
-        expect(container.querySelector('.CardTerminal__stages')).toBeNull()
+        expect(container.querySelectorAll('.ConversationRow').length).toBe(1)
     })
 })

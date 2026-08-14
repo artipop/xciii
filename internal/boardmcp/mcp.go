@@ -44,37 +44,44 @@ const version = "0.1.0"
 // them: a server says what it is for, and a prompt that named these tools would
 // be a second copy of this paragraph — one that goes on telling an agent to use
 // tools it was not given, in the file a person edits by hand.
-const instructions = `Инструменты доски XCIII. Через них работа возвращается
-в приложение, а не человеку в переписку: карточки заводятся, меняются и едут
-дальше по доске сами.
+//
+// English, like everything else this application says to an agent. The board is
+// in whatever language the people using it write in, and their words travel
+// through these tools as data — a column name, a card title. The instructions
+// around them are ours, and one language for them is one thing to keep true.
+const instructions = `The XCIII board's tools. Work comes back into the application through
+them instead of into a chat message for somebody to retype: cards are created,
+changed, and carried on across the board by themselves.
 
-Когда с человеком договорились, что делать, — заведи задачи: по одной карточке
-на задачу, все разом через create_cards.
+Once you and the person have agreed what to do, create the tasks: one card per
+task, all of them in a single create_cards call.
 
-Если этот разговор начался с задачи по карточке, то он и есть стадия маршрута:
-доделав работу, скажи об этом через finish_work — карточка поедет дальше сама,
-и до этого вызова она стоит и ждёт тебя. Если карточка никуда не едет сама,
-переложи её в следующую колонку через move_card, это и запускает всё дальнейшее.
+If this conversation started with a task from a card, then it *is* a stage of a
+route: when the work is done, say so with finish_work — the card then travels on
+by itself, and until that call it stands still, waiting for you. If the card does
+not travel by itself, move it to the next column with move_card; that is what
+sets off everything that follows.
 
-Доска уже выбрана, указать другую нельзя. Колонка решает, что с карточкой
-произойдёт дальше, маршрут — что произойдёт после этого: сначала посмотри
-list_columns и list_flows, потом клади карточку туда, где работа начинается,
-если только человек не попросил иначе. Папку, агента, маршрут и любые другие
-значения задавай именами — так, как они называются на доске.
+The board is already chosen and cannot be named. A column decides what happens to
+a card that lands in it, and a route decides what happens after that: read
+list_columns and list_flows first, then put a card where the work begins, unless
+the person asked for something else. Give the folder, the agent, the route and
+every other value by name — the names they have on the board.
 
-Карточку, над которой ты работаешь, называть не нужно: там, где просят id,
-пустое значение означает именно её.
+You never have to name the card you are working on: wherever an id is asked for,
+an empty value means that card.
 
-Когда понятно, о чём этот разговор, скажи это одной строкой через
-describe_conversation и обновляй её, когда переключаешься на другое: человек
-видит эту строку в списке открытых терминалов и по ней находит нужный.`
+Once it is clear what this conversation is about, say it in one line with
+describe_conversation, and update it when you move on to something else — the
+person reads that line in the list of open terminals to find the right one. If
+you are asked to name the conversation, answer with name_conversation.`
 
 // Card is one card asked for; the field names are what the model fills in.
 type Card struct {
-	Title       string   `json:"title" jsonschema:"заголовок карточки — одна строка, что нужно сделать"`
-	Description string   `json:"description,omitempty" jsonschema:"описание задачи: контекст, что менять, как проверить"`
-	Column      string   `json:"column,omitempty" jsonschema:"колонка доски по имени; см. list_columns"`
-	Options     []string `json:"options,omitempty" jsonschema:"остальные поля карточки именами значений: папка, агент, маршрут"`
+	Title       string   `json:"title" jsonschema:"the card's title — one line saying what has to be done"`
+	Description string   `json:"description,omitempty" jsonschema:"the task itself: the context, what to change, how to check it"`
+	Column      string   `json:"column,omitempty" jsonschema:"a column of the board, by name; see list_columns"`
+	Options     []string `json:"options,omitempty" jsonschema:"the card's other fields, by the names of their values: folder, agent, route"`
 }
 
 // CardResult is what became of one card.
@@ -158,6 +165,10 @@ type Board interface {
 	// than about the board, and it exists because nothing else can know: a
 	// terminal is a vendor CLI in a pty, so no protocol carries a recap of it.
 	Describe(ctx context.Context, text string) error
+	// Name is what this conversation is called in the list of open terminals. It
+	// is the same field a person renames by hand, and it is asked for rather than
+	// volunteered: the app types the request into the conversation itself.
+	Name(ctx context.Context, title string) error
 	// Finish is the agent saying the stage of the route it was given is over,
 	// and what became of it. It is the one thing the app cannot see for itself:
 	// the stage is the agent's own CLI in a terminal, and an interactive CLI
@@ -170,40 +181,44 @@ type createInput struct {
 }
 
 type createManyInput struct {
-	Cards []Card `json:"cards" jsonschema:"карточки по порядку; заводятся все, о каждой сообщается отдельно"`
+	Cards []Card `json:"cards" jsonschema:"the cards, in order; every one is attempted and reported on separately"`
 }
 
 type cardsInput struct {
-	Column string `json:"column,omitempty" jsonschema:"показать только карточки этой колонки; пусто — вся доска"`
+	Column string `json:"column,omitempty" jsonschema:"show only the cards in this column; empty means the whole board"`
 }
 
 type cardInput struct {
-	CardID string `json:"cardId,omitempty" jsonschema:"id карточки; пусто — та карточка, над которой идёт работа"`
+	CardID string `json:"cardId,omitempty" jsonschema:"the card's id; empty means the card being worked on"`
 }
 
 type updateInput struct {
-	CardID  string   `json:"cardId,omitempty" jsonschema:"id карточки; пусто — та карточка, над которой идёт работа"`
-	Title   string   `json:"title,omitempty" jsonschema:"новый заголовок; пусто — оставить как есть"`
-	Options []string `json:"options,omitempty" jsonschema:"значения свойств карточки именами: папка, агент, маршрут, ответ, которого ждёт маршрут"`
+	CardID  string   `json:"cardId,omitempty" jsonschema:"the card's id; empty means the card being worked on"`
+	Title   string   `json:"title,omitempty" jsonschema:"a new title; empty leaves it alone"`
+	Options []string `json:"options,omitempty" jsonschema:"the card's property values by name: folder, agent, route, the answer its route is waiting for"`
 }
 
 type moveInput struct {
-	CardID string `json:"cardId,omitempty" jsonschema:"id карточки; пусто — та карточка, над которой идёт работа"`
-	Column string `json:"column" jsonschema:"колонка доски по имени; см. list_columns"`
+	CardID string `json:"cardId,omitempty" jsonschema:"the card's id; empty means the card being worked on"`
+	Column string `json:"column" jsonschema:"a column of the board, by name; see list_columns"`
 }
 
 type commentInput struct {
-	CardID string `json:"cardId,omitempty" jsonschema:"id карточки; пусто — та карточка, над которой идёт работа"`
-	Text   string `json:"text" jsonschema:"текст комментария"`
+	CardID string `json:"cardId,omitempty" jsonschema:"the card's id; empty means the card being worked on"`
+	Text   string `json:"text" jsonschema:"the comment"`
 }
 
 type describeInput struct {
-	Text string `json:"text" jsonschema:"одна строка: чем занят этот разговор прямо сейчас"`
+	Text string `json:"text" jsonschema:"one line: what this conversation is doing right now"`
+}
+
+type nameInput struct {
+	Title string `json:"title" jsonschema:"a short name for this conversation, three to five words, in the language the conversation is in"`
 }
 
 type finishInput struct {
-	Done    bool   `json:"done" jsonschema:"true — работа по карточке сделана; false — сделать её не вышло"`
-	Summary string `json:"summary" jsonschema:"что сделано или почему не вышло — это попадёт в карточку как комментарий"`
+	Done    bool   `json:"done" jsonschema:"true — the card's work is done; false — it could not be done"`
+	Summary string `json:"summary" jsonschema:"what was done, or why it could not be — this goes onto the card as a comment"`
 }
 
 type noInput struct{}
@@ -217,14 +232,14 @@ func NewServer(board Board) *mcp.Server {
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "list_columns",
-		Description: "Колонки доски и что происходит с карточкой, попавшей в каждую из них.",
+		Description: "The board's columns, and what happens to a card that lands in each of them.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, _ noInput) (*mcp.CallToolResult, any, error) {
 		columns, err := board.Columns(ctx)
 		if err != nil {
 			return errorResult("%v", err), nil, nil
 		}
 		if len(columns) == 0 {
-			return textResult("У доски нет настроенных колонок: карточка просто ляжет на доску, и её возьмёт человек."), nil, nil
+			return textResult("This board has no configured columns: a card just lands on it and a person picks it up."), nil, nil
 		}
 		var b strings.Builder
 		for _, col := range columns {
@@ -233,7 +248,7 @@ func NewServer(board Board) *mcp.Server {
 				fmt.Fprintf(&b, " — %s", col.Action)
 			}
 			if len(col.Agents) > 0 {
-				fmt.Fprintf(&b, " (агенты: %s)", strings.Join(col.Agents, ", "))
+				fmt.Fprintf(&b, " (agents: %s)", strings.Join(col.Agents, ", "))
 			}
 			b.WriteString("\n")
 		}
@@ -242,14 +257,14 @@ func NewServer(board Board) *mcp.Server {
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "list_flows",
-		Description: "Маршруты доски: по каким колонкам карточка едет дальше сама и что её двигает.",
+		Description: "The board's routes: which columns a card travels by itself, and what moves it along.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, _ noInput) (*mcp.CallToolResult, any, error) {
 		flows, err := board.Flows(ctx)
 		if err != nil {
 			return errorResult("%v", err), nil, nil
 		}
 		if len(flows) == 0 {
-			return textResult("У доски нет маршрутов: карточка остаётся там, куда её положили, пока её не переложат."), nil, nil
+			return textResult("This board has no routes: a card stays where it was put until somebody moves it."), nil, nil
 		}
 		var b strings.Builder
 		for _, flow := range flows {
@@ -260,10 +275,10 @@ func NewServer(board Board) *mcp.Server {
 					fmt.Fprintf(&b, " — %s", stage.Action)
 				}
 				if len(stage.Crew) > 0 {
-					fmt.Fprintf(&b, " (агенты: %s)", strings.Join(stage.Crew, ", "))
+					fmt.Fprintf(&b, " (agents: %s)", strings.Join(stage.Crew, ", "))
 				}
 				if len(stage.Waiting) > 0 {
-					fmt.Fprintf(&b, " [дальше: %s]", strings.Join(stage.Waiting, "; "))
+					fmt.Fprintf(&b, " [next: %s]", strings.Join(stage.Waiting, "; "))
 				}
 				b.WriteString("\n")
 			}
@@ -273,7 +288,7 @@ func NewServer(board Board) *mcp.Server {
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "list_cards",
-		Description: "Карточки доски: id, заголовок, колонка, выбранные значения и где карточка стоит на маршруте.",
+		Description: "The board's cards: id, title, column, the values selected on each, and where it stands on its route.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in cardsInput) (*mcp.CallToolResult, any, error) {
 		cards, err := board.Cards(ctx, in.Column)
 		if err != nil {
@@ -281,9 +296,9 @@ func NewServer(board Board) *mcp.Server {
 		}
 		if len(cards) == 0 {
 			if strings.TrimSpace(in.Column) != "" {
-				return textResult(fmt.Sprintf("В колонке %q карточек нет.", in.Column)), nil, nil
+				return textResult(fmt.Sprintf("There are no cards in the %q column.", in.Column)), nil, nil
 			}
-			return textResult("На доске нет карточек."), nil, nil
+			return textResult("This board has no cards."), nil, nil
 		}
 		var b strings.Builder
 		for _, card := range cards {
@@ -295,7 +310,7 @@ func NewServer(board Board) *mcp.Server {
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "get_card",
-		Description: "Одна карточка целиком: описание, выбранные значения и где она стоит на маршруте.",
+		Description: "One card in full: its description, the values selected on it, and where it stands on its route.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in cardInput) (*mcp.CallToolResult, any, error) {
 		card, err := board.Card(ctx, in.CardID)
 		if err != nil {
@@ -310,62 +325,62 @@ func NewServer(board Board) *mcp.Server {
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "create_card",
-		Description: "Завести на доске одну карточку.",
+		Description: "Create one card on the board.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in createInput) (*mcp.CallToolResult, any, error) {
 		return created(board.CreateCards(ctx, []Card{in.Card}))
 	})
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "create_cards",
-		Description: "Завести несколько карточек разом — так заканчивается разбор задачи на части.",
+		Description: "Create several cards at once — this is how breaking a task down ends.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in createManyInput) (*mcp.CallToolResult, any, error) {
 		if len(in.Cards) == 0 {
-			return errorResult("не передано ни одной карточки"), nil, nil
+			return errorResult("no cards were passed"), nil, nil
 		}
 		return created(board.CreateCards(ctx, in.Cards))
 	})
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name: "update_card",
-		Description: "Изменить карточку: заголовок и значения её свойств именами — папка, агент, " +
-			"маршрут, ответ, которого ждёт маршрут. Колонку этим менять нельзя, для неё есть move_card.",
+		Description: "Change a card: its title, and its property values by name — folder, agent, route, " +
+			"the answer its route is waiting for. Not its column: move_card is for that.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in updateInput) (*mcp.CallToolResult, any, error) {
 		if strings.TrimSpace(in.Title) == "" && len(in.Options) == 0 {
-			return errorResult("не сказано, что менять"), nil, nil
+			return errorResult("nothing was said to change"), nil, nil
 		}
 		err := board.UpdateCard(ctx, CardChange{CardID: in.CardID, Title: in.Title, Options: in.Options})
 		if err != nil {
 			return errorResult("%v", err), nil, nil
 		}
-		return textResult("Карточка изменена."), nil, nil
+		return textResult("The card has been changed."), nil, nil
 	})
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name: "move_card",
-		Description: "Переложить карточку в другую колонку. Это и запускает то, что колонка делает " +
-			"с карточкой, — так работа передаётся дальше по доске.",
+		Description: "Move a card to another column. This is what sets off whatever that column does " +
+			"with a card — it is how work is handed on across the board.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in moveInput) (*mcp.CallToolResult, any, error) {
 		if strings.TrimSpace(in.Column) == "" {
-			return errorResult("не сказано, в какую колонку"), nil, nil
+			return errorResult("no column was named"), nil, nil
 		}
 		if err := board.UpdateCard(ctx, CardChange{CardID: in.CardID, Column: in.Column}); err != nil {
 			return errorResult("%v", err), nil, nil
 		}
-		return textResult(fmt.Sprintf("Карточка в колонке %q.", in.Column)), nil, nil
+		return textResult(fmt.Sprintf("The card is in the %q column.", in.Column)), nil, nil
 	})
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name: "comment_card",
-		Description: "Написать в карточку — туда же, где человек читает всё остальное, что о ней " +
-			"сказали агенты.",
+		Description: "Write on a card — the same place the person reads everything else the agents " +
+			"have said about it.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in commentInput) (*mcp.CallToolResult, any, error) {
 		if strings.TrimSpace(in.Text) == "" {
-			return errorResult("пустой комментарий"), nil, nil
+			return errorResult("the comment is empty"), nil, nil
 		}
 		if err := board.Comment(ctx, in.CardID, in.Text); err != nil {
 			return errorResult("%v", err), nil, nil
 		}
-		return textResult("Комментарий добавлен."), nil, nil
+		return textResult("The comment has been added."), nil, nil
 	})
 
 	// How a stage of a route ends. The app started this conversation with the
@@ -373,38 +388,57 @@ func NewServer(board Board) *mcp.Server {
 	// CLI that is still running is a CLI a person may simply be reading.
 	mcp.AddTool(srv, &mcp.Tool{
 		Name: "finish_work",
-		Description: "Сказать, что работа по карточке закончена. Вызови это, когда сделал то, " +
-			"о чём просит карточка, — или когда понял, что сделать это не выходит. Пока ты этого " +
-			"не сказал, карточка стоит на месте и ждёт тебя; после этого она едет по маршруту " +
-			"дальше, а разговор закрывается.",
+		Description: "Say that the card's work is finished. Call this when you have done what the " +
+			"card asks — or when it is clear that it cannot be done. Until you say so the card stands " +
+			"still, waiting for you; after it, the card travels on along its route and this " +
+			"conversation closes.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in finishInput) (*mcp.CallToolResult, any, error) {
 		if strings.TrimSpace(in.Summary) == "" {
-			return errorResult("не сказано, что сделано: короткий итог попадёт в карточку, человек читает именно его"), nil, nil
+			return errorResult("nothing was said about what was done: the short summary goes onto the card, and it is what the person reads"), nil, nil
 		}
 		if err := board.Finish(ctx, in.Done, in.Summary); err != nil {
 			return errorResult("%v", err), nil, nil
 		}
 		if in.Done {
-			return textResult("Работа принята, карточка едет дальше. Разговор сейчас закроется."), nil, nil
+			return textResult("The work is accepted and the card travels on. This conversation is about to close."), nil, nil
 		}
-		return textResult("Записано, что закончить не вышло. Карточка поедет по ветке маршрута для неудачи."), nil, nil
+		return textResult("Recorded that the work could not be finished. The card takes the route's branch for failure."), nil, nil
 	})
 
-	// The only tool here about the conversation rather than about the board: what
-	// a person sees in the list of open terminals, which otherwise says who is
-	// talking and where and nothing about what is going on.
+	// The two tools here about the conversation rather than about the board. A
+	// person picks one terminal out of a list of them, and the list would
+	// otherwise say who is talking and where and nothing about what is going on.
 	mcp.AddTool(srv, &mcp.Tool{
 		Name: "describe_conversation",
-		Description: "Сказать одной строкой, чем занят этот разговор. Человек видит эту строку " +
-			"в списке открытых терминалов. Обнови её, когда занялся другим; пустая строка её убирает.",
+		Description: "Say in one line what this conversation is doing. The person sees that line in " +
+			"the list of open terminals. Update it when you move on to something else; an empty string removes it.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in describeInput) (*mcp.CallToolResult, any, error) {
 		if err := board.Describe(ctx, in.Text); err != nil {
 			return errorResult("%v", err), nil, nil
 		}
 		if strings.TrimSpace(in.Text) == "" {
-			return textResult("Описание разговора убрано."), nil, nil
+			return textResult("The conversation's description has been removed."), nil, nil
 		}
-		return textResult("Описание разговора обновлено."), nil, nil
+		return textResult("The conversation's description has been updated."), nil, nil
+	})
+
+	// Named rather than described: the name is what the row in the list is called
+	// and what a person renames by hand, while the description is a line under it
+	// that changes as the conversation moves on. The app asks for this one — it
+	// types the request into the conversation (AskTerminalName) — because a name
+	// nobody gave reads «клаус · черновики доски», which is true of every row.
+	mcp.AddTool(srv, &mcp.Tool{
+		Name: "name_conversation",
+		Description: "Give this conversation a short name — three to five words, in the language the " +
+			"conversation is in. The person picks it out of a list of open terminals by that name.",
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in nameInput) (*mcp.CallToolResult, any, error) {
+		if strings.TrimSpace(in.Title) == "" {
+			return errorResult("no name was given"), nil, nil
+		}
+		if err := board.Name(ctx, in.Title); err != nil {
+			return errorResult("%v", err), nil, nil
+		}
+		return textResult(fmt.Sprintf("This conversation is now called %q.", strings.TrimSpace(in.Title))), nil, nil
 	})
 
 	return srv
@@ -417,27 +451,27 @@ func cardLine(card CardInfo) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "- %s — %s", card.ID, card.Title)
 	if card.Mine {
-		b.WriteString(" (эта карточка в работе у тебя)")
+		b.WriteString(" (this is the card you are working on)")
 	}
 	if card.Column != "" {
-		fmt.Fprintf(&b, "\n  колонка: %s", card.Column)
+		fmt.Fprintf(&b, "\n  column: %s", card.Column)
 	}
 	if len(card.Options) > 0 {
-		fmt.Fprintf(&b, "\n  значения: %s", strings.Join(card.Options, ", "))
+		fmt.Fprintf(&b, "\n  values: %s", strings.Join(card.Options, ", "))
 	}
 	if card.Flow != "" {
-		fmt.Fprintf(&b, "\n  маршрут: %s", card.Flow)
+		fmt.Fprintf(&b, "\n  route: %s", card.Flow)
 		if card.Stage != "" {
-			fmt.Fprintf(&b, ", шаг «%s»", card.Stage)
+			fmt.Fprintf(&b, ", stage %q", card.Stage)
 		}
 		switch {
 		case card.Running:
-			b.WriteString(", агент работает")
+			b.WriteString(", an agent is working on it")
 		case card.Queued:
-			b.WriteString(", ждёт очереди")
+			b.WriteString(", waiting its turn")
 		}
 		if len(card.Waiting) > 0 {
-			fmt.Fprintf(&b, "\n  дальше поедет, когда: %s", strings.Join(card.Waiting, "; "))
+			fmt.Fprintf(&b, "\n  travels on when: %s", strings.Join(card.Waiting, "; "))
 		}
 	}
 	return b.String()
@@ -478,10 +512,10 @@ func created(results []CardResult, err error) (*mcp.CallToolResult, any, error) 
 	for _, r := range results {
 		if r.Error != "" {
 			failed++
-			fmt.Fprintf(&b, "- %q не заведена: %s\n", r.Title, r.Error)
+			fmt.Fprintf(&b, "- %q was not created: %s\n", r.Title, r.Error)
 			continue
 		}
-		fmt.Fprintf(&b, "- %q заведена (%s)\n", r.Title, r.ID)
+		fmt.Fprintf(&b, "- %q created (%s)\n", r.Title, r.ID)
 	}
 	// Nothing landing at all is a failed call: the agent must see that its plan
 	// is not on the board rather than read a list and move on.
@@ -493,7 +527,7 @@ func created(results []CardResult, err error) (*mcp.CallToolResult, any, error) 
 
 func textResult(text string) *mcp.CallToolResult {
 	if strings.TrimSpace(text) == "" {
-		text = "(пустой ответ)"
+		text = "(empty answer)"
 	}
 	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: text}}}
 }

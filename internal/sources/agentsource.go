@@ -223,21 +223,21 @@ func (c *agentConn) Poll(ctx context.Context, _ string) (plugin.PollResult, erro
 // into a new card.
 func (c *agentConn) prompt() string {
 	var b strings.Builder
-	b.WriteString("Ты приносишь входящие. Задача — найти в сервисе то, что описано ниже, ")
-	b.WriteString("и на каждую находку вызвать инструмент ")
+	b.WriteString("You are bringing in the inbox. Find in the service what is described below, ")
+	b.WriteString("and call the ")
 	b.WriteString(InboxServerName)
-	b.WriteString("/file_item. Правила, которые важнее удобства:\n\n")
-	b.WriteString("1. Складывай всё, что нашёл, даже если кажется, что это уже было: ")
-	b.WriteString("повторы отсекаются на нашей стороне по паре (id, version), и это надёжнее, чем твоя догадка.\n")
-	b.WriteString("2. `id` — это идентификатор записи в самом сервисе, как он там записан. ")
-	b.WriteString("Никогда не придумывай его: выдуманный id — это новая карточка на каждый опрос.\n")
-	b.WriteString("3. `version` — то, что меняется вместе с записью (updated, etag, хэш). ")
-	b.WriteString("Если такого поля нет, оставь пустым.\n")
-	b.WriteString("4. Ничего не меняй в сервисе. Твои инструменты там — только для чтения, ")
-	b.WriteString("даже если доступны другие.\n")
-	b.WriteString("5. Ответ в конце — одна строка: сколько нашёл и сколько сложил.\n\n")
+	b.WriteString("/file_item tool for every find. The rules that matter more than convenience:\n\n")
+	b.WriteString("1. File everything you found, even when it looks like it has been filed before: ")
+	b.WriteString("repeats are dropped on our side by the (id, version) pair, which is more reliable than your guess.\n")
+	b.WriteString("2. `id` is the record's identifier in the service itself, exactly as it is written there. ")
+	b.WriteString("Never invent one: an invented id is a new card on every poll.\n")
+	b.WriteString("3. `version` is whatever changes along with the record (updated, etag, a hash). ")
+	b.WriteString("Leave it empty when there is no such field.\n")
+	b.WriteString("4. Change nothing in the service. Your tools there are for reading only, ")
+	b.WriteString("whatever else is available.\n")
+	b.WriteString("5. End with one line: how many you found and how many you filed.\n\n")
 	if len(c.entry.Config) > 0 {
-		b.WriteString("Настройки источника:\n")
+		b.WriteString("The source's settings:\n")
 		for key, value := range c.entry.Config {
 			if strings.TrimSpace(value) == "" {
 				continue
@@ -250,7 +250,7 @@ func (c *agentConn) prompt() string {
 		}
 		b.WriteString("\n")
 	}
-	b.WriteString("Что искать:\n")
+	b.WriteString("What to look for:\n")
 	b.WriteString(c.spec.Task)
 	return b.String()
 }

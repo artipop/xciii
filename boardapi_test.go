@@ -211,7 +211,7 @@ func TestBoardToolsRoundTrip(t *testing.T) {
 	}
 	// The bad one is named rather than swallowed: the agent has to know which
 	// card to redo.
-	if !strings.Contains(text, "Первая") || !strings.Contains(text, "не заведена") {
+	if !strings.Contains(text, "Первая") || !strings.Contains(text, "was not created") {
 		t.Errorf("the agent is not told what happened: %s", text)
 	}
 
@@ -248,7 +248,7 @@ func TestAnAgentCarriesACardOnThroughTheTools(t *testing.T) {
 	}
 	// The card the run stands on is pointed out, because it is what a call that
 	// names none acts on.
-	if !strings.Contains(list, "в работе у тебя") {
+	if !strings.Contains(list, "the card you are working on") {
 		t.Errorf("the agent is not told which card is its own: %s", list)
 	}
 

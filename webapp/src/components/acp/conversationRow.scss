@@ -1,0 +1,181 @@
+// A row, not a button: the name opens the conversation, the icons act on it,
+// and the two lines under the name are what makes a list of them readable at
+// all. Shared by «Обсудить с агентом» and the panel beside a card, which list
+// the same thing.
+.ConversationRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: var(--radius-lg);
+    min-width: 0;
+
+    &:hover {
+        border-color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+
+    // The one being drawn under the list. The border alone says it: a filled
+    // row would compete with the terminal below, which is what is being read.
+    &--selected {
+        border-color: rgb(var(--button-bg-rgb));
+    }
+
+    &__main {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    &__nameLine {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    // Running or not, in the smallest thing that can say it: a list where every
+    // row is a conversation needs to tell the live one from the one that would
+    // have to be started again.
+    &__dot {
+        flex: 0 0 auto;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
+
+        &--running {
+            border-color: rgb(var(--online-indicator-rgb, 61, 184, 135));
+            background: rgb(var(--online-indicator-rgb, 61, 184, 135));
+        }
+    }
+
+    &__name {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font: inherit;
+        font-weight: 600;
+        color: rgb(var(--center-channel-color-rgb));
+        text-align: left;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        &--pick {
+            cursor: pointer;
+
+            &:hover {
+                color: rgb(var(--link-color-rgb));
+            }
+        }
+    }
+
+    &__rename {
+        font: inherit;
+        font-weight: 600;
+        width: 100%;
+        border: 1px solid rgb(var(--button-bg-rgb));
+        border-radius: var(--radius-md);
+        background: rgb(var(--center-channel-bg-rgb));
+        color: rgb(var(--center-channel-color-rgb));
+        padding: 2px 6px;
+    }
+
+    // The agent's own line. Clamped to two: it is a recap, and a row that grows
+    // with it stops being a row.
+    &__summary {
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    &__meta {
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex: 0 0 auto;
+    }
+
+    &__iconButton {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: var(--radius-md);
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgb(var(--center-channel-color-rgb));
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .CompassIcon {
+            font-size: 16px;
+            line-height: 1;
+        }
+    }
+
+    &__confirm {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 0 0 auto;
+        font-size: var(--text-small);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__confirmYes,
+    &__confirmNo {
+        border: 0;
+        background: transparent;
+        padding: 2px 0;
+        font: inherit;
+        font-size: var(--text-small);
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    &__confirmYes {
+        color: rgb(var(--error-text-rgb, 210, 75, 78));
+    }
+
+    &__confirmNo {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+}
+
+// The list itself, wherever it is drawn.
+.ConversationList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    min-width: 0;
+}

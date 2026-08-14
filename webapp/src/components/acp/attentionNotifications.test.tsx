@@ -155,6 +155,41 @@ describe('components/acp/attentionNotifications', () => {
         setAgentNotifications(true)
     })
 
+    // Two agents waiting is two notifications and a line saying so — what it
+    // must never look like is one notification arriving twice.
+    it('counts the waits and draws each of them once', async () => {
+        anyWindow.go = {main: {App: attentionBindings()}}
+
+        render(() => wrapIntl(() => <AttentionNotifications/>))
+        await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
+        handlers['acp:attention'](waitingOnCard)
+        handlers['acp:attention']({...waitingOnCard, key: 'term-2', terminalId: 'term-2', cardId: 'card-3', title: 'Починить логин'})
+
+        expect(await screen.findByText('2 agents are waiting')).toBeInTheDocument()
+        expect(screen.getAllByRole('alert').length).toBe(2)
+
+        // The same wait told again — a reconnect asks for the whole list — is
+        // the same wait, not a second agent.
+        handlers['acp:attention'](waitingOnCard)
+        await waitFor(() => expect(screen.getAllByRole('alert').length).toBe(2))
+    })
+
+    // A terminal window is the app too, so it drew the whole stack as well:
+    // three windows open meant one wait announced three times, and the copy in
+    // the terminal's own window covered the question it was announcing.
+    it('says nothing in a window that is drawing a terminal', async () => {
+        anyWindow.go = {main: {App: attentionBindings([waitingOnCard])}}
+        const where = window.location.pathname
+        window.history.replaceState({}, '', '/acp/terminal/term-1')
+
+        render(() => wrapIntl(() => <AttentionNotifications/>))
+        await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
+        handlers['acp:attention'](waitingOnCard)
+
+        expect(screen.queryByRole('alert')).toBeNull()
+        window.history.replaceState({}, '', where)
+    })
+
     // A page opened after the agent stopped has no event to hear: the list is
     // what it starts from.
     it('starts from what is already waiting', async () => {

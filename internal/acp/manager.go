@@ -781,7 +781,7 @@ func planningPrompt(systemPrompt, planning string, agent AgentEntry, workdir Wor
 	} else {
 		b = fmt.Appendf(b, "%s\n\n", p)
 	}
-	b = fmt.Appendf(b, "Папка: `%s` (%s).", workdir.Name, workdir.Path)
+	b = fmt.Appendf(b, "Folder: `%s` (%s).", workdir.Name, workdir.Path)
 	return string(b)
 }
 
@@ -789,14 +789,14 @@ func planningPrompt(systemPrompt, planning string, agent AgentEntry, workdir Wor
 // and what the agent carries (promptLead), then the card task.
 func composePrompt(ev CardMoved, agent AgentEntry, systemPrompt string, useWorktree bool) string {
 	b := []byte(promptLead(systemPrompt, agent))
-	b = fmt.Appendf(b, "Задача: %s\n", ev.Title)
+	b = fmt.Appendf(b, "Task: %s\n", ev.Title)
 	if ev.Body != "" {
 		b = fmt.Appendf(b, "\n%s\n", ev.Body)
 	}
 	if useWorktree {
-		b = fmt.Appendf(b, "\nРаботай в текущем каталоге — это отдельный git worktree, созданный специально для этой задачи. Можешь делать локальные коммиты. Не выполняй git push.")
+		b = fmt.Appendf(b, "\nWork in the current directory — it is a git worktree of its own, made for this task. Local commits are fine. Do not run git push.")
 	} else {
-		b = fmt.Appendf(b, "\nРаботай в текущем каталоге — это рабочая папка пользователя. Не переключай ветки, не делай коммитов и git push: оставь изменения незакоммиченными для ревью.")
+		b = fmt.Appendf(b, "\nWork in the current directory — it is the person's own working folder. Do not switch branches, do not commit and do not push: leave the changes uncommitted for review.")
 	}
 	return string(b)
 }
@@ -812,10 +812,10 @@ func composeDeployPrompt(ev CardMoved, agent AgentEntry, systemPrompt, deployPro
 		b = fmt.Appendf(b, "%s\n\n", DefaultDeployPrompt)
 	}
 	slug := dokku.AppSlug(branch)
-	b = fmt.Appendf(b, "Карточка: %s\nВетка: %s\nЦель: %s\nПриложение Dokku: %s\nОжидаемый адрес: %s\n",
+	b = fmt.Appendf(b, "Card: %s\nBranch: %s\nTarget: %s\nDokku application: %s\nExpected address: %s\n",
 		ev.Title, branch, target.Name, target.AppName(slug), target.URL(slug))
 	if ev.Body != "" {
-		b = fmt.Appendf(b, "\nОписание карточки:\n%s\n", ev.Body)
+		b = fmt.Appendf(b, "\nThe card's description:\n%s\n", ev.Body)
 	}
 	return string(b)
 }

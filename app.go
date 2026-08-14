@@ -1083,6 +1083,28 @@ func (a *App) RenameTerminal(terminalID, title string) error {
 	return a.mgr.RenameTerminal(terminalID, title)
 }
 
+// AskTerminalName asks the agent to name the conversation it is having. The
+// request is typed into that conversation and the answer comes back through the
+// board tools, so the row in the list says what is going on in it rather than
+// who is talking and where.
+func (a *App) AskTerminalName(terminalID string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	return a.mgr.AskTerminalName(terminalID)
+}
+
+// DeleteCardConversation throws away one conversation of a card: the CLI in it
+// ends and the record goes with it, so the next one starts on a blank screen.
+// It is how the card's own conversation is closed for good — everything else
+// about a terminal is kept, which is what makes «продолжить» possible.
+func (a *App) DeleteCardConversation(cardID, nodeID string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	return a.mgr.DeleteCardConversation(cardID, nodeID)
+}
+
 // errSourcesDisabled is returned by the source bindings when the subsystem
 // could not be started at all — no data directory, an unreadable registry.
 var errSourcesDisabled = errors.New("источники недоступны")

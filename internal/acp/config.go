@@ -858,56 +858,62 @@ func DefaultConfig(dataDir string) Config {
 // agent that has them is already told what they are for, and one that has not
 // is not told to reach for something it does not have. Naming them here would
 // be the same sentence written twice, in the one place a person edits by hand.
-const DefaultPlanningPrompt = `Мы планируем новую задачу.
+// It is English, as everything this application says to an agent is: the app is
+// used in more than one language, and this text is read by a model rather than
+// by a person. What the person writes — the card, the board's own prompt, their
+// own rewrite of this one — carries the language along with it, and the agent
+// answers in it.
+const DefaultPlanningPrompt = `We are planning a new task.
 
-Код в этой папке у тебя есть — читай файлы, ищи по ним, смотри историю git: опирайся
-на код, а не на догадки.
+The code in this folder is yours to read — open files, search them, read the git
+history: rely on the code rather than on guesses.
 
-Ничего не меняй в папке: ни файлов, ни состояния, ни веток. Это обсуждение,
-а не выполнение.
+Change nothing in the folder: no files, no state, no branches. This is a
+discussion, not the work.
 
-Начни с короткого вопроса о том, что нужно сделать.`
+Start with one short question about what has to be done.`
 
 // DefaultDeployPrompt is the task text a deploy session starts with.
-const DefaultDeployPrompt = `Задача: опубликовать ветку этой карточки на Dokku.
+const DefaultDeployPrompt = `Task: publish this card's branch to Dokku.
 
-Делай это только инструментами mcp__dokku__*: deploy_branch публикует ветку,
-app_logs показывает логи сборки и приложения, deployment_status — состояние
-процессов. Не запускай ssh и git push руками и не переключай ветки.
+Use only the mcp__dokku__* tools: deploy_branch publishes a branch, app_logs
+shows the build and application logs, deployment_status shows the state of the
+processes. Do not run ssh or git push by hand, and do not switch branches.
 
-Если сборка упала: прочитай логи, назови причину и почини её, только если
-исправление очевидно и относится к деплою (Procfile, переменные окружения,
-конфиг сборки). Не переписывай логику приложения — вместо этого опиши проблему.
+If the build fails: read the logs, name the cause, and fix it only when the fix
+is obvious and belongs to the deploy (Procfile, environment variables, build
+configuration). Do not rewrite the application's logic — describe the problem
+instead.
 
-В конце ответа дай URL превью.`
+End your answer with the preview URL.`
 
 // DefaultTestPrompt is the task text a test session starts with. It is written
 // for a tester, not a developer: the job is to find what is broken on the
 // preview, not to fix it.
-const DefaultTestPrompt = `Задача: проверить в браузере превью этой карточки — вместо ручного тестировщика.
+const DefaultTestPrompt = `Task: check this card's preview in a browser, in place of a manual tester.
 
-Сценарий бери из описания карточки: что должно было измениться, то и проверяй,
-плюс убедись, что рядом ничего не развалилось. Браузер води инструментами
-браузерного MCP-сервера, который у тебя есть (mcp__…__browser_navigate,
-browser_snapshot, browser_click, browser_type и прочие): snapshot показывает
-страницу текстом со ссылками на элементы, действия делаются по этим ссылкам.
-После действия, меняющего страницу, бери новый snapshot — ссылки протухают.
+Take the scenario from the card's description: check what was supposed to change,
+and make sure nothing beside it fell apart. Drive the browser with the browser
+MCP server you have (mcp__…__browser_navigate, browser_snapshot, browser_click,
+browser_type and the rest): a snapshot shows the page as text with references to
+its elements, and actions are done through those references. After an action that
+changes the page, take a new snapshot — the references go stale.
 
-Открывай только адрес превью, указанный ниже, и страницы под ним — на другие
-хосты не ходи. Посмотри консоль и сетевые запросы: ошибки JS и упавшие запросы
-— это дефекты, даже если внешне всё нарисовалось. Делай скриншоты на ключевых
-шагах и на каждом найденном дефекте, сохраняя их в каталог screenshots рядом
-с отчётом: они попадут в карточку.
+Open only the preview address given below and pages under it; do not go to other
+hosts. Look at the console and the network requests: JS errors and failed
+requests are defects even when the page looks right. Take screenshots at the key
+steps and at every defect you find, saving them in the screenshots directory
+beside the report — they go onto the card.
 
-Ничего не чини и не меняй код — ты тестируешь. В самом конце запиши отчёт
-в файл result.json (путь указан ниже) — без него результат прогона не
-засчитывается:
+Fix nothing and change no code — you are testing. At the very end write the
+report to result.json (the path is given below); without it the run does not
+count:
 
-{"verdict": "pass|fail|blocked", "summary": "итог в одну-две фразы",
- "steps": ["что проделал, по шагам"], "bugs": ["что ожидалось и что произошло"]}
+{"verdict": "pass|fail|blocked", "summary": "one or two sentences",
+ "steps": ["what you did, step by step"], "bugs": ["what was expected and what happened"]}
 
-pass — сценарий прошёл, fail — есть дефекты (перечисли их в bugs),
-blocked — проверить не удалось (превью не открывается, нет доступа).`
+pass — the scenario passed, fail — there are defects (list them in bugs),
+blocked — it could not be checked (the preview does not open, no access).`
 
 // TestTimeout bounds one test turn. A browser scenario takes much longer than a
 // code edit, so it has its own budget instead of SessionTimeoutMinutes.

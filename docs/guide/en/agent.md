@@ -37,6 +37,10 @@ exists. With no folder the conversation happens in the board's drafts; if the
 card has been worked, it happens in the card's own working copy, beside the work.
 It creates no branch of its own.
 
+**The conversation opens with what the card says**: the agent is handed its
+title and description as the first message, and waits for your question. It is
+not handed them twice — a conversation being continued already knows them.
+
 It is kept. Close the panel, close the app — next time the same conversation
 opens and continues where it stopped.
 
@@ -52,27 +56,50 @@ you were discussing.
   time and nothing was typed in it, so the CLI saved no conversation — the
   terminal says «Продолжить прошлый разговор не удалось — открыт новый» and
   starts a new conversation in the same folder;
-- the open-in-new-window button in the panel header opens the same terminal
-  in a separate window; it appears once the terminal is running;
-- `✕` closes the panel. The terminal keeps running until the CLI in it exits,
-  and opens in the same place next time.
+- `✕` in the header closes the panel. The terminal keeps running until the CLI
+  in it exits, and opens in the same place next time.
 
 The panel shows the CLI's own interface: the agent displays its progress and
 asks its questions right there.
+
+### The list of conversations
+
+Above the terminal are this card's conversations: its own, and one per stage
+that worked it. A row is built the same way as in "Talk it over with an agent":
+
+- **the name** — clicking it opens the conversation in the panel; the dot on
+  the left is green while a CLI is running in it;
+- **the line under the name** — what the conversation is doing: the agent
+  writes it;
+- **who and where** — the agent and the conversation's folder;
+- **⧉** — open the same terminal in a separate window. The panel then gives way
+  to the window: two views of one terminal argue about its size;
+- **✎** — rename the conversation;
+- **✨** — ask the agent to name it. The request is typed into the conversation
+  itself, because only the one having it can name it; the answer appears in the
+  row. The button is there while the CLI is running and was given the board's
+  tools;
+- **the bin** — delete the conversation. It asks first: the CLI ends and the
+  record of the conversation goes with it, so the next one starts on a blank
+  screen. This is the only way the card's own conversation ends; the route's
+  conversations have no such button — the route runs them.
 
 ## The route's conversations
 
 When a card lands in a column that does something, the route opens a
 conversation of **its own** — one per stage, because different stages can be
-worked by different agents. The panel lists them as chips under the header: the
-column and the agent. They are history — what the route did and where; they
-cannot be opened from the panel.
+worked by different agents. They stand in the same list, under the card's own
+conversation, named after the stage's column until the agent gives them a name.
 
-The way to a running one is the terminal button in the corner of the card on the
-board: it turns amber when the agent is waiting, and it opens that terminal. If
-the card returns to a passed stage, that stage's conversation becomes current
-again and continues where it stopped; a running terminal of a passed stage stays
+While a stage is running, its conversation opens on a click, exactly as the
+card's own does. A passed stage cannot be opened: the route runs its
+conversation, and it comes back by itself if the card returns to that stage,
+continuing where it stopped. A running terminal of a passed stage stays
 reachable until its CLI exits.
+
+The terminal button in the corner of the card on the board also leads to a
+running one: it turns amber when the agent is waiting, and it opens that
+terminal.
 
 There is no "Terminal" button if no agent is registered on the machine. The
 exception is a card that was already worked: it has a branch of its own, so
@@ -118,6 +145,9 @@ Each row is one conversation:
 - **who and where** — the agent and the conversation's folder;
 - **✎** — rename: a conversation starts out named after its card, or called
   «Планирование», and what a list needs is what the conversation is about;
+- **✨** — ask the agent to name it. The request is typed into the conversation
+  itself, and the agent writes the name in the language the two of you are
+  speaking;
 - **✕** — end it: asks "End this terminal?", because this stops the CLI. It is also the
   only way to take a conversation off the list — the list is exactly the
   terminals that are running.

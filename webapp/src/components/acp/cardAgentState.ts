@@ -50,6 +50,18 @@ export type CardConversation = {
     startedAt?: string
     endedAt?: string
     exitCode?: number
+
+    // What the row says about itself: what the conversation is called (a
+    // person's name for it, or the agent's own), the line the agent wrote about
+    // what is going on in it, and where it is happening.
+    title?: string
+    summary?: string
+    folder?: string
+    boardFolder?: boolean
+
+    // Whether the CLI in it was handed the board tools, which is what makes
+    // «попросить агента назвать» possible.
+    tools?: boolean
 }
 
 type Entry = {

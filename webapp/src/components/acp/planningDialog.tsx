@@ -11,6 +11,7 @@ import Dialog from '../dialog'
 import {agentBindings} from './bindings'
 import {onAgentEvent} from './agentEvents'
 import AgentQuickAdd from './agentQuickAdd'
+import ConversationRow from './conversationRow'
 import FolderChoices from './folderChoices'
 
 import './planningDialog.scss'
@@ -30,10 +31,12 @@ import './planningDialog.scss'
 // bottom, under the pick, each button labelled «агент · папка» — so the shorter
 // path was the one below the longer one, and nothing said what any of those
 // conversations was about. Now each is a row that can be read: its name, the
-// recap the agent wrote for it (describe_conversation, the only board tool that
-// is about the conversation rather than the board), and who is talking where.
-// Opening one is an icon, renaming it is an icon, and ending it is an icon with
-// a confirmation — a CLI somebody is using must not close on one stray click.
+// recap the agent wrote for it (describe_conversation, one of the two board
+// tools that are about the conversation rather than the board), and who is
+// talking where. The row is conversationRow.tsx, shared with the panel beside a
+// card, which lists the same thing — opening is an icon, renaming is an icon,
+// asking the agent for a name is an icon, and ending is an icon with a
+// confirmation, since a CLI somebody is using must not close on a stray click.
 //
 // The pick is the same stepped flow the card's terminal asks with
 // (cardTerminal.tsx): one question per screen, the answers as things to click.
@@ -46,6 +49,10 @@ type LiveTerminal = {
     title?: string
     summary?: string
     boardFolder?: boolean
+
+    // Whether the CLI was handed the board tools, and therefore whether it can
+    // answer «как назвать этот разговор».
+    tools?: boolean
 }
 
 export function isPlanningAvailable(): boolean {
@@ -70,13 +77,6 @@ const PlanningDialog = (props: Props) => {
     const [terminals, setTerminals] = createSignal<LiveTerminal[]>([])
     const [busy, setBusy] = createSignal(false)
     const [error, setError] = createSignal('')
-
-    // Which row is being renamed, and which is being asked about before it is
-    // ended. Both are one at a time: they are answers to a question about one
-    // conversation.
-    const [renaming, setRenaming] = createSignal('')
-    const [draft, setDraft] = createSignal('')
-    const [ending, setEnding] = createSignal('')
 
     // Which agent first, which folder second: the agent question is open while
     // nobody is named, and a single registered agent answers it without being
@@ -158,18 +158,8 @@ const PlanningDialog = (props: Props) => {
         }
     }
 
-    const beginRename = (terminal: LiveTerminal) => {
-        setEnding('')
-        setDraft(terminal.title || '')
-        setRenaming(terminal.id)
-    }
-
-    // An empty name is a cancel, not a nameless conversation: Go refuses one
-    // anyway, and the name it already has is the better answer.
-    const commitRename = async (id: string) => {
-        const title = draft().trim()
-        setRenaming('')
-        if (!title || !bindings?.RenameTerminal) {
+    const rename = async (id: string, title: string) => {
+        if (!bindings?.RenameTerminal) {
             return
         }
         try {
@@ -180,11 +170,25 @@ const PlanningDialog = (props: Props) => {
         }
     }
 
+    // Asking the agent what to call the conversation it is having. Nothing else
+    // knows: a terminal is a vendor CLI in a pty, so the request is typed into
+    // the conversation itself and the answer comes back through the board
+    // tools, landing on this row.
+    const askName = async (id: string) => {
+        if (!bindings?.AskTerminalName) {
+            return
+        }
+        try {
+            await bindings.AskTerminalName(id)
+        } catch (e: any) {
+            setError(String(e?.message || e))
+        }
+    }
+
     // Ending a terminal ends the CLI in it, which is why it is asked about
     // first. There is no other way to take one off this list: the list *is* the
     // terminals that are running.
     const end = async (id: string) => {
-        setEnding('')
         if (!bindings?.CloseTerminal) {
             return
         }
@@ -226,114 +230,37 @@ const PlanningDialog = (props: Props) => {
                         <h4 class='PlanningDialog__sectionTitle'>
                             {intl.formatMessage({id: 'Planning.terminals-running', defaultMessage: 'Open terminals'})}
                         </h4>
-                        <ul class='PlanningDialog__terminals'>
+                        <ul class='ConversationList'>
                             <For each={terminals()}>
                                 {(t) => (
-                                    <li class='PlanningDialog__terminal'>
-                                        <div class='PlanningDialog__terminalMain'>
-                                            <Show
-                                                when={renaming() === t.id}
-                                                fallback={
-                                                    <button
-                                                        type='button'
-                                                        class='PlanningDialog__terminalName'
-                                                        title={t.cwd}
-                                                        onClick={() => show(t.id)}
-                                                    >
-                                                        {terminalName(t)}
-                                                    </button>
-                                                }
-                                            >
-                                                <input
-                                                    class='PlanningDialog__terminalRename'
-                                                    aria-label={intl.formatMessage({id: 'Planning.rename', defaultMessage: 'Rename the conversation'})}
-                                                    value={draft()}
-                                                    ref={(el) => queueMicrotask(() => el.focus())}
-                                                    onInput={(e) => setDraft(e.currentTarget.value)}
-                                                    onBlur={() => commitRename(t.id)}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') {
-                                                            commitRename(t.id)
-                                                        }
-                                                        if (e.key === 'Escape') {
-                                                            setRenaming('')
-                                                        }
-                                                    }}
-                                                />
-                                            </Show>
-
-                                            {/* What the agent said it is doing.
-                                                Nothing else here can know it: a
-                                                terminal is the vendor CLI in a
-                                                pty, and no protocol carries a
-                                                recap of one. */}
-                                            <Show when={t.summary}>
-                                                <div class='PlanningDialog__terminalSummary'>{t.summary}</div>
-                                            </Show>
-                                            <div class='PlanningDialog__terminalMeta'>
-                                                {`${t.agent} · ${terminalWhere(t)}`}
-                                            </div>
-                                        </div>
-
-                                        <Show
-                                            when={ending() === t.id}
-                                            fallback={
-                                                <div class='PlanningDialog__terminalActions'>
-                                                    <button
-                                                        type='button'
-                                                        class='PlanningDialog__iconButton'
-                                                        title={intl.formatMessage({id: 'CardTerminal.window', defaultMessage: 'Open in a separate window'})}
-                                                        aria-label={intl.formatMessage({id: 'CardTerminal.window', defaultMessage: 'Open in a separate window'})}
-                                                        onClick={() => show(t.id)}
-                                                    >
-                                                        <CompassIcon icon='open-in-new'/>
-                                                    </button>
-                                                    <button
-                                                        type='button'
-                                                        class='PlanningDialog__iconButton'
-                                                        title={intl.formatMessage({id: 'Planning.rename', defaultMessage: 'Rename the conversation'})}
-                                                        aria-label={intl.formatMessage({id: 'Planning.rename', defaultMessage: 'Rename the conversation'})}
-                                                        onClick={() => beginRename(t)}
-                                                    >
-                                                        <CompassIcon icon='pencil-outline'/>
-                                                    </button>
-                                                    <button
-                                                        type='button'
-                                                        class='PlanningDialog__iconButton'
-                                                        title={intl.formatMessage({id: 'Planning.end', defaultMessage: 'End the terminal'})}
-                                                        aria-label={intl.formatMessage({id: 'Planning.end', defaultMessage: 'End the terminal'})}
-                                                        onClick={() => {
-                                                            setRenaming('')
-                                                            setEnding(t.id)
-                                                        }}
-                                                    >
-                                                        <CompassIcon icon='close'/>
-                                                    </button>
-                                                </div>
-                                            }
-                                        >
-                                            {/* Asked, because this stops a CLI
-                                                somebody is using — and the list
-                                                has no other way to shorten. */}
-                                            <div class='PlanningDialog__terminalConfirm'>
-                                                <span>{intl.formatMessage({id: 'Planning.end-ask', defaultMessage: 'End this terminal?'})}</span>
-                                                <button
-                                                    type='button'
-                                                    class='PlanningDialog__confirmYes'
-                                                    onClick={() => end(t.id)}
-                                                >
-                                                    {intl.formatMessage({id: 'Planning.end-yes', defaultMessage: 'End'})}
-                                                </button>
-                                                <button
-                                                    type='button'
-                                                    class='PlanningDialog__confirmNo'
-                                                    onClick={() => setEnding('')}
-                                                >
-                                                    {intl.formatMessage({id: 'Planning.end-no', defaultMessage: 'Cancel'})}
-                                                </button>
-                                            </div>
-                                        </Show>
-                                    </li>
+                                    <ConversationRow
+                                        name={terminalName(t)}
+                                        summary={t.summary}
+                                        meta={`${t.agent} · ${terminalWhere(t)}`}
+                                        title={t.cwd}
+                                        running={true}
+                                        onPick={() => show(t.id)}
+                                        onRename={(title) => rename(t.id, title)}
+                                        actions={[
+                                            {
+                                                icon: 'open-in-new',
+                                                title: intl.formatMessage({id: 'CardTerminal.window', defaultMessage: 'Open in a separate window'}),
+                                                run: () => show(t.id),
+                                            },
+                                            ...(t.tools ? [{
+                                                icon: 'auto-fix',
+                                                title: intl.formatMessage({id: 'Conversation.ask-name', defaultMessage: 'Ask the agent to name this conversation'}),
+                                                run: () => askName(t.id),
+                                            }] : []),
+                                            {
+                                                icon: 'close',
+                                                title: intl.formatMessage({id: 'Planning.end', defaultMessage: 'End the terminal'}),
+                                                confirm: intl.formatMessage({id: 'Planning.end-ask', defaultMessage: 'End this terminal?'}),
+                                                confirmYes: intl.formatMessage({id: 'Planning.end-yes', defaultMessage: 'End'}),
+                                                run: () => end(t.id),
+                                            },
+                                        ]}
+                                    />
                                 )}
                             </For>
                         </ul>

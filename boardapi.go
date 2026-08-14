@@ -146,6 +146,12 @@ func (g *grantedBoard) Describe(_ context.Context, text string) error {
 	return g.mgr.DescribeTerminalFromTools(g.token, text)
 }
 
+// Name is what the conversation is called in the list of open terminals — the
+// same field a person renames by hand, filled in by the agent when it is asked.
+func (g *grantedBoard) Name(_ context.Context, title string) error {
+	return g.mgr.NameTerminalFromTools(g.token, title)
+}
+
 // Finish ends the stage of a route this conversation is, which the grant is
 // what knows — the same way Describe does.
 func (g *grantedBoard) Finish(_ context.Context, ok bool, summary string) error {

@@ -409,6 +409,33 @@ func (m *Manager) DescribeTerminalFromTools(token, text string) error {
 	return m.SetTerminalSummary(g.TerminalID, text)
 }
 
+// NameTerminalFromTools is the agent naming this conversation, which is the
+// answer to the one question this app ever asks inside somebody's terminal
+// (AskTerminalName). It writes the same field a person renames by hand, so the
+// name comes back with the conversation and can be typed over afterwards.
+func (m *Manager) NameTerminalFromTools(token, title string) error {
+	g, ok := m.boardGrant(token)
+	if !ok {
+		return fmt.Errorf("нет доступа к доске")
+	}
+	if g.TerminalID == "" {
+		return fmt.Errorf("этот разговор не идёт в терминале")
+	}
+	// A name is drawn in a row beside a folder and an agent. An agent asked for
+	// three words sometimes answers with a sentence, and the row is not the place
+	// to read one — counted in runes, since this name is Russian more often than
+	// not and cutting bytes would cut a letter in half.
+	title = strings.TrimSpace(title)
+	if runes := []rune(title); len(runes) > terminalTitleLimit {
+		title = strings.TrimSpace(string(runes[:terminalTitleLimit])) + "…"
+	}
+	return m.RenameTerminal(g.TerminalID, title)
+}
+
+// terminalTitleLimit is how long a conversation's name may be. Long enough for
+// five words, short enough that the row stays a row.
+const terminalTitleLimit = 60
+
 // CreateCardFromTools is the write itself. Everything an agent may decide is a
 // name a person would have typed; the board is the grant's.
 func (m *Manager) CreateCardFromTools(ctx context.Context, token string, card NewCard) (string, error) {

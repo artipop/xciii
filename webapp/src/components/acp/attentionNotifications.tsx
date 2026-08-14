@@ -42,13 +42,48 @@ const stackLimit = 3
 // about this one. "Since" is what tells the two apart.
 const waitKey = (target: Attention) => `${keyOf(target)}@${target.since || ''}`
 
+// terminalScreen is a window that draws one terminal and nothing else — the
+// desktop app's own, and «Терминалы» on a phone.
+//
+// This stack is outside the router, which is what puts it wherever in the app a
+// person happens to be — and a terminal window is the app too, so every one of
+// them drew the whole stack as well. Two conversations waiting meant the same
+// notification in the board's window and in each terminal window: it read as
+// the first one being announced twice.
+//
+// One of those copies was worse than a repeat. A terminal window drawing «агент
+// ждёт ответа» about the terminal it is *showing* covers the question with a
+// box saying there is one — the same reason nothing of ours is drawn over that
+// screen (terminalPage.tsx). So the stack belongs to the window with the board
+// in it, and a terminal window is left to draw the CLI.
+//
+// Read once rather than watched: a window opened on a terminal stays on it, and
+// the board's window never navigates there — the button opens a window of its
+// own.
+const terminalScreen = (): boolean => (/^\/(acp|m)\/terminal\//).test(window.location.pathname)
+
 const AttentionNotifications = () => {
     const intl = useIntl()
     const waiting = useAttention()
     const [dismissed, setDismissed] = createSignal<string[]>([])
     const [busy, setBusy] = createSignal('')
 
-    const pending = createMemo(() => (agentNotificationsOn() ? waiting().filter((a) => !dismissed().includes(waitKey(a))) : []))
+    // Deduped by what identifies a wait, not by the object: the list is rebuilt
+    // from events and from a full reload when the socket reconnects, and one
+    // wait drawn twice is the notification a person cannot tell from a second
+    // agent asking the same thing.
+    const pending = createMemo(() => {
+        if (!agentNotificationsOn() || terminalScreen()) {
+            return []
+        }
+        const byKey = new Map<string, Attention>()
+        for (const a of waiting()) {
+            if (!dismissed().includes(waitKey(a))) {
+                byKey.set(keyOf(a), a)
+            }
+        }
+        return [...byKey.values()]
+    })
     const shown = createMemo(() => pending().slice(0, stackLimit))
     const hidden = createMemo(() => Math.max(0, pending().length - stackLimit))
 
@@ -76,6 +111,14 @@ const AttentionNotifications = () => {
     return (
         <Show when={shown().length > 0}>
             <div class='AttentionNotifications'>
+                {/* Said once, above the stack, as soon as there is more than
+                    one: two cards waiting used to be two cards' worth of
+                    notification with nothing saying they were two. */}
+                <Show when={pending().length > 1}>
+                    <div class='AttentionNotifications__count'>
+                        {intl.formatMessage({id: 'Attention.waiting-count', defaultMessage: '{count, plural, one {# agent is waiting} other {# agents are waiting}}'}, {count: pending().length})}
+                    </div>
+                </Show>
                 <For each={shown()}>
                     {(target) => (
                         <div

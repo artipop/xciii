@@ -17,6 +17,7 @@ type fakeBoard struct {
 	changes   []CardChange
 	comments  []string
 	described []string
+	named     []string
 	finished  []string
 }
 
@@ -94,6 +95,11 @@ func (b *fakeBoard) Describe(_ context.Context, text string) error {
 	return nil
 }
 
+func (b *fakeBoard) Name(_ context.Context, title string) error {
+	b.named = append(b.named, title)
+	return nil
+}
+
 func (b *fakeBoard) Finish(_ context.Context, ok bool, summary string) error {
 	b.finished = append(b.finished, fmt.Sprintf("%t: %s", ok, summary))
 	return nil
@@ -156,19 +162,19 @@ func TestACardSaysWhatActingOnItNeeds(t *testing.T) {
 		Mine: true, Flow: "Обычный", Stage: "К агенту", Running: true,
 		Waiting: []string{"ревью одобрено"},
 	})
-	for _, want := range []string{"card-1", "Починить окно", "К агенту", "xciii", "Обычный", "агент работает", "ревью одобрено"} {
+	for _, want := range []string{"card-1", "Починить окно", "К агенту", "xciii", "Обычный", "an agent is working on it", "ревью одобрено"} {
 		if !strings.Contains(line, want) {
 			t.Errorf("the card does not say %q:\n%s", want, line)
 		}
 	}
-	if !strings.Contains(line, "в работе у тебя") {
+	if !strings.Contains(line, "the card you are working on") {
 		t.Errorf("the agent's own card is not pointed out:\n%s", line)
 	}
 
 	// A card off any route says nothing about routes, rather than saying so with
 	// empty fields the model then has to interpret.
 	plain := cardLine(CardInfo{ID: "card-2", Title: "Вторая", Column: "Идеи"})
-	if strings.Contains(plain, "маршрут") {
+	if strings.Contains(plain, "route:") {
 		t.Errorf("a card on no route talks about one:\n%s", plain)
 	}
 }

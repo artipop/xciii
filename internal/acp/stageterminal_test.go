@@ -197,7 +197,10 @@ func TestAStageDoesNotTakeOverTheCardsOwnConversation(t *testing.T) {
 	})
 	t.Cleanup(func() { m.CancelSessionForCard("cardTalk", "тест закончился") })
 
-	if strings.Contains(strings.Join(mine.Argv, " "), "Test task") {
+	// Both conversations name the card — the person's own opens with what the
+	// card says (cardIntro) — so what tells them apart is the brief a stage is
+	// handed: "Task:" and the instructions about committing under it.
+	if strings.Contains(strings.Join(mine.Argv, " "), "Task: Test task") {
 		t.Errorf("the card's task was typed into the person's conversation:\n%q", mine.Argv)
 	}
 	if !strings.Contains(strings.Join(stage.Argv, " "), "Test task") {

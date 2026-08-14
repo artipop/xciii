@@ -39,8 +39,8 @@ const (
 	EnvToken = "KAITEN_TOKEN" // a personal API token from the Kaiten profile
 )
 
-const instructions = `Чтение Kaiten: карточки, назначенные на владельца токена.
-Сайт и токен заданы снаружи и не выбираются инструментом.`
+const instructions = `Reading Kaiten: the cards assigned to the owner of the token.
+The site and the token are set from outside and the tool does not choose them.`
 
 // Config is what the process is given.
 type Config struct {
@@ -71,11 +71,11 @@ func (c Config) api(path string) string { return c.Site + "/api/latest" + path }
 // listInput is what the feed is asked for. Every field is optional: with none
 // of them this is "everything assigned to me anywhere".
 type listInput struct {
-	BoardID         int  `json:"boardId,omitempty" jsonschema:"только карточки этой доски Kaiten"`
-	SpaceID         int  `json:"spaceId,omitempty" jsonschema:"только карточки этого пространства"`
-	ResponsibleOnly bool `json:"responsibleOnly,omitempty" jsonschema:"только там, где я ответственный, не считая участия"`
-	IncludeArchived bool `json:"includeArchived,omitempty" jsonschema:"включая архивные и завершённые"`
-	Limit           int  `json:"limit,omitempty" jsonschema:"сколько карточек максимум (по умолчанию 100)"`
+	BoardID         int  `json:"boardId,omitempty" jsonschema:"only the cards of this Kaiten board"`
+	SpaceID         int  `json:"spaceId,omitempty" jsonschema:"only the cards of this space"`
+	ResponsibleOnly bool `json:"responsibleOnly,omitempty" jsonschema:"only where I am responsible, not counting membership"`
+	IncludeArchived bool `json:"includeArchived,omitempty" jsonschema:"including archived and finished ones"`
+	Limit           int  `json:"limit,omitempty" jsonschema:"how many cards at most (100 by default)"`
 }
 
 // card is what the feed hands over. It is Kaiten's own row plus the address a
@@ -103,7 +103,7 @@ func NewServer(cfg Config, client *http.Client) *mcp.Server {
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "list_my_cards",
-		Description: "Карточки, назначенные на владельца токена: где он ответственный и, если не сказано иначе, где он участник.",
+		Description: "The cards assigned to the owner of the token: where they are responsible and, unless told otherwise, where they are a member.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in listInput) (*mcp.CallToolResult, any, error) {
 		cards, err := ListMyCards(ctx, client, cfg, in)
 		if err != nil {

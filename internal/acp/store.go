@@ -700,6 +700,15 @@ func (s *Store) SetTerminalSummary(id, summary string) error {
 	return err
 }
 
+// DeleteTerminalsForCardNode forgets one conversation of a card — every record
+// of it, not only the latest, because what the next terminal there would resume
+// is whichever record is newest. This is what a person deleting a conversation
+// asks for: the CLI is ended beside it, and the next one starts fresh.
+func (s *Store) DeleteTerminalsForCardNode(cardID, nodeID string) error {
+	_, err := s.db.Exec(`DELETE FROM terminal_session WHERE card_id=? AND node_id=?`, cardID, nodeID)
+	return err
+}
+
 // FinishTerminal records how a terminal session ended.
 func (s *Store) FinishTerminal(id string, endedAt time.Time, exitCode int) error {
 	_, err := s.db.Exec(`UPDATE terminal_session SET ended_at=?, exit_code=? WHERE id=?`,

@@ -28,9 +28,9 @@ const branchNamingTimeout = 45 * time.Second
 // branchNamingPrompt is what the naming session is asked. It is the whole of
 // the session's task, so it insists on the shape of the answer: everything
 // else the agent might say is noise the caller has to survive.
-const branchNamingPrompt = `Придумай название git-ветки для задачи ниже: латиницей, в kebab-case, два-четыре коротких слова, по смыслу задачи. Без префиксов, без номеров, без пояснений. Ответь ровно одной строкой — самим названием. Не используй инструменты.
+const branchNamingPrompt = `Invent a git branch name for the task below: latin letters, kebab-case, two to four short words, after what the task is about. No prefixes, no numbers, no explanation. Answer with exactly one line — the name itself. Do not use tools.
 
-Задача: %s`
+Task: %s`
 
 // AgentNamedBranches reports the machine's setting.
 func (m *Manager) AgentNamedBranches() bool {

@@ -100,6 +100,11 @@ type TerminalSession struct {
 
 	// stage marks a conversation a route opened rather than a person.
 	stage bool
+	// discarded marks a conversation a person threw away, which is the one exit
+	// the card must not be told about: the record is being deleted in the same
+	// breath, and a comment about a terminal nobody will ever find again is a
+	// note about the machinery rather than about the work.
+	discarded bool
 	// lastOutput is when the CLI last drew anything. It is how a stage tells a
 	// CLI that is working from one that has stopped to ask something: an agent
 	// mid-turn redraws its own spinner, and a TUI waiting on an answer draws
@@ -138,6 +143,11 @@ type TerminalInfo struct {
 	// BoardFolder says Cwd is the board's own drafts folder — its directory
 	// under the app's data — so the UI can name it instead of showing the path.
 	BoardFolder bool `json:"boardFolder,omitempty"`
+	// Tools says this CLI was handed the board tools, which is what makes it
+	// answerable: «попросить агента назвать разговор» is a message typed into a
+	// CLI that can only reply through name_conversation, so a kind that took no
+	// tools must not be offered the button (AskTerminalName).
+	Tools bool `json:"tools,omitempty"`
 }
 
 // Info describes the session for the window that draws it.
@@ -161,6 +171,7 @@ func (t *TerminalSession) Info() TerminalInfo {
 		// The UI names the board's drafts folder rather than showing a path into
 		// the app's own data directory.
 		BoardFolder: t.m != nil && t.Cwd != "" && t.Cwd == t.m.boardFolder(t.BoardID),
+		Tools:       t.boardToken != "",
 	}
 	select {
 	case <-t.done:
@@ -250,6 +261,14 @@ func (t *TerminalSession) closeTTY() {
 
 // Done is closed when the CLI exits.
 func (t *TerminalSession) Done() <-chan struct{} { return t.done }
+
+// isDiscarded reports a conversation a person threw away, which the exit path
+// reads to stay quiet about it (DeleteCardConversation).
+func (t *TerminalSession) isDiscarded() bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.discarded
+}
 
 // startupFailure reports a CLI that exited within window of being launched, and
 // exited badly: it never got as far as the work, so whatever it printed is the
@@ -423,6 +442,7 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		boardID:     ev.BoardID,
 		title:       ev.Title,
 		task:        ev.Body,
+		intro:       cardIntro(ev),
 		workdirPath: workdirPath,
 		base:        ev.Props["branch"],
 		agent:       agent,
@@ -430,6 +450,39 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		branch:      branch,
 	})
 }
+
+// cardIntro is what the card's own conversation opens with: which card it is
+// about, in the card's own words.
+//
+// It is here because the person opening this panel has the card in front of
+// them and the agent has nothing — the conversation used to start on a blank
+// screen, and the first thing anybody typed was the title they were looking at.
+// The agent is told to wait, because this is a card being thought about rather
+// than a task being handed over; the stage of a route says the opposite, and
+// says it with its own prompt.
+//
+// English, like everything the system says to an agent: the app is used in more
+// than one language, and the card underneath is in whichever one the person
+// writes — which is the language the answer should come back in.
+func cardIntro(ev CardMoved) string {
+	title := strings.TrimSpace(ev.Title)
+	if title == "" {
+		return ""
+	}
+	var b strings.Builder
+	b.WriteString("We are looking at a card on the board. Nothing is being asked of you yet — read it and wait for the person. Answer in the language the card is written in.\n\n")
+	fmt.Fprintf(&b, "Card: %s", title)
+	if body := strings.TrimSpace(ev.Body); body != "" {
+		fmt.Fprintf(&b, "\n\nDescription:\n%s", truncateRunes(body, cardIntroBodyLimit))
+	}
+	return b.String()
+}
+
+// cardIntroBodyLimit is how much of a card's description travels into the
+// opening message. A card is a person's own writing and can be a page of it;
+// what the conversation needs is what the card is about, and the agent can read
+// the rest through get_card.
+const cardIntroBodyLimit = 4000
 
 // talkingPlace is where the card's own conversation runs. The copy the card
 // already has, when it has one — talking about the work beside the work is the
@@ -567,6 +620,11 @@ type terminalSpec struct {
 	// route: the card's task, handed to the CLI the way a person would type it.
 	// A terminal a person opened has none — they are about to type their own.
 	prompt string
+	// intro is the same thing for a conversation that is *starting*: what the
+	// card says, so the agent is looking at what the person is looking at. It is
+	// dropped on a resume, where the conversation already knows — a stage's
+	// prompt is not, because a stage hands over a task every time it runs.
+	intro string
 	// cwd/branch are where this conversation runs, when the caller has already
 	// worked it out. A stage of a route has: the session claimed the card's
 	// workspace before the terminal existed, and a stage told to run in the
@@ -588,6 +646,13 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// in it is the card's too, and no session id of somebody else's has to be
 	// stored or guessed.
 	resumeAt, resume := m.terminalResumePoint(spec)
+
+	// A conversation that is starting opens with what the card says (cardIntro);
+	// one that is being continued opens with nothing, because it was told a
+	// while ago and repeating it would read as a new instruction.
+	if !resume && spec.prompt == "" {
+		spec.prompt = spec.intro
+	}
 
 	// Minted before anything can fail, because the grant carries it: the tools
 	// let the agent say what this conversation is about, and that needs a name
@@ -946,8 +1011,9 @@ func (m *Manager) terminalEnded(t *TerminalSession) {
 	}
 	// A stage of a route writes its own comment, once, and that comment already
 	// carries this report (stageterminal.go). Two comments for one piece of work
-	// is what the card was rescued from.
-	if t.CardID != "" && !t.stage {
+	// is what the card was rescued from — and a conversation somebody deleted
+	// reports nothing at all, since the record it would point at is going too.
+	if t.CardID != "" && !t.stage && !t.isDiscarded() {
 		m.commentCard(t.CardID, terminalReport(m.rootCtx, t))
 	}
 	m.closeBoardTools(t.boardToken, t.mcpConfig)
@@ -1095,6 +1161,80 @@ func (m *Manager) SetTerminalSummary(id, summary string) error {
 // terminalSummaryLimit is how much of the agent's line is kept. Generous enough
 // for a sentence, short enough that the list stays a list.
 const terminalSummaryLimit = 200
+
+// DeleteCardConversation throws a conversation away: the CLI in it is ended and
+// the record goes with it, so the next conversation on that card opens on a
+// blank screen instead of continuing this one.
+//
+// It is the only way a card's own conversation ends. Everything about a terminal
+// is kept on purpose — that is the whole of what makes «продолжить» possible —
+// so somebody who has finished thinking about a card, or whose conversation went
+// somewhere useless, has nothing else to do about it. A stage's conversation is
+// deliberately not deletable: the route opened it and may still be waiting on
+// it, and a card standing on a stage whose CLI was taken out from under it is a
+// stall nobody asked for.
+func (m *Manager) DeleteCardConversation(cardID, nodeID string) error {
+	if strings.TrimSpace(cardID) == "" {
+		return fmt.Errorf("не сказано, у какой карточки удалить разговор")
+	}
+	if live := m.TerminalForCardNode(cardID, nodeID); live != nil {
+		if live.stage {
+			return fmt.Errorf("это разговор стадии маршрута — его ведёт маршрут")
+		}
+		live.mu.Lock()
+		live.discarded = true
+		live.mu.Unlock()
+		if err := m.CloseTerminal(live.ID); err != nil {
+			return err
+		}
+	}
+	if err := m.store.DeleteTerminalsForCardNode(cardID, nodeID); err != nil {
+		return fmt.Errorf("не удалось забыть разговор: %w", err)
+	}
+	// The card's own conversation is also every conversation held on it before
+	// stages existed: those records carry no node at all, and they are what
+	// LastTerminalForCardNode falls back to. Leaving them would delete a
+	// conversation that came straight back on the next click.
+	if nodeID == nodeBrainstorm {
+		if err := m.store.DeleteTerminalsForCardNode(cardID, ""); err != nil {
+			return fmt.Errorf("не удалось забыть разговор: %w", err)
+		}
+	}
+	m.log.Info("acp: conversation discarded", "card", cardID, "node", nodeID)
+	return nil
+}
+
+// AskTerminalName types the one message this app ever puts into a conversation
+// somebody else is having: «назови этот разговор».
+//
+// It is worth the intrusion because nothing else can answer it. A terminal is a
+// vendor CLI in a pty, so no protocol carries a name for what is happening in
+// it, and until the agent says so a row in the list reads «клаус · черновики
+// доски» — which is true of every other row too. The agent knows: it is the one
+// having the conversation. So it is asked, in the conversation, and it answers
+// through the tool it already has (name_conversation) rather than into the
+// screen, where nothing of ours could read it.
+//
+// The ask waits for the CLI to go quiet before it is typed (deliverPrompt), so
+// it lands between turns rather than in the middle of one.
+func (m *Manager) AskTerminalName(terminalID string) error {
+	t := m.Terminal(terminalID)
+	if t == nil {
+		return fmt.Errorf("терминал уже завершён")
+	}
+	if !t.Info().Tools {
+		return fmt.Errorf("этому CLI не передаются инструменты доски — ответить названием ему нечем")
+	}
+	go t.deliverPrompt(namingAsk)
+	return nil
+}
+
+// namingAsk is that message. English, like everything the system says to an
+// agent, with the answer's language asked for separately: the app is used in
+// more than one, and the name belongs to the conversation rather than to us.
+const namingAsk = "Name this conversation: call the board tool name_conversation with a short title, " +
+	"three to five words, saying what we are doing here. Write the title in the language we are talking in. " +
+	"Do nothing else."
 
 // CloseTerminal ends the CLI and everything it started.
 func (m *Manager) CloseTerminal(id string) error {
@@ -1337,6 +1477,19 @@ type CardConversation struct {
 	StartedAt  string `json:"startedAt,omitempty"`
 	EndedAt    string `json:"endedAt,omitempty"`
 	ExitCode   int    `json:"exitCode,omitempty"`
+
+	// What the row says about itself, so the card's panel reads like the list of
+	// open terminals rather than like a row of stage labels: what the
+	// conversation is called (a person's name for it, or the agent's own), the
+	// line the agent wrote about what is going on in it, and where it is
+	// happening. A live conversation answers for itself — a title and a recap
+	// both change while somebody is looking at them.
+	Title       string `json:"title,omitempty"`
+	Summary     string `json:"summary,omitempty"`
+	Folder      string `json:"folder,omitempty"`
+	BoardFolder bool   `json:"boardFolder,omitempty"`
+	// Tools says the CLI in it can be asked to name the conversation.
+	Tools bool `json:"tools,omitempty"`
 }
 
 // CardConversations lists the card's conversations, one per stage it was
@@ -1358,10 +1511,14 @@ func (m *Manager) CardConversations(cardID string) []CardConversation {
 	for _, rec := range recs {
 		brainstorm := rec.NodeID == nodeBrainstorm
 		c := CardConversation{
-			NodeID:     rec.NodeID,
-			Column:     columns[rec.NodeID],
-			Brainstorm: brainstorm,
-			Agent:      rec.Agent,
+			NodeID:      rec.NodeID,
+			Column:      columns[rec.NodeID],
+			Brainstorm:  brainstorm,
+			Agent:       rec.Agent,
+			Title:       rec.Title,
+			Summary:     rec.Summary,
+			Folder:      m.folderLabel(rec.WorkdirPath),
+			BoardFolder: rec.WorkdirPath == "",
 			// The card's own conversation is always the one the button opens, so
 			// it is always current; a stage's is current only while the card
 			// stands on it.
@@ -1373,12 +1530,32 @@ func (m *Manager) CardConversations(cardID string) []CardConversation {
 			c.EndedAt = rec.EndedAt.Format(time.RFC3339)
 		}
 		if live := m.TerminalForCardNode(cardID, rec.NodeID); live != nil {
+			info := live.Info()
 			c.Running = true
-			c.TerminalID = live.ID
+			c.TerminalID = info.ID
+			c.Agent = info.Agent
+			c.Title = info.Title
+			c.Summary = info.Summary
+			c.Tools = info.Tools
 		}
 		out = append(out, c)
 	}
 	return out
+}
+
+// folderLabel is what a conversation's folder is called on screen: the name it
+// was registered under, since that is the name the person answered «в какой
+// папке» with. A path with no entry behind it — a folder somebody has since
+// removed from the registry — is named by its last element, and an empty path
+// is «черновики доски», which the caller says with BoardFolder instead.
+func (m *Manager) folderLabel(workdirPath string) string {
+	if workdirPath == "" {
+		return ""
+	}
+	if entry, ok := m.WorkdirAt(workdirPath); ok {
+		return entry.Name
+	}
+	return filepath.Base(workdirPath)
 }
 
 // stageColumns maps the card's route nodes to the columns a person knows them

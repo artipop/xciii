@@ -898,3 +898,181 @@ func TestPlanningTerminalTalksInTheBoardsFolder(t *testing.T) {
 		t.Error("the info does not say this is «черновики доски»")
 	}
 }
+
+// The card's own conversation opens with what the card says. The person who
+// clicked the button has the card in front of them and the agent has nothing —
+// what everybody typed first was the title they were both looking at.
+func TestTheCardsConversationOpensWithTheCard(t *testing.T) {
+	fakeCLIOnPath(t, "claude", "sleep 30")
+	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
+		cfg.Agents = []AgentEntry{{Name: "cl", Kind: AgentKindClaude}}
+	})
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	term, err := m.StartCardTerminal("card-intro", "", "cl")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(term.ID) }()
+
+	opening := strings.Join(term.Argv, " ")
+	for _, want := range []string{"Test task", "Do nothing useful."} {
+		if !strings.Contains(opening, want) {
+			t.Errorf("the conversation opened without %q:\n%s", want, opening)
+		}
+	}
+	// It is a card being thought about, not a task being handed over: a stage
+	// says the opposite, and says it with its own prompt.
+	if strings.Contains(opening, "Task: Test task") {
+		t.Errorf("the card's own conversation was handed the stage's brief:\n%s", opening)
+	}
+}
+
+// And it opens with it once. A conversation being continued was told a while
+// ago, and saying it again reads as a new instruction rather than as context.
+func TestAResumedConversationIsNotToldTheCardAgain(t *testing.T) {
+	fakeCLIOnPath(t, "claude", "sleep 30")
+	m, _, _, _ := testManager(t, "idle", func(cfg *Config) {
+		cfg.Agents = []AgentEntry{{Name: "cl", Kind: AgentKindClaude}}
+	})
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	first, err := m.StartCardTerminal("card-intro", "", "cl")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = m.CloseTerminal(first.ID)
+	<-first.Done()
+
+	again, err := m.StartCardTerminal("card-intro", "", "cl")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(again.ID) }()
+	if opening := strings.Join(again.Argv, " "); strings.Contains(opening, "Do nothing useful.") {
+		t.Errorf("the card was read out to a conversation that already knows it:\n%s", opening)
+	}
+}
+
+// Throwing a conversation away is the only way the card's own one ends: the CLI
+// in it stops and the record goes with it, so the next one opens on a blank
+// screen instead of continuing this one. And the card hears nothing about it —
+// the record it would point at is going too.
+func TestADiscardedConversationIsForgottenQuietly(t *testing.T) {
+	fakeCLIOnPath(t, "claude", "sleep 30")
+	m, writer, _, _ := testManager(t, "idle", func(cfg *Config) {
+		cfg.Agents = []AgentEntry{{Name: "cl", Kind: AgentKindClaude}}
+	})
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	term, err := m.StartCardTerminal("card-gone", "", "cl")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := m.DeleteCardConversation("card-gone", nodeBrainstorm); err != nil {
+		t.Fatal(err)
+	}
+	<-term.Done()
+
+	if _, ok, err := m.store.LastTerminalForCardNode("card-gone", nodeBrainstorm); err != nil || ok {
+		t.Errorf("the conversation is still on record (%v, %v)", ok, err)
+	}
+	if len(m.CardConversations("card-gone")) != 0 {
+		t.Error("the card still lists a conversation that was thrown away")
+	}
+	// Give the exit path its moment: it runs on the pty's own goroutine.
+	waitFor(t, 5*time.Second, "the terminal to be forgotten", func() bool {
+		return m.Terminal(term.ID) == nil
+	})
+	if comments := writer.cardComments("card-gone"); len(comments) != 0 {
+		t.Errorf("the card was told about a conversation somebody deleted: %v", comments)
+	}
+}
+
+// A stage's conversation belongs to the route, which may still be waiting on it:
+// a card standing on a stage whose CLI was taken out from under it is a stall
+// nobody asked for.
+func TestAStagesConversationCannotBeThrownAway(t *testing.T) {
+	fakeCLIOnPath(t, "claude", "sleep 30")
+	m, _, _, project := testManager(t, "idle", nil)
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	term, err := m.startTerminal(terminalSpec{
+		cardID: "card-stage", nodeID: "opt-work", boardID: "board1", title: "Работа",
+		workdirPath: project, agent: AgentEntry{Name: "cl", Kind: AgentKindClaude}, stage: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(term.ID) }()
+
+	if err := m.DeleteCardConversation("card-stage", "opt-work"); err == nil {
+		t.Fatal("a stage's conversation was thrown away from under the route")
+	}
+	if m.Terminal(term.ID) == nil {
+		t.Error("the stage's CLI was ended anyway")
+	}
+}
+
+// Nothing but the agent knows what a conversation in a pty is about, so it is
+// asked — in the conversation, since that is the only way in — and it answers
+// through the tools it already has.
+func TestTheAgentIsAskedToNameTheConversation(t *testing.T) {
+	fakeCLIOnPath(t, "claude", "sleep 30")
+	m, _, _, project := testManager(t, "idle", nil)
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	term, err := m.startTerminal(terminalSpec{
+		cardID: "card-name", boardID: "board1", title: "Починить окно",
+		workdirPath: project, agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(term.ID) }()
+
+	if err := m.AskTerminalName(term.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.NameTerminalFromTools(term.boardToken, "  Окно пополам  "); err != nil {
+		t.Fatal(err)
+	}
+	if got := term.Info().Title; got != "Окно пополам" {
+		t.Errorf("the conversation is called %q, want what the agent answered", got)
+	}
+	// A sentence is not a name: the row it is drawn in has to stay a row.
+	long := strings.Repeat("длинно ", 40)
+	if err := m.NameTerminalFromTools(term.boardToken, long); err != nil {
+		t.Fatal(err)
+	}
+	if got := []rune(term.Info().Title); len(got) > terminalTitleLimit+1 {
+		t.Errorf("a name of %d runes was kept whole", len(got))
+	}
+}
+
+// A CLI that was handed no board tools has nothing to answer with, so it is
+// never asked: a message typed into somebody's terminal that cannot lead
+// anywhere is an interruption and nothing else.
+func TestACLIWithNoToolsIsNotAskedForAName(t *testing.T) {
+	if _, err := exec.LookPath("sh"); err != nil {
+		t.Skip("no shell to stand in for an agent CLI")
+	}
+	m, _, _, project := testManager(t, "idle", nil)
+
+	term, err := m.startTerminal(terminalSpec{
+		cardID: "card-plain", boardID: "board1", title: "Без инструментов",
+		workdirPath: project,
+		agent:       AgentEntry{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(term.ID) }()
+
+	if term.Info().Tools {
+		t.Fatal("a terminal with its own argv was handed the board tools")
+	}
+	if err := m.AskTerminalName(term.ID); err == nil {
+		t.Error("a CLI with nothing to answer through was asked for a name")
+	}
+}

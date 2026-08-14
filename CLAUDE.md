@@ -291,6 +291,16 @@ thing to do about it, «Открыть терминал», because the answer be
 interface the agent drew it in. `components/acp/attention.ts` is the one
 subscription behind all of it.
 
+**The stack belongs to the window with the board in it.** It is mounted outside
+the router (`app.tsx`), which is what puts it wherever in the app a person is —
+and a terminal window is the app too, so every one of them drew the whole stack
+as well: two conversations waiting read as the first one being announced twice.
+One of those copies was worse than a repeat, since a box saying «агент ждёт»
+over the terminal it is *about* covers the question it is announcing — the same
+reason nothing of ours is drawn on that screen. So `attentionNotifications.tsx`
+draws nothing on a `/acp/terminal/` or `/m/terminal/` page, and the list it does
+draw is deduped by the wait's own key.
+
 **The button is also the way in.** A console-glyph button in the card's bottom
 right corner (`KanbanCard__terminal` — it began life as a dot, and the corner
 button is what it grew into; it started in the *top* right, where a card's
@@ -643,17 +653,21 @@ conversation. A run that is not a stage — a planning terminal, a card outside 
 route — is told so and pointed at `move_card`, since the tool is about a stage
 rather than about the board.
 
-Two tools are not about the board at all, and both are there because **nothing
-else can know**. A terminal is the vendor CLI in a pty, not an ACP session, so no
-protocol carries a title, a recap or a stop reason, and the only other source
-would be the CLI's own transcript file — its private business, in a different
-shape per kind. The agent, on the other hand, is the one having the conversation,
-so it is asked: `finish_work` above, and `describe_conversation`, one line about
-what this conversation is doing. The grant names the terminal
-(`BoardGrant.TerminalID`), which is what keeps an agent from describing somebody
-else's; the line lands in `TerminalInfo.Summary`, is drawn under the name in
-«Открытые терминалы» and on «Терминалы» on a phone, and is kept in the record so
-it comes back with the conversation it describes.
+Three tools are not about the board at all, and all three are there because
+**nothing else can know**. A terminal is the vendor CLI in a pty, not an ACP
+session, so no protocol carries a title, a recap or a stop reason, and the only
+other source would be the CLI's own transcript file — its private business, in a
+different shape per kind. The agent, on the other hand, is the one having the
+conversation, so it is asked: `finish_work` above, `describe_conversation`, one
+line about what this conversation is doing, and `name_conversation`, what it is
+called. The grant names the terminal (`BoardGrant.TerminalID`), which is what
+keeps an agent from describing somebody else's; the recap lands in
+`TerminalInfo.Summary`, drawn under the name in «Открытые терминалы» and on
+«Терминалы» on a phone, and both are kept in the record so they come back with
+the conversation. The two are split rather than one call with two fields because
+they are edited from opposite ends: the recap is the agent's, volunteered and
+replaced as the conversation moves on, while the name is the row's — a person
+types over it — and it is *asked for* rather than offered (`AskTerminalName`).
 
 `move_card` is `update_card` with a column in it, and the split is for the model
 rather than for the code: moving is the call whose *consequence* is the point.
@@ -856,10 +870,34 @@ back to the node-less record, which is what carries every conversation held
 before this split into the card's own. Resume metadata is per conversation; the
 transcript `claude --continue` picks up is directory-scoped, so two conversations
 sharing a directory share a transcript — the same trade every non-git folder
-already makes. The panel *is* the card's own conversation and lists the route's
-as chips (`GetCardAgent.conversations`, `Brainstorm`). Who a terminal speaks as
+already makes. Who a terminal speaks as
 follows the stage — its crew, then the assignee, then the single agent — and a
 fully busy crew does not block it: the person opening one is present.
+
+**The panel is a list of the card's conversations with one of them drawn under
+it** (`GetCardAgent.conversations`, `Brainstorm`), and the row is the row
+«Обсудить с агентом» draws — `conversationRow.tsx`, shared, because the two
+screens list the same thing and had drifted into two shapes of it: the card's
+said «Разработка — клаус» in a chip, the planning screen said everything else.
+A stage the route is running opens in the panel like any other; a passed stage's
+has nothing to open, since the route reopens it when the card comes back. What
+the card's own conversation adds is a bin: it ends the CLI **and** deletes the
+record (`DeleteCardConversation`), so the next one starts on a blank screen
+rather than continuing this one, and the card is told nothing about an exit
+somebody asked for (`discarded`). It is the only way that conversation ends —
+everything else about a terminal is kept, which is what makes «продолжить»
+possible. A stage's is refused: the route may still be waiting on it.
+Rows are drawn with `Index` rather than `For` — the list is re-read on every
+`acp:terminal` event, and identity-keyed rows would take a half-typed rename
+with them.
+
+**A conversation opens with what the card says** (`cardIntro`): the person
+clicking the button has the card in front of them and the agent has nothing, so
+the first thing anybody typed was the title they were both looking at. It rides
+in as `terminalSpec.intro` — the first message of a conversation that is
+*starting*, dropped on a resume, where repeating it would read as a new
+instruction. A stage's `prompt` is not dropped, because a stage hands over a
+task every time it runs.
 
 **A folder is optional, an agent is not — and neither is picked silently.** A
 card can be talked over — wording, a plan, the brief — before anybody decides
@@ -919,11 +957,22 @@ lower one — a line of buttons under the pick, each labelled «агент · п
 two terminals on the same thing was what the dialog led to. A row now carries
 what a person needs to pick one: its name, the agent's own recap
 (`describe_conversation`), and who is talking where. Everything a row can do is
-an icon — open (`ShowTerminal`), rename (`RenameTerminal`), end
-(`CloseTerminal`) — and **ending is asked about**, because it stops a CLI
-somebody is using and is the only way this list gets shorter: the list *is* the
-terminals that are running. The dialog subscribes to `acp:terminal` rather than
-reloading on its own, since the recap arrives mid-turn, while it is open.
+an icon — open (`ShowTerminal`), rename (`RenameTerminal`), ask the agent for a
+name (`AskTerminalName`), end (`CloseTerminal`) — and **ending is asked about**,
+because it stops a CLI somebody is using and is the only way this list gets
+shorter: the list *is* the terminals that are running. The dialog subscribes to
+`acp:terminal` rather than reloading on its own, since the recap arrives
+mid-turn, while it is open.
+
+**A name is asked for in the conversation, because that is the only way in.**
+`AskTerminalName` types one English line into the pty (`namingAsk`, delivered on
+the same quiet-wait `deliverPrompt` uses, so it lands between turns) and the
+agent answers with `name_conversation` — the same field `RenameTerminal` writes,
+capped at `terminalTitleLimit` so an answered sentence stays a row. This is the
+one message this app ever puts into somebody else's conversation, and it earns
+it: until the agent says so, every row reads «клаус · черновики доски». A CLI
+that took no board tools cannot answer, so `TerminalInfo.Tools` is what the
+button is drawn on.
 
 It is deliberately not an ACP session: an ACP agent speaks JSON-RPC on stdio and has
 no terminal UI, so one process cannot be both. What the two share is everything
@@ -1061,6 +1110,20 @@ extension is launched through. `docs/release.md` is the release itself;
   `mockResolvedValue`, and the hook around it clears rather than resets.
 - Russian in user-facing strings and product docs, English in code, comments and
   commit messages.
+- **Everything the system says to an agent is English**, and that is a third
+  register rather than a corner of either. A prompt, an MCP server's
+  instructions, a tool description, a `jsonschema` field, the sentence a tool
+  answers a call with — all of it is read by a model, on a machine whose person
+  may be working in any language, and there is no reason for that text to pick
+  one. What a *person* wrote travels through it as data and keeps its own
+  language: the card, the board's own prompt (`boardPrompts`), a column's name,
+  a rewrite of `DefaultPlanningPrompt` in the settings. Where the answer comes
+  back to a person — a name for a conversation, a comment on a card — the prompt
+  asks for the language of the conversation rather than assuming one
+  (`namingAsk`, `cardIntro`). The defaults this repository ships (`config.go`'s
+  three prompts, `boardmcp`, `internal/dokku`, `internal/sources/inbox`) are
+  English for the same reason; what those tools say to a *person* is not, and
+  stays Russian.
 - **User-facing text is plain documentation.** The register for everything a
   person reads off the product — the webapp's strings (`webapp/i18n/*.json` and
   the English defaults in components), the landing (`site/`) and `docs/guide/` —

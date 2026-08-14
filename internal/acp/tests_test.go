@@ -122,7 +122,7 @@ func TestComposeTestPromptCarriesTheScenario(t *testing.T) {
 	if strings.Contains(prompt, "browser_snapshot") || !strings.Contains(prompt, "Проверь только главную.") {
 		t.Fatalf("custom prompt not used:\n%s", prompt)
 	}
-	if !strings.Contains(prompt, "Описания у карточки нет") {
+	if !strings.Contains(prompt, "The card has no description") {
 		t.Fatalf("a card with no body should still be given a scenario:\n%s", prompt)
 	}
 }

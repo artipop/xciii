@@ -34,11 +34,11 @@ const ServerName = "inbox"
 // version tracks the tool surface, not the app.
 const version = "0.1.0"
 
-const instructions = `Инструмент, которым найденное складывается во «Входящие».
-Складывай всё, что нашёл, даже если кажется, что это уже приносили: повторы
-отсекаются по паре (id, version) на стороне приложения. Идентификатор бери из
-самого сервиса и никогда не придумывай — выдуманный id означает новую карточку
-на каждый опрос.`
+const instructions = `The tool that files what you found into «Входящие», the inbox.
+File everything you found, even when it looks like it has been brought in before:
+repeats are dropped by the (id, version) pair on the application's side. Take the
+identifier from the service itself and never invent one — an invented id means a
+new card on every poll.`
 
 // Config is what the process is given.
 type Config struct {
@@ -74,13 +74,13 @@ func (c Config) ingestURL() string {
 // fileInput is one thing found. The field descriptions are the contract with
 // the model, so they say the two things that actually go wrong.
 type fileInput struct {
-	ID      string            `json:"id" jsonschema:"идентификатор записи в самом сервисе, как он там записан; никогда не придумывай его"`
-	Version string            `json:"version,omitempty" jsonschema:"то, что меняется вместе с записью (updated, etag, хэш); пусто, если такого поля нет"`
-	Title   string            `json:"title" jsonschema:"заголовок будущей карточки"`
-	Body    string            `json:"body,omitempty" jsonschema:"описание, markdown"`
-	URL     string            `json:"url,omitempty" jsonschema:"ссылка на запись в сервисе"`
-	Props   map[string]string `json:"props,omitempty" jsonschema:"свойства карточки по именам, например {\"Ссылка\": \"…\"}"`
-	Labels  []string          `json:"labels,omitempty" jsonschema:"метки записи, по ним могут сработать правила источника"`
+	ID      string            `json:"id" jsonschema:"the record's identifier in the service itself, exactly as written there; never invent one"`
+	Version string            `json:"version,omitempty" jsonschema:"whatever changes along with the record (updated, etag, a hash); empty when there is no such field"`
+	Title   string            `json:"title" jsonschema:"the title of the card this becomes"`
+	Body    string            `json:"body,omitempty" jsonschema:"the description, in markdown"`
+	URL     string            `json:"url,omitempty" jsonschema:"a link to the record in the service"`
+	Props   map[string]string `json:"props,omitempty" jsonschema:"the card's properties by name, for example {\"Ссылка\": \"…\"}"`
+	Labels  []string          `json:"labels,omitempty" jsonschema:"the record's labels; the source's rules may fire on them"`
 }
 
 // NewServer builds the server. client is left injectable so the tests can drive
@@ -96,16 +96,16 @@ func NewServer(cfg Config, client *http.Client) *mcp.Server {
 
 	mcp.AddTool(srv, &mcp.Tool{
 		Name:        "file_item",
-		Description: "Положить найденное во «Входящие». Повторы безопасны: та же пара (id, version) не создаёт вторую карточку.",
+		Description: "File what you found into «Входящие», the inbox. Repeats are safe: the same (id, version) pair does not create a second card.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in fileInput) (*mcp.CallToolResult, any, error) {
 		if strings.TrimSpace(in.Title) == "" && strings.TrimSpace(in.URL) == "" {
-			return errorResult("нечего складывать: ни заголовка, ни ссылки"), nil, nil
+			return errorResult("there is nothing to file: neither a title nor a link"), nil, nil
 		}
 		result, err := file(ctx, client, cfg, in)
 		if err != nil {
 			// Returned as a tool error rather than as a protocol one: the model
 			// is meant to read it and try the next item, not to stop.
-			return errorResult("не удалось сложить: %v", err), nil, nil
+			return errorResult("could not file it: %v", err), nil, nil
 		}
 		return textResult(result), nil, nil
 	})
@@ -123,7 +123,7 @@ func ServeStdio(ctx context.Context, cfg Config) error {
 
 // file posts one item and reports what the pipeline made of it, in the words a
 // person would use — the model repeats this back at the end of its turn, and
-// "уже было" is the answer that keeps it from trying again.
+// "already brought in" is the answer that keeps it from trying again.
 func file(ctx context.Context, client *http.Client, cfg Config, in fileInput) (string, error) {
 	body, err := json.Marshal(map[string]any{
 		"v":       1,
@@ -152,7 +152,7 @@ func file(ctx context.Context, client *http.Client, cfg Config, in fileInput) (s
 	defer resp.Body.Close()
 	answer, _ := io.ReadAll(io.LimitReader(resp.Body, 8<<10))
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("приём ответил %d: %s", resp.StatusCode, strings.TrimSpace(string(answer)))
+		return "", fmt.Errorf("the ingest route answered %d: %s", resp.StatusCode, strings.TrimSpace(string(answer)))
 	}
 
 	var res struct {
@@ -163,19 +163,19 @@ func file(ctx context.Context, client *http.Client, cfg Config, in fileInput) (s
 		Failed    int `json:"failed"`
 	}
 	if err := json.Unmarshal(answer, &res); err != nil {
-		return "принято", nil
+		return "filed", nil
 	}
 	switch {
 	case res.Created > 0:
-		return "создана карточка", nil
+		return "a card was created", nil
 	case res.Commented > 0:
-		return "запись изменилась, карточка прокомментирована", nil
+		return "the record changed, the card was commented on", nil
 	case res.Skipped > 0:
-		return "уже приносили, ничего не изменилось", nil
+		return "already brought in, nothing changed", nil
 	case res.Dropped > 0:
-		return "отброшено правилом источника", nil
+		return "dropped by the source's rule", nil
 	default:
-		return "не сложилось: " + strings.TrimSpace(string(answer)), nil
+		return "not filed: " + strings.TrimSpace(string(answer)), nil
 	}
 }
 

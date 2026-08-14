@@ -128,6 +128,16 @@ export interface IAppWindow extends Window {
                 // through the board tools.
                 RenameTerminal?(terminalId: string, title: string): Promise<void>
 
+                // The same field, filled in by the agent instead: the request is
+                // typed into the conversation and answered through the board
+                // tools, because a pty carries no name for what is happening in
+                // it.
+                AskTerminalName?(terminalId: string): Promise<void>
+
+                // Throwing one of a card's conversations away: the CLI ends and
+                // the record goes with it, so the next one starts fresh.
+                DeleteCardConversation?(cardId: string, nodeId: string): Promise<void>
+
                 // Whether the board is published on the user's own tailnet, and
                 // the address a phone opens. The second takes effect at once —
                 // the node is brought up or closed by the call itself.

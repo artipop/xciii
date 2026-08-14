@@ -54,7 +54,17 @@ the Inbox, Cards, Waiting and Terminals tabs.
 
 The **"Notify me when an agent is waiting"** switch is in the "Other" section.
 When off, it removes only the notifications; the amber terminal button on
-the card stays.
+the card stays. Notifications are shown in the board's window; a terminal window
+has none — the agent's question is right there on it.
+
+## The agent's instructions
+
+The "Other" section holds the text an agent is given in a conversation with no
+card. Like the rest of the application's instructions it is written in English:
+the app is used in more than one language, and this text is read by a model.
+Yours can be in any language — like the board's system prompt and the cards
+themselves it is passed through as it is, and the agent answers in the language
+of what it was given.
 
 ## The settings file
 

@@ -79,7 +79,7 @@ func TestAnAgentFilesWhatItFoundThroughTheIngestRoute(t *testing.T) {
 		"body":    "падает на пустом пароле",
 	})
 
-	if !strings.Contains(got, "создана") {
+	if !strings.Contains(got, "a card was created") {
 		t.Fatalf("answer: %q", got)
 	}
 	if len(board.created) != 1 || board.created[0].Title != "Починить логин" {
@@ -100,7 +100,7 @@ func TestFilingTheSameThingTwiceIsANoOp(t *testing.T) {
 	if len(board.created) != 1 {
 		t.Fatalf("created: %+v", board.created)
 	}
-	if !strings.Contains(got, "уже приносили") {
+	if !strings.Contains(got, "already brought in") {
 		t.Fatalf("answer: %q", got)
 	}
 }

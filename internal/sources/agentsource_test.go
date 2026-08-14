@@ -120,9 +120,9 @@ func TestTheAgentIsToldWhatToLookForAndWhatNotToInvent(t *testing.T) {
 	prompt := runner.runs[0].Prompt
 	for _, want := range []string{
 		"карточки, назначенные на меня", // what the person asked for
-		"boardId: 77", // what they configured
-		"file_item",   // the only way to file anything
-		"Никогда не придумывай", // an invented id is a card per poll
+		"boardId: 77",      // what they configured
+		"file_item",        // the only way to file anything
+		"Never invent one", // an invented id is a card per poll
 	} {
 		if !strings.Contains(prompt, want) {
 			t.Fatalf("the prompt is missing %q:\n%s", want, prompt)

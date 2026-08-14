@@ -106,20 +106,20 @@ func composeTestPrompt(ev CardMoved, agent AgentEntry, systemPrompt, testPrompt 
 	} else {
 		b = fmt.Appendf(b, "%s\n\n", DefaultTestPrompt)
 	}
-	b = fmt.Appendf(b, "Карточка: %s\nАдрес превью: %s\n", ev.Title, run.URL)
+	b = fmt.Appendf(b, "Card: %s\nPreview address: %s\n", ev.Title, run.URL)
 	if run.Branch != "" {
-		b = fmt.Appendf(b, "Ветка: %s\n", run.Branch)
+		b = fmt.Appendf(b, "Branch: %s\n", run.Branch)
 	}
 	if run.Artifacts != "" {
 		// The report is a file now, so the agent has to be told where to put it
 		// and its evidence.
-		b = fmt.Appendf(b, "Отчёт: %s\nСкриншоты складывай в: %s\n",
+		b = fmt.Appendf(b, "Report: %s\nPut screenshots in: %s\n",
 			filepath.Join(run.Artifacts, ResultFile), filepath.Join(run.Artifacts, ScreenshotDir))
 	}
 	if ev.Body != "" {
-		b = fmt.Appendf(b, "\nЧто должно работать (описание карточки):\n%s\n", ev.Body)
+		b = fmt.Appendf(b, "\nWhat should work (the card's description):\n%s\n", ev.Body)
 	} else {
-		b = fmt.Appendf(b, "\nОписания у карточки нет — пройди основные сценарии приложения и проверь, что ничего не сломано.\n")
+		b = fmt.Appendf(b, "\nThe card has no description — walk the application's main scenarios and check that nothing is broken.\n")
 	}
 	return string(b)
 }
