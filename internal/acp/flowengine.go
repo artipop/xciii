@@ -178,7 +178,8 @@ func (m *Manager) runNodeAction(ev CardMoved, flow FlowEntry, node FlowNode) {
 	// many at once. The stage overrides only what it names itself.
 	spec, _ := m.columnFor(ev.BoardID, node.asColumn(flow.PropertyOr(m.triggerProperty())))
 	opts := startOptions{flowName: flow.Name, flowNodeID: node.ID, column: spec,
-		deployOverride: node.DeployName, agentCrew: node.Crew(), stagePrompt: node.Prompt}
+		deployOverride: node.DeployName, agentCrew: node.Crew(), stagePrompt: node.Prompt,
+		writes: node.Writes, reads: node.Reads}
 
 	action := node.Action
 	if action == "" {

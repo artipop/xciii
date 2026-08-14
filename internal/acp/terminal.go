@@ -457,7 +457,7 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		boardID:     ev.BoardID,
 		title:       ev.Title,
 		task:        ev.Body,
-		intro:       joinPrompts(place.prompt, cardIntro(ev)),
+		intro:       joinPrompts(place.prompt, cardInputs(ev, place.reads), cardIntro(ev)),
 		workdirPath: workdirPath,
 		base:        ev.Props["branch"],
 		agent:       agent,
@@ -488,6 +488,7 @@ type cardPlace struct {
 	works  bool // the node runs an agent, so its conversation is the stage's
 	runIn  string
 	prompt string
+	reads  []string
 }
 
 // cardPlace resolves where the card is. The route's own record answers first —
@@ -514,6 +515,10 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 				place.works = action == FlowActionAgent
 				place.runIn = node.RunsIn(action)
 				place.prompt = firstNonEmpty(node.Prompt, spec.Prompt)
+				place.reads = node.Reads
+				if len(place.reads) == 0 {
+					place.reads = spec.Reads
+				}
 				return place
 			}
 		}
@@ -527,6 +532,7 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 			place.crew = spec.Agents
 			place.works = spec.Action == FlowActionAgent
 			place.prompt = spec.Prompt
+			place.reads = spec.Reads
 		}
 		return place
 	}

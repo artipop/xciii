@@ -44,6 +44,11 @@ type ColumnSpec struct {
 	// person, so it is passed through as data in whatever language they wrote.
 	Prompt string `json:"prompt,omitempty"`
 
+	// Writes and Reads are the column's declared outputs and inputs — see
+	// FlowNode.Writes/Reads, which override these per route.
+	Writes []PropertyWrite `json:"writes,omitempty"`
+	Reads  []string        `json:"reads,omitempty"`
+
 	// DeployName pins the deploy target for an "deploy" column.
 	DeployName string `json:"deployName,omitempty"`
 

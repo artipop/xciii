@@ -82,6 +82,10 @@ type Session struct {
 	// that stage's conversation still belongs to its column — the same place a
 	// person opening a terminal there lands.
 	NodeID string
+	// Writes are the stage's declared outputs (node's, else the column's): what
+	// finish_work must deliver when one is required, and what a deploy or a
+	// test stage writes onto the card by itself.
+	Writes []PropertyWrite
 	// RunIn is where this session works: the card's own workspace or the
 	// folder itself. The stage decides (FlowNode.RunsIn); a session outside a
 	// route leaves it empty and gets the default for what it is doing.

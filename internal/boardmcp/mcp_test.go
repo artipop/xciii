@@ -100,8 +100,11 @@ func (b *fakeBoard) Name(_ context.Context, title string) error {
 	return nil
 }
 
-func (b *fakeBoard) Finish(_ context.Context, ok bool, summary string) error {
+func (b *fakeBoard) Finish(_ context.Context, ok bool, summary string, fields map[string]string) error {
 	b.finished = append(b.finished, fmt.Sprintf("%t: %s", ok, summary))
+	for k, v := range fields {
+		b.finished = append(b.finished, fmt.Sprintf("%s=%s", k, v))
+	}
 	return nil
 }
 

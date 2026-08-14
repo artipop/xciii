@@ -58,7 +58,7 @@ type Manager struct {
 	// questions have one — a report arrives on an HTTP handler and must not
 	// queue behind a session starting.
 	stageMu      sync.Mutex
-	stageWaits   map[string]chan stageReport // terminal ID → where its report lands
+	stageWaits   map[string]stageWait        // terminal ID → the running stage finish_work answers to
 	stageWaiting map[string]Attention        // terminal ID → the wait it is showing
 
 	seededMu sync.Mutex
@@ -242,6 +242,27 @@ type startOptions struct {
 	// stagePrompt is the node's own instructions, overriding the column's
 	// (FlowNode.Prompt). Empty falls back to opts.column.Prompt.
 	stagePrompt string
+	// writes/reads are the node's declared outputs and inputs, overriding the
+	// column's. Empty falls back, like the crew.
+	writes []PropertyWrite
+	reads  []string
+}
+
+// declaredWrites is what this stage must leave on the card: the node's own
+// list, else the column's.
+func (o startOptions) declaredWrites() []PropertyWrite {
+	if len(o.writes) > 0 {
+		return o.writes
+	}
+	return o.column.Writes
+}
+
+// declaredReads is what this stage is handed on the way in.
+func (o startOptions) declaredReads() []string {
+	if len(o.reads) > 0 {
+		return o.reads
+	}
+	return o.column.Reads
 }
 
 // prompt is what this stage wants said to whoever works it: the node's own
@@ -390,12 +411,13 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	m.cfgMu.RLock()
 	systemPrompt, deployPrompt, testPrompt := m.cfg.BoardPrompts[ev.BoardID], m.cfg.DeployPrompt, m.cfg.TestPrompt
 	m.cfgMu.RUnlock()
-	prompt := composePrompt(ev, agent, systemPrompt, opts.prompt(), worktreeAvailable)
+	inputs := cardInputs(ev, opts.declaredReads())
+	prompt := composePrompt(ev, agent, systemPrompt, joinPrompts(opts.prompt(), inputs), worktreeAvailable)
 	switch {
 	case deploy != nil:
-		prompt = composeDeployPrompt(ev, agent, systemPrompt, deployPrompt, opts.prompt(), *deploy, deployBranch)
+		prompt = composeDeployPrompt(ev, agent, systemPrompt, deployPrompt, joinPrompts(opts.prompt(), inputs), *deploy, deployBranch)
 	case test != nil:
-		prompt = composeTestPrompt(ev, agent, systemPrompt, testPrompt, opts.prompt(), *test)
+		prompt = composeTestPrompt(ev, agent, systemPrompt, testPrompt, joinPrompts(opts.prompt(), inputs), *test)
 	}
 	// The tools of the deploy server are allowed up front: nobody is watching a
 	// card-triggered run, and an unanswered prompt is a rejected one. Seeding
@@ -425,6 +447,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		FlowName:     opts.flowName,
 		FlowNodeID:   opts.flowNodeID,
 		NodeID:       firstNonEmpty(opts.flowNodeID, ev.ToColumn.OptionID, opts.column.OptionID, nodeNone),
+		Writes:       opts.declaredWrites(),
 		RunIn:        opts.runIn,
 		PromptText:   prompt,
 		Policy:       agentPolicy(agent),
@@ -793,6 +816,23 @@ func planningPrompt(systemPrompt, planning string, agent AgentEntry, workdir Wor
 	}
 	b = fmt.Appendf(b, "Folder: `%s` (%s).", workdir.Name, workdir.Path)
 	return string(b)
+}
+
+// cardInputs is the stage's declared reads, valued: what an earlier stage
+// wrote onto the card — the preview URL, the reviewer's verdict — handed to
+// the agent in its brief instead of hoping it asks get_card. A read with no
+// value is named as empty rather than dropped, so the agent knows the field
+// exists and nobody filled it.
+func cardInputs(ev CardMoved, reads []string) string {
+	if len(reads) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	b.WriteString("From the card:")
+	for _, name := range reads {
+		fmt.Fprintf(&b, "\n%s: %s", name, ev.Props[strings.ToLower(name)])
+	}
+	return b.String()
 }
 
 // composePrompt builds the agent task text from the card: what the board says

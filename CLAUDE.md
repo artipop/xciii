@@ -887,6 +887,27 @@ every compose path (agent, deploy, test) and opens a person's conversation on
 that node too (`joinPrompts(place.prompt, cardIntro(ev))`). Typed by a person,
 so it passes through as data in whatever language the board works in.
 
+**Properties are the dataflow, and a stage declares its half**
+(`PropertyWrite`; `Writes`/`Reads` on `ColumnSpec` and `FlowNode`, inherited
+like the crew). Writes are what makes a transition on a property deterministic:
+an agent stage delivers the values through `finish_work`'s `properties` and a
+required one is refused without — checked in `FinishWorkFromTools`, which also
+**writes the fields before delivering the report**, deliberately twice over:
+the route advances on the report and its edges read the card as it is then,
+and a write the board refuses (no such option, no such property) comes back as
+the tool call's own error to the one party that can fix the value. The write
+is silent (`SetCardFields` in the writer: a select by option name, anything
+else as text) because the outcome is the one event the route acts on; the
+column property is refused — the card moves by the outcome or `move_card`. A
+deploy stage writes its preview URL and a test its verdict by itself
+(`writeStageFields`), so those facts stop dying in comments. Reads open the
+brief valued (`cardInputs`, «From the card: …») — sessions and the person's
+conversation on the node alike. The editor edits both lists
+(`writesPicker`/`readsPicker`; deploy/test get a single picker for their one
+machine value) and warns per route about a conditional edge whose property no
+stage writes (`unwrittenConditions`) — named, not refused, since the value may
+be a person's own click.
+
 **The panel is «Терминалы», the list, and the conversation being read under
 them** (`GetCardAgent.conversations`) — one row per node, the current column's
 first and always present (`CardConversations` synthesizes it before anything has

@@ -57,6 +57,15 @@ type stageReport struct {
 	summary string
 }
 
+// stageWait is a running stage as finish_work sees it: where its report lands,
+// and which card properties the stage declared it would write — the required
+// ones are what the report is refused without.
+type stageWait struct {
+	ch     chan stageReport
+	writes []PropertyWrite
+	cardID string
+}
+
 // stageRunsInTerminal reports whether this agent can work a stage in a terminal
 // at all. Three things are needed, and an agent missing any of them keeps the
 // old arrangement — an ACP session — rather than a stage that could never run
@@ -92,7 +101,7 @@ func (m *Manager) runCardTaskInTerminal(s *Session) {
 		return
 	}
 
-	reports := m.awaitStage(t.ID)
+	reports := m.awaitStage(t.ID, s)
 	defer m.forgetStage(t.ID)
 
 	// The session's own cancel, which is what dragging the card out of the
@@ -267,15 +276,16 @@ func (m *Manager) closeStageTerminal(t *TerminalSession) {
 }
 
 // awaitStage registers the channel finish_work delivers on, keyed by the
-// conversation the grant names.
-func (m *Manager) awaitStage(terminalID string) chan stageReport {
+// conversation the grant names — with the stage's declared writes, which is
+// what the report is checked against.
+func (m *Manager) awaitStage(terminalID string, s *Session) chan stageReport {
 	ch := make(chan stageReport, 1)
 	m.stageMu.Lock()
 	defer m.stageMu.Unlock()
 	if m.stageWaits == nil {
-		m.stageWaits = map[string]chan stageReport{}
+		m.stageWaits = map[string]stageWait{}
 	}
-	m.stageWaits[terminalID] = ch
+	m.stageWaits[terminalID] = stageWait{ch: ch, writes: s.Writes, cardID: s.CardID}
 	return ch
 }
 
@@ -290,23 +300,71 @@ func (m *Manager) forgetStage(terminalID string) {
 // a route cannot find out for itself: an interactive CLI does not exit when a
 // turn ends, and a person typing in the same terminal afterwards is the ordinary
 // case rather than a signal.
-func (m *Manager) FinishWorkFromTools(token string, ok bool, summary string) error {
+//
+// fields are the stage's outputs, written onto the card **here, before the
+// report is delivered** — deliberately in this order, twice over. The route
+// advances on the report and its edges read the card as it is then, so a value
+// an edge branches on has to be standing before the outcome fires. And a write
+// the board refuses — a select with no such option, a property the board does
+// not have — comes back as this tool call's own error, to the one party that
+// can fix the value: the agent. A stage that declared a required write is
+// refused without it, which is what makes an edge on that property a
+// transition and not a hope.
+func (m *Manager) FinishWorkFromTools(token string, ok bool, summary string, fields map[string]string) error {
 	g, found := m.boardGrant(token)
 	if !found {
 		return fmt.Errorf("нет доступа к доске")
 	}
 	m.stageMu.Lock()
-	ch := m.stageWaits[g.TerminalID]
+	wait, waiting := m.stageWaits[g.TerminalID]
 	m.stageMu.Unlock()
-	if ch == nil {
+	if !waiting {
 		return fmt.Errorf("этот разговор — не стадия маршрута: сказать здесь «работа закончена» некому, переложите карточку через move_card")
 	}
+	for _, w := range wait.writes {
+		if !w.Required {
+			continue
+		}
+		if strings.TrimSpace(fieldValue(fields, w.Property)) == "" {
+			return fmt.Errorf("стадия обязана записать свойство %q — передай его в properties", w.Property)
+		}
+	}
+	if len(fields) > 0 {
+		if g.Property != "" {
+			if _, taken := fieldsHave(fields, g.Property); taken {
+				return fmt.Errorf("колонка (%s) меняется не здесь: карточку двигает сам исход работы, либо move_card", g.Property)
+			}
+		}
+		if m.writer == nil {
+			return fmt.Errorf("доска недоступна")
+		}
+		ctx, cancel := context.WithTimeout(m.rootCtx, 10*time.Second)
+		defer cancel()
+		if err := m.writer.SetCardFields(ctx, wait.cardID, fields); err != nil {
+			return err
+		}
+	}
 	select {
-	case ch <- stageReport{ok: ok, summary: strings.TrimSpace(summary)}:
+	case wait.ch <- stageReport{ok: ok, summary: strings.TrimSpace(summary)}:
 		return nil
 	default:
 		return fmt.Errorf("об окончании работы уже сказано")
 	}
+}
+
+// fieldValue reads a field the way a person named the property: ignoring case.
+func fieldValue(fields map[string]string, property string) string {
+	v, _ := fieldsHave(fields, property)
+	return v
+}
+
+func fieldsHave(fields map[string]string, property string) (string, bool) {
+	for k, v := range fields {
+		if strings.EqualFold(k, property) {
+			return v, true
+		}
+	}
+	return "", false
 }
 
 // watchStageQuiet raises the card while the stage's CLI is drawing nothing, and

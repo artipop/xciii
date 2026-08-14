@@ -126,6 +126,20 @@ type FlowNode struct {
 	// (ColumnSpec.Prompt). Empty inherits, exactly as Action and the crew do.
 	Prompt string `json:"prompt,omitempty"`
 
+	// Writes are the properties this stage leaves on the card — its declared
+	// outputs, which is what makes a transition on a property deterministic:
+	// an edge that reads «Вердикт» can point at the stage that must write it.
+	// An agent stage delivers the values through finish_work and a required
+	// one is refused without them; a deploy stage writes its preview URL into
+	// each named property, a test stage its verdict. Empty inherits the
+	// column's, exactly as the crew does.
+	Writes []PropertyWrite `json:"writes,omitempty"`
+
+	// Reads are the properties whose values open this stage's brief: what an
+	// earlier stage wrote — the preview URL, the reviewer's verdict — handed
+	// to the agent instead of hoping it asks get_card. Empty inherits.
+	Reads []string `json:"reads,omitempty"`
+
 	// RunIn is where this stage's work happens: RunInOwner — the card's own
 	// workspace, so the stage sees the card's branch; RunInWorkdir — the folder
 	// itself, on whatever is checked out there.
@@ -140,6 +154,15 @@ type FlowNode struct {
 	// "lay it out for me" — a route written by hand never has to place anything.
 	X float64 `json:"x,omitempty"`
 	Y float64 `json:"y,omitempty"`
+}
+
+// PropertyWrite is one property a stage puts on the card: its name on the
+// board, and whether the stage may finish without it. The value is not here —
+// an agent supplies it through finish_work, and a machine stage (deploy, test)
+// knows its own.
+type PropertyWrite struct {
+	Property string `json:"property"`
+	Required bool   `json:"required,omitempty"`
 }
 
 // Where a stage's work happens.

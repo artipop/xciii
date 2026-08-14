@@ -153,9 +153,10 @@ func (g *grantedBoard) Name(_ context.Context, title string) error {
 }
 
 // Finish ends the stage of a route this conversation is, which the grant is
-// what knows — the same way Describe does.
-func (g *grantedBoard) Finish(_ context.Context, ok bool, summary string) error {
-	return g.mgr.FinishWorkFromTools(g.token, ok, summary)
+// what knows — the same way Describe does. The fields land on the card first:
+// they are what the route's own edges may read.
+func (g *grantedBoard) Finish(_ context.Context, ok bool, summary string, fields map[string]string) error {
+	return g.mgr.FinishWorkFromTools(g.token, ok, summary, fields)
 }
 
 func cardInfo(c acp.BoardToolCard) boardmcp.CardInfo {

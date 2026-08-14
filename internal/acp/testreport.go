@@ -27,6 +27,12 @@ func (m *Manager) reportTestRun(s *Session, finalText string, turnErr error) {
 	m.comment(s, testComment(s, res, err, finalText, turnErr))
 	m.attachTestArtifacts(s, res)
 	s.setOutcome(testOutcome(res, err))
+	// The verdict lands in the stage's declared properties — pass/fail/blocked
+	// as the closed set NormalizeVerdict keeps it in — so an edge, a person or
+	// a later stage can read it off the card.
+	if err == nil && res.Verdict != "" {
+		m.writeStageFields(s, res.Verdict)
+	}
 	// A session that belongs to a flow is moved by the flow: two movers would
 	// fight over the card.
 	if err == nil && s.FlowName == "" {

@@ -129,7 +129,7 @@ func TestACardWaitsUntilTheAgentSaysTheWorkIsDone(t *testing.T) {
 		t.Fatalf("session status %q while the agent works, want %q", got, StatusRunning)
 	}
 
-	if err := m.FinishWorkFromTools(term.boardToken, true, "починил сборку"); err != nil {
+	if err := m.FinishWorkFromTools(term.boardToken, true, "починил сборку", nil); err != nil {
 		t.Fatalf("the agent could not report: %v", err)
 	}
 	waitFor(t, 20*time.Second, "the session to finish", func() bool {
@@ -252,7 +252,7 @@ func TestOnlyAStageCanSayTheWorkIsFinished(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = m.FinishWorkFromTools(term.boardToken, true, "всё")
+	err = m.FinishWorkFromTools(term.boardToken, true, "всё", nil)
 	if err == nil {
 		t.Fatal("a planning conversation must not be able to end a stage")
 	}
@@ -388,5 +388,104 @@ func TestAStageAdoptsTheConversationAPersonOpenedOnItsNode(t *testing.T) {
 	}
 	if !stage.isStage() {
 		t.Error("the adopted conversation is not marked as the route's")
+	}
+}
+
+// A stage that declared a required write cannot finish without it, and what it
+// does deliver stands on the card before the report fires — the route's edges
+// read the card as it is then, so the value an edge branches on has to be
+// there first.
+func TestFinishWorkWritesTheDeclaredFieldsBeforeTheReport(t *testing.T) {
+	fakeCLIOnPath(t, "claude", "sleep 30")
+	m, writer, _, project := testManager(t, "idle", nil)
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	term, err := m.startTerminal(terminalSpec{
+		cardID: "card-w", nodeID: "opt-review", boardID: "board1", title: "Ревью",
+		workdirPath: project, agent: AgentEntry{Name: "cl", Kind: AgentKindClaude}, stage: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(term.ID) }()
+
+	reports := m.awaitStage(term.ID, &Session{CardID: "card-w",
+		Writes: []PropertyWrite{{Property: "Вердикт", Required: true}}})
+	defer m.forgetStage(term.ID)
+
+	// Without the required field the report is refused, and the refusal names
+	// the property — the agent is the one who can fix it.
+	err = m.FinishWorkFromTools(term.boardToken, true, "посмотрел", nil)
+	if err == nil || !strings.Contains(err.Error(), "Вердикт") {
+		t.Fatalf("a report without the required write was accepted (err=%v)", err)
+	}
+
+	if err := m.FinishWorkFromTools(term.boardToken, false, "нашёл дефекты",
+		map[string]string{"Вердикт": "fail"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := writer.cardFields("card-w")["Вердикт"]; got != "fail" {
+		t.Errorf("the declared field did not land on the card: %q", got)
+	}
+	select {
+	case rep := <-reports:
+		if rep.ok || rep.summary != "нашёл дефекты" {
+			t.Errorf("the report arrived wrong: %+v", rep)
+		}
+	default:
+		t.Error("the report never arrived")
+	}
+}
+
+// The column property is not a field: the card moves by the outcome or by
+// move_card, and a finish_work that also set the column would be two movers.
+func TestFinishWorkRefusesTheColumnProperty(t *testing.T) {
+	fakeCLIOnPath(t, "claude", "sleep 30")
+	m, _, _, project := testManager(t, "idle", nil)
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	term, err := m.startTerminal(terminalSpec{
+		cardID: "card-col", nodeID: "opt-w", boardID: "board1", title: "Работа",
+		workdirPath: project, agent: AgentEntry{Name: "cl", Kind: AgentKindClaude}, stage: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(term.ID) }()
+	m.awaitStage(term.ID, &Session{CardID: "card-col"})
+	defer m.forgetStage(term.ID)
+
+	err = m.FinishWorkFromTools(term.boardToken, true, "готово",
+		map[string]string{"Статус": "Готово"})
+	if err == nil || !strings.Contains(err.Error(), "move_card") {
+		t.Errorf("setting the column through finish_work was allowed (err=%v)", err)
+	}
+}
+
+// A machine stage's value lands in every property it declared: the deploy URL
+// and the test verdict stop dying in comments.
+func TestWriteStageFieldsPutsTheValueWhereDeclared(t *testing.T) {
+	m, writer, _, _ := testManager(t, "idle", nil)
+	s := &Session{ID: "s1", CardID: "card-m",
+		Writes: []PropertyWrite{{Property: "Превью"}}}
+	m.writeStageFields(s, "https://demo.example.com")
+	if got := writer.cardFields("card-m")["Превью"]; got != "https://demo.example.com" {
+		t.Errorf("the machine value did not land: %q", got)
+	}
+}
+
+// The declared reads open the brief, valued off the card — the preview URL the
+// deploy stage wrote is in the tester's first message, not behind a get_card
+// it may or may not think to make.
+func TestDeclaredReadsOpenTheBrief(t *testing.T) {
+	inputs := cardInputs(CardMoved{Props: map[string]string{"превью": "https://demo.example.com"}},
+		[]string{"Превью", "Одобрено"})
+	for _, want := range []string{"From the card:", "Превью: https://demo.example.com", "Одобрено: "} {
+		if !strings.Contains(inputs, want) {
+			t.Errorf("the inputs block is missing %q:\n%s", want, inputs)
+		}
+	}
+	if cardInputs(CardMoved{}, nil) != "" {
+		t.Error("a stage with no reads got an inputs block")
 	}
 }

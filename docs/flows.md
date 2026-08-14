@@ -87,6 +87,35 @@ with no route chosen, which is where you say what each column does.
   doing what it says, drag it onto the canvas to say where it stands. Rename it
   in the panel; the routes and specs follow the option, not the name.
 
+## Properties are the dataflow
+
+A stage can **declare what it writes onto the card and what it reads off it**,
+and that is what makes a transition on a property deterministic rather than
+hopeful: the edge that asks about «Вердикт» points at the stage that must
+produce it.
+
+- **«Записывает на карточку»** (on the column, overridable per route stage) —
+  the stage's outputs. An agent stage delivers the values through
+  `finish_work` (`properties`), and a **required** one is refused without: the
+  stage cannot end until the value stands. A **deploy** stage writes its
+  preview address into the declared property, a **test** stage its verdict
+  (`pass`/`fail`/`blocked`) — facts that used to live only in comments, where
+  no transition could reach them. Values land on the card *before* the outcome
+  moves it, so the edges read them reliably; the write is silent, because the
+  outcome is the one event the route acts on. A select property takes one of
+  its option names, anything else takes the text as written; a wrong value
+  comes back as the tool call's own error, to the agent — the one party that
+  can fix it. The column property itself is refused: the card moves by the
+  outcome, or by `move_card`.
+- **«Получает с карточки»** — the stage's inputs: the named properties are
+  valued and put at the top of its brief («From the card: Превью: https://…»),
+  instead of hoping the agent asks `get_card`. A person's conversation opened
+  on that column gets the same block.
+- **the check** — a route whose conditional edge reads a property no stage of
+  the route writes gets a warning naming it in the editor. Not an error: the
+  value may be a person's own click (the `card.changed` wait); but a route
+  built on a property nothing produces is a route that quietly never moves.
+
 ## Rules: when one event is not one arrow
 
 A transition can ask about the card before it moves it. The condition sits on
@@ -373,7 +402,7 @@ board: an agent only ever reaches the board its terminal was opened on.
 | put work on the board | *create_card*, *create_cards* — how a planning conversation ends |
 | change a card | *update_card* — its title, its project, its route, an answer a stage is waiting on; *comment_card* — a note in the card's own history |
 | hand work on | *move_card* — the card goes into another column, **and the column starts** |
-| finish a stage | *finish_work* — the work of this card is done, or could not be done; the route takes it from there |
+| finish a stage | *finish_work* — the work of this card is done, or could not be done; the route takes it from there. Carries the stage's declared property values (`properties`), written onto the card before it moves |
 | say what it is doing | *describe_conversation* — one line about this conversation, shown under its name in «Открытые терминалы» and on «Терминалы» on a phone |
 | name the conversation | *name_conversation* — what the row is called; the app asks for it in the conversation itself when somebody presses ✨ |
 

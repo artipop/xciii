@@ -22,6 +22,7 @@ type recordingWriter struct {
 	cards    []acp.NewCard
 	edits    map[string]acp.CardEdit
 	comments map[string][]string
+	fields map[string]map[string]string
 }
 
 func (w *recordingWriter) AddComment(_ context.Context, cardID, text string) error {
@@ -56,6 +57,19 @@ func (w *recordingWriter) UpdateCard(_ context.Context, cardID string, edit acp.
 // these tests reads it back; it is here because the board tools speak through
 // the same writer.
 func (w *recordingWriter) SetCardText(context.Context, string, string, string) error { return nil }
+
+func (w *recordingWriter) SetCardFields(_ context.Context, cardID string, fields map[string]string) error {
+	if w.fields == nil {
+		w.fields = map[string]map[string]string{}
+	}
+	if w.fields[cardID] == nil {
+		w.fields[cardID] = map[string]string{}
+	}
+	for k, v := range fields {
+		w.fields[cardID][k] = v
+	}
+	return nil
+}
 
 // recordingReader is the board read back: two cards on the granted board and one
 // on another, which is the case the grant has to refuse.

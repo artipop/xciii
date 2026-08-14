@@ -19,12 +19,14 @@ import {
     FlowNode,
     FlowTrigger,
     OUTCOMES,
+    PropertyWrite,
     SUCCESS,
     blankSpec,
     columnsOf,
     nodeFor,
     outgoing,
     specFor,
+    unwrittenConditions,
     upsertSpec,
     withColumn,
     withEdge,
@@ -56,6 +58,10 @@ type Props = {
     // could be organised by instead.
     property?: IPropertyTemplate
     properties: IPropertyTemplate[]
+
+    // Every property of the board — what a stage's writes and reads pick from.
+    // Broader than `properties` on purpose: a preview URL wants a text field.
+    allProperties?: IPropertyTemplate[]
     columns: BoardColumn[]
 
     automation: Automation
@@ -479,6 +485,137 @@ const AutomationEditor = (props: Props) => {
         )
     }
 
+    // The properties a stage may write or read: every board property except the
+    // column one — moving between columns is the route's own business.
+    const dataProperties = () =>
+        (props.allProperties || []).filter((p) => p.id !== props.property?.id).map((p) => p.name)
+
+    // writesPicker edits a stage's declared outputs. For an agent stage each row
+    // is a property plus «обязательно» — finish_work is refused without a
+    // required one; a deploy or test stage writes one machine value (the
+    // preview URL, the verdict), so it gets a single picker under the action's
+    // own label. `note` names the inherited answer, the crew picker's shape.
+    const writesPicker = (
+        action: string,
+        value: () => PropertyWrite[],
+        write: (next: PropertyWrite[] | undefined) => void,
+        note?: () => string,
+    ) => {
+        const machine = action === 'deploy' || action === 'test'
+        let label = intl.formatMessage({id: 'Automation.writes', defaultMessage: 'Writes onto the card'})
+        if (action === 'deploy') {
+            label = intl.formatMessage({id: 'Automation.writes-deploy', defaultMessage: 'Preview address goes to the property'})
+        } else if (action === 'test') {
+            label = intl.formatMessage({id: 'Automation.writes-test', defaultMessage: 'Verdict goes to the property'})
+        }
+        const free = () => dataProperties().filter((name) => !value().some((w) => w.property === name))
+        return (
+            <div class='AutomationEditor__writes'>
+                <span class='AutomationEditor__label'>{label}</span>
+                <Show when={!machine}>
+                    <For each={value()}>
+                        {(w, i) => (
+                            <div class='AutomationEditor__writeRow'>
+                                <span class='AutomationEditor__writeName'>{w.property}</span>
+                                <label class='AutomationEditor__writeRequired'>
+                                    <input
+                                        type='checkbox'
+                                        checked={Boolean(w.required)}
+                                        onChange={(e) => {
+                                            const next = value().slice()
+                                            next[i()] = {...w, required: e.currentTarget.checked || undefined}
+                                            write(next)
+                                        }}
+                                    />
+                                    {intl.formatMessage({id: 'Automation.write-required', defaultMessage: 'required'})}
+                                </label>
+                                <button
+                                    type='button'
+                                    class='AutomationEditor__writeRemove'
+                                    title={intl.formatMessage({id: 'Automation.write-remove', defaultMessage: 'Remove'})}
+                                    aria-label={intl.formatMessage({id: 'Automation.write-remove', defaultMessage: 'Remove'})}
+                                    onClick={() => {
+                                        const next = value().filter((_, at) => at !== i())
+                                        write(next.length > 0 ? next : undefined)
+                                    }}
+                                >
+                                    <CompassIcon icon='close'/>
+                                </button>
+                            </div>
+                        )}
+                    </For>
+                </Show>
+                <Select
+                    value={machine ? (value()[0]?.property || '') : ''}
+                    options={[
+                        {value: '', label: machine ? intl.formatMessage({id: 'Automation.writes-nowhere', defaultMessage: '— nowhere —'}) : intl.formatMessage({id: 'Automation.writes-add', defaultMessage: '+ property…'})},
+                        ...(machine ? dataProperties() : free()).map((name) => ({value: name, label: name})),
+                    ]}
+                    onChange={(name) => {
+                        if (machine) {
+                            write(name ? [{property: name}] : undefined)
+                            return
+                        }
+                        if (name) {
+                            write([...value(), {property: name}])
+                        }
+                    }}
+                    label={label}
+                />
+                <Show when={note && note()}>
+                    <span class='AutomationEditor__hint'>{note!()}</span>
+                </Show>
+            </div>
+        )
+    }
+
+    // readsPicker is the mirror: what the stage is handed on the way in.
+    const readsPicker = (
+        value: () => string[],
+        write: (next: string[] | undefined) => void,
+        note?: () => string,
+    ) => {
+        const free = () => dataProperties().filter((name) => !value().includes(name))
+        return (
+            <div class='AutomationEditor__writes'>
+                <span class='AutomationEditor__label'>
+                    {intl.formatMessage({id: 'Automation.reads', defaultMessage: 'Gets from the card'})}
+                </span>
+                <For each={value()}>
+                    {(name) => (
+                        <div class='AutomationEditor__writeRow'>
+                            <span class='AutomationEditor__writeName'>{name}</span>
+                            <button
+                                type='button'
+                                class='AutomationEditor__writeRemove'
+                                title={intl.formatMessage({id: 'Automation.write-remove', defaultMessage: 'Remove'})}
+                                aria-label={intl.formatMessage({id: 'Automation.write-remove', defaultMessage: 'Remove'})}
+                                onClick={() => {
+                                    const next = value().filter((n) => n !== name)
+                                    write(next.length > 0 ? next : undefined)
+                                }}
+                            >
+                                <CompassIcon icon='close'/>
+                            </button>
+                        </div>
+                    )}
+                </For>
+                <Select
+                    value={''}
+                    options={[
+                        {value: '', label: intl.formatMessage({id: 'Automation.writes-add', defaultMessage: '+ property…'})},
+                        ...free().map((name) => ({value: name, label: name})),
+                    ]}
+                    onChange={(name) => name && write([...value(), name])}
+                    label={intl.formatMessage({id: 'Automation.reads', defaultMessage: 'Gets from the card'})}
+                />
+                <Show when={note && note()}>
+                    <span class='AutomationEditor__hint'>{note!()}</span>
+                </Show>
+            </div>
+        )
+    }
+
     const deployPicker = (value: () => string, write: (next: string) => void, blank: string) => (
         <>
             <label>
@@ -773,6 +910,20 @@ const AutomationEditor = (props: Props) => {
                                                 onChange={(e) => updateNodeSpec(node(), {prompt: e.currentTarget.value.trim() || undefined})}
                                             />
                                         </label>
+
+                                        {/* The column's outputs and inputs: what
+                                            a stage here writes is what an edge
+                                            can branch on and a later stage can
+                                            read off the card. */}
+                                        {writesPicker(
+                                            specOf(node())?.action || 'none',
+                                            () => specOf(node())?.writes || [],
+                                            (writes) => updateNodeSpec(node(), {writes}),
+                                        )}
+                                        {readsPicker(
+                                            () => specOf(node())?.reads || [],
+                                            (reads) => updateNodeSpec(node(), {reads}),
+                                        )}
                                     </Show>
                                 </Show>
 
@@ -864,6 +1015,19 @@ const AutomationEditor = (props: Props) => {
                                                 onChange={(e) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {prompt: e.currentTarget.value.trim() || undefined}))}
                                             />
                                         </label>
+
+                                        {/* The stage's own outputs and inputs,
+                                            overriding the column's — shown
+                                            resolved, written to the node. */}
+                                        {writesPicker(
+                                            actionOf(node()),
+                                            () => node().writes || specOf(node())?.writes || [],
+                                            (writes) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {writes})),
+                                        )}
+                                        {readsPicker(
+                                            () => node().reads || specOf(node())?.reads || [],
+                                            (reads) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {reads})),
+                                        )}
                                     </Show>
 
                                     {/* The way to the other half of the answer.
@@ -994,6 +1158,21 @@ const AutomationEditor = (props: Props) => {
                                         </Button>
                                     </div>
                                 </Show>
+
+                                {/* The dataflow check: an edge waiting on a
+                                    property nothing on this route writes may be
+                                    a person's own click — or a route that
+                                    quietly never moves. Named, not refused. */}
+                                <For each={unwrittenConditions(current(), specs(), props.property?.name)}>
+                                    {(property) => (
+                                        <div class='AutomationEditor__warning'>
+                                            {intl.formatMessage(
+                                                {id: 'Automation.unwritten-condition', defaultMessage: 'A transition reads «{property}», but no stage of this route writes it. Fine if a person sets it by hand; otherwise mark the stage that produces it in "Writes onto the card".'},
+                                                {property},
+                                            )}
+                                        </div>
+                                    )}
+                                </For>
                                 <label>
                                     {intl.formatMessage({id: 'Automation.route-project', defaultMessage: 'Folder (optional)'})}
                                     <input

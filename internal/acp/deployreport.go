@@ -1,8 +1,10 @@
 package acp
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/artipop/xciii/internal/dokku"
 )
@@ -34,5 +36,29 @@ func (m *Manager) applyDeployOutcome(s *Session) {
 		m.comment(s, fmt.Sprintf("Деплой ветки `%s` не удался: %s", res.Branch, res.Error))
 	default:
 		s.setOutcome(TriggerSuccess, "ветка задеплоена")
+		// The stage's declared writes get the preview address — the fact a later
+		// stage (or an edge) reads. It used to live only in comments, where no
+		// transition can reach it.
+		m.writeStageFields(s, res.URL)
+	}
+}
+
+// writeStageFields puts one machine-produced value into every property the
+// stage declared it writes. Failures are said on the card rather than swallowed:
+// a route built on this value will stand still, and «свойства нет» is fixable
+// where «карточка не едет» is a mystery.
+func (m *Manager) writeStageFields(s *Session, value string) {
+	if len(s.Writes) == 0 || m.writer == nil || s.CardID == "" {
+		return
+	}
+	fields := map[string]string{}
+	for _, w := range s.Writes {
+		fields[w.Property] = value
+	}
+	ctx, cancel := context.WithTimeout(m.rootCtx, 10*time.Second)
+	defer cancel()
+	if err := m.writer.SetCardFields(ctx, s.CardID, fields); err != nil {
+		m.log.Warn("acp: cannot write the stage's declared fields", "session", s.ID, "err", err)
+		m.comment(s, fmt.Sprintf("Не удалось записать результат стадии на карточку: %v", err))
 	}
 }

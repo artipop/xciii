@@ -77,6 +77,13 @@ type BoardWriter interface {
 	// board records which property this is (BoardPropBranch), and a board that
 	// records none has no field to keep truthful, which is not an error.
 	SetCardText(ctx context.Context, cardID, propertyID, value string) error
+	// SetCardFields writes named properties of a card — a select by one of its
+	// option names, anything else as text. Silent on purpose: these are a
+	// stage's declared outputs, and the outcome that follows them is the one
+	// event the route acts on — a write that notified would race it with a
+	// second trigger. The names are the board's own, because they are what a
+	// person typed into the builder and what an agent answers with.
+	SetCardFields(ctx context.Context, cardID string, fields map[string]string) error
 }
 
 // NewCard is a card asked for from outside the board — by an agent through the

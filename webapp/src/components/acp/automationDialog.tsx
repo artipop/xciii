@@ -282,6 +282,7 @@ const AutomationDialog = (props: Props) => {
                     boardId={props.board.id}
                     property={property()}
                     properties={selectProperties(props.board)}
+                    allProperties={props.board.cardProperties || []}
                     columns={columns()}
                     automation={draft()}
                     triggers={triggers()}

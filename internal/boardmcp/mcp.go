@@ -172,8 +172,9 @@ type Board interface {
 	// Finish is the agent saying the stage of the route it was given is over,
 	// and what became of it. It is the one thing the app cannot see for itself:
 	// the stage is the agent's own CLI in a terminal, and an interactive CLI
-	// does not exit when a turn ends.
-	Finish(ctx context.Context, ok bool, summary string) error
+	// does not exit when a turn ends. fields are the stage's outputs, written
+	// onto the card before the outcome moves it.
+	Finish(ctx context.Context, ok bool, summary string, fields map[string]string) error
 }
 
 type createInput struct {
@@ -219,6 +220,9 @@ type nameInput struct {
 type finishInput struct {
 	Done    bool   `json:"done" jsonschema:"true — the card's work is done; false — it could not be done"`
 	Summary string `json:"summary" jsonschema:"what was done, or why it could not be — this goes onto the card as a comment"`
+	// The stage's declared outputs. Written onto the card before the route
+	// reads it, so a transition on one of these values is deterministic.
+	Properties map[string]string `json:"properties,omitempty" jsonschema:"card properties this stage writes, by name — a select by one of its option names, anything else as text; the stage's own instructions say which are required"`
 }
 
 type noInput struct{}
@@ -391,12 +395,14 @@ func NewServer(board Board) *mcp.Server {
 		Description: "Say that the card's work is finished. Call this when you have done what the " +
 			"card asks — or when it is clear that it cannot be done. Until you say so the card stands " +
 			"still, waiting for you; after it, the card travels on along its route and this " +
-			"conversation closes.",
+			"conversation closes. If your instructions name card properties this stage must write, " +
+			"pass their values in properties — they land on the card before it moves, and the route " +
+			"may branch on them.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, in finishInput) (*mcp.CallToolResult, any, error) {
 		if strings.TrimSpace(in.Summary) == "" {
 			return errorResult("nothing was said about what was done: the short summary goes onto the card, and it is what the person reads"), nil, nil
 		}
-		if err := board.Finish(ctx, in.Done, in.Summary); err != nil {
+		if err := board.Finish(ctx, in.Done, in.Summary, in.Properties); err != nil {
 			return errorResult("%v", err), nil, nil
 		}
 		if in.Done {

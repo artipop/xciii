@@ -169,6 +169,52 @@
             accent-color: rgb(var(--button-bg-rgb));
         }
 
+        // A stage's declared outputs and inputs: rows of property names with
+        // the smallest controls that say required/remove.
+        .AutomationEditor__writes {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .AutomationEditor__writeRow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .AutomationEditor__writeName {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+
+        .AutomationEditor__writeRequired {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            white-space: nowrap;
+        }
+
+        .AutomationEditor__writeRemove {
+            border: 0;
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            cursor: pointer;
+            padding: 2px;
+            line-height: 1;
+
+            &:hover {
+                color: rgb(var(--center-channel-color-rgb));
+            }
+        }
+
         // The stage's instructions: a small page of text in a panel of selects,
         // dressed like the inputs above and allowed to grow downward only.
         .AutomationEditor__prompt {

@@ -57,7 +57,17 @@ The **"Columns"** tab, select a column — in the panel:
   them in front of the card's task, and they open a conversation a person
   starts in this column too: "You are the reviewer — find defects, fix
   nothing" on «Ревью» makes the same agent a reviewer. Written in any language —
-  passed through as it is.
+  passed through as it is;
+- **"Writes onto the card"** — the properties a stage leaves on the card. On an
+  agent column it is a contract: the agent passes the values in `finish_work`,
+  and a "required" one is refused without a value — the stage cannot end until
+  the property is written. A deploy column picks one property for its preview
+  address; a test column one for its verdict (`pass`/`fail`/`blocked`). Values
+  land on the card **before** it travels on, so a conditional arrow can rely on
+  them;
+- **"Gets from the card"** — the properties the stage reads: their values open
+  its brief ("From the card: Превью: …"), so the agent does not have to think
+  of asking `get_card`.
 
 These settings apply on every route. An exception for one route is set in the
 stage panel — select the stage on the route's tab.
@@ -78,6 +88,8 @@ A route tab, select a box — in the panel:
 - **"What the agent is told at this stage"** — instructions for this route
   alone. While the field is empty the column's apply, and the placeholder names
   them;
+- **"Writes onto the card" / "Gets from the card"** — the same as the column's,
+  for this route alone; an empty list inherits;
 - **"From here the card goes"** — this stage's arrows;
 - **"Settings of the column itself…"** — over to the "Columns" tab, to what is
   true of the column on any route.

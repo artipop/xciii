@@ -28,6 +28,12 @@ export type FlowNode = {
     // the column's (ColumnSpec.prompt). Empty inherits.
     prompt?: string
 
+    // The stage's declared outputs and inputs, overriding the column's. A write
+    // is what makes a transition on a property deterministic: the edge that
+    // reads it can point at the stage that must produce it.
+    writes?: PropertyWrite[]
+    reads?: string[]
+
     // Where the stage works: 'owner' — the card's own workspace, so it sees the
     // card's branch; 'workdir' — the folder itself. Empty is the default for
     // what the stage does (Go's FlowNode.RunsIn).
@@ -92,6 +98,18 @@ export type ColumnSpec = {
     // brief on «Ревью», the builder's on «В работе». A route node may override
     // it for its stage alone (FlowNode.prompt).
     prompt?: string
+
+    // The column's declared outputs and inputs — see FlowNode.writes/reads.
+    writes?: PropertyWrite[]
+    reads?: string[]
+}
+
+// PropertyWrite is one property a stage puts on the card. The value is not
+// here: an agent stage supplies it through finish_work (refused without it
+// when required), a deploy stage writes its preview URL, a test its verdict.
+export type PropertyWrite = {
+    property: string
+    required?: boolean
 }
 
 // Automation is a board's whole answer: what its columns do and where its
@@ -493,4 +511,32 @@ export function routeOptionMissing(board: Board, flow: Flow): boolean {
     }
     return !selectProperties(board).some((p) =>
         (p.options || []).some((o) => o.value.trim().toLowerCase() === name))
+}
+
+// unwrittenConditions is the dataflow check: every conditional edge of the
+// route whose property no stage of the route declares as a write. Not an
+// error — «Одобрено» may be a person's own click — but worth a sentence, since
+// an edge waiting on a property nothing produces is a route that quietly never
+// moves. The column property itself is exempt: moving between columns is what
+// the route does, not a value somebody writes.
+export function unwrittenConditions(flow: Flow, specs: ColumnSpec[], columnPropertyName?: string): string[] {
+    const written = new Set<string>()
+    for (const node of flow.nodes) {
+        const spec = specs.find((c) => (node.optionId && c.optionId === node.optionId) ||
+            c.column.toLowerCase() === node.column.toLowerCase())
+        for (const w of (node.writes?.length ? node.writes : spec?.writes) || []) {
+            written.add(w.property.toLowerCase())
+        }
+    }
+    const out = new Set<string>()
+    for (const edge of flow.edges) {
+        const property = edge.if?.property
+        if (!property || property.toLowerCase() === columnPropertyName?.toLowerCase()) {
+            continue
+        }
+        if (!written.has(property.toLowerCase())) {
+            out.add(property)
+        }
+    }
+    return [...out]
 }

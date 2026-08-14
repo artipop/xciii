@@ -26,6 +26,7 @@ type fakeWriter struct {
 	attachments []attachment
 	created     []NewCard                    // cards asked for through the board tools
 	texts       map[string]map[string]string // cardID → property id → text written
+	fields      map[string]map[string]string // cardID → property name → value (SetCardFields)
 	edits       map[string]CardEdit          // changes asked for through the board tools
 	createErr   error
 	editErr     error
@@ -106,6 +107,31 @@ func (w *fakeWriter) SetCardText(ctx context.Context, cardID, propertyID, value 
 	}
 	w.texts[cardID][propertyID] = value
 	return nil
+}
+
+func (w *fakeWriter) SetCardFields(ctx context.Context, cardID string, fields map[string]string) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.fields == nil {
+		w.fields = map[string]map[string]string{}
+	}
+	if w.fields[cardID] == nil {
+		w.fields[cardID] = map[string]string{}
+	}
+	for k, v := range fields {
+		w.fields[cardID][k] = v
+	}
+	return nil
+}
+
+func (w *fakeWriter) cardFields(cardID string) map[string]string {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	out := map[string]string{}
+	for k, v := range w.fields[cardID] {
+		out[k] = v
+	}
+	return out
 }
 
 func (w *fakeWriter) cardText(cardID, propertyID string) string {

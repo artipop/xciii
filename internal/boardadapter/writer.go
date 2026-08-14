@@ -170,6 +170,63 @@ func (w *Writer) SetCardText(ctx context.Context, cardID, propertyID, value stri
 	return w.patchCard(cardID, &model.CardPatch{UpdatedProperties: map[string]any{propertyID: value}}, true)
 }
 
+// SetCardFields writes named properties of a card: a select property gets the
+// option whose name the value is, anything else keeps the value as text. It is
+// the write behind a stage's declared outputs (acp.PropertyWrite) — silent,
+// because the stage's own outcome is the event the route acts on, and the
+// refusals name what a person can fix: a property the board does not have, or
+// an option a select does not carry.
+func (w *Writer) SetCardFields(ctx context.Context, cardID string, fields map[string]string) error {
+	if len(fields) == 0 {
+		return nil
+	}
+	card, err := w.cardBlock(cardID)
+	if err != nil {
+		return err
+	}
+	board, err := w.app.GetBoard(card.BoardID)
+	if err != nil {
+		return fmt.Errorf("get board %s: %w", card.BoardID, err)
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return err
+	}
+	properties := map[string]any{}
+	for name, value := range fields {
+		propID, def, ok := findPropertyByName(schema, name)
+		if !ok {
+			return fmt.Errorf("на доске нет свойства %q", name)
+		}
+		if def.Type == "select" {
+			optionID := ""
+			for oid, opt := range def.Options {
+				if strings.EqualFold(opt.Value, value) {
+					optionID = oid
+					break
+				}
+			}
+			if optionID == "" {
+				return fmt.Errorf("у свойства %q нет значения %q", name, value)
+			}
+			properties[propID] = optionID
+			continue
+		}
+		properties[propID] = value
+	}
+	return w.patchCard(cardID, &model.CardPatch{UpdatedProperties: properties}, true)
+}
+
+// findPropertyByName resolves a property the way a person names it.
+func findPropertyByName(schema model.PropSchema, name string) (string, model.PropDef, bool) {
+	for id, def := range schema {
+		if strings.EqualFold(def.Name, name) {
+			return id, def, true
+		}
+	}
+	return "", model.PropDef{}, false
+}
+
 // patchCard applies a card patch as a block patch. app.PatchCard would do the
 // same and then convert the result back into a Card, which fails for a card
 // whose contentOrder is not a list — and a write that landed must not be
