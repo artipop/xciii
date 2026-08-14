@@ -45,6 +45,10 @@ type WorkSpec struct {
 	BoardID string
 	// Title is what the branch is named after; the card's, usually.
 	Title string
+	// Agent and Task feed branch naming when the machine asks the agent for a
+	// name (naming.go). Both optional: without them the title is the name.
+	Agent *AgentEntry
+	Task  string
 }
 
 // The two refusals a caller has to tell apart, because neither is a failure of
@@ -78,7 +82,14 @@ func (m *Manager) ClaimWorkspace(spec WorkSpec) (Workspace, error) {
 		return held, nil
 	}
 
-	branch := WorkspaceBranch(m.BranchPrefixFor(workdir), spec.Title, spec.Owner)
+	// What the branch is named after: the agent's answer when the machine is
+	// set to ask for one, else the card's own title (transliterated by the
+	// slug). The owner's tail stays either way — names must not collide.
+	title := spec.Title
+	if named := m.agentBranchName(spec, workdir); named != "" {
+		title = named
+	}
+	branch := WorkspaceBranch(m.BranchPrefixFor(workdir), title, spec.Owner)
 	base := m.BaseBranchFor(workdir)
 
 	var (

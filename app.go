@@ -221,6 +221,23 @@ func (a *App) RemoveAgentWorkdir(name string) error {
 	return a.mgr.RemoveWorkdir(name)
 }
 
+// GetAgentNamedBranches reports whether the agent invents branch names — a
+// short headless run per card, before its first workspace (acp/naming.go).
+func (a *App) GetAgentNamedBranches() (bool, error) {
+	if a.mgr == nil {
+		return false, nil
+	}
+	return a.mgr.AgentNamedBranches(), nil
+}
+
+// SetAgentNamedBranches flips that setting.
+func (a *App) SetAgentNamedBranches(on bool) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	return a.mgr.SetAgentNamedBranches(on)
+}
+
 // ListAgentAdapters reports, per agent kind, whether it can be started on this
 // machine — the adapter is installed, npx would fetch it, or Node.js is missing
 // — so the dialog can say it instead of a card failing later.

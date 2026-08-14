@@ -677,6 +677,8 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 			Owner:   spec.cardID,
 			BoardID: spec.boardID,
 			Title:   spec.title,
+			Agent:   &spec.agent,
+			Task:    spec.task,
 		})
 		if err != nil {
 			// Every failure below the grant has to give it back: the token

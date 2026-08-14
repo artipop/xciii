@@ -758,6 +758,13 @@ type Config struct {
 	// "auto" (escalate to a worktree when the folder is busy/dirty) may come later.
 	WorktreeMode string `json:"worktreeMode"`
 
+	// AgentNamedBranches asks the agent to invent each card's branch name in a
+	// short headless session before the workspace is made (naming.go). Off by
+	// default: it costs an agent run and a wait for something transliteration
+	// does for free. Machine-wide, because it is about how this machine spends
+	// agent runs, not about any board.
+	AgentNamedBranches bool `json:"agentNamedBranches,omitempty"`
+
 	MaxConcurrent int `json:"maxConcurrent"`
 	// SessionTimeoutMinutes bounds a session, which is one agent turn: a card's
 	// task, run and reported. SessionIdleMinutes, PermissionTimeoutMinutes and

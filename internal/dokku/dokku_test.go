@@ -50,7 +50,7 @@ func TestAppSlug(t *testing.T) {
 	cases := []struct{ branch, want string }{
 		{"main", "main"},
 		{"feature/Add_Login", "feature-add-login"},
-		{"FEAT/переход", "feat"}, // non-ASCII drops out, ASCII part survives
+		{"FEAT/переход", "feat-perehod"}, // Cyrillic transliterates instead of dropping out
 		{"  spaces  here ", "spaces-here"},
 		{"---dashes---", "dashes"},
 		{"2fix", "2fix"},
@@ -61,12 +61,13 @@ func TestAppSlug(t *testing.T) {
 		}
 	}
 
-	// A branch with nothing ASCII in it still needs a unique, valid label.
-	cyrillic := AppSlug("ветка")
-	if !strings.HasPrefix(cyrillic, "b-") || len(cyrillic) != 8 {
-		t.Errorf("AppSlug(cyrillic) = %q, want a b-<hash> label", cyrillic)
+	// A branch in a script the fold cannot carry still needs a unique, valid
+	// label — Russian now transliterates, so the hash is for everything else.
+	cjk := AppSlug("功能分支")
+	if !strings.HasPrefix(cjk, "b-") || len(cjk) != 8 {
+		t.Errorf("AppSlug(cjk) = %q, want a b-<hash> label", cjk)
 	}
-	if AppSlug("ветка") == AppSlug("другая") {
+	if AppSlug("功能分支") == AppSlug("另一个") {
 		t.Error("two different non-ASCII branches collapsed onto one slug")
 	}
 
@@ -338,5 +339,20 @@ func TestCurrentBranchRejectsDetachedHead(t *testing.T) {
 	branch, err := CurrentBranch(context.Background(), f2.run, "/project")
 	if err != nil || branch != "feat/x" {
 		t.Errorf("got %q, %v", branch, err)
+	}
+}
+
+// The boards this app ships are Russian, so a Russian title is the ordinary
+// case — and it used to fold to nothing and come back as a bare hash. A branch
+// exists to be read.
+func TestAppSlugTransliteratesRussian(t *testing.T) {
+	for in, want := range map[string]string{
+		"Почини логин":       "pochini-login",
+		"Объект и щётка":     "obekt-i-schetka",
+		"Fix the логин flow": "fix-the-login-flow",
+	} {
+		if got := AppSlug(in); got != want {
+			t.Errorf("AppSlug(%q) = %q, want %q", in, got, want)
+		}
 	}
 }

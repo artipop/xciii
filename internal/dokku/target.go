@@ -188,6 +188,20 @@ func AppSlug(branch string) string {
 	return foldLabel(branch, maxSlug, "b")
 }
 
+// translit maps Cyrillic onto the Latin a label can carry. Without it a fully
+// Russian title — which is what the boards this app ships are written in —
+// folded to nothing and came back as the hash fallback: `b-41aa6e` where the
+// person wrote «Почини логин». A hash names nothing, and the branch and the
+// preview address exist to be read. Only Russian: it is the language of the
+// product's own boards, and any other script still gets the hash.
+var translit = map[rune]string{
+	'а': "a", 'б': "b", 'в': "v", 'г': "g", 'д': "d", 'е': "e", 'ё': "e",
+	'ж': "zh", 'з': "z", 'и': "i", 'й': "y", 'к': "k", 'л': "l", 'м': "m",
+	'н': "n", 'о': "o", 'п': "p", 'р': "r", 'с': "s", 'т': "t", 'у': "u",
+	'ф': "f", 'х': "h", 'ц': "ts", 'ч': "ch", 'ш': "sh", 'щ': "sch",
+	'ъ': "", 'ы': "y", 'ь': "", 'э': "e", 'ю': "yu", 'я': "ya",
+}
+
 // foldLabel folds an arbitrary name into a DNS label of at most max characters,
 // falling back to fallback-<hash> when nothing usable is left.
 func foldLabel(name string, max int, fallback string) string {
@@ -195,6 +209,15 @@ func foldLabel(name string, max int, fallback string) string {
 	var b strings.Builder
 	lastDash := false
 	for _, r := range strings.ToLower(trimmed) {
+		if mapped, ok := translit[r]; ok {
+			// A hard/soft sign maps to nothing at all — not to a dash, or
+			// «объект» would come out as ob-ekt.
+			if mapped != "" {
+				b.WriteString(mapped)
+				lastDash = false
+			}
+			continue
+		}
 		switch {
 		case (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'):
 			b.WriteRune(r)

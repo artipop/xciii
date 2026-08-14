@@ -595,6 +595,14 @@ text property the board records as `xciiiBranchProperty`: a machine's database
 does not travel, and the card does — to another board (`MoveCardToBoard`) or
 another machine. The path is not written, because a path means nothing there.
 
+The branch is named after the card's title, transliterated (`dokku.foldLabel`
+carries а Cyrillic→Latin table, so «Почини логин» is `pochini-login-…` rather
+than a hash) — or by the agent itself when `agentNamedBranches` is on: a short
+headless ACP session (`naming.go`, the same shape as a source's run) answers
+with one name, no terminal appears, and anything wrong with the answer falls
+back to the title. Machine-wide, because it is about how this machine spends
+agent runs.
+
 Where a stage works is the stage's own answer (`FlowNode.RunIn`, `RunsIn`),
 defaulting to what that kind of stage has always done: an agent in the card's
 workspace, a deploy and a test in the folder itself. That field is the whole of

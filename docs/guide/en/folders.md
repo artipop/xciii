@@ -68,8 +68,13 @@ or on that branch. The new answer applies to the cards that come after.
 ## The card's branch
 
 One card, one branch — however many stages of a route it travels and however
-many terminals you open beside it. The branch reads like the task:
-`log-in-via-sso-1a2b`.
+many terminals you open beside it. The branch reads like the task: a Russian
+title is transliterated, so «Почини логин» becomes `pochini-login-1a2b`.
+
+For names by meaning rather than by spelling — Settings → This machine → Other →
+**"The agent names each card's branch"**: before the card's first branch the
+agent runs briefly and answers with one name ("fix-sso-login"). No terminal
+opens, and a slow or odd answer falls back to the card's title.
 
 The branch is written into the card's «Ветка» field, so it travels with the card
 to another board and is visible on another machine. The copy's directory is not

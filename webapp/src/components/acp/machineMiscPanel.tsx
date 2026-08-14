@@ -31,6 +31,7 @@ const MachineMiscPanel = () => {
 
     const [prompt, setPrompt] = createSignal('')
     const [savedPrompt, setSavedPrompt] = createSignal('')
+    const [namedBranches, setNamedBranches] = createSignal(false)
     const [error, setError] = createSignal('')
 
     onMount(async () => {
@@ -40,10 +41,24 @@ const MachineMiscPanel = () => {
                 setPrompt(stored)
                 setSavedPrompt(stored)
             }
+            if (bindings?.GetAgentNamedBranches) {
+                setNamedBranches(await bindings.GetAgentNamedBranches())
+            }
         } catch (e: any) {
             setError(String(e?.message || e))
         }
     })
+
+    // Saved on the click: it is one switch, and a Save button beside a
+    // checkbox is a step for nothing.
+    const toggleNamedBranches = async (on: boolean) => {
+        setNamedBranches(on)
+        try {
+            await bindings?.SetAgentNamedBranches?.(on)
+        } catch (e: any) {
+            setError(String(e?.message || e))
+        }
+    }
 
     const savePrompt = async () => {
         if (!bindings?.SetPlanningPrompt) {
@@ -113,6 +128,21 @@ const MachineMiscPanel = () => {
                         </Show>
                     </PromptField>
                 </Show>
+
+                {/* Named by the agent, spelled by the machine otherwise: the
+                    switch is here because it is about how this machine spends
+                    agent runs, not about any board. */}
+                <label class='MachineMiscPanel__toggle'>
+                    <input
+                        type='checkbox'
+                        checked={namedBranches()}
+                        onChange={(e) => toggleNamedBranches(e.currentTarget.checked)}
+                    />
+                    {intl.formatMessage({id: 'Machine.named-branches', defaultMessage: 'The agent names each card’s branch'})}
+                </label>
+                <p class='MachineMiscPanel__hint'>
+                    {intl.formatMessage({id: 'Machine.named-branches-hint', defaultMessage: 'A short agent run before the card’s first branch — no terminal opens, and a slow or odd answer falls back to the card’s title.'})}
+                </p>
 
                 {/* The guide, not docs/flows.md: this line used to name a file
                     of the source tree, which a person reading it off the

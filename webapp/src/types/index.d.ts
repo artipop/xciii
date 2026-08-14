@@ -90,12 +90,18 @@ export interface IAppWindow extends Window {
                 UpdateFlow(entryJSON: string): Promise<string>
                 RemoveFlow(boardId: string, name: string): Promise<void>
                 ExportBoardAutomation?(boardId: string): Promise<string>
+
                 // What this board tells its agents: JSON of {board, agents},
                 // the board's own text and one per agent name.
                 GetBoardPrompts?(boardId: string): Promise<string>
                 SetBoardPrompts?(boardId: string, briefJson: string): Promise<void>
                 GetPlanningPrompt?(): Promise<string>
                 SetPlanningPrompt?(text: string): Promise<void>
+
+                // The agent invents each card's branch name in a short
+                // headless run; off means the title is transliterated instead.
+                GetAgentNamedBranches?(): Promise<boolean>
+                SetAgentNamedBranches?(on: boolean): Promise<void>
                 StartCardDeploy(cardId: string, branch: string): Promise<string>
 
                 // Terminals: the agent's own CLI on a card. `window` asks for a

@@ -342,6 +342,8 @@ func (m *Manager) prepareWorkdir(s *Session) error {
 		Owner:   s.CardID,
 		BoardID: s.BoardID,
 		Title:   s.Title,
+		Agent:   &s.Agent,
+		Task:    s.PromptText,
 	})
 	if err != nil {
 		return err
