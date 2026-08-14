@@ -29,13 +29,16 @@ import './cardTerminal.scss'
 // the card. The branch and the worktree are on the stamp under the card's
 // title, which says the same thing in a line rather than a block.
 //
-// **A conversation per stage.** A card travels its route, and different agents
-// may work its different stages, so the terminal here is the conversation of
-// the stage the card stands on — opening the panel opens that one, and the row
-// of chips under the head lists the others. A passed stage's conversation is
-// closed: it comes back when the card does, because the stage is then current
-// again. Only Go knows that rule; there is deliberately no way to ask it for
-// another stage's terminal.
+// **This panel is the card's own conversation, and only that.** It is where a
+// person thinks about the card — the wording, the plan, the brief — and it
+// needs nothing of the card to open: no folder, no route, no agent assigned.
+// It is kept, so tomorrow it carries on where it stopped.
+//
+// The route's conversations are not this. A card travels its stages, each of
+// which opens a CLI of its own with the card's task in it, and those are listed
+// as chips under the head rather than shown here. The two used to share a key,
+// and a stage starting while somebody was talking typed the card's task into
+// their conversation.
 //
 // The panel starts the terminal as it opens, because opening it *is* the ask —
 // there is nothing else in here to look at first.
@@ -169,7 +172,11 @@ const CardTerminal = (props: Props) => {
         // is the ask below, with «— без папки —» as one of its answers.
         await refreshCardAgent(props.cardId)
         const known = state()
-        const hasConversation = (known.conversations || []).some((c) => c.current)
+
+        // The card's *own* conversation, not a stage's: a stage running on this
+        // card is not a reason to skip asking where a new discussion should
+        // happen.
+        const hasConversation = (known.conversations || []).some((c) => c.brainstorm)
         if (known.running || hasConversation || known.folder) {
             start(false)
             return
@@ -180,20 +187,31 @@ const CardTerminal = (props: Props) => {
     })
 
     const conversations = () => state().conversations || []
-    const currentStage = () => conversations().find((c) => c.current)?.column || ''
 
-    // The chips exist once the card has stages to tell apart: one node-less
-    // conversation is the whole story and needs no row about itself.
-    const showsStages = () => conversations().some((c) => c.nodeId)
+    // The head says what this panel is showing, and this panel always shows the
+    // card's own conversation — the stages are listed beside it.
+    const stageChips = () => conversations().filter((c) => !c.brainstorm)
 
-    const stageLabel = (c: CardConversation) =>
-        c.column || intl.formatMessage({id: 'CardTerminal.no-stage', defaultMessage: 'before the route'})
+    // The chips exist once there is more than the card's own conversation to
+    // tell apart: one conversation is the whole story and needs no row about
+    // itself.
+    const showsStages = () => stageChips().length > 0
+
+    const stageLabel = (c: CardConversation) => {
+        if (c.brainstorm) {
+            return intl.formatMessage({id: 'CardTerminal.brainstorm', defaultMessage: 'Discussion'})
+        }
+        return c.column || intl.formatMessage({id: 'CardTerminal.no-stage', defaultMessage: 'before the route'})
+    }
     const stageTitle = (c: CardConversation) => {
-        if (c.current) {
-            return intl.formatMessage({id: 'CardTerminal.stage-current', defaultMessage: 'The stage the card is on — this conversation is open here'})
+        if (c.brainstorm) {
+            return intl.formatMessage({id: 'CardTerminal.brainstorm-hint', defaultMessage: 'The card’s own conversation — this panel opens it, and it is kept between sessions'})
         }
         if (c.running) {
-            return intl.formatMessage({id: 'CardTerminal.stage-running', defaultMessage: 'Still running — reachable until its CLI exits'})
+            return intl.formatMessage({id: 'CardTerminal.stage-running', defaultMessage: 'A stage of the route, still running — reachable until its CLI exits'})
+        }
+        if (c.current) {
+            return intl.formatMessage({id: 'CardTerminal.stage-current', defaultMessage: 'The stage the card is standing on'})
         }
         return intl.formatMessage({id: 'CardTerminal.stage-passed', defaultMessage: 'A passed stage — its conversation returns if the card does'})
     }
@@ -203,9 +221,9 @@ const CardTerminal = (props: Props) => {
             <div class='CardTerminal__head'>
                 <span class='CardTerminal__title'>
                     {intl.formatMessage({id: 'CardTerminal.title', defaultMessage: 'Terminal'})}
-                    <Show when={currentStage()}>
-                        <span class='CardTerminal__stage'>{` · ${currentStage()}`}</span>
-                    </Show>
+                    <span class='CardTerminal__stage'>
+                        {` · ${intl.formatMessage({id: 'CardTerminal.brainstorm', defaultMessage: 'Discussion'})}`}
+                    </span>
                 </span>
                 <Show when={state().session?.status}>
                     <span class='CardTerminal__status'>{state().session?.status}</span>
@@ -240,13 +258,14 @@ const CardTerminal = (props: Props) => {
                 </div>
             </div>
 
-            {/* The card's conversations, one per stage. Chips, not buttons:
-                only the current stage's conversation can be opened, and it is
-                the one already open — the rest are the card's history saying
-                where it has been worked. */}
+            {/* The route's conversations, one per stage the card was worked on.
+                Chips, not buttons: this panel is the card's own conversation,
+                and these say where the route has taken it — a running one is
+                reached from the card's own terminal button, which turns amber
+                when its agent is waiting. */}
             <Show when={showsStages()}>
                 <div class='CardTerminal__stages'>
-                    <For each={conversations()}>
+                    <For each={stageChips()}>
                         {(c) => (
                             <span
                                 class='CardTerminal__stageChip'

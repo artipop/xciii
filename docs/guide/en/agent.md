@@ -24,11 +24,25 @@ task field. The board's instruction, shared by all its agents, is added in
 front of the description; it is set in
 ["How this board works"](./automation/index.md).
 
-## The terminal
+## The terminal: discussing a card
 
 Open a card: in the top right corner of the dialog, next to "Attach", there is
 a "Terminal" button. It opens a panel on the right, and the terminal in it
 starts by itself.
+
+This is the **card's own conversation** — where you think about it: the wording,
+the plan, the brief, whether it is worth doing at all. It asks nothing of the
+card: no folder, no route, nobody assigned — you can open it the moment the card
+exists. With no folder the conversation happens in the board's drafts; if the
+card has been worked, it happens in the card's own working copy, beside the work.
+It creates no branch of its own.
+
+It is kept. Close the panel, close the app — next time the same conversation
+opens and continues where it stopped.
+
+The conversations a route opens are separate (see below). They used to be one
+and the same, and a stage starting would type the card's task straight into what
+you were discussing.
 
 - if a terminal for this card is already running, the same one opens, with its
   history;
@@ -46,14 +60,19 @@ starts by itself.
 The panel shows the CLI's own interface: the agent displays its progress and
 asks its questions right there.
 
-A card on a route can have several conversations — one per stage, because
-different stages can be worked by different agents. The panel shows its stage
-in the header ("Terminal · In progress") and the other conversations as chips
-beside it. The conversation of the current stage is the one that opens. If the
-card returns to a passed stage, that stage's conversation becomes current again
-and continues where it stopped; a running terminal of a passed stage stays
-reachable until its CLI exits. A conversation started before the route is
-continued by the first stage.
+## The route's conversations
+
+When a card lands in a column that does something, the route opens a
+conversation of **its own** — one per stage, because different stages can be
+worked by different agents. The panel lists them as chips under the header: the
+column and the agent. They are history — what the route did and where; they
+cannot be opened from the panel.
+
+The way to a running one is the terminal button in the corner of the card on the
+board: it turns amber when the agent is waiting, and it opens that terminal. If
+the card returns to a passed stage, that stage's conversation becomes current
+again and continues where it stopped; a running terminal of a passed stage stays
+reachable until its CLI exits.
 
 There is no "Terminal" button if no agent is registered on the machine. The
 exception is a card that was already worked: it has a branch of its own, so

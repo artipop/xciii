@@ -336,21 +336,37 @@ func (t *TerminalSession) finish() {
 	}
 }
 
-// StartCardTerminal opens the agent's CLI on a card: same folder, same
-// worktree rules and same agent as a session on that card would get.
-// projectName/agentName override what the card says, for the case where it says
-// nothing.
+// nodeBrainstorm is the card's own conversation — the one a person opens from
+// the card to think about it, as opposed to the conversations the route opens to
+// work it (stageterminal.go). It is a node id no board can produce: stage nodes
+// are board option ids, and `@` is not a character those are made of.
 //
-// The conversation belongs to the stage the card stands on. There is no way to
-// ask for another stage's — which is the whole rule about passed stages: their
-// conversations reopen only when the card comes back and they are current
-// again. A card outside any route has one conversation, node "".
+// It exists because the two used to share a key. A card's terminal was keyed by
+// the stage the card stood on, so opening one to talk about a card that was
+// standing on a stage handed back the stage's own CLI — and a stage starting
+// while somebody was talking typed the card's task straight into their
+// conversation. They are different things with different lifetimes: a stage's
+// conversation belongs to that stage and closes when it reports, while this one
+// belongs to the card and is still there tomorrow.
+const nodeBrainstorm = "@brainstorm"
+
+// StartCardTerminal opens the card's own conversation — «обсудить эту
+// карточку»: the same agent a session on it would get, and a place to talk
+// before, during or instead of any work. projectName/agentName override what the
+// card says, for the case where it says nothing.
+//
+// It asks nothing of the card. A card with no folder is the ordinary case here,
+// not a refusal — wording, a brief and a plan all come before anybody decides
+// where the work lives — and it never claims a workspace, so no branch appears
+// because somebody wanted to think out loud. Where it runs, in order: the copy
+// the card already has, so the talk is beside the work; else the folder itself;
+// else the board's drafts (startTerminal).
 func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*TerminalSession, error) {
 	if m.reader == nil {
 		return nil, fmt.Errorf("чтение карточек недоступно")
 	}
-	nodeID, crew := m.cardStage(cardID)
-	if live := m.TerminalForCardNode(cardID, nodeID); live != nil {
+	_, crew := m.cardStage(cardID)
+	if live := m.TerminalForCardNode(cardID, nodeBrainstorm); live != nil {
 		return live, nil
 	}
 	ctx, cancel := context.WithTimeout(m.rootCtx, 10*time.Second)
@@ -384,7 +400,7 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		// registered, and the transcript `--continue` picks up is the held
 		// agent's CLI's anyway. An agent since removed falls through to the
 		// usual resolution.
-		if rec, ok, recErr := m.store.LastTerminalForCardNode(cardID, nodeID); recErr == nil && ok && rec.Agent != "" {
+		if rec, ok, recErr := m.store.LastTerminalForCardNode(cardID, nodeBrainstorm); recErr == nil && ok && rec.Agent != "" {
 			if held, heldErr := m.planningAgent(rec.Agent); heldErr == nil {
 				agent = held
 				break
@@ -400,19 +416,37 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 	if err != nil {
 		return nil, err
 	}
+	cwd, branch := m.talkingPlace(ev.BoardID, ev.CardID, workdirPath)
 	return m.startTerminal(terminalSpec{
 		cardID:      ev.CardID,
-		nodeID:      nodeID,
+		nodeID:      nodeBrainstorm,
 		boardID:     ev.BoardID,
 		title:       ev.Title,
 		task:        ev.Body,
 		workdirPath: workdirPath,
 		base:        ev.Props["branch"],
 		agent:       agent,
-		// A folder that is not a repository has no copies to give, and a
-		// terminal in one is a terminal in the folder itself. Which of the two
-		// a repository gets is the board's answer (BoardPropGit).
+		cwd:         cwd,
+		branch:      branch,
 	})
+}
+
+// talkingPlace is where the card's own conversation runs. The copy the card
+// already has, when it has one — talking about the work beside the work is the
+// point, and a copy folded away is put back from its branch rather than
+// remade — otherwise the folder itself. Never a claim: a conversation that
+// invented a branch would leave one behind on every card somebody thought
+// about, and the card's work is the route's business, not this one's. An empty
+// answer means there is no folder at all, and startTerminal talks in the
+// board's drafts.
+func (m *Manager) talkingPlace(boardID, cardID, workdirPath string) (cwd, branch string) {
+	if workdirPath == "" {
+		return "", ""
+	}
+	if held, ok := m.heldWorkspace(workdirPath, cardID, m.WorkModeFor(boardID, workdirPath)); ok && held.Cwd != "" {
+		return held.Cwd, held.Branch
+	}
+	return workdirPath, ""
 }
 
 // boardFolder is «черновики доски»: the board's own directory under the app's
@@ -619,19 +653,20 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	}
 
 	switch {
+	// A caller that already worked out where this runs outranks everything: a
+	// stage was handed its session's workspace, and a card's own conversation
+	// was told to stand beside the work rather than claim any (talkingPlace).
+	// Nothing is claimed here, so no branch appears because somebody opened a
+	// terminal.
+	case spec.cwd != "":
+		t.Cwd, t.Branch = spec.cwd, spec.branch
+		t.worktree = WorktreeInfo{Path: spec.cwd, Branch: spec.branch}
 	case resume:
 		t.Cwd = resumeAt.Cwd
 		t.Branch = resumeAt.Branch
 		// The worktree is the earlier terminal's; this one is a visitor and
 		// must not remove it on the way out.
 		t.worktree = WorktreeInfo{Path: resumeAt.Cwd, Branch: resumeAt.Branch}
-		// The same conversation continued, so what it was called and what it was
-		// about come with it: a name a person typed must not be replaced by the
-		// card's title the next time the terminal opens.
-		if resumeAt.Title != "" {
-			t.Title = resumeAt.Title
-		}
-		t.summary = resumeAt.Summary
 	// A terminal takes the card's workspace — the same branch and the same
 	// directory its sessions work in. It used to make one of its own, so a
 	// person talking to an agent about a card was in a different copy from the
@@ -658,13 +693,15 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 		t.Branch = ws.Branch
 	}
 
-	// A caller that already knows where this runs outranks both: a stage of a
-	// route is handed the workspace its session claimed, and the copy is that
-	// session's to put away rather than this terminal's.
-	if spec.cwd != "" {
-		t.Cwd, t.Branch = spec.cwd, spec.branch
-		t.worktree = WorktreeInfo{Path: spec.cwd, Branch: spec.branch}
-		t.usedWorktree = false
+	// The same conversation continued, so what it was called and what it was
+	// about come with it: a name a person typed must not be replaced by the
+	// card's title the next time the terminal opens. Outside the switch above
+	// because a resumed conversation may still have been told where to run.
+	if resume {
+		if resumeAt.Title != "" {
+			t.Title = resumeAt.Title
+		}
+		t.summary = resumeAt.Summary
 	}
 
 	// A conversation with no folder runs in «черновики доски» — the board's own
@@ -1284,8 +1321,13 @@ type ResumableTerminal struct {
 // which stage, who spoke there, whether it is running, and whether the card is
 // standing on it — the only one a new terminal can open.
 type CardConversation struct {
-	NodeID     string `json:"nodeId,omitempty"`
-	Column     string `json:"column,omitempty"`
+	NodeID string `json:"nodeId,omitempty"`
+	Column string `json:"column,omitempty"`
+	// Brainstorm marks the card's own conversation rather than a stage's — the
+	// one the card's terminal button opens, which has no column to be named
+	// after. A flag rather than a name, because what it is called is the
+	// screen's business and the screen is in Russian.
+	Brainstorm bool   `json:"brainstorm,omitempty"`
 	Agent      string `json:"agent,omitempty"`
 	Running    bool   `json:"running,omitempty"`
 	Current    bool   `json:"current,omitempty"`
@@ -1312,11 +1354,16 @@ func (m *Manager) CardConversations(cardID string) []CardConversation {
 
 	out := make([]CardConversation, 0, len(recs))
 	for _, rec := range recs {
+		brainstorm := rec.NodeID == nodeBrainstorm
 		c := CardConversation{
-			NodeID:    rec.NodeID,
-			Column:    columns[rec.NodeID],
-			Agent:     rec.Agent,
-			Current:   rec.NodeID == currentNode,
+			NodeID:     rec.NodeID,
+			Column:     columns[rec.NodeID],
+			Brainstorm: brainstorm,
+			Agent:      rec.Agent,
+			// The card's own conversation is always the one the button opens, so
+			// it is always current; a stage's is current only while the card
+			// stands on it.
+			Current:   brainstorm || rec.NodeID == currentNode,
 			StartedAt: rec.StartedAt.Format(time.RFC3339),
 			ExitCode:  rec.ExitCode,
 		}

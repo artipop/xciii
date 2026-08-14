@@ -42,26 +42,30 @@ describe('components/acp/cardTerminal', () => {
         expect(await screen.findByTestId('terminal')).toHaveTextContent('term-1')
     })
 
-    // A card travels its route, and each stage is its own conversation: the
-    // panel names the stage it opened and lists the others as history. Chips,
-    // not buttons — a passed stage's conversation reopens only when the card
-    // comes back, and only Go knows that rule.
-    it('names the stage and lists the passed ones as history', async () => {
+    // This panel is the card's own conversation and says so, whatever the route
+    // is doing. The route's stages are listed beside it as chips, not buttons:
+    // a stage's conversation is reached from the card's own terminal button,
+    // and only Go decides which of them is open.
+    it('names its own conversation and lists the route’s stages beside it', async () => {
         stubBindings({
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
                 conversations: [
+                    {nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', current: true},
                     {nodeId: 'review', column: 'Ревью', agent: 'клаус', current: true},
                     {nodeId: 'work', column: 'В работе', agent: 'кодекс', current: false},
                 ],
             })),
         })
-        render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
+        const {container} = render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))
 
-        await waitFor(() => expect(screen.getByText('· Ревью', {exact: false})).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByText('· Discussion', {exact: false})).toBeInTheDocument())
         const passed = screen.getByText('В работе', {exact: false})
-        expect(passed).toBeInTheDocument()
         expect(passed.closest('.CardTerminal__stageChip')).not.toBeNull()
         expect(passed.closest('button')).toBeNull()
+
+        // The card's own conversation is the panel, not a chip about itself.
+        const chips = container.querySelectorAll('.CardTerminal__stageChip')
+        expect(chips.length).toBe(2)
     })
 
     // Go could not resolve the agent: the one moment the pick is a real
@@ -224,12 +228,12 @@ describe('components/acp/cardTerminal', () => {
         await waitFor(() => expect(onClose).toHaveBeenCalled())
     })
 
-    // One conversation on a card with no route is the whole story: a row of
-    // chips about itself would be noise.
-    it('draws no stage chips for a card outside any route', async () => {
+    // The card's own conversation is the whole story until a route has worked
+    // the card: a row of chips about itself would be noise.
+    it('draws no stage chips for a card the route has not worked', async () => {
         stubBindings({
             GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
-                conversations: [{nodeId: '', agent: 'клаус', current: true}],
+                conversations: [{nodeId: '@brainstorm', brainstorm: true, agent: 'клаус', current: true}],
             })),
         })
         const {container} = render(() => wrapIntl(() => <CardTerminal cardId='card-1' board={board} onClose={vi.fn()}/>))

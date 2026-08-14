@@ -810,24 +810,40 @@ because a screen of its own is the one thing a panel beside a card cannot be. An
 ours was built to go beside it**: the terminal *is* what a session looks like,
 since the agent's own CLI already draws its work and asks its own questions.
 
-**A terminal is the conversation of the stage the card stands on** — keyed
-(card, node), where a node is a stage of the card's route and `""` is the one
-conversation of a card outside any route. Everything follows from one rule: the
-only conversation that can be opened is the current stage's, and Go offers no
-way to ask for another (`StartCardTerminal` reads the node from the card's own
-flow state). A passed stage's conversation is closed; the card coming back
-makes that stage current and its conversation reopens where it left off. A
-still-running CLI on a passed stage stays reachable by id until it exits — a
-person's terminal is never killed — it just is not where a new ask lands, which
-is why the board's terminal button shows a live terminal via `ShowTerminal(id)` rather than
-reopening "the card's terminal" beside it. The node-less conversation is the
-resume fallback for a stage with none, so planning done on a card flows into
-its first stage. Resume metadata is per stage; the transcript `claude
---continue` picks up is directory-scoped, and the panel lists the card's
-conversations as chips (`GetCardAgent.conversations`), current solid, the rest
-history. Who a terminal speaks as follows the stage too — its crew, then the
-assignee, then the single agent — and a fully busy crew does not block it: the
-person opening one is present.
+**A card has one conversation of its own, and one per stage the route worked
+it** — keyed (card, node). A stage's node is the board option id it stands on;
+the card's own is `nodeBrainstorm` (`@brainstorm`), a key no board can produce,
+since option ids are not made of `@`.
+
+The two are different things and were one for a while, which is the bug this
+split fixes. A card's terminal was keyed by the stage the card stood on, so
+opening one to *think about* a card standing on a stage handed back that
+stage's working CLI — and a stage starting while somebody was talking typed the
+card's task straight into their conversation. They have different lifetimes:
+a stage's belongs to the stage and is closed when it reports (`stageterminal.go`),
+the card's own belongs to the card and is still there tomorrow.
+
+**The card's own conversation asks nothing of the card** — no folder, no route,
+nobody assigned — because it is where those get decided. `StartCardTerminal` is
+only ever that one, and it **claims no workspace**: `talkingPlace` takes the copy
+the card already has when it has one (so the talk stands beside the work), else
+the folder itself, else «черновики доски». A conversation that claimed one would
+leave a branch behind on every card somebody thought about.
+
+The route's conversations are opened by the route alone. A passed stage's is
+closed; the card coming back makes that stage current and its conversation
+reopens where it left off. A still-running CLI on a passed stage stays reachable
+by id until it exits — a person's terminal is never killed — which is why the
+board's terminal button shows a live terminal via `ShowTerminal(id)` rather than
+reopening "the card's terminal" beside it. `LastTerminalForCardNode` still falls
+back to the node-less record, which is what carries every conversation held
+before this split into the card's own. Resume metadata is per conversation; the
+transcript `claude --continue` picks up is directory-scoped, so two conversations
+sharing a directory share a transcript — the same trade every non-git folder
+already makes. The panel *is* the card's own conversation and lists the route's
+as chips (`GetCardAgent.conversations`, `Brainstorm`). Who a terminal speaks as
+follows the stage — its crew, then the assignee, then the single agent — and a
+fully busy crew does not block it: the person opening one is present.
 
 **A folder is optional, an agent is not — and neither is picked silently.** A
 card can be talked over — wording, a plan, the brief — before anybody decides

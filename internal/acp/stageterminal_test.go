@@ -171,6 +171,72 @@ func TestACLIThatCannotStartSaysWhyOnTheCard(t *testing.T) {
 	})
 }
 
+// The card's own conversation and the route's are different things. A stage
+// starting while somebody is thinking out loud must open its own CLI, not type
+// the card's task into theirs — which is what one shared key did.
+func TestAStageDoesNotTakeOverTheCardsOwnConversation(t *testing.T) {
+	m, _, events, project, _ := stageManager(t, "sleep 30", nil)
+
+	mine, err := m.StartCardTerminal("cardTalk", "", "")
+	if err != nil {
+		t.Fatalf("could not open the card's own conversation: %v", err)
+	}
+	t.Cleanup(func() { _ = m.CloseTerminal(mine.ID) })
+
+	events.ch <- moveEvent("cardTalk", project, "opt-backlog", "opt-agent")
+
+	var stage *TerminalSession
+	waitFor(t, 20*time.Second, "the stage to open a conversation of its own", func() bool {
+		for _, info := range m.LiveTerminals() {
+			if info.CardID == "cardTalk" && info.ID != mine.ID {
+				stage = m.Terminal(info.ID)
+				return stage != nil
+			}
+		}
+		return false
+	})
+	t.Cleanup(func() { m.CancelSessionForCard("cardTalk", "тест закончился") })
+
+	if strings.Contains(strings.Join(mine.Argv, " "), "Test task") {
+		t.Errorf("the card's task was typed into the person's conversation:\n%q", mine.Argv)
+	}
+	if !strings.Contains(strings.Join(stage.Argv, " "), "Test task") {
+		t.Errorf("the stage did not get the card's task:\n%q", stage.Argv)
+	}
+	if mine.NodeID == stage.NodeID {
+		t.Errorf("both conversations are keyed %q — they would keep colliding", mine.NodeID)
+	}
+}
+
+// The card's own conversation asks nothing of the card: no folder, no route, no
+// agent assigned. It is where the folder gets decided, so demanding one first
+// would be the wrong way round — and it must not invent a branch for a card
+// nobody has started work on.
+func TestTheCardsOwnConversationOpensWithNoProject(t *testing.T) {
+	m, _, _, _, _ := stageManager(t, "sleep 30", nil)
+	m.SetBoardReader(&fakeReader{ev: CardMoved{BoardID: "board1", Title: "Обдумать"}})
+
+	term, err := m.StartCardTerminal("cardBare", "", "")
+	if err != nil {
+		t.Fatalf("a card with no folder could not be talked about: %v", err)
+	}
+	t.Cleanup(func() { _ = m.CloseTerminal(term.ID) })
+
+	if term.Branch != "" {
+		t.Errorf("thinking about a card left branch %q behind", term.Branch)
+	}
+	if term.Cwd != m.boardFolder("board1") {
+		t.Errorf("a conversation with no folder runs in %q, want the board's drafts", term.Cwd)
+	}
+
+	// And asking again is "show me the one I have", which is what makes it a
+	// place to come back to rather than a new CLI every time.
+	again, err := m.StartCardTerminal("cardBare", "", "")
+	if err != nil || again.ID != term.ID {
+		t.Errorf("asking twice started a second conversation (%v, %v)", again, err)
+	}
+}
+
 // The report is the stage's, not the board's: a conversation somebody opened to
 // plan with has no stage to end, and saying so is better than quietly moving a
 // card nobody put on a route.

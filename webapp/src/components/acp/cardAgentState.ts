@@ -25,9 +25,9 @@ export type CardAgentState = {
     // same reason the route strip shows, for a card outside any route.
     stall?: {reason?: string, nodeId?: string, createdAt?: string}
 
-    // The card's conversations, one per stage of its route it was worked on.
-    // The current stage's is the one the terminal button opens; a passed
-    // stage's is history until the card comes back.
+    // The card's conversations: its own — what the terminal button opens, and
+    // what a person thinks about the card in — and one per stage of its route
+    // that was worked on. A passed stage's is history until the card comes back.
     conversations?: CardConversation[]
 
     // Where a conversation on this card would run, when the card resolves a
@@ -39,6 +39,10 @@ export type CardAgentState = {
 export type CardConversation = {
     nodeId?: string
     column?: string
+
+    // The card's own conversation rather than a stage's: it has no column to be
+    // named after, so the name is this side's to give.
+    brainstorm?: boolean
     agent?: string
     running?: boolean
     current?: boolean
