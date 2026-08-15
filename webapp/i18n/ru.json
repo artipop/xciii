@@ -270,6 +270,7 @@
   "CardDetail.limited-title": "Эта карточка скрыта",
   "CardDetail.moveContent": "переместить содержимое карты",
   "CardDetail.new-comment-placeholder": "Добавить комментарий...",
+  "CardDetail.worktree-property": "Ворктри",
   "CardDetailProperty.confirm-delete-heading": "Подтвердить удаление свойства",
   "CardDetailProperty.confirm-delete-subtext": "Вы действительно хотите удалить свойство «{propertyName}»? При его удалении свойство будет удалено со всех карточек на этой доске.",
   "CardDetailProperty.confirm-property-name-change-subtext": "Вы действительно хотите изменить свойство «{propertyName}» {customText}? Это затронет {numOfCards, plural, one {значение на # карточке} few {значения на # карточках} many {значения на # карточках} other {значения на # карточках}} на этой доске и может привести к потере данных.",

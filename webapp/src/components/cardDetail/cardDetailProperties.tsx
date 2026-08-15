@@ -23,6 +23,9 @@ import {useHasCurrentBoardPermissions} from '../../hooks/permissions'
 import propRegistry from '../../properties'
 import {PropertyType} from '../../properties/types'
 
+import {boardBranchProperty} from '../acp/automation'
+import {cardAgentState} from '../acp/cardAgentState'
+
 type Props = {
     board: Board
     card: Card
@@ -37,6 +40,22 @@ const CardDetailProperties = (props: Props) => {
     const canEditBoardProperties = useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
     const canEditBoardCards = useHasCurrentBoardPermissions([Permission.ManageBoardCards])
     const intl = useIntl()
+
+    // The branch field is the machine's record — where the card's work lives —
+    // and the card knows *what kind* of place that is. The board records which
+    // property it is (xciiiBranchProperty); the card's own state says whether
+    // its workspace is a copy or a branch in the folder. The stamp under the
+    // title already names its line after the mode, and a field under it saying
+    // «Ветка» over the same value read as the setting not having taken.
+    const branchPropertyId = () => boardBranchProperty(props.board)
+    const agentState = () => cardAgentState(props.card.id)()
+    const isBranchProperty = (t: IPropertyTemplate) => t.id !== '' && t.id === branchPropertyId()
+    const branchLabel = (t: IPropertyTemplate) => {
+        if (agentState().workMode === 'worktree') {
+            return intl.formatMessage({id: 'CardDetail.worktree-property', defaultMessage: 'Worktree'})
+        }
+        return t.name
+    }
 
     createEffect(() => {
         const newProperty = props.board.cardProperties.find((property) => property.id === newTemplateId())
@@ -137,8 +156,12 @@ const CardDetailProperties = (props: Props) => {
                         class='octo-propertyrow'
                     >
                         <Show
-                            when={!props.readonly && canEditBoardProperties()}
-                            fallback={<div class='octo-propertyname octo-propertyname--readonly'>{propertyTemplate.name}</div>}
+                            when={!props.readonly && canEditBoardProperties() && !isBranchProperty(propertyTemplate)}
+                            fallback={
+                                <div class='octo-propertyname octo-propertyname--readonly'>
+                                    {isBranchProperty(propertyTemplate) ? branchLabel(propertyTemplate) : propertyTemplate.name}
+                                </div>
+                            }
                         >
                             <MenuWrapper
                                 isOpen={propertyTemplate.id === newTemplateId()}
@@ -156,7 +179,7 @@ const CardDetailProperties = (props: Props) => {
                             </MenuWrapper>
                         </Show>
                         <PropertyValueElement
-                            readOnly={props.readonly || !canEditBoardCards()}
+                            readOnly={props.readonly || !canEditBoardCards() || isBranchProperty(propertyTemplate)}
                             card={props.card}
                             board={props.board}
                             propertyTemplate={propertyTemplate}

@@ -72,6 +72,12 @@ const PropertyMenu = (props: Props) => {
             <Menu.SubMenu
                 id='type'
                 name={typeMenuTitle(intl, props.propertyType)}
+
+                // 'auto' hangs the list off whichever end of the option has
+                // more room and caps its height there: the type list is longer
+                // than a low-standing menu has below it, and without the cap it
+                // ran off the screen with no scrollbar to reach the rest.
+                position='auto'
             >
                 <PropertyTypes
                     label={intl.formatMessage({id: 'PropertyMenu.changeType', defaultMessage: 'Change property type'})}

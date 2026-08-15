@@ -120,6 +120,40 @@ describe('components/cardDetail/CardDetailProperties', () => {
         return render(component)
     }
 
+    // The branch field is the machine's record: the board says which property
+    // it is (xciiiBranchProperty), and the row is not a door — no menu on the
+    // name, no editor on the value. The machine writes it, the person reads it.
+    it('renders the branch property read-only, without its menu', () => {
+        const branchBoard = TestBlockFactory.createBoard()
+        branchBoard.cardProperties = [
+            {id: 'prop_branch', name: 'Ветка', type: 'text', options: []},
+            {id: 'prop_plain', name: 'Заметка', type: 'text', options: []},
+        ]
+        branchBoard.properties = {xciiiBranchProperty: 'prop_branch'}
+        const branchCard = TestBlockFactory.createCard(branchBoard)
+        branchCard.fields.properties.prop_branch = 'pochini-login-abcd'
+
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <CardDetailProperties
+                    board={branchBoard}
+                    card={branchCard}
+                    cards={[branchCard]}
+                    activeView={view}
+                    views={views}
+                    readonly={false}
+                />
+            </AppStoreProvider>,
+        ))
+
+        const names = [...container.querySelectorAll('.octo-propertyname')]
+        const branchName = names.find((n) => n.textContent?.includes('Ветка'))
+        const plainName = names.find((n) => n.textContent?.includes('Заметка'))
+        expect(branchName?.querySelector('button')).toBeNull()
+        expect(plainName?.querySelector('button')).not.toBeNull()
+        expect(screen.getByText('pochini-login-abcd')).toBeInTheDocument()
+    })
+
     it('should match snapshot', async () => {
         const {container} = renderComponent()
         expect(container).toMatchSnapshot()

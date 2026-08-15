@@ -187,6 +187,11 @@
 
 .Menu.noselect,
 .SubMenuOption .SubMenu {
+    // Longer than the screen has room for — the property-type list is — the
+    // submenu scrolls instead of running off it; the option computes the cap
+    // (subMenuOption.tsx, position 'auto').
+    overflow-y: auto;
+
     @media screen and (max-width: 430px) {
         position: fixed;
         top: 0;

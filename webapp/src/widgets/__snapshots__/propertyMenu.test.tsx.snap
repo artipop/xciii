@@ -34,7 +34,8 @@ exports[`widgets/PropertyMenu > should match snapshot 1`] = `
             class="CompassIcon icon-chevron-right"
           />
           <div
-            class="SubMenu Menu noselect bottom"
+            class="SubMenu Menu noselect auto"
+            style="top: 0px; max-height: 756px;"
           >
             <div
               class="menu-contents"

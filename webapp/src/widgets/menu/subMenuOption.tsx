@@ -35,7 +35,15 @@ function SubMenuOption(props: SubMenuOptionProps): JSX.Element {
         const newStyle: JSX.CSSProperties = {}
         if (props.position === 'auto' && ref) {
             const box = ref.getBoundingClientRect()
-            newStyle[box.top > window.innerHeight - box.bottom ? 'bottom' : 'top'] = '0'
+            const above = box.top
+            const below = window.innerHeight - box.bottom
+            newStyle[above > below ? 'bottom' : 'top'] = '0'
+
+            // The list may be longer than the room on the chosen side — the
+            // property-type list is — and an absolutely positioned submenu
+            // otherwise runs off the screen with no way to scroll to the rest.
+            // The stylesheet gives .SubMenu overflow-y for exactly this cap.
+            newStyle['max-height'] = `${Math.max(above, below, 160) - 12}px`
         }
 
         setStyle(newStyle)
