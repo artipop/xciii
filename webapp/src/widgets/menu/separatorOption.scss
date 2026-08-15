@@ -1,4 +1,17 @@
 .MenuSeparator {
     border-bottom: solid 1px rgba(var(--center-channel-color-rgb), 0.16);
     margin: 8px 0;
+
+    // A separator is a line *between* two groups, so it draws nothing when it
+    // has no group on one side of it. Every menu in this app is built out of
+    // `<Show>`s — a board's ⋯ menu offers only the setup questions that board
+    // asks — so the group above a line can turn out to be empty, and a menu
+    // that opens with a hairline reads as something failing to render. Said
+    // here rather than at each call site, where it would be the same condition
+    // written twice and forgotten the first time an item is added.
+    &:first-child,
+    &:last-child,
+    + .MenuSeparator {
+        display: none;
+    }
 }

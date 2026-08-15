@@ -28,6 +28,9 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu 1`] = `
             class="menu-options"
           >
             <div
+              class="MenuOption MenuSeparator menu-separator"
+            />
+            <div
               aria-label="Export to CSV"
               class="MenuOption TextOption menu-option"
               role="button"
@@ -150,6 +153,9 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify ca
             class="menu-options"
           >
             <div
+              class="MenuOption MenuSeparator menu-separator"
+            />
+            <div
               aria-label="Export to CSV"
               class="MenuOption TextOption menu-option"
               role="button"
@@ -271,6 +277,9 @@ exports[`components/viewHeader/viewHeaderActionsMenu > return menu and verify ca
           <div
             class="menu-options"
           >
+            <div
+              class="MenuOption MenuSeparator menu-separator"
+            />
             <div
               aria-label="Export to CSV"
               class="MenuOption TextOption menu-option"

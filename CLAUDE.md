@@ -632,7 +632,12 @@ The rest of the ⋯ menu is export — the archive in the settings dialog is eve
 board there is, and one board's own is the board's own business, which is also
 the whole of why import is not offered per board: what an archive brings is
 boards, plural, and Trello/Notion/Todoist are instructions for making one rather
-than an importer of ours. **"Сохранить как шаблон…" is parked there**
+than an importer of ours. It is **last, under a separator**: carrying the board
+out is not a setting of it, and the two exports used to open the menu with the
+questions a person came for underneath them. A separator draws nothing when it
+has no group above or below it (`separatorOption.scss`) — every menu here is
+built out of `<Show>`s, so the group above a line can be empty, and that rule
+lives with the line rather than being re-derived at each call site. **"Сохранить как шаблон…" is parked there**
 (`OFFER_SAVE_AS_TEMPLATE`, one line in `viewHeaderActionsMenu.tsx`): the
 machinery is untouched and still reached by the template picker's pencil, but
 making a template is the rarest thing anybody does on a board and it stood one

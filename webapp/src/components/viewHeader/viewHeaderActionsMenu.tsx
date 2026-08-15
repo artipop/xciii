@@ -128,16 +128,6 @@ const ViewHeaderActionsMenu = (props: Props) => {
                     menu={
                         <Menu position='left'>
                             <Show when={!onInbox()}>
-                                <Menu.Text
-                                    id='exportCsv'
-                                    name={intl.formatMessage({id: 'ViewHeader.export-csv', defaultMessage: 'Export to CSV'})}
-                                    onClick={() => onExportCsvTrigger(props.board, props.activeView, props.cards, intl)}
-                                />
-                                <Menu.Text
-                                    id='exportBoardArchive'
-                                    name={intl.formatMessage({id: 'ViewHeader.export-board-archive', defaultMessage: 'Export board archive'})}
-                                    onClick={() => Archiver.exportBoardArchive(props.board)}
-                                />
                                 <Show when={isAutomationAvailable()}>
                                     <Menu.Text
                                         id='workflows'
@@ -198,6 +188,28 @@ const ViewHeaderActionsMenu = (props: Props) => {
                                     id='sources'
                                     name={intl.formatMessage({id: 'ViewHeader.sources', defaultMessage: 'Sources…'})}
                                     onClick={() => setShowSources(true)}
+                                />
+                            </Show>
+
+                            {/* Carrying the board out is not a setting of it,
+                                and it used to open this menu: what a person
+                                comes here for — what the board runs, what it
+                                was asked at setup — stood under two exports
+                                nobody uses twice. Last, behind a line. There is
+                                no import beside them on purpose: an archive
+                                brings boards, plural, so it is taken in where
+                                boards are (settings → «Данные»). */}
+                            <Show when={!onInbox()}>
+                                <Menu.Separator/>
+                                <Menu.Text
+                                    id='exportCsv'
+                                    name={intl.formatMessage({id: 'ViewHeader.export-csv', defaultMessage: 'Export to CSV'})}
+                                    onClick={() => onExportCsvTrigger(props.board, props.activeView, props.cards, intl)}
+                                />
+                                <Menu.Text
+                                    id='exportBoardArchive'
+                                    name={intl.formatMessage({id: 'ViewHeader.export-board-archive', defaultMessage: 'Export board archive'})}
+                                    onClick={() => Archiver.exportBoardArchive(props.board)}
                                 />
                             </Show>
                         </Menu>
