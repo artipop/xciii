@@ -105,7 +105,9 @@ func TestAStageIsTheAgentsOwnCLIWithTheTaskInIt(t *testing.T) {
 func TestTheTaskIsNotEatenByTheFlagBeforeIt(t *testing.T) {
 	argv, taken, err := terminalCommand(
 		AgentEntry{Name: "clauuus", Kind: AgentKindClaude},
-		false, "/tmp/mcp.json", "почини логин",
+		// Both flags that go in front of it: the MCP config, which is variadic
+		// and started this, and the hook settings, which carry a JSON blob.
+		false, "/tmp/mcp.json", "'/Applications/X.app/x' hook 'http://h' 'tok'", "почини логин",
 	)
 	if err != nil || !taken {
 		t.Fatalf("the task did not reach the command line: taken=%v err=%v", taken, err)

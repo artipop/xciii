@@ -4,6 +4,8 @@ import {useIntl} from '../../intl'
 
 import CompassIcon from '../../widgets/icons/compassIcon'
 
+import AttentionAnswers from './attentionAnswers'
+
 import {
     Attention,
     ackWait,
@@ -135,6 +137,13 @@ const AttentionNotifications = () => {
                                 <Show when={target.text}>
                                     <span class='AttentionNotifications__question'>{target.text}</span>
                                 </Show>
+
+                                {/* A question the agent's CLI asked through its
+                                    permission hook can be answered here — the
+                                    CLI's own box is on its screen at the same
+                                    time, so this is a second place to answer
+                                    rather than the only one (attentionAnswers). */}
+                                <AttentionAnswers target={target}/>
                                 <button
                                     type='button'
                                     class='AttentionNotifications__action'

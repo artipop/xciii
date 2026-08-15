@@ -54,6 +54,7 @@
   "AttachmentElement.delete-confirmation-dialog-button-text": "Удалить",
   "AttachmentElement.download": "Скачать",
   "AttachmentElement.upload-percentage": "Загрузка...({uploadPercent}%)",
+  "Attention.answer-gone": "Агент больше не ждёт этот ответ",
   "Attention.asking": "Агент спрашивает",
   "Attention.asking-agent": "{agent} спрашивает",
   "Attention.dismiss": "Скрыть",

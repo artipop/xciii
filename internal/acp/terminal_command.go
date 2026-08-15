@@ -26,7 +26,7 @@ import (
 // task on that command line is a flag combination no vendor documents. The
 // second return value says whether it was taken; when it was not, the caller
 // pastes the task in once the CLI has settled (deliverPrompt).
-func terminalCommand(a AgentEntry, resume bool, mcpConfig, prompt string) ([]string, bool, error) {
+func terminalCommand(a AgentEntry, resume bool, mcpConfig, hookCmd, prompt string) ([]string, bool, error) {
 	// An explicit argv is the whole command, exactly as Command is for ACP:
 	// with it set nothing of ours is appended, resume flags included, since we
 	// cannot know whether a wrapper would pass them on.
@@ -56,6 +56,9 @@ func terminalCommand(a AgentEntry, resume bool, mcpConfig, prompt string) ([]str
 	if mcpConfig != "" && adapter.cliMCPArgs != nil {
 		argv = append(argv, adapter.cliMCPArgs(mcpConfig)...)
 	}
+	if hookCmd != "" && adapter.cliHookArgs != nil {
+		argv = append(argv, adapter.cliHookArgs(hookCmd)...)
+	}
 	// The entry's CLI arguments are arguments for the vendor CLI, and here the
 	// vendor CLI is what is being started — no adapter in between to hand them
 	// to (clihandoff.go). Remote Control is why this field exists, and a stage
@@ -74,6 +77,18 @@ func terminalTakesMCP(a AgentEntry) bool {
 		return false
 	}
 	return acpNative[a.Kind].cliMCPArgs != nil
+}
+
+// terminalTakesHooks reports whether this entry's CLI can be told to ask us when
+// it needs a person. A kind that cannot keeps the quiet timer, which is the
+// whole of the fallback (toolhook.go).
+func terminalTakesHooks(a AgentEntry) bool {
+	if len(a.TerminalCommand) > 0 {
+		// An argv somebody wrote themselves: appending flags to a wrapper is a
+		// guess, and the same reason MCP is refused here.
+		return false
+	}
+	return acpNative[a.Kind].cliHookArgs != nil
 }
 
 // canResumeTerminal reports whether the kind can continue a conversation at

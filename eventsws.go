@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+
+	"github.com/artipop/xciii/internal/acp"
 )
 
 // The agent events a page listens to — a session changed state, a terminal
@@ -42,11 +44,12 @@ func newEventRoutes() *eventRoutes {
 // boardTools is not a socket but belongs to the same subtree: it is the other
 // end of the MCP server an agent runs, and it is authenticated by a grant token
 // rather than by the origin the request came from (boardapi.go).
-func newACPSockets(terminals, events, boardTools http.Handler) http.Handler {
+func newACPSockets(terminals, events, boardTools, hook http.Handler) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/acp/terminal/{id}/ws", terminals)
 	mux.Handle("/acp/events/ws", events)
 	mux.Handle("/acp/board/", boardTools)
+	mux.Handle(acp.HookPath, hook)
 	return mux
 }
 

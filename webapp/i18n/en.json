@@ -54,6 +54,7 @@
   "AttachmentElement.delete-confirmation-dialog-button-text": "Delete",
   "AttachmentElement.download": "Download",
   "AttachmentElement.upload-percentage": "Uploading...({uploadPercent}%)",
+  "Attention.answer-gone": "The agent is no longer waiting for this answer",
   "Attention.asking": "The agent is asking",
   "Attention.asking-agent": "{agent} is asking",
   "Attention.dismiss": "Dismiss",

@@ -76,6 +76,11 @@ func main() {
 	// session; it must come first, before the board server or a window exists.
 	maybeRunMCP(os.Args[1:])
 
+	// `xciii hook …` is this binary answering an agent CLI's permission hook
+	// (hook.go), and it is here for the same reason: it is a short-lived process
+	// that must not open a database or take a port on its way to one HTTP call.
+	maybeRunHook(os.Args[1:])
+
 	ignoreViteDevServer()
 
 	// Before anything can be spawned: a packaged app is started by launchd and
@@ -153,7 +158,7 @@ func main() {
 	uiEvents := newEventRoutes()
 	// The board tools an agent calls back through, on the same subtree.
 	boardTools := newBoardToolRoutes()
-	acpSockets := newACPSockets(terminals, uiEvents, boardTools.Handler())
+	acpSockets := newACPSockets(terminals, uiEvents, boardTools.Handler(), boardTools.HookHandler())
 	// The ingest endpoint, on the same terms: it is a route on the front door,
 	// and it is handed its manager once the board exists.
 	ingest := newSourceRoutes()

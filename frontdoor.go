@@ -7,6 +7,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/artipop/xciii/internal/acp"
 )
 
 // The front door is the origin the page actually talks to — the webview in a
@@ -29,7 +31,7 @@ import (
 // request for any other Host is refused, since a name that resolves to this
 // listener but isn't the one we handed out is somebody else's DNS entry
 // pointing here.
-func newFrontDoor(wails, acp, ingest, board http.Handler, allowedHost string) http.Handler {
+func newFrontDoor(wails, acpRoutes, ingest, board http.Handler, allowedHost string) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/wails/", sameOrigin(wails, allowedHost))
 	// Only the socket, not the path around it: /acp/terminal/{id} is the page
@@ -37,16 +39,20 @@ func newFrontDoor(wails, acp, ingest, board http.Handler, allowedHost string) ht
 	// like any other of its routes. A terminal socket is a shell in the user's
 	// project, so it is guarded exactly as the runtime is — more so, if
 	// anything.
-	mux.Handle("/acp/terminal/{id}/ws", sameOrigin(acp, allowedHost))
+	mux.Handle("/acp/terminal/{id}/ws", sameOrigin(acpRoutes, allowedHost))
 	// The UI event socket is guarded the same way and for the same reason: it
 	// says what the agents are doing on this machine.
-	mux.Handle("/acp/events/ws", sameOrigin(acp, allowedHost))
+	mux.Handle("/acp/events/ws", sameOrigin(acpRoutes, allowedHost))
 	// The board tools an agent calls (boardapi.go). Same origin guard — a page
 	// has no business calling these — on top of the grant token they actually
 	// authenticate with: the caller is a local process, and a local process
 	// sends no Origin, so the guard costs it nothing and still keeps a browser
 	// out.
-	mux.Handle("/acp/board/", sameOrigin(acp, allowedHost))
+	mux.Handle("/acp/board/", sameOrigin(acpRoutes, allowedHost))
+	// The permission hook an agent CLI calls (internal/acp/toolhook.go). Same
+	// bargain as the tools above: a grant token is the authentication, and the
+	// origin guard is free because the caller is a local process with no Origin.
+	mux.Handle(acp.HookPath, sameOrigin(acpRoutes, allowedHost))
 	// The one route here that is *not* same-origin, and it cannot be: what
 	// posts to it is a script, a webhook or a phone, so its Origin is somebody
 	// else's or absent. Its own token is what stands in for the check — see

@@ -798,7 +798,15 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// exactly as it did before.
 	boardToken, mcpConfig := m.openBoardTools(spec.boardID, spec.cardID, id, spec.agent)
 
-	argv, promptTaken, err := terminalCommand(spec.agent, resume, mcpConfig, spec.prompt)
+	// The hook: how this CLI says it needs a person, instead of us guessing so
+	// from its silence (toolhook.go). It rides on the same grant the tools do —
+	// a run that got no grant gets no hook, and keeps the quiet timer.
+	var hookCmd string
+	if boardToken != "" && terminalTakesHooks(spec.agent) {
+		hookCmd = hookCommand(m.originURL(), boardToken)
+	}
+
+	argv, promptTaken, err := terminalCommand(spec.agent, resume, mcpConfig, hookCmd, spec.prompt)
 	if err != nil {
 		m.closeBoardTools(boardToken, mcpConfig)
 		return nil, err
@@ -818,7 +826,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// already been found, and it cannot fail after the argv above did not.
 	var freshArgv []string
 	if resume {
-		if fresh, _, freshErr := terminalCommand(spec.agent, false, mcpConfig, spec.prompt); freshErr == nil && len(fresh) > 0 {
+		if fresh, _, freshErr := terminalCommand(spec.agent, false, mcpConfig, hookCmd, spec.prompt); freshErr == nil && len(fresh) > 0 {
 			fresh[0] = bin
 			freshArgv = fresh
 		}

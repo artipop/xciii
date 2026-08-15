@@ -95,6 +95,39 @@ func (m *Manager) ask(ctx context.Context, s *Session, q Question) Answer {
 	q.Agent = s.Agent.Name
 	q.AskedAt = time.Now()
 
+	s.appendEvent(m, "question", map[string]any{
+		"questionId": q.ID, "kind": string(q.Kind), "text": q.Text, "tool": q.Tool,
+	})
+	m.setStatus(s, StatusWaitingPermission)
+	m.log.Info("acp: the agent is asking", "session", s.ID, "card", q.CardID, "kind", q.Kind, "tool", q.Tool)
+
+	answer := m.awaitAnswer(ctx, q)
+
+	m.setStatus(s, StatusRunning)
+	// The exchange itself is not commented on the card. A question is live —
+	// it is on the card's face, in the notification and on «Ждут» while it
+	// waits, and it is answered in any of them. Once answered it is the
+	// agent's business, and the two comments it used to leave said nothing a
+	// person would come back for.
+	s.appendEvent(m, "answer", map[string]any{
+		"questionId": q.ID, "optionId": answer.OptionID, "declined": answer.Declined,
+	})
+	return answer
+}
+
+// awaitAnswer is the whole of putting a question to a person and waiting for
+// one: register it, say so, wait, take it back, say it is gone. Everything above
+// it is bookkeeping that belongs to whoever asked.
+//
+// It is separate because there are now two askers with nothing else in common.
+// A session has a status to move, events to append and a turn held open by the
+// SDK; a tool hook (toolhook.go) is an HTTP request from a process that is not a
+// session at all — a stage's own CLI, asking through the only channel a pty has.
+// What they share is exactly this: the card shows a question, and somebody
+// answers it.
+//
+// ctx is the asker's own, so an agent that gives up takes its question back.
+func (m *Manager) awaitAnswer(ctx context.Context, q Question) Answer {
 	reply := make(chan Answer, 1)
 	m.questionsMu.Lock()
 	if m.questions == nil {
@@ -103,19 +136,14 @@ func (m *Manager) ask(ctx context.Context, s *Session, q Question) Answer {
 	m.questions[q.ID] = &pendingQuestion{q: q, reply: reply}
 	m.questionsMu.Unlock()
 
-	s.appendEvent(m, "question", map[string]any{
-		"questionId": q.ID, "kind": string(q.Kind), "text": q.Text, "tool": q.Tool,
-	})
-	m.setStatus(s, StatusWaitingPermission)
 	m.emitQuestion(q, true)
-	m.log.Info("acp: the agent is asking", "session", s.ID, "card", q.CardID, "kind", q.Kind, "tool", q.Tool)
 
 	var answer Answer
 	select {
 	case answer = <-reply:
 	case <-ctx.Done():
-		// The agent withdrew the question — a cancelled turn, or its own
-		// timeout. Nothing to answer any more.
+		// The asker withdrew it — a cancelled turn, its own timeout, or a CLI
+		// that gave up waiting on the hook. Nothing to answer any more.
 		answer = Answer{Declined: true}
 	case <-m.rootCtx.Done():
 		answer = Answer{Declined: true}
@@ -125,19 +153,10 @@ func (m *Manager) ask(ctx context.Context, s *Session, q Question) Answer {
 	delete(m.questions, q.ID)
 	m.questionsMu.Unlock()
 
-	m.setStatus(s, StatusRunning)
 	m.emitQuestion(q, false)
 	// Answered or withdrawn, this question is gone, and an acknowledgement of it
 	// must not outlive it (attentionack.go).
 	m.clearAck("q:" + q.ID)
-	// The exchange itself is not commented on the card. A question is live —
-	// it is on the card's face, in the notification and on «Ждут» while it
-	// waits, and it is answered in any of them. Once answered it is the
-	// agent's business, and the two comments it used to leave said nothing a
-	// person would come back for.
-	s.appendEvent(m, "answer", map[string]any{
-		"questionId": q.ID, "optionId": answer.OptionID, "declined": answer.Declined,
-	})
 	return answer
 }
 

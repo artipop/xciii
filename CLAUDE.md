@@ -267,6 +267,23 @@ opened and left, where nothing happening is the ordinary state, and it announced
 has not said it is finished, so a still frame means it is waiting on somebody: a
 model mid-turn redraws its own spinner, and a permission box does not.
 
+**Silence is the floor, not the only signal** (`internal/acp/toolhook.go`,
+`docs/attention-hooks.md`). A CLI with a permission hook says so precisely: the
+hook is a command it runs when it needs a person, the command is this binary
+re-invoked (`hook.go`), and it posts the tool call to the front door on the
+run's own grant, holds while a person answers, and hands the decision back.
+Registered by `cliHookArgs` — another column of the adapter table, filled for
+claude and empty for everyone else, who keep the timer exactly as it was. Two
+things make it safe. It **does not take the question away from the terminal**:
+measured, the CLI draws its own box at the same moment it asks, so the card is a
+second *place* to answer rather than a second interface over the agent's screen
+— which is what makes `attentionAnswers.tsx` legitimate after the answer surface
+was deliberately deleted (`docs/deferred.md`). And **every failure is silence**:
+no app, no grant, nobody looking — the hook prints nothing and exits 0, leaving
+the CLI's own prompt standing. What a hook cannot see is anything outside the
+agent loop — the folder-trust question, a login, a refused resume — which is why
+the timer stays.
+
 **Which agents can do this at all**: `stageRunsInTerminal`. Three requirements,
 and an agent missing any of them keeps the old arrangement, an ACP session — a
 way to be handed the board tools (without them the stage could never end), an

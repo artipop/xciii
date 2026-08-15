@@ -537,6 +537,15 @@ type acpAdapter struct {
 	// the agent had not reported. Whatever this returns goes last, so the
 	// separator belongs to the kind that knows how its own parser spells one.
 	cliPromptArgs func(prompt string) []string
+	// cliHookArgs register a command the CLI runs when it needs a person, so a
+	// stage stops being noticed by its silence alone (toolhook.go). Same
+	// arrangement as cliMCPArgs and for the same reason: a hook is spelled
+	// differently by every vendor, so it is a column rather than a branch, and a
+	// kind that leaves it empty keeps the timer it has always had.
+	//
+	// The argument is a shell command line, because that is what both CLIs that
+	// have hooks accept — hookCommand builds it, quoted.
+	cliHookArgs func(hookCmd string) []string
 	// dropEnv names variables the process must not inherit from ours.
 	dropEnv []string
 	// mode is the session mode to select after session/new, when the agent's
@@ -569,6 +578,18 @@ var acpNative = map[string]acpAdapter{
 		// frame and the task is already in it. The `--` is not decoration —
 		// commander's `--mcp-config` is variadic and eats the next argument.
 		cliPromptArgs: func(prompt string) []string { return []string{"--", prompt} },
+		// `--settings` takes a JSON *string* as well as a path, so the hook is
+		// registered on the command line and nothing is written into the folder
+		// the agent works in — a settings file of ours in somebody's repository
+		// would be ours to clean up and theirs to find in `git status`.
+		//
+		// PermissionRequest is the event that carries the tool call and takes a
+		// decision back. Notification is not registered: its two types are
+		// "permission_prompt", which arrives second and says what
+		// PermissionRequest already said, and "idle_prompt", which is Claude
+		// Code's own quiet timer at 60 seconds — no better than the 45 this is
+		// meant to improve on. docs/attention-hooks.md has the measurements.
+		cliHookArgs: claudeHookArgs,
 		// Claude Code refuses to start inside another Claude Code session, and
 		// the desktop app may well have been launched from one: `wails3 dev` is
 		// started from a terminal, and that terminal is sometimes a CLI's own.

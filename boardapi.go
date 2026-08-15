@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -64,6 +66,45 @@ func (b *boardToolRoutes) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle(boardmcp.Path, boardmcp.NewHandler(b.open))
 	return mux
+}
+
+// HookHandler is where an agent's own CLI asks for permission when it has no
+// protocol to ask through (internal/acp/toolhook.go). It lives here rather than
+// beside the tools because it authenticates the same way and with the same
+// token — one grant per run, naming the board, the card and the terminal — and
+// splitting that check across two files is how the two would drift.
+//
+// It answers 200 with a decision, or 200 with an empty one. A refusal a caller
+// could mistake for "denied" is the one answer that must never be sent: the
+// hook turns anything it cannot read into silence, and silence leaves the CLI's
+// own prompt standing (hook.go).
+func (b *boardToolRoutes) HookHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "only POST", http.StatusMethodNotAllowed)
+			return
+		}
+		mgr := b.manager()
+		if mgr == nil {
+			http.Error(w, "агенты выключены", http.StatusServiceUnavailable)
+			return
+		}
+		var ask acp.ToolAsk
+		if err := json.NewDecoder(io.LimitReader(r.Body, 1<<20)).Decode(&ask); err != nil {
+			http.Error(w, "не разобрать запрос", http.StatusBadRequest)
+			return
+		}
+		// r.Context() is the hook's own connection: a CLI that gave up waiting
+		// closes it, and the question on the card goes with it rather than
+		// standing there about a decision already made on the terminal's screen.
+		decision, err := mgr.AskToolPermission(r.Context(), bearer(r), ask)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(decision)
+	})
 }
 
 // grantedBoard is the manager seen through one grant: every call is already

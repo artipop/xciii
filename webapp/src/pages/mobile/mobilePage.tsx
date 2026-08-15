@@ -8,6 +8,7 @@ import type {IntlShape} from '../../intl'
 import {agentBindings} from '../../components/acp/bindings'
 import {onAgentEvent} from '../../components/acp/agentEvents'
 import {attentionHeading, useAttention} from '../../components/acp/attention'
+import AttentionAnswers from '../../components/acp/attentionAnswers'
 
 import {BindingBoard, BindingCard, listBoards, listInbox} from '../../bindings/boards'
 
@@ -27,9 +28,10 @@ import './mobilePage.scss'
 //                 board from here, which is the whole point of an inbox;
 //   «Карточки»  — one board's cards as a list, to find out where something got
 //                 to without walking to the desk;
-//   «Ждут»      — what is asking for a person, and the way into the terminal it
-//                 is asking in: the agent draws its own question there, so this
-//                 screen carries you to it rather than copying it;
+//   «Ждут»      — what is asking for a person. A permission the CLI asked for
+//                 through its hook is answered here, which on a phone is the
+//                 whole point; anything else the agent draws inside its own
+//                 interface, so the screen carries you there instead;
 //   «Терминалы» — which are alive, so the one that went quiet can be typed in.
 //
 // «Ждут» is what opens, because it is the only one of the four that cannot
@@ -175,9 +177,16 @@ const MobilePage = () => {
                                         <p class='MobilePage__question'>{target.text}</p>
                                     </Show>
 
-                                    {/* The answer is given to the agent's own
-                                        CLI, in the terminal, so all this screen
-                                        does is get you there. */}
+                                    {/* A permission the CLI asked for through
+                                        its hook is answered here, which on a
+                                        phone is the whole point: the terminal
+                                        is reachable but nobody wants to read a
+                                        TUI on it (attentionAnswers). */}
+                                    <AttentionAnswers target={target}/>
+
+                                    {/* Everything else the agent asks is asked
+                                        inside its own interface, so all this
+                                        screen does is get you there. */}
                                     <Show when={target.terminalId}>
                                         <button
                                             type='button'

@@ -185,6 +185,25 @@ terminal button on the card turns amber, a notification arrives, and the card
 appears in "Waiting" on the phone. All three offer the same button — "Open the
 terminal".
 
+## Permissions can be granted without opening the terminal
+
+There is one kind of question you can answer on the spot: when the agent asks
+for permission — to run a command, write a file, reach the network. That
+question arrives whole, in the notification and in "Waiting": which tool, and
+what exactly it is about to do, with two buttons under it — "Allow" and "Deny".
+
+The answer reaches the agent immediately; no terminal needed. On a phone this is
+the main way to work: a permission is one tap.
+
+The question does **not** leave the terminal either. The agent draws its own box
+on screen at the same moment, so it can be answered there as well, and whichever
+happened first is the one that counts. If you answered in the terminal and then
+pressed a button in the notification, the app says "The agent is no longer
+waiting for this answer" — not an error, the answer simply already arrived.
+
+This works for Claude agents. Every other question — a plan, a clarification, a
+choice between options — still lives in the terminal and is answered there.
+
 A notification is shown once. The "Dismiss" cross and the "Open the terminal"
 button put it away in the same way: both mean you know about this question. A
 notification you have put away does not come back in another window, on the

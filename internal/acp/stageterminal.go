@@ -83,7 +83,7 @@ func stageRunsInTerminal(a AgentEntry) bool {
 	if !terminalTakesMCP(a) {
 		return false
 	}
-	argv, _, err := terminalCommand(a, false, "", "")
+	argv, _, err := terminalCommand(a, false, "", "", "")
 	if err != nil || len(argv) == 0 {
 		return false
 	}
