@@ -163,7 +163,16 @@ function Combobox<T>(props: Props<T>): JSX.Element {
 
     const choose = (option: ComboboxOption<T>) => {
         if (props.isMulti) {
-            props.onChange([...selected(), option], 'select')
+            // A multi list stays open and marks what is already chosen, so a
+            // click on a marked row is somebody unticking it. It used to add
+            // the option a second time, and a card's «Папки» ended up naming
+            // one folder twice — which the property then drew twice, each with
+            // its own cross.
+            const chosen = selected().some((each) => each.id === option.id)
+            props.onChange(
+                chosen ? selected().filter((each) => each.id !== option.id) : [...selected(), option],
+                chosen ? 'remove' : 'select',
+            )
         } else {
             props.onChange(option, 'select')
         }

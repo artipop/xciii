@@ -60,14 +60,20 @@
         color: rgba(var(--center-channel-color-rgb), 0.56);
     }
 
-    // The menu hangs from the field's right edge. Most of these stand in a
-    // panel down the right side of a dialog, and a menu is 240px wide at the
-    // least — anchored on the left it left the dialog, and on some of them the
-    // screen.
-    .Menu {
-        right: 0;
-        left: auto;
-        min-width: 100%;
+    // The list is as wide as the field it drops from and no wider — asked for
+    // in menu.tsx, where the placing happens, and not written here.
+    //
+    // Written here it was a bug with no upper bound: `right: 0; min-width:
+    // 100%` was aimed at a menu absolutely positioned inside this wrapper, and
+    // a menu is placed against the viewport now (`position: fixed`, top and
+    // left zeroed, the position arriving as a transform). Against the viewport
+    // those two rules mean "start at the left edge of the screen, end at the
+    // right, and be at least as wide as the screen": every dropdown in the app
+    // — the flow editor's, the card's — opened 1600px wide on a 1600px window.
+    // Nothing here may set `left`, `right` or a percentage width again.
+    .Menu .menu-contents {
+        min-width: 0;
+        max-width: none;
     }
 
     // The field and its menu say the same words, so they say them in the same

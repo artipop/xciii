@@ -134,7 +134,13 @@ function ValueSelector(props: Props): JSX.Element {
             ariaLabel={intl.formatMessage({id: 'ValueSelector.valueSelector', defaultMessage: 'Value selector'})}
             noOptionsMessage={intl.formatMessage({id: 'ValueSelector.noOptions', defaultMessage: 'No options. Start typing to add the first one!'})}
             isMulti={props.isMulti}
-            isClearable={true}
+
+            // Every value in here carries its own cross (ValueSelectorLabel),
+            // so the widget draws none of its own: the one it would draw sits
+            // at the far end of the control, which on a card is the width of
+            // the property row — a cross with nothing beside it, several
+            // hundred pixels from the value it clears.
+            isClearable={false}
             autoFocus={true}
 
             // A multi-select keeps its list open between choices; a single one

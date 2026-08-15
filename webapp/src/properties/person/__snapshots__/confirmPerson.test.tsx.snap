@@ -28,6 +28,16 @@ exports[`properties/person > select user - cancel 1`] = `
             
             username-1
             
+            <button
+              aria-label="Clear"
+              class="Person-clear"
+              title="Clear"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close"
+              />
+            </button>
           </div>
         </div>
         
@@ -40,15 +50,7 @@ exports[`properties/person > select user - cancel 1`] = `
           type="text"
         />
       </div>
-      <div
-        class="react-select__clear-indicator"
-        role="button"
-        tabindex="-1"
-      >
-        <i
-          class="CompassIcon icon-close"
-        />
-      </div>
+      
     </div>
     
   </div>
@@ -83,6 +85,16 @@ exports[`properties/person > select user - cancel 2`] = `
             
             username-1
             
+            <button
+              aria-label="Clear"
+              class="Person-clear"
+              title="Clear"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close"
+              />
+            </button>
           </div>
         </div>
         
@@ -96,15 +108,7 @@ exports[`properties/person > select user - cancel 2`] = `
           type="text"
         />
       </div>
-      <div
-        class="react-select__clear-indicator"
-        role="button"
-        tabindex="-1"
-      >
-        <i
-          class="CompassIcon icon-close"
-        />
-      </div>
+      
     </div>
     <div
       class="Combobox__menu react-select__menu "
@@ -132,6 +136,7 @@ exports[`properties/person > select user - cancel 2`] = `
             
             username-4
             
+            
           </div>
         </div>
         <div
@@ -145,6 +150,7 @@ exports[`properties/person > select user - cancel 2`] = `
           >
             
             username-5
+            
             
           </div>
         </div>
@@ -182,6 +188,16 @@ exports[`properties/person > select user - confirm 1`] = `
             
             username-1
             
+            <button
+              aria-label="Clear"
+              class="Person-clear"
+              title="Clear"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close"
+              />
+            </button>
           </div>
         </div>
         
@@ -194,15 +210,7 @@ exports[`properties/person > select user - confirm 1`] = `
           type="text"
         />
       </div>
-      <div
-        class="react-select__clear-indicator"
-        role="button"
-        tabindex="-1"
-      >
-        <i
-          class="CompassIcon icon-close"
-        />
-      </div>
+      
     </div>
     
   </div>
@@ -237,6 +245,16 @@ exports[`properties/person > select user - confirm 2`] = `
             
             username-1
             
+            <button
+              aria-label="Clear"
+              class="Person-clear"
+              title="Clear"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close"
+              />
+            </button>
           </div>
         </div>
         
@@ -250,15 +268,7 @@ exports[`properties/person > select user - confirm 2`] = `
           type="text"
         />
       </div>
-      <div
-        class="react-select__clear-indicator"
-        role="button"
-        tabindex="-1"
-      >
-        <i
-          class="CompassIcon icon-close"
-        />
-      </div>
+      
     </div>
     <div
       class="Combobox__menu react-select__menu "
@@ -286,6 +296,7 @@ exports[`properties/person > select user - confirm 2`] = `
             
             username-4
             
+            
           </div>
         </div>
         <div
@@ -299,6 +310,7 @@ exports[`properties/person > select user - confirm 2`] = `
           >
             
             username-5
+            
             
           </div>
         </div>

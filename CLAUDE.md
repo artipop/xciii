@@ -214,6 +214,17 @@ absolutely positioned menu on a card was clipped by both and read as sliding
 under the sidebar. Hand-rolled geometry for a new popover is a rewrite of a
 dependency that is already here.
 
+The other half of that move is a rule about the stylesheets left behind it: a
+placed element is `position: fixed` with its corner at the top left of the
+screen, so **`left`, `right` and a percentage width in a call site's CSS now
+mean the viewport**. `.Select .Menu` still carried `right: 0; min-width: 100%`
+from when a menu was an absolutely positioned child of its wrapper, which under
+the fixed strategy reads as "start at the left edge of the screen, end at the
+right" — every dropdown in the app opened the full width of the window, and it
+had been that way since the move. A field's list is as wide as its field
+because it *asks* to be: `matchAnchorWidth` on `Menu`, floating-ui's `size`
+middleware, in the one place that already knows the anchor's box.
+
 Two rules the drag-and-drop earned the hard way, both silent when broken.
 `OptimisticSortingPlugin` is left out of every sortable, because it reorders
 nodes the framework owns — and the price is that a sortable's `index` and

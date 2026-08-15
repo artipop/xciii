@@ -11,6 +11,7 @@ exports[`properties/createdBy > should match snapshot 1`] = `
       
       username_1
       
+      
     </div>
   </div>
 </div>
@@ -35,6 +36,7 @@ exports[`properties/createdBy > should match snapshot as guest 1`] = `
           Guest
         </div>
       </div>
+      
     </div>
   </div>
 </div>

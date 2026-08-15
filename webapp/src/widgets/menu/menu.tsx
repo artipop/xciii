@@ -1,5 +1,5 @@
 import {For, children, createEffect, createSignal, onCleanup} from 'solid-js'
-import {autoUpdate, computePosition, flip, shift} from '@floating-ui/dom'
+import {autoUpdate, computePosition, flip, shift, size} from '@floating-ui/dom'
 import type {Component, JSX} from 'solid-js'
 
 import {useIntl} from '../../intl'
@@ -22,6 +22,12 @@ type Props = {
     children: JSX.Element
     position?: MenuPlacement
     parentRef?: AnchorRef
+
+    // Set by a menu that is a field's list rather than a menu of actions
+    // (widgets/select): it opens as wide as the control it drops from, the way
+    // every dropdown does, instead of at the width its own longest option
+    // happens to be.
+    matchAnchorWidth?: boolean
 }
 
 // A submenu opens itself on hover (subMenuOption.tsx). It used to be told to,
@@ -103,10 +109,19 @@ const Menu: Component<Props> & {
             if (box.width === 0 && box.height === 0) {
                 return
             }
+            const middleware = [flip(), shift({padding: VIEWPORT_PADDING})]
+            if (props.matchAnchorWidth) {
+                middleware.push(size({
+                    padding: VIEWPORT_PADDING,
+                    apply: ({rects, elements}) => {
+                        elements.floating.style.minWidth = `${rects.reference.width}px`
+                    },
+                }))
+            }
             computePosition(anchor, floating, {
                 strategy: 'fixed',
                 placement: floatingPlacement(props.position),
-                middleware: [flip(), shift({padding: VIEWPORT_PADDING})],
+                middleware,
             }).then(({x, y}) => setPlaced({x, y}))
         })
         onCleanup(() => {

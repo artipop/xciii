@@ -1,7 +1,13 @@
 @import '../styles/z-index';
 
 .ValueSelector {
-    width: 100%;
+    // The box a card's property is edited in is the box it is read in. It used
+    // to declare `width: 100%` while standing as a flex item beside the
+    // property's name — a base of the whole row's width, shrunk by the name's
+    // 150px on top of that — so opening «Папки» narrowed the field from 440px
+    // to 279 and the chips inside it wrapped into a stack.
+    flex: 1 1 auto;
+    max-width: 100%;
     border-radius: var(--default-rad);
     color: rgb(var(--center-channel-color-rgb));
     display: flex;
@@ -72,7 +78,7 @@
 
         .MenuWrapper {
             display: flex;
-            align-self: flex-end;
+            align-self: center;
 
             .IconButton {
                 background-color: unset;

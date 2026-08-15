@@ -23,6 +23,29 @@
         }
     }
 
+    // Beside the name, not at the end of the control: the control is as wide as
+    // the property row and the value is three words at the start of it.
+    .Person-clear {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        margin-left: 4px;
+        padding: 0;
+        border: 0;
+        border-radius: var(--radius-round);
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 16px;
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.16);
+            color: rgb(var(--center-channel-color-rgb));
+        }
+    }
+
     .react-select__menu {
         background: rgb(var(--surface-bg-rgb));
         box-shadow: var(--elevation-4);

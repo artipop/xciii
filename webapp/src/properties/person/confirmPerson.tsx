@@ -98,6 +98,7 @@ const ConfirmPerson = (props: PropertyProps): JSX.Element => {
                 isMulti={props.propertyTemplate.type === 'multiPerson'}
                 readOnly={props.readOnly}
                 emptyDisplayValue={emptyDisplayValue()}
+                clearLabel={intl.formatMessage({id: 'PropertyValueElement.clear', defaultMessage: 'Clear'})}
                 property={props.property}
                 onChange={onChange}
             />

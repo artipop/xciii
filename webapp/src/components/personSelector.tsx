@@ -3,7 +3,8 @@ import type {JSX} from 'solid-js'
 
 import {useIntl} from '../intl'
 
-import Combobox, {type ComboboxAction} from '../widgets/combobox'
+import Combobox, {type ComboboxAction, type ComboboxContext} from '../widgets/combobox'
+import CompassIcon from '../widgets/icons/compassIcon'
 import type {ComboboxItem, ComboboxOption} from '../combobox'
 import {IUser} from '../user'
 import {Utils} from '../utils'
@@ -31,6 +32,10 @@ type Props = {
     closeMenuOnSelect?: boolean
     showMe?: boolean
 
+    // What the cross beside the chosen person answers to. Passed in rather than
+    // translated here, so this stays a component with no messages of its own.
+    clearLabel?: string
+
     // On `remove` the list already excludes the person removed, so every action
     // is answered by reading the list rather than by the action's own payload.
     onChange: (items: IUser[] | IUser | null, action: ComboboxAction) => void
@@ -49,7 +54,13 @@ const PersonSelector = (props: Props): JSX.Element => {
     const boardUsers = useAppSelector<IUser[]>(getBoardUsersList)
     const me = useAppSelector<IUser|null>(getMe)
 
-    const formatOptionLabel = (user: IUser): JSX.Element => {
+    // The chosen person carries the way to take them off, right beside their
+    // name. It used to be the widget's own clear button, which sits at the far
+    // end of the control — and on a card that control is the whole width of the
+    // property row, so the ✕ for «клаус» stood 360px away from the word
+    // «клаус», over nothing. Every other value on a card is a chip with its own
+    // cross (the select property's), and this is that.
+    const formatOptionLabel = (user: IUser, context?: ComboboxContext): JSX.Element => {
         if (!user) {
             return <div/>
         }
@@ -70,6 +81,24 @@ const PersonSelector = (props: Props): JSX.Element => {
                 </Show>
                 {Utils.getUserDisplayName(user, clientConfig().teammateNameDisplay)}
                 <GuestBadge show={Boolean(user?.is_guest)}/>
+
+                {/* Only the single-person field: a multi one is a row of chips
+                    and the widget already draws a cross on each of them. */}
+                <Show when={context === 'value' && !props.isMulti && !props.readOnly}>
+                    <button
+                        type='button'
+                        class='Person-clear'
+                        aria-label={props.clearLabel}
+                        title={props.clearLabel}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={(event) => {
+                            event.stopPropagation()
+                            props.onChange(null, 'clear')
+                        }}
+                    >
+                        <CompassIcon icon='close'/>
+                    </button>
+                </Show>
             </div>
         )
     }
@@ -148,11 +177,16 @@ const PersonSelector = (props: Props): JSX.Element => {
             <Combobox
                 loadOptions={loadOptions}
                 isMulti={props.isMulti}
-                isClearable={true}
+
+                // The values carry their own crosses (above), so the widget
+                // draws none of its own — one at the end of the control and one
+                // on the value would be two answers to "how do I take this
+                // off".
+                isClearable={false}
                 closeMenuOnSelect={closeMenuOnSelect()}
                 class={`${primaryClass()}${secondaryClass()}`}
                 classNamePrefix={'react-select'}
-                renderOption={(option) => formatOptionLabel(option.data)}
+                renderOption={(option, context) => formatOptionLabel(option.data, context)}
                 placeholder={props.emptyDisplayValue}
                 value={users().filter(Boolean).map(asOption)}
                 onChange={(value, action) => {

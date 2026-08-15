@@ -28,6 +28,14 @@ exports[`properties/person > not readOnly, show firstname 1`] = `
             
             test user
             
+            <button
+              class="Person-clear"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close"
+              />
+            </button>
           </div>
         </div>
         
@@ -40,15 +48,7 @@ exports[`properties/person > not readOnly, show firstname 1`] = `
           type="text"
         />
       </div>
-      <div
-        class="react-select__clear-indicator"
-        role="button"
-        tabindex="-1"
-      >
-        <i
-          class="CompassIcon icon-close"
-        />
-      </div>
+      
     </div>
     
   </div>
@@ -113,6 +113,7 @@ exports[`properties/person > not readOnly, show me 1`] = `
             
             Me
             
+            
           </div>
         </div>
         <div
@@ -126,6 +127,7 @@ exports[`properties/person > not readOnly, show me 1`] = `
           >
             
             username-1
+            
             
           </div>
         </div>
@@ -141,6 +143,7 @@ exports[`properties/person > not readOnly, show me 1`] = `
             
             username-2
             
+            
           </div>
         </div>
         <div
@@ -154,6 +157,7 @@ exports[`properties/person > not readOnly, show me 1`] = `
           >
             
             username-3
+            
             
           </div>
         </div>
@@ -221,6 +225,7 @@ exports[`properties/person > not readOnly, show me 2`] = `
             
             Me
             
+            
           </div>
         </div>
         <div
@@ -234,6 +239,7 @@ exports[`properties/person > not readOnly, show me 2`] = `
           >
             
             username-1
+            
             
           </div>
         </div>
@@ -249,6 +255,7 @@ exports[`properties/person > not readOnly, show me 2`] = `
             
             username-2
             
+            
           </div>
         </div>
         <div
@@ -262,6 +269,7 @@ exports[`properties/person > not readOnly, show me 2`] = `
           >
             
             username-3
+            
             
           </div>
         </div>
@@ -370,6 +378,7 @@ exports[`properties/person > not readOnly, show modal 2`] = `
             
             username-1
             
+            
           </div>
         </div>
         <div
@@ -384,6 +393,7 @@ exports[`properties/person > not readOnly, show modal 2`] = `
             
             username-2
             
+            
           </div>
         </div>
         <div
@@ -397,6 +407,7 @@ exports[`properties/person > not readOnly, show modal 2`] = `
           >
             
             username-3
+            
             
           </div>
         </div>
@@ -434,6 +445,14 @@ exports[`properties/person > not readOnly, show username 1`] = `
             
             username-1
             
+            <button
+              class="Person-clear"
+              type="button"
+            >
+              <i
+                class="CompassIcon icon-close"
+              />
+            </button>
           </div>
         </div>
         
@@ -446,15 +465,7 @@ exports[`properties/person > not readOnly, show username 1`] = `
           type="text"
         />
       </div>
-      <div
-        class="react-select__clear-indicator"
-        role="button"
-        tabindex="-1"
-      >
-        <i
-          class="CompassIcon icon-close"
-        />
-      </div>
+      
     </div>
     
   </div>
@@ -471,6 +482,7 @@ exports[`properties/person > readOnly view 1`] = `
     >
       
       username-1
+      
       
     </div>
   </div>
@@ -507,6 +519,7 @@ exports[`properties/person > show multiple 1`] = `
               
               username-1
               
+              
             </div>
           </div>
           <div
@@ -531,6 +544,7 @@ exports[`properties/person > show multiple 1`] = `
               
               username-2
               
+              
             </div>
           </div>
           <div
@@ -554,15 +568,7 @@ exports[`properties/person > show multiple 1`] = `
           type="text"
         />
       </div>
-      <div
-        class="react-select__clear-indicator"
-        role="button"
-        tabindex="-1"
-      >
-        <i
-          class="CompassIcon icon-close"
-        />
-      </div>
+      
     </div>
     
   </div>
@@ -599,6 +605,7 @@ exports[`properties/person > show multiple, display modal 1`] = `
               
               username-1
               
+              
             </div>
           </div>
           <div
@@ -623,6 +630,7 @@ exports[`properties/person > show multiple, display modal 1`] = `
               
               username-2
               
+              
             </div>
           </div>
           <div
@@ -646,15 +654,7 @@ exports[`properties/person > show multiple, display modal 1`] = `
           type="text"
         />
       </div>
-      <div
-        class="react-select__clear-indicator"
-        role="button"
-        tabindex="-1"
-      >
-        <i
-          class="CompassIcon icon-close"
-        />
-      </div>
+      
     </div>
     
   </div>
@@ -691,6 +691,7 @@ exports[`properties/person > show multiple, display modal 2`] = `
               
               username-1
               
+              
             </div>
           </div>
           <div
@@ -714,6 +715,7 @@ exports[`properties/person > show multiple, display modal 2`] = `
             >
               
               username-2
+              
               
             </div>
           </div>
@@ -739,15 +741,7 @@ exports[`properties/person > show multiple, display modal 2`] = `
           type="text"
         />
       </div>
-      <div
-        class="react-select__clear-indicator"
-        role="button"
-        tabindex="-1"
-      >
-        <i
-          class="CompassIcon icon-close"
-        />
-      </div>
+      
     </div>
     <div
       class="Combobox__menu react-select__menu "
@@ -770,6 +764,7 @@ exports[`properties/person > show multiple, display modal 2`] = `
             
             username-1
             
+            
           </div>
         </div>
         <div
@@ -784,6 +779,7 @@ exports[`properties/person > show multiple, display modal 2`] = `
             
             username-2
             
+            
           </div>
         </div>
         <div
@@ -797,6 +793,7 @@ exports[`properties/person > show multiple, display modal 2`] = `
           >
             
             username-3
+            
             
           </div>
         </div>

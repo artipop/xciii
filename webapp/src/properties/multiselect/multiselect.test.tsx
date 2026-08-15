@@ -167,6 +167,32 @@ describe('properties/multiSelect', () => {
         expectOptionsMenuToBeVisible(propertyTemplate)
     })
 
+    // The list stays open and marks what is chosen, so a click on a marked row
+    // is somebody unticking it. It used to add the option a second time, and
+    // the card then named one folder twice.
+    it('clicking an option that is already chosen takes it off', async () => {
+        const propertyTemplate = buildMultiSelectPropertyTemplate()
+        const propertyValue = ['multi-option-1', 'multi-option-2']
+
+        render(() =>
+            <MultiSelect
+                property={new MultiSelectProperty()}
+                readOnly={false}
+                showEmptyPlaceholder={false}
+                propertyTemplate={propertyTemplate}
+                propertyValue={propertyValue}
+                board={{...board}}
+                card={{...card}}
+            />,
+        {wrapper: Wrapper},
+        )
+
+        userEvent.click(screen.getByTestId(nonEditableMultiSelectTestId))
+        userEvent.click(screen.getAllByRole('menuitem')[1])
+
+        expect(mockedMutator.changePropertyValue).toHaveBeenCalledWith(board.id, card, propertyTemplate.id, ['multi-option-1'])
+    })
+
     it('can unselect a option via backspace', async () => {
         const propertyTemplate = buildMultiSelectPropertyTemplate()
         const propertyValue = ['multi-option-1', 'multi-option-2']

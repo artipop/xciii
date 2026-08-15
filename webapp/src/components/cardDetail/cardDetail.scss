@@ -68,13 +68,24 @@
         // column header, a badge on a kanban card — and wrong here, where it is
         // the answer and the question above it is the one wearing that type. So
         // the pill keeps its shape and its colour and speaks like the card.
+        // …and a date is a button only because clicking it opens a calendar,
+        // so it gets the same treatment for the same reason: a button is
+        // tracked capitals in this product, and «СРОК: ПУСТО» was the one
+        // answer on the card that shouted while «Пусто» beside it did not.
         .Label,
-        .Label-text {
+        .Label-text,
+        .Button {
             font-family: var(--font-prose);
             font-size: inherit;
             font-weight: 400;
             text-transform: none;
             letter-spacing: var(--track-prose);
+        }
+
+        // The empty date says the same word as every other empty value, in the
+        // same ink.
+        &.DateRange.empty .Button {
+            color: rgba(var(--center-channel-color-rgb), 0.4);
         }
 
         &:not(.URLProperty) {

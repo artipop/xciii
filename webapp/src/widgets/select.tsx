@@ -60,7 +60,10 @@ const Select = (props: Props): JSX.Element => {
             // the click is what stops the label from acting on it.
             stopPropagationOnToggle={true}
             menu={
-                <Menu position='bottom'>
+                <Menu
+                    position='bottom'
+                    matchAnchorWidth={true}
+                >
                     <For each={props.options}>
                         {(option) => (
                             <Menu.Text
