@@ -74,10 +74,9 @@ window and the icon next to the clock.
 The app keeps an icon in the menu bar (the system tray on Windows and Linux). An
 amber dot appears on it while at least one agent is waiting for a person.
 
-A left click brings the board's window back, even from minimised or closed. A
-right click opens a menu:
+Clicking it opens a menu:
 
-- **"Открыть"** — the same as a left click.
+- **"Открыть"** — bring the board's window back, even from minimised or closed.
 - The waiting agents, one per line: the agent's name and the card. Clicking one
   opens that agent's terminal.
 - **"Выход"** — close the application entirely.

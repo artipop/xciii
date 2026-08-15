@@ -378,10 +378,10 @@ window of this app has focus, terminal windows included: announcing a wait to
 somebody sitting in front of the agent's own screen is the noise this is meant
 to be the opposite of. Clicking it opens the terminal and acks the wait —
 `openWait`/`AckAttention`, the same pair `attention.ts` performs, so going to
-look takes the notification off every window and off the phone. Left click on
-the icon is the app, right click is the menu, and the left one only works
-because a click handler exists: with none, the platform takes the left button
-for the menu itself (`systrayPreClickCallback`).
+look takes the notification off every window and off the phone. **Both buttons
+open the menu** and the way in is «Открыть» inside it, because opening the app
+straight off a left click is not reachable on this Wails — see
+`docs/deferred.md`.
 
 **Taking a notification down is not `RemoveNotification`**, which is the call
 that reads like it and is a stub returning nil on macOS and on Windows.

@@ -93,12 +93,19 @@ func initAlerts(wapp *application.App, app *App, mgr *acp.Manager) func() {
 	c.tray.SetIcon(trayIdleDark)
 	c.tray.SetMenu(c.menu(nil))
 
-	// Left click is the app, right click is the menu — which is what a status
-	// item is for on every platform this builds for, and it is only true if a
-	// click handler exists: with none, the platform takes the left button for
-	// the menu itself and there is no way to simply open the app from here.
-	// The right button is left alone, which is what makes it the menu's.
-	c.tray.OnClick(func() { go showMainWindow(c.wapp, c.app.originURL()) })
+	// **No click handler, deliberately.** Both buttons open the menu, and the
+	// way to the board is «Открыть» inside it.
+	//
+	// Left click opening the app directly is what this looked like it should
+	// do, and it is not reachable here. Everything the framework offers for a
+	// click that is not the menu — a click handler, an attached window — runs
+	// off the status item's *action*, and measured on this Wails the action
+	// fires for the right button and not for the left. So setting a handler
+	// only takes the menu away from the left button (`systrayPreClickCallback`
+	// gives it native menu tracking exactly when no handler is set) and puts
+	// nothing in its place: the left button did nothing at all. Two buttons
+	// that both open a menu whose first item is «Открыть» is one click more
+	// and always works, which is the better trade.
 
 	// The list is re-read rather than taken from the payload: a wait ending and
 	// a wait being acknowledged arrive as the same event, and what both the dot
