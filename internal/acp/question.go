@@ -127,6 +127,9 @@ func (m *Manager) ask(ctx context.Context, s *Session, q Question) Answer {
 
 	m.setStatus(s, StatusRunning)
 	m.emitQuestion(q, false)
+	// Answered or withdrawn, this question is gone, and an acknowledgement of it
+	// must not outlive it (attentionack.go).
+	m.clearAck("q:" + q.ID)
 	// The exchange itself is not commented on the card. A question is live —
 	// it is on the card's face, in the notification and on «Ждут» while it
 	// waits, and it is answered in any of them. Once answered it is the

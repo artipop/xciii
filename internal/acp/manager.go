@@ -61,6 +61,11 @@ type Manager struct {
 	stageWaits   map[string]stageWait        // terminal ID → the running stage finish_work answers to
 	stageWaiting map[string]Attention        // terminal ID → the wait it is showing
 
+	// acked is which waits a person has already been told about, so that being
+	// told is a thing that happens once (attentionack.go). Its own lock: it is
+	// written from a click and read from every emit.
+	acked ackedWaits
+
 	seededMu sync.Mutex
 	seeded   map[string]bool // boards whose own settings have been imported
 

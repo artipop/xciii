@@ -119,6 +119,11 @@ export interface IAppWindow extends Window {
                 // What is waiting for a person right now: the agents that have
                 // asked something and gone quiet (acp:attention keeps it current).
                 ListAttention?(): Promise<string>
+
+                // "I have seen this one." The wait stands — the card keeps its
+                // amber button — and only the notification stops, until the
+                // agent does something and goes quiet again.
+                AckAttention?(key: string): Promise<void>
                 ShowTerminal?(terminalId: string): Promise<string>
                 CloseTerminal?(terminalId: string): Promise<void>
 

@@ -49,6 +49,13 @@ export type Attention = {
     freeText?: boolean
     awaiting: boolean
     since?: string
+
+    // Whether a person has already been told about this one. Kept by the Go
+    // side, because the same wait is drawn in every window and on the phone and
+    // "do not tell me again" means all of them (internal/acp/attentionack.go).
+    // It hides the notification and nothing else: the card's own button is part
+    // of the card and stays.
+    acked?: boolean
 }
 
 // keyOf is what identifies one wait — the Go side fills it in, and this is the
@@ -138,6 +145,29 @@ export function useCardAttention(cardId: Accessor<string>): Accessor<Attention |
 // one, else the card's own.
 export async function openWait(target: Attention): Promise<void> {
     await openCardTerminalWindow(target.cardId || '', target.terminalId)
+}
+
+// ackWait says a person has seen this wait — waved it away, or gone to look at
+// it. Both are the same answer to the same question, which is whether anybody
+// still needs telling.
+//
+// It goes to the Go side rather than being remembered here, so that one click
+// takes the notification off every window at once and a reload does not bring
+// it back. What brings it back is the agent doing something and stopping again.
+export async function ackWait(target: Attention): Promise<void> {
+    const key = keyOf(target)
+
+    // Marked here first: a click has to take the box away now, not when the
+    // round trip lands — and in a browser or plugin deployment, where there is
+    // no Go side, this is the whole of it.
+    setWaiting((current) => current.map((a) => (keyOf(a) === key ? {...a, acked: true} : a)))
+    try {
+        await agentBindings()?.AckAttention?.(key)
+    } catch {
+        // Nothing to say and nothing to undo: the notification is already gone
+        // in this window, and the worst a refused ack costs is that the next
+        // window to open draws it once.
+    }
 }
 
 type Formatter = {

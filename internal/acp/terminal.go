@@ -112,6 +112,15 @@ type TerminalSession struct {
 	// mid-turn redraws its own spinner, and a TUI waiting on an answer draws
 	// nothing at all (stageterminal.go).
 	lastOutput time.Time
+	// resizedAt is when a window last told the CLI how big it is, and workAt is
+	// the last output that was not the redraw that provoked. The two exist for
+	// one reason: opening the terminal resizes it, a TUI redraws itself when it
+	// is resized, and that redraw is output we caused by looking. Reading it as
+	// the agent doing something is what made a wait somebody had just answered
+	// come back as a fresh notification a minute later, for ever
+	// (attentionack.go).
+	resizedAt time.Time
+	workAt    time.Time
 
 	mu       sync.Mutex
 	buf      []byte
@@ -234,6 +243,7 @@ func (t *TerminalSession) Resize(cols, rows int) error {
 	}
 	t.mu.Lock()
 	t.cols, t.rows = cols, rows
+	t.resizedAt = time.Now()
 	tty := t.tty
 	t.mu.Unlock()
 	return tty.Resize(cols, rows)
@@ -328,11 +338,28 @@ func (t *TerminalSession) quietFor(now time.Time) time.Duration {
 	return now.Sub(since)
 }
 
+// resizeEcho is how long after a window tells the CLI its size the output that
+// follows still counts as the CLI redrawing itself rather than as the agent
+// doing something. Generous for a repaint, far short of a turn.
+const resizeEcho = 3 * time.Second
+
+// workedAt is when the CLI last drew something a person did not cause by
+// looking at it. See resizedAt.
+func (t *TerminalSession) workedAt() time.Time {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.workAt
+}
+
 // publish fans one chunk of output out to every window and keeps a copy.
 func (t *TerminalSession) publish(chunk []byte) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	t.lastOutput = time.Now()
+	now := time.Now()
+	t.lastOutput = now
+	if now.Sub(t.resizedAt) > resizeEcho {
+		t.workAt = now
+	}
 	t.buf = append(t.buf, chunk...)
 	if len(t.buf) > terminalScrollback {
 		t.buf = append([]byte(nil), t.buf[len(t.buf)-terminalScrollback:]...)
@@ -1387,6 +1414,10 @@ type Attention struct {
 	// carries true.
 	Awaiting bool   `json:"awaiting"`
 	Since    string `json:"since,omitempty"`
+	// Acked is a wait a person has already seen — waved away, or opened. It is
+	// still a wait: the card keeps its amber button, because that is part of the
+	// card. What it stops is the notification, which interrupts (attentionack.go).
+	Acked bool `json:"acked,omitempty"`
 }
 
 // The two reasons a card can want a person.
@@ -1436,15 +1467,25 @@ func (m *Manager) Attention() []Attention {
 	for _, a := range m.stageAttention() {
 		out = append(out, a.withKey())
 	}
+	// Stamped here rather than stored on the record: an ack is dropped by the
+	// terminal drawing something, and a copy taken when the wait was raised
+	// would say the opposite of what is true now (attentionack.go).
+	for i := range out {
+		out[i].Acked = m.ackStanding(out[i].Key)
+	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Since < out[j].Since })
 	return out
 }
 
 func (m *Manager) emitAttentionRecord(a Attention) {
-	if m == nil || m.ui == nil {
+	if m == nil {
 		return
 	}
 	a = a.withKey()
+	a.Acked = a.Awaiting && m.ackStanding(a.Key)
+	if m.ui == nil {
+		return
+	}
 	m.ui.Emit(EventAttention, map[string]any{
 		"key":        a.Key,
 		"terminalId": a.TerminalID,
@@ -1460,6 +1501,7 @@ func (m *Manager) emitAttentionRecord(a Attention) {
 		"freeText":   a.FreeText,
 		"awaiting":   a.Awaiting,
 		"since":      a.Since,
+		"acked":      a.Acked,
 	})
 }
 

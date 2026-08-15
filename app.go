@@ -1060,6 +1060,18 @@ func (a *App) ListAttention() (string, error) {
 	return string(out), nil
 }
 
+// AckAttention says a person has seen this wait, so it stops being announced.
+// The wait itself stands — the card keeps its amber button until the agent is
+// answered — and the announcement comes back if the agent does something and
+// stops again (internal/acp/attentionack.go).
+func (a *App) AckAttention(key string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	a.mgr.AckAttention(key)
+	return nil
+}
+
 // ShowTerminal reopens the window of a terminal that is already running and
 // returns it as JSON, the same shape OpenCardTerminal returns.
 func (a *App) ShowTerminal(terminalID string) (string, error) {

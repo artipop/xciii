@@ -291,6 +291,22 @@ thing to do about it, «Открыть терминал», because the answer be
 interface the agent drew it in. `components/acp/attention.ts` is the one
 subscription behind all of it.
 
+**Being told is a thing that happens once** (`internal/acp/attentionack.go`).
+The ✕ and «Открыть терминал» are the same answer to the same question — whether
+anybody still needs telling — and both call `AckAttention(key)`. The ack is
+kept by the Go side, not by the page, so one click takes the notification off
+every window and off the phone and a reload does not bring it back; the card's
+amber button is untouched, being part of the card. It was a list in the page
+keyed by the wait *and when it was raised*, and that made a loop: a stage's
+wait is silence, opening the terminal to look at it resizes the CLI, a TUI
+repaints when it is resized — so the wait ended and went up again forty-five
+seconds later under a timestamp nobody had dismissed. Going to look at an agent
+guaranteed a fresh notification about it a minute afterwards, for ever. What
+drops the ack is the CLI drawing something that is **not** the repaint our own
+looking provoked (`TerminalSession.workAt`, `resizeEcho`), because an agent
+that revives, does a turn and stops again is asking something new. A wait that
+ends takes its ack with it.
+
 **The stack belongs to the window with the board in it.** It is mounted outside
 the router (`app.tsx`), which is what puts it wherever in the app a person is —
 and a terminal window is the app too, so every one of them drew the whole stack

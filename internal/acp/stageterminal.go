@@ -383,6 +383,15 @@ func (m *Manager) watchStageQuiet(s *Session, t *TerminalSession, stop <-chan st
 		if waiting {
 			m.raiseStageWait(s, t, false)
 		}
+		// The stage is over — reported, cancelled or its CLI gone. Whoever was
+		// told about it has been told about something that no longer exists, so
+		// the next stage in this terminal starts with nothing waved away.
+		//
+		// Deliberately here and not in the lower above: a wait going down
+		// because the CLI drew a line is the ordinary middle of a stage, and
+		// forgetting the ack there is what would put the notification back
+		// forty-five seconds later (attentionack.go).
+		m.clearAck(t.ID)
 	}()
 	for {
 		select {
@@ -408,6 +417,14 @@ func (m *Manager) watchStageQuiet(s *Session, t *TerminalSession, stop <-chan st
 // as well as emitted, because the socket may reconnect and ask for the whole
 // list — and a card waiting to be answered is exactly the wrong thing to lose.
 func (m *Manager) raiseStageWait(s *Session, t *TerminalSession, waiting bool) {
+	if waiting {
+		// The wait is being raised again after the silence broke, and whether
+		// that is worth interrupting anybody over depends on what broke it. The
+		// CLI doing a turn and stopping again is a new question; the CLI
+		// repainting because somebody opened the window to look is the person
+		// who was already told (attentionack.go).
+		m.clearAckIfWorked(t.ID, t.workedAt())
+	}
 	a := Attention{
 		TerminalID: t.ID,
 		CardID:     s.CardID,

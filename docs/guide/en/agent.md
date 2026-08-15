@@ -185,9 +185,16 @@ terminal button on the card turns amber, a notification arrives, and the card
 appears in "Waiting" on the phone. All three offer the same button — "Open the
 terminal".
 
+A notification is shown once. The "Dismiss" cross and the "Open the terminal"
+button put it away in the same way: both mean you know about this question. A
+notification you have put away does not come back in another window, on the
+phone, or after a page reload — not until the agent does something and stops
+again. That is a new question, and it is announced afresh.
+
 Notifications can be turned off in the
 [settings](./settings/index.md#agent-notifications); the terminal button on
-the card stays amber either way.
+the card stays amber either way — the notification is about the question, the
+button about the agent still waiting.
 
 ## When a stage ends
 

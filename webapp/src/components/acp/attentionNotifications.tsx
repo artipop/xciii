@@ -6,6 +6,7 @@ import CompassIcon from '../../widgets/icons/compassIcon'
 
 import {
     Attention,
+    ackWait,
     agentNotificationsOn,
     attentionHeading,
     keyOf,
@@ -37,10 +38,17 @@ import './attentionNotifications.scss'
 // being a notification and become a wall, so the rest are counted instead.
 const stackLimit = 3
 
-// A dismissal is of one wait, not of one card: the same agent asking again is a
-// new question, and a person who waved the last one away still wants to hear
-// about this one. "Since" is what tells the two apart.
-const waitKey = (target: Attention) => `${keyOf(target)}@${target.since || ''}`
+// Being told is a thing that happens once, and what remembers that is the Go
+// side (attention.ts, internal/acp/attentionack.go) — not a list kept here.
+//
+// It was kept here, keyed by the wait and when it was raised, and that was the
+// spam: a stage's wait is the CLI drawing nothing, opening the terminal to look
+// at it makes the CLI redraw, so the wait ended and was raised again forty-five
+// seconds later under a timestamp this page had never dismissed. Going to look
+// at an agent guaranteed a fresh notification about it a minute afterwards, for
+// as long as the agent stood there. A list in one page was wrong twice over
+// besides: the board's window, a second window and the phone each drew their own
+// copy, and a reload brought back everything a person had already dealt with.
 
 // terminalScreen is a window that draws one terminal and nothing else — the
 // desktop app's own, and «Терминалы» on a phone.
@@ -65,7 +73,6 @@ const terminalScreen = (): boolean => (/^\/(acp|m)\/terminal\//).test(window.loc
 const AttentionNotifications = () => {
     const intl = useIntl()
     const waiting = useAttention()
-    const [dismissed, setDismissed] = createSignal<string[]>([])
     const [busy, setBusy] = createSignal('')
 
     // Deduped by what identifies a wait, not by the object: the list is rebuilt
@@ -78,7 +85,7 @@ const AttentionNotifications = () => {
         }
         const byKey = new Map<string, Attention>()
         for (const a of waiting()) {
-            if (!dismissed().includes(waitKey(a))) {
+            if (!a.acked) {
                 byKey.set(keyOf(a), a)
             }
         }
@@ -87,22 +94,14 @@ const AttentionNotifications = () => {
     const shown = createMemo(() => pending().slice(0, stackLimit))
     const hidden = createMemo(() => Math.max(0, pending().length - stackLimit))
 
-    const dismiss = (target: Attention) => {
-        // Waits that are over cannot be shown again, so remembering that they
-        // were waved away is only a list that grows.
-        setDismissed((current) => [
-            ...current.filter((key) => waiting().some((a) => waitKey(a) === key)),
-            waitKey(target),
-        ])
-    }
-
-    // Going to the terminal is the whole of what this offers, and it dismisses
-    // the notification: somebody who is now looking at the agent has been told.
+    // Going to the terminal is the whole of what this offers, and it counts as
+    // having been told: somebody now looking at the agent does not need a box
+    // saying it is there.
     const open = async (target: Attention) => {
-        setBusy(waitKey(target))
+        setBusy(keyOf(target))
         try {
             await openWait(target)
-            dismiss(target)
+            await ackWait(target)
         } finally {
             setBusy('')
         }
@@ -139,7 +138,7 @@ const AttentionNotifications = () => {
                                 <button
                                     type='button'
                                     class='AttentionNotifications__action'
-                                    disabled={busy() === waitKey(target)}
+                                    disabled={busy() === keyOf(target)}
                                     onClick={() => open(target)}
                                 >
                                     {intl.formatMessage({id: 'Attention.open', defaultMessage: 'Open the terminal'})}
@@ -150,7 +149,7 @@ const AttentionNotifications = () => {
                                 class='AttentionNotifications__close'
                                 title={intl.formatMessage({id: 'Attention.dismiss', defaultMessage: 'Dismiss'})}
                                 aria-label={intl.formatMessage({id: 'Attention.dismiss', defaultMessage: 'Dismiss'})}
-                                onClick={() => dismiss(target)}
+                                onClick={() => ackWait(target)}
                             >
                                 <CompassIcon icon='close'/>
                             </button>

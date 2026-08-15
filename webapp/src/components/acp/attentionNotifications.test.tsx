@@ -15,6 +15,7 @@ function attentionBindings(waiting: any[] = []) {
         ShowTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-1', windowed: true})),
         OpenCardTerminal: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-1', windowed: true})),
         AnswerQuestion: vi.fn().mockResolvedValue(undefined),
+        AckAttention: vi.fn().mockResolvedValue(undefined),
     }
 }
 
@@ -141,6 +142,74 @@ describe('components/acp/attentionNotifications', () => {
         handlers['acp:attention']({...waitingOnCard, key: 'term-2', terminalId: 'term-2', since: '2026-08-05T11:30:00Z'})
 
         expect(await screen.findByRole('alert')).toBeInTheDocument()
+    })
+
+    // Waving it away is told to the app, not remembered here: the same wait is
+    // drawn in the board's window, in a second window and on the phone, and a
+    // person who has dealt with it means all of them.
+    it('tells the app the wait has been seen', async () => {
+        const bindings = attentionBindings()
+        anyWindow.go = {main: {App: bindings}}
+
+        render(() => wrapIntl(() => <AttentionNotifications/>))
+        await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
+        handlers['acp:attention'](waitingOnCard)
+
+        await userEvent.click(await screen.findByLabelText('Dismiss'))
+        await waitFor(() => expect(bindings.AckAttention).toHaveBeenCalledWith('term-1'))
+    })
+
+    // The spam this whole arrangement is for. A stage's wait is the CLI drawing
+    // nothing, and opening the terminal to look at it makes the CLI redraw — so
+    // the wait ends and is raised again a minute later, about the very thing the
+    // person has just been looking at. It is the same wait, and they have been
+    // told.
+    it('stays quiet when the same wait is raised again', async () => {
+        anyWindow.go = {main: {App: attentionBindings()}}
+
+        render(() => wrapIntl(() => <AttentionNotifications/>))
+        await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
+        handlers['acp:attention'](waitingOnCard)
+
+        await userEvent.click(await screen.findByText('Open the terminal'))
+        await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
+
+        // The CLI redrew, so the silence broke and came back: a new timestamp
+        // for a wait nothing has happened to.
+        handlers['acp:attention']({...waitingOnCard, awaiting: false})
+        handlers['acp:attention']({...waitingOnCard, since: '2026-08-05T11:01:00Z', acked: true})
+
+        await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
+    })
+
+    // The other half of it: an agent that came back to life, did something and
+    // stopped again is asking a new question, and the app says so by sending the
+    // wait without the acknowledgement.
+    it('says it again when the terminal comes back to life', async () => {
+        anyWindow.go = {main: {App: attentionBindings()}}
+
+        render(() => wrapIntl(() => <AttentionNotifications/>))
+        await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
+        handlers['acp:attention'](waitingOnCard)
+
+        await userEvent.click(await screen.findByLabelText('Dismiss'))
+        expect(screen.queryByRole('alert')).toBeNull()
+
+        handlers['acp:attention']({...waitingOnCard, awaiting: false})
+        handlers['acp:attention']({...waitingOnCard, since: '2026-08-05T11:40:00Z'})
+
+        expect(await screen.findByRole('alert')).toBeInTheDocument()
+    })
+
+    // A page that opens after somebody else has dealt with the wait must not
+    // start by announcing it: the list carries the acknowledgement too.
+    it('starts quiet about a wait somebody has already seen', async () => {
+        anyWindow.go = {main: {App: attentionBindings([{...waitingOnCard, acked: true}])}}
+
+        render(() => wrapIntl(() => <AttentionNotifications/>))
+        await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
+
+        expect(screen.queryByRole('alert')).toBeNull()
     })
 
     it('interrupts nobody who turned notifications off', async () => {
