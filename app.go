@@ -1032,6 +1032,25 @@ func (a *App) ListTerminals() (string, error) {
 	return string(out), nil
 }
 
+// ListCutOffConversations returns, as a JSON object of card id → reason, the
+// cards whose conversation stopped without a verdict: the CLI was closed, or
+// the app was, and the stage was never reported. The board draws a paused
+// terminal button on each of them, so that work nobody picked back up is
+// visible from the board rather than only from inside the card.
+//
+// One call for the page, indexed by card, exactly as ListTerminals is: a board
+// has as many cards as it likes.
+func (a *App) ListCutOffConversations() (string, error) {
+	if a.mgr == nil {
+		return "{}", nil
+	}
+	out, err := json.Marshal(a.mgr.CutOffConversations())
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
 // AnswerQuestion hands an agent the answer it is waiting for: an option it
 // offered, or text typed instead. Both empty means no — the agent hears a
 // refusal and carries on without what it asked for.

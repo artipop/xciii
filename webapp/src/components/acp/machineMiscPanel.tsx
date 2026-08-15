@@ -84,9 +84,16 @@ const MachineMiscPanel = () => {
             </div>
             <div class='MachineMiscPanel__content'>
                 {/* The card's own indicator is not a setting — it is part of
-                    the card. This is only about interrupting, which is why it
-                    is a setting at all, and why it is offered only where there
-                    is an agent that could ask. */}
+                    the card — and neither is the dot on the tray icon, which is
+                    the same indicator for somebody who is not looking at the
+                    board. This is only about interrupting, which is why it is a
+                    setting at all, and why it is offered only where there is an
+                    agent that could ask.
+
+                    One switch for both places the interruption reaches: the
+                    notification the page draws, and — when the app is in the
+                    background — the system's own, which the Go side posts and
+                    reads this very setting for (alerts.go, uisettings.go). */}
                 <Show when={isAgentsAvailable()}>
                     <div class='MachineMiscPanel__setting'>
                         <div class='MachineMiscPanel__fact'>
@@ -96,7 +103,7 @@ const MachineMiscPanel = () => {
                             <span class='MachineMiscPanel__factValue'>
                                 {intl.formatMessage({
                                     id: 'Machine.agent-notifications-hint',
-                                    defaultMessage: 'The notification shows the question itself, and the agent can be answered right in it. The amber dot on the card stays either way.',
+                                    defaultMessage: 'The notification shows the question itself, and the agent can be answered right in it; when the app is in the background it comes from the system instead. The dot on the card and the dot on the tray icon stay even with this off.',
                                 })}
                             </span>
                         </div>

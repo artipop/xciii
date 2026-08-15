@@ -432,7 +432,7 @@
   "HideBoard.MenuOption": "Hide board",
   "KanbanCard.open-terminal": "Open the terminal",
   "KanbanCard.untitled": "Untitled",
-  "Machine.agent-notifications-hint": "The notification shows the question itself, and the agent can be answered right in it. The amber dot on the card stays either way.",
+  "Machine.agent-notifications-hint": "The notification shows the question itself, and the agent can be answered right in it; when the app is in the background it comes from the system instead. The dot on the card and the dot on the tray icon stay even with this off.",
   "Machine.hint-config": "How many sessions run at once, how long a turn may take, which tools an agent may use without asking — those are edited by hand in the app's config.json. The guide says where the file is and what is in it.",
   "Machine.named-branches": "The agent names each card’s branch",
   "Machine.named-branches-hint": "A short agent run before the card’s first branch — no terminal opens, and a slow or odd answer falls back to the card’s title.",

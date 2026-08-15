@@ -169,10 +169,17 @@ You do not need to open a card to reach its terminal. A terminal-icon button
 appears in the bottom right corner of a card on the board:
 
 - **amber, blinking** — the agent is asking something;
-- **grey** — a terminal is currently working on the card.
+- **grey** — a terminal is currently working on the card;
+- **amber pause** — the work was cut off: the terminal was closed, or the app
+  was, and the stage never reported a result.
 
 Clicking it opens the terminal in a separate window. There is no button when
 nothing is running and there are no questions.
+
+The pause means the card is still on its step, waiting to be picked back up.
+Hover the button and it says what happened. Clicking it continues the same
+conversation from where it stopped, and the pause goes as soon as something
+happens on the card again.
 
 ## Questions from the agent
 
@@ -181,9 +188,12 @@ in an ordinary console: a choice of options, permission for a command, a
 question about the task. That is where you answer.
 
 The app only tells you about it. When the CLI stops drawing anything, the
-terminal button on the card turns amber, a notification arrives, and the card
-appears in "Waiting" on the phone. All three offer the same button — "Open the
-terminal".
+terminal button on the card turns amber, a notification arrives, an amber dot
+appears on the app's icon next to the clock, and the card appears in "Waiting"
+on the phone. They all offer the same button — "Open the terminal".
+
+If the app is minimised, the notification comes from the system. It names the
+agent and the card, and clicking it opens the right terminal.
 
 ## Permissions can be granted without opening the terminal
 
@@ -197,9 +207,15 @@ the main way to work: a permission is one tap.
 
 The question does **not** leave the terminal either. The agent draws its own box
 on screen at the same moment, so it can be answered there as well, and whichever
-happened first is the one that counts. If you answered in the terminal and then
-pressed a button in the notification, the app says "The agent is no longer
-waiting for this answer" — not an error, the answer simply already arrived.
+happened first is the one that counts.
+
+An answer given in the terminal is seen: the CLI starts drawing again, and a
+couple of seconds later the question leaves the card, the notification, the
+system's notification and the icon next to the clock. Opening the terminal to
+read the question is not an answer — the app tells the two apart. If you did
+manage to press a button in the notification after answering in the terminal,
+the app says "The agent is no longer waiting for this answer" — not an error,
+the answer simply already arrived.
 
 This works for Claude agents. Every other question — a plan, a clarification, a
 choice between options — still lives in the terminal and is answered there.
@@ -211,9 +227,9 @@ phone, or after a page reload — not until the agent does something and stops
 again. That is a new question, and it is announced afresh.
 
 Notifications can be turned off in the
-[settings](./settings/index.md#agent-notifications); the terminal button on
-the card stays amber either way — the notification is about the question, the
-button about the agent still waiting.
+[settings](./settings/index.md#agent-notifications). The terminal button on the
+card and the dot on the icon next to the clock stay either way — the
+notification is about the question, they are about the agent still waiting.
 
 ## When a stage ends
 

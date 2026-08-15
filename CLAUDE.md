@@ -334,6 +334,102 @@ reason nothing of ours is drawn on that screen. So `attentionNotifications.tsx`
 draws nothing on a `/acp/terminal/` or `/m/terminal/` page, and the list it does
 draw is deduped by the wait's own key.
 
+**Every one of those surfaces needs somebody to be looking at a window**, and
+the case a stage's wait is raised in is usually the opposite one: the app is
+minimised, or behind an editor, or on another space. So the same wait goes out
+through the two surfaces a desktop keeps for exactly that — the OS notification
+centre and the menu bar (`alerts.go`, `alerts_desktop.go`, desktop build only:
+a headless install has no menu bar and would post to whoever is logged into the
+server). Both are driven by re-reading `Manager.Attention()` on `acp:attention`
+rather than by the payload, since a wait ending and a wait being acknowledged
+arrive as the same event and what both surfaces need is the picture afterwards.
+
+The line between them is the setting. **The dot on the tray icon is an
+indicator**, like the card's amber button: it interrupts nobody, it is drawn
+while anything is waiting whether or not it has been acknowledged, and it is
+therefore not a setting. **A notification interrupts**, so it is the switch —
+and it is *the switch that already existed*, `agentNotifications`, read out of
+`ui-settings.json` by the Go side (`agentNotificationsEnabled`) rather than
+duplicated, because "tell me when an agent is waiting" is one question and two
+of them would need a rule about which wins. It is also suppressed while any
+window of this app has focus, terminal windows included: announcing a wait to
+somebody sitting in front of the agent's own screen is the noise this is meant
+to be the opposite of. Clicking it opens the terminal and acks the wait —
+`openWait`/`AckAttention`, the same pair `attention.ts` performs, so going to
+look takes the notification off every window and off the phone. Left click on
+the icon is the app, right click is the menu, and the left one only works
+because a click handler exists: with none, the platform takes the left button
+for the menu itself (`systrayPreClickCallback`).
+
+**Taking a notification down is not `RemoveNotification`**, which is the call
+that reads like it and is a stub returning nil on macOS and on Windows.
+`RemoveDeliveredNotification` is the one, delivered being what ours are —
+nothing here schedules — and on Linux the two are the same method.
+
+**Answering in the terminal is now seen** (`withdrawWhenAnsweredOnScreen`). "The
+CLI's box and the card are two places to answer, whoever is first wins" was true
+of the *agent* and false of everything a person looks at: somebody answering on
+screen told this side nothing, so the hook went on holding and the card, both
+notifications and the menu bar icon went on saying an agent waited for a
+decision it already had — for the rest of `hookHold`. What the terminal does say
+is that it started drawing again, and a permission box is a still frame (the
+premise `AttentionTerminal` already rests on), so output after the box has
+settled is the person. `workedAt` rather than `lastOutput`, because opening the
+window to read the question resizes the CLI and a TUI repaints when resized:
+being looked at must not read as being answered — the same trap the ack fell
+into. Wrong in the safe direction, since withdrawing leaves the CLI's own box
+standing, which is where the question was.
+
+**The app outlives its windows**, which is what makes the icon worth having:
+one that dies with the last window is a decoration on a window, and every agent
+conversation used to die with it. Closing the board *hides* it — a
+`WindowClosing` hook that cancels, so the framework's own destroy listener never
+runs and coming back is the same window with the same board rather than a page
+loading from scratch. The Dock icon leads back too
+(`ApplicationShouldHandleReopen`), and the menu's «Выход» is the way out.
+
+**Which lever stops the app quitting is per-platform, and using one lever costs
+⌘Q.** Windows and Linux call `Options.ShouldQuit` from a teardown that *both*
+the last window closing and `App.Quit()` go through, so there it has to be a
+flag `requestQuit` sets. macOS asks the same hook from
+`applicationShouldTerminate` and from nowhere else — the last window closing is
+settled separately, by `ApplicationShouldTerminateAfterLastWindowClosed` — so
+answering with the flag there refuses ⌘Q, the Dock's Quit and everything else a
+person reaches for. `appShouldQuit` says yes on darwin for exactly that reason;
+it was measured, not reasoned — the runtime's own Quit answered 200 and the
+process stayed up.
+
+Three things about the notifications are traps already fallen into. The notification service is
+started **by hand** (`ns.ServiceStartup`) and never registered in
+`application.Options.Services`: a service whose startup errors takes the whole
+application down, and on macOS this one errors whenever the binary is not a
+bundle — which is every `wails3 dev` run there is, so a dev build has the menu
+bar and no OS notifications. Permission is asked at the first wait rather than
+at launch, so an install whose owner never runs an agent is never interrupted to
+be asked. And the icons are **two inks rather than one template icon**
+(`build/tray/{idle,waiting}-{light,dark}.png`, drawn by `build/appicon.py`):
+macOS renders a template icon from its alpha alone, so the amber badge — the
+whole point — would come out the same grey as the mark. macOS and Linux take one
+icon and never ask for a second, so which ink is right is ours and is redecided
+on `ThemeChanged`; Windows keeps both and swaps them itself.
+
+**One colour, three shapes.** The button says the machine needs a person here
+in amber, and what kind of needing is the glyph: a console breathing while an
+agent is asking, a still pause while a stage was cut off — the CLI was closed,
+or the app was, and nothing was reported. Quiet ink is the third, and it says
+only that a CLI is running. A second colour would have needed a legend, which a
+card cannot carry. Where the pause comes from is `StallKindConversation`: the
+stall record gained a *kind* because one of the reasons a card stands still has
+somewhere to go and the rest — a column with no free place, a folder another
+card holds, a route with no edge — do not, and reading that off the reason's own
+Russian is exactly what is never allowed. The shutdown path writes one now
+(`stallCardConversation` in `stageterminal.go`), which it never did: the session
+went to cancelled where only the panel would show it, and the next launch had
+nothing on the board saying the card was mid-something. Recorded there rather
+than at the next startup, because that is the one moment that knows *why* — a
+session found stale on launch could equally be a crash. Continuing such a stage
+by itself was thought through and deliberately not built (`docs/deferred.md`).
+
 **The button is also the way in.** A console-glyph button in the card's bottom
 right corner (`KanbanCard__terminal` — it began life as a dot, and the corner
 button is what it grew into; it started in the *top* right, where a card's

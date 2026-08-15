@@ -18,7 +18,7 @@ import CardBadges from '../cardBadges'
 import CardActionsMenu from '../cardActionsMenu/cardActionsMenu'
 import CardActionsMenuIcon from '../cardActionsMenu/cardActionsMenuIcon'
 import {attentionHeading, useCardAttention} from '../acp/attention'
-import {isCardTerminalAvailable, openCardTerminalWindow, useCardTerminal} from '../acp/liveTerminals'
+import {isCardTerminalAvailable, openCardTerminalWindow, useCardCutOff, useCardTerminal} from '../acp/liveTerminals'
 
 export const OnboardingCardClassName = 'onboardingCard'
 
@@ -69,9 +69,32 @@ const KanbanCard = (props: Props) => {
     // does is open the terminal, so getting to the CLI from the board is one
     // click rather than a card, a toolbar and a panel.
     const liveTerminal = useCardTerminal(() => props.card.id)
-    const showsAgent = () => Boolean(attention() || liveTerminal())
+
+    // And the third: a conversation that stopped without a verdict — the CLI
+    // closed, or the app did, and the stage was never reported. It is the same
+    // button and the same amber, because it is the same sentence — the machine
+    // needs a person here — and what tells the two apart is the shape: the
+    // console breathes while an agent is asking, the pause stands still while
+    // work waits to be picked back up. One colour, one meaning; a second colour
+    // would need a legend.
+    const cutOff = useCardCutOff(() => props.card.id)
+
+    // Only when nothing is happening: a CLI that is running, or an agent that
+    // is asking, is the more recent truth about the same card, and a reason
+    // recorded before either of them is stale until the card makes progress and
+    // drops it.
+    const paused = () => Boolean(cutOff()) && !attention() && !liveTerminal()
+    const showsAgent = () => Boolean(attention() || liveTerminal() || cutOff())
     const canOpenTerminal = () => !props.readonly && isCardTerminalAvailable()
-    const agentTitle = () => (attention() ? attentionTitle() : intl.formatMessage({id: 'KanbanCard.open-terminal', defaultMessage: 'Open the terminal'}))
+    const agentTitle = () => {
+        if (attention()) {
+            return attentionTitle()
+        }
+        if (paused()) {
+            return cutOff()!
+        }
+        return intl.formatMessage({id: 'KanbanCard.open-terminal', defaultMessage: 'Open the terminal'})
+    }
 
     const openTerminal = (e: MouseEvent) => {
         // The card is a click target of its own, and opening the dialog behind
@@ -146,24 +169,30 @@ const KanbanCard = (props: Props) => {
                         fallback={
                             <span
                                 class='KanbanCard__terminal'
-                                classList={{'KanbanCard__terminal--asking': Boolean(attention())}}
+                                classList={{
+                                    'KanbanCard__terminal--asking': Boolean(attention()),
+                                    'KanbanCard__terminal--paused': paused(),
+                                }}
                                 role='status'
                                 title={agentTitle()}
                                 aria-label={agentTitle()}
                             >
-                                <CompassIcon icon='console'/>
+                                <CompassIcon icon={paused() ? 'pause' : 'console'}/>
                             </span>
                         }
                     >
                         <button
                             type='button'
                             class='KanbanCard__terminal'
-                            classList={{'KanbanCard__terminal--asking': Boolean(attention())}}
+                            classList={{
+                                'KanbanCard__terminal--asking': Boolean(attention()),
+                                'KanbanCard__terminal--paused': paused(),
+                            }}
                             title={agentTitle()}
                             aria-label={agentTitle()}
                             onClick={openTerminal}
                         >
-                            <CompassIcon icon='console'/>
+                            <CompassIcon icon={paused() ? 'pause' : 'console'}/>
                         </button>
                     </Show>
                 </Show>

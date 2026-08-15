@@ -152,6 +152,15 @@ func (m *Manager) runCardTaskInTerminal(s *Session) {
 		m.finishSession(s, StatusCancelled, "сессия отменена")
 	case m.rootCtx.Err() != nil:
 		m.finishSession(s, StatusCancelled, "приложение завершается")
+		// And said on the card, which is the half that was missing: the app
+		// closing killed the stage's CLI, the session went to cancelled where
+		// only the panel would ever show it, and the next launch had nothing on
+		// the board saying this card was in the middle of something. Recorded
+		// here rather than at the next startup because this is the one moment
+		// that knows *why* — a session found stale on launch could equally be a
+		// crash.
+		m.stallCardConversation(s.CardID, s.FlowNodeID,
+			fmt.Sprintf("работа агента %s прервана: приложение закрылось, а о результате сказано не было — откройте терминал и доведите стадию до конца", t.AgentName))
 	default:
 		// The CLI is gone and never said what it did, and there are two very
 		// different reasons for that.
@@ -171,7 +180,7 @@ func (m *Manager) runCardTaskInTerminal(s *Session) {
 		// Otherwise a person closed the window, which is not a verdict: the card
 		// keeps its place on the route and says why it is standing there.
 		m.finishSession(s, StatusCancelled, "терминал закрыт без ответа")
-		m.stallCard(s.CardID, s.FlowNodeID,
+		m.stallCardConversation(s.CardID, s.FlowNodeID,
 			fmt.Sprintf("терминал агента %s закрыт, а о результате работы не сказано — откройте терминал и доведите стадию до конца", t.AgentName))
 		m.commentCard(s.CardID, stageComment(m.rootCtx, t, stageReport{}))
 	}

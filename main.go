@@ -308,7 +308,14 @@ func main() {
 		}
 	}
 
+	// Assigned once the application exists; the shutdown closure is built here
+	// because it is handed to application.New itself.
+	var stopAlerts func()
+
 	shutdown := func() {
+		if stopAlerts != nil {
+			stopAlerts()
+		}
 		if mgr != nil {
 			mgr.Shutdown(5 * time.Second)
 		}
@@ -335,9 +342,14 @@ func main() {
 		Assets: application.AssetOptions{
 			Handler: handler,
 		},
+		// The window is not the app. Closing the board leaves the agents
+		// working and the menu bar icon standing, and these are the two halves
+		// of saying so: macOS asks about the last window closing, Windows and
+		// Linux ask ShouldQuit. See mode_desktop.go.
 		Mac: application.MacOptions{
-			ApplicationShouldTerminateAfterLastWindowClosed: true,
+			ApplicationShouldTerminateAfterLastWindowClosed: false,
 		},
+		ShouldQuit: appShouldQuit,
 		// The share extension shares by launching us with a URL, so a second
 		// launch has to reach the instance that already has the board rather
 		// than start a second one beside it. Wails catches the URL that
@@ -375,6 +387,10 @@ func main() {
 	// starts emitting the moment it subscribes.
 	initUpdater(wapp, app, emitter)
 
+	// The menu bar icon and the OS notifications, after the emitter for the same
+	// reason: this listens on the very bus emitter.Emit publishes to.
+	stopAlerts = initAlerts(wapp, app, mgr)
+
 	front.start()
 
 	// A share that started the app rather than reaching a running one: the URL
@@ -385,6 +401,10 @@ func main() {
 	} else {
 		newMainWindow(wapp, front.url())
 	}
+
+	// With the app outliving its windows, the Dock icon is a way back in as
+	// much as the menu bar one is.
+	watchDockReopen(wapp, front.url())
 
 	if err := wapp.Run(); err != nil {
 		shutdown()

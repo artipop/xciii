@@ -80,6 +80,16 @@ const (
 // killing us for one.
 const hookHold = 55 * time.Second
 
+// hookAskSettle is how long the CLI is given to paint the box it is asking in
+// before its own output starts to mean something. The hook holds while that box
+// is drawn (docs/attention-hooks.md), so without this the paint itself would
+// read as the person having already answered.
+const hookAskSettle = 2 * time.Second
+
+// hookWatchEvery is how often the terminal is asked whether it has drawn since.
+// Short, because the whole value of this is that the card stops lying quickly.
+const hookWatchEvery = 300 * time.Millisecond
+
 // AskToolPermission puts a CLI's permission request on the card and waits for
 // somebody to answer it. The token is the run's own grant, the same one the
 // board tools take: it names the board, the card and the terminal, so nothing
@@ -109,14 +119,20 @@ func (m *Manager) AskToolPermission(ctx context.Context, token string, ask ToolA
 	}
 	// The card's title and the agent's name are what the notification reads as,
 	// and the terminal is the one thing here that knows both.
-	if t := m.Terminal(g.TerminalID); t != nil {
-		q.Agent = t.AgentName
-		q.CardTitle = t.Title
+	term := m.Terminal(g.TerminalID)
+	if term != nil {
+		q.Agent = term.AgentName
+		q.CardTitle = term.Title
 	}
 
 	// Held for a bounded time rather than for ever: see hookHold.
 	ctx, cancel := context.WithTimeout(ctx, hookHold)
 	defer cancel()
+
+	// …and let go of sooner than that when the answer happened on the CLI's own
+	// screen.
+	ctx, stopWatching := m.withdrawWhenAnsweredOnScreen(ctx, term)
+	defer stopWatching()
 
 	m.log.Info("acp: the CLI is asking for permission", "terminal", g.TerminalID, "card", g.CardID, "tool", tool)
 	answer := m.awaitAnswer(ctx, q)
@@ -132,6 +148,71 @@ func (m *Manager) AskToolPermission(ctx context.Context, token string, ask ToolA
 		// leaving the question where it was rather than dropping it.
 		return ToolDecision{}, nil
 	}
+}
+
+// withdrawWhenAnsweredOnScreen ends the wait as soon as the CLI draws again,
+// which is what answering its own box makes it do.
+//
+// "Whoever is first wins" was true of the *agent* and false of everything a
+// person looks at. The box on the CLI's screen and the question on the card are
+// two places to answer one thing, and somebody answering on screen told this
+// side nothing at all: the hook went on holding, so the card, the page's
+// notification, the system's notification and the dot in the menu bar all went
+// on saying an agent was waiting for a decision it had already been given —
+// for the rest of hookHold, which is nearly a minute of a signal that is simply
+// untrue. Worse, the signals do not expire together: the notification a person
+// dismissed comes back the moment the agent stops again, so a stale one reads
+// as a fresh question.
+//
+// The terminal does know. A permission box is a still frame — that is the whole
+// premise AttentionTerminal rests on — so output after the box has settled is
+// the person having pressed something. workedAt rather than lastOutput, because
+// opening the window to look at the question resizes the CLI and a TUI repaints
+// when it is resized: being looked at must not read as being answered
+// (resizeEcho).
+//
+// It is safe in the direction it can be wrong. Withdrawing leaves the CLI's own
+// box standing, which is where the question was to begin with, and the hook
+// answering nothing is the outcome this whole path already treats as ordinary.
+func (m *Manager) withdrawWhenAnsweredOnScreen(ctx context.Context, t *TerminalSession) (context.Context, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(ctx)
+	if t == nil {
+		// A deploy or a test has no terminal to watch, and neither has a hook
+		// whose terminal has already gone.
+		return ctx, cancel
+	}
+	settle := m.hookSettle
+	if settle <= 0 {
+		settle = hookAskSettle
+	}
+	go func() {
+		timer := time.NewTimer(settle)
+		defer timer.Stop()
+		select {
+		case <-ctx.Done():
+			return
+		case <-timer.C:
+		}
+		drawn := t.workedAt()
+		tick := time.NewTicker(hookWatchEvery)
+		defer tick.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-t.Done():
+				// The CLI is gone; nothing is waiting for this answer either.
+				cancel()
+				return
+			case <-tick.C:
+				if t.workedAt().After(drawn) {
+					cancel()
+					return
+				}
+			}
+		}
+	}()
+	return ctx, cancel
 }
 
 // askSummary is the one line a person reads off the card. The arguments are the

@@ -120,51 +120,58 @@ const AttentionNotifications = () => {
                         {intl.formatMessage({id: 'Attention.waiting-count', defaultMessage: '{count, plural, one {# agent is waiting} other {# agents are waiting}}'}, {count: pending().length})}
                     </div>
                 </Show>
-                <For each={shown()}>
-                    {(target) => (
-                        <div
-                            class='AttentionNotifications__item'
-                            role='alert'
-                        >
-                            <div class='AttentionNotifications__body'>
-                                <span class='AttentionNotifications__heading'>
-                                    {attentionHeading(intl, target)}
-                                </span>
-                                <span class='AttentionNotifications__card'>
-                                    {target.title || intl.formatMessage({id: 'Attention.untitled', defaultMessage: 'Untitled card'})}
-                                </span>
+                {/* The waits scroll inside the stack rather than the stack
+                    growing past the top of the window: a question carries its
+                    own answers, so two or three of them are already taller than
+                    a laptop screen, and what ran off the top was the oldest
+                    wait — the one that has gone unanswered longest. */}
+                <div class='AttentionNotifications__list'>
+                    <For each={shown()}>
+                        {(target) => (
+                            <div
+                                class='AttentionNotifications__item'
+                                role='alert'
+                            >
+                                <div class='AttentionNotifications__body'>
+                                    <span class='AttentionNotifications__heading'>
+                                        {attentionHeading(intl, target)}
+                                    </span>
+                                    <span class='AttentionNotifications__card'>
+                                        {target.title || intl.formatMessage({id: 'Attention.untitled', defaultMessage: 'Untitled card'})}
+                                    </span>
 
-                                <Show when={target.text}>
-                                    <span class='AttentionNotifications__question'>{target.text}</span>
-                                </Show>
+                                    <Show when={target.text}>
+                                        <span class='AttentionNotifications__question'>{target.text}</span>
+                                    </Show>
 
-                                {/* A question the agent's CLI asked through its
-                                    permission hook can be answered here — the
-                                    CLI's own box is on its screen at the same
-                                    time, so this is a second place to answer
-                                    rather than the only one (attentionAnswers). */}
-                                <AttentionAnswers target={target}/>
+                                    {/* A question the agent's CLI asked through its
+                                        permission hook can be answered here — the
+                                        CLI's own box is on its screen at the same
+                                        time, so this is a second place to answer
+                                        rather than the only one (attentionAnswers). */}
+                                    <AttentionAnswers target={target}/>
+                                    <button
+                                        type='button'
+                                        class='AttentionNotifications__action'
+                                        disabled={busy() === keyOf(target)}
+                                        onClick={() => open(target)}
+                                    >
+                                        {intl.formatMessage({id: 'Attention.open', defaultMessage: 'Open the terminal'})}
+                                    </button>
+                                </div>
                                 <button
                                     type='button'
-                                    class='AttentionNotifications__action'
-                                    disabled={busy() === keyOf(target)}
-                                    onClick={() => open(target)}
+                                    class='AttentionNotifications__close'
+                                    title={intl.formatMessage({id: 'Attention.dismiss', defaultMessage: 'Dismiss'})}
+                                    aria-label={intl.formatMessage({id: 'Attention.dismiss', defaultMessage: 'Dismiss'})}
+                                    onClick={() => ackWait(target)}
                                 >
-                                    {intl.formatMessage({id: 'Attention.open', defaultMessage: 'Open the terminal'})}
+                                    <CompassIcon icon='close'/>
                                 </button>
                             </div>
-                            <button
-                                type='button'
-                                class='AttentionNotifications__close'
-                                title={intl.formatMessage({id: 'Attention.dismiss', defaultMessage: 'Dismiss'})}
-                                aria-label={intl.formatMessage({id: 'Attention.dismiss', defaultMessage: 'Dismiss'})}
-                                onClick={() => ackWait(target)}
-                            >
-                                <CompassIcon icon='close'/>
-                            </button>
-                        </div>
-                    )}
-                </For>
+                        )}
+                    </For>
+                </div>
                 <Show when={hidden() > 0}>
                     <div class='AttentionNotifications__more'>
                         {intl.formatMessage({id: 'Attention.more', defaultMessage: '…and {count} more waiting'}, {count: hidden()})}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -134,6 +135,7 @@ CREATE INDEX IF NOT EXISTS idx_flow_event_card ON flow_event(card_id, id);
 CREATE TABLE IF NOT EXISTS card_stall (
 	card_id TEXT PRIMARY KEY,
 	node_id TEXT NOT NULL DEFAULT '',
+	kind TEXT NOT NULL DEFAULT '',
 	reason TEXT NOT NULL,
 	created_at INTEGER NOT NULL
 );
@@ -174,6 +176,15 @@ CREATE TABLE IF NOT EXISTS workdir_claim (
 );
 CREATE INDEX IF NOT EXISTS idx_workdir_claim_live ON workdir_claim(workdir, released_at);`)
 	if err != nil {
+		return err
+	}
+	// card_stall.kind arrived after the table did, and CREATE TABLE IF NOT
+	// EXISTS leaves a table that is already there exactly as it was. The schema
+	// still changes in place pre-release (below), but a column read on every
+	// board render is not worth a database somebody has to delete, so this one
+	// column is added the way the ladder below will add the rest.
+	if _, err := s.db.Exec(`ALTER TABLE card_stall ADD COLUMN kind TEXT NOT NULL DEFAULT ''`); err != nil &&
+		!strings.Contains(err.Error(), "duplicate column name") {
 		return err
 	}
 	// The version the schema above *is*. Nothing reads it yet: it exists so the
@@ -367,20 +378,53 @@ func (s *Store) FlowEvents(cardID string) ([]FlowEventRecord, error) {
 // something: a stage that could not start, a route that has nowhere to go. One
 // per card — a newer reason replaces the old one, and any progress deletes it.
 type StallRecord struct {
-	CardID    string    `json:"cardId"`
-	NodeID    string    `json:"nodeId,omitempty"`
+	CardID string `json:"cardId"`
+	NodeID string `json:"nodeId,omitempty"`
+	// Kind says what the reason is *about*, because one of them has somewhere
+	// to go and the rest do not. See StallKindConversation.
+	Kind      string    `json:"kind,omitempty"`
 	Reason    string    `json:"reason"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+// StallKindConversation marks the one stall a person can act on directly: the
+// card's own conversation stopped without a verdict — the CLI was closed, or
+// the app was. Everything else recorded here is about the machinery around the
+// card — a column with no free place, a folder another card holds, a route with
+// no edge for what arrived — and none of those is opened by opening a terminal.
+//
+// It is a field rather than a reading of the reason, because the reason is a
+// sentence for a person and nothing may branch on one.
+const StallKindConversation = "conversation"
+
 // SetStall records the reason, replacing whatever was there.
 func (s *Store) SetStall(r StallRecord) error {
-	_, err := s.db.Exec(`INSERT INTO card_stall (card_id, node_id, reason, created_at)
-		VALUES (?,?,?,?)
+	_, err := s.db.Exec(`INSERT INTO card_stall (card_id, node_id, kind, reason, created_at)
+		VALUES (?,?,?,?,?)
 		ON CONFLICT(card_id) DO UPDATE SET
-			node_id=excluded.node_id, reason=excluded.reason, created_at=excluded.created_at`,
-		r.CardID, r.NodeID, r.Reason, time.Now().UnixMilli())
+			node_id=excluded.node_id, kind=excluded.kind, reason=excluded.reason, created_at=excluded.created_at`,
+		r.CardID, r.NodeID, r.Kind, r.Reason, time.Now().UnixMilli())
 	return err
+}
+
+// StallsOfKind is every card standing still for one kind of reason, as card id
+// → reason. One query rather than one per card, for the same reason
+// LiveTerminals is one call: the board draws this on every card it has.
+func (s *Store) StallsOfKind(kind string) (map[string]string, error) {
+	rows, err := s.db.Query(`SELECT card_id, reason FROM card_stall WHERE kind=?`, kind)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]string{}
+	for rows.Next() {
+		var cardID, reason string
+		if err := rows.Scan(&cardID, &reason); err != nil {
+			return nil, err
+		}
+		out[cardID] = reason
+	}
+	return out, rows.Err()
 }
 
 // ClearStall forgets the reason and reports whether there was one — the caller
@@ -396,10 +440,10 @@ func (s *Store) ClearStall(cardID string) (bool, error) {
 
 // Stall returns the card's recorded reason, if it has one.
 func (s *Store) Stall(cardID string) (StallRecord, bool, error) {
-	row := s.db.QueryRow(`SELECT card_id, node_id, reason, created_at FROM card_stall WHERE card_id=?`, cardID)
+	row := s.db.QueryRow(`SELECT card_id, node_id, kind, reason, created_at FROM card_stall WHERE card_id=?`, cardID)
 	var r StallRecord
 	var created int64
-	err := row.Scan(&r.CardID, &r.NodeID, &r.Reason, &created)
+	err := row.Scan(&r.CardID, &r.NodeID, &r.Kind, &r.Reason, &created)
 	if err == sql.ErrNoRows {
 		return StallRecord{}, false, nil
 	}

@@ -51,6 +51,11 @@ type Manager struct {
 	// waiting for a person (terminalQuietFor). Only a test sets it: the real
 	// threshold is a human one and would make the suite wait it out.
 	terminalQuiet time.Duration
+	// hookSettle overrides how long a permission box is given to finish drawing
+	// before the CLI's output counts as somebody answering it
+	// (hookAskSettle, withdrawWhenAnsweredOnScreen). Only a test sets it, and
+	// for the same reason.
+	hookSettle time.Duration
 
 	// The stages of routes that are running in a terminal (stageterminal.go):
 	// what each is waiting to be told through finish_work, and which of them
@@ -58,8 +63,8 @@ type Manager struct {
 	// questions have one — a report arrives on an HTTP handler and must not
 	// queue behind a session starting.
 	stageMu      sync.Mutex
-	stageWaits   map[string]stageWait        // terminal ID → the running stage finish_work answers to
-	stageWaiting map[string]Attention        // terminal ID → the wait it is showing
+	stageWaits   map[string]stageWait // terminal ID → the running stage finish_work answers to
+	stageWaiting map[string]Attention // terminal ID → the wait it is showing
 
 	// acked is which waits a person has already been told about, so that being
 	// told is a thing that happens once (attentionack.go). Its own lock: it is

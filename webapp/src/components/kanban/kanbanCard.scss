@@ -101,6 +101,15 @@
         animation: kanbancard-attention 2.4s ease-in-out infinite;
     }
 
+    // Work that stopped without a verdict: the same amber, because it is the
+    // same sentence — the machine needs a person here — and the same colour
+    // saying two things is what keeps the card readable without a legend. What
+    // separates them is that this one does not breathe: a question is live and
+    // waiting, a cut-off stage is standing still, and the glyph is a pause.
+    .KanbanCard__terminal--paused {
+        color: rgb(var(--warning-rgb));
+    }
+
     button.KanbanCard__terminal {
         cursor: pointer;
 

@@ -13,15 +13,41 @@ import {onAgentEvent} from './agentEvents'
 // panel does, for one card at a time — would be a round trip to Go for every
 // card drawn.
 //
-// Only running terminals are in here. A card whose worktree could be resumed is
-// not news on a board; a CLI working right now is.
+// Two facts, one subscription. A CLI working right now is the first; the second
+// is a conversation that stopped without a verdict — the CLI was closed, or the
+// app was, and nobody picked the stage back up. That one is worth the board's
+// attention for the same reason the first is: it is a card in the middle of
+// something, and until it was drawn here it was visible only from inside the
+// card, on a session status nobody goes looking for.
+//
+// Merely resumable is still not news: a card whose worktree could be continued
+// says nothing about whether anybody meant to.
 
 const [byCard, setByCard] = createSignal<Record<string, string>>({})
+
+// Card id → why the conversation there stopped. The Go side decides what counts
+// (StallKindConversation): the other reasons a card stands still are about a
+// column, a folder or a route, and none of them is opened by a terminal.
+const [cutOffByCard, setCutOffByCard] = createSignal<Record<string, string>>({})
 
 // Consumers are counted rather than assumed, as in attention.ts: the
 // subscription is worth holding only while a board displays it.
 let consumers = 0
 let unsubscribe: (() => void) | undefined
+let unsubscribeCutOff: (() => void) | undefined
+
+async function reloadCutOff(): Promise<void> {
+    const bindings = agentBindings()
+    if (!bindings?.ListCutOffConversations) {
+        setCutOffByCard({})
+        return
+    }
+    try {
+        setCutOffByCard(JSON.parse(await bindings.ListCutOffConversations()) || {})
+    } catch (e) {
+        setCutOffByCard({})
+    }
+}
 
 async function reload(): Promise<void> {
     const bindings = agentBindings()
@@ -47,14 +73,23 @@ function subscribe(): () => void {
     consumers++
     if (consumers === 1) {
         unsubscribe = onAgentEvent('acp:terminal', () => reload())
+
+        // A stall rides the session event rather than carrying one of its own
+        // (internal/acp/stall.go), which is also what tells this side that a
+        // card made progress and the reason was dropped.
+        unsubscribeCutOff = onAgentEvent('acp:session', () => reloadCutOff())
         reload()
+        reloadCutOff()
     }
     return () => {
         consumers--
         if (consumers === 0) {
             unsubscribe?.()
             unsubscribe = undefined
+            unsubscribeCutOff?.()
+            unsubscribeCutOff = undefined
             setByCard({})
+            setCutOffByCard({})
         }
     }
 }
@@ -64,6 +99,14 @@ function subscribe(): () => void {
 export function useCardTerminal(cardId: Accessor<string>): Accessor<string | undefined> {
     onMount(() => onCleanup(subscribe()))
     return createMemo(() => byCard()[cardId()])
+}
+
+// useCardCutOff is why the conversation on one card stopped without a verdict,
+// or nothing when it did not — what the card's button draws its paused state
+// from, and the sentence it says when hovered.
+export function useCardCutOff(cardId: Accessor<string>): Accessor<string | undefined> {
+    onMount(() => onCleanup(subscribe()))
+    return createMemo(() => cutOffByCard()[cardId()])
 }
 
 export function isCardTerminalAvailable(): boolean {

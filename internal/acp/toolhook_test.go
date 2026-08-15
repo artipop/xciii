@@ -114,6 +114,82 @@ func TestNobodyAnsweringLeavesTheQuestionToTheTerminal(t *testing.T) {
 	}
 }
 
+// askedTerminal is a CLI holding a question, built by hand for the same reason
+// waitingStage is: what these are about is one signal — the terminal drawing —
+// and driving a real CLI to a permission box and pressing a key in it is a test
+// about the vendor's TUI instead.
+func askedTerminal(t *testing.T) (*Manager, *TerminalSession) {
+	t.Helper()
+	// The real settle is however long a permission box takes to paint; a test
+	// that waited it out would wait it out on every run.
+	m := &Manager{hookSettle: 100 * time.Millisecond}
+	return m, &TerminalSession{ID: "term-1", launchedAt: time.Now()}
+}
+
+// Answering in the terminal has to end the wait. It is one question in two
+// places, and the place the person did not use went on saying an agent was
+// waiting for a decision it already had — the card, the notification, the
+// system's own notification and the dot in the menu bar, all of them, for the
+// rest of hookHold.
+func TestAnsweringInTheTerminalEndsTheWait(t *testing.T) {
+	m, term := askedTerminal(t)
+	ctx, stop := m.withdrawWhenAnsweredOnScreen(context.Background(), term)
+	defer stop()
+
+	// While the CLI sits at its box it draws nothing, and the question stands.
+	time.Sleep(300 * time.Millisecond)
+	select {
+	case <-ctx.Done():
+		t.Fatal("the question was withdrawn while the CLI was still asking")
+	default:
+	}
+
+	// The person pressed something in the box, and the CLI started drawing
+	// again. That is the only sign there is.
+	term.publish([]byte("running the command\r\n"))
+	select {
+	case <-ctx.Done():
+	case <-time.After(2 * time.Second):
+		t.Fatal("the CLI drew again and the question stood anyway")
+	}
+}
+
+// Looking at a question is not answering it. Opening the terminal's window
+// tells the CLI how big it is and a TUI repaints when it is resized, so a
+// person going to read the question would otherwise withdraw it from under
+// themselves — the same trap the acknowledgement fell into (attentionack.go).
+func TestLookingAtTheTerminalDoesNotWithdrawTheQuestion(t *testing.T) {
+	m, term := askedTerminal(t)
+	ctx, stop := m.withdrawWhenAnsweredOnScreen(context.Background(), term)
+	defer stop()
+	time.Sleep(300 * time.Millisecond)
+
+	// A window opened on it: the resize, and the repaint it provokes.
+	term.mu.Lock()
+	term.resizedAt = time.Now()
+	term.mu.Unlock()
+	term.publish([]byte("\x1b[2J\x1b[H redrawn "))
+
+	select {
+	case <-ctx.Done():
+		t.Fatal("looking at the terminal withdrew the question")
+	case <-time.After(time.Second):
+	}
+}
+
+// A deploy or a test has no terminal at all, and neither has a hook whose
+// terminal has already gone. Neither may lose the question it is holding.
+func TestAQuestionWithNoTerminalBehindItIsLeftAlone(t *testing.T) {
+	m, _ := askedTerminal(t)
+	ctx, stop := m.withdrawWhenAnsweredOnScreen(context.Background(), nil)
+	defer stop()
+	select {
+	case <-ctx.Done():
+		t.Fatal("a question with no terminal to watch was withdrawn anyway")
+	case <-time.After(500 * time.Millisecond):
+	}
+}
+
 // A token is the whole of the authentication, exactly as it is for the board
 // tools: one found afterwards, or made up, opens nothing.
 func TestAHookWithoutAGrantAsksNobody(t *testing.T) {

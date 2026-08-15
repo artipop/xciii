@@ -53,9 +53,51 @@ the Inbox, Cards, Waiting and Terminals tabs.
 ## Agent notifications
 
 The **"Notify me when an agent is waiting"** switch is in the "Other" section.
-When off, it removes only the notifications; the amber terminal button on
-the card stays. Notifications are shown in the board's window; a terminal window
-has none — the agent's question is right there on it.
+Notifications are shown in the board's window; a terminal window has none — the
+agent's question is right there on it.
+
+When the app is minimised or behind another window, the notification comes from
+the system instead: it names the agent that is asking and the card it is about.
+Clicking it opens that agent's terminal — the same thing the "Open the terminal"
+button does, and it counts the same way as knowing about the question.
+
+When off, the switch removes only the notifications. The amber terminal button
+on the card stays, and so does the dot on the app's icon next to the clock: they
+say an agent is waiting, and they interrupt nobody.
+
+On macOS the system asks for notification permission once — the first time an
+agent is actually waiting. Without it you keep the notifications in the board's
+window and the icon next to the clock.
+
+## The icon next to the clock
+
+The app keeps an icon in the menu bar (the system tray on Windows and Linux). An
+amber dot appears on it while at least one agent is waiting for a person.
+
+A left click brings the board's window back, even from minimised or closed. A
+right click opens a menu:
+
+- **"Открыть"** — the same as a left click.
+- The waiting agents, one per line: the agent's name and the card. Clicking one
+  opens that agent's terminal.
+- **"Выход"** — close the application entirely.
+
+The icon cannot be turned off: it interrupts nobody, and it is there for exactly
+the time when nobody is looking at the board.
+
+## Closing the window is not quitting
+
+The board's window can be closed: the application keeps running, and so do the
+agents. A stage of a route sees its work through, sources bring cards in,
+notifications arrive. What stays is the icon next to the clock — it says the
+application is running, and it brings the window back.
+
+The same window comes back with the same board, not a page loaded from scratch.
+On macOS the Dock icon does the same thing.
+
+To quit for real, use **"Выход"** in the icon's menu (or ⌘Q while the window is
+open). Quitting closes every agent terminal: if a stage never reported a result,
+its card stays on its step with the amber pause on its terminal button.
 
 ## The agent's instructions
 

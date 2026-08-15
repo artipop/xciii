@@ -127,6 +127,14 @@ func (o *origin) start() {
 
 func (o *origin) url() string { return "http://" + o.host + "/" }
 
+// A headless build has no windows to outlive, so the question the desktop
+// answers with a flag — does closing the last one end us — never arises, and
+// the ordinary answer is the right one.
+func appShouldQuit() bool { return true }
+
+// And nothing to bring back when there is no Dock to click.
+func watchDockReopen(*application.App, string) {}
+
 // newMainWindow opens nothing: a server build has no webview, and the same
 // page is reached with a browser instead.
 func newMainWindow(_ *application.App, url string) {

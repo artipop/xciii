@@ -91,6 +91,21 @@ func (a *App) GetUIPreferences() (string, error) {
 	return string(out), nil
 }
 
+// agentNotificationsEnabled is «Уведомлять, когда агент ждёт», read from the
+// same place the page keeps it — there is one switch for one question, and the
+// OS notification the Go side posts (alerts.go) is the same "tell me" the page's
+// own notification answers. On unless it has been turned off, which is the rule
+// UserSettings.agentNotifications states on the other side (userSettings.ts);
+// the value stored is JSON, so it is the string "false" that means no.
+//
+// The dot in the menu bar deliberately does not consult this: it is an
+// indicator and it interrupts nobody.
+func agentNotificationsEnabled() bool {
+	uiSettingsMu.Lock()
+	defer uiSettingsMu.Unlock()
+	return readUISettings().Preferences["agentNotifications"] != "false"
+}
+
 // SetUIPreference remembers one preference; an empty value forgets it. The
 // page sends only the keys it deliberately keeps with the install
 // (userSettings.ts names them); the caps below are a backstop, not a schema —

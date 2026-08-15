@@ -13,6 +13,28 @@
     gap: 8px;
     max-width: 320px;
 
+    // Never taller than the screen it is drawn over. A wait carries the
+    // question and its answers, so a few of them are already tall, and on a
+    // laptop the stack ran off the top of the window — where what was pushed
+    // out was the oldest wait, the one that has gone unanswered longest.
+    max-height: calc(100vh - 32px);
+
+    // The list scrolls; the count and the «…и ещё» line do not, or the one
+    // thing saying how many there are would be the first thing scrolled away.
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 0;
+        overflow-y: auto;
+
+        // The shadow of an item is drawn outside its box, and a scroll
+        // container clips it. The padding is where it lands.
+        margin: -4px;
+        padding: 4px;
+        overscroll-behavior: contain;
+    }
+
     &__item {
         display: flex;
         align-items: flex-start;

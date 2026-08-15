@@ -17,7 +17,19 @@ package acp
 // card. nodeID is the stage the reason belongs to, empty for a standalone
 // trigger column.
 func (m *Manager) stallCard(cardID, nodeID, reason string) {
-	if err := m.store.SetStall(StallRecord{CardID: cardID, NodeID: nodeID, Reason: reason}); err != nil {
+	m.stallCardKind(cardID, nodeID, "", reason)
+}
+
+// stallCardConversation is the one reason a person can act on where they are
+// standing: the card's conversation stopped without a verdict. It is drawn on
+// the card's own terminal button as well as on the route strip, because unlike
+// every other reason recorded here it has somewhere to go — that terminal.
+func (m *Manager) stallCardConversation(cardID, nodeID, reason string) {
+	m.stallCardKind(cardID, nodeID, StallKindConversation, reason)
+}
+
+func (m *Manager) stallCardKind(cardID, nodeID, kind, reason string) {
+	if err := m.store.SetStall(StallRecord{CardID: cardID, NodeID: nodeID, Kind: kind, Reason: reason}); err != nil {
 		m.log.Warn("acp: cannot record why the card stalled", "card", cardID, "err", err)
 		return
 	}
@@ -58,6 +70,18 @@ func (m *Manager) emitStall(cardID, reason string) {
 		"cardId": cardID,
 		"stall":  reason,
 	})
+}
+
+// CutOffConversations is every card whose conversation stopped without a
+// verdict, as card id → reason. The board asks once and draws the answer on
+// each of its cards, exactly as it does for the terminals that are running.
+func (m *Manager) CutOffConversations() map[string]string {
+	out, err := m.store.StallsOfKind(StallKindConversation)
+	if err != nil {
+		m.log.Warn("acp: cannot read which conversations were cut off", "err", err)
+		return map[string]string{}
+	}
+	return out
 }
 
 // CardStall is the card's recorded reason, for the surfaces that draw it.

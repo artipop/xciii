@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Regenerates the raster branding assets from the vector mark.
 
-`python3 build/appicon.py` writes build/appicon.png, the two DMG assets under
-build/darwin/, and — on macOS — darwin/dmg-file-icon.icns through iconutil.
-darwin/icons.icns and windows/icon.ico come from `wails3 task
-common:generate:icons`, which reads appicon.png and appicon.icon; run that
-after this. The webapp's own favicon (webapp/static/favicon.svg) draws the same
-shape by hand.
+`python3 build/appicon.py` writes build/appicon.png, the four menu-bar marks
+under build/tray/, the two DMG assets under build/darwin/, and — on macOS —
+darwin/dmg-file-icon.icns through iconutil. darwin/icons.icns and
+windows/icon.ico come from `wails3 task common:generate:icons`, which reads
+appicon.png and appicon.icon; run that after this. The webapp's own favicon
+(webapp/static/favicon.svg) draws the same shape by hand.
 
 The renderer is written out here rather than pulled from a library because this
 machine has no SVG rasteriser at all (no rsvg, no ImageMagick, no PIL), and the
@@ -23,6 +23,16 @@ import zlib
 # The product colours: white columns on deep navy.
 NAVY = (0x1B, 0x2A, 0x4A)
 WHITE = (0xFF, 0xFF, 0xFF)
+
+# The amber the board keeps for "an agent is asking" (--warning-rgb in
+# webapp/src/styles/_tokens.scss), in both of its values: the paper theme's on a
+# light menu bar, the screen theme's on a dark one.
+AMBER_ON_LIGHT = (0xA8, 0x70, 0x14)
+AMBER_ON_DARK = (0xFF, 0xB4, 0x4C)
+
+# The menu bar scales whatever it is handed to its own thickness, so 44px is
+# 22pt drawn at 2x: crisp on a retina display and right-sized on one that is not.
+TRAY_PX = 44
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -73,6 +83,42 @@ def render_icon(size):
                 ca = coverage(rounded_rect_sdf(xc, yc, cx, cy, cw, ch, cr))
                 if ca > 0:
                     rgb = blend(rgb, WHITE, ca)
+            out[base + px * 4:base + px * 4 + 4] = bytes(rgb + (round(a * 255),))
+    return out
+
+
+def circle_sdf(px, py, cx, cy, r):
+    return math.hypot(px - cx, py - cy) - r
+
+
+def render_tray(ink, dot):
+    """The mark for the system tray: the three columns in `ink`, plus — when
+    `dot` is a colour — a badge saying an agent is waiting for a person.
+
+    Two inks rather than one template icon, because the badge is the point: a
+    macOS template icon is drawn from its alpha alone, so the amber would come
+    out the same grey as the columns and the one thing worth noticing across a
+    menu bar would stop being noticeable. The badge sits bottom-right, which is
+    the corner the descending columns leave empty, so it needs no gap punched
+    around it to read as a badge rather than as a fourth column."""
+    size = TRAY_PX
+    cols = columns(size, 4.0, 6.0, 36.0)
+
+    out = bytearray(size * size * 4)
+    for py in range(size):
+        yc = py + 0.5
+        base = py * size * 4
+        for px in range(size):
+            xc = px + 0.5
+            a, rgb = 0.0, ink
+            for (cx, cy, cw, ch, cr) in cols:
+                a = max(a, coverage(rounded_rect_sdf(xc, yc, cx, cy, cw, ch, cr)))
+            if dot:
+                da = coverage(circle_sdf(xc, yc, 36.5, 35.5, 6.5))
+                if da > a:
+                    a, rgb = da, dot
+            if a <= 0:
+                continue
             out[base + px * 4:base + px * 4 + 4] = bytes(rgb + (round(a * 255),))
     return out
 
@@ -150,6 +196,16 @@ def build_icns(png, icns):
 if __name__ == '__main__':
     icon = render_icon(1024)
     write_png(os.path.join(ROOT, 'appicon.png'), 1024, 1024, icon)
+
+    tray = os.path.join(ROOT, 'tray')
+    os.makedirs(tray, exist_ok=True)
+    for name, ink, dot in (('idle-light', NAVY, None),
+                           ('idle-dark', WHITE, None),
+                           ('waiting-light', NAVY, AMBER_ON_LIGHT),
+                           ('waiting-dark', WHITE, AMBER_ON_DARK)):
+        write_png(os.path.join(tray, name + '.png'), TRAY_PX, TRAY_PX,
+                  render_tray(ink, dot))
+    print('wrote tray/{idle,waiting}-{light,dark}.png')
 
     dmg_icon = os.path.join(ROOT, 'darwin', 'dmg-file-icon.png')
     write_png(dmg_icon, 1024, 1024, icon)
