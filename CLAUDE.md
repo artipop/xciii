@@ -225,6 +225,17 @@ had been that way since the move. A field's list is as wide as its field
 because it *asks* to be: `matchAnchorWidth` on `Menu`, floating-ui's `size`
 middleware, in the one place that already knows the anchor's box.
 
+**A dialog is not above the sidebar the way it looks.** `.mainFrame` carries a
+z-index, so it is a stacking context, and everything a dialog inside it says
+about its own z-index is said *within* the frame — while the collapsed
+sidebar's ☰ is positioned over the frame on purpose, and therefore over the
+dialog too. Raising the frame is not the fix, since the sidebar's own menus have
+to stay above the board. So the screen that needs the whole window takes it:
+`components/wholeScreen.ts` is a counter, `useWholeScreen()` holds it for as
+long as the component lives, and the sidebar draws itself `offscreen` while
+anything does. One caller — `automationDialog.tsx`, whose canvas is the width of
+the board.
+
 Two rules the drag-and-drop earned the hard way, both silent when broken.
 `OptimisticSortingPlugin` is left out of every sortable, because it reorders
 nodes the framework owns — and the price is that a sortable's `index` and

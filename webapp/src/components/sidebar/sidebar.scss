@@ -30,6 +30,18 @@
         }
     }
 
+    // While something has taken the whole window (components/wholeScreen.ts):
+    // the route editor is a canvas the width of the board, and the collapsed
+    // sidebar's ☰ is drawn over anything inside the main frame — the editor's
+    // own title included.
+    //
+    // Hidden rather than unmounted, so the sidebar keeps whether the person
+    // collapsed it. After `.hidden` and important like it, or a collapsed
+    // sidebar would go on showing its button through this.
+    &.offscreen {
+        display: none !important; /* stylelint-disable-line declaration-no-important */
+    }
+
     > * {
         flex: 0 0 auto;
     }

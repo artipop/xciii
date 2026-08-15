@@ -26,6 +26,8 @@ import {
 
 import BoardsSwitcher from '../boardsSwitcher/boardsSwitcher'
 
+import {screenTaken} from '../wholeScreen'
+
 import wsClient, {WSClient} from '../../wsclient'
 
 import {getCurrentTeam, getCurrentTeamId} from '../../store/teams'
@@ -493,7 +495,7 @@ const Sidebar = (props: Props) => {
             <Show
                 when={!isHidden()}
                 fallback={
-                    <div class='Sidebar octo-sidebar hidden'>
+                    <div class={`Sidebar octo-sidebar hidden${screenTaken() ? ' offscreen' : ''}`}>
                         <div class='octo-sidebar-header show-button'>
                             <div class='hamburger-icon'>
                                 <IconButton
@@ -517,7 +519,7 @@ const Sidebar = (props: Props) => {
                     </div>
                 }
             >
-                <div class='Sidebar octo-sidebar'>
+                <div class={`Sidebar octo-sidebar${screenTaken() ? ' offscreen' : ''}`}>
                     <div class='octo-sidebar-header'>
                         <div class='heading'>
                             <SidebarUserMenu/>

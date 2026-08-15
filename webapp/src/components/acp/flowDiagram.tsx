@@ -333,9 +333,41 @@ const nodeTypes = {stage: StageNode}
 // desktop is not mistaken for a block.
 export const BLOCK_DRAG_TYPE = 'application/x-xciii-block'
 
-// FlowHandle is the part of the canvas API the drop handling needs.
+// FlowHandle is the part of the canvas API this component reaches for: turning
+// a drop point into graph coordinates, and re-fitting the picture when what is
+// on the canvas changes. `fitView` is optional because the handle is also read
+// under jsdom, where the canvas measures nothing and has nothing to fit.
 type FlowHandle = {
     screenToFlowPosition: (p: {x: number, y: number}) => {x: number, y: number}
+    fitView?: (options?: {padding?: number, maxZoom?: number}) => Promise<boolean> | void
+    getInternalNode?: (id: string) => {measured?: {width?: number, height?: number}} | undefined
+}
+
+// How the graph sits in the canvas: the whole picture, with a margin small
+// enough that the boxes are the point and the emptiness around them is not.
+const FIT_VIEW = {padding: 0.08, maxZoom: 1.5}
+
+// How many frames a re-fit waits for the canvas to measure the boxes it has
+// just been handed. Generous, because being late costs nothing and being early
+// costs the whole picture — see fitWhenMeasured.
+const FIT_FRAMES = 30
+
+// fitWhenMeasured waits for the canvas to have measured every box before
+// fitting to them, and this is the whole of why a re-fit is not one line.
+// `fitView` fits to what the canvas *knows*, and the canvas learns a node's
+// size from a resize observer a frame or more after the node is handed to it —
+// so fitting straight away fits to boxes of no size, which on the columns tab
+// came out at the maximum zoom with two thirds of the grid off the right-hand
+// edge. Bounded, because a box that is never measured (a canvas with no
+// layout, as in jsdom) must not spin for ever: after FIT_FRAMES it fits to
+// whatever there is, which is what it would have done anyway.
+const fitWhenMeasured = (handle: FlowHandle, ids: string[], frame: number) => {
+    const measured = ids.every((id) => (handle.getInternalNode?.(id)?.measured?.width || 0) > 0)
+    if (!measured && frame < FIT_FRAMES) {
+        requestAnimationFrame(() => fitWhenMeasured(handle, ids, frame + 1))
+        return
+    }
+    void handle.fitView?.(FIT_VIEW)
 }
 
 // CanvasHook runs inside the canvas' context and hands its API out: the drop
@@ -590,6 +622,27 @@ const FlowDiagram = (props: Props) => {
     // stage exactly under the pointer.
     const [flowHandle, setFlowHandle] = createSignal<FlowHandle | null>(null)
 
+    // The picture is fitted to what is on the canvas, and what is on the canvas
+    // changes after the canvas is built: the editor opens on the columns and
+    // moves to the first route the moment the routes arrive, and every tab
+    // click replaces every box. `fitView` is an init option, so that one fit
+    // was of the columns grid — a route was then drawn at the grid's zoom, off
+    // centre and 72px past the right-hand edge, with a third of the canvas
+    // empty above it.
+    //
+    // Keyed on the *set* of stages and never on where they are: a fit in the
+    // middle of a drag would pull the canvas out from under the pointer. The
+    // handle is in the key too, because it arrives from inside the canvas and
+    // may not be there yet on the first run.
+    const shape = createMemo(() => drawnNodes.map((n) => n.id).join('|'))
+    createEffect(() => {
+        const ids = shape().split('|').filter(Boolean)
+        const handle = flowHandle()
+        if (handle?.fitView && ids.length > 0) {
+            fitWhenMeasured(handle, ids, 0)
+        }
+    })
+
     const dropPoint = (e: DragEvent) => {
         const at = {x: e.clientX, y: e.clientY}
         const handle = flowHandle()
@@ -647,7 +700,9 @@ const FlowDiagram = (props: Props) => {
                     // five boxes drawn at 100% left two thirds of it as dots —
                     // the point of the width was the picture, not the margin.
                     // Capped so a two-box route is not blown up into a poster.
-                    fitViewOptions={{padding: 0.15, maxZoom: 1.5}}
+                    // The same options the re-fit above uses, or the picture
+                    // would jump the first time the tab changed.
+                    fitViewOptions={FIT_VIEW}
                     minZoom={0.3}
 
                     // Solid Flow is MIT and its own attribution says to feel free to

@@ -1,3 +1,4 @@
+import {Show, createSignal} from 'solid-js'
 import {render} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 
@@ -7,6 +8,8 @@ import {AppStoreProvider} from '../../store'
 import {TestBlockFactory} from '../../test/testBlockFactory'
 import octoClient from '../../../../webapp/src/octoClient'
 import {CategoryBoards} from '../../store/sidebar'
+
+import {useWholeScreen} from '../wholeScreen'
 
 import Sidebar, {sidebarDropResult} from './sidebar'
 
@@ -95,6 +98,47 @@ describe('components/sidebarSidebar', () => {
 
         const showSidebar = container.querySelector('button > .ShowSidebarIcon')
         expect(showSidebar).toBeDefined()
+    })
+
+    // The route editor takes the whole window, and the sidebar is not behind a
+    // dialog the way it looks: `.mainFrame` is a stacking context, so a
+    // collapsed sidebar's ☰ — which floats over the board on purpose — landed
+    // on the editor's title.
+    test('the sidebar stands down while something has the whole window', () => {
+        const store = mockAppStore({
+            teams: {current: {id: 'team-id'}},
+            boards: {
+                current: board.id,
+                boards: {[board.id]: board},
+                myBoardMemberships: {[board.id]: board},
+            },
+            cards: {cards: {}, current: ''},
+            views: {views: []},
+            users: {me: {id: 'user_id_1', props: {}}},
+            sidebar: {categoryAttributes: [categoryAttribute1], hiddenBoardIDs: []},
+        }, {client: mockedOctoClient as any})
+
+        const Taker = () => {
+            useWholeScreen()
+            return null
+        }
+        const [taken, setTaken] = createSignal(false)
+        const {container} = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <TestRouter>
+                    <Sidebar onBoardTemplateSelectorOpen={vi.fn()}/>
+                    <Show when={taken()}><Taker/></Show>
+                </TestRouter>
+            </AppStoreProvider>,
+        ))
+
+        expect(container.querySelector('.Sidebar')).not.toHaveClass('offscreen')
+        setTaken(true)
+        expect(container.querySelector('.Sidebar')).toHaveClass('offscreen')
+
+        // …and it comes back on its own when whatever took the window is gone.
+        setTaken(false)
+        expect(container.querySelector('.Sidebar')).not.toHaveClass('offscreen')
     })
 
     test('sidebar expect hidden', () => {

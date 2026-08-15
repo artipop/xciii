@@ -9,6 +9,7 @@ import mutator from '../../mutator'
 import {Utils, IDType} from '../../utils'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
+import {useWholeScreen} from '../wholeScreen'
 
 import {agentBindings} from './bindings'
 import AutomationEditor from './automationEditor'
@@ -64,6 +65,11 @@ type Props = {
 const AutomationDialog = (props: Props) => {
     const intl = useIntl()
     const bindings = agentBindings()
+
+    // The canvas is as wide as the board, and the sidebar is not behind this
+    // dialog the way it looks: a collapsed one floats its ☰ over the main frame
+    // and lands on the editor's title. It comes back when the dialog closes.
+    useWholeScreen()
 
     const [saved, setSaved] = createSignal<Automation>({columns: [], flows: []})
     const [draft, setDraft] = createSignal<Automation>({columns: [], flows: []})
