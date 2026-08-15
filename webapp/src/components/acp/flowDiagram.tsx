@@ -1,4 +1,4 @@
-import {Show, createEffect, createMemo, createSignal} from 'solid-js'
+import {Show, createEffect, createMemo, createSignal, onCleanup} from 'solid-js'
 import {
     Background,
     Connection,
@@ -635,13 +635,34 @@ const FlowDiagram = (props: Props) => {
     // handle is in the key too, because it arrives from inside the canvas and
     // may not be there yet on the first run.
     const shape = createMemo(() => drawnNodes.map((n) => n.id).join('|'))
+    const [paneSize, setPaneSize] = createSignal('')
     createEffect(() => {
         const ids = shape().split('|').filter(Boolean)
+        paneSize()
         const handle = flowHandle()
         if (handle?.fitView && ids.length > 0) {
             fitWhenMeasured(handle, ids, 0)
         }
     })
+
+    // …and when the canvas itself changes size. A window resized, or a dialog
+    // that gives the canvas a different share of it, leaves the picture where
+    // it was: correct for the box it was fitted to and off centre in the new
+    // one. Rounded to whole pixels so a sub-pixel reflow is not a re-fit, and
+    // it costs somebody who has zoomed in by hand their zoom — which is the
+    // right trade at the moment they resized the window, and does not happen
+    // while they are working inside it.
+    const watchPane = (pane: HTMLDivElement) => {
+        if (typeof ResizeObserver !== 'function') {
+            return
+        }
+        const observer = new ResizeObserver(([entry]) => {
+            const box = entry.contentRect
+            setPaneSize(`${Math.round(box.width)}x${Math.round(box.height)}`)
+        })
+        observer.observe(pane)
+        onCleanup(() => observer.disconnect())
+    }
 
     const dropPoint = (e: DragEvent) => {
         const at = {x: e.clientX, y: e.clientY}
@@ -673,6 +694,7 @@ const FlowDiagram = (props: Props) => {
     return (
         <Show when={props.nodes.length > 0 || spare().length > 0}>
             <div
+                ref={watchPane}
                 class={`FlowDiagram${editable() ? ' FlowDiagram--editable' : ''}`}
                 data-testid='flow-diagram'
                 onDragOver={onDragOver}
