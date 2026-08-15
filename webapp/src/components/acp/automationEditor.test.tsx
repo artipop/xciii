@@ -337,4 +337,64 @@ describe('components/acp/automationEditor', () => {
 
         expect(screen.queryByText(/No deploy targets yet/)).toBeNull()
     })
+
+    // A column can be given tools of its own, so the browser «QA» needs is a
+    // fact about that column rather than a second registration of the agent.
+    test('a column carries its own MCP servers', async () => {
+        const {container, onChange} = renderEditor({focusColumnId: 'opt-work'})
+
+        const field = container.querySelector('.MCPField textarea') as HTMLTextAreaElement
+        fireEvent.change(field, {target: {value: '{"mcpServers":{"playwright":{"command":"npx"}}}'}})
+
+        await waitFor(() => expect(onChange).toHaveBeenCalled())
+        const next: Automation = onChange.mock.calls.at(-1)![0]
+        expect(next.columns.find((c) => c.optionId === 'opt-work')?.mcpServers).
+            toEqual({playwright: {command: 'npx'}})
+    })
+
+    // Half-typed JSON is the middle of typing; unreadable JSON left behind is a
+    // mistake, and the field says so rather than saving an empty list over what
+    // was there.
+    test('unreadable MCP JSON is refused and nothing is saved', async () => {
+        const {container, onChange} = renderEditor({focusColumnId: 'opt-work'})
+
+        const field = container.querySelector('.MCPField textarea') as HTMLTextAreaElement
+        fireEvent.change(field, {target: {value: '{"mcpServers": {'}})
+
+        await waitFor(() => expect(screen.getByText(/not the JSON an MCP client takes/)).toBeInTheDocument())
+        expect(onChange).not.toHaveBeenCalled()
+    })
+
+    // A stage of a route may replace the whole set, and the fold says what it
+    // falls back to while it does not — an inherited answer nobody can see
+    // reads as no answer at all.
+    test('a stage names the column\u2019s servers until it has its own', async () => {
+        const {container, onChange} = renderEditor({
+            automation: {
+                ...automation,
+                columns: [{
+                    boardId: 'board-1',
+                    optionId: 'opt-work',
+                    property: '\u0421\u0442\u0430\u0442\u0443\u0441',
+                    column: '\u0412 \u0440\u0430\u0431\u043e\u0442\u0435',
+                    action: 'agent',
+                    mcpServers: {playwright: {command: 'npx'}},
+                }],
+            },
+        })
+        userEvent.click(screen.getByRole('button', {name: '\u0424\u0438\u0447\u0430'}))
+        await waitFor(() => expect(container.querySelector('.FlowDiagram__stage--spare')).not.toBeNull())
+        fireEvent.click(screen.getByText('\u0412 \u0440\u0430\u0431\u043e\u0442\u0435'))
+
+        await waitFor(() => expect(container.querySelector('.MCPField')).not.toBeNull())
+        expect(container.querySelector('.MCPField__summary')).toHaveTextContent('as the column: playwright')
+
+        const field = container.querySelector('.MCPField textarea') as HTMLTextAreaElement
+        fireEvent.change(field, {target: {value: '{"figma":{"command":"figma-mcp"}}'}})
+
+        await waitFor(() => expect(onChange).toHaveBeenCalled())
+        const next: Automation = onChange.mock.calls.at(-1)![0]
+        expect(next.flows[0].nodes.find((n) => n.id === 'opt-work')?.mcpServers).
+            toEqual({figma: {command: 'figma-mcp'}})
+    })
 })

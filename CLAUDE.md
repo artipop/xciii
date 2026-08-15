@@ -1037,6 +1037,25 @@ machine value) and warns per route about a conditional edge whose property no
 stage writes (`unwrittenConditions`) — named, not refused, since the value may
 be a person's own click.
 
+**Tools are the column's answer too, and inherited exactly as the crew is**
+(`MCPServers` on `ColumnSpec` and `FlowNode`, resolved by `startOptions.
+stageMCP` and by `cardPlace`). A browser belongs to «QA» and not to whoever
+works it: the alternative was registering one agent twice under two names to
+have it configured two ways, which is a copy of a thing to stand in for a
+setting of another thing. The set is **added** to what the agent carries in the
+registry, and a node's set replaces the column's whole answer rather than
+merging with it — what the editor shows on the stage is what the agent gets. It
+travels by the road each kind of run already has: a session gets it as
+`extraMCP` with the tool prefixes allowed (wiring a server in is consent, the
+same bargain `agentMCPServers` takes), and a terminal — which is what an agent
+stage is — gets it in the config file the board's own tools already travel in
+(`openBoardTools`), where the CLI's own permission prompt is the answer. Two
+names are refused where the JSON is typed: dokku's, as before, and
+`boardmcp.ServerName`, because that file has one key per server and a set that
+shadowed it would put out `finish_work` — the call a stage ends through. The
+one behaviour this changed rather than added: a test session is refused for
+having no browser only when *neither* owner brings one.
+
 **The panel is «Терминалы», the list, and the conversation being read under
 them** (`GetCardAgent.conversations`) — one row per node, the current column's
 first and always present (`CardConversations` synthesizes it before anything has

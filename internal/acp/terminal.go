@@ -488,6 +488,9 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		workdirPath: workdirPath,
 		base:        ev.Props["branch"],
 		agent:       agent,
+		// The node's tools, so a person talking on this column has the same
+		// ones the stage would — the conversation is the same conversation.
+		mcp: place.mcp,
 	}
 	// Where the conversation runs is the node's answer. An agent column works
 	// the card, so its conversation claims the card's workspace exactly as its
@@ -516,6 +519,7 @@ type cardPlace struct {
 	runIn  string
 	prompt string
 	reads  []string
+	mcp    MCPServerSet
 }
 
 // cardPlace resolves where the card is. The route's own record answers first —
@@ -546,6 +550,10 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 				if len(place.reads) == 0 {
 					place.reads = spec.Reads
 				}
+				place.mcp = node.MCPServers
+				if len(place.mcp) == 0 {
+					place.mcp = spec.MCPServers
+				}
 				return place
 			}
 		}
@@ -560,6 +568,7 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 			place.works = spec.Action == FlowActionAgent
 			place.prompt = spec.Prompt
 			place.reads = spec.Reads
+			place.mcp = spec.MCPServers
 		}
 		return place
 	}
@@ -765,6 +774,10 @@ type terminalSpec struct {
 	// writes one comment of its own when it ends (stageterminal.go), so this
 	// terminal must not write the second one terminalEnded normally would.
 	stage bool
+	// mcp are the servers the node hands this conversation on top of the
+	// agent's own — the column's, or the stage's when the route overrides them
+	// (ColumnSpec.MCPServers). They go into the same file the board's tools do.
+	mcp MCPServerSet
 }
 
 func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
@@ -796,7 +809,7 @@ func (m *Manager) startTerminal(spec terminalSpec) (*TerminalSession, error) {
 	// it rather than leaving a person to retype the plan (boardtools.go). A
 	// kind whose CLI cannot be told about MCP gets none, and the terminal opens
 	// exactly as it did before.
-	boardToken, mcpConfig := m.openBoardTools(spec.boardID, spec.cardID, id, spec.agent)
+	boardToken, mcpConfig := m.openBoardTools(spec.boardID, spec.cardID, id, spec.agent, spec.mcp)
 
 	// The hook: how this CLI says it needs a person, instead of us guessing so
 	// from its silence (toolhook.go). It rides on the same grant the tools do —

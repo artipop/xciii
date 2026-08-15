@@ -116,6 +116,33 @@ produce it.
   value may be a person's own click (the `card.changed` wait); but a route
   built on a property nothing produces is a route that quietly never moves.
 
+## Tools a column brings
+
+A column can hand its agent **MCP servers of its own** («MCP-серверы этой
+колонки», in the same panel), in the JSON block any MCP client takes:
+
+```json
+{"mcpServers": {"playwright": {"command": "npx", "args": ["-y", "@playwright/mcp@latest"]}}}
+```
+
+They are **added to whatever that agent carries in the registry**, and they are
+the column's rather than the agent's on purpose: «QA» needs a browser and «В
+работе» does not, and the alternative was registering one agent twice under two
+names to give it two configurations. A route stage may replace the whole set for
+itself («MCP-серверы на этой стадии»), the same way it overrides the crew and
+the prompt — the fold names the column's answer while the stage has none of its
+own.
+
+Two rules. Wiring a server to a column is **consent to use it**: its tools run
+without a confirmation prompt, exactly as the agent's own do, because a
+card-triggered run has nobody to ask. And the name **`board` is taken** — the
+board's own tools travel in the same file, and a server that shadowed them would
+put out `finish_work`, which is how a stage ends.
+
+A test column is the case this was built for: the browser can now live on the
+column, and a test stage is refused for having no browser only when neither the
+column nor the agent brings one.
+
 ## Rules: when one event is not one arrow
 
 A transition can ask about the card before it moves it. The condition sits on
@@ -497,7 +524,7 @@ adapters have no such channel.
 | "в папке есть несохранённые изменения" | The same, with your own uncommitted changes to tracked files in the way: commit or stash them (untracked files are fine) |
 | "не задан ни project_path…" | The card matched no folder: check the **Папки** field against the registry |
 | Card never leaves *In Review* | Nobody is watching its branch — see [which branch is followed](#which-branch-is-followed), or the route has no edge for what happened |
-| Test stage refuses to start | The agent working the test column has no browser MCP server: the wizard's QA step gives one to the agent it crews the column with, or set it by hand (*«Эта машина…» → «Агенты»* → MCP servers) |
+| Test stage refuses to start | Nothing brings a browser MCP server: put one on the test column («MCP-серверы этой колонки»), or on the agent itself (*«Настройки → Агенты»* → MCP servers) |
 
 A session writes one comment, at the end: what the agent did, or why it could not.
 Everything else it does is shown rather than written down — the card carries its

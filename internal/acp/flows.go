@@ -140,6 +140,11 @@ type FlowNode struct {
 	// to the agent instead of hoping it asks get_card. Empty inherits.
 	Reads []string `json:"reads,omitempty"`
 
+	// MCPServers are the tools this stage hands to whoever works it, on top of
+	// whatever that agent carries of its own. Empty inherits the column's
+	// (ColumnSpec.MCPServers), exactly as the crew and the prompt do.
+	MCPServers MCPServerSet `json:"mcpServers,omitempty"`
+
 	// RunIn is where this stage's work happens: RunInOwner — the card's own
 	// workspace, so the stage sees the card's branch; RunInWorkdir — the folder
 	// itself, on whatever is checked out there.
@@ -489,6 +494,11 @@ func validateFlow(f FlowEntry, workdirs []WorkdirEntry, agents []AgentEntry, dep
 		if n.DeployName != "" && !hasDeploy(deploys, n.DeployName) {
 			return FlowEntry{}, fmt.Errorf("цель деплоя %q стадии %q не найдена в реестре (%s)", n.DeployName, n.ID, deployNames(deploys))
 		}
+		servers, err := validateStageMCP(n.MCPServers)
+		if err != nil {
+			return FlowEntry{}, fmt.Errorf("стадия %q: %w", n.Column, err)
+		}
+		n.MCPServers = servers
 		seenID[n.ID] = true
 		seenColumn[lower] = true
 		f.Nodes[i] = n

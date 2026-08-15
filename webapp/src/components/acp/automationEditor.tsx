@@ -8,6 +8,7 @@ import Select from '../../widgets/select'
 import CompassIcon from '../../widgets/icons/compassIcon'
 
 import FlowDiagram, {BLOCK_DRAG_TYPE, NODE_HEIGHT, NODE_WIDTH, StageCount, condLabel, edgeId, edgeIndexOf, stageLabel} from './flowDiagram'
+import MCPField from './mcpField'
 import {
     ACTIONS,
     Automation,
@@ -485,6 +486,20 @@ const AutomationEditor = (props: Props) => {
         )
     }
 
+    // What an empty stage set means: the column's servers, named. The same
+    // shape columnCrewNote has, and for the same reason — an inherited answer
+    // that is not shown reads as no answer at all.
+    const columnMCPNote = (node: FlowNode): string => {
+        const names = Object.keys(specOf(node)?.mcpServers || {})
+        if (names.length === 0) {
+            return intl.formatMessage({id: 'Automation.mcp-none', defaultMessage: '— only what the agent carries itself —'})
+        }
+        return intl.formatMessage(
+            {id: 'Automation.mcp-as-column', defaultMessage: '— as the column: {servers} —'},
+            {servers: names.join(', ')},
+        )
+    }
+
     // The properties a stage may write or read: every board property except the
     // column one — moving between columns is the route's own business.
     const dataProperties = () =>
@@ -924,6 +939,22 @@ const AutomationEditor = (props: Props) => {
                                             () => specOf(node())?.reads || [],
                                             (reads) => updateNodeSpec(node(), {reads}),
                                         )}
+
+                                        {/* The tools working here comes with.
+                                            They belong to the column because
+                                            the browser «QA» needs is a fact
+                                            about that column rather than about
+                                            whoever works it — otherwise one
+                                            agent has to be registered twice to
+                                            be configured differently in two
+                                            columns. */}
+                                        <MCPField
+                                            owner={`column:${node().id}`}
+                                            label={intl.formatMessage({id: 'Automation.mcp', defaultMessage: 'MCP servers of this column'})}
+                                            value={specOf(node())?.mcpServers}
+                                            emptySummary={intl.formatMessage({id: 'Automation.mcp-none', defaultMessage: '— only what the agent carries itself —'})}
+                                            onChange={(mcpServers) => updateNodeSpec(node(), {mcpServers})}
+                                        />
                                     </Show>
                                 </Show>
 
@@ -1028,6 +1059,19 @@ const AutomationEditor = (props: Props) => {
                                             () => node().reads || specOf(node())?.reads || [],
                                             (reads) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {reads})),
                                         )}
+
+                                        {/* The stage's own tools, replacing the
+                                            column's whole set — the same
+                                            inheritance the crew and the prompt
+                                            have, and the summary names what it
+                                            falls back to. */}
+                                        <MCPField
+                                            owner={`stage:${flow()!.name}:${node().id}`}
+                                            label={intl.formatMessage({id: 'Automation.stage-mcp', defaultMessage: 'MCP servers at this stage'})}
+                                            value={node().mcpServers}
+                                            emptySummary={columnMCPNote(node())}
+                                            onChange={(mcpServers) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {mcpServers}))}
+                                        />
                                     </Show>
 
                                     {/* The way to the other half of the answer.

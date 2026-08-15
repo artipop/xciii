@@ -1,12 +1,15 @@
 package acp
 
 import (
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/artipop/xciii/internal/boardmcp"
 )
 
 // fakeCLIOnPath installs a script under the name a kind's interactive CLI has
@@ -489,5 +492,48 @@ func TestDeclaredReadsOpenTheBrief(t *testing.T) {
 	}
 	if cardInputs(CardMoved{}, nil) != "" {
 		t.Error("a stage with no reads got an inputs block")
+	}
+}
+
+// A column's own MCP servers reach the stage that runs there, in the file the
+// CLI is pointed at — beside the board's tools rather than instead of them.
+// This is what saves registering one agent twice to have it configured two ways
+// in two columns.
+func TestAStageRunsWithTheColumnsOwnTools(t *testing.T) {
+	m, _, events, project, _ := stageManager(t, "sleep 30", func(cfg *Config) {
+		cfg.Columns = []ColumnSpec{{
+			Property: cfg.TriggerProperty, Column: cfg.TriggerColumn,
+			Action: FlowActionAgent, Agents: []string{"clauuus"},
+			MCPServers: MCPServerSet{"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest"}}},
+		}}
+	})
+
+	events.ch <- moveEvent("cardTools", project, "opt-backlog", "opt-agent")
+	term := liveStageTerminal(t, m, "cardTools")
+
+	if term.mcpConfig == "" {
+		t.Fatal("the stage was given no MCP config at all")
+	}
+	if !strings.Contains(strings.Join(term.Argv, " "), term.mcpConfig) {
+		t.Errorf("the CLI was not pointed at the config: %v", term.Argv)
+	}
+	raw, err := os.ReadFile(term.mcpConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var config struct {
+		MCPServers map[string]struct {
+			Command string   `json:"command"`
+			Args    []string `json:"args"`
+		} `json:"mcpServers"`
+	}
+	if err := json.Unmarshal(raw, &config); err != nil {
+		t.Fatalf("the CLI would not read this config: %v\n%s", err, raw)
+	}
+	if _, ok := config.MCPServers[boardmcp.ServerName]; !ok {
+		t.Errorf("the column's servers displaced the board's own: %s", raw)
+	}
+	if got := config.MCPServers["playwright"]; got.Command != "npx" || len(got.Args) != 2 {
+		t.Errorf("the column's server did not reach the stage: %s", raw)
 	}
 }

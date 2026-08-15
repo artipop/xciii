@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/artipop/xciii/internal/boardmcp"
 )
 
 // A column of the board and what happens in it: the action a card entering it
@@ -48,6 +50,18 @@ type ColumnSpec struct {
 	// FlowNode.Writes/Reads, which override these per route.
 	Writes []PropertyWrite `json:"writes,omitempty"`
 	Reads  []string        `json:"reads,omitempty"`
+
+	// MCPServers are the tools working in this column comes with: a browser for
+	// «QA», a service's own server for the column that talks to it. They are
+	// handed to whichever agent works here, on top of the servers that agent
+	// carries in the registry — which is what keeps one agent from having to be
+	// registered twice to be configured differently in two columns.
+	//
+	// The shape is the one every MCP client uses (MCPServerSet), so an entry
+	// can be pasted from a server's README exactly as in «Настройки → Агенты».
+	// A route node may override the whole set for its stage alone
+	// (FlowNode.MCPServers).
+	MCPServers MCPServerSet `json:"mcpServers,omitempty"`
 
 	// DeployName pins the deploy target for an "deploy" column.
 	DeployName string `json:"deployName,omitempty"`
@@ -206,7 +220,26 @@ func validateColumn(c ColumnSpec, agents []AgentEntry, deploys []DeployEntry) (C
 	if c.MaxRunning < 0 {
 		return ColumnSpec{}, fmt.Errorf("лимит одновременных сессий не может быть отрицательным")
 	}
+	servers, err := validateStageMCP(c.MCPServers)
+	if err != nil {
+		return ColumnSpec{}, fmt.Errorf("колонка %q: %w", c.Column, err)
+	}
+	c.MCPServers = servers
 	return c, nil
+}
+
+// validateStageMCP checks the servers a column or a stage hands to its agent.
+// The same rules an agent's own set is held to, plus one: the board's own
+// server is in the file these are written into (boardtools.go), and a set that
+// took its name would put out the tools a stage ends through — finish_work
+// among them, so the route would never learn the stage was over.
+func validateStageMCP(servers MCPServerSet) (MCPServerSet, error) {
+	for name := range servers {
+		if strings.EqualFold(strings.TrimSpace(name), boardmcp.ServerName) {
+			return nil, fmt.Errorf("имя %q занято сервером доски", name)
+		}
+	}
+	return validateMCPServers(servers)
 }
 
 // SaveColumn adds or replaces a column spec (matched by board+option, else by

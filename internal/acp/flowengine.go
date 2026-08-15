@@ -179,7 +179,7 @@ func (m *Manager) runNodeAction(ev CardMoved, flow FlowEntry, node FlowNode) {
 	spec, _ := m.columnFor(ev.BoardID, node.asColumn(flow.PropertyOr(m.triggerProperty())))
 	opts := startOptions{flowName: flow.Name, flowNodeID: node.ID, column: spec,
 		deployOverride: node.DeployName, agentCrew: node.Crew(), stagePrompt: node.Prompt,
-		writes: node.Writes, reads: node.Reads}
+		writes: node.Writes, reads: node.Reads, mcp: node.MCPServers}
 
 	action := node.Action
 	if action == "" {

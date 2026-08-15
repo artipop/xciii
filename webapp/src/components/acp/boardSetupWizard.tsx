@@ -11,7 +11,7 @@ import Dialog from '../dialog'
 import {sendFlashMessage} from '../flashMessages'
 
 import {agentBindings} from './bindings'
-import {textToServers} from './agentsPanel'
+import {textToServers} from './mcpServers'
 import AgentQuickAdd from './agentQuickAdd'
 import {agentColumn, checkSetupAnswer, createSetupPlan, recordSetupStep, SetupStep, SetupStepKind, stepRequires} from './boardSetup'
 import {Workdir, syncWorkdirsToBoard, useWorkdirHere} from './workdirSync'

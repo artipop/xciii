@@ -736,3 +736,25 @@ func TestMCPServersReadEveryShapeThatMeansTheSame(t *testing.T) {
 func entry2WithServers(s AgentMCPServer) AgentEntry {
 	return AgentEntry{Name: "jojo", Kind: "junie", MCPServers: MCPServerSet{"playwright": s}}
 }
+
+// One server per name is all a config file and session/new can carry, so a
+// column that names `playwright` gets its own rather than two servers under one
+// name: the run's answer is the more specific one.
+func TestAColumnsServerReplacesTheAgentsOfTheSameName(t *testing.T) {
+	agent := AgentEntry{Name: "jojo", Kind: "junie", MCPServers: MCPServerSet{
+		"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest"}},
+	}}
+	s := &Session{WorkdirPath: "/project", Agent: agent}
+	s.extraMCP = stageMCPSpecs(MCPServerSet{"playwright": {Command: "/opt/pw", Args: []string{"--headed"}}})
+
+	specs, err := sessionMCPServers(s, DefaultConfig(t.TempDir()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(specs) != 1 {
+		t.Fatalf("one server per name, got %+v", specs)
+	}
+	if specs[0].Command != "/opt/pw" {
+		t.Errorf("the column's answer should win over the agent's: %+v", specs[0])
+	}
+}

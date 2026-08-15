@@ -5,16 +5,19 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 
 	acpsdk "github.com/coder/acp-go-sdk"
 
 	"github.com/artipop/xciii/internal/dokku"
 )
 
-// A session can offer its agent extra tools through MCP servers. There are two
-// — the dokku deploy server and the webtest browser server — and both are our
-// own binary re-invoked as `<self> mcp <name>`, configured entirely through
-// their environment, so the model picks steps but never targets.
+// A session can offer its agent extra tools through MCP servers, and they come
+// from three owners: ours — the dokku deploy server, this binary re-invoked as
+// `<self> mcp <name>` and configured entirely through its environment, so the
+// model picks steps but never targets — the agent's own registry entry, and the
+// column the card landed in (ColumnSpec.MCPServers, columns.go), which is how
+// one agent works «QA» with a browser and «В работе» without one.
 //
 // Every agent takes the same description by the same road: session/new, where
 // the protocol has a field for them. That is one of the things the vendor
@@ -40,14 +43,17 @@ type mcpServerSpec struct {
 // server we spawn ourselves for a deploy column, plus whatever the agent
 // carries of its own — which is what a test session drives the browser with.
 func sessionMCPServers(s *Session, _ Config) ([]mcpServerSpec, error) {
-	// The agent's own servers travel with every session it runs, whatever the
-	// column started it: they are part of how that agent works, not of what
-	// this particular card is for.
-	specs := agentMCPServers(s)
-	// What this run was handed: a source's agent gets the service it reads and
-	// the tool it files through, and neither belongs to the agent's registry
-	// entry — the next source would want different ones.
-	specs = append(specs, s.extraMCP...)
+	// What this run was handed comes first: the column's own tools (StageMCP), a
+	// source's service and the tool it files through — none of which belongs to
+	// the agent's registry entry, since the next column or source would want
+	// different ones. First because a name that appears twice is answered by
+	// the more specific owner: a column that names `playwright` means *its*
+	// playwright, and one server per name is all the config file and
+	// `session/new` can carry.
+	specs := append([]mcpServerSpec(nil), s.extraMCP...)
+	// Then the agent's own, which travel with every session it runs whatever
+	// the column started it: they are part of how that agent works.
+	specs = dedupeMCP(append(specs, agentMCPServers(s)...))
 	if s.Deploy != nil {
 		self, err := os.Executable()
 		if err != nil {
@@ -102,6 +108,48 @@ func agentMCPServers(s *Session) []mcpServerSpec {
 			Env:     srv.Env,
 		})
 		s.allowToolPrefix("mcp__" + name + "__")
+	}
+	return specs
+}
+
+// dedupeMCP keeps the first server of each name, which is what makes the order
+// above a rule rather than an accident: the run's own answer wins over the
+// agent's standing one.
+func dedupeMCP(specs []mcpServerSpec) []mcpServerSpec {
+	seen := make(map[string]bool, len(specs))
+	out := specs[:0]
+	for _, spec := range specs {
+		key := strings.ToLower(spec.Name)
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		out = append(out, spec)
+	}
+	return out
+}
+
+// stageMCPSpecs turns a column's or a stage's servers into specs. Sorted, for
+// the same reason the agent's own are: a map has no order, and two runs of one
+// configuration should hand the agent the same command line.
+func stageMCPSpecs(servers MCPServerSet) []mcpServerSpec {
+	if len(servers) == 0 {
+		return nil
+	}
+	names := make([]string, 0, len(servers))
+	for name := range servers {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	specs := make([]mcpServerSpec, 0, len(names))
+	for _, name := range names {
+		srv := servers[name]
+		specs = append(specs, mcpServerSpec{
+			Name:    name,
+			Command: srv.Command,
+			Args:    append([]string(nil), srv.Args...),
+			Env:     srv.Env,
+		})
 	}
 	return specs
 }

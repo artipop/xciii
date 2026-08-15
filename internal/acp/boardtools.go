@@ -114,19 +114,46 @@ func (m *Manager) BoardToolsURL() string {
 
 // openBoardTools mints a grant for a board and writes the MCP config file the
 // vendor CLI of a terminal is pointed at: an address and the grant to send with
-// it. It returns the token and the file, both of which the caller must close
-// when the run ends — the file carries the grant, and the grant is a door.
+// it, plus whatever servers the column or the stage hands to whoever works here
+// (ColumnSpec.MCPServers). It returns the token and the file, both of which the
+// caller must close when the run ends — the file carries the grant, and the
+// grant is a door.
 //
-// A board nobody named, an agent whose CLI cannot be told about MCP at all, or
-// an app that does not know its own address yet — each of those simply means no
-// tools, never a terminal that refuses to open.
-func (m *Manager) openBoardTools(boardID, cardID, terminalID string, agent AgentEntry) (token, configPath string) {
-	url := m.BoardToolsURL()
-	if boardID == "" || url == "" || !terminalTakesMCP(agent) {
+// An agent whose CLI cannot be told about MCP at all gets neither, which is the
+// one case where a stage's own servers are dropped as well: there is no flag to
+// hand them over with, and guessing another vendor's is how a terminal fails to
+// open. A board nobody named or an app that does not know its own address yet
+// costs only the board's own server — a conversation with tools of the column
+// on it is still a conversation.
+func (m *Manager) openBoardTools(boardID, cardID, terminalID string, agent AgentEntry, servers MCPServerSet) (token, configPath string) {
+	if !terminalTakesMCP(agent) {
 		return "", ""
 	}
-	token = m.GrantBoardTools(boardID, cardID, terminalID)
-	if token == "" {
+	entries := map[string]any{}
+	// The stage's go in first and the board's own is written after them, so a
+	// set that named itself "board" cannot displace the tools a stage ends
+	// through. validateStageMCP refuses that name where it is typed; this is
+	// the second lock on the same door.
+	for name, srv := range servers {
+		entry := map[string]any{"command": srv.Command}
+		if len(srv.Args) > 0 {
+			entry["args"] = srv.Args
+		}
+		if len(srv.Env) > 0 {
+			entry["env"] = srv.Env
+		}
+		entries[name] = entry
+	}
+	if url := m.BoardToolsURL(); boardID != "" && url != "" {
+		if token = m.GrantBoardTools(boardID, cardID, terminalID); token != "" {
+			entries[boardmcp.ServerName] = map[string]any{
+				"type":    "http",
+				"url":     url,
+				"headers": map[string]string{"Authorization": "Bearer " + token},
+			}
+		}
+	}
+	if len(entries) == 0 {
 		return "", ""
 	}
 	// 0600 by default, and it carries the grant, so it stays that way.
@@ -138,12 +165,7 @@ func (m *Manager) openBoardTools(boardID, cardID, terminalID string, agent Agent
 	}
 	defer f.Close()
 
-	config := map[string]any{"mcpServers": map[string]any{boardmcp.ServerName: map[string]any{
-		"type":    "http",
-		"url":     url,
-		"headers": map[string]string{"Authorization": "Bearer " + token},
-	}}}
-	if err := json.NewEncoder(f).Encode(config); err != nil {
+	if err := json.NewEncoder(f).Encode(map[string]any{"mcpServers": entries}); err != nil {
 		m.log.Warn("acp: cannot write the MCP config for a terminal", "err", err)
 		m.RevokeBoardTools(token)
 		_ = os.Remove(f.Name())

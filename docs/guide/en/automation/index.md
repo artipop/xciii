@@ -67,7 +67,20 @@ The **"Columns"** tab, select a column — in the panel:
   them;
 - **"Gets from the card"** — the properties the stage reads: their values open
   its brief ("From the card: Превью: …"), so the agent does not have to think
-  of asking `get_card`.
+  of asking `get_card`;
+- **"MCP servers of this column"** — the tools the agent working here is given.
+  The same JSON any MCP client takes, so it can be copied from a server's own
+  README:
+
+  ```json
+  {"mcpServers": {"playwright": {"command": "npx", "args": ["-y", "@playwright/mcp@latest"]}}}
+  ```
+
+  A column's servers are added to the agent's own rather than replacing them:
+  the same agent needs a browser on «QA» and does not need one on «В работе»,
+  and there is no second agent to register for it. Their tools run without
+  confirmation prompts. The name `board` is taken — that is how the board's own
+  tools reach the column, the ones an agent says it has finished with.
 
 These settings apply on every route. An exception for one route is set in the
 stage panel — select the stage on the route's tab.
@@ -90,6 +103,9 @@ A route tab, select a box — in the panel:
   them;
 - **"Writes onto the card" / "Gets from the card"** — the same as the column's,
   for this route alone; an empty list inherits;
+- **"MCP servers at this stage"** — the tools for this route alone. While the
+  field is empty the column's servers apply and the heading names them; filling
+  it in replaces the column's whole set;
 - **"From here the card goes"** — this stage's arrows;
 - **"Settings of the column itself…"** — over to the "Columns" tab, to what is
   true of the column on any route.

@@ -11,28 +11,9 @@ import {sendFlashMessage} from '../flashMessages'
 import {agentBindings} from './bindings'
 import {ProxyEntry} from './proxiesPanel'
 import PromptField from './promptField'
+import {MCPServers, mcpServersPlaceholder, serversToText, textToServers} from './mcpServers'
 
 import './agentsPanel.scss'
-
-// The standard MCP client shape, so a server can be pasted straight from its
-// README: a name mapped to the command that starts it.
-type AgentMCPServer = {
-    command?: string
-    args?: string[]
-    env?: {[key: string]: string}
-    type?: string
-    url?: string
-}
-
-type AgentMCPServers = {[name: string]: AgentMCPServer}
-
-// What the field expects, shown when it is empty: the browser server a test
-// session needs, in the form its own README gives it.
-const mcpServersPlaceholder = JSON.stringify({
-    mcpServers: {
-        playwright: {command: 'npx', args: ['-y', '@playwright/mcp@latest', '--headless', '--browser', 'chrome']},
-    },
-}, null, 2)
 
 type AgentEntry = {
     name: string
@@ -43,7 +24,7 @@ type AgentEntry = {
     env?: {[key: string]: string}
     args?: string[]
     command?: string[]
-    mcpServers?: AgentMCPServers
+    mcpServers?: MCPServers
     proxyName?: string
 
     // The agent's own settings: an ACP config option id mapped to the value
@@ -170,48 +151,6 @@ export function envToText(env?: {[key: string]: string}): string {
         return ''
     }
     return Object.entries(env).map(([k, v]) => `${k}=${v}`).join('\n')
-}
-
-// serversToText / textToServers convert between the textarea and the map, in
-// the JSON every MCP client uses. The mcpServers wrapper is written on the way
-// out and accepted but not required on the way in, which is what lets a block
-// be pasted from a server's README as it is. Invalid JSON throws: the caller
-// says so instead of silently saving an empty list.
-export function serversToText(servers?: AgentMCPServers): string {
-    if (!servers || Object.keys(servers).length === 0) {
-        return ''
-    }
-    return JSON.stringify({mcpServers: servers}, null, 2)
-}
-
-export function textToServers(text: string): AgentMCPServers {
-    if (!text.trim()) {
-        return {}
-    }
-    const parsed = JSON.parse(text)
-    if (!parsed || typeof parsed !== 'object') {
-        throw new Error('mcpServers must be an object')
-    }
-    const servers = (!Array.isArray(parsed) && parsed.mcpServers !== undefined) ? parsed.mcpServers : parsed
-    if (!servers || typeof servers !== 'object') {
-        throw new Error('mcpServers must be an object')
-    }
-
-    // Some clients list the servers instead of keying them by name, and that is
-    // what somebody copying from one of them will paste. The config file reads
-    // both shapes, so the dialog does too.
-    if (Array.isArray(servers)) {
-        const named: AgentMCPServers = {}
-        for (const entry of servers) {
-            const {name, ...server} = entry || {}
-            if (!name) {
-                throw new Error('every server in the list needs a "name"')
-            }
-            named[name] = server
-        }
-        return named
-    }
-    return servers
 }
 
 export function textToEnv(text: string): {[key: string]: string} {
@@ -478,7 +417,7 @@ const AgentsPanel = () => {
             return
         }
         setError('')
-        let mcpServers: AgentMCPServers
+        let mcpServers: MCPServers
         try {
             mcpServers = textToServers(serversText())
         } catch (e) {

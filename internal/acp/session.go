@@ -90,6 +90,11 @@ type Session struct {
 	// folder itself. The stage decides (FlowNode.RunsIn); a session outside a
 	// route leaves it empty and gets the default for what it is doing.
 	RunIn string
+	// StageMCP are the servers the stage hands its agent (node's, else the
+	// column's), on top of whatever the agent carries of its own. Kept on the
+	// session because a stage that runs as a terminal is opened from it, and
+	// the terminal is where the file is written (boardtools.go).
+	StageMCP MCPServerSet
 
 	Worktree     WorktreeInfo
 	usedWorktree bool // a dedicated worktree was actually created

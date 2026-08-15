@@ -1,0 +1,52 @@
+.MCPField {
+    > summary {
+        cursor: pointer;
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        list-style-position: outside;
+    }
+
+    // What is behind the fold, said on the fold: the servers by name, or what
+    // the stage falls back to. A fold that has to be opened to find out whether
+    // it holds anything is a fold nobody opens twice.
+    .MCPField__summary {
+        display: block;
+        margin-left: 2px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+    }
+
+    .MCPField__body {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    // JSON, so it is set as data — the same hand the prompt fields use for
+    // everything a machine reads back.
+    textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: var(--radius-sm);
+        background: rgb(var(--surface-bg-rgb));
+        color: rgba(var(--center-channel-color-rgb), 1);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        line-height: 1.5;
+        resize: vertical;
+    }
+
+    .MCPField__error {
+        font-size: 11px;
+        color: rgb(var(--error-text-rgb));
+    }
+
+    .MCPField__hint {
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+}

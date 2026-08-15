@@ -170,6 +170,38 @@ func TestTestSessionNeedsABrowserServer(t *testing.T) {
 	}
 }
 
+// …and the column is the other place a browser can come from: the tools a stage
+// comes with are the column's answer as much as the agent's, which is what
+// saves registering one agent twice to give it a browser in one column.
+func TestTestSessionTakesTheBrowserFromTheColumn(t *testing.T) {
+	m, _, _, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+		c.Agents = []AgentEntry{{Name: "bare", Kind: "claude"}}
+		c.Deploys = []DeployEntry{deployEntry("prod")}
+	})
+	m.cfg.Workdirs = []WorkdirEntry{{Name: "webapp", Path: project}}
+	ev := CardMoved{CardID: "cardQA", BoardID: "board1", Title: "Проверить",
+		Props: map[string]string{"repo_path": project, "branch": "feat/x"}}
+	column := ColumnSpec{Property: "Статус", Column: "QA", Action: FlowActionTest,
+		MCPServers: MCPServerSet{"playwright": {Command: "npx"}}}
+
+	s, err := m.startSession(ev, startOptions{test: true, column: column})
+	if err != nil {
+		t.Fatalf("the column brought a browser and the session still refused: %v", err)
+	}
+	// And it is handed over as the run's own server, allowed by prefix the way
+	// the agent's own are — a card-triggered run has no console to ask in.
+	specs, err := sessionMCPServers(s, m.cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(specs) != 1 || specs[0].Name != "playwright" {
+		t.Fatalf("specs: %+v", specs)
+	}
+	if !s.toolPrefixAllowed("mcp__playwright__browser_click") {
+		t.Error("the column's tools should run unasked")
+	}
+}
+
 func TestTestColumnRouting(t *testing.T) {
 	m := agentManager(t, "")
 	m.cfg.Columns = migratedColumns(m.cfg)

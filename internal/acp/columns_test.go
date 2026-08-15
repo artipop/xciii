@@ -571,3 +571,50 @@ func TestAssignedCardIsStillDeployed(t *testing.T) {
 		t.Fatalf("a card assigned to an agent is not somebody's own: %v", err)
 	}
 }
+
+// A column can carry MCP servers of its own, and the point is that they are the
+// column's rather than the agent's: the same agent works «В работе» with the
+// tools that column needs and «QA» with the browser, without being registered
+// twice under two names.
+func TestColumnCarriesItsOwnMCPServers(t *testing.T) {
+	m := agentManager(t, "", AgentEntry{Name: "claude-1", Kind: "claude"})
+	m.cfg.Columns = nil
+
+	spec := ColumnSpec{BoardID: "board1", PropertyID: "p", OptionID: "opt-qa", Property: "Status",
+		Column: "QA", Action: FlowActionTest, MCPServers: MCPServerSet{
+			"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest"}},
+		}}
+	saved, err := m.SaveColumn(spec)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if saved.MCPServers["playwright"].Command != "npx" {
+		t.Fatalf("the column's servers did not survive the save: %+v", saved.MCPServers)
+	}
+
+	// The board's own server is in the same file (boardtools.go), so a stage
+	// that took its name would put out the tools it has to finish through.
+	spec.MCPServers = MCPServerSet{"board": {Command: "npx"}}
+	if _, err := m.SaveColumn(spec); err == nil || !strings.Contains(err.Error(), "сервером доски") {
+		t.Fatalf("the board's own name must be refused: %v", err)
+	}
+	spec.MCPServers = MCPServerSet{"remote": {Type: "http", URL: "https://example.com"}}
+	if _, err := m.SaveColumn(spec); err == nil {
+		t.Fatal("a remote server must be refused where it is typed")
+	}
+}
+
+// Which servers a stage runs with: the column's, unless the route's node names
+// its own set — the same inheritance the crew and the prompt have.
+func TestStageMCPPrefersTheNodesOwnServers(t *testing.T) {
+	column := ColumnSpec{Column: "QA", MCPServers: MCPServerSet{"playwright": {Command: "npx"}}}
+
+	if got := (startOptions{column: column}).stageMCP(); len(got) != 1 || got["playwright"].Command != "npx" {
+		t.Fatalf("a stage with no servers of its own works with the column's: %+v", got)
+	}
+	opts := startOptions{column: column, mcp: MCPServerSet{"figma": {Command: "figma-mcp"}}}
+	got := opts.stageMCP()
+	if len(got) != 1 || got["figma"].Command != "figma-mcp" {
+		t.Fatalf("the node's own set should replace the column's whole answer: %+v", got)
+	}
+}

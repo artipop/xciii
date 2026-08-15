@@ -256,6 +256,19 @@ type startOptions struct {
 	// column's. Empty falls back, like the crew.
 	writes []PropertyWrite
 	reads  []string
+	// mcp are the node's own MCP servers, overriding the column's. Empty falls
+	// back, like the crew.
+	mcp MCPServerSet
+}
+
+// stageMCP is the tools this stage hands its agent: the node's set if it names
+// one, else the column's. Whole sets rather than a merge of the two, so what
+// the editor shows on the stage is what the agent gets.
+func (o startOptions) stageMCP() MCPServerSet {
+	if len(o.mcp) > 0 {
+		return o.mcp
+	}
+	return o.column.MCPServers
 }
 
 // declaredWrites is what this stage must leave on the card: the node's own
@@ -379,10 +392,12 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		return nil, err
 	}
 	// A test session is an agent clicking through a browser it brings itself:
-	// without a browser MCP server on the agent there is nothing to test with,
-	// and finding that out mid-turn costs a whole session.
-	if test != nil && len(agent.MCPServers) == 0 {
-		return nil, fmt.Errorf("агенту %q не задан MCP-сервер браузера — тестировать нечем (меню доски → «Агенты…» → «MCP-серверы»)", agent.Name)
+	// with no browser MCP server anywhere there is nothing to test with, and
+	// finding that out mid-turn costs a whole session. Either owner counts —
+	// the agent's registry entry, or the column the card landed in, which is
+	// the answer that keeps one agent from being registered twice.
+	if test != nil && len(agent.MCPServers) == 0 && len(opts.stageMCP()) == 0 {
+		return nil, fmt.Errorf("агенту %q не задан MCP-сервер браузера — тестировать нечем (настройки колонки → «MCP-серверы», либо «Настройки → Агенты»)", agent.Name)
 	}
 	// An ordinary folder is one working copy with nothing to hold it, and two
 	// agents must never share it (spec §7): reject while another live session
@@ -459,10 +474,20 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		NodeID:       firstNonEmpty(opts.flowNodeID, ev.ToColumn.OptionID, opts.column.OptionID, nodeNone),
 		Writes:       opts.declaredWrites(),
 		RunIn:        opts.runIn,
+		StageMCP:     opts.stageMCP(),
 		PromptText:   prompt,
 		Policy:       agentPolicy(agent),
 		status:       StatusQueued,
 		allowTools:   allowTools,
+	}
+	// What the column hands its agent, on the same terms the agent's own
+	// servers travel on: wiring a server to a stage is consent to use it, and a
+	// card-triggered run has no console to ask in. A stage that runs as a
+	// terminal takes them through the CLI's config file instead (startTerminal),
+	// where the CLI's own permission prompt is the answer.
+	for _, srv := range stageMCPSpecs(s.StageMCP) {
+		s.extraMCP = append(s.extraMCP, srv)
+		s.allowToolPrefix("mcp__" + srv.Name + "__")
 	}
 	rec := SessionRecord{
 		ID:        s.ID,

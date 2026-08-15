@@ -252,7 +252,7 @@ func TestBoardToolsConfigIsWrittenForTheCLIAndCleanedUpAfter(t *testing.T) {
 	m, _, _, _ := testManager(t, "idle", nil)
 	m.SetOrigin("http://127.0.0.1:8088/")
 
-	token, path := m.openBoardTools("board-1", "card-1", "term-1", AgentEntry{Name: "c", Kind: AgentKindClaude})
+	token, path := m.openBoardTools("board-1", "card-1", "term-1", AgentEntry{Name: "c", Kind: AgentKindClaude}, nil)
 	if token == "" || path == "" {
 		t.Fatal("claude takes an MCP config and got none")
 	}
@@ -312,14 +312,85 @@ func TestBoardToolsAreSkippedForACLIThatCannotTakeThem(t *testing.T) {
 		{Name: "x", Kind: AgentKindCodex},
 		{Name: "w", Kind: AgentKindClaude, TerminalCommand: []string{"proxychains4", "claude"}},
 	} {
-		if token, path := m.openBoardTools("board-1", "card-1", "term-1", agent); token != "" || path != "" {
+		if token, path := m.openBoardTools("board-1", "card-1", "term-1", agent, nil); token != "" || path != "" {
 			t.Errorf("%s was given tools it cannot be told about", agent.Name)
 			m.closeBoardTools(token, path)
 		}
 	}
 
 	// And a terminal with no board behind it has nowhere to write anyway.
-	if token, _ := m.openBoardTools("", "", "term-1", AgentEntry{Name: "c", Kind: AgentKindClaude}); token != "" {
+	if token, _ := m.openBoardTools("", "", "term-1", AgentEntry{Name: "c", Kind: AgentKindClaude}, nil); token != "" {
 		t.Error("a grant was minted for no board")
+	}
+}
+
+// A stage's own servers reach the CLI the only way a terminal can be told about
+// one: the same config file the board's tools travel in. This is what makes a
+// column configurable without registering the agent a second time.
+func TestStageServersTravelInTheSameConfigAsTheBoardTools(t *testing.T) {
+	m, _, _, _ := testManager(t, "idle", nil)
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	servers := MCPServerSet{"playwright": {
+		Command: "npx",
+		Args:    []string{"-y", "@playwright/mcp@latest"},
+		Env:     map[string]string{"BROWSER": "chrome"},
+	}}
+	token, path := m.openBoardTools("board-1", "card-1", "term-1", AgentEntry{Name: "c", Kind: AgentKindClaude}, servers)
+	if token == "" || path == "" {
+		t.Fatal("claude takes an MCP config and got none")
+	}
+	defer m.closeBoardTools(token, path)
+
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var config struct {
+		MCPServers map[string]struct {
+			Type    string            `json:"type"`
+			Command string            `json:"command"`
+			Args    []string          `json:"args"`
+			Env     map[string]string `json:"env"`
+		} `json:"mcpServers"`
+	}
+	if err := json.Unmarshal(raw, &config); err != nil {
+		t.Fatalf("the CLI would not read this config: %v\n%s", err, raw)
+	}
+	if _, ok := config.MCPServers["board"]; !ok {
+		t.Errorf("the stage's servers displaced the board's own: %s", raw)
+	}
+	stage, ok := config.MCPServers["playwright"]
+	if !ok {
+		t.Fatalf("the column's server is not in the config: %s", raw)
+	}
+	if stage.Command != "npx" || strings.Join(stage.Args, " ") != "-y @playwright/mcp@latest" || stage.Env["BROWSER"] != "chrome" {
+		t.Errorf("the server was rewritten on the way: %+v", stage)
+	}
+	if stage.Type != "" {
+		t.Errorf("a stdio server must not be declared as %q", stage.Type)
+	}
+}
+
+// A conversation on a board nobody named still gets the column's tools: the
+// board's own server is what needs a grant, and a browser does not.
+func TestStageServersSurviveWithoutAGrant(t *testing.T) {
+	m, _, _, _ := testManager(t, "idle", nil)
+
+	servers := MCPServerSet{"playwright": {Command: "npx"}}
+	token, path := m.openBoardTools("", "", "term-1", AgentEntry{Name: "c", Kind: AgentKindClaude}, servers)
+	if token != "" {
+		t.Error("a grant was minted for no board")
+	}
+	if path == "" {
+		t.Fatal("the column's own servers were dropped along with the board's")
+	}
+	defer m.closeBoardTools(token, path)
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), "playwright") || strings.Contains(string(raw), "\"board\"") {
+		t.Errorf("config: %s", raw)
 	}
 }

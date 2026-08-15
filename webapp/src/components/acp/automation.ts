@@ -1,5 +1,7 @@
 import {Board, IPropertyOption, IPropertyTemplate} from '../../blocks/board'
 
+import {MCPServers} from './mcpServers'
+
 // What a board does, in the two halves the engine keeps apart: a **column**
 // says what happens when a card lands in it, a **route** says where the card
 // goes next. Both are edited over the board's own columns — the options of one
@@ -33,6 +35,10 @@ export type FlowNode = {
     // reads it can point at the stage that must produce it.
     writes?: PropertyWrite[]
     reads?: string[]
+
+    // The tools this stage hands its agent, overriding the column's whole set.
+    // Empty inherits.
+    mcpServers?: MCPServers
 
     // Where the stage works: 'owner' — the card's own workspace, so it sees the
     // card's branch; 'workdir' — the folder itself. Empty is the default for
@@ -102,6 +108,11 @@ export type ColumnSpec = {
     // The column's declared outputs and inputs — see FlowNode.writes/reads.
     writes?: PropertyWrite[]
     reads?: string[]
+
+    // The tools working in this column comes with, handed to whichever agent
+    // works here on top of the servers that agent carries of its own. A route
+    // node may replace the whole set for its stage (FlowNode.mcpServers).
+    mcpServers?: MCPServers
 }
 
 // PropertyWrite is one property a stage puts on the card. The value is not

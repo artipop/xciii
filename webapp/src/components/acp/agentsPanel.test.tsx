@@ -4,7 +4,8 @@ import '@testing-library/jest-dom'
 
 import {chooseOption, optionsOf, wrapIntl} from '../../testUtils'
 
-import AgentsPanel, {isAgentsAvailable, textToServers, keptOptions, remoteControlOf, withRemoteControl} from './agentsPanel'
+import AgentsPanel, {isAgentsAvailable, keptOptions, remoteControlOf, withRemoteControl} from './agentsPanel'
+import {textToServers} from './mcpServers'
 
 const anyWindow = window as any
 

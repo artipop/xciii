@@ -220,6 +220,9 @@ func (m *Manager) startStageTerminal(s *Session) (*TerminalSession, error) {
 		cwd:    s.Worktree.Path,
 		branch: s.Worktree.Branch,
 		prompt: s.PromptText,
+		// The tools this stage comes with, on top of the agent's own: the
+		// column's set, or the node's where the route names one.
+		mcp: s.StageMCP,
 		// Why the card is back, when it is: a resumed conversation knows its
 		// task, and what it needs is the delta — see returnBrief.
 		returnPrompt: m.returnBrief(s.CardID, s.NodeID),
