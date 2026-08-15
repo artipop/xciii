@@ -265,14 +265,14 @@ func (m *Manager) ReleaseMergedBranch(workdir, branch string) {
 // WorkspaceModeForCard is which of the two arrangements this card's workspace
 // is, for the surfaces that say it out loud. Empty for a card with none — an
 // ordinary folder records no claim.
-func (m *Manager) WorkspaceModeForCard(cardID string) string {
+func (m *Manager) WorkspaceModeForCard(cardID string) (mode, branch, base string) {
 	if m.store == nil || cardID == "" {
-		return ""
+		return "", "", ""
 	}
-	mode, err := m.store.WorkspaceModeForOwner(cardID)
+	mode, branch, base, err := m.store.WorkspaceModeForOwner(cardID)
 	if err != nil {
 		m.log.Warn("acp: cannot read the card's workspace mode", "card", cardID, "err", err)
-		return ""
+		return "", "", ""
 	}
-	return mode
+	return mode, branch, base
 }

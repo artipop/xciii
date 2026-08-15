@@ -895,16 +895,15 @@ func (s *Store) BranchForOwner(owner string) (string, error) {
 // "worktree" or "branch" — or "" when it holds none. The card's stamp names
 // its line after it: a person who set «отдельная копия» should read worktree
 // off the card, not a bare branch label that spells the *other* setting.
-func (s *Store) WorkspaceModeForOwner(owner string) (string, error) {
-	row := s.db.QueryRow(`SELECT mode FROM workdir_claim
+func (s *Store) WorkspaceModeForOwner(owner string) (mode, branch, base string, err error) {
+	row := s.db.QueryRow(`SELECT mode, branch, base FROM workdir_claim
 		WHERE owner=? AND released_at IS NULL
 		ORDER BY created_at DESC LIMIT 1`, owner)
-	var mode string
-	switch err := row.Scan(&mode); {
+	switch err := row.Scan(&mode, &branch, &base); {
 	case err == sql.ErrNoRows:
-		return "", nil
+		return "", "", "", nil
 	case err != nil:
-		return "", err
+		return "", "", "", err
 	}
-	return mode, nil
+	return mode, branch, base, nil
 }

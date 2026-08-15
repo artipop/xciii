@@ -61,7 +61,7 @@ func TestOneCardIsOneWorkspace(t *testing.T) {
 
 	// And the card can say which arrangement it is in — the stamp names its
 	// line after this, so the word on the card matches the setting.
-	if got := m.WorkspaceModeForCard("card-1"); got != WorkModeWorktree {
+	if got, _, _ := m.WorkspaceModeForCard("card-1"); got != WorkModeWorktree {
 		t.Errorf("the card's workspace reads as %q, want %q", got, WorkModeWorktree)
 	}
 

@@ -41,8 +41,9 @@ const CaseStamp = (props: Props) => {
         refreshCardAgent(props.cardId)
     })
 
-    const branch = () => state().session?.branch || state().resume?.branch || ''
+    const branch = () => state().session?.branch || state().resume?.branch || state().workBranch || ''
     const workMode = () => state().workMode || ''
+    const workBase = () => state().workBase || ''
     const worktree = () => state().session?.worktree || state().resume?.cwd || ''
     const status = () => state().session?.status || ''
 
@@ -62,6 +63,14 @@ const CaseStamp = (props: Props) => {
         if (branch()) {
             const label = workMode() === 'worktree' ? 'worktree' : 'branch'
             out.push({key: 'branch', label, value: branch(), title: worktree() || undefined})
+
+            // What the branch was cut from — and therefore where it merges. A
+            // copy and a branch are both made from the folder's base, and «от
+            // чего отрезано» is the half of provenance the branch name cannot
+            // carry.
+            if (workBase()) {
+                out.push({key: 'base', label: 'from', value: workBase()})
+            }
         } else if (worktree()) {
             out.push({key: 'worktree', label: 'folder', value: worktreeName(worktree()), title: worktree()})
         }

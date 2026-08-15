@@ -56,11 +56,12 @@ describe('components/acp/caseStamp', () => {
     // The line is named after the folder's setting. A person who chose
     // «отдельная копия» and reads BRANCH off the card concludes the setting
     // did not take — which is exactly what happened.
-    it('names the line worktree when the workspace is a copy', async () => {
+    it('names the line worktree when the workspace is a copy, and says the base', async () => {
         anyWindow.go = {
             main: {
                 App: cardBindings({
                     workMode: 'worktree',
+                    workBase: 'main',
                     session: {
                         status: 'finished',
                         branch: 'b-41aa6e-cabgjc3c',
@@ -79,6 +80,10 @@ describe('components/acp/caseStamp', () => {
         // take), the copy's path is the tooltip.
         expect(screen.getByText('b-41aa6e-cabgjc3c')).toBeInTheDocument()
         expect(screen.getByTitle('/data/worktrees/groql-backend-cabgjc3c')).toBeInTheDocument()
+
+        // What it was cut from — and therefore where it merges.
+        expect(screen.getByText('from')).toBeInTheDocument()
+        expect(screen.getByText('main')).toBeInTheDocument()
     })
 
     // A resumable terminal is a case still open, and it names its branch even

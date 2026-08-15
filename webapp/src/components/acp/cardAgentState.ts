@@ -17,9 +17,13 @@ export type CardAgentState = {
     running?: {id: string}
     resume?: {available?: boolean, branch?: string, cwd?: string}
 
-    // How the card's workspace is arranged — 'worktree' (a copy of its own) or
-    // 'branch' (in the folder itself). The stamp names its line after it.
+    // The card's workspace as its claim records it: how it is arranged —
+    // 'worktree' (a copy of its own) or 'branch' (in the folder itself) — its
+    // branch, and what it was cut from. The claim outlives sessions and
+    // restarts, so the stamp can speak even when no session ever reported.
     workMode?: string
+    workBranch?: string
+    workBase?: string
 
     // Why the automation is doing nothing on this card, when it knows — the
     // same reason the route strip shows, for a card outside any route.
