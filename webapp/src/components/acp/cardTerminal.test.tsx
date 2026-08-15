@@ -351,3 +351,33 @@ describe('components/acp/cardTerminal', () => {
         expect(screen.getAllByText('No column').length).toBe(2)
     })
 })
+
+// The two regressions of the panel, held down. Switching rows must remake the
+// terminal page: it builds its socket from the id it mounted with, so handing a
+// new prop to the old page showed the first pty whatever row was clicked. And
+// the whole row is the click, not the name inside it.
+describe('components/acp/cardTerminal rows', () => {
+    afterEach(() => {
+        delete (window as any).go
+        vi.clearAllMocks()
+    })
+
+    it('switches the terminal when another row is picked, by remaking the page', async () => {
+        stubBindings({
+            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
+                folder: '/tmp/proj',
+                conversations: [
+                    {nodeId: 'opt-review', column: 'Ревью', agent: 'клаус', current: true},
+                    {nodeId: 'opt-work', column: 'В работе', agent: 'кодекс', running: true, stage: true, terminalId: 'term-stage'},
+                ],
+            })),
+        })
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-switch' board={board} onClose={vi.fn()}/>)))
+        expect(await screen.findByTestId('terminal')).toHaveTextContent('term-1')
+
+        // Clicking the row itself — not the name button — switches too.
+        const row = screen.getByText('кодекс').closest('.ConversationRow') as HTMLElement
+        await userEvent.click(row)
+        await waitFor(() => expect(screen.getByTestId('terminal')).toHaveTextContent('term-stage'))
+    })
+})

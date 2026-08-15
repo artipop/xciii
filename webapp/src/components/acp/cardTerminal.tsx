@@ -451,8 +451,17 @@ const CardTerminal = (props: Props) => {
                 nothing else — the CLI keeps running, and the row above keeps
                 its green dot, because a person who wanted it ended has the bin
                 on the row. */}
-            <Show when={terminalId()}>
-                {(id) => (
+            {/* `keyed`, and it is the fix for «две строки показывают одно и
+                то же»: terminalPage reads its terminal id once, on mount — the
+                socket and the emulator are built from it — so switching rows
+                must remake the component, not hand a new prop to a page that
+                froze the old one. Without keyed, Show keeps the children and
+                every row showed the first pty ever opened. */}
+            <Show
+                keyed={true}
+                when={terminalId()}
+            >
+                {(id: string) => (
                     <div class='CardTerminal__open'>
                         <div class='CardTerminal__openHead'>
                             <span class='CardTerminal__openName'>{openName()}</span>
@@ -479,7 +488,7 @@ const CardTerminal = (props: Props) => {
                         </div>
                         <div class='CardTerminal__screen'>
                             <Suspense fallback={null}>
-                                <InlineTerminal terminalId={id()}/>
+                                <InlineTerminal terminalId={id}/>
                             </Suspense>
                         </div>
                     </div>

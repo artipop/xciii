@@ -15,6 +15,12 @@
         border-color: rgba(var(--center-channel-color-rgb), 0.32);
     }
 
+    // A row that opens something says so with the cursor everywhere on it, not
+    // only over the name.
+    &--pickable {
+        cursor: pointer;
+    }
+
     // The one being drawn under the list. The border alone says it: a filled
     // row would compete with the terminal below, which is what is being read.
     &--selected {

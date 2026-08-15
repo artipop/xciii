@@ -92,11 +92,29 @@ const ConversationRow = (props: Props) => {
         action.run()
     }
 
+    // The whole row is the click, not just the name: aiming at a line of text
+    // inside a card-shaped row read as the row being broken. The controls stop
+    // the click on themselves, so acting on a row is never also opening it.
+    const pickRow = (e: MouseEvent) => {
+        if (!props.onPick || renaming()) {
+            return
+        }
+        const target = e.target as HTMLElement
+        if (target.closest('button, input')) {
+            return
+        }
+        props.onPick()
+    }
+
     return (
         <li
             class='ConversationRow'
-            classList={{'ConversationRow--selected': Boolean(props.selected)}}
+            classList={{
+                'ConversationRow--selected': Boolean(props.selected),
+                'ConversationRow--pickable': Boolean(props.onPick),
+            }}
             title={props.title}
+            onClick={pickRow}
         >
             <div class='ConversationRow__main'>
                 <Show
