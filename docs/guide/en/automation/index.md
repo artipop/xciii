@@ -85,6 +85,25 @@ The **"Columns"** tab, select a column — in the panel:
 These settings apply on every route. An exception for one route is set in the
 stage panel — select the stage on the route's tab.
 
+### A column that tests
+
+Testing is an agent clicking through a browser, and the browser is an MCP
+server — from "MCP servers of this column", or from the agent's own settings.
+With one nowhere, the panel says so and the test stage does not start: a card
+that arrives waits for a person to check it. That is a working state and not a
+breakage — checking by hand is always allowed.
+
+The board's setup wizard asks this on its **QA** step: pick an agent (one can be
+added there) and the browser is set up for the column, with that agent as its
+crew. For the column rather than for the agent, because it is the testing that
+needs a browser and not the tester: an agent given one here would carry it onto
+every other board.
+
+The QA step appears once the board has a column or a stage that tests — even if
+the column was added a month after the board was made. Deploy works the same
+way: add a column that deploys and "Where to deploy…" turns up in the ⋯ menu;
+take it away and the question goes with it.
+
 ## Stage settings
 
 A route tab, select a box — in the panel:

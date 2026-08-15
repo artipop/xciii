@@ -188,12 +188,8 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 	declared, columns, flows := m.boardSetupSources(boardID)
 	plan.Automated = len(columns) > 0 || len(flows) > 0
 
-	steps := declared.Steps
-	if len(steps) > 0 {
-		plan.Declared = true
-	} else {
-		steps = impliedSetup(columns, flows)
-	}
+	steps := setupSteps(declared, columns, flows)
+	plan.Declared = len(declared.Steps) > 0
 
 	plan.AgentColumn = columnOfAction(columns, FlowActionAgent)
 	plan.TestColumn = columnOfAction(columns, FlowActionTest)
@@ -214,7 +210,7 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 			Optional: optional,
 			Hint:     currentHint(step.Hint),
 			Status:   m.setupStatus(def, states),
-			Ready:    def.Registry != "" && m.registryFilled(def.Registry),
+			Ready:    def.Registry != "" && m.registryFilled(def.Registry, columns, flows),
 			Requires: setupRequirements(def.Kind, columns, flows),
 		})
 	}
@@ -387,22 +383,59 @@ func (m *Manager) SetTestAgent(boardID, agentName string, servers MCPServerSet) 
 	if !ok {
 		return fmt.Errorf("агент %q не найден в реестре", agentName)
 	}
-	entry.MCPServers = servers
-	if _, err := m.UpdateAgent(entry); err != nil {
-		return err
-	}
 
 	// Read the board first: the wizard runs before any card has been moved, so
 	// the test column may still be a property of the board rather than an entry
 	// of the registry. Seeding is idempotent, and SaveColumn does it anyway.
 	m.SeedBoard(boardID)
-	columns, _ := m.boardOwnAutomation(boardID)
+	columns, flows := m.boardOwnAutomation(boardID)
+
+	// The browser goes on the stage that tests, not on the agent that works it.
+	// It used to go on the agent, and that made setting up QA on one board an
+	// edit to an agent every other board also runs: «клаус» given a browser
+	// here drove one everywhere. A stage is the narrower owner and the honest
+	// one — testing is what needs a browser, not the tester.
+	var placed bool
 	for _, spec := range columns {
 		if spec.Action != FlowActionTest {
 			continue
 		}
 		spec.Agents = []string{entry.Name}
+		if len(servers) > 0 {
+			spec.MCPServers = servers
+		}
 		if _, err := m.SaveColumn(spec); err != nil {
+			return err
+		}
+		placed = true
+	}
+	for _, flow := range flows {
+		var touched bool
+		for i, node := range flow.Nodes {
+			// A stage that tests on this route alone, over a column that does
+			// something else: the column above would never have been found.
+			if node.Action != FlowActionTest {
+				continue
+			}
+			flow.Nodes[i].AgentNames = []string{entry.Name}
+			if len(servers) > 0 {
+				flow.Nodes[i].MCPServers = servers
+			}
+			touched, placed = true, true
+		}
+		if touched {
+			if _, err := m.UpdateFlow(flow); err != nil {
+				return err
+			}
+		}
+	}
+
+	// A board with nothing that tests yet — the wizard was walked from the menu
+	// before the column existed. The answer still has to land somewhere, and
+	// the agent is where it used to live.
+	if !placed && len(servers) > 0 {
+		entry.MCPServers = servers
+		if _, err := m.UpdateAgent(entry); err != nil {
 			return err
 		}
 	}
@@ -420,9 +453,76 @@ func (m *Manager) agentNamed(name string) (AgentEntry, bool) {
 	return AgentEntry{}, false
 }
 
-// impliedSetup is the fallback for a board that says nothing: ask for what its
-// automation needs. A board with no automation at all rules nothing out, so it
-// is offered every step — it has said nothing about the machine either.
+// setupSteps is what this board asks to be asked: what the stages it has now
+// need, with what the board said about them laid over it.
+//
+// A declaration used to *replace* the inference, and a declaration is written
+// once — by the template, before the board existed. So a board of household
+// chores that grew a deploy stage a month later was never asked for a Dokku
+// host and was never offered «Куда деплоить…» in its menu either, since that
+// item is this plan: the stage stood there when a card reached it, with no door
+// anywhere to fix it. It ran stale the other way too — «Разработка» with its
+// deploy column deleted went on asking for a host for ever.
+//
+// So the stages decide *which* questions there are, being the board as it is
+// now, and the declaration decides what those questions say: a hint of the
+// board's own, a step it insists on, and the one kind nothing can be inferred
+// from — a source feeds a board rather than working on it, so no arrangement of
+// columns implies one.
+//
+// None of this makes a question an obligation. Every inferred step keeps the
+// closed set's own answer about being optional (SetupStepDefs), because a stage
+// nobody has configured is not a broken board: it runs nothing by itself and a
+// person works the card there by hand, which is a perfectly good way to use a
+// column.
+func setupSteps(declared BoardSetup, columns []ColumnSpec, flows []FlowEntry) []BoardSetupStep {
+	// A board with no stages at all has nothing to infer from, and inference
+	// answers that case by offering everything — a guess for a board that has
+	// said nothing, and exactly the wrong thing to lay over a board that has.
+	// So a declaration is the whole plan while there is nothing to read.
+	if len(declared.Steps) > 0 && len(columns) == 0 && len(flows) == 0 {
+		return declared.Steps
+	}
+
+	said := make(map[string]BoardSetupStep, len(declared.Steps))
+	for _, step := range declared.Steps {
+		said[strings.ToLower(strings.TrimSpace(step.Kind))] = step
+	}
+	out := make([]BoardSetupStep, 0, len(SetupStepDefs))
+	add := func(step BoardSetupStep) {
+		if own, ok := said[strings.ToLower(step.Kind)]; ok {
+			step.Hint, step.Required = own.Hint, own.Required
+		}
+		out = append(out, step)
+	}
+	for _, step := range impliedSetup(columns, flows) {
+		if step.Kind == SetupStepDone {
+			continue // last, after anything only the board can ask for
+		}
+		add(step)
+	}
+	for _, def := range SetupStepDefs {
+		if _, wanted := said[def.Kind]; wanted && !inferredSetupKinds[def.Kind] {
+			add(BoardSetupStep{Kind: def.Kind})
+		}
+	}
+	return append(out, BoardSetupStep{Kind: SetupStepDone})
+}
+
+// inferredSetupKinds are the steps impliedSetup can work out from the board's
+// stages. Anything else a board declares is kept because nothing else could
+// have produced it.
+var inferredSetupKinds = map[string]bool{
+	SetupStepWorkdir: true,
+	SetupStepAgent:   true,
+	SetupStepDeploy:  true,
+	SetupStepBrowser: true,
+	SetupStepDone:    true,
+}
+
+// impliedSetup is what the board's own stages need. A board with no automation
+// at all rules nothing out, so it is offered every step — it has said nothing
+// about the machine either.
 func impliedSetup(columns []ColumnSpec, flows []FlowEntry) []BoardSetupStep {
 	actions := map[string]bool{}
 	for _, c := range columns {
@@ -463,7 +563,7 @@ func (m *Manager) setupStatus(def SetupStepDef, states map[string]string) string
 // next one set up, or every board after the first is created in silence, which
 // is what this used to do. The wizard shows it as "already registered" and lets
 // the step be passed with one click; the status stays this board's own answer.
-func (m *Manager) registryFilled(registry string) bool {
+func (m *Manager) registryFilled(registry string, columns []ColumnSpec, flows []FlowEntry) bool {
 	// A registry this package does not own answers for itself. Sources are the
 	// first of them: they run with the agent integration switched off, so this
 	// package cannot import them, and asking through a function keeps the
@@ -481,8 +581,15 @@ func (m *Manager) registryFilled(registry string) bool {
 	case "deploys":
 		return len(m.cfg.Deploys) > 0
 	case "agentMCP":
-		// Not a registry of its own: the browser is a server on an agent, and
-		// any agent carrying one is the question answered.
+		// Not a registry of its own: the browser is a server, and a server now
+		// has two owners. The board's own test stage carrying one answers the
+		// question first, because that is the answer this step writes and the
+		// narrower of the two; an agent carrying one answers it as before.
+		for _, servers := range stageServers(columns, flows, FlowActionTest) {
+			if len(servers) > 0 {
+				return true
+			}
+		}
 		for _, a := range m.cfg.Agents {
 			if len(a.MCPServers) > 0 {
 				return true
@@ -490,6 +597,26 @@ func (m *Manager) registryFilled(registry string) bool {
 		}
 	}
 	return false
+}
+
+// stageServers is the MCP sets of every stage of one action on a board — the
+// columns that do it, and the route nodes that do it whatever their column
+// says. Used both to answer "is there a browser here" and to put one there.
+func stageServers(columns []ColumnSpec, flows []FlowEntry, action string) []MCPServerSet {
+	var out []MCPServerSet
+	for _, c := range columns {
+		if c.Action == action {
+			out = append(out, c.MCPServers)
+		}
+	}
+	for _, f := range flows {
+		for _, n := range f.Nodes {
+			if n.Action == action {
+				out = append(out, n.MCPServers)
+			}
+		}
+	}
+	return out
 }
 
 // SetRegistryProbe supplies the answer to "does this registry have anything in

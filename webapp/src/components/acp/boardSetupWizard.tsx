@@ -488,16 +488,19 @@ const BoardSetupWizard = (props: Props) => {
                         />
                     </Show>
 
-                    {/* What the choice does beyond the server: the agent is
-                        written into the test column's crew, so the column that
-                        needs a browser runs the agent that has one — and the
-                        card being tested says who is on it. */}
+                    {/* What the choice does beyond the server: the browser is
+                        set up for the stage that tests, and this agent becomes
+                        its crew — so the column that needs a browser has one
+                        and the card being tested says who is on it. The server
+                        goes to the stage rather than to the agent because
+                        testing is what needs a browser: an agent given one here
+                        would carry it on every other board too. */}
                     <p class='BoardSetupWizard__hint'>
                         <Show
                             when={plan()?.testColumn}
-                            fallback={intl.formatMessage({id: 'BoardSetup.browser-agent-note', defaultMessage: 'The server is set up for this agent, and it is the agent that works the column that tests.'})}
+                            fallback={intl.formatMessage({id: 'BoardSetup.browser-agent-note', defaultMessage: 'The browser is set up for the column that tests, and this agent is who works it.'})}
                         >
-                            {intl.formatMessage({id: 'BoardSetup.browser-column-note', defaultMessage: 'The server is set up for this agent, and it is the agent that works the “{column}” column: a card that gets there is assigned to it and tested by it.'}, {column: plan()!.testColumn})}
+                            {intl.formatMessage({id: 'BoardSetup.browser-column-note', defaultMessage: 'The browser is set up for the “{column}” column and this agent is who works it: a card that gets there is assigned to it and tested by it. Both can be changed later in "Columns and routes…".'}, {column: plan()!.testColumn})}
                         </Show>
                     </p>
 

@@ -210,6 +210,86 @@ func TestABoardThatSaysNothingIsAskedWhatItsAutomationNeeds(t *testing.T) {
 	}
 }
 
+// The board a person keeps working on: a template declared what it needed on
+// the day it was made, and a stage added a month later needs something the
+// declaration never mentioned. What is asked follows the stages, so the
+// question — and the menu item that is the same plan — turns up on its own.
+func TestABoardIsAskedForWhatItGrewAfterItWasMade(t *testing.T) {
+	m := setupManager(t, boardProps(t, map[string]any{
+		BoardPropSetup: BoardSetup{Steps: []BoardSetupStep{
+			{Kind: SetupStepWorkdir, Hint: "Папка с домашними заметками"},
+			{Kind: SetupStepAgent},
+			{Kind: SetupStepDone},
+		}},
+		BoardPropColumns: []ColumnSpec{
+			{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "Агент готовит", Action: FlowActionAgent},
+			{PropertyID: "p", OptionID: "o2", Property: "Статус", Column: "Выложить", Action: FlowActionDeploy},
+		},
+	}))
+
+	plan := m.SetupPlanFor("board1")
+	want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDeploy, SetupStepDone}
+	if !equal(kinds(plan), want) {
+		t.Fatalf("steps %v, expected %v", kinds(plan), want)
+	}
+	// The board still had something to say, and it is still said: what the
+	// declaration carries is the wording, not the list.
+	if !plan.Declared || plan.Steps[0].Hint != "Папка с домашними заметками" {
+		t.Errorf("the board's own sentence was lost: declared=%v %+v", plan.Declared, plan.Steps[0])
+	}
+	// And a stage nobody has configured is not an emergency: the question the
+	// board grew is one it may pass over, exactly as a template's own is.
+	for _, step := range plan.Steps {
+		if step.Kind == SetupStepDeploy && !step.Optional {
+			t.Error("a stage the board grew made its question compulsory")
+		}
+	}
+}
+
+// …and the other way: the stage is gone, so the question goes with it. A
+// declaration is written once, and «Разработка» with its deploy column deleted
+// went on asking for a Dokku host for ever.
+func TestABoardStopsAskingForWhatItNoLongerDoes(t *testing.T) {
+	m := setupManager(t, boardProps(t, map[string]any{
+		BoardPropSetup: BoardSetup{Steps: []BoardSetupStep{
+			{Kind: SetupStepWorkdir},
+			{Kind: SetupStepAgent},
+			{Kind: SetupStepDeploy},
+			{Kind: SetupStepBrowser},
+			{Kind: SetupStepDone},
+		}},
+		BoardPropColumns: []ColumnSpec{
+			{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "В работе", Action: FlowActionAgent},
+		},
+	}))
+
+	want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDone}
+	if got := kinds(m.SetupPlanFor("board1")); !equal(got, want) {
+		t.Fatalf("steps %v, expected %v", got, want)
+	}
+}
+
+// A source is nobody's consequence — no arrangement of columns implies that
+// cards should arrive by themselves — so a board that asks for one keeps it
+// however much automation it has.
+func TestADeclaredSourceSurvivesTheStagesBeingRead(t *testing.T) {
+	m := setupManager(t, boardProps(t, map[string]any{
+		BoardPropSetup: BoardSetup{Steps: []BoardSetupStep{
+			{Kind: SetupStepAgent},
+			{Kind: SetupStepSource},
+			{Kind: SetupStepDone},
+		}},
+		BoardPropColumns: []ColumnSpec{
+			{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "В работе", Action: FlowActionAgent},
+		},
+	}))
+
+	want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepSource, SetupStepDone}
+	if got := kinds(m.SetupPlanFor("board1")); !equal(got, want) {
+		t.Fatalf("steps %v, expected %v", got, want)
+	}
+}
+
 // The same reading of a board that does deploy and test: it is asked for both.
 func TestABoardThatDeploysAndTestsIsAskedForBoth(t *testing.T) {
 	m := setupManager(t, boardProps(t, BoardAutomation{
@@ -539,7 +619,7 @@ func TestTheOfferIsRememberedAcrossRestarts(t *testing.T) {
 // actually works the test column: the crew is resolved per column, so a server
 // left on whichever agent was registered first is a session that dies saying it
 // has nothing to test with.
-func TestTheQAAnswerGivesTheBrowserToTheAgentThatTests(t *testing.T) {
+func TestTheQAAnswerPutsTheBrowserOnTheStageThatTests(t *testing.T) {
 	m := setupManager(t, boardProps(t, BoardAutomation{
 		Columns: []ColumnSpec{
 			{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "В работе", Action: FlowActionAgent},
@@ -553,22 +633,20 @@ func TestTheQAAnswerGivesTheBrowserToTheAgentThatTests(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// The browser belongs to the testing, not to the tester: setting up QA on
+	// one board must not hand a browser to an agent every other board runs.
 	for _, a := range m.Agents() {
-		switch a.Name {
-		case "тестер":
-			if _, ok := a.MCPServers["playwright"]; !ok {
-				t.Error("the agent that tests was not given the browser")
-			}
-		case "клаус":
-			if len(a.MCPServers) > 0 {
-				t.Error("the browser went to an agent the QA column does not run")
-			}
+		if len(a.MCPServers) > 0 {
+			t.Errorf("agent %q was edited by one board's QA answer: %+v", a.Name, a.MCPServers)
 		}
 	}
 
 	for _, c := range m.BoardColumns("board1") {
 		switch c.Action {
 		case FlowActionTest:
+			if _, ok := c.MCPServers["playwright"]; !ok {
+				t.Errorf("the stage that tests was not given the browser: %+v", c.MCPServers)
+			}
 			if len(c.Agents) != 1 || c.Agents[0] != "тестер" {
 				t.Errorf("the test column's crew is %v, so the browser and the worker can part ways", c.Agents)
 			}
@@ -576,16 +654,61 @@ func TestTheQAAnswerGivesTheBrowserToTheAgentThatTests(t *testing.T) {
 			if len(c.Agents) > 0 {
 				t.Errorf("answering the QA question crewed the column that works the card: %v", c.Agents)
 			}
+			if len(c.MCPServers) > 0 {
+				t.Errorf("the browser landed on a column that does not test: %+v", c.MCPServers)
+			}
+		}
+	}
+
+	// And the plan reads itself back as answered, from the stage rather than
+	// from any agent.
+	for _, step := range m.SetupPlanFor("board1").Steps {
+		if step.Kind == SetupStepBrowser && !step.Ready {
+			t.Error("a board whose test stage carries a browser is still asked to find one")
 		}
 	}
 }
 
-// The wizard knows about a browser and nothing else about the agent it is
-// answering for. Rebuilding the entry from that is how an agent already set up
-// loses its model, its environment and its own prompt.
+// A stage that tests on one route alone, over a column that does something
+// else: the answer follows the stage there too, since that column would never
+// have been found by its action.
+func TestTheQAAnswerFollowsATestStageOfARoute(t *testing.T) {
+	m := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "Проверка", Action: FlowActionNone}},
+		Flows: []FlowEntry{{
+			Name: "Фича", Property: "Статус",
+			Nodes: []FlowNode{{ID: "check", Column: "Проверка", OptionID: "o1", Action: FlowActionTest}},
+		}},
+	}))
+	m.cfg.Agents = []AgentEntry{{Name: "тестер", Kind: "claude"}}
+
+	if err := m.SetTestAgent("board1", "тестер", MCPServerSet{"playwright": {Command: "npx"}}); err != nil {
+		t.Fatal(err)
+	}
+	flows := m.BoardFlows("board1")
+	if len(flows) != 1 || len(flows[0].Nodes) != 1 {
+		t.Fatalf("flows: %+v", flows)
+	}
+	node := flows[0].Nodes[0]
+	if _, ok := node.MCPServers["playwright"]; !ok {
+		t.Errorf("the stage that tests was not given the browser: %+v", node.MCPServers)
+	}
+	if len(node.Crew()) != 1 || node.Crew()[0] != "тестер" {
+		t.Errorf("the stage's crew is %v", node.Crew())
+	}
+	if len(m.Agents()[0].MCPServers) > 0 {
+		t.Error("the agent was edited even though the stage could hold the answer")
+	}
+}
+
+// A board with nothing that tests yet — the wizard walked from the menu before
+// the column exists — has nowhere board-shaped to put the answer, so it goes on
+// the agent as it always did. And the wizard knows about a browser and nothing
+// else about that agent: rebuilding the entry from what it knows is how an
+// agent already set up loses its model, its environment and its own prompt.
 func TestTheQAAnswerKeepsTheRestOfTheAgent(t *testing.T) {
 	m := setupManager(t, boardProps(t, BoardAutomation{
-		Columns: []ColumnSpec{{PropertyID: "p", OptionID: "o3", Property: "Статус", Column: "QA", Action: FlowActionTest}},
+		Columns: []ColumnSpec{{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "В работе", Action: FlowActionAgent}},
 	}))
 	m.cfg.Agents = []AgentEntry{{
 		Name: "тестер", Kind: "claude", Model: "opus",
@@ -596,6 +719,9 @@ func TestTheQAAnswerKeepsTheRestOfTheAgent(t *testing.T) {
 		t.Fatal(err)
 	}
 	saved := m.Agents()[0]
+	if _, ok := saved.MCPServers["playwright"]; !ok {
+		t.Error("with no stage to put it on, the browser should still land somewhere")
+	}
 	if saved.Model != "opus" || saved.Env["CLAUDE_CONFIG_DIR"] != "/tmp/qa" {
 		t.Errorf("the agent was rebuilt from the QA answer alone: %+v", saved)
 	}

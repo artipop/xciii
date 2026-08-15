@@ -23,6 +23,16 @@ board made from any of the offered templates brings its own columns and routes;
 the first time it is opened on a machine with empty registries, the setup wizard
 asks for the rest.
 
+**What it asks is read off the board's stages**, not off the template it came
+from, and it is re-read every time: a board that grows a deploy stage a month
+later starts asking for somewhere to deploy to, and offers «Куда деплоить…» in
+its ⋯ menu, which is the same plan. A board that loses one stops. None of it is
+an obligation — a stage nobody configured runs nothing by itself, and a person
+works the card there by hand, which is a way of using a column. The one thing
+that is said out loud is the stage that cannot start at all: a test stage with
+no browser anywhere gets a note in the editor saying so, and saying what happens
+instead.
+
 ## Where a setting lives
 
 Three kinds of thing get set up, and each is edited where it belongs:

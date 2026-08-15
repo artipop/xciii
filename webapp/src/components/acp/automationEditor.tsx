@@ -9,6 +9,7 @@ import CompassIcon from '../../widgets/icons/compassIcon'
 
 import FlowDiagram, {BLOCK_DRAG_TYPE, NODE_HEIGHT, NODE_WIDTH, StageCount, condLabel, edgeId, edgeIndexOf, stageLabel} from './flowDiagram'
 import MCPField from './mcpField'
+import {MCPServers} from './mcpServers'
 import {
     ACTIONS,
     Automation,
@@ -52,6 +53,11 @@ import './automationEditor.scss'
 
 type Named = {name: string}
 
+// An agent as this editor needs to know it: its name, and whether it brings
+// tools of its own — which is half the answer to "does anything here have a
+// browser", the other half being the stage's own set.
+type Agent = Named & {mcpServers?: MCPServers}
+
 type Props = {
     boardId: string
 
@@ -67,7 +73,7 @@ type Props = {
 
     automation: Automation
     triggers: FlowTrigger[]
-    agents: Named[]
+    agents: Agent[]
     deploys: Named[]
 
     // counts is where the board's cards actually stand, per route. Only a live
@@ -485,6 +491,34 @@ const AutomationEditor = (props: Props) => {
             {crew: crew.join(', ')},
         )
     }
+
+    // A test stage is the one kind that refuses to start without something: an
+    // agent clicking through a browser needs a browser MCP server, from the
+    // stage or from whoever works it. Said where the stage is, and said as what
+    // it is — the card stands here and waits for a person, which is a way of
+    // working a column and not a broken board. Not said at all while no agent
+    // is registered: the crew picker is already saying that, and two notes
+    // about one gap read as two gaps.
+    const testStageHasNothingToTestWith = (node: FlowNode): boolean => {
+        if (actionOf(node) !== 'test' || props.agents.length === 0) {
+            return false
+        }
+        const own = node.mcpServers || specOf(node)?.mcpServers
+        if (own && Object.keys(own).length > 0) {
+            return false
+        }
+        const crew = crewOf(node)
+        const pool = crew.length > 0 ? props.agents.filter((a) => crew.includes(a.name)) : props.agents
+        return !pool.some((a) => a.mcpServers && Object.keys(a.mcpServers).length > 0)
+    }
+
+    const noBrowserNote = (node: FlowNode) => (
+        <Show when={testStageHasNothingToTestWith(node)}>
+            <div class='AutomationEditor__warning'>
+                {intl.formatMessage({id: 'Automation.no-browser', defaultMessage: 'Nothing here brings a browser, so this stage will not start by itself: a card that arrives waits for a person to check it. A browser is an MCP server — put one on this column above, or on the agent in Settings → Agents.'})}
+            </div>
+        </Show>
+    )
 
     // What an empty stage set means: the column's servers, named. The same
     // shape columnCrewNote has, and for the same reason — an inherited answer
@@ -955,6 +989,8 @@ const AutomationEditor = (props: Props) => {
                                             emptySummary={intl.formatMessage({id: 'Automation.mcp-none', defaultMessage: '— only what the agent carries itself —'})}
                                             onChange={(mcpServers) => updateNodeSpec(node(), {mcpServers})}
                                         />
+
+                                        {noBrowserNote(node())}
                                     </Show>
                                 </Show>
 
@@ -1072,6 +1108,8 @@ const AutomationEditor = (props: Props) => {
                                             emptySummary={columnMCPNote(node())}
                                             onChange={(mcpServers) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {mcpServers}))}
                                         />
+
+                                        {noBrowserNote(node())}
                                     </Show>
 
                                     {/* The way to the other half of the answer.

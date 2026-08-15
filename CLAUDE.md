@@ -618,11 +618,31 @@ copy. What a board *runs* — its columns and its routes — is
 **What a board had to be asked before it can run is not that, and each question
 is its own item in the board's ⋯ menu**: «Системный промпт доски…»
 (`boardPromptsDialog.tsx`), «Папки…» (`workdirsDialog.tsx`), «Куда деплоить…»
-(`deployTargetsDialog.tsx`), «Пройти настройку заново…» (the wizard). Which of them a board has is **the board's own setup plan**
-(`BoardSetupPlan` → the steps its template declared in `xciiiSetup`), so the
-menu differs by template exactly as the questions do: a board made from
-«Разработка» offers folders and a deploy host, one made from «Домашние дела»
-offers folders alone. They were folds of the automation dialog, and that was
+(`deployTargetsDialog.tsx`), «Пройти настройку заново…» (the wizard). Which of
+them a board has is **the board's own setup plan** (`BoardSetupPlan`), so the
+menu differs by board exactly as the questions do: one that deploys offers a
+deploy host, a board of household chores offers folders alone.
+
+**The plan is read off the board's stages, not off its template**
+(`setupSteps`). It used to be the steps the template declared in `xciiiSetup`,
+falling back to inference — and a declaration is written once, before the board
+exists, so a board of household chores that grew a deploy stage a month later
+was never asked for a host and never offered «Куда деплоить…» either: the stage
+stood there when a card reached it with no door in the UI to fix it. It ran
+stale the other way too. So the stages decide *which* questions there are and
+the declaration decides what they say — the hint, the `required`, and the one
+kind nothing implies (`source`: no arrangement of columns means cards should
+arrive by themselves). A board with no stages at all is the exception, since
+inference answers that case by offering everything: there the declaration is
+the whole plan.
+
+None of it makes a stage's question an obligation. An inferred step keeps the
+closed set's own answer about being optional, because **a stage nobody has
+configured is not a broken board** — it runs nothing by itself and a person
+works the card there by hand, which is a way of using a column and not a
+failure. The one place that is said out loud is the stage that cannot start at
+all: a test stage with no browser anywhere gets a note in the editor's panel
+saying so, and saying what happens instead (the card waits for a person). They were folds of the automation dialog, and that was
 wrong twice over — setting up where an agent works is not a question about
 columns and routes, and a fold under a canvas is a place nobody opens, which is
 how somebody who had just answered "which folder" in the wizard ended up with a

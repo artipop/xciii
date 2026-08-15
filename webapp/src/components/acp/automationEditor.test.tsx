@@ -397,4 +397,57 @@ describe('components/acp/automationEditor', () => {
         expect(next.flows[0].nodes.find((n) => n.id === 'opt-work')?.mcpServers).
             toEqual({figma: {command: 'figma-mcp'}})
     })
+
+    // A test stage is the one kind that will not start without something — an
+    // agent clicking through a browser needs a browser — so the editor says so
+    // at the stage, and says what happens instead: the card waits for a person.
+    test('a test stage with no browser anywhere says so, where the stage is', () => {
+        const withTest: Automation = {
+            ...automation,
+            columns: [{boardId: 'board-1', optionId: 'opt-review', property: 'Статус', column: 'На ревью', action: 'test'}],
+        }
+        renderEditor({automation: withTest, focusColumnId: 'opt-review'})
+
+        expect(screen.getByText(/Nothing here brings a browser/)).toBeInTheDocument()
+    })
+
+    test('and stops saying it once something brings one', () => {
+        const withBrowser: Automation = {
+            ...automation,
+            columns: [{
+                boardId: 'board-1',
+                optionId: 'opt-review',
+                property: 'Статус',
+                column: 'На ревью',
+                action: 'test',
+                mcpServers: {playwright: {command: 'npx'}},
+            }],
+        }
+        renderEditor({automation: withBrowser, focusColumnId: 'opt-review'})
+
+        expect(screen.queryByText(/Nothing here brings a browser/)).toBeNull()
+    })
+
+    // The browser may be the agent's own, and the stage is then set up: the
+    // note is about there being nothing anywhere, not about where it is.
+    test('an agent that carries one answers for the stage', () => {
+        const withTest: Automation = {
+            ...automation,
+            columns: [{boardId: 'board-1', optionId: 'opt-review', property: 'Статус', column: 'На ревью', action: 'test'}],
+        }
+        renderEditor({
+            automation: withTest,
+            focusColumnId: 'opt-review',
+            agents: [{name: 'claude'}, {name: 'codex', mcpServers: {playwright: {command: 'npx'}}}],
+        })
+
+        expect(screen.queryByText(/Nothing here brings a browser/)).toBeNull()
+    })
+
+    // Every other kind of stage runs perfectly well with nothing configured on
+    // it: a column where a person does the work by hand is a column, not a gap.
+    test('a stage that is not a test is never nagged about tools', () => {
+        renderEditor({focusColumnId: 'opt-work'})
+        expect(screen.queryByText(/Nothing here brings a browser/)).toBeNull()
+    })
 })
