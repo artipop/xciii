@@ -315,6 +315,43 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(screen.queryByText('Welcome to Boards!')).toBeNull()
         })
 
+        // A copy still carrying the marker — made a minute ago, before the next
+        // launch takes it off — answers both questions at once: ours by the
+        // marker, theirs by who made it. It is one board, so it is one row.
+        test('a copy that still carries the marker is listed once', () => {
+            const withCopy = mockAppStore({
+                ...state,
+                boards: {
+                    ...state.boards,
+                    templates: [...state.boards.templates, {
+                        id: 'fresh-copy',
+                        teamId: team1.id,
+                        title: 'Разработка',
+                        icon: '🚴🏻‍♂️',
+                        cardProperties: [{id: 'id-8'}],
+                        isTemplate: true,
+                        templateVersion: 2,
+                        createdBy: me.id,
+                        properties: {xciiiTemplate: 'developer-tasks'},
+                    }],
+                },
+            })
+
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={withCopy}>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
+                </AppStoreProvider>
+                ,
+            ), {wrapper: TestRouter})
+
+            // Two boards named «Разработка» — ours and the copy — and so two
+            // rows. Three would mean the copy was listed twice, which is what
+            // answering both questions used to get it.
+            const rows = [...container.querySelectorAll('.templates-list .template-name')].
+                map((row) => row.textContent)
+            expect(rows.filter((name) => name === globalTemplateTitle)).toHaveLength(2)
+        })
+
         // In this app the board's team *is* the global team, so the fetch that
         // fills globalTemplates never runs and every template — the install's
         // own and the user's alike — arrives with the board list instead.

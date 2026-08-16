@@ -154,13 +154,19 @@ const BoardTemplateSelector = (props: Props) => {
             filter((template) => VISIBLE_TEMPLATE_SLUGS.includes(templateSlug(template))).
             sort((a: Board, b: Board) =>
                 VISIBLE_TEMPLATE_SLUGS.indexOf(templateSlug(a)) - VISIBLE_TEMPLATE_SLUGS.indexOf(templateSlug(b)))
+        const taken = new Set(ours.map((template) => template.id))
 
         // Then the user's own, oldest first — a list that grows downwards is
         // one where a template stays where it was put. What tells one from a
         // template the install shipped is `shipped` below; the team does not,
         // because here everything is in the same team.
+        // …minus whatever the first list already took. A copy of a board made
+        // from one of ours carries its marker until the next launch takes it
+        // off (disownTemplate), and for that while it answers both questions:
+        // ours by the marker, theirs by who made it. Two rows for one board is
+        // a worse answer than either.
         const mine = pool().
-            filter((template: Board) => !shipped(template)).
+            filter((template: Board) => !shipped(template) && !taken.has(template.id)).
             sort((a: Board, b: Board) => a.createAt - b.createAt)
         return [...ours, ...mine]
     })
