@@ -48,4 +48,37 @@ describe('Mutator', () => {
         expect(duplicatedCard.fields.contentOrder).toHaveLength(card.fields.contentOrder.length)
         expect(duplicatedCard.boardId).toBe(board.id)
     })
+
+    // Narrowing a multiSelect to a select keeps the options and leaves every
+    // card with the first of the values it had. The folder field is converted
+    // this way on boards made before it became a single choice
+    // (narrowWorkdirProperty), and the whole safety of that migration is here:
+    // a conversion that emptied the options would take away every folder the
+    // board offers and every card's answer with them.
+    test('changePropertyTypeAndName from multiSelect to select keeps the options and the first value', async () => {
+        const board = TestBlockFactory.createBoard()
+        const property = {
+            id: 'folders',
+            name: 'Папки',
+            type: 'multiSelect' as const,
+            options: [
+                {id: 'alpha', value: 'alpha', color: 'propColorDefault'},
+                {id: 'beta', value: 'beta', color: 'propColorDefault'},
+            ],
+        }
+        board.cardProperties = [property]
+
+        const card = TestBlockFactory.createCard(board)
+        card.fields.properties.folders = ['beta', 'alpha']
+
+        await mutator.changePropertyTypeAndName(board, [card], property, 'select', 'Папка')
+
+        const patch = JSON.parse(FetchMock.fn.mock.calls[0][1].body)
+        const newProperty = patch.boardPatches[0].updatedCardProperties.
+            find((p: {id: string}) => p.id === 'folders')
+        expect(newProperty.type).toBe('select')
+        expect(newProperty.name).toBe('Папка')
+        expect(newProperty.options.map((o: {id: string}) => o.id)).toEqual(['alpha', 'beta'])
+        expect(patch.blockPatches[0].updatedFields.properties.folders).toBe('beta')
+    })
 })

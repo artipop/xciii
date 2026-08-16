@@ -108,7 +108,7 @@ exception is a card that was already worked: it has a branch of its own, so
 the button stays even after the agent is removed.
 
 **If no folder resolves, the panel asks.** A card can be talked over without
-code: wording, subtasks, a brief. When neither the «Папки» field nor the
+code: wording, subtasks, a brief. When neither the «Папка» field nor the
 registry names a folder, the question "Which folder will the agent work in?"
 appears, and the answers are chips:
 

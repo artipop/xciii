@@ -177,8 +177,8 @@ func TestEveryTemplateNamesItsProjectPropertyByID(t *testing.T) {
 				continue
 			}
 			found = true
-			if propType, _ := prop["type"].(string); propType != "multiSelect" {
-				t.Errorf("%s: the projects property is a %q, and a card belongs to more than one project", file, propType)
+			if propType, _ := prop["type"].(string); propType != "select" {
+				t.Errorf("%s: the folder property is a %q, and a card works in exactly one folder", file, propType)
 			}
 		}
 		if !found {

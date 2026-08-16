@@ -1,7 +1,7 @@
 # Folders and branches
 
 An agent always works in some folder on your machine. The list of them is in the
-board's menu → **"Folders…"**. A card picks one of them with its «Папки» field.
+board's menu → **"Folders…"**. A card picks one of them with its «Папка» field.
 
 Which items a board's menu has is decided by the template it was made from: the
 «Разработка» board asks about a folder, a deploy host and a browser, so its menu

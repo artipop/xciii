@@ -58,7 +58,7 @@ environment, MCP servers, proxy, CLI arguments — is in the machine's settings
 and has a working default until you go there.
 
 Folders are part of *running an agent*, not part of having a board. A board with
-no agent column is never asked for one, gets no «Папки» field, and shows no
+no agent column is never asked for one, gets no «Папка» field, and shows no
 «Папки» section.
 
 ## Where both halves are edited
@@ -195,10 +195,10 @@ A **folder** is the exception, and deliberately: it belongs to the board it was
 added on, and only that board offers it. The folder of household notes has no
 business on the board about code, and vice versa — before this, opening the
 folders list anywhere copied every folder anybody had ever added into that
-board's «Папки» field. One checkout worked from several boards is a real case,
+board's «Папка» field. One checkout worked from several boards is a real case,
 so the add form has **«На всех досках»** for it, and such a folder is marked as
 everyone's in the list. Such a folder is still not pushed onto a board that
-knows nothing about folders: it joins the «Папки» field of a board that has
+knows nothing about folders: it joins the «Папка» field of a board that has
 one already, and creates that field for nobody.
 
 A folder registered before boards owned them belongs to none of them, so no

@@ -716,19 +716,31 @@ put in the one field that says who works a card — and «клаус 2» was pro
 under the name "2".
 
 Folders belong to **running an agent**, not to having a board: a board with no
-`agent`/`test` column is never asked for one, never grows a «Папки» property,
+`agent`/`test` column is never asked for one, never grows a «Папка» property,
 and a folder marked global joins only boards that already have that property.
 
 ### A folder hands out a workspace, and the card owns it
 
 `internal/acp/workdirs.go` is the registry — named folders on this machine, one
-of which a card names in its «Папки» field. The code calls them working
+of which a card names in its «Папка» field. The code calls them working
 directories (`WorkdirEntry`), the screen calls them папки, and neither ever
 calls them projects again: a folder of household notes is not a project, and
 the word made every board of shopping lists look like it was missing one. The
 keys in `config.json` (`projects`), on the board (`xciiiProjectProperty`) and on
 a card (`project_path`, `repo_path`) keep their old spelling, because they are
 other people's stored data.
+
+**The field is one choice, and the singular is the type talking.** A card claims
+one workspace, works one branch — which the board keeps in a single text field —
+and hands its agent one cwd, so a second folder had nowhere to go:
+`resolveWorkdir` took the first of the selected options and dropped the rest,
+which is a choice made for the person and made in silence. It was a
+`multiSelect` until `narrowWorkdirProperty` (`workdirSync.ts`), which converts a
+board that predates the change when it is opened — beside `retireAgentProperty`,
+and for the same reason: a field narrowed on one board and still wide on the
+next four is a migration nobody can trust. The name goes with the type, by the
+rule that lets this app rename a field at all — it is one this app gave
+(`OUR_WORKDIR_TITLES`), and a name a person typed is theirs and stays.
 
 **A repository is an ordinary folder with a superpower, not a second kind of
 thing.** One registry, one adder, one list: in «Обсудить с агентом» and in «В

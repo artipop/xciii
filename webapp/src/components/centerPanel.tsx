@@ -1,4 +1,4 @@
-import {Match, Show, Switch, createEffect, createMemo, createSignal, onMount} from 'solid-js'
+import {Match, Show, Switch, createEffect, createMemo, createSignal, onMount, untrack} from 'solid-js'
 
 import {useIntl} from '../intl'
 
@@ -14,7 +14,7 @@ import {CardFilter} from '../cardFilter'
 import mutator from '../mutator'
 import {Utils} from '../utils'
 import {UserSettings} from '../userSettings'
-import {getCurrentCard} from '../store/cards'
+import {getCurrentBoardCards, getCurrentCard} from '../store/cards'
 import {getCardLimitTimestamp} from '../store/limits'
 import {getVisibleAndHiddenGroups} from '../boardUtils'
 import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../telemetry/telemetryClient'
@@ -58,6 +58,7 @@ import ShareBoardTourStep from './onboardingTour/shareBoard/shareBoard'
 import BoardSetupWizard from './acp/boardSetupWizard'
 import {createSetupPlan, markSetupOffered, shouldOfferSetup} from './acp/boardSetup'
 import {retireAgentProperty} from './acp/agentSync'
+import {narrowWorkdirProperty} from './acp/workdirSync'
 
 type Props = {
     clientConfig?: ClientConfig
@@ -105,6 +106,20 @@ const CenterPanel = (props: Props) => {
     // lost. It writes only when the field is actually there.
     createEffect(() => {
         retireAgentProperty(props.board).catch(() => undefined)
+    })
+
+    const boardCards = useAppSelector(getCurrentBoardCards)
+
+    // The folder field is one choice now, and a board made before that carries
+    // it as a multiSelect. Narrowed here for the same reason the field above is
+    // taken away here — on being opened, so no board is left a version behind
+    // the rest — and with every card of the board rather than the ones this
+    // view shows, since a card the filter hides holds a value too. The cards
+    // are read untracked: what this answers is the board, and the conversion
+    // must not be reconsidered on every keystroke in a card.
+    createEffect(() => {
+        const board = props.board
+        narrowWorkdirProperty(board, untrack(boardCards)).catch(() => undefined)
     })
 
     const [cardIdToFocusOnRender, setCardIdToFocusOnRender] = createSignal('')

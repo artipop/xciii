@@ -1,6 +1,7 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
 import {Board, IPropertyTemplate, IPropertyOption} from '../../blocks/board'
+import {Card} from '../../blocks/card'
 import mutator from '../../mutator'
 import {Utils, IDType} from '../../utils'
 
@@ -20,14 +21,20 @@ import {BOARD_PROP_BRANCH_PROPERTY, BOARD_PROP_PROJECT_PROPERTY, boardBranchProp
 // creation and never keys: the board records which property is which, so a
 // person may rename either and a board in another language is not obliged to
 // spell them this way.
-export const WORKDIR_PROPERTY_TITLE = 'Папки'
+export const WORKDIR_PROPERTY_TITLE = 'Папка'
 export const BRANCH_PROPERTY_TITLE = 'Ветка'
 
-// The name this app used to give the folder field. A board that still carries
-// it is renamed, once, by the same rule that lets us create it: the name is
-// ours, so changing it is not editing somebody's own field. Anything a person
-// renamed it to is left alone — it is no longer this string.
-const LEGACY_WORKDIR_PROPERTY_TITLE = 'Проекты'
+// The names this app has given the folder field before now, newest last. A
+// board that still carries one is renamed, once, by the same rule that lets us
+// create it: the name is ours, so changing it is not editing somebody's own
+// field. Anything a person renamed it to is left alone — it is none of these.
+const OUR_WORKDIR_TITLES = ['Проекты', 'Папки', WORKDIR_PROPERTY_TITLE]
+
+// namedByUs says whether the field still carries a name we gave it, and may
+// therefore be renamed under its owner.
+function namedByUs(name?: string): boolean {
+    return OUR_WORKDIR_TITLES.includes((name || '').trim())
+}
 
 // Workdir is a registry entry as the page reads it back (see workdirsPanel).
 export type Workdir = {
@@ -85,7 +92,7 @@ export async function syncWorkdirsToBoard(board: Board, registry: Workdir[]): Pr
     // two exist for the same reason and a board of shopping lists must get
     // neither: what puts it there is a folder that is actually a repository.
     const wantsBranch = mine.some((r) => r.git) && !boardBranchProperty(board)
-    const renaming = property?.name === LEGACY_WORKDIR_PROPERTY_TITLE
+    const renaming = Boolean(property) && namedByUs(property!.name) && property!.name !== WORKDIR_PROPERTY_TITLE
     if (property && missing.length === 0 && !wantsBranch && !renaming) {
         return {added: 0, property}
     }
@@ -99,7 +106,11 @@ export async function syncWorkdirsToBoard(board: Board, registry: Workdir[]): Pr
         target = {
             id: Utils.createGuid(IDType.BlockID),
             name: WORKDIR_PROPERTY_TITLE,
-            type: 'multiSelect',
+
+            // One choice, because a card is one workspace: it claims one
+            // directory, works one branch and hands its agent one cwd. See
+            // narrowWorkdirProperty for what a second value used to mean.
+            type: 'select',
             options: [],
         }
         newProperties.push(target)
@@ -141,6 +152,36 @@ export async function syncWorkdirsToBoard(board: Board, registry: Workdir[]): Pr
         await mutator.updateBoard({...board, properties}, board, 'remember the workdirs field')
     }
     return {added: missing.length, property: target}
+}
+
+// narrowWorkdirProperty makes the folder field a single choice on a board that
+// still carries it as a multiSelect.
+//
+// Two folders on a card never meant two. A card claims one workspace, works one
+// branch — which the board keeps in one text field — and hands its agent one
+// cwd; `resolveWorkdir` took the first of the selected options and dropped the
+// rest, so the choice was already being made for the person, and made in
+// silence. Narrowing the field is what puts that choice back on the card, and
+// it is why this edits somebody's board rather than leaving the two types to
+// live side by side.
+//
+// The rename rides along: the plural was the type talking. A field somebody
+// renamed keeps their name — that half was never ours.
+//
+// Idempotent, and it writes only for a board that still has the old field.
+export async function narrowWorkdirProperty(board: Board, cards: Card[]): Promise<boolean> {
+    const property = findWorkdirProperty(board, board.cardProperties)
+    if (!property || property.type !== 'multiSelect') {
+        return false
+    }
+
+    // changePropertyTypeAndName is the board's own conversion: between select
+    // and multiSelect it keeps the options — which cards reference — and leaves
+    // every card the first of the values it had, which is the folder the agent
+    // was already being sent to.
+    const name = namedByUs(property.name) ? WORKDIR_PROPERTY_TITLE : property.name
+    await mutator.changePropertyTypeAndName(board, cards, property, 'select', name)
+    return true
 }
 
 // useWorkdirHere makes a folder somebody already registered available on this

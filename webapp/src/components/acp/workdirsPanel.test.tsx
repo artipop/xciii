@@ -126,7 +126,7 @@ describe('components/acp/workdirsPanel', () => {
 
         await waitFor(() => expect(mockedMutator.updateBoardCardProperties).toHaveBeenCalledTimes(1))
         const renamed = mockedMutator.updateBoardCardProperties.mock.calls[0][2].find((p) => p.id === 'projectprop')!
-        expect(renamed.name).toBe('Папки')
+        expect(renamed.name).toBe('Папка')
 
         // And its options are left exactly as they were: cards reference them.
         expect(renamed.options.map((o) => o.value)).toEqual(['alpha'])
@@ -244,9 +244,9 @@ describe('components/acp/workdirsPanel', () => {
         await waitFor(() => expect(mockedMutator.updateBoardCardProperties).toHaveBeenCalledTimes(1))
 
         const newProps = mockedMutator.updateBoardCardProperties.mock.calls[0][2]
-        const projectProp = newProps.find((p) => p.name === 'Папки')!
+        const projectProp = newProps.find((p) => p.name === 'Папка')!
         expect(projectProp).toBeDefined()
-        expect(projectProp.type).toBe('multiSelect')
+        expect(projectProp.type).toBe('select')
         expect(projectProp.options.map((o) => o.value)).toEqual(['alpha', 'beta'])
     })
 
@@ -320,7 +320,7 @@ describe('components/acp/workdirsPanel', () => {
         await waitFor(() => expect(mockedMutator.updateBoardCardProperties).toHaveBeenCalledTimes(1))
 
         const newProps = mockedMutator.updateBoardCardProperties.mock.calls[0][2]
-        const made = newProps.find((p) => p.name === 'Папки')!
+        const made = newProps.find((p) => p.name === 'Папка')!
         expect(made).toBeDefined()
         expect(made.id).not.toBe('tags-prop')
         expect(newProps.find((p) => p.id === 'tags-prop')!.options).toHaveLength(1)
@@ -334,8 +334,8 @@ describe('components/acp/workdirsPanel', () => {
         const boardWithProjects = TestBlockFactory.createBoard()
         boardWithProjects.cardProperties.push({
             id: 'projectprop',
-            name: 'Папки',
-            type: 'multiSelect',
+            name: 'Папка',
+            type: 'select',
             options: [{id: 'o1', value: 'alpha', color: 'propColorDefault'}],
         })
 
