@@ -150,32 +150,6 @@ exports[`components/cardDialog > already following card 1`] = `
               </div>
               
               
-              <hr />
-              <div
-                class="CommentsList"
-              >
-                <div
-                  class="CommentsList__new"
-                >
-                  <img
-                    class="comment-avatar"
-                  />
-                  <div
-                    class="MarkdownEditor octo-editor newcomment "
-                  >
-                    <div
-                      class="octo-editor-preview octo-placeholder"
-                      data-testid="preview-element"
-                    />
-                  </div>
-                  
-                  
-                </div>
-                
-                <hr
-                  class="CommentsList__divider"
-                />
-              </div>
             </div>
             <div
               class="CardDetail CardDetail--fullwidth content-blocks"
@@ -479,7 +453,6 @@ exports[`components/cardDialog > limited card shows hidden view (no toolbar) 1`]
               
               
               
-              
             </div>
           </div>
           
@@ -601,14 +574,6 @@ exports[`components/cardDialog > return a cardDialog readonly 1`] = `
               </div>
               
               
-              <hr />
-              <div
-                class="CommentsList"
-              >
-                
-                
-                
-              </div>
             </div>
             <div
               class="CardDetail CardDetail--fullwidth content-blocks"
@@ -969,32 +934,6 @@ exports[`components/cardDialog > return cardDialog menu content 1`] = `
               </div>
               
               
-              <hr />
-              <div
-                class="CommentsList"
-              >
-                <div
-                  class="CommentsList__new"
-                >
-                  <img
-                    class="comment-avatar"
-                  />
-                  <div
-                    class="MarkdownEditor octo-editor newcomment "
-                  >
-                    <div
-                      class="octo-editor-preview octo-placeholder"
-                      data-testid="preview-element"
-                    />
-                  </div>
-                  
-                  
-                </div>
-                
-                <hr
-                  class="CommentsList__divider"
-                />
-              </div>
             </div>
             <div
               class="CardDetail CardDetail--fullwidth content-blocks"
@@ -1198,32 +1137,6 @@ exports[`components/cardDialog > return cardDialog menu content and cancel delet
               </div>
               
               
-              <hr />
-              <div
-                class="CommentsList"
-              >
-                <div
-                  class="CommentsList__new"
-                >
-                  <img
-                    class="comment-avatar"
-                  />
-                  <div
-                    class="MarkdownEditor octo-editor newcomment "
-                  >
-                    <div
-                      class="octo-editor-preview octo-placeholder"
-                      data-testid="preview-element"
-                    />
-                  </div>
-                  
-                  
-                </div>
-                
-                <hr
-                  class="CommentsList__divider"
-                />
-              </div>
             </div>
             <div
               class="CardDetail CardDetail--fullwidth content-blocks"
@@ -1427,32 +1340,6 @@ exports[`components/cardDialog > should match snapshot 1`] = `
               </div>
               
               
-              <hr />
-              <div
-                class="CommentsList"
-              >
-                <div
-                  class="CommentsList__new"
-                >
-                  <img
-                    class="comment-avatar"
-                  />
-                  <div
-                    class="MarkdownEditor octo-editor newcomment "
-                  >
-                    <div
-                      class="octo-editor-preview octo-placeholder"
-                      data-testid="preview-element"
-                    />
-                  </div>
-                  
-                  
-                </div>
-                
-                <hr
-                  class="CommentsList__divider"
-                />
-              </div>
             </div>
             <div
               class="CardDetail CardDetail--fullwidth content-blocks"
@@ -1618,14 +1505,6 @@ exports[`components/cardDialog > should match snapshot without permissions 1`] =
               </div>
               
               
-              <hr />
-              <div
-                class="CommentsList"
-              >
-                
-                
-                
-              </div>
             </div>
             <div
               class="CardDetail CardDetail--fullwidth content-blocks"

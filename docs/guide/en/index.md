@@ -22,7 +22,7 @@ features:
     details: Title, icon, description, the «⋯» menu and views.
     link: /en/board
   - title: The agent
-    details: How to assign a card to an agent, where the terminal is, what ends up in comments.
+    details: How to assign a card to an agent, where the terminal is, what stays on the card.
     link: /en/agent
   - title: Automation
     details: Columns, routes and conditions on transitions.

@@ -62,6 +62,10 @@ describe('components/cardDetail/CardDetail', () => {
     comment2.parentId = card.id
     comment2.createAt = createdAt
 
+    // Commented out with the comments themselves (cardDetail.tsx): the list
+    // is not drawn while this app has one person in it. The test comes back
+    // when the feature does — docs/teamwork.md.
+    /*
     test('should show comments', async () => {
         const store = mockAppStore({
             users: {
@@ -128,6 +132,7 @@ describe('components/cardDetail/CardDetail', () => {
         const newCommentSection = container!.querySelectorAll('.newcomment')
         expect(newCommentSection.length).toBe(1)
     })
+    */
 
     // A rule across the card means a section starts here. The route strip
     // learns only after its data arrives whether it has anything to show, so a
@@ -202,12 +207,16 @@ describe('components/cardDetail/CardDetail', () => {
         expect(container.querySelector('.FlowStrip')).toBeNull()
         expect(container.querySelector('.CardTerminal')).toBeNull()
 
-        // The comments are the only section under the properties, so the card
-        // draws one rule. The second hr is the one CommentsList closes itself
-        // with, between the comments and the content blocks.
-        expect(container.querySelectorAll('hr:not(.CommentsList__divider)').length).toBe(1)
+        // Nothing under the properties has anything to show — no attachments,
+        // no route — so the card draws no rule at all. A rule belongs to the
+        // section under it, and a card with no such section draws none.
+        expect(container.querySelectorAll('hr').length).toBe(0)
     })
 
+    // Commented out with the comments themselves (cardDetail.tsx): the list
+    // is not drawn while this app has one person in it. The test comes back
+    // when the feature does — docs/teamwork.md.
+    /*
     test('should show comments in readonly view', async () => {
         const store = mockAppStore({
             teams: {
@@ -268,6 +277,7 @@ describe('components/cardDetail/CardDetail', () => {
         const newCommentSection = container!.querySelectorAll('.newcomment')
         expect(newCommentSection.length).toBe(0)
     })
+    */
 
     test('should show add properties tour tip', async () => {
         const welcomeBoard = TestBlockFactory.createBoard()
@@ -363,6 +373,10 @@ describe('components/cardDetail/CardDetail', () => {
         )
     })
 
+    // Commented out with the comments themselves (cardDetail.tsx): the list
+    // is not drawn while this app has one person in it. The test comes back
+    // when the feature does — docs/teamwork.md.
+    /*
     test('should show add comments tour tip', async () => {
         const welcomeBoard = TestBlockFactory.createBoard()
         welcomeBoard.title = 'Welcome to Boards!'
@@ -457,6 +471,7 @@ describe('components/cardDetail/CardDetail', () => {
             },
         )
     })
+    */
 
     test('should show add description tour tip', async () => {
         const welcomeBoard = TestBlockFactory.createBoard()

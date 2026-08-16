@@ -7,9 +7,14 @@ name: Release
 # **This repository is private and stays private, and nothing here needs it not
 # to be.** The build runs on its own Actions minutes; what ships goes to an
 # S3-compatible bucket served under a domain of ours, which is also what an
-# installed app asks — see `updateManifestURL` in updates.go. No public
+# installed app asks — see `ManifestURL` in internal/edition. No public
 # repository, no token handed to users, and one address that can point wherever
 # the files are kept next year.
+#
+# **Every job is built twice, once per edition** (internal/edition,
+# docs/editions.md): the same tree with a build tag, publishing to a feed of
+# its own. The two are independent from the artifact names down — nothing a
+# lifetime release writes is read by a base install, and vice versa.
 #
 # The tag's own annotation is the release notes — the text the app shows in its
 # «Обновления» panel.
@@ -44,14 +49,24 @@ env:
 
 jobs:
   build:
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.runner }}
+    name: ${{ matrix.target.name }} (${{ matrix.edition }})
+    runs-on: ${{ matrix.target.runner }}
     strategy:
       # One platform failing must not throw away the others: the artifacts of
       # the jobs that did work are what a re-run does not have to redo.
       fail-fast: false
+      # Two dimensions, and they are a real cross-product: every edition is
+      # built for every platform. The targets are one list of objects rather
+      # than four matrix keys because `include:` merges into every combination
+      # and four entries would overwrite each other's platform.
+      #
+      # The edition is a build tag (internal/edition), so this is the same
+      # tree compiled twice — not two branches and not two repositories. What
+      # differs in the output is which board templates are embedded and which
+      # release feed the binary asks.
       matrix:
-        include:
+        edition: [base, lifetime]
+        target:
           - name: macOS arm64
             runner: macos-14
             platform: darwin
@@ -89,14 +104,14 @@ jobs:
       # Wails' GTK 3 path, which every Linux build here takes: the GTK 4 path
       # needs GTK 4.10, newer than several supported distributions ship.
       - name: Install the Linux build dependencies
-        if: matrix.platform == 'linux'
+        if: matrix.target.platform == 'linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
 
       # The runner image ships NSIS, but a runner image is not a contract.
       - name: Make sure NSIS is present
-        if: matrix.platform == 'windows'
+        if: matrix.target.platform == 'windows'
         shell: bash
         run: command -v makensis || choco install nsis -y --no-progress
 
@@ -125,26 +140,32 @@ jobs:
             exit 1
           fi
 
-      # dist/update is what the updater installs; dist/install is what a person
-      # downloads the first time. The manifest is generated over the first
-      # directory alone — an installer swapped in as if it were the app would
-      # replace XCIII with a copy of its own installer.
+      # dist/<edition>/update is what the updater installs;
+      # dist/<edition>/install is what a person downloads the first time. The
+      # manifest is generated over the first directory alone — an installer
+      # swapped in as if it were the app would replace XCIII with a copy of its
+      # own installer.
+      #
+      # The edition is a directory rather than a suffix in the file names,
+      # because `wails3 updater manifest` signs a whole directory: two editions
+      # in one would put both platforms' artifacts of both builds in each
+      # manifest, and an installed copy would take whichever came first.
       - name: Make the output directories
         shell: bash
-        run: mkdir -p dist/update dist/install
+        run: mkdir -p dist/${{ matrix.edition }}/update dist/${{ matrix.edition }}/install
 
       # ── macOS ────────────────────────────────────────────────────────────
       # ditto, not zip: a .app is a bundle with symlinks and extended
       # attributes, and `zip -r` quietly flattens both. package:dmg builds the
       # bundle on the way, so this is one build and two artifacts out of it.
       - name: Build and package for macOS
-        if: matrix.platform == 'darwin'
+        if: matrix.target.platform == 'darwin'
         run: |
-          wails3 task darwin:package:dmg
+          wails3 task darwin:package:dmg EDITION=${{ matrix.edition }}
           ditto -c -k --keepParent "bin/XCIII.app" \
-            "dist/update/XCIII-${{ steps.version.outputs.version }}-darwin-${{ matrix.arch }}.zip"
+            "dist/${{ matrix.edition }}/update/XCIII-${{ steps.version.outputs.version }}-darwin-${{ matrix.target.arch }}.zip"
           mv "bin/XCIII.dmg" \
-            "dist/install/XCIII-${{ steps.version.outputs.version }}-darwin-${{ matrix.arch }}.dmg"
+            "dist/${{ matrix.edition }}/install/XCIII-${{ steps.version.outputs.version }}-darwin-${{ matrix.target.arch }}.dmg"
 
       # ── Windows ──────────────────────────────────────────────────────────
       # INSTALL_SCOPE=user rather than the Taskfile's default of machine: an app
@@ -152,14 +173,14 @@ jobs:
       # for administrator rights, so a machine-scope install is one that can
       # never update itself.
       - name: Build and package for Windows
-        if: matrix.platform == 'windows'
+        if: matrix.target.platform == 'windows'
         shell: bash
         run: |
-          wails3 task windows:package INSTALL_SCOPE=user
+          wails3 task windows:package INSTALL_SCOPE=user EDITION=${{ matrix.edition }}
           cp "bin/XCIII.exe" \
-            "dist/update/XCIII-${{ steps.version.outputs.version }}-windows-${{ matrix.arch }}.exe"
-          mv "bin/XCIII-${{ matrix.arch }}-installer.exe" \
-            "dist/install/XCIII-${{ steps.version.outputs.version }}-windows-${{ matrix.arch }}-installer.exe"
+            "dist/${{ matrix.edition }}/update/XCIII-${{ steps.version.outputs.version }}-windows-${{ matrix.target.arch }}.exe"
+          mv "bin/XCIII-${{ matrix.target.arch }}-installer.exe" \
+            "dist/${{ matrix.edition }}/install/XCIII-${{ steps.version.outputs.version }}-windows-${{ matrix.target.arch }}-installer.exe"
 
       # ── Linux ────────────────────────────────────────────────────────────
       # The tar.gz is the updatable form: unpacked into a directory the user
@@ -170,25 +191,32 @@ jobs:
       # and are left out here: nobody has run them, and a release job is not the
       # place to find out.
       - name: Build and package for Linux
-        if: matrix.platform == 'linux'
+        if: matrix.target.platform == 'linux'
         run: |
-          wails3 task linux:build
-          tar -czf "dist/update/XCIII-${{ steps.version.outputs.version }}-linux-${{ matrix.arch }}.tar.gz" \
+          wails3 task linux:build EDITION=${{ matrix.edition }}
+          tar -czf "dist/${{ matrix.edition }}/update/XCIII-${{ steps.version.outputs.version }}-linux-${{ matrix.target.arch }}.tar.gz" \
             -C bin XCIII
-          wails3 task linux:create:appimage
-          wails3 task linux:create:deb
-          find bin -maxdepth 1 \( -name '*.AppImage' -o -name '*.deb' \) -exec mv {} dist/install/ \;
+          wails3 task linux:create:appimage EDITION=${{ matrix.edition }}
+          wails3 task linux:create:deb EDITION=${{ matrix.edition }}
+          find bin -maxdepth 1 \( -name '*.AppImage' -o -name '*.deb' \) -exec mv {} dist/${{ matrix.edition }}/install/ \;
 
       - uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.platform }}-${{ matrix.arch }}
+          name: dist-${{ matrix.edition }}-${{ matrix.target.platform }}-${{ matrix.target.arch }}
           path: dist
           if-no-files-found: error
 
   publish:
-    name: Publish
+    name: Publish (${{ matrix.edition }})
     needs: build
     runs-on: ubuntu-latest
+    # One publish per edition, because each signs a manifest of its own over
+    # its own artifacts and uploads it under its own name. They share the
+    # bucket and the version folder and touch nothing of each other's.
+    strategy:
+      fail-fast: false
+      matrix:
+        edition: [base, lifetime]
     steps:
       - uses: actions/checkout@v4
 
@@ -200,31 +228,39 @@ jobs:
       - name: Install the Wails CLI
         run: go install github.com/wailsapp/wails/v3/cmd/wails3@${{ env.WAILS_VERSION }}
 
+      # This edition's artifacts alone. The other edition's are a different
+      # build of the same version, and a manifest signed over both would offer
+      # an installed copy whichever one the tool listed first.
       - uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: dist-*
+          pattern: dist-${{ matrix.edition }}-*
           merge-multiple: true
 
-      # Both numbers come out of the source. The base URL is read from the same
-      # constant the running app asks — `https://updates.deffun.org/stable.json`
-      # minus its last segment — so the address the release is published under
-      # and the address an installed copy looks at cannot drift apart.
+      # Everything here comes out of the source. The feed address and the
+      # channel are read from the edition's own file — the same three constants
+      # the built binary asks with (internal/edition) — so the address a
+      # release is published under and the address an installed copy looks at
+      # cannot drift apart. They are one `const` per line for exactly this sed.
       - name: Work out the version and the release address
         id: version
         shell: bash
         run: |
+          edition_file="internal/edition/edition_${{ matrix.edition }}.go"
           version="$(sed -n 's/^const appVersion = "\(.*\)"$/\1/p' version.go)"
-          manifest="$(sed -n 's/^const updateManifestURL = "\(.*\)"$/\1/p' updates.go)"
+          manifest="$(sed -n 's/^const ManifestURL = "\(.*\)"$/\1/p' "${edition_file}")"
+          channel="$(sed -n 's/^const Channel = "\(.*\)"$/\1/p' "${edition_file}")"
           base="${manifest%/*}"
-          if [ -z "${version}" ] || [ -z "${base}" ]; then
-            echo "could not read the version or the feed address out of the source" >&2
+          if [ -z "${version}" ] || [ -z "${base}" ] || [ -z "${channel}" ]; then
+            echo "could not read the version, the feed address or the channel out of the source" >&2
             exit 1
           fi
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "manifest_name=${manifest##*/}" >> "$GITHUB_OUTPUT"
-          echo "url_prefix=${base}/v${version}/" >> "$GITHUB_OUTPUT"
-          echo "publishing ${version} under ${base}/v${version}/"
+          echo "manifest_url=${manifest}" >> "$GITHUB_OUTPUT"
+          echo "channel=${channel}" >> "$GITHUB_OUTPUT"
+          echo "url_prefix=${base}/v${version}/${{ matrix.edition }}/" >> "$GITHUB_OUTPUT"
+          echo "publishing ${version} (${{ matrix.edition }}) under ${base}/v${version}/${{ matrix.edition }}/"
 
       # The annotated tag's message. A lightweight tag, or a manual run, leaves
       # it empty and the release carries its version and nothing else — better
@@ -261,12 +297,12 @@ jobs:
           printf '%s' "${UPDATER_PRIVATE_KEY}" > updater.key
           wails3 updater manifest \
             -version "${{ steps.version.outputs.version }}" \
-            -channel stable \
+            -channel "${{ steps.version.outputs.channel }}" \
             -key updater.key \
             -notes-file notes.md \
             -url-prefix "${{ steps.version.outputs.url_prefix }}" \
             -output dist/manifest.json \
-            dist/update/
+            dist/${{ matrix.edition }}/update/
           rm -f updater.key
 
       # The gate: verifying against the *tracked* public key proves the release
@@ -275,12 +311,12 @@ jobs:
       # -dir explicitly: verify defaults to the manifest's own directory, and
       # the manifest is written a level above the files it describes.
       - name: Verify the manifest against the key the app is built with
-        run: wails3 updater verify -manifest dist/manifest.json -publickey build/updater.key.pub -dir dist/update
+        run: wails3 updater verify -manifest dist/manifest.json -publickey build/updater.key.pub -dir dist/${{ matrix.edition }}/update
 
       - name: Show what would be published
         shell: bash
         run: |
-          ls -l dist/update dist/install
+          ls -l dist/${{ matrix.edition }}/update dist/${{ matrix.edition }}/install
           cat dist/manifest.json
 
       # S3-compatible, so the same three lines work against Cloudflare R2,
@@ -313,10 +349,12 @@ jobs:
           done
           version="${{ steps.version.outputs.version }}"
 
-          aws s3 sync dist/update "s3://${BUCKET}/v${version}/" \
+          edition="${{ matrix.edition }}"
+
+          aws s3 sync "dist/${edition}/update" "s3://${BUCKET}/v${version}/${edition}/" \
             --endpoint-url "${ENDPOINT}" \
             --cache-control "public, max-age=31536000, immutable"
-          aws s3 sync dist/install "s3://${BUCKET}/v${version}/" \
+          aws s3 sync "dist/${edition}/install" "s3://${BUCKET}/v${version}/${edition}/" \
             --endpoint-url "${ENDPOINT}" \
             --cache-control "public, max-age=31536000, immutable"
 
@@ -333,14 +371,14 @@ jobs:
         if: github.ref_type == 'tag' && inputs.dry_run != true
         shell: bash
         run: |
-          manifest="$(sed -n 's/^const updateManifestURL = "\(.*\)"$/\1/p' updates.go)"
+          manifest="${{ steps.version.outputs.manifest_url }}"
           for attempt in 1 2 3 4 5; do
             if curl -fsS "${manifest}" -o published.json; then break; fi
             echo "not there yet (attempt ${attempt})"; sleep 10
           done
           # Against the files this run built: proves the manifest now being
           # served is the one that was signed here, describing these bytes.
-          wails3 updater verify -manifest published.json -publickey build/updater.key.pub -dir dist/update
+          wails3 updater verify -manifest published.json -publickey build/updater.key.pub -dir dist/${{ matrix.edition }}/update
           # And that the artifacts it points at are actually reachable — a
           # bucket whose public access or custom domain is not wired up serves
           # the manifest from cache and 403s every download.

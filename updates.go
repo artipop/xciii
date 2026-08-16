@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/artipop/xciii/internal/edition"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/updater"
 	"github.com/wailsapp/wails/v3/pkg/updater/providers/endpoint"
@@ -60,10 +61,18 @@ var updaterPublicKey []byte
 // Nothing answering, or a 404, is read as "nothing newer", so a bucket that is
 // not there yet costs a log line rather than an error on the panel.
 //
-// It is also the only place the release address is written down: the workflow
-// reads the prefix out of this constant to build the artifact URLs, so the app
-// and the release cannot come to disagree about where a release lives.
-const updateManifestURL = "https://updates.deffun.org/stable.json"
+// **Which address it is belongs to the edition** (internal/edition), because
+// the two editions are two builds: one manifest names one artifact per
+// platform, so a shared feed would hand a lifetime install the base app under
+// the version number it was waiting for. The workflow reads the same constant
+// to build the artifact URLs, so the app and the release cannot come to
+// disagree about where a release lives.
+const updateManifestURL = edition.ManifestURL
+
+// updateChannel is the manifest field the provider filters on, and the release
+// workflow signs each edition's manifest with its own. A manifest that ended
+// up at the wrong address is then refused rather than installed.
+const updateChannel = edition.Channel
 
 // updateCheckInterval is our own timer rather than updater.Config.CheckInterval.
 // Init may be called once and StopPeriodicCheck cannot be undone, so the
@@ -147,6 +156,15 @@ type updateState struct {
 
 	CurrentVersion string `json:"currentVersion"`
 
+	// Edition is which of the two builds this is (internal/edition) — the raw
+	// name, `base` or `lifetime`, because the words a person reads belong to
+	// the page like every other label. It rides on this state rather than
+	// having a call of its own: the panel already answers "what exactly is
+	// installed", and a second question would be a second thing to keep in
+	// step. Two installers under one app name are otherwise told apart only
+	// by opening the template picker and counting.
+	Edition string `json:"edition,omitempty"`
+
 	// Status is the framework's own updater.State, read fresh rather than
 	// inferred from which event arrived: the event bus dispatches each event
 	// in a goroutine of its own, so two of them can be seen out of order, and
@@ -209,7 +227,7 @@ func newUpdateController(wapp *application.App, emitter *wailsEmitter) *updateCo
 	}
 	settings := readUpdateSettings(path)
 
-	feed, err := endpoint.New(endpoint.Config{URL: updateManifestURL, Channel: "stable"})
+	feed, err := endpoint.New(endpoint.Config{URL: updateManifestURL, Channel: updateChannel})
 	if err != nil {
 		log.Printf("updates: disabled, feed error: %v", err)
 		return nil
@@ -240,6 +258,7 @@ func newUpdateController(wapp *application.App, emitter *wailsEmitter) *updateCo
 		Supported:      true,
 		Enabled:        settings.enabled(),
 		CurrentVersion: appVersion,
+		Edition:        edition.Name,
 		Status:         string(wapp.Updater.State()),
 		SkippedVersion: settings.SkippedVersion,
 		LastCheckedAt:  settings.LastCheckedAt,
@@ -247,7 +266,7 @@ func newUpdateController(wapp *application.App, emitter *wailsEmitter) *updateCo
 	}
 	c.listen(wapp)
 	go c.poll()
-	log.Printf("updates: %s, feed %s", appVersion, updateManifestURL)
+	log.Printf("updates: %s %s (%s), feed %s", edition.Title, appVersion, edition.Name, updateManifestURL)
 	return c
 }
 
@@ -397,7 +416,15 @@ func (c *updateController) checked() {
 // snapshot is what GetUpdateState answers with.
 func (c *updateController) snapshot() updateState {
 	if c == nil {
-		return updateState{Supported: false, CurrentVersion: appVersion, Status: string(updater.StateUnconfigured)}
+		// Edition even here: a build that cannot update itself is still one
+		// edition or the other, and «какое у меня стоит» is the question this
+		// answers.
+		return updateState{
+			Supported:      false,
+			CurrentVersion: appVersion,
+			Edition:        edition.Name,
+			Status:         string(updater.StateUnconfigured),
+		}
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()

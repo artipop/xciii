@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/artipop/xciii/internal/edition"
 )
 
 // A fresh install looks for updates without being asked. Anything else means a
@@ -82,5 +84,29 @@ func TestABuildWithoutUpdatingSaysSo(t *testing.T) {
 	}
 	if err := app.CheckForUpdate(); err == nil {
 		t.Error("checking for updates should fail rather than quietly do nothing")
+	}
+}
+
+// Two editions are two installers under one app name, so the panel is where
+// «какое у меня стоит» gets answered — including in a build that cannot update
+// itself, which is still one edition or the other.
+func TestTheUpdateStateNamesTheEdition(t *testing.T) {
+	app := &App{}
+	out, err := app.GetUpdateState()
+	if err != nil {
+		t.Fatalf("GetUpdateState: %v", err)
+	}
+	var state updateState
+	if err := json.Unmarshal([]byte(out), &state); err != nil {
+		t.Fatalf("decoding: %v", err)
+	}
+	if state.Edition != edition.Name {
+		t.Errorf("edition = %q, want %q", state.Edition, edition.Name)
+	}
+	// The raw name, not a word for a person: the page owns the words, and a
+	// Russian label crossing this boundary would be a label nothing could
+	// translate.
+	if state.Edition != edition.Base && state.Edition != edition.Lifetime {
+		t.Errorf("edition = %q, which is neither of the two this repository builds", state.Edition)
 	}
 }

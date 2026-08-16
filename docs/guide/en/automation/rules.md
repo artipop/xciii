@@ -16,14 +16,16 @@ an arrow without a condition is the fallback. The condition is written on the
 arrow itself ("if Priority = High").
 
 If the event arrives, no condition matches and there is no fallback arrow, the
-card stays put and says so in a comment. So add the fallback arrow right away.
+card stays put, and the reason is written in amber on the route strip. So add
+the fallback arrow right away.
 
 ## By what the agent wrote
 
 Example: "The step passed, and the agent's answer contains 'READY TO DEPLOY' →
 to Deploy".
 
-The condition "only if the agent wrote…" checks the agent's final comment. Ask
+The condition "only if the agent wrote…" checks the agent's closing words —
+what it said when it finished the stage. Ask
 the agent in the task text to end its report with an agreed phrase — and the
 branch with this condition fires only on its decision. The condition is
 available only on outcomes of steps where an agent worked.

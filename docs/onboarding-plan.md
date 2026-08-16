@@ -100,13 +100,13 @@ This is the highest-value piece and could ship alone.
 
 ### 3. Say what is happening while the first card runs
 
-Somebody watching a card they just created does not yet know that the
-comments are where the agent talks, or that the column decides what happens
+Somebody watching a card they just created does not yet know that the card's
+terminal is where the agent talks, or that the column decides what happens
 next.
 
 One dismissible strip above the board while **their first card** is running:
-what the agent is doing, that it writes into the comments, and that the
-column decides where the card goes after. It disappears when the card leaves
+what the agent is doing, that the terminal button on the card is where its
+work is read, and that the column decides where the card goes after. It disappears when the card leaves
 the column, and never comes back.
 
 Driven by the events already on the socket — the same ones
@@ -164,7 +164,8 @@ preferences and navigated to a route that no longer existed.
   `http://localhost:8080` drives it; the session token is in the bootstrap
   script the front door injects into the page.
 - **The whole path, not the entry point.** Template → wizard → first task →
-  the agent's comment on the card. Every failure described at the top would
+  what the agent left on the card and its branch. Every failure described at
+  the top would
   have been caught by walking one step further than the change itself.
 - **`docs/guide/`** gets its page in the same change, per the repository's
   rule, and every string it quotes is checked against `webapp/i18n/ru.json`.

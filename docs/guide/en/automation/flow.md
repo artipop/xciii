@@ -52,8 +52,8 @@ arrow without a condition right away.
 ## 5. Check
 
 Save and walk one real card through the whole route. Watch two places: the
-route strip on the card (where it stands, what it waits for) and the agent's
-comment at the end (what it did or why it could not).
+route strip on the card (where it stands, what it waits for) and the card's
+terminal (what the agent did or why it could not).
 
 ## If nothing moves
 

@@ -285,7 +285,7 @@ const CardDialog = (props: Props): JSX.Element => {
                 {/* Two panels: the card on one side, the terminal on the
                     other. The card scrolls on its own so the terminal keeps
                     the dialog's full height rather than travelling with the
-                    comments. */}
+                    card's own content. */}
                 <div class='cardDialog__body'>
                     <div class='cardDialog__main'>
                         <Show

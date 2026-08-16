@@ -43,7 +43,7 @@ and the working columns stay working columns.
 - **On a computer**: open the inbox view and a card in it — like any other.
   Change the column in the card's properties — it leaves the inbox and appears
   on the kanban in the column you chose. If the card belongs on another board:
-  card menu → **"Move to a board…"** — it moves together with its comments.
+  card menu → **"Move to a board…"** — it moves whole, with its history.
 - **On a phone**: `/m`, the Inbox tab. A card is moved to a board and a column
   in two taps.
 

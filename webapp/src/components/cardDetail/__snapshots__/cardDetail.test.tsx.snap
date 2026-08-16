@@ -191,130 +191,13 @@ exports[`components/cardDetail/CardDetail > should render hidden view if limited
     
     
     
-    
-  </div>
-</div>
-`;
-
-exports[`components/cardDetail/CardDetail > should show add comments tour tip 1`] = `
-<div
-  aria-labelledby="cl-1"
-  class="tutorial-tour-tip__box AddCommentTourStep"
-  role="dialog"
-  style="max-width: 320px;"
->
-  <div
-    class="tutorial-tour-tip__arrow"
-    style="left: -6px;"
-  />
-  <div>
-    <div
-      class="tutorial-tour-tip__header"
-    >
-      <h4
-        class="tutorial-tour-tip__header__title"
-        id="cl-1"
-      >
-        Comments
-      </h4>
-      <button
-        class="IconButton tutorial-tour-tip__header__close size--small"
-        type="button"
-      >
-        <i
-          class="CompassIcon icon-close CloseIcon"
-        />
-      </button>
-    </div>
-    <div
-      class="tutorial-tour-tip__body"
-    >
-      The comments hold everything that has happened to the card. The agent working it writes here too: what it did and what it is asking.
-    </div>
-    <div
-      class="tutorial-tour-tip__image"
-    >
-      <img
-        alt="tutorial tour tip product image"
-        src="http://localhost/test-file-stub"
-      />
-    </div>
-    <div
-      class="tutorial-tour-tip__footer"
-    >
-      <div
-        class="tutorial-tour-tip__footer-buttons"
-      >
-        <div
-          class="tutorial-tour-tip__circles-ctr"
-        >
-          <div
-            class="tutorial-tour-tip__circular-ring "
-          >
-            <a
-              class="tutorial-tour-tip__circle "
-              data-screen="0"
-              href="#"
-            />
-          </div>
-          <div
-            class="tutorial-tour-tip__circular-ring tutorial-tour-tip__circular-ring-active"
-          >
-            <a
-              class="tutorial-tour-tip__circle active"
-              data-screen="1"
-              href="#"
-            />
-          </div>
-          <div
-            class="tutorial-tour-tip__circular-ring "
-          >
-            <a
-              class="tutorial-tour-tip__circle "
-              data-screen="2"
-              href="#"
-            />
-          </div>
-        </div>
-        <div
-          class="tutorial-tour-tip__btn-ctr"
-        >
-          <button
-            class="Button emphasis--tertiary size--small"
-            title="Previous"
-            type="button"
-          >
-            <i
-              class="CompassIcon icon-chevron-left icon"
-            />
-            <span>
-              Previous
-            </span>
-            
-          </button>
-          <button
-            class="Button filled size--small tipNextButton"
-            type="button"
-          >
-            
-            <span>
-              Next
-            </span>
-            <i
-              class="CompassIcon icon-chevron-right icon"
-            />
-          </button>
-        </div>
-      </div>
-      
-    </div>
   </div>
 </div>
 `;
 
 exports[`components/cardDetail/CardDetail > should show add description tour tip 1`] = `
 <div
-  aria-labelledby="cl-7"
+  aria-labelledby="cl-6"
   class="tutorial-tour-tip__box AddDescriptionTourStep"
   role="dialog"
   style="max-width: 320px;"
@@ -329,7 +212,7 @@ exports[`components/cardDetail/CardDetail > should show add description tour tip
     >
       <h4
         class="tutorial-tour-tip__header__title"
-        id="cl-7"
+        id="cl-6"
       >
         Description
       </h4>

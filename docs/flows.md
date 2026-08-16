@@ -1,6 +1,6 @@
 # How a card gets worked on
 
-What happens between dropping a card into a column and getting a comment back:
+What happens between dropping a card into a column and getting the work back:
 which agent takes it, where it writes, which branch it commits to, and what
 moves the card on. Written for a person using the board; the code is in
 `internal/acp`.
@@ -112,7 +112,7 @@ produce it.
   `finish_work` (`properties`), and a **required** one is refused without: the
   stage cannot end until the value stands. A **deploy** stage writes its
   preview address into the declared property, a **test** stage its verdict
-  (`pass`/`fail`/`blocked`) — facts that used to live only in comments, where
+  (`pass`/`fail`/`blocked`) — facts that used to live only in a comment, where
   no transition could reach them. Values land on the card *before* the outcome
   moves it, so the edges read them reliably; the write is silent, because the
   outcome is the one event the route acts on. A select property takes one of
@@ -166,7 +166,7 @@ it can ask — both about the card, neither a script:
   arrows out of one event make a fork: «шаг прошёл» ведёт срочную карточку в
   «Деплой», остальные — в «На ревью». The first condition that holds wins, and
   the arrow without one is the fallback;
-- **«только если агент написал…»** — the agent's closing comment contains a
+- **«только если агент написал…»** — the agent's closing words contain a
   text. This is how the agent itself routes the card: попросите его закончить
   словами «ГОТОВО К ДЕПЛОЮ», и ветка с этим условием поедет, только когда он
   сам так решил. Только на исходах шага — там, где агент вообще говорил.
@@ -255,7 +255,7 @@ flowchart TD
     J2 -- "not yet, and nothing is being drawn" --> J3["The card goes amber: the agent is<br/>waiting for somebody in the terminal"]
     J3 --> J2
     J2 -- "the terminal was closed instead" --> J4["The card stays put and says<br/>the result was never reported"]
-    J2 -- yes --> J5["The conversation closes, and the summary<br/>lands as one card comment"]
+    J2 -- yes --> J5["The conversation closes, and its<br/>closing summary is what the route reads"]
     J5 --> K{"Is the card on a route?"}
     K -- no --> L["Card stays where it is.<br/>A person moves it on"]
     K -- yes --> M["The route takes the outcome<br/>and moves the card to the next stage"]
@@ -265,7 +265,7 @@ Two things about that first step. The trigger is a **change** of the column
 property on an existing card — a card created directly in a column starts
 nothing. And a card dragged out of a column while its session runs cancels it.
 
-A stage that could not start never comments the card. The reason — no project
+A stage that could not start says nothing about it in the card's history. The reason — no project
 matched, the route has no edge for what arrived, the card belongs to a person —
 is a **stall record** (`card_stall`), shown in amber on the card's route strip
 while it is true and deleted by any progress. Route dead-ends write softly, so
@@ -281,7 +281,8 @@ a phone. Nothing of ours is drawn over that screen.
 
 A terminal does not end by itself, so the agent declares the work over with
 **finish_work**: done or not done, and one line about what it did. That line is
-the card's comment and the event the route acts on. If the terminal is closed
+the event the route acts on, and it stays readable in the terminal it was said
+in. If the terminal is closed
 without it, the card stays where it is and says so — no verdict was given, so
 none is invented.
 
@@ -453,7 +454,7 @@ way without you.
 
 Two things are deliberately not there. An agent **cannot rewrite a card's
 description** — that is what you wrote, and what an agent has to say about a card
-goes into the comments where the rest of its history already is. And a card an
+goes into the card's own history rather than over your text. And a card an
 agent asks about must be **on the same board**: a card id it read somewhere else
 opens nothing.
 
@@ -499,7 +500,7 @@ Two things are worth knowing about the wait:
   stays in its column, marked as waiting for you rather than done;
 - nothing is decided for you by a timer. A question with no answer is answered when the session
   is cancelled or the app is closed, and "no answer" reaches the agent as a refusal — it then
-  finishes without whatever it asked for, and says so in the comment it closes with.
+  finishes without whatever it asked for, and says so when it closes.
 
 If a particular tool should never be asked about, put it in the column's allow list instead — the
 agent stops asking and stops waiting.
@@ -529,7 +530,7 @@ adapters have no such channel.
 
 | What you see | Why |
 |---|---|
-| Card sits, no comment | The column is not configured, or the property that changed is not the one the columns are on |
+| Card sits, nothing happens | The column is not configured, or the property that changed is not the one the columns are on |
 | "Агент не запускается" | Somebody is assigned to the card |
 | "Колонка занята" | The crew is busy or the limit is reached; it starts by itself later |
 | "папка занята другой карточкой" | The board works on a branch in the folder itself and another card holds it until its branch is merged |
@@ -538,10 +539,12 @@ adapters have no such channel.
 | Card never leaves *In Review* | Nobody is watching its branch — see [which branch is followed](#which-branch-is-followed), or the route has no edge for what happened |
 | Test stage refuses to start | Nothing brings a browser MCP server: put one on the test column («MCP-серверы этой колонки»), or on the agent itself (*«Настройки → Агенты»* → MCP servers) |
 
-A session writes one comment, at the end: what the agent did, or why it could not.
+A session says one thing at the end: what the agent did, or why it could not.
 Everything else it does is shown rather than written down — the card carries its
-route, the stage it is on, what that stage is waiting for, and the branch the work
-is on.
+route, the stage it is on, what that stage is waiting for, and the branch the
+work is on. Cards draw no comments while the app has one person in it
+([teamwork.md](teamwork.md)), so an agent's closing words are read in its
+terminal and by the conditions on the route's arrows.
 
 ## The knobs
 

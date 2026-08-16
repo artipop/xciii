@@ -31,6 +31,39 @@ import (
 //go:embed templates/*.jsonl
 var templateFiles embed.FS
 
+// shippedTemplates is every template this build carries: the ones above, which
+// every edition has, and whatever the edition adds (templates_base.go,
+// templates_lifetime.go). Sorted, so the order a fresh install imports them in
+// is the order they are named in rather than the order two embedded
+// filesystems happened to be walked in.
+//
+// The two sets are kept apart on disk and joined here, which is what makes the
+// edition a build tag rather than a runtime check: the base binary has no path
+// to a file it does not contain.
+func shippedTemplates() ([]string, error) {
+	ours, err := fs.Glob(templateFiles, "templates/*.jsonl")
+	if err != nil {
+		return nil, err
+	}
+	extra, err := fs.Glob(editionTemplateFiles, "templates/*/*.jsonl")
+	if err != nil {
+		return nil, err
+	}
+	files := append(ours, extra...)
+	sort.Strings(files)
+	return files, nil
+}
+
+// readShippedTemplate reads one of them back. Which filesystem a path lives in
+// is the path itself — the edition's are a directory deeper — so nothing else
+// has to carry the answer around.
+func readShippedTemplate(file string) ([]byte, error) {
+	if strings.Count(file, "/") > 1 {
+		return editionTemplateFiles.ReadFile(file)
+	}
+	return templateFiles.ReadFile(file)
+}
+
 // TemplateVersion is bumped to push edited templates into installs that already
 // have them. Nothing else re-imports: a template somebody has since changed is
 // theirs until this number moves, and then it is replaced.
@@ -58,7 +91,13 @@ var templateFiles embed.FS
 // be given, all in the first column. Placeholders («Утвердить бюджет», a
 // checklist of «[Подзадача 1]») and errands no agent can run («Полить цветы»)
 // taught the board wrong on the first screen anybody sees.
-const TemplateVersion = 18
+// 19: no card promises a comment any more. «Что сделал агент» used to be
+// «напишет в комментарии», and the comments are not drawn while this app has
+// one person in it (docs/teamwork.md) — a first card that points at a place
+// nobody can open is the worst possible place to be wrong. The lifetime
+// edition's own two boards join the set at this version; they are a separate
+// glob, so a base install sees no change from them.
+const TemplateVersion = 19
 
 // TemplateMarkerProperty is the board property each template carries its slug
 // in. Ids are regenerated on import and titles are the user's to change, so the
@@ -173,11 +212,10 @@ func renameLegacyViews(a *app.App, log mlog.LoggerIFace) {
 // older set and watch the newer one replace it — the path that only ever runs
 // on an upgrade, and the one that would quietly leave two copies if it broke.
 func importTemplates(a *app.App, log mlog.LoggerIFace, version int) error {
-	files, err := fs.Glob(templateFiles, "templates/*.jsonl")
+	files, err := shippedTemplates()
 	if err != nil {
 		return fmt.Errorf("read the shipped templates: %w", err)
 	}
-	sort.Strings(files)
 
 	// As the person, not as nobody: with no user id the store returns the open
 	// templates alone, and one somebody saved is private to them. Ours are open
@@ -230,7 +268,7 @@ func importTemplates(a *app.App, log mlog.LoggerIFace, version int) error {
 				continue
 			}
 		}
-		data, err := templateFiles.ReadFile(file)
+		data, err := readShippedTemplate(file)
 		if err != nil {
 			return fmt.Errorf("read %s: %w", file, err)
 		}

@@ -13,7 +13,16 @@ vars:
   # `server` for the server build) to whatever stands here.
   # BASE_TAGS exists so the Linux Taskfile can add its GTK tag without a var
   # redefining itself, which Task resolves to nothing.
-  BASE_TAGS: '{{.EXTRA_TAGS | default "json1,sqlite3,frontend"}}'
+  #
+  # EDITION is which of the two builds this is (internal/edition): `base` is
+  # what everybody gets, `lifetime` embeds the extra board templates and asks
+  # its own release feed. It travels as a build tag because that is the whole
+  # mechanism — a base binary does not contain the files a lifetime one does,
+  # so there is nothing in it to switch on. `base` adds no tag at all, which
+  # keeps the default build byte-for-byte what it was.
+  EDITION: '{{.EDITION | default "base"}}'
+  EDITION_TAG: '{{if eq .EDITION "base"}}{{else}},{{.EDITION}}{{end}}'
+  BASE_TAGS: '{{.EXTRA_TAGS | default "json1,sqlite3,frontend"}}{{.EDITION_TAG}}'
   EXTRA_TAGS: '{{.BASE_TAGS}}'
 
 includes:

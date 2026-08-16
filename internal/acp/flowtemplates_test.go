@@ -55,6 +55,15 @@ func readTemplateBoards(t *testing.T) []templateBoard {
 	if len(files) == 0 {
 		t.Fatalf("no board templates under %s", templatesDir)
 	}
+	// And the ones only a paid edition embeds (internal/edition). Read off
+	// disk rather than out of an embed, so they are checked whichever tag this
+	// test binary was built with: a template is data, and data that only one
+	// build validates is data nobody validates.
+	editions, err := filepath.Glob(filepath.Join(templatesDir, "*", "*.jsonl"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	files = append(files, editions...)
 	var boards []templateBoard
 	for _, path := range files {
 		f, err := os.Open(path)

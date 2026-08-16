@@ -5,11 +5,9 @@ import {useIntl} from '../intl'
 import {Card} from '../blocks/card'
 import {useAppSelector} from '../store/hooks'
 import {getCardContents} from '../store/contents'
-import {getCardComments} from '../store/comments'
 import {ContentBlock} from '../blocks/contentBlock'
 import {CommentBlock} from '../blocks/commentBlock'
 import TextIcon from '../widgets/icons/text'
-import MessageIcon from '../widgets/icons/message'
 import CheckIcon from '../widgets/icons/check'
 import {Utils} from '../utils'
 
@@ -75,8 +73,14 @@ const calculateBadges = (contents: ContentsType, comments: CommentBlock[]): Badg
 
 const CardBadges = (props: Props) => {
     const contents = useAppSelector((state) => getCardContents(props.card.id)(state))
-    const comments = useAppSelector((state) => getCardComments(props.card.id)(state))
-    const badges = createMemo(() => calculateBadges(contents(), comments()))
+
+    // No comment badge while this app has one person in it (docs/teamwork.md):
+    // the list is commented out in cardDetail, so a count on the card's face
+    // would be a number pointing at something nobody can open. Agents go on
+    // writing comments — they are just not what the card advertises. Which is
+    // why the comments arrive here as an empty list rather than from
+    // `getCardComments`, and why the badge below is commented out with them.
+    const badges = createMemo(() => calculateBadges(contents(), []))
     const intl = useIntl()
 
     return (
@@ -87,12 +91,14 @@ const CardBadges = (props: Props) => {
                         <TextIcon/>
                     </span>
                 </Show>
+                {/*
                 <Show when={badges().comments > 0}>
                     <span title={intl.formatMessage({id: 'CardBadges.title-comments', defaultMessage: 'Comments'})}>
                         <MessageIcon/>
                         {badges().comments}
                     </span>
                 </Show>
+                */}
                 <Show when={badges().checkboxes.total > 0}>
                     <span title={intl.formatMessage({id: 'CardBadges.title-checkboxes', defaultMessage: 'Checkboxes'})}>
                         <CheckIcon/>

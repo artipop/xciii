@@ -121,7 +121,10 @@ func TestTemplatesAreInstalledOnceAndStayThere(t *testing.T) {
 		}
 	}
 	sort.Strings(slugs)
-	want := []string{"content-making", "developer-tasks", "home-chores"}
+	// What this build ships, rather than a list written here: the paid edition
+	// carries two more boards (internal/edition), and a test naming the three
+	// core ones would fail on it for being right.
+	want := shippedSlugs(t)
 	if strings.Join(slugs, ",") != strings.Join(want, ",") {
 		t.Fatalf("installed %v, expected %v", slugs, want)
 	}
@@ -341,7 +344,7 @@ func TestATemplateThisBuildNoLongerShipsIsRemoved(t *testing.T) {
 	// …and a board somebody made from it, which is not ours to touch.
 	made, err := a.CreateBoard(&model.Board{
 		TeamID: model.GlobalTeamID, Title: "Мои покупки", Type: model.BoardTypeOpen,
-		CreatedBy: model.SingleUser,
+		CreatedBy:  model.SingleUser,
 		Properties: map[string]any{TemplateMarkerProperty: "shopping-and-meals"},
 	}, model.SingleUser, false)
 	if err != nil {
@@ -359,7 +362,7 @@ func TestATemplateThisBuildNoLongerShipsIsRemoved(t *testing.T) {
 		t.Errorf("a board made from it was taken away with it: %v", err)
 	}
 	// And the ones this build does ship are still there, at this version.
-	if got := installedTemplates(t, a); len(got) != 3 {
-		t.Errorf("installed %d templates, want the three this build ships", len(got))
+	if got, want := installedTemplates(t, a), shippedSlugs(t); len(got) != len(want) {
+		t.Errorf("installed %d templates, want the %d this build ships", len(got), len(want))
 	}
 }

@@ -46,7 +46,7 @@ and fill in:
   profile. It is stored in the keychain, not in a settings file.
 
 The app polls Kaiten every five minutes. One task — one card: repeated polling
-creates no duplicates, and a changed task gets a comment.
+creates no duplicates, and a changed task updates its card.
 
 Next to the source's name is its state — "working", "needs a token", "failed".
 The **"Log"** button shows what the source has brought.

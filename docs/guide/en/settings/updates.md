@@ -6,6 +6,9 @@ the settings window is the second one, right under "The app itself".
 ## What it shows
 
 - **"Installed version X"** — the version running now.
+- **"Edition: …"** — which build is installed: "Basic" or "Lifetime". There are
+  two editions and they differ in the board templates they carry; each updates
+  from its own releases, so a basic copy never turns into a paid one or back.
 - A status line: "Not checked yet", "This is the latest version", "Version Y is
   available", "Downloading…", "Checking the signature…", "Installing…",
   "Version Y is ready. It is installed on restart." or "The update failed".

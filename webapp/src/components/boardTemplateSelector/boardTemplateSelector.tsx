@@ -58,11 +58,19 @@ type Props = {
 // then quietly offer nothing; the marker is what the Go side already recognises
 // a board by (`TemplateMarkerProperty` in `internal/boardadapter/templates.go`),
 // and it is the file name in `internal/boardadapter/templates`.
+//
+// The list names every edition's templates, the paid one's included, and the
+// page is none the wiser about which build serves it: the extra boards are
+// simply not in a base binary, so their slugs match nothing and the filter
+// drops them. Which is the point of deciding an edition at compile time — a
+// page that knew would be a page that could be told otherwise.
 const TEMPLATE_MARKER = 'xciiiTemplate'
 const VISIBLE_TEMPLATE_SLUGS = [
     'developer-tasks',
     'content-making',
     'home-chores',
+    'research',
+    'documentation',
 ]
 
 // templateSlug is the marker, or '' for a board that carries none — every

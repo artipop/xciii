@@ -13,6 +13,7 @@
 | `.app` / инсталлятор | `wails3 task package`, `darwin:package:dmg`, `windows:package`, `linux:package` |
 | Headless-сервер | `wails3 task build:server` |
 | Кросс-образ для бинарей | `wails3 task setup:docker` |
+| Платное издание | к любой из них — `EDITION=lifetime` |
 
 `Taskfile.yml` в корне и по `Taskfile.yml` на платформу в `build/`. Makefile
 здесь нет — цели `*-wails3` жили в v2-приложении и не переезжали.
@@ -27,7 +28,10 @@
 - `server` — headless-сборка, у неё свои файлы (`window_server.go` вместо
   `window_desktop.go`);
 - `production` — релизная сборка; без него каталог данных `XCIII-dev`, поэтому
-  дев-сборка никогда не трогает настоящую установку.
+  дев-сборка никогда не трогает настоящую установку;
+- `lifetime` — платное издание: лишние шаблоны досок и свой фид обновлений.
+  Добавляется через `EDITION=lifetime`, а не руками: `EDITION=base` (по
+  умолчанию) не добавляет тега вовсе. См. [editions.md](editions.md).
 
 ## `CGO_ENABLED=0` — ловушка ровно одна, и она тихая
 

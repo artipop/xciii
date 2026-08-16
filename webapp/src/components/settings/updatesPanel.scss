@@ -14,6 +14,16 @@
         font-size: var(--text-body);
     }
 
+    // Which build it is — quieter than the version and pulled up under it,
+    // because it qualifies that line rather than standing beside it: the two
+    // together are one answer to «что у меня стоит».
+    .UpdatesPanel__edition {
+        @include label;
+
+        margin-top: -8px;
+        opacity: 0.64;
+    }
+
     // The status is the app reporting on itself. Only two of the nine carry a
     // colour: the one that wants something from a person, and the one that
     // went wrong.

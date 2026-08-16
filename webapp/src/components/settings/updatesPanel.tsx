@@ -125,6 +125,23 @@ const UpdatesPanel = () => {
         )
     }
 
+    // Which build is installed, in words. Two editions are two installers
+    // under one app name, so «какое у меня стоит» has no other answer on
+    // screen — and it belongs here, beside the version, because it is the
+    // same question. An edition this page does not know is printed as it
+    // came: a wrong word is better than a blank line, and both are better
+    // than pretending it is the base one.
+    const editionName = (): string => {
+        switch (state().edition) {
+        case 'base':
+            return intl.formatMessage({id: 'Updates.edition-base', defaultMessage: 'Basic'})
+        case 'lifetime':
+            return intl.formatMessage({id: 'Updates.edition-lifetime', defaultMessage: 'Lifetime'})
+        default:
+            return state().edition || ''
+        }
+    }
+
     // 0–100 with no total is a bar that sits at zero for the whole download,
     // which reads as stuck. Without a size the bar is left out entirely.
     const percent = () => {
@@ -151,6 +168,15 @@ const UpdatesPanel = () => {
                         {version: state().currentVersion},
                     )}
                 </div>
+
+                <Show when={editionName()}>
+                    <div class='UpdatesPanel__edition'>
+                        {intl.formatMessage(
+                            {id: 'Updates.edition', defaultMessage: 'Edition: {edition}'},
+                            {edition: editionName()},
+                        )}
+                    </div>
+                </Show>
 
                 <Show when={headline(state())}>
                     <div class={`UpdatesPanel__status UpdatesPanel__status--${state().status}`}>

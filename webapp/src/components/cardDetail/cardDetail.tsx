@@ -35,7 +35,7 @@ import CardSkeleton from '../../svg/card-skeleton'
 import CaseStamp, {isCaseStampAvailable} from '../acp/caseStamp'
 import FlowStrip, {isFlowStripAvailable} from '../acp/flowStrip'
 
-import CommentsList from './commentsList'
+// import CommentsList from './commentsList'
 import {CardDetailProvider} from './cardDetailContext'
 import CardDetailContents from './cardDetailContents'
 import CardDetailContentsMenu from './cardDetailContentsMenu'
@@ -130,7 +130,9 @@ const CardDetail = (props: Props): JSX.Element => {
         }
     }
     const canEditBoardCards = useHasCurrentBoardPermissions([Permission.ManageBoardCards])
-    const canCommentBoardCards = useHasCurrentBoardPermissions([Permission.CommentBoardCards])
+
+    // Read by the comments list alone, which is commented out below.
+    // const canCommentBoardCards = useHasCurrentBoardPermissions([Permission.CommentBoardCards])
 
     const intl = useIntl()
 
@@ -339,7 +341,17 @@ const CardDetail = (props: Props): JSX.Element => {
                     <FlowStrip cardId={props.card.id}/>
                 </Show>
 
-                {/* Comments */}
+                {/* Comments are commented out rather than deleted: they are a
+                    conversation between people, and this app has one person in
+                    it. What a person wants to say about a card they say to the
+                    agent, in the card's own terminal — «Обсудить с агентом» is
+                    where that thinking happens, and a second place to write
+                    prose about the same card only splits it.
+
+                    The list and its store are untouched, because the feature
+                    comes back the moment there is somebody to talk to:
+                    docs/teamwork.md says what turns it on and where it will be
+                    drawn.
 
                 <Show when={!limited()}>
                     <hr/>
@@ -349,7 +361,7 @@ const CardDetail = (props: Props): JSX.Element => {
                         cardId={props.card.id}
                         readonly={props.readonly || !canCommentBoardCards()}
                     />
-                </Show>
+                </Show> */}
             </div>
 
             {/* Content blocks */}

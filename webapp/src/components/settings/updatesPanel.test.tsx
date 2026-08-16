@@ -65,6 +65,26 @@ describe('components/settings/updatesPanel', () => {
         expect(screen.getByText('Not checked yet')).toBeInTheDocument()
     })
 
+    // Two editions are two installers under one app name, so this line is the
+    // only place on screen that says which one is running.
+    it('names the edition beside the version', async () => {
+        anyWindow.go = {main: {App: bindings({edition: 'lifetime'})}}
+
+        open()
+
+        expect(await screen.findByText('Edition: Lifetime')).toBeInTheDocument()
+    })
+
+    // A build this page has never heard of still says what it is: a word we
+    // cannot translate beats a blank line, and both beat "Basic".
+    it('prints an edition it does not know as it came', async () => {
+        anyWindow.go = {main: {App: bindings({edition: 'team'})}}
+
+        open()
+
+        expect(await screen.findByText('Edition: team')).toBeInTheDocument()
+    })
+
     // Nothing is downloaded until somebody asks: a hundred megabytes over
     // somebody's connection is not a thing to do quietly in the background.
     it('offers a found version rather than installing it', async () => {

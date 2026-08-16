@@ -1,7 +1,7 @@
 # The agent on a card
 
 This page covers how an agent works a card: who takes it, where the terminal
-is, how to answer questions and what ends up in comments.
+is, how to answer questions and what stays on the card.
 
 ## Who gets a card
 
@@ -265,8 +265,9 @@ that declares the work over — through the board tool `finish_work`, which the
 app hands it along with the rest. It says whether the work is done or could not
 be done, and briefly what was done.
 
-After that the card travels on along the route, the conversation is closed, and
-a comment with that summary appears on the card.
+After that the card travels on along the route and the conversation is closed.
+What exactly was done is in the agent's closing words in the terminal — the
+conditions on the route's arrows read the same words.
 
 If you close the terminal yourself before the agent has said this, the card
 stays where it is: the route strip shows an amber line saying the result was
@@ -276,12 +277,15 @@ That is how agent stages work. Deploys and tests are arranged differently —
 there is no terminal there, the app talks to the agent directly and reads the
 result itself.
 
-## Comments
+## What is shown on the card
 
-A stage leaves one comment on the card, at the end: what the agent did or why it
-could not, and under that the branch, the commits that appeared and anything
-left uncommitted. The branch and the directory are also shown in the line under
-the card title, the position on the route — in the route strip.
+The branch and the directory are in the line under the card title; where the
+card stands on its route and what it waits for — in the route strip; the
+conversation with the agent — in the terminal panel beside the card.
+
+There are no comments on cards at the moment: the app is built for one person,
+and everything that used to be written into a comment is either shown on the
+card itself or said by the agent in the terminal.
 
 If a stage could not start — no project found, the column is busy, the route
 has no transition — the reason is shown in amber on the route strip and
