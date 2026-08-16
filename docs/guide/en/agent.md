@@ -19,12 +19,21 @@ To make an agent appear in the assignment list, register it in the settings —
 the [Agents](./settings/agents.md) section. After registration it becomes a
 board member under its own name: open the field and pick it.
 
+**The list holds this board's agents.** The registry is one per machine, and a
+board names its own in "Worked by" on its columns and stages; those are the ones
+the assignment field offers. A board that names nobody offers every agent on the
+machine — the same as before it was set up. People are untouched: the field
+offers them always.
+
+Who works this board's cards is asked by the setup wizard
+([⋯ → "Walk the setup again…"](./automation/index.md)) on its "Agent" step: the
+names are chips, clicking one turns it on and off, and several or none may be
+chosen. The answer can be changed later in "Columns and routes…", the column's
+"Worked by" field.
+
 With exactly one agent registered, that agent takes the card and nothing has to
 be assigned. With several, a card whose column has no crew and which is
-assigned to nobody stops: the app cannot pick for you. Who works this board's
-cards is asked by the setup wizard
-([⋯ → "Walk the setup again…"](./automation/index.md)), and the answer can be
-changed in "Columns and routes…", the column's "Worked by" field.
+assigned to nobody stops: the app cannot pick for you.
 
 The agent reads its task from the **card description** — there is no separate
 task field. The board's instruction, shared by all its agents, is added in

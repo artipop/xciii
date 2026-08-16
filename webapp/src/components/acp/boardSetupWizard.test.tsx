@@ -205,7 +205,7 @@ describe('components/acp/boardSetupWizard', () => {
 
         // The machine already has an agent, so the step says so and offers Next
         // rather than a form. ("claude" is the agent; the project is "webapp".)
-        await waitFor(() => expect(screen.getByText('Already registered: claude')).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByRole('button', {name: 'claude'})).toBeInTheDocument())
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
         await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'agent', 'done'))
         expect(bindings.AddAgent).not.toHaveBeenCalled()
@@ -225,7 +225,7 @@ describe('components/acp/boardSetupWizard', () => {
         })
         renderWizard()
 
-        await waitFor(() => expect(screen.getByText('Already registered: клаус')).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByRole('button', {name: 'клаус'})).toBeInTheDocument())
 
         userEvent.click(screen.getByRole('button', {name: 'Add an agent…'}))
         await waitFor(() => expect(screen.getByText('Kind')).toBeInTheDocument())
@@ -248,7 +248,7 @@ describe('components/acp/boardSetupWizard', () => {
     // nobody crewing the column and nobody assigned to the card, it has a
     // registry of several and no rule, and the card stalls. So the step asks,
     // and the answer is written as the column's crew.
-    test('with several agents the step asks which one works the board', async () => {
+    test('the step asks who works the board, and writes the crew chosen', async () => {
         const bindings = stubBindings({
             ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'тестер'}])),
@@ -263,16 +263,20 @@ describe('components/acp/boardSetupWizard', () => {
         // decided is on the screen rather than in the wizard's head.
         expect(screen.getByText(/“В работе”/)).toBeInTheDocument()
 
+        // A crew, not one name: both may work the column, and the engine hands
+        // the card to whichever is free.
         userEvent.click(screen.getByRole('button', {name: 'тестер'}))
+        userEvent.click(screen.getByRole('button', {name: 'клаус'}))
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
 
-        await waitFor(() => expect(bindings.SetBoardWorkAgent).toHaveBeenCalledWith(testBoard.id, 'тестер'))
+        await waitFor(() => expect(bindings.SetBoardWorkAgent).toHaveBeenCalled())
+        expect(JSON.parse(bindings.SetBoardWorkAgent.mock.calls[0][1])).toEqual(['тестер', 'клаус'])
     })
 
-    // One agent is already the answer, and a question with one option is not a
-    // question. Passing then writes nothing: there is nothing to choose, and
-    // the engine resolves a registry of one by itself.
-    test('a single agent is not asked about, and passing crews nobody', async () => {
+    // A single agent is a chip like any other, and it starts unticked. Taken as
+    // the answer without being shown as one, it was a default nobody could
+    // argue with — and on a board whose crew is deliberately empty it was wrong.
+    test('a single agent is offered rather than assumed, and passing writes nothing', async () => {
         const bindings = stubBindings({
             ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
             ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
@@ -281,12 +285,38 @@ describe('components/acp/boardSetupWizard', () => {
         })
         renderWizard()
 
-        await waitFor(() => expect(screen.getByText('Already registered: клаус')).toBeInTheDocument())
-        expect(screen.queryByRole('button', {name: 'клаус'})).toBeNull()
+        const chip = await waitFor(() => screen.getByRole('button', {name: 'клаус'}))
+        expect(chip).toHaveAttribute('aria-pressed', 'false')
 
+        // Walking past without touching the chips writes nothing at all: what
+        // they show is a picture of the board, not an answer given here.
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
         await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'agent', 'done'))
         expect(bindings.SetBoardWorkAgent).not.toHaveBeenCalled()
+    })
+
+    // Unticking is an answer: the board then names nobody, which is what a
+    // board nobody has crewed does — every agent on the machine is offered on
+    // its cards, and the card decides.
+    test('the crew already there can be taken off with the chips', async () => {
+        const bindings = stubBindings({
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'тестер'}])),
+            BoardSetupPlan: vi.fn().mockResolvedValue(
+                plan([{kind: 'agent', ready: true}, {kind: 'done'}], {agentColumn: 'В работе', workAgents: ['клаус']}),
+            ),
+            SetBoardWorkAgent: vi.fn().mockResolvedValue(undefined),
+        })
+        renderWizard()
+
+        // The step opens on the answer the board already carries.
+        await waitFor(() => expect(screen.getByRole('button', {name: 'клаус'})).toHaveAttribute('aria-pressed', 'true'))
+
+        userEvent.click(screen.getByRole('button', {name: 'клаус'}))
+        await waitFor(() => expect(screen.getByRole('button', {name: 'клаус'})).toHaveAttribute('aria-pressed', 'false'))
+        userEvent.click(screen.getByRole('button', {name: 'Next'}))
+
+        await waitFor(() => expect(bindings.SetBoardWorkAgent).toHaveBeenCalledWith(testBoard.id, '[]'))
     })
 
     // The folder is the one question somebody may not be able to answer at the
@@ -309,7 +339,7 @@ describe('components/acp/boardSetupWizard', () => {
         expect(screen.getByRole('button', {name: 'Next'})).toBeDisabled()
         userEvent.click(screen.getByRole('button', {name: 'Skip'}))
 
-        await waitFor(() => expect(screen.getByText('Already registered: клаус')).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByRole('button', {name: 'клаус'})).toBeInTheDocument())
         expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'project', 'skipped')
         expect(bindings.AddAgentWorkdir).not.toHaveBeenCalled()
     })
@@ -369,7 +399,7 @@ describe('components/acp/boardSetupWizard', () => {
 
         // The machine already has an agent, so this step says so rather than
         // asking again. ("claude" is the agent; the project is "notes".)
-        await waitFor(() => expect(screen.getByText('Already registered: claude')).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByRole('button', {name: 'claude'})).toBeInTheDocument())
         userEvent.click(screen.getByRole('button', {name: 'Next'}))
 
         // Straight to the end, and the end names this board's own column.

@@ -156,11 +156,11 @@ type SetupPlan struct {
 	// names an agent for it, so the question can say which column it is about
 	// and the answer knows where to write the crew.
 	TestColumn string `json:"testColumn,omitempty"`
-	// WorkAgent is who already works this board's cards — the crew of its agent
-	// stages, when that is one agent. The step that asks reads it back so a
-	// wizard walked a second time opens on the answer it was given, rather than
-	// showing nobody chosen over a column that has somebody.
-	WorkAgent string `json:"workAgent,omitempty"`
+	// WorkAgents is who already works this board's cards — the crew of its
+	// agent stages, when they agree on one. The step that asks reads it back so
+	// a wizard walked a second time opens on the answer it was given, rather
+	// than showing nobody chosen over a column that has somebody.
+	WorkAgents []string `json:"workAgents,omitempty"`
 	// Offered says the wizard has already opened itself for this board once.
 	// Closing it half-way answers nothing, but it is still an answer to "have
 	// you seen this?", and asking again on every launch is how a dialog becomes
@@ -198,7 +198,7 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 
 	plan.AgentColumn = columnOfAction(columns, FlowActionAgent)
 	plan.TestColumn = columnOfAction(columns, FlowActionTest)
-	plan.WorkAgent = soleCrewOfAction(columns, FlowActionAgent)
+	plan.WorkAgents = crewOfAction(columns, FlowActionAgent)
 	states := m.setupStates(boardID)
 	plan.Offered = states[setupWizardStep] != ""
 	for _, step := range steps {
@@ -369,24 +369,84 @@ func columnOfAction(columns []ColumnSpec, action string) string {
 	return ""
 }
 
-// soleCrewOfAction is the one agent every stage of this kind is crewed with,
-// and nothing when they disagree. A crew is a membership list, so several names
-// — or two columns crewed differently — is an arrangement richer than the one
-// question the wizard asks, and it answers with nothing rather than with the
-// first of them: a step that showed one of two names as "the" answer would be
-// offering to overwrite the other on the way past.
-func soleCrewOfAction(columns []ColumnSpec, action string) string {
-	sole := ""
+// crewOfAction is the crew every stage of this kind is worked by, and nothing
+// when they disagree — two columns crewed differently is an arrangement richer
+// than the one question the wizard asks, and showing one of the two as "the"
+// answer would be offering to overwrite the other on the way past.
+func crewOfAction(columns []ColumnSpec, action string) []string {
+	var crew []string
+	first := true
 	for _, c := range columns {
 		if c.Action != action {
 			continue
 		}
-		if len(c.Agents) != 1 || (sole != "" && !strings.EqualFold(sole, c.Agents[0])) {
-			return ""
+		if first {
+			crew, first = c.Agents, false
+			continue
 		}
-		sole = c.Agents[0]
+		if !sameCrew(crew, c.Agents) {
+			return nil
+		}
 	}
-	return sole
+	return crew
+}
+
+// sameCrew compares two crews as the lists they are: order is not part of the
+// answer, but who is on them is.
+func sameCrew(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for _, name := range a {
+		found := false
+		for _, other := range b {
+			if strings.EqualFold(name, other) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+// BoardAgentNames is every agent this board names anywhere in its automation —
+// the crew of a column or of a stage of a route, whatever that stage does. It
+// is what "the agents of this board" means to a person: the registry is the
+// machine's, and a board's own answer is who it puts to work on it.
+func (m *Manager) BoardAgentNames(boardID string) []string {
+	// The same reader the plan uses, and for the same reason: a board whose
+	// automation has not been taken into the registry yet still carries it in
+	// its own properties, and it names its agents there just as truthfully.
+	// Nothing here writes, so a card's assignee list costs no seeding.
+	_, columns, flows := m.boardSetupSources(boardID)
+	var names []string
+	known := func(name string) bool {
+		for _, have := range names {
+			if strings.EqualFold(have, name) {
+				return true
+			}
+		}
+		return false
+	}
+	add := func(crew []string) {
+		for _, name := range crew {
+			if name = strings.TrimSpace(name); name != "" && !known(name) {
+				names = append(names, name)
+			}
+		}
+	}
+	for _, c := range columns {
+		add(c.Agents)
+	}
+	for _, f := range flows {
+		for _, n := range f.Nodes {
+			add(n.Crew())
+		}
+	}
+	return names
 }
 
 // SetTestAgent answers the QA step: this agent tests this board, and it tests
@@ -404,32 +464,39 @@ func soleCrewOfAction(columns []ColumnSpec, action string) string {
 // nothing else, and rebuilding the entry from that dropped the model, the
 // environment and the proxy of an agent already set up.
 func (m *Manager) SetTestAgent(boardID, agentName string, servers MCPServerSet) error {
-	return m.setStageCrew(boardID, agentName, FlowActionTest, servers)
+	return m.setStageCrew(boardID, []string{agentName}, FlowActionTest, servers)
 }
 
-// SetWorkAgent answers the agent step the same way, for the stages that work a
-// card rather than test it: this agent is the crew of this board's agent
+// SetWorkAgents answers the agent step the same way, for the stages that work a
+// card rather than test it: these agents are the crew of this board's agent
 // columns.
 //
-// It is asked only when the machine has more than one agent, because that is
-// the case the engine cannot answer for itself: with no crew on the column and
-// no agent named on the card, resolveSessionAgent has a registry of several and
-// no rule to pick from it, so the card stalls with «не удалось выбрать агента».
-// One agent needs no question — it is already the answer — and neither does a
-// board whose cards name their own agent in «Кто занимается», which is why
-// nobody chosen leaves the columns as they were.
-func (m *Manager) SetWorkAgent(boardID, agentName string) error {
-	return m.setStageCrew(boardID, agentName, FlowActionAgent, nil)
+// A crew, not one name, because that is what a stage holds and what a person
+// answering «кто работает карточки этой доски» may mean — two agents sharing
+// the column is an ordinary arrangement, and the engine already picks the free
+// one. An empty list is an answer too: it takes the crew off, and a board that
+// names nobody is back to offering every agent on the machine, which is what a
+// board that has never been asked does.
+func (m *Manager) SetWorkAgents(boardID string, names []string) error {
+	return m.setStageCrew(boardID, names, FlowActionAgent, nil)
 }
 
-// setStageCrew is the half those two share: one agent written as the crew of
-// every stage of this board that does `action` — a column of its own, or a node
-// of a route that does it over a column that does something else.
-func (m *Manager) setStageCrew(boardID, agentName, action string, servers MCPServerSet) error {
-	agentName = strings.TrimSpace(agentName)
-	entry, ok := m.agentNamed(agentName)
-	if !ok {
-		return fmt.Errorf("агент %q не найден в реестре", agentName)
+// setStageCrew is the half those two share: the crew written onto every stage
+// of this board that does `action` — a column of its own, or a node of a route
+// that does it over a column that does something else.
+func (m *Manager) setStageCrew(boardID string, names []string, action string, servers MCPServerSet) error {
+	// Every name is checked against the registry before anything is written: a
+	// name comes from the page, and a typo would otherwise leave the column
+	// crewed with somebody no session can resolve.
+	crew := make([]string, 0, len(names))
+	var entry AgentEntry
+	for _, name := range names {
+		found, ok := m.agentNamed(strings.TrimSpace(name))
+		if !ok {
+			return fmt.Errorf("агент %q не найден в реестре", strings.TrimSpace(name))
+		}
+		entry = found
+		crew = append(crew, found.Name)
 	}
 
 	// Read the board first: the wizard runs before any card has been moved, so
@@ -448,7 +515,7 @@ func (m *Manager) setStageCrew(boardID, agentName, action string, servers MCPSer
 		if spec.Action != action {
 			continue
 		}
-		spec.Agents = []string{entry.Name}
+		spec.Agents = crewOrNone(crew)
 		if len(servers) > 0 {
 			spec.MCPServers = servers
 		}
@@ -465,7 +532,12 @@ func (m *Manager) setStageCrew(boardID, agentName, action string, servers MCPSer
 			if node.Action != action {
 				continue
 			}
-			flow.Nodes[i].AgentNames = []string{entry.Name}
+			flow.Nodes[i].AgentNames = crewOrNone(crew)
+
+			// The stage's older single-agent field, which Crew() still prefers
+			// when AgentNames is empty: left standing it would answer for a
+			// crew somebody has just taken off.
+			flow.Nodes[i].AgentName = ""
 			if len(servers) > 0 {
 				flow.Nodes[i].MCPServers = servers
 			}
@@ -482,13 +554,23 @@ func (m *Manager) setStageCrew(boardID, agentName, action string, servers MCPSer
 	// before the column existed. The answer still has to land somewhere, and
 	// the agent is where the browser used to live. A crew has nowhere else to
 	// go and is simply not written: there is no stage for it to be the crew of.
-	if !placed && len(servers) > 0 {
+	if !placed && len(servers) > 0 && entry.Name != "" {
 		entry.MCPServers = servers
 		if _, err := m.UpdateAgent(entry); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// crewOrNone keeps an empty crew empty rather than an empty list: nil is what
+// "nobody is named here" is stored as everywhere else, and a `[]` in the
+// board's JSON would read as an arrangement somebody made.
+func crewOrNone(crew []string) []string {
+	if len(crew) == 0 {
+		return nil
+	}
+	return crew
 }
 
 // agentNamed finds a registry entry by name, the way every other lookup does:

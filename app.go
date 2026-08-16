@@ -558,15 +558,46 @@ func (a *App) SetBoardTestAgent(boardID, agentName, serversJSON string) error {
 	return a.mgr.SetTestAgent(boardID, agentName, servers)
 }
 
-// SetBoardWorkAgent answers the wizard's agent step when the machine has more
-// than one agent: the one chosen becomes the crew of this board's agent
-// columns, which is the only place that choice can be recorded — the registry
-// is the machine's and says nothing about who works which board.
-func (a *App) SetBoardWorkAgent(boardID, agentName string) error {
+// SetBoardWorkAgent answers the wizard's agent step: the agents chosen become
+// the crew of this board's agent columns, which is the only place that choice
+// can be recorded — the registry is the machine's and says nothing about who
+// works which board. An empty list takes the crew off again.
+func (a *App) SetBoardWorkAgent(boardID, namesJSON string) error {
 	if a.mgr == nil {
 		return errACPDisabled
 	}
-	return a.mgr.SetWorkAgent(boardID, agentName)
+	var names []string
+	if strings.TrimSpace(namesJSON) != "" {
+		if err := json.Unmarshal([]byte(namesJSON), &names); err != nil {
+			return err
+		}
+	}
+	return a.mgr.SetWorkAgents(boardID, names)
+}
+
+// BoardAgentUsers says which of this machine's agents this board names, and
+// which agents there are at all — as board usernames, because that is what a
+// person property holds. The page needs both to narrow the assignee list: an
+// agent the board does not name is dropped, and anybody who is not an agent is
+// left alone. A board that names nobody narrows nothing, or a board nobody has
+// crewed would have no agent to assign at all.
+func (a *App) BoardAgentUsers(boardID string) (string, error) {
+	answer := struct {
+		Board []string `json:"board"`
+		All   []string `json:"all"`
+	}{Board: []string{}, All: []string{}}
+	if a.mgr == nil {
+		out, err := json.Marshal(answer)
+		return string(out), err
+	}
+	for _, name := range a.mgr.BoardAgentNames(boardID) {
+		answer.Board = append(answer.Board, acp.AgentUsername(name))
+	}
+	for _, user := range a.mgr.AgentUsers() {
+		answer.All = append(answer.All, user.Username)
+	}
+	out, err := json.Marshal(answer)
+	return string(out), err
 }
 
 // RecordBoardSetupStep remembers what was done with a step — skipping above

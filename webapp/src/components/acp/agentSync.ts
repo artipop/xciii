@@ -4,6 +4,7 @@ import {Board, IPropertyTemplate} from '../../blocks/board'
 import mutator from '../../mutator'
 
 import {agentBindings} from './bindings'
+import {invalidateBoardAgents} from './boardAgents'
 
 // Making the machine's agents usable on a board: an account each, so the board
 // can name one the same way it names a person.
@@ -51,6 +52,11 @@ export async function syncAgentsToBoard(board: Board): Promise<SyncResult> {
         const synced = (JSON.parse(await bindings.SyncAgentUsers(board.id)) || []) as Array<{created?: boolean}>
         result.accounts = synced.filter((u) => u.created).length
     }
+
+    // Opening a board is when the registry may have moved since anybody last
+    // looked: an agent added in the settings is one this board's assignee list
+    // has to know about, one way or the other.
+    invalidateBoardAgents()
 
     result.retired = await retireAgentProperty(board)
     return result

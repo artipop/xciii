@@ -167,6 +167,12 @@ describe('properties/person', () => {
             expect(userProperty).not.toBeNull()
 
             userEvent.click(userProperty as Element)
+
+            // The list arrives a tick later: the options are narrowed to the
+            // agents the board names, and asking Go that is a promise.
+            // Waited for as an option rather than by name: the one board user
+            // is also the value, so the name is on screen before the list is.
+            await waitFor(() => expect(container.querySelector('[role="option"]')).not.toBeNull())
             expect(container).toMatchSnapshot()
         } else {
             throw new Error('container should have been initialized')

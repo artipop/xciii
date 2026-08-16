@@ -11,6 +11,7 @@ import Dialog from '../dialog'
 import {sendFlashMessage} from '../flashMessages'
 
 import {agentBindings} from './bindings'
+import {invalidateBoardAgents} from './boardAgents'
 import {textToServers} from './mcpServers'
 import AgentQuickAdd from './agentQuickAdd'
 import {agentColumn, checkSetupAnswer, createSetupPlan, recordSetupStep, SetupStep, SetupStepKind, stepRequires} from './boardSetup'
@@ -113,7 +114,22 @@ const BoardSetupWizard = (props: Props) => {
     // Step 2: who works this board, and another agent on a step that already
     // has one.
     const [addingAgent, setAddingAgent] = createSignal(false)
-    const [boardAgent, setBoardAgent] = createSignal('')
+    const [boardAgents, setBoardAgents] = createSignal<string[]>([])
+
+    // Whether the chips have been answered here, as opposed to filled in from
+    // the plan. Nobody chosen is an answer — it takes the crew off — so "is the
+    // list empty" cannot stand for "has anybody said anything".
+    const [agentPicked, setAgentPicked] = createSignal(false)
+
+    const chosenAgent = (name: string) => boardAgents().some((n) => n === name)
+
+    // A chip is a toggle: clicking the one that is on takes it off, which is
+    // how "nobody" is said. Several may be on — a column's crew is a list, and
+    // the engine hands the card to whichever member is free.
+    const toggleAgent = (name: string) => {
+        setAgentPicked(true)
+        setBoardAgents((chosen) => (chosen.includes(name) ? chosen.filter((n) => n !== name) : [...chosen, name]))
+    }
 
     // Step 3: a Dokku host.
     const [deploy, setDeploy] = createSignal({name: '', sshHost: '', sshUser: '', sshKey: '', baseDomain: ''})
@@ -149,14 +165,14 @@ const BoardSetupWizard = (props: Props) => {
         refresh()
     })
 
-    // Who the board's agent stages are already crewed with, when they are: the
-    // step then opens on the answer it was given last time rather than on
-    // nobody. Only while nobody has been picked here, so a refetched plan never
-    // overwrites a choice being made.
+    // Who the board's agent stages are already crewed with: the step opens on
+    // the answer it was given last time rather than on nobody. Only until
+    // somebody touches the chips — a plan is refetched after every answer, and
+    // it must never reinstate a name just taken off.
     createEffect(() => {
-        const named = plan()?.workAgent
-        if (named && !boardAgent()) {
-            setBoardAgent(named)
+        const named = plan()?.workAgents
+        if (named?.length && !agentPicked()) {
+            setBoardAgents(named)
         }
     })
 
@@ -315,20 +331,25 @@ const BoardSetupWizard = (props: Props) => {
     // for use here.
     const workdirAnswered = () => Boolean(taken()) || hasWorkdir() || Boolean(workdirPath() && workdirName().trim())
 
-    // One agent is the answer to "who works here" and needs no asking; several
-    // is the one case nothing else can decide.
-    const choosingAgent = () => registry().agents.length > 1
-
-    // Answering the agent step: the choice is written as the crew of the
-    // board's agent stages, and passing without one leaves them as they were —
-    // a board whose cards name their own agent is an arrangement, not an
-    // unfinished answer.
+    // Answering the agent step: what the chips show is written as the crew of
+    // the board's agent stages — nobody included, which takes the crew off and
+    // puts the board back to offering every agent on the machine.
+    //
+    // Only once somebody has touched them, though. Chips filled in from the
+    // plan are a picture of what is already there, and «Дальше» pressed without
+    // looking must not rewrite it — the plan shows nothing when two columns are
+    // crewed differently, and that would flatten both into one.
     const takeAgent = () => {
-        const chosen = boardAgent()
-        if (!choosingAgent() || !chosen || !bindings?.SetBoardWorkAgent) {
+        if (!agentPicked() || !bindings?.SetBoardWorkAgent) {
             return pass(STEP_AGENT)
         }
-        return run(() => bindings.SetBoardWorkAgent!(props.board.id, chosen), STEP_AGENT)
+        return run(async () => {
+            await bindings.SetBoardWorkAgent!(props.board.id, JSON.stringify(boardAgents()))
+
+            // The card's assignee list is drawn from the same crew, and
+            // nothing on the Go side announces the change.
+            invalidateBoardAgents()
+        }, STEP_AGENT)
     }
 
     const body = () => {
@@ -389,23 +410,14 @@ const BoardSetupWizard = (props: Props) => {
                 <div class='BoardSetupWizard__step'>
                     <p>{intl.formatMessage({id: 'BoardSetup.agent-why', defaultMessage: 'The agent that picks a card up. It has to be logged in already; here it is only given a name.'})}</p>
 
-                    {/* The names, when they are not a question: with a choice
-                        to make they are the chips below, and listing them twice
-                        reads as two different lists. */}
-                    <Show when={hasAgent() && !choosingAgent()}>
-                        <div class='BoardSetupWizard__known'>
-                            {intl.formatMessage({id: 'BoardSetup.agent-known', defaultMessage: 'Already registered: {names}'}, {names: registry().agents.map((a) => a.name).join(', ')})}
-                        </div>
-                    </Show>
-
-                    {/* Several agents is a question, and the engine cannot
-                        answer it: with nobody crewing the column and nobody
-                        assigned to the card, resolveSessionAgent has a registry
-                        of several and no rule, so the card stalls with «не
-                        удалось выбрать агента». One agent is already the
-                        answer, so it is not asked — the same rule the QA step
-                        follows one screen later. */}
-                    <Show when={choosingAgent()}>
+                    {/* The question is asked however many agents there are,
+                        one included. A single agent used to be taken as the
+                        answer without being shown as one, and «выбрано» that
+                        nobody chose is the kind of default a person cannot
+                        argue with: the chip says what the board will do and
+                        clicking it says otherwise. The registered names are the
+                        chips themselves, so there is no list of them above. */}
+                    <Show when={hasAgent()}>
                         <div class='BoardSetupWizard__ask'>
                             {intl.formatMessage({id: 'BoardSetup.agent-who', defaultMessage: 'Who works the cards on this board?'})}
                         </div>
@@ -433,22 +445,20 @@ const BoardSetupWizard = (props: Props) => {
                             // the step's column the link stretched the width of
                             // the dialog and centred itself.
                             <div class='BoardSetupWizard__agentChoices'>
-                                <Show when={choosingAgent()}>
-                                    <For each={registry().agents}>
-                                        {(a) => (
-                                            <button
-                                                type='button'
-                                                class='BoardSetupWizard__agentChoice'
-                                                classList={{'BoardSetupWizard__agentChoice--chosen': a.name === boardAgent()}}
-                                                aria-pressed={a.name === boardAgent()}
-                                                disabled={busy()}
-                                                onClick={() => setBoardAgent(a.name)}
-                                            >
-                                                {a.name}
-                                            </button>
-                                        )}
-                                    </For>
-                                </Show>
+                                <For each={registry().agents}>
+                                    {(a) => (
+                                        <button
+                                            type='button'
+                                            class='BoardSetupWizard__agentChoice'
+                                            classList={{'BoardSetupWizard__agentChoice--chosen': chosenAgent(a.name)}}
+                                            aria-pressed={chosenAgent(a.name)}
+                                            disabled={busy()}
+                                            onClick={() => toggleAgent(a.name)}
+                                        >
+                                            {a.name}
+                                        </button>
+                                    )}
+                                </For>
                                 <button
                                     type='button'
                                     class='BoardSetupWizard__pickAdd'
@@ -473,18 +483,20 @@ const BoardSetupWizard = (props: Props) => {
                         />
                     </Show>
 
-                    {/* What the choice does, and what happens without one. The
-                        crew is a membership list rather than a pin, so a card
-                        that names its own agent in «Кто занимается» still wins
-                        — which is also the only way a board with several agents
-                        and nobody chosen gets a card worked at all. */}
-                    <Show when={choosingAgent()}>
+                    {/* What the choice does — both halves of it, because the
+                        second is the one a person meets on a card: naming the
+                        board's agents is also what narrows the assignee field
+                        to them. Nobody chosen is a working answer and says so:
+                        the board names none of them, so it offers all of them.
+                        The crew is a membership list rather than a pin, so a
+                        card assigned to somebody on it still decides. */}
+                    <Show when={hasAgent()}>
                         <p class='BoardSetupWizard__hint'>
                             <Show
                                 when={plan()?.agentColumn}
-                                fallback={intl.formatMessage({id: 'BoardSetup.agent-note', defaultMessage: 'The chosen agent becomes the crew of the columns an agent works in. Without one, a card has to be assigned to an agent by hand — unassigned, it will wait.'})}
+                                fallback={intl.formatMessage({id: 'BoardSetup.agent-note', defaultMessage: 'The chosen agents become the crew of the columns an agent works in, and the assignee field on a card offers them. With nobody chosen the board offers every agent on the machine, and a card is worked by whoever it is assigned to.'})}
                             >
-                                {intl.formatMessage({id: 'BoardSetup.agent-column-note', defaultMessage: 'The chosen agent becomes the crew of the “{column}” column: cards that get there go to it. Without one, a card has to be assigned to an agent by hand — unassigned, it will wait. This can be changed later in "Columns and routes…".'}, {column: plan()!.agentColumn})}
+                                {intl.formatMessage({id: 'BoardSetup.agent-column-note', defaultMessage: 'The chosen agents become the crew of the “{column}” column — cards that get there go to them, and the assignee field on a card offers them. With nobody chosen the board offers every agent on the machine, and a card is worked by whoever it is assigned to. This can be changed later in "Columns and routes…".'}, {column: plan()!.agentColumn})}
                             </Show>
                         </p>
                     </Show>

@@ -690,7 +690,7 @@ func TestTheAgentAnswerCrewsTheStagesThatWorkTheCard(t *testing.T) {
 		t.Fatal("two registered agents and no crew should be a question, not a choice made silently")
 	}
 
-	if err := m.SetWorkAgent("board1", "клаус"); err != nil {
+	if err := m.SetWorkAgents("board1", []string{"клаус"}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -721,6 +721,78 @@ func TestTheAgentAnswerCrewsTheStagesThatWorkTheCard(t *testing.T) {
 	for _, a := range m.Agents() {
 		if len(a.MCPServers) > 0 {
 			t.Errorf("agent %q was edited by one board's answer: %+v", a.Name, a.MCPServers)
+		}
+	}
+}
+
+// Nobody chosen is an answer as much as somebody is: it takes the crew off, and
+// a board that names nobody is back to what a board nobody has crewed does —
+// every agent on the machine is a candidate. Without this the chips could be
+// unticked and nothing would happen.
+func TestTheAgentAnswerCanTakeTheCrewOff(t *testing.T) {
+	m := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "В работе", Action: FlowActionAgent}},
+		Flows: []FlowEntry{{
+			Name: "Фича", Property: "Статус",
+			Nodes: []FlowNode{{ID: "work", Column: "В работе", OptionID: "o1", Action: FlowActionAgent, AgentName: "клаус"}},
+		}},
+	}))
+	m.cfg.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}, {Name: "тестер", Kind: "claude"}}
+
+	if err := m.SetWorkAgents("board1", []string{"клаус", "тестер"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := m.SetupPlanFor("board1").WorkAgents; len(got) != 2 {
+		t.Fatalf("a crew of two was not read back: %v", got)
+	}
+
+	if err := m.SetWorkAgents("board1", nil); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range m.BoardColumns("board1") {
+		if c.Action == FlowActionAgent && len(c.Agents) != 0 {
+			t.Errorf("the column kept a crew after it was taken off: %v", c.Agents)
+		}
+	}
+
+	// The stage's older single-agent field goes too, or Crew() would answer
+	// with the name the person has just removed.
+	for _, f := range m.BoardFlows("board1") {
+		for _, n := range f.Nodes {
+			if len(n.Crew()) != 0 {
+				t.Errorf("the stage kept a crew after it was taken off: %v", n.Crew())
+			}
+		}
+	}
+	if got := m.BoardAgentNames("board1"); len(got) != 0 {
+		t.Errorf("a board with no crew anywhere still names agents: %v", got)
+	}
+}
+
+// What "the agents of this board" means to the card's assignee list: everybody
+// the board names anywhere in its automation, whatever that stage does. The
+// registry is the machine's, so this is the board's only answer about who works
+// on it.
+func TestABoardNamesTheAgentsItPutsToWork(t *testing.T) {
+	m := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{
+			{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "В работе", Action: FlowActionAgent, Agents: []string{"клаус"}},
+			{PropertyID: "p", OptionID: "o3", Property: "Статус", Column: "QA", Action: FlowActionTest, Agents: []string{"тестер"}},
+		},
+		Flows: []FlowEntry{{
+			Name: "Фича", Property: "Статус",
+			Nodes: []FlowNode{{ID: "review", Column: "Ревью", OptionID: "o2", Action: FlowActionAgent, AgentNames: []string{"ревьюер", "клаус"}}},
+		}},
+	}))
+
+	got := m.BoardAgentNames("board1")
+	want := map[string]bool{"клаус": true, "тестер": true, "ревьюер": true}
+	if len(got) != len(want) {
+		t.Fatalf("the board names %v", got)
+	}
+	for _, name := range got {
+		if !want[name] {
+			t.Errorf("%q is not one of this board's agents", name)
 		}
 	}
 }

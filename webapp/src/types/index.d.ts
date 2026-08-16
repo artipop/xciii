@@ -88,7 +88,13 @@ export interface IAppWindow extends Window {
                 // The agent step's answer on a machine with more than one
                 // agent: the chosen one becomes the crew of the board's agent
                 // columns, which is where "who works this board" is kept.
-                SetBoardWorkAgent?(boardId: string, agentName: string): Promise<void>
+                SetBoardWorkAgent?(boardId: string, namesJson: string): Promise<void>
+
+                // Which agents this board names in its automation, and which
+                // agents exist at all — as board usernames, so the card's
+                // assignee list can drop an agent this board has nothing to do
+                // with and leave everybody else alone.
+                BoardAgentUsers?(boardId: string): Promise<string>
                 MarkBoardSetupOffered(boardId: string): Promise<void>
                 ListSetupSteps(): Promise<string>
                 AddFlow(entryJSON: string): Promise<string>

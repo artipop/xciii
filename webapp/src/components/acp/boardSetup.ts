@@ -44,9 +44,9 @@ export type SetupPlan = {
     testColumn?: string
 
     // Who already works this board's cards: the crew of its agent stages, when
-    // that is one agent. The agent step opens on it, so walking the wizard
+    // they agree on one. The agent step opens on it, so walking the wizard
     // again shows the answer already given rather than nobody chosen.
-    workAgent?: string
+    workAgents?: string[]
 
     // The board named these steps itself, rather than them being worked out
     // from the automation it carries.

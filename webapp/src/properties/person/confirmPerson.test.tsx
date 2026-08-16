@@ -148,6 +148,10 @@ describe('properties/person', () => {
             expect(userProperty).not.toBeNull()
 
             userEvent.click(userProperty as Element)
+
+            // The list arrives a tick later: the options are narrowed to the
+            // agents the board names, and asking Go that is a promise.
+            await waitFor(() => expect(renderResult.getByText('username-4')).not.toBeNull())
             expect(container).toMatchSnapshot()
 
             const option = renderResult.getByText('username-4')
@@ -198,6 +202,10 @@ describe('properties/person', () => {
             expect(userProperty).not.toBeNull()
 
             userEvent.click(userProperty as Element)
+
+            // The list arrives a tick later: the options are narrowed to the
+            // agents the board names, and asking Go that is a promise.
+            await waitFor(() => expect(renderResult.getByText('username-4')).not.toBeNull())
             expect(container).toMatchSnapshot()
 
             const option = renderResult.getByText('username-4')
@@ -214,5 +222,45 @@ describe('properties/person', () => {
         } else {
             throw new Error('container should have been initialized')
         }
+    })
+
+    // The registry is the machine's, so every agent registered anywhere has an
+    // account on every board. What a board says about who works on it is the
+    // crew of its columns, and the assignee list is narrowed to that: an agent
+    // this board does not name is not offered, and a person is untouched.
+    test('a board that names its agents offers those and no other', async () => {
+        const anyWindow = window as any
+        anyWindow.go = {main: {App: {
+            BoardAgentUsers: vi.fn().mockResolvedValue(JSON.stringify({
+                board: ['username-4'],
+                all: ['username-4', 'username-5'],
+            })),
+        }}}
+
+        const store = mockAppStore(state)
+        const renderResult = render(() => wrapIntl(() =>
+            <AppStoreProvider store={store}>
+                <ConfirmPerson
+                    property={new PersonProperty()}
+                    propertyValue={'user-id-1'}
+                    readOnly={false}
+                    showEmptyPlaceholder={false}
+                    propertyTemplate={{} as IPropertyTemplate}
+                    board={board}
+                    card={card}
+                />
+            </AppStoreProvider>,
+        ))
+
+        const userProperty = renderResult.container.querySelector(".Person input[role='combobox']")
+        userEvent.click(userProperty as Element)
+
+        await waitFor(() => expect(renderResult.getByText('username-4')).not.toBeNull())
+        expect(renderResult.queryByText('username-5')).toBeNull()
+
+        // A person is not an agent and is offered whatever the board names.
+        expect(renderResult.getByText('username-1')).not.toBeNull()
+
+        delete anyWindow.go
     })
 })

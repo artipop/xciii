@@ -7,7 +7,6 @@ import Combobox, {type ComboboxAction, type ComboboxContext} from '../widgets/co
 import CompassIcon from '../widgets/icons/compassIcon'
 import type {ComboboxItem, ComboboxOption} from '../combobox'
 import {IUser} from '../user'
-import {Utils} from '../utils'
 import {useAppSelector} from '../store/hooks'
 import {getBoardUsers, getBoardUsersList, getMe} from '../store/users'
 import {personName} from '../userDisplay'
@@ -36,6 +35,13 @@ type Props = {
     // What the cross beside the chosen person answers to. Passed in rather than
     // translated here, so this stays a component with no messages of its own.
     clearLabel?: string
+
+    // Who this field may offer, applied to whatever the search found. It exists
+    // for the card's own person properties, where an agent that has nothing to
+    // do with this board should not be on the list; this component knows
+    // nothing about agents and is not the place to learn. Only the options are
+    // narrowed — a value already on the card is shown whoever it names.
+    offerable?: (users: IUser[]) => IUser[] | Promise<IUser[]>
 
     // On `remove` the list already excludes the person removed, so every action
     // is answered by reading the list rather than by the action's own payload.
@@ -111,6 +117,11 @@ const PersonSelector = (props: Props): JSX.Element => {
         return []
     }
 
+    // Applied to every list this field offers, wherever it was found — the
+    // board's members and a search of the whole team alike, since an agent this
+    // board does not name is as wrong in one group as in the other.
+    const offerable = async (found: IUser[]): Promise<IUser[]> => (props.offerable ? props.offerable(found) : found)
+
     const loadOptions = async (value: string): Promise<Array<ComboboxItem<IUser>>> => {
         if (!props.allowAddUsers) {
             const returnUsers: IUser[] = []
@@ -135,20 +146,20 @@ const PersonSelector = (props: Props): JSX.Element => {
                 returnUsers.push(...boardUsers())
             }
             if (value) {
-                return returnUsers.filter((u) => {
+                return (await offerable(returnUsers.filter((u) => {
                     return u.username.toLowerCase().includes(value.toLowerCase()) ||
                         u.lastname.toLowerCase().includes(value.toLowerCase()) ||
                         u.firstname.toLowerCase().includes(value.toLowerCase()) ||
                         u.nickname.toLowerCase().includes(value.toLowerCase())
-                }).map(asOption)
+                }))).map(asOption)
             }
-            return returnUsers.map(asOption)
+            return (await offerable(returnUsers)).map(asOption)
         }
         const excludeBots = true
         const allUsers = await client.searchTeamUsers(value, excludeBots)
         const usersInsideBoard: IUser[] = []
         const usersOutsideBoard: IUser[] = []
-        for (const u of allUsers) {
+        for (const u of await offerable(allUsers)) {
             if (boardUsersById()[u.id]) {
                 usersInsideBoard.push(u)
             } else {

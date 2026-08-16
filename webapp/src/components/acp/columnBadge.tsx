@@ -5,6 +5,7 @@ import {Accessor, Show, createMemo, createSignal, onCleanup, onMount} from 'soli
 import {useIntl} from '../../intl'
 
 import {agentBindings} from './bindings'
+import {invalidateBoardAgents} from './boardAgents'
 import {onAgentEvent} from './agentEvents'
 import {ColumnSpec, specFor} from './automation'
 
@@ -25,6 +26,11 @@ const listeners = new Set<() => void>()
 export function invalidateBoardColumns(): void {
     cache.clear()
     listeners.forEach((notify) => notify())
+
+    // The crew of a column is read by the card's assignee list too, and it is
+    // the same edit that moves both. One call site, one meaning: the board's
+    // automation may have changed.
+    invalidateBoardAgents()
 }
 
 async function loadColumns(boardId: string): Promise<ColumnSpec[]> {
