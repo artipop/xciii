@@ -82,7 +82,6 @@ exports[`components/cardDetail/CardDetailProperties > cancel on delete dialog sh
       <input
         class="Editable octo-propertyvalue"
         placeholder="Empty"
-        style="width: 100%;"
         title="1234"
       />
     </div>
@@ -195,7 +194,6 @@ exports[`components/cardDetail/CardDetailProperties > should match snapshot 1`] 
       <input
         class="Editable octo-propertyvalue"
         placeholder="Empty"
-        style="width: 100%;"
         title="1234"
       />
     </div>
@@ -308,7 +306,6 @@ exports[`components/cardDetail/CardDetailProperties > should show property types
       <input
         class="Editable octo-propertyvalue"
         placeholder="Empty"
-        style="width: 100%;"
         title="1234"
       />
     </div>

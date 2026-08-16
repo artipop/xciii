@@ -6,7 +6,6 @@ exports[`components/propertyValueElement > Generic fields should allow cancel 1`
     class="Editable octo-propertyvalue"
     placeholder="Empty"
     spellcheck="true"
-    style="width: 100%;"
     title=""
   />
 </div>
@@ -125,7 +124,6 @@ exports[`components/propertyValueElement > should match snapshot, person, array 
     class="Editable octo-propertyvalue"
     placeholder="Empty"
     spellcheck="true"
-    style="width: 100%;"
     title=""
   />
 </div>

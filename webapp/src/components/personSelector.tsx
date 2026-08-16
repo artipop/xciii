@@ -56,8 +56,8 @@ const PersonSelector = (props: Props): JSX.Element => {
 
     // The chosen person carries the way to take them off, right beside their
     // name. It used to be the widget's own clear button, which sits at the far
-    // end of the control — and on a card that control is the whole width of the
-    // property row, so the ✕ for «клаус» stood 360px away from the word
+    // end of the control — and on a card that control was the whole width of
+    // the property row, so the ✕ for «клаус» stood 360px away from the word
     // «клаус», over nothing. Every other value on a card is a chip with its own
     // cross (the select property's), and this is that.
     const formatOptionLabel = (user: IUser, context?: ComboboxContext): JSX.Element => {

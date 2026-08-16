@@ -109,6 +109,16 @@
             }
         }
 
+        // A value is as wide as its answer, floored by the 180px above — which
+        // is what every other row on the card is, and what the hover tint draws
+        // as the box you are about to click. The combobox states `width: 100%`
+        // for the forms it also serves (a control in a dialog does fill its
+        // row), and on a card that made «Исполнитель» the full 440px of the
+        // property row. The control inside it still fills whatever this is.
+        &.Combobox {
+            width: auto;
+        }
+
         .MenuWrapper {
             display: flex;
             align-items: center;

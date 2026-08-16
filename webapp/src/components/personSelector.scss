@@ -23,8 +23,9 @@
         }
     }
 
-    // Beside the name, not at the end of the control: the control is as wide as
-    // the property row and the value is three words at the start of it.
+    // Beside the name rather than at the end of the control, which is where a
+    // widget's own clear button sits: every other answer on a card is a chip
+    // carrying its own cross, and this is that.
     .Person-clear {
         display: flex;
         align-items: center;
