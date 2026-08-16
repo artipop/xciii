@@ -702,28 +702,36 @@ const BoardSetupWizard = (props: Props) => {
                     first. Nothing here is mandatory any more — a board with no
                     deploy target is a board that does not deploy — so leaving
                     is fine, and the parting note says how to come back. The ✕
-                    stays silent: it is the same leaving, chosen quietly. */}
-                <button
-                    type='button'
-                    class='BoardSetupWizard__later'
-                    onClick={() => {
-                        sendFlashMessage({
-                            content: intl.formatMessage({
-                                id: 'BoardSetup.come-back',
-                                defaultMessage: 'You can walk this again any time: the board’s ⋯ menu → “Walk the setup again…”.',
-                            }),
-                            severity: 'normal',
-                            notice: true,
+                    stays silent: it is the same leaving, chosen quietly.
 
-                            // Long enough to read a path of three menu names —
-                            // and closable, for whoever does not need to.
-                            milliseconds: 5000,
-                        })
-                        props.onClose()
-                    }}
-                >
-                    {intl.formatMessage({id: 'BoardSetup.later', defaultMessage: 'I’ll find my way around'})}
-                </button>
+                    Not on the last screen: there is nothing left to walk away
+                    from there, so «Разберусь сам» beside «Готово» offered two
+                    ways to do the same thing and made the finished wizard read
+                    as though something were still being asked. */}
+                <Show when={step() !== STEP_DONE}>
+                    <button
+                        type='button'
+                        class='BoardSetupWizard__later'
+                        onClick={() => {
+                            sendFlashMessage({
+                                content: intl.formatMessage({
+                                    id: 'BoardSetup.come-back',
+                                    defaultMessage: 'You can walk this again any time: the board’s ⋯ menu → “Walk the setup again…”.',
+                                }),
+                                severity: 'normal',
+                                notice: true,
+
+                                // Long enough to read a path of three menu
+                                // names — and closable, for whoever does not
+                                // need to.
+                                milliseconds: 5000,
+                            })
+                            props.onClose()
+                        }}
+                    >
+                        {intl.formatMessage({id: 'BoardSetup.later', defaultMessage: 'I’ll find my way around'})}
+                    </button>
+                </Show>
             </div>
         </Dialog>
     )

@@ -334,6 +334,28 @@ describe('components/acp/boardSetupWizard', () => {
         expect(screen.queryByText(/has to be a git repository/)).toBeNull()
     })
 
+    // Leaving early is offered while there is something left to answer. On the
+    // last screen there is not, and «Готово» beside «Разберусь сам» read as two
+    // ways out of a wizard that had already finished.
+    test('the last screen offers only Done, and the ones before it offer to leave', async () => {
+        stubBindings({
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan([{kind: 'browser', optional: true}, {kind: 'done'}])),
+        })
+        const early = renderWizard()
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Skip'})).toBeInTheDocument())
+        expect(screen.getByRole('button', {name: 'I’ll find my way around'})).toBeInTheDocument()
+        early.unmount()
+
+        stubBindings({
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan([{kind: 'browser', status: 'skipped', optional: true}, {kind: 'done'}])),
+        })
+        renderWizard()
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Done'})).toBeInTheDocument())
+        expect(screen.queryByRole('button', {name: 'I’ll find my way around'})).toBeNull()
+    })
+
     // The QA step is one answer with two halves: the browser goes to an agent,
     // and that agent works the column that tests. A single registered agent
     // answers "who" without being asked.
