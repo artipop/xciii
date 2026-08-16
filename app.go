@@ -558,6 +558,17 @@ func (a *App) SetBoardTestAgent(boardID, agentName, serversJSON string) error {
 	return a.mgr.SetTestAgent(boardID, agentName, servers)
 }
 
+// SetBoardWorkAgent answers the wizard's agent step when the machine has more
+// than one agent: the one chosen becomes the crew of this board's agent
+// columns, which is the only place that choice can be recorded — the registry
+// is the machine's and says nothing about who works which board.
+func (a *App) SetBoardWorkAgent(boardID, agentName string) error {
+	if a.mgr == nil {
+		return errACPDisabled
+	}
+	return a.mgr.SetWorkAgent(boardID, agentName)
+}
+
 // RecordBoardSetupStep remembers what was done with a step — skipping above
 // all, which is the one answer no registry can be read for.
 func (a *App) RecordBoardSetupStep(boardID, step, status string) error {

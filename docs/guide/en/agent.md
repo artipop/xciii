@@ -19,6 +19,13 @@ To make an agent appear in the assignment list, register it in the settings —
 the [Agents](./settings/agents.md) section. After registration it becomes a
 board member under its own name: open the field and pick it.
 
+With exactly one agent registered, that agent takes the card and nothing has to
+be assigned. With several, a card whose column has no crew and which is
+assigned to nobody stops: the app cannot pick for you. Who works this board's
+cards is asked by the setup wizard
+([⋯ → "Walk the setup again…"](./automation/index.md)), and the answer can be
+changed in "Columns and routes…", the column's "Worked by" field.
+
 The agent reads its task from the **card description** — there is no separate
 task field. The board's instruction, shared by all its agents, is added in
 front of the description; it is set in

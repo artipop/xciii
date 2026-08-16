@@ -156,6 +156,11 @@ type SetupPlan struct {
 	// names an agent for it, so the question can say which column it is about
 	// and the answer knows where to write the crew.
 	TestColumn string `json:"testColumn,omitempty"`
+	// WorkAgent is who already works this board's cards — the crew of its agent
+	// stages, when that is one agent. The step that asks reads it back so a
+	// wizard walked a second time opens on the answer it was given, rather than
+	// showing nobody chosen over a column that has somebody.
+	WorkAgent string `json:"workAgent,omitempty"`
 	// Offered says the wizard has already opened itself for this board once.
 	// Closing it half-way answers nothing, but it is still an answer to "have
 	// you seen this?", and asking again on every launch is how a dialog becomes
@@ -193,6 +198,7 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 
 	plan.AgentColumn = columnOfAction(columns, FlowActionAgent)
 	plan.TestColumn = columnOfAction(columns, FlowActionTest)
+	plan.WorkAgent = soleCrewOfAction(columns, FlowActionAgent)
 	states := m.setupStates(boardID)
 	plan.Offered = states[setupWizardStep] != ""
 	for _, step := range steps {
@@ -363,6 +369,26 @@ func columnOfAction(columns []ColumnSpec, action string) string {
 	return ""
 }
 
+// soleCrewOfAction is the one agent every stage of this kind is crewed with,
+// and nothing when they disagree. A crew is a membership list, so several names
+// — or two columns crewed differently — is an arrangement richer than the one
+// question the wizard asks, and it answers with nothing rather than with the
+// first of them: a step that showed one of two names as "the" answer would be
+// offering to overwrite the other on the way past.
+func soleCrewOfAction(columns []ColumnSpec, action string) string {
+	sole := ""
+	for _, c := range columns {
+		if c.Action != action {
+			continue
+		}
+		if len(c.Agents) != 1 || (sole != "" && !strings.EqualFold(sole, c.Agents[0])) {
+			return ""
+		}
+		sole = c.Agents[0]
+	}
+	return sole
+}
+
 // SetTestAgent answers the QA step: this agent tests this board, and it tests
 // with these servers.
 //
@@ -378,6 +404,28 @@ func columnOfAction(columns []ColumnSpec, action string) string {
 // nothing else, and rebuilding the entry from that dropped the model, the
 // environment and the proxy of an agent already set up.
 func (m *Manager) SetTestAgent(boardID, agentName string, servers MCPServerSet) error {
+	return m.setStageCrew(boardID, agentName, FlowActionTest, servers)
+}
+
+// SetWorkAgent answers the agent step the same way, for the stages that work a
+// card rather than test it: this agent is the crew of this board's agent
+// columns.
+//
+// It is asked only when the machine has more than one agent, because that is
+// the case the engine cannot answer for itself: with no crew on the column and
+// no agent named on the card, resolveSessionAgent has a registry of several and
+// no rule to pick from it, so the card stalls with «не удалось выбрать агента».
+// One agent needs no question — it is already the answer — and neither does a
+// board whose cards name their own agent in «Кто занимается», which is why
+// nobody chosen leaves the columns as they were.
+func (m *Manager) SetWorkAgent(boardID, agentName string) error {
+	return m.setStageCrew(boardID, agentName, FlowActionAgent, nil)
+}
+
+// setStageCrew is the half those two share: one agent written as the crew of
+// every stage of this board that does `action` — a column of its own, or a node
+// of a route that does it over a column that does something else.
+func (m *Manager) setStageCrew(boardID, agentName, action string, servers MCPServerSet) error {
 	agentName = strings.TrimSpace(agentName)
 	entry, ok := m.agentNamed(agentName)
 	if !ok {
@@ -385,8 +433,8 @@ func (m *Manager) SetTestAgent(boardID, agentName string, servers MCPServerSet) 
 	}
 
 	// Read the board first: the wizard runs before any card has been moved, so
-	// the test column may still be a property of the board rather than an entry
-	// of the registry. Seeding is idempotent, and SaveColumn does it anyway.
+	// the column may still be a property of the board rather than an entry of
+	// the registry. Seeding is idempotent, and SaveColumn does it anyway.
 	m.SeedBoard(boardID)
 	columns, flows := m.boardOwnAutomation(boardID)
 
@@ -397,7 +445,7 @@ func (m *Manager) SetTestAgent(boardID, agentName string, servers MCPServerSet) 
 	// one — testing is what needs a browser, not the tester.
 	var placed bool
 	for _, spec := range columns {
-		if spec.Action != FlowActionTest {
+		if spec.Action != action {
 			continue
 		}
 		spec.Agents = []string{entry.Name}
@@ -412,9 +460,9 @@ func (m *Manager) SetTestAgent(boardID, agentName string, servers MCPServerSet) 
 	for _, flow := range flows {
 		var touched bool
 		for i, node := range flow.Nodes {
-			// A stage that tests on this route alone, over a column that does
-			// something else: the column above would never have been found.
-			if node.Action != FlowActionTest {
+			// A stage that does this on one route alone, over a column that
+			// does something else: the column above would never have found it.
+			if node.Action != action {
 				continue
 			}
 			flow.Nodes[i].AgentNames = []string{entry.Name}
@@ -430,9 +478,10 @@ func (m *Manager) SetTestAgent(boardID, agentName string, servers MCPServerSet) 
 		}
 	}
 
-	// A board with nothing that tests yet — the wizard was walked from the menu
+	// A board with no such stage yet — the wizard was walked from the menu
 	// before the column existed. The answer still has to land somewhere, and
-	// the agent is where it used to live.
+	// the agent is where the browser used to live. A crew has nowhere else to
+	// go and is simply not written: there is no stage for it to be the crew of.
 	if !placed && len(servers) > 0 {
 		entry.MCPServers = servers
 		if _, err := m.UpdateAgent(entry); err != nil {

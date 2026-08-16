@@ -84,6 +84,11 @@ export interface IAppWindow extends Window {
                 // the browser server, and the board's test column gets that
                 // agent as its crew.
                 SetBoardTestAgent?(boardId: string, agentName: string, serversJson: string): Promise<void>
+
+                // The agent step's answer on a machine with more than one
+                // agent: the chosen one becomes the crew of the board's agent
+                // columns, which is where "who works this board" is kept.
+                SetBoardWorkAgent?(boardId: string, agentName: string): Promise<void>
                 MarkBoardSetupOffered(boardId: string): Promise<void>
                 ListSetupSteps(): Promise<string>
                 AddFlow(entryJSON: string): Promise<string>

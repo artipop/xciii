@@ -110,8 +110,10 @@ const BoardSetupWizard = (props: Props) => {
     const [taken, setTaken] = createSignal<Workdir | null>(null)
     const basename = (path: string) => path.split('/').filter(Boolean).pop() || ''
 
-    // Step 2: another agent, on a step that already has one.
+    // Step 2: who works this board, and another agent on a step that already
+    // has one.
     const [addingAgent, setAddingAgent] = createSignal(false)
+    const [boardAgent, setBoardAgent] = createSignal('')
 
     // Step 3: a Dokku host.
     const [deploy, setDeploy] = createSignal({name: '', sshHost: '', sshUser: '', sshKey: '', baseDomain: ''})
@@ -145,6 +147,17 @@ const BoardSetupWizard = (props: Props) => {
 
     onMount(() => {
         refresh()
+    })
+
+    // Who the board's agent stages are already crewed with, when they are: the
+    // step then opens on the answer it was given last time rather than on
+    // nobody. Only while nobody has been picked here, so a refetched plan never
+    // overwrites a choice being made.
+    createEffect(() => {
+        const named = plan()?.workAgent
+        if (named && !boardAgent()) {
+            setBoardAgent(named)
+        }
     })
 
     // The wizard opens on the first question this board still has. Walking
@@ -297,6 +310,27 @@ const BoardSetupWizard = (props: Props) => {
     const hasWorkdir = () => registry().workdirs.length > 0
     const hasAgent = () => registry().agents.length > 0
 
+    // Whether the folder step has something to answer with: one already on this
+    // board, one picked and named, or one somebody else registered and offered
+    // for use here.
+    const workdirAnswered = () => Boolean(taken()) || hasWorkdir() || Boolean(workdirPath() && workdirName().trim())
+
+    // One agent is the answer to "who works here" and needs no asking; several
+    // is the one case nothing else can decide.
+    const choosingAgent = () => registry().agents.length > 1
+
+    // Answering the agent step: the choice is written as the crew of the
+    // board's agent stages, and passing without one leaves them as they were —
+    // a board whose cards name their own agent is an arrangement, not an
+    // unfinished answer.
+    const takeAgent = () => {
+        const chosen = boardAgent()
+        if (!choosingAgent() || !chosen || !bindings?.SetBoardWorkAgent) {
+            return pass(STEP_AGENT)
+        }
+        return run(() => bindings.SetBoardWorkAgent!(props.board.id, chosen), STEP_AGENT)
+    }
+
     const body = () => {
         switch (step()) {
         case STEP_WORKDIR:
@@ -312,6 +346,16 @@ const BoardSetupWizard = (props: Props) => {
                         <div class='BoardSetupWizard__known'>
                             {intl.formatMessage({id: 'BoardSetup.folder-known', defaultMessage: 'Already registered: {names}'}, {names: registry().workdirs.map((r) => r.name).join(', ')})}
                         </div>
+                    </Show>
+
+                    {/* What passing costs, said where it can be acted on: a
+                        card with no folder can still be talked over — that
+                        conversation opens in the board's drafts folder — but a
+                        stage of a route has nowhere to work and waits. */}
+                    <Show when={!workdirAnswered()}>
+                        <p class='BoardSetupWizard__hint'>
+                            {intl.formatMessage({id: 'BoardSetup.folder-skip', defaultMessage: 'This can be answered later. Without a folder a card can still be discussed with an agent — in the board’s drafts folder — but a card on a route will wait at the stage that works it.'})}
+                        </p>
                     </Show>
                     <Button onClick={pickWorkdir}>
                         {intl.formatMessage({id: 'BoardSetup.choose-folder', defaultMessage: 'Choose a folder…'})}
@@ -344,9 +388,26 @@ const BoardSetupWizard = (props: Props) => {
             return (
                 <div class='BoardSetupWizard__step'>
                     <p>{intl.formatMessage({id: 'BoardSetup.agent-why', defaultMessage: 'The agent that picks a card up. It has to be logged in already; here it is only given a name.'})}</p>
-                    <Show when={hasAgent()}>
+
+                    {/* The names, when they are not a question: with a choice
+                        to make they are the chips below, and listing them twice
+                        reads as two different lists. */}
+                    <Show when={hasAgent() && !choosingAgent()}>
                         <div class='BoardSetupWizard__known'>
                             {intl.formatMessage({id: 'BoardSetup.agent-known', defaultMessage: 'Already registered: {names}'}, {names: registry().agents.map((a) => a.name).join(', ')})}
+                        </div>
+                    </Show>
+
+                    {/* Several agents is a question, and the engine cannot
+                        answer it: with nobody crewing the column and nobody
+                        assigned to the card, resolveSessionAgent has a registry
+                        of several and no rule, so the card stalls with «не
+                        удалось выбрать агента». One agent is already the
+                        answer, so it is not asked — the same rule the QA step
+                        follows one screen later. */}
+                    <Show when={choosingAgent()}>
+                        <div class='BoardSetupWizard__ask'>
+                            {intl.formatMessage({id: 'BoardSetup.agent-who', defaultMessage: 'Who works the cards on this board?'})}
                         </div>
                     </Show>
 
@@ -372,6 +433,22 @@ const BoardSetupWizard = (props: Props) => {
                             // the step's column the link stretched the width of
                             // the dialog and centred itself.
                             <div class='BoardSetupWizard__agentChoices'>
+                                <Show when={choosingAgent()}>
+                                    <For each={registry().agents}>
+                                        {(a) => (
+                                            <button
+                                                type='button'
+                                                class='BoardSetupWizard__agentChoice'
+                                                classList={{'BoardSetupWizard__agentChoice--chosen': a.name === boardAgent()}}
+                                                aria-pressed={a.name === boardAgent()}
+                                                disabled={busy()}
+                                                onClick={() => setBoardAgent(a.name)}
+                                            >
+                                                {a.name}
+                                            </button>
+                                        )}
+                                    </For>
+                                </Show>
                                 <button
                                     type='button'
                                     class='BoardSetupWizard__pickAdd'
@@ -394,6 +471,22 @@ const BoardSetupWizard = (props: Props) => {
                             }}
                             onCancel={addingAgent() ? () => setAddingAgent(false) : undefined}
                         />
+                    </Show>
+
+                    {/* What the choice does, and what happens without one. The
+                        crew is a membership list rather than a pin, so a card
+                        that names its own agent in «Кто занимается» still wins
+                        — which is also the only way a board with several agents
+                        and nobody chosen gets a card worked at all. */}
+                    <Show when={choosingAgent()}>
+                        <p class='BoardSetupWizard__hint'>
+                            <Show
+                                when={plan()?.agentColumn}
+                                fallback={intl.formatMessage({id: 'BoardSetup.agent-note', defaultMessage: 'The chosen agent becomes the crew of the columns an agent works in. Without one, a card has to be assigned to an agent by hand — unassigned, it will wait.'})}
+                            >
+                                {intl.formatMessage({id: 'BoardSetup.agent-column-note', defaultMessage: 'The chosen agent becomes the crew of the “{column}” column: cards that get there go to it. Without one, a card has to be assigned to an agent by hand — unassigned, it will wait. This can be changed later in "Columns and routes…".'}, {column: plan()!.agentColumn})}
+                            </Show>
+                        </p>
                     </Show>
                 </div>
             )
@@ -556,23 +649,34 @@ const BoardSetupWizard = (props: Props) => {
         switch (step()) {
         case STEP_WORKDIR:
             return (
-                <Button
-                    emphasis='primary'
-                    disabled={busy() || (!taken() && !hasWorkdir() && !(workdirPath() && workdirName().trim()))}
-                    onClick={() => {
+                <>
+                    <Button
+                        emphasis='primary'
+                        disabled={busy() || !workdirAnswered()}
+                        onClick={() => {
                         // Three answers behind one button: use the folder that
                         // is already registered, add the one just picked, or —
                         // with a folder already on this board — pass the step.
-                        if (taken()) {
-                            return useTakenWorkdir()
-                        }
-                        return workdirPath() && workdirName().trim() ? addWorkdir() : pass(STEP_WORKDIR)
-                    }}
-                >
-                    {taken() ?
-                        intl.formatMessage({id: 'Workdirs.use-here', defaultMessage: 'Use it here'}) :
-                        intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
-                </Button>
+                            if (taken()) {
+                                return useTakenWorkdir()
+                            }
+                            return workdirPath() && workdirName().trim() ? addWorkdir() : pass(STEP_WORKDIR)
+                        }}
+                    >
+                        {taken() ? intl.formatMessage({id: 'Workdirs.use-here', defaultMessage: 'Use it here'}) : intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
+                    </Button>
+
+                    {/* Offered exactly when there is no answer to give, which is
+                    when «Дальше» is disabled: until this, somebody without the
+                    folder to hand had to leave the whole wizard to reach the
+                    questions after it. What a board gives up by passing is said
+                    on the step itself. */}
+                    <Show when={!workdirAnswered()}>
+                        <Button onClick={() => skip(STEP_WORKDIR)}>
+                            {intl.formatMessage({id: 'BoardSetup.skip', defaultMessage: 'Skip'})}
+                        </Button>
+                    </Show>
+                </>
             )
         case STEP_AGENT:
 
@@ -583,7 +687,7 @@ const BoardSetupWizard = (props: Props) => {
                     <Button
                         emphasis='primary'
                         disabled={busy()}
-                        onClick={() => pass(STEP_AGENT)}
+                        onClick={takeAgent}
                     >
                         {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
                     </Button>

@@ -171,7 +171,11 @@ from:
   themselves are shared by the whole machine: one added here is visible to any
   other deploying board;
 - **"Walk the setup again…"** — the same questions the board asked when it was
-  first opened.
+  first opened. The folder can be put off with "Skip": without one a card can
+  still be discussed with an agent, but on a route it will wait at the stage
+  that works it. If more than one agent is registered, the wizard asks which of
+  them works this board's cards and writes the chosen one into "Worked by" on
+  the column an agent works in.
 
 ## Saving
 

@@ -233,12 +233,85 @@ describe('components/acp/boardSetupWizard', () => {
         await userEvent.type(screen.getByRole('textbox'), 'тестер')
         userEvent.click(screen.getByRole('button', {name: 'Add'}))
 
-        await waitFor(() => expect(screen.getByText('Already registered: клаус, тестер')).toBeInTheDocument())
+        // Two of them is a question rather than a list, so the names arrive as
+        // chips to choose between — see the test below.
+        await waitFor(() => expect(screen.getByRole('button', {name: 'тестер'})).toBeInTheDocument())
+        expect(screen.getByRole('button', {name: 'клаус'})).toBeInTheDocument()
 
         // Adding one is not answering the step: «Next» is what moves on, so a
         // second agent can be added straight after the first.
         expect(bindings.RecordBoardSetupStep).not.toHaveBeenCalledWith(testBoard.id, 'agent', 'done')
         expect(screen.getByRole('button', {name: 'Next'})).toBeInTheDocument()
+    })
+
+    // Several agents is the one case the engine cannot decide for itself: with
+    // nobody crewing the column and nobody assigned to the card, it has a
+    // registry of several and no rule, and the card stalls. So the step asks,
+    // and the answer is written as the column's crew.
+    test('with several agents the step asks which one works the board', async () => {
+        const bindings = stubBindings({
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}, {name: 'тестер'}])),
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan([{kind: 'agent', ready: true}, {kind: 'done'}], {agentColumn: 'В работе'})),
+            SetBoardWorkAgent: vi.fn().mockResolvedValue(undefined),
+        })
+        renderWizard()
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'клаус'})).toBeInTheDocument())
+
+        // The question names the column the answer is about, so what is being
+        // decided is on the screen rather than in the wizard's head.
+        expect(screen.getByText(/“В работе”/)).toBeInTheDocument()
+
+        userEvent.click(screen.getByRole('button', {name: 'тестер'}))
+        userEvent.click(screen.getByRole('button', {name: 'Next'}))
+
+        await waitFor(() => expect(bindings.SetBoardWorkAgent).toHaveBeenCalledWith(testBoard.id, 'тестер'))
+    })
+
+    // One agent is already the answer, and a question with one option is not a
+    // question. Passing then writes nothing: there is nothing to choose, and
+    // the engine resolves a registry of one by itself.
+    test('a single agent is not asked about, and passing crews nobody', async () => {
+        const bindings = stubBindings({
+            ListAgentWorkdirs: vi.fn().mockResolvedValue(JSON.stringify([{name: 'webapp', path: '/src'}])),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan([{kind: 'agent', ready: true}, {kind: 'done'}], {agentColumn: 'В работе'})),
+            SetBoardWorkAgent: vi.fn().mockResolvedValue(undefined),
+        })
+        renderWizard()
+
+        await waitFor(() => expect(screen.getByText('Already registered: клаус')).toBeInTheDocument())
+        expect(screen.queryByRole('button', {name: 'клаус'})).toBeNull()
+
+        userEvent.click(screen.getByRole('button', {name: 'Next'}))
+        await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'agent', 'done'))
+        expect(bindings.SetBoardWorkAgent).not.toHaveBeenCalled()
+    })
+
+    // The folder is the one question somebody may not be able to answer at the
+    // moment they are asked, and «Дальше» stays disabled until it is answered —
+    // so without this the only way past the first screen was out of the wizard.
+    test('the folder step can be passed over, and the pass is remembered', async () => {
+        const bindings = stubBindings({
+            ListAgentWorkdirs: vi.fn().mockResolvedValue('[]'),
+            ListAgents: vi.fn().mockResolvedValue(JSON.stringify([{name: 'клаус'}])),
+            BoardSetupPlan: vi.fn().mockResolvedValue(plan(['project', 'agent', 'done'])),
+        })
+        renderWizard()
+
+        // The plan is what says which step comes after this one, so the wizard
+        // has to have it before a skip can go anywhere.
+        await waitFor(() => expect(screen.getByText('Ready')).toBeInTheDocument())
+
+        // Nothing has been picked, so there is nothing to accept — and the way
+        // on is the skip beside it.
+        expect(screen.getByRole('button', {name: 'Next'})).toBeDisabled()
+        userEvent.click(screen.getByRole('button', {name: 'Skip'}))
+
+        await waitFor(() => expect(screen.getByText('Already registered: клаус')).toBeInTheDocument())
+        expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'project', 'skipped')
+        expect(bindings.AddAgentWorkdir).not.toHaveBeenCalled()
     })
 
     test('deploy and testing are skippable, and skipping is remembered', async () => {

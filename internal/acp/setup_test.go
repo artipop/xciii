@@ -669,6 +669,62 @@ func TestTheQAAnswerPutsTheBrowserOnTheStageThatTests(t *testing.T) {
 	}
 }
 
+// The agent step's answer, on a machine with more than one agent. It is the
+// same shape as the QA one and it exists for the same reason: with no crew on
+// the column and no agent named on the card, the engine has a registry of
+// several and no rule to pick from it, so every card stalled on the column that
+// works it. Only the stages that work a card are crewed — the one that tests
+// answers its own question, on the step after this.
+func TestTheAgentAnswerCrewsTheStagesThatWorkTheCard(t *testing.T) {
+	m := setupManager(t, boardProps(t, BoardAutomation{
+		Columns: []ColumnSpec{
+			{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "В работе", Action: FlowActionAgent},
+			{PropertyID: "p", OptionID: "o3", Property: "Статус", Column: "QA", Action: FlowActionTest},
+		},
+	}))
+	m.cfg.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}, {Name: "тестер", Kind: "claude"}}
+
+	// Before the answer: two agents, nobody assigned, and the card cannot be
+	// given to either.
+	if _, _, err := m.resolveSessionAgent(CardMoved{Props: map[string]string{}}, nil); err == nil {
+		t.Fatal("two registered agents and no crew should be a question, not a choice made silently")
+	}
+
+	if err := m.SetWorkAgent("board1", "клаус"); err != nil {
+		t.Fatal(err)
+	}
+
+	var crew []string
+	for _, c := range m.BoardColumns("board1") {
+		switch c.Action {
+		case FlowActionAgent:
+			crew = c.Agents
+			if len(c.Agents) != 1 || c.Agents[0] != "клаус" {
+				t.Errorf("the column that works a card is crewed %v", c.Agents)
+			}
+		case FlowActionTest:
+			if len(c.Agents) > 0 {
+				t.Errorf("answering who works the cards also crewed the column that tests: %v", c.Agents)
+			}
+		}
+	}
+
+	// And that is the whole of what the answer is for: the same card, on the
+	// same registry, now resolves.
+	got, _, err := m.resolveSessionAgent(CardMoved{Props: map[string]string{}}, crew)
+	if err != nil || got.Name != "клаус" {
+		t.Fatalf("the crew the wizard wrote did not answer the question: got=%+v err=%v", got, err)
+	}
+
+	// The agent is left as it was: who works this board is the board's fact,
+	// and the registry is every board's.
+	for _, a := range m.Agents() {
+		if len(a.MCPServers) > 0 {
+			t.Errorf("agent %q was edited by one board's answer: %+v", a.Name, a.MCPServers)
+		}
+	}
+}
+
 // A stage that tests on one route alone, over a column that does something
 // else: the answer follows the stage there too, since that column would never
 // have been found by its action.
