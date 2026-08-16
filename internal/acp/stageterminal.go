@@ -197,12 +197,30 @@ func (m *Manager) startStageTerminal(s *Session) (*TerminalSession, error) {
 	// running stage from here on, which is what keeps the bin off its row and
 	// the card's comment single (stageComment reports; terminalEnded stays
 	// quiet about stages).
+	//
+	// Only a conversation standing where the stage was told to run, though. A
+	// person can open the card's terminal before the card names a folder, and
+	// that conversation runs in «черновики доски» — the same node, a different
+	// directory. Adopting it typed the task into a CLI sitting in the drafts
+	// folder while the route believed the stage was in the card's branch: the
+	// branch was made, written on the card and left empty, and finish_work
+	// reported work that had landed nowhere.
+	//
+	// The folder is the test, and the directory too once the session has
+	// claimed one — not "is this the drafts folder", because what the stage
+	// depends on is that the two are in the same place, whatever that place is.
 	if live := m.TerminalForCardNode(s.CardID, s.NodeID); live != nil {
-		live.mu.Lock()
-		live.stage = true
-		live.mu.Unlock()
-		go live.deliverPrompt(s.PromptText)
-		return live, nil
+		sameFolder := live.WorkdirPath == s.WorkdirPath
+		samePlace := s.Worktree.Path == "" || live.Cwd == s.Worktree.Path
+		if sameFolder && samePlace {
+			live.mu.Lock()
+			live.stage = true
+			live.mu.Unlock()
+			go live.deliverPrompt(s.PromptText)
+			return live, nil
+		}
+		m.log.Info("acp: the conversation open on this node stands elsewhere, so the stage opens its own",
+			"card", s.CardID, "node", s.NodeID, "conversation", live.Cwd, "stage", s.Worktree.Path)
 	}
 	return m.startTerminal(terminalSpec{
 		cardID:      s.CardID,

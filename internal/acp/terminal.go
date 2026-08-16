@@ -1217,15 +1217,38 @@ func (m *Manager) TerminalForCard(cardID string) *TerminalSession {
 // A live terminal on a *passed* stage is deliberately not this: it stays
 // reachable by id until its CLI exits, but the stage the card left cannot be
 // where a new ask lands.
+// A running stage outranks anything else on the node. There is normally only
+// one conversation per (card, node) — a stage joins the one already open — but
+// a stage that could not join it (startStageTerminal: the conversation stands
+// in another directory) opens its own beside it, and then the button on the
+// card and the panel must lead to the work rather than to whichever the map
+// handed back first.
 func (m *Manager) TerminalForCardNode(cardID, nodeID string) *TerminalSession {
 	m.mu.Lock()
-	defer m.mu.Unlock()
+	var here []*TerminalSession
 	for _, t := range m.terminals {
 		if t.CardID != "" && t.CardID == cardID && t.NodeID == nodeID {
-			return t
+			here = append(here, t)
 		}
 	}
-	return nil
+	m.mu.Unlock()
+
+	// The session lock is taken outside the manager's, as everywhere else here
+	// (LiveTerminals): the other order exists on the paths that emit events,
+	// and holding both would eventually meet it.
+	var found *TerminalSession
+	for _, t := range here {
+		t.mu.Lock()
+		isStage := t.stage
+		t.mu.Unlock()
+		if isStage {
+			return t
+		}
+		if found == nil {
+			found = t
+		}
+	}
+	return found
 }
 
 // planningTerminal is the live card-less terminal for this folder and

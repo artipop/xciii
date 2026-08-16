@@ -396,6 +396,53 @@ func TestAStageAdoptsTheConversationAPersonOpenedOnItsNode(t *testing.T) {
 	}
 }
 
+// A card can be talked over before it names a folder, and that conversation
+// runs in «черновики доски». When the folder arrives and the route reaches the
+// same column, the stage must not be typed into it: the route has claimed the
+// card's workspace, made a branch and written it on the card, and an agent
+// working in the drafts folder would report work that landed nowhere.
+func TestAStageDoesNotAdoptAConversationStandingSomewhereElse(t *testing.T) {
+	fakeCLIOnPath(t, "claude", "while read line; do echo \"got:$line\"; done")
+	m, _, _, project := testManager(t, "idle", nil)
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	// No folder: the conversation opens in the board's drafts.
+	mine, err := m.startTerminal(terminalSpec{
+		cardID: "card-drafts", nodeID: "opt-agent", columnName: "В работе", boardID: "board1",
+		title: "Починить логин",
+		agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(mine.ID) }()
+	if mine.Cwd != m.boardFolder("board1") {
+		t.Fatalf("the conversation was expected in the board's drafts, and stands in %s", mine.Cwd)
+	}
+
+	stage, err := m.startStageTerminal(&Session{
+		CardID: "card-drafts", BoardID: "board1", NodeID: "opt-agent", ColumnName: "В работе",
+		Title: "Починить логин", PromptText: "Task: Починить логин",
+		WorkdirPath: project, Agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(stage.ID) }()
+	if stage.ID == mine.ID {
+		t.Fatal("the stage was typed into the conversation standing in the drafts folder")
+	}
+	if stage.Cwd == mine.Cwd {
+		t.Errorf("the stage runs in the drafts folder (%s)", stage.Cwd)
+	}
+
+	// And the card's button leads to the work rather than to whichever of the
+	// two the map hands back first.
+	if found := m.TerminalForCardNode("card-drafts", "opt-agent"); found == nil || found.ID != stage.ID {
+		t.Errorf("the node's terminal is %v, and the running stage is %s", found, stage.ID)
+	}
+}
+
 // A stage that declared a required write cannot finish without it, and what it
 // does deliver stands on the card before the report fires — the route's edges
 // read the card as it is then, so the value an edge branches on has to be
