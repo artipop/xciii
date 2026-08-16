@@ -3,7 +3,6 @@ import type {ParentComponent} from 'solid-js'
 import {useDropZone} from '../../hooks/sortable'
 
 import {Card} from '../../blocks/card'
-import './kanbanColumn.scss'
 
 type Props = {
     onDrop: (card: Card) => void

@@ -161,6 +161,21 @@
     --border-subtle: rgba(var(--ink-rgb), 0.1);
     --border-strong: rgba(var(--ink-rgb), 0.2);
 
+    // Drag and drop. One pair for every target there is, because a place a card
+    // can be let go is the same thing whether it is a column, a row, a card or
+    // the gap between two blocks. Ink over whatever it sits on, so one rule is
+    // a shade on the paper and a lift off the black — and never the stamp,
+    // which is the one colour on the board that already means something else.
+    --drop-wash: rgba(var(--ink-rgb), 0.07);
+    --drop-line: rgba(var(--ink-rgb), 0.4);
+
+    // How far past its own edge a drop target is marked. A column is exactly as
+    // wide as the cards standing in it, so a mark that stops at that edge reads
+    // as "these cards" rather than as "this place"; the spread puts the edge in
+    // the gutter, where there is nothing else for it to be about. It is a
+    // shadow, so it costs no layout and nothing moves when a drag passes over.
+    --drop-spread: 6px;
+
     // ---- The aliases the webapp already asks for. ----
     //
     // These are read in ~30 rules (searchDialog, createCategory, dateFilter,

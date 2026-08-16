@@ -69,9 +69,15 @@
     }
 
 
+    // The view itself, and the thing that scrolls. Its left inset is padding
+    // rather than margin because a drop mark is drawn `--drop-spread` past its
+    // target (see main.scss) and this box is where that gets clipped: with the
+    // inset outside the scrollport, the leftmost column was marked on three
+    // sides. The two values sum to what the margin alone used to be, so nothing
+    // moved.
     > div:nth-child(2) {
-        padding: 0 0 0 1px;
-        margin-left: 32px;
+        padding: 0 0 0 9px;
+        margin-left: 24px;
 
         @media (max-width: 768px) {
             margin-left: 0;

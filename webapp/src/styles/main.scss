@@ -118,8 +118,38 @@ html {
 
     /* Main app */
 
+    // Every drop target on the board is drawn here and nowhere else: a column,
+    // a card, a table row, a group. The colours and the spread are in
+    // _tokens.scss; the ring rides one pixel outside the wash, so the two are
+    // one mark rather than a fill with an outline somewhere near it.
+    // The wash is an inset shadow rather than a background: a card carries an
+    // opaque surface of its own, and a translucent background in place of it
+    // turns the card into a hole in the board for as long as the drag is over
+    // it.
     .dragover {
-        background-color: rgba(var(--sidebar-text-active-border-rgb), 0.4);
+        border-radius: var(--radius-md);
+        box-shadow:
+            inset 0 0 0 9999px var(--drop-wash),
+            0 0 0 var(--drop-spread) var(--drop-wash),
+            0 0 0 calc(var(--drop-spread) + 1px) var(--border-strong);
+    }
+
+    // In a table a row butts against the row below it, so a mark drawn wider
+    // than its target is a mark drawn over its neighbours. There the same drop
+    // stops at the target's own edge.
+    .Table .dragover {
+        border-radius: 0;
+        box-shadow:
+            inset 0 0 0 1px var(--border-strong),
+            inset 0 0 0 9999px var(--drop-wash);
+    }
+
+    // Except the ones that are not a place but a gap: an insertion strip is
+    // 10px of nothing, and a wash over nothing is invisible, so the same drop
+    // reads as a line there.
+    .addToRow.dragover {
+        background-color: var(--drop-line);
+        box-shadow: none;
     }
 
     .octo-spacer {

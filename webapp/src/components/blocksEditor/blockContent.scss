@@ -2,11 +2,11 @@
     display: flex;
 
     &.over-up {
-        border-top: 1px solid rgba(var(--sidebar-text-active-border-rgb), 0.4);
+        border-top: 1px solid var(--drop-line);
     }
 
     &.over-down {
-        border-bottom: 1px solid rgba(var(--sidebar-text-active-border-rgb), 0.4);
+        border-bottom: 1px solid var(--drop-line);
     }
 
     &:hover {
