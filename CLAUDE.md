@@ -92,7 +92,7 @@ installers are native-tool jobs (AppImage shells out to `ldd`, NSIS is `makensis
 
 ## Architecture
 
-Nine ideas hold this together. Read them before changing anything structural.
+Ten ideas hold this together. Read them before changing anything structural.
 
 ### The front door owns the origin
 
@@ -483,6 +483,17 @@ the agent handed to `finish_work` with what landed on the branch under it
 leaves when its CLI exits, a session cut off by a restart — and `comment_card`,
 which is the agent choosing to say something. A stage's terminal writes no
 report of its own, or one piece of work would be commented twice.
+
+**And the card does not draw them, because there is one person here**
+(`docs/teamwork.md`). A comment is a thing said to somebody who will read it
+later, and the person working this board is talking to the agent instead — in
+the card's terminal, and in the talk conversation beside it. So the list and
+the badge are *commented out* in `cardDetail.tsx` and `cardBadges.tsx`, blocks,
+store and permission untouched, and they come back when there is a second
+person to say something to. What that costs meanwhile is stated where it is
+decided: the writes above still happen, and the `finish_work` summary is
+readable only in the terminal the agent said it in and in the edge conditions
+that match on it.
 
 **"Nothing happened" is state, never a comment.** A stage that would not start,
 a card refused because a person holds it, a column with no free place, a route
@@ -1437,15 +1448,18 @@ key authenticates it. `wails3 updater manifest` in CI is the whole publishing
 side.
 
 **The address is the part that cannot be taken back.** `updateManifestURL` is
-`https://updates.deffun.org/stable.json`, a domain of ours rather than a
-release page on somebody's platform, because every copy already installed asks
-there and nowhere else: where the *files* are kept is a decision that can be
-revisited every release, and that one line cannot. So the manifest sits at one
-unchanging address and the artifact links inside it are absolute per version
-(`…/v1.1.0/…`), which is what lets one never move and the others always. It is
-also the only place the release address is written down — the workflow reads
-the prefix back out of the constant — so the app and the release cannot come to
-disagree about where a release lives.
+`edition.ManifestURL` — `https://updates.deffun.org/stable.json` for the base
+build — a domain of ours rather than a release page on somebody's platform,
+because every copy already installed asks there and nowhere else: where the
+*files* are kept is a decision that can be revisited every release, and that
+one line cannot. So the manifest sits at one unchanging address and the
+artifact links inside it are absolute per version (`…/v1.1.0/base/…`), which is
+what lets one never move and the others always. It is also the only place the
+release address is written down — the workflow reads the prefix back out of the
+constant — so the app and the release cannot come to disagree about where a
+release lives. **Which address it is belongs to the edition** (below): one
+manifest names one artifact per platform, so a shared feed would hand a
+lifetime install the base app under the version number it was waiting for.
 
 **What survives a restart.** Nothing, on the framework's side: the download is
 a temp directory the helper deletes, and the version a person skipped is a
@@ -1485,6 +1499,34 @@ when they disagree, and `wails3 task version:set` writes all of them. Not
 the CLI's template and drops the hand-written `CFBundleURLTypes` block the share
 extension is launched through. `docs/release.md` is the release itself;
 `.github/workflows/release.yml` is a tag away from it.
+
+### An edition is a build, not a flag
+
+This tree compiles into two products (`internal/edition`, `docs/editions.md`):
+`base`, which everybody gets, and `lifetime`, bought once, whose whole
+difference today is that it embeds more board templates. **Which one a binary
+is, is a build tag and is never read at runtime** — a licence file, an env var
+or a flag makes the difference a thing this process *reads*, and anything read
+can be made to read the other answer, while what the paid edition buys is files
+that are simply not in the base binary. `templates/lifetime/*.jsonl` is a
+second `go:embed` behind the tag (`templates_base.go`, `templates_lifetime.go`)
+joined with the shipped set by `shippedTemplates`; `EDITION=lifetime` on any
+Taskfile target adds the tag; the release workflow's matrix is `edition ×
+platform`.
+
+**The page is not told, and that is the point.** `VISIBLE_TEMPLATE_SLUGS` names
+every edition's templates, and in a base install the extra slugs match no board
+because no such board was ever imported. A page that knew which edition it was
+would be a page that could be told otherwise.
+
+Editions are also why the release feed moved into `edition.ManifestURL`
+(above), and why the constants there are one `const` per line: CI reads them
+out of the source with `sed`, the same way it reads the version.
+
+The other end of that rule: **a template this build does not ship is deleted at
+startup**, which predates editions (`importTemplates`) and is what makes
+installing base over lifetime take the two extra templates away. Boards made
+from them are the person's and are untouched.
 
 ## Conventions
 
@@ -1545,6 +1587,14 @@ extension is launched through. `docs/release.md` is the release itself;
   the Russian a person reads. The one deliberate exception is
   `NormalizeVerdict`, which meets an agent's free text halfway in both languages
   and maps it onto `pass`/`fail`/`blocked`.
+- **Where the model is written down.** `docs/db-erd.md` is what is stored where,
+  `docs/model-graph.md` is how one thing finds another — and what is still found
+  by name rather than by id — and `docs/store-plan.md` is the work that follows
+  from it: registries out of `config.json` and into tables, one store for ours
+  instead of three files and a JSON. The rule those three are kept to: a store
+  references inside itself, with one declared border — our tables name the board
+  and the card by id, the board holds our ids as opaque values, and nothing goes
+  by name in either direction.
 - **A rework is not finished until `docs/` says what is now true.** The rule
   below is about a feature somebody uses; this one is about the shape of the
   code. When something structural moves — a layer replaced, a plan carried out,
