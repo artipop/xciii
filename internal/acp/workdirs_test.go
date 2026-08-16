@@ -172,6 +172,21 @@ func TestTheCardsFolderFieldIsWhereTheFolderIsRead(t *testing.T) {
 		t.Fatalf("the card's folder field was not read: got=%q err=%v", got, err)
 	}
 
+	// An entry with an id is found by it, and the name stops mattering: the
+	// board's option for a folder is created under the entry's id, which is
+	// what will let a folder be renamed — or stop being a folder — without
+	// every card that named it losing its place.
+	withID := registryManager(t, "", WorkdirEntry{ID: "wd-1", Name: "как угодно", Path: project, BoardID: "board1"})
+	withID.SetBoardMeta(&fakeBoardMeta{props: map[string]any{BoardPropProject: "prop-folder"}})
+	byID := CardMoved{
+		BoardID:         "board1",
+		Props:           map[string]string{},
+		SelectedOptions: []Column{{PropertyID: "prop-folder", OptionID: "wd-1", Name: "название с прошлой недели"}},
+	}
+	if got, err := withID.resolveWorkdir(byID); err != nil || got != project {
+		t.Errorf("the folder was not found by the id its option carries: got=%q err=%v", got, err)
+	}
+
 	// And the column the card came from is not a folder either.
 	away := CardMoved{
 		BoardID:    "board1",

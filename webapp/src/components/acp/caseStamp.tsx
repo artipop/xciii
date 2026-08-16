@@ -41,9 +41,9 @@ const CaseStamp = (props: Props) => {
         refreshCardAgent(props.cardId)
     })
 
-    const branch = () => state().session?.branch || state().resume?.branch || state().workBranch || ''
-    const workMode = () => state().workMode || ''
-    const workBase = () => state().workBase || ''
+    const branch = () => state().session?.branch || state().resume?.branch || state().work?.branch || ''
+    const workMode = () => state().work?.mode || ''
+    const workBase = () => state().work?.base || ''
     const worktree = () => state().session?.worktree || state().resume?.cwd || ''
     const status = () => state().session?.status || ''
 

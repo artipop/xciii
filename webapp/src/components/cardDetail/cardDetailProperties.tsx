@@ -52,7 +52,7 @@ const CardDetailProperties = (props: Props) => {
     const agentState = () => cardAgentState(props.card.id)()
     const isBranchProperty = (t: IPropertyTemplate) => t.id !== '' && t.id === branchPropertyId()
     const branchLabel = (t: IPropertyTemplate) => {
-        if (agentState().workMode === 'worktree') {
+        if (agentState().work?.mode === 'worktree') {
             return intl.formatMessage({id: 'CardDetail.worktree-property', defaultMessage: 'Worktree'})
         }
         return t.name
@@ -70,7 +70,7 @@ const CardDetailProperties = (props: Props) => {
     // later and further away: an agent standing on a card whose field says one
     // folder and whose branch is in another is a state nobody can read back.
     const workdirProperty = () => findWorkdirProperty(props.board, props.board.cardProperties)
-    const workdirLocked = () => Boolean(agentState().workMode)
+    const workdirLocked = () => Boolean(agentState().work?.started)
     const isWorkdirProperty = (t: IPropertyTemplate) => t.id !== '' && t.id === workdirProperty()?.id
     const lockedFolderName = () => {
         const property = workdirProperty()

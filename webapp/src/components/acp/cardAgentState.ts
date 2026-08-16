@@ -17,13 +17,27 @@ export type CardAgentState = {
     running?: {id: string}
     resume?: {available?: boolean, branch?: string, cwd?: string}
 
-    // The card's workspace as its claim records it: how it is arranged —
-    // 'worktree' (a copy of its own) or 'branch' (in the folder itself) — its
-    // branch, and what it was cut from. The claim outlives sessions and
-    // restarts, so the stamp can speak even when no session ever reported.
-    workMode?: string
-    workBranch?: string
-    workBase?: string
+    // Where this card's work is: one answer, merged by Go from the claim on
+    // this machine and from what the card itself carries (acp.CardWork). There
+    // were two, and every reader that picked one was wrong somewhere — the
+    // folder lock let go on a second machine, the stamp spoke before anything
+    // was claimed.
+    work?: {
+        branch?: string
+
+        // Only a claim knows these two: how the folder is worked in, and what
+        // the branch was cut from.
+        mode?: string
+        base?: string
+
+        // Work has been taken up somewhere — what the folder field is locked
+        // on, since what makes moving it wrong is that work exists.
+        started?: boolean
+
+        // ...and this machine holds the workspace, so it can be continued
+        // without asking anybody.
+        here?: boolean
+    }
 
     // Why the automation is doing nothing on this card, when it knows — the
     // same reason the route strip shows, for a card outside any route.

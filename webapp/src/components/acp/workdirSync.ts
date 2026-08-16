@@ -38,6 +38,12 @@ function namedByUs(name?: string): boolean {
 
 // Workdir is a registry entry as the page reads it back (see workdirsPanel).
 export type Workdir = {
+    // What a card points at. The board's option for this folder is created
+    // under it, so the card names its folder by an id and what the folder is
+    // *called* stays a label — free to change, and free to stop being a folder
+    // name at all when a place to work is a repository to clone or a drive.
+    // Empty only for an entry read from a Go side older than the field.
+    id?: string
     name: string
     path: string
     boardId?: string
@@ -120,7 +126,9 @@ export async function syncWorkdirsToBoard(board: Board, registry: Workdir[]): Pr
     }
     for (const workdir of missing) {
         target.options.push({
-            id: Utils.createGuid(IDType.BlockID),
+            // The registry's id, not a fresh one: this is what makes the card's
+            // value a reference to the entry rather than a copy of its name.
+            id: workdir.id || Utils.createGuid(IDType.BlockID),
             value: workdir.name,
             color: 'propColorDefault',
         })

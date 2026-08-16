@@ -18,7 +18,15 @@ not an answer the card gives.
 copy or a branch has been taken for the card, the field stops being editable and
 says which folder the card works in. Changing folders means making a new card:
 the work stayed in the copy it was done in, and moving the field would not move
-it there.
+it there. This holds on another machine too: the card carries its branch in the
+«Ветка» field, so the work is known about there even when the copy itself is
+not.
+
+**The terminal button in the corner of a card** opens the work on it. When the
+card has no folder there is nowhere to work, so the button opens the card
+itself, where the question "Which folder will the agent work in?" is asked. A
+card can still be discussed without a folder: «Обсуждение» in the terminals
+panel always opens.
 
 Which items a board's menu has is decided by the template it was made from: the
 «Разработка» board asks about a folder, a deploy host and a browser, so its menu

@@ -126,13 +126,22 @@ export function isCardTerminalAvailable(): boolean {
 // terminal is the conversation of the stage it stands on, and the live CLI may
 // be a passed stage's still running — opening "the card's terminal" would
 // start a second one beside it instead of showing the one the dot is for.
-export async function openCardTerminalWindow(cardId: string, terminalId?: string): Promise<void> {
+// It answers false when Go refused — the card names no folder, so there is
+// nothing for work to happen in. A window is an interface with no way to ask
+// anything, so the question belongs to the panel beside the card, and the
+// caller opens the card instead of a CLI in a directory nobody chose. That
+// silent fallback is what this replaces.
+export async function openCardTerminalWindow(cardId: string, terminalId?: string): Promise<boolean> {
     const bindings = agentBindings()
     let handle: {windowed?: boolean, url?: string} | null = null
-    if (terminalId && bindings?.ShowTerminal) {
-        handle = JSON.parse(await bindings.ShowTerminal(terminalId))
-    } else if (bindings?.OpenCardTerminal) {
-        handle = JSON.parse(await bindings.OpenCardTerminal(cardId, '', '', true))
+    try {
+        if (terminalId && bindings?.ShowTerminal) {
+            handle = JSON.parse(await bindings.ShowTerminal(terminalId))
+        } else if (bindings?.OpenCardTerminal) {
+            handle = JSON.parse(await bindings.OpenCardTerminal(cardId, '', '', true))
+        }
+    } catch (e) {
+        return false
     }
 
     // The desktop app has already opened the window by now; a server build has
@@ -140,4 +149,5 @@ export async function openCardTerminalWindow(cardId: string, terminalId?: string
     if (handle && !handle.windowed && handle.url) {
         window.open(handle.url, '_blank', 'noopener')
     }
+    return true
 }

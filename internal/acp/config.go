@@ -15,6 +15,18 @@ import (
 
 // WorkdirEntry is one named local folder in the registry.
 type WorkdirEntry struct {
+	// ID is what a card points at, and the one field of an entry that never
+	// changes. A card used to name its folder by *name*, which made the name
+	// undeletable and unrenameable and tied the whole idea to something a
+	// person typed; and a name is the wrong identity for what is coming — a
+	// place to work need not be a folder on this disk at all (a repository to
+	// clone, a drive, a machine over ssh), and for those the "name" is exactly
+	// the part somebody will want to change.
+	//
+	// It is also the id of the option the board offers for this folder
+	// (workdirSync.ts), so the card stores it by storing an ordinary select
+	// value. An entry written before this field is given one at startup.
+	ID   string `json:"id,omitempty"`
 	Name string `json:"name"`
 	Path string `json:"path"`
 	// BoardID is the board the folder was added on, and the only board that

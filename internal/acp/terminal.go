@@ -500,12 +500,14 @@ func (m *Manager) startCardConversation(cardID, projectName, agentName string, t
 	}
 	if projectName != "" {
 		workdirPath, err = m.resolveNamedWorkdir(projectName)
-	} else if errors.As(err, &errNoWorkdir{}) {
-		// The card names no folder, and a terminal does not need one: the
-		// conversation opens in the card's own talk directory (startTerminal),
-		// where wording and plans are discussed before any folder exists. A
-		// folder the card *does* name but which is broken stays an error — the
-		// person meant it, and silently talking beside it would mislead.
+	} else if talk && errors.As(err, &errNoWorkdir{}) {
+		// Talk needs no folder: the wording and the plan come before anybody
+		// decides where the work lives, and the conversation opens in the
+		// board's drafts (startTerminal). Work does *not* get that fallback —
+		// there is nothing to work in, and the refusal is what makes the panel
+		// ask which folder rather than open a CLI somewhere nobody asked for.
+		// A folder the card *does* name but which is broken stays an error
+		// either way: the person meant it.
 		workdirPath, err = "", nil
 	}
 	if err != nil {

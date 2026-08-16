@@ -60,8 +60,7 @@ describe('components/acp/caseStamp', () => {
         anyWindow.go = {
             main: {
                 App: cardBindings({
-                    workMode: 'worktree',
-                    workBase: 'main',
+                    work: {mode: 'worktree', base: 'main', started: true, here: true},
                     session: {
                         status: 'finished',
                         branch: 'b-41aa6e-cabgjc3c',

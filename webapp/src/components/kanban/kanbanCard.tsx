@@ -119,11 +119,18 @@ const KanbanCard = (props: Props) => {
         return intl.formatMessage({id: 'KanbanCard.open-terminal', defaultMessage: 'Open the terminal'})
     }
 
-    const openTerminal = (e: MouseEvent) => {
+    const openTerminal = async (e: MouseEvent) => {
         // The card is a click target of its own, and opening the dialog behind
         // the terminal window is not what pressing this asked for.
         e.stopPropagation()
-        openCardTerminalWindow(props.card.id, liveTerminal())
+
+        // Unless there is nothing to open: a card that names no folder has
+        // nowhere for work to happen, and a window cannot ask which folder. The
+        // card can — its panel is where that question lives — so the card is
+        // what opens.
+        if (!await openCardTerminalWindow(props.card.id, liveTerminal())) {
+            props.showCard(props.card.id)
+        }
     }
     const classes = () => {
         let name = props.isSelected ? 'KanbanCard selected' : 'KanbanCard'

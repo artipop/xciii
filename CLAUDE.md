@@ -749,17 +749,30 @@ keys in `config.json` (`projects`), on the board (`xciiiProjectProperty`) and on
 a card (`project_path`, `repo_path`) keep their old spelling, because they are
 other people's stored data.
 
-**The field is read, not recognised** (`cardWorkdirNames`). The board records
-which property it is (`BoardPropProject`, `xciiiProjectProperty`), the event
-carries every selected value with its property id (`CardMoved.SelectedOptions`,
-filled on every path a card is read by), and `resolveWorkdir` asks for that one
-field. It used to scan every option selected anywhere on the card — and then the
-name of the column it came from — for anything spelled like a registry entry, so
-a label named after a repository decided where an agent worked; and since the
-names were collected by ranging over the property schema, which is a Go map,
-which one won changed between events. It is the rule already taken out of
-`resolveSessionAgent`, for the same reason. The scan survives for a board that
-records no folder property, which is a board this app never made one for.
+**A card names its folder by id, and the id is the entry's own**
+(`WorkdirEntry.ID`, `cardWorkdir`). The board records which property holds the
+folder (`BoardPropProject`, `xciiiProjectProperty`); the *option* offering a
+folder is created under that folder's registry id (`workdirSync.ts`), so a card
+that names a folder is a card holding an ordinary select value that happens to
+be a reference. Nothing about the entry has to stay still except the id — which
+is what makes a rename possible, and what lets a place to work stop being a
+folder on this disk at all: a repository to clone, a drive, a machine over ssh
+have identities of their own, and for them the "name" is exactly the part
+somebody will want to change. `docs/deferred.md` carried this as a plan; it is
+this.
+
+It used to be a **name**, matched by scanning every option selected anywhere on
+the card and then the name of the column it came from, so a label named after a
+repository decided where an agent worked — and since the names were collected by
+ranging over the property schema, which is a Go map, which of two matches won
+changed between events. The same rule already taken out of
+`resolveSessionAgent`, for the same reason. Two fallbacks are left for data that
+predates the id: an option made before it is matched by its *name*, and a board
+that recorded no folder property at all gets the old scan, that being the only
+thing such a board can say. `CardMoved.SelectedOptions` carries property and
+option ids, and `CardMoved.Values` is the whole card keyed by property id —
+filled on every path a card is read by, which is how any field this app made is
+read off a card.
 
 **The field is one choice, and the singular is the type talking.** A card claims
 one workspace, works one branch — which the board keeps in a single text field —
@@ -785,10 +798,22 @@ grouped by its folder is left alone entirely, or its empty group could never
 take a card. `UserSettings.prefillCardFolder` is the switch, on by default,
 kept by the install like the rest of `installKept`.
 
+**Where a card's work is has one answer** (`Manager.CardWork`). Two places knew:
+the claim in this app's own database, which knows the whole of it — directory,
+branch, base, how the folder is worked in — and knows it only on this machine;
+and the card, which knows one thing, its branch, and knows it everywhere,
+because a card travels and its fields go with it. Every reader that picked one
+was wrong somewhere: the folder lock read the claim and so let go on the second
+machine, the stamp read the card and so spoke before anything was claimed. They
+are merged once, with the precedence stated — the claim wins where it exists,
+being the fuller record of the same fact — and `CardWork.Started` (work exists
+anywhere) is deliberately a different question from `CardWork.Here` (this
+machine holds it).
+
 **And it stops being a choice once the card has a workspace**
-(`cardDetailProperties.tsx`, read off `CardAgentState.workMode` — the claim
-record, which is what "работа началась" actually means; the column the card
-stands in is not). Work on a card lives in one place, claimed under the folder
+(`cardDetailProperties.tsx`, read off `CardWork.Started` — work exists, which is
+what "работа началась" actually means; the column the card stands in is not, and
+neither is «this machine holds the workspace»). Work on a card lives in one place, claimed under the folder
 the card named then, so pointing the field at another folder afterwards does not
 move the work — it makes the card describe somewhere the work is not. The field
 goes read-only with the reason under it, in the one place a person changes it,
@@ -1111,6 +1136,14 @@ it had a folder took the node's key with a conversation standing in «черно
 доски»; the stage then typed its task into a CLI sitting there, made a branch,
 wrote the branch on the card and left it empty. Neither the lists nor the button
 on the card could say which kind a row was, because nothing knew.
+
+**Work refuses what talk is allowed.** A card with no folder has nowhere for
+work to happen, so `StartCardTerminal` returns `errNoWorkdir` rather than
+falling back to the drafts folder — that fallback is talk's, and it was the
+silent half of the collision above. The refusal is what makes the panel ask
+which folder (it already turns an error into the chips), and the console button
+on the card's face — a window, an interface with no way to ask anything — opens
+**the card** instead (`openCardTerminalWindow` answers false).
 
 So there are **two doors** — `StartCardTerminal` and `StartCardTalk`, bound as
 `OpenCardTerminal`/`OpenCardTalk` — and the card's own conversation is always in

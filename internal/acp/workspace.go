@@ -287,3 +287,64 @@ func (m *Manager) WorkspaceModeForCard(cardID string) (mode, branch, base string
 	}
 	return mode, branch, base
 }
+
+// CardWork is the one answer to "where is this card's work", and it exists
+// because there were two.
+//
+// The claim in this app's own database knows the whole of it — the directory,
+// the branch, what it was cut from, how the folder is worked in — and knows it
+// only here: it is a row on this machine. The card knows one thing, its branch,
+// and knows it everywhere, because a card travels (to another board, to another
+// machine) and its fields travel with it. Both are right, and every reader that
+// picked one of them was wrong somewhere: the lock on the folder read the claim
+// and so let go on the second machine, while the branch on the card's stamp
+// read the card and so appeared before anything had been claimed.
+//
+// So they are merged once, here, with the precedence stated: the claim wins
+// where it exists, because it is the fuller record of the same fact; the card
+// answers where it does not.
+type CardWork struct {
+	// Branch the card works on, wherever that was learned.
+	Branch string `json:"branch,omitempty"`
+	// Base is what the branch was cut from, and what «влито» waits for. Only a
+	// claim knows it.
+	Base string `json:"base,omitempty"`
+	// Mode is how the folder is worked in — WorkModeWorktree or
+	// WorkModeBranch. Only a claim knows it.
+	Mode string `json:"mode,omitempty"`
+	// Started says work has been taken up on this card somewhere. This is the
+	// question the folder field is locked on: what makes moving it wrong is
+	// that work exists, not that this machine happens to hold it.
+	Started bool `json:"started,omitempty"`
+	// Here says this machine holds the workspace, so the directory, the mode
+	// and the base are known and the work can be continued without asking
+	// anybody. A card that travelled says Started and not Here.
+	Here bool `json:"here,omitempty"`
+}
+
+// CardWork merges the two. Cheap enough to call per card: the claim is one row,
+// and the card has already been read by whoever asks.
+func (m *Manager) CardWork(cardID string) CardWork {
+	var out CardWork
+	if mode, branch, base := m.WorkspaceModeForCard(cardID); mode != "" {
+		out = CardWork{Branch: branch, Base: base, Mode: mode, Started: true, Here: true}
+	}
+	if out.Branch != "" || m.reader == nil {
+		return out
+	}
+	ctx, cancel := context.WithTimeout(m.rootOr(), 10*time.Second)
+	defer cancel()
+	ev, err := m.reader.CardByID(ctx, cardID)
+	if err != nil {
+		return out
+	}
+	propID := m.boardBranchProperty(ev.BoardID)
+	if propID == "" {
+		return out
+	}
+	if branch := strings.TrimSpace(ev.Values[propID]); branch != "" {
+		out.Branch = branch
+		out.Started = true
+	}
+	return out
+}

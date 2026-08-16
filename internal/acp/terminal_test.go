@@ -515,7 +515,7 @@ func TestCardTerminalOpensWithoutAnyProject(t *testing.T) {
 	// A card that says nothing about a folder, on a machine with no folders.
 	m.SetBoardReader(&fakeReader{ev: CardMoved{BoardID: "board1", Title: "Обсудить формулировку"}})
 
-	term, err := m.StartCardTerminal("card-talk", "", "")
+	term, err := m.StartCardTalk("card-talk", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -592,14 +592,14 @@ func TestResumedConversationKeepsItsAgent(t *testing.T) {
 
 	talk := t.TempDir()
 	if err := m.store.InsertTerminal(TerminalRecord{
-		ID: "held", CardID: "card-held", NodeID: nodeNone, Cwd: talk,
+		ID: "held", CardID: "card-held", NodeID: nodeTalk, Cwd: talk,
 		Agent: "клаус", Kind: AgentKindClaude,
 		StartedAt: time.Now().Add(-time.Hour),
 	}); err != nil {
 		t.Fatal(err)
 	}
 
-	term, err := m.StartCardTerminal("card-held", "", "")
+	term, err := m.StartCardTalk("card-held", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}

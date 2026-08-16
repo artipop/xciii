@@ -1056,20 +1056,13 @@ func (a *App) GetCardAgent(cardID string) (string, error) {
 	if folder, ok := a.mgr.CardFolder(cardID); ok {
 		payload["folder"] = folder
 	}
-	// The card's workspace as the claim records it: which arrangement
-	// ("worktree" or "branch"), which branch, and what it was cut from. The
-	// stamp names its line after the mode — two vocabularies for one thing
-	// read as the setting not having worked — says where the branch will
-	// merge, and has the branch itself even when no session ever reported
-	// one (a claim outlives sessions and restarts).
-	if mode, branch, base := a.mgr.WorkspaceModeForCard(cardID); mode != "" {
-		payload["workMode"] = mode
-		if branch != "" {
-			payload["workBranch"] = branch
-		}
-		if base != "" {
-			payload["workBase"] = base
-		}
+	// Where the card's work is — one answer, merged from the claim on this
+	// machine and what the card itself carries (acp.CardWork). The stamp names
+	// its line after the mode, two vocabularies for one thing having read as
+	// the setting not having worked; the folder field is locked on «started»,
+	// which is true of a card that was worked on another machine too.
+	if work := a.mgr.CardWork(cardID); work.Started {
+		payload["work"] = work
 	}
 	out, err := json.Marshal(payload)
 	if err != nil {

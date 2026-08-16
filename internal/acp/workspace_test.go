@@ -259,3 +259,33 @@ func TestChangingTheFoldersModeLeavesRunningCardsAlone(t *testing.T) {
 		t.Errorf("the next card got %+v, want a branch in the folder itself", second)
 	}
 }
+
+// Where a card's work is used to have two answers, and every reader picked one
+// of them and was wrong somewhere. A card worked on another machine carries its
+// branch and nothing else — no claim here — and it still counts as started,
+// which is what the folder field is locked on.
+func TestWorkOnACardIsOneAnswerFromTwoPlaces(t *testing.T) {
+	m := registryManager(t, "")
+	m.SetBoardMeta(&fakeBoardMeta{props: map[string]any{BoardPropBranch: "prop-branch"}})
+	m.SetBoardReader(&fakeReader{ev: CardMoved{
+		BoardID: "board1",
+		Values:  map[string]string{"prop-branch": "pochini-login-1a2b"},
+	}})
+
+	work := m.CardWork("card-travelled")
+	if !work.Started {
+		t.Error("a card carrying a branch does not count as worked")
+	}
+	if work.Here {
+		t.Error("a card with no claim here says this machine holds its workspace")
+	}
+	if work.Branch != "pochini-login-1a2b" {
+		t.Errorf("the branch is %q, and the card says pochini-login-1a2b", work.Branch)
+	}
+
+	// A card that says nothing, on a machine that holds nothing, has no work.
+	m.SetBoardReader(&fakeReader{ev: CardMoved{BoardID: "board1"}})
+	if quiet := m.CardWork("card-fresh"); quiet.Started {
+		t.Errorf("a card nobody has worked reads as started: %+v", quiet)
+	}
+}

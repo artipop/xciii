@@ -7,11 +7,14 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
-// Folder registry: named local folders, edited from the desktop UI and
-// persisted back into the config file. Cards are mapped to a folder when one of
-// their select/multiSelect option names (e.g. a tag) matches an entry name.
+// Folder registry: places an agent can work, edited from the desktop UI and
+// persisted back into the config file. Every entry has an id, and a card names
+// its folder by that id — the id of the board option offering it — so what the
+// entry is *called* stays a label.
 
 // Workdirs returns a snapshot of the registry.
 func (m *Manager) Workdirs() []WorkdirEntry {
@@ -91,13 +94,40 @@ func (m *Manager) AddWorkdir(name, path, boardID, kind string, global bool) (Wor
 			return WorkdirEntry{}, fmt.Errorf("папка уже добавлена как %q — отметьте её общей, чтобы она была доступна и на этой доске", r.Name)
 		}
 	}
-	entry := WorkdirEntry{Name: name, Path: clean, BoardID: boardID, Global: global, Kind: kind}
+	entry := WorkdirEntry{ID: newWorkdirID(), Name: name, Path: clean, BoardID: boardID, Global: global, Kind: kind}
 	// The base branch is a setting, prefilled from the repository rather than
 	// guessed: written down now, it is a value somebody can see and change,
 	// which "ask git every time" would never be.
 	entry.BaseBranch = DefaultBaseBranch(m.rootCtx, clean)
 	m.cfg.Workdirs = append(m.cfg.Workdirs, entry)
 	return entry, m.persistConfigLocked()
+}
+
+// newWorkdirID makes the id a card will point at. It doubles as the id of the
+// board option that offers the folder, so it has to be unique among a
+// property's options and legible in the board's own JSON — a prefix and a uuid,
+// which is what every other id in a board looks like.
+func newWorkdirID() string { return "wd-" + uuid.NewString() }
+
+// ensureWorkdirIDs gives an id to every entry written before there were any.
+// Once, at startup, and persisted: the id is what the board's option is created
+// under, so it has to exist before anything offers the folder to a board.
+func (m *Manager) ensureWorkdirIDs() {
+	m.cfgMu.Lock()
+	defer m.cfgMu.Unlock()
+	changed := false
+	for i := range m.cfg.Workdirs {
+		if strings.TrimSpace(m.cfg.Workdirs[i].ID) == "" {
+			m.cfg.Workdirs[i].ID = newWorkdirID()
+			changed = true
+		}
+	}
+	if !changed {
+		return
+	}
+	if err := m.persistConfigLocked(); err != nil {
+		m.log.Warn("acp: cannot record the folders' ids", "err", err)
+	}
 }
 
 // ShareWorkdir marks a folder as every board's. It is the answer to "this
@@ -344,25 +374,19 @@ func (m *Manager) resolveWorkdir(ev CardMoved) (string, error) {
 	// agent into a checkout this board knows nothing about.
 	workdirs := m.WorkdirsForBoard(ev.BoardID)
 
-	// The card's own folder field, found by the id the board recorded. Nothing
-	// is recognised: this used to scan every selected option on the card — and
-	// then the name of the column it came from — for anything spelled like a
-	// registry entry, so a label named after a repository decided where an
-	// agent worked. Worse, it was not even stable: OptionNames is built by
-	// ranging over the property schema, which is a Go map, so when two
-	// properties both matched the winner changed between events. It is the same
-	// rule that was already taken out of resolveSessionAgent, for the same
-	// reason: a match that outlived the field it was invented for.
-	candidates := m.cardWorkdirNames(ev)
-	for _, opt := range candidates {
-		for _, r := range workdirs {
-			if strings.EqualFold(strings.TrimSpace(opt), r.Name) {
-				if info, err := os.Stat(r.Path); err != nil || !info.IsDir() {
-					return "", fmt.Errorf("папка %q указывает на несуществующий каталог %s", r.Name, r.Path)
-				}
-				return r.Path, nil
-			}
+	// The card's own folder field, found by the id the board recorded, and the
+	// entry found by the id the option carries. Nothing is recognised by name:
+	// this used to scan every selected option on the card — and then the name of
+	// the column it came from — for anything spelled like a registry entry, so a
+	// label named after a repository decided where an agent worked, and which of
+	// two matches won changed between events (the names came from ranging over
+	// the property schema, which is a Go map).
+	entry, ok := m.cardWorkdir(ev, workdirs)
+	if ok {
+		if info, err := os.Stat(entry.Path); err != nil || !info.IsDir() {
+			return "", fmt.Errorf("папка %q указывает на несуществующий каталог %s", entry.Name, entry.Path)
 		}
+		return entry.Path, nil
 	}
 	if len(workdirs) == 0 {
 		return "", errNoWorkdir{fmt.Errorf("у карточки не заполнено поле «Папка» и в реестре нет ни одной папки (меню доски → «Папки…»)")}
@@ -370,24 +394,54 @@ func (m *Manager) resolveWorkdir(ev CardMoved) (string, error) {
 	return "", errNoWorkdir{fmt.Errorf("в поле «Папка» карточки не выбрана ни одна папка из реестра (%s)", workdirNames(workdirs))}
 }
 
-// cardWorkdirNames is what the card says about its folder, in the order it is
-// believed.
+// cardWorkdir is the registry entry a card points at, among the ones this board
+// offers.
 //
-// A board that records its folder property answers with that field and with
-// nothing else — that is the whole point of recording it. A board that records
-// none never had the field made for it (every board this app touches gets one
-// through syncWorkdirsToBoard), so the old scan is left as its only way to say
-// anything, marked as what it is.
-func (m *Manager) cardWorkdirNames(ev CardMoved) []string {
+// The option's **id** is the entry's id: the board's folder options are created
+// under it (workdirSync.ts), so a card that names a folder is a card holding
+// that id, and what the folder is called is free to change — or to stop being a
+// folder name at all, which is where this is going: a place to work need not be
+// a directory on this disk.
+//
+// Two fallbacks, both for data that predates the id. An option made before this
+// carries an id of the board's own, so the entry is matched by the option's
+// *name*; and a board that never recorded which property holds the folder gets
+// the old scan across everything selected on the card, which is the only thing
+// such a board can say.
+func (m *Manager) cardWorkdir(ev CardMoved, workdirs []WorkdirEntry) (WorkdirEntry, bool) {
 	if propID := m.boardProperty(ev.BoardID, BoardPropProject); propID != "" {
 		for _, sel := range ev.SelectedOptions {
-			if sel.PropertyID == propID {
-				return []string{sel.Name}
+			if sel.PropertyID != propID {
+				continue
 			}
+			for _, r := range workdirs {
+				if r.ID != "" && r.ID == sel.OptionID {
+					return r, true
+				}
+			}
+			return matchWorkdirName(workdirs, sel.Name)
 		}
-		return nil
+		return WorkdirEntry{}, false
 	}
-	return append(append([]string(nil), ev.OptionNames...), ev.FromColumn.Name)
+	for _, name := range append(append([]string(nil), ev.OptionNames...), ev.FromColumn.Name) {
+		if r, ok := matchWorkdirName(workdirs, name); ok {
+			return r, true
+		}
+	}
+	return WorkdirEntry{}, false
+}
+
+func matchWorkdirName(workdirs []WorkdirEntry, name string) (WorkdirEntry, bool) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return WorkdirEntry{}, false
+	}
+	for _, r := range workdirs {
+		if strings.EqualFold(name, r.Name) {
+			return r, true
+		}
+	}
+	return WorkdirEntry{}, false
 }
 
 func workdirNames(workdirs []WorkdirEntry) string {

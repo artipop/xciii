@@ -22,13 +22,18 @@ type Column struct {
 
 // CardMoved is the normalized "card changed column" event.
 type CardMoved struct {
-	EventID     string
-	CardID      string
-	BoardID     string
-	Title       string
-	Body        string            // card description text, if any
-	Props       map[string]string // lowercased property name → display value
-	OptionNames []string          // display names of every selected select/multiSelect option (tags included)
+	EventID string
+	CardID  string
+	BoardID string
+	Title   string
+	Body    string            // card description text, if any
+	Props   map[string]string // lowercased property name → display value
+	// Values is the same card keyed by property id, which is how this app finds
+	// the fields it made: the board records which property is the branch and
+	// which is the folder, and what they are called belongs to whoever owns the
+	// board.
+	Values      map[string]string
+	OptionNames []string // display names of every selected select/multiSelect option (tags included)
 	// PersonNames are the usernames behind every person/multiPerson value on the
 	// card — the "Assignee" route to an agent, which works because a registered
 	// agent is provisioned as a board user (see BoardUsers).

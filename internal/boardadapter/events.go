@@ -90,6 +90,7 @@ func (b *EventsBackend) BlockChanged(evt notify.BlockChangeEvent) error {
 			Title:       evt.BlockChanged.Title,
 			Body:        b.cardBody(evt.Board.ID, evt.BlockChanged),
 			Props:       namedProperties(evt.BlockChanged, schema, resolver),
+			Values:      valuesByID(evt.BlockChanged, schema, resolver),
 			OptionNames: selectedOptionNames(newProps, schema),
 			// With the ids kept, so a reader can ask the card for one field by
 			// the id the board recorded rather than recognise it among the
@@ -144,6 +145,7 @@ func (b *EventsBackend) CardByID(ctx context.Context, cardID string) (acp.CardMo
 		Title:           block.Title,
 		Body:            b.cardBody(board.ID, block),
 		Props:           namedProperties(block, schema, resolver),
+		Values:          valuesByID(block, schema, resolver),
 		OptionNames:     selectedOptionNames(rawProperties(block), schema),
 		SelectedOptions: selectedOptions(rawProperties(block), schema),
 		PersonNames:     personNames(rawProperties(block), schema, resolver),
@@ -233,6 +235,7 @@ func (b *EventsBackend) CardsForBoard(ctx context.Context, boardID string) ([]ac
 			BoardID:         board.ID,
 			Title:           block.Title,
 			Props:           namedProperties(block, schema, resolver),
+			Values:          valuesByID(block, schema, resolver),
 			OptionNames:     selectedOptionNames(props, schema),
 			SelectedOptions: selectedOptions(props, schema),
 			PersonNames:     personNames(props, schema, resolver),
@@ -458,6 +461,25 @@ func namedProperties(block *model.Block, schema model.PropSchema, resolver *user
 			continue
 		}
 		out[strings.ToLower(prop.Name)] = prop.Value
+	}
+	return out
+}
+
+// valuesByID is the same card, keyed the way this app's own fields are found:
+// by the id the board recorded for each of them (BoardPropBranch and the rest).
+// The name-keyed map above is for the fields nobody records — a person's own
+// «repo_path» — and cannot serve these, because what they are called is the
+// owner's business.
+func valuesByID(block *model.Block, schema model.PropSchema, resolver *userResolver) map[string]string {
+	out := make(map[string]string)
+	parsed, err := model.ParseProperties(block, schema, resolver)
+	if err != nil {
+		return out
+	}
+	for id, prop := range parsed {
+		if v := strings.TrimSpace(prop.Value); v != "" {
+			out[id] = v
+		}
 	}
 	return out
 }

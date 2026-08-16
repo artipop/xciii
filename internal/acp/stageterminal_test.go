@@ -224,7 +224,7 @@ func TestTheCardsOwnConversationOpensWithNoProject(t *testing.T) {
 	m, _, _, _, _ := stageManager(t, "sleep 30", nil)
 	m.SetBoardReader(&fakeReader{ev: CardMoved{BoardID: "board1", Title: "Обдумать"}})
 
-	term, err := m.StartCardTerminal("cardBare", "", "")
+	term, err := m.StartCardTalk("cardBare", "", "")
 	if err != nil {
 		t.Fatalf("a card with no folder could not be talked about: %v", err)
 	}
@@ -239,7 +239,7 @@ func TestTheCardsOwnConversationOpensWithNoProject(t *testing.T) {
 
 	// And asking again is "show me the one I have", which is what makes it a
 	// place to come back to rather than a new CLI every time.
-	again, err := m.StartCardTerminal("cardBare", "", "")
+	again, err := m.StartCardTalk("cardBare", "", "")
 	if err != nil || again.ID != term.ID {
 		t.Errorf("asking twice started a second conversation (%v, %v)", again, err)
 	}

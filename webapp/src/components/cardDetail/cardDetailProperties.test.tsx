@@ -199,7 +199,7 @@ describe('components/cardDetail/CardDetailProperties', () => {
         })
 
         it('cannot be changed once a workspace has been claimed, and says why', () => {
-            cardAgent.state = {workMode: 'worktree'}
+            cardAgent.state = {work: {mode: 'worktree', started: true, here: true}}
             const {container} = renderFolderCard()
 
             expect(container.querySelector('.octo-propertyvalue--readonly')).not.toBeNull()

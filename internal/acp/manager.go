@@ -203,6 +203,11 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 	// empty username and got none at all.
 	m.ensureAgentAccounts()
 
+	// The ids a card points its folder at. Given here for a registry written
+	// before they existed, and before anything can offer a folder to a board:
+	// the board's option is created under the id.
+	m.ensureWorkdirIDs()
+
 	m.recover()
 	PruneStale(m.rootCtx, m.cfg.ProjectWhitelist)
 
