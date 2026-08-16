@@ -485,6 +485,9 @@ window-position autosave.
 - [docs/build-and-platforms.md](docs/build-and-platforms.md) — what to run to get a
   binary on each of the three platforms, which build tags do what, and the traps
   already stepped in.
+- [docs/verifying.md](docs/verifying.md) — how a change is actually checked here:
+  which level proves what, driving the headless build and a browser, and the
+  traps of the harness itself.
 - [docs/release.md](docs/release.md) — cutting a release: the version, the signing
   key updates are verified against, what the workflow builds where, and how to
   run it without publishing.
