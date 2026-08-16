@@ -4,7 +4,11 @@ import {FormattedMessage, useIntl} from '../intl'
 
 import {BlockIcons} from '../blockIcons'
 import {Board} from '../blocks/board'
+import {titleTaken} from '../boardTitle'
+import {sendFlashMessage} from '../components/flashMessages'
 import mutator from '../mutator'
+import {useAppSelector} from '../store/hooks'
+import {getMySortedBoards} from '../store/boards'
 import Button from '../widgets/buttons/button'
 import Editable from '../widgets/editable'
 import CompassIcon from '../widgets/icons/compassIcon'
@@ -21,8 +25,28 @@ type Props = {
 }
 
 const ViewTitle = (props: Props) => {
+    const intl = useIntl()
     const [title, setTitle] = createSignal(props.board.title)
-    const onEditTitleSave = () => mutator.changeBoardTitle(props.board.id, props.board.title, title())
+    const boards = useAppSelector<Board[]>(getMySortedBoards)
+
+    // Two boards with one name is a sidebar nobody can read, so the rename is
+    // refused rather than allowed and mourned. Refused *here*, where the name
+    // is typed: the wizard's first step asks the same question and answers it
+    // with the same rule (boardTitle.ts).
+    const onEditTitleSave = () => {
+        if (titleTaken(boards(), title(), props.board.id)) {
+            sendFlashMessage({
+                content: intl.formatMessage({
+                    id: 'ViewTitle.name-taken',
+                    defaultMessage: 'Another board is already called that — boards are told apart by their names.',
+                }),
+                severity: 'high',
+            })
+            setTitle(props.board.title)
+            return
+        }
+        mutator.changeBoardTitle(props.board.id, props.board.title, title())
+    }
     const onEditTitleCancel = () => setTitle(props.board.title)
     const onDescriptionBlur = (text: string) => mutator.changeBoardDescription(props.board.id, props.board.id, props.board.description, text)
     const onAddRandomIcon = () => {
@@ -34,8 +58,6 @@ const ViewTitle = (props: Props) => {
     const canEditBoardProperties = useHasCurrentBoardPermissions([Permission.ManageBoardProperties])
 
     const readonly = () => props.readonly || !canEditBoardProperties()
-
-    const intl = useIntl()
 
     return (
         <div class='ViewTitle'>

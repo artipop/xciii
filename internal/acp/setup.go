@@ -30,6 +30,13 @@ import (
 
 // Setup step kinds.
 const (
+	// SetupStepName is the board's own name, and the one step that asks about
+	// the board rather than about this machine. It is first and it is not
+	// optional: a board arrives called what its template is called, so the
+	// second one made from «Разработка» is a second «Разработка» in the
+	// sidebar, and the moment to say what this one is for is the moment it is
+	// made.
+	SetupStepName    = "name"
 	SetupStepWorkdir = "project" // a folder on this machine an agent works in
 	SetupStepAgent   = "agent"   // the agent that picks a card up
 	SetupStepDeploy  = "deploy"  // a Dokku host to publish a branch to
@@ -79,6 +86,9 @@ type SetupStepDef struct {
 // is the order the work needs them in: an agent has nowhere to work without a
 // folder, and neither publishing nor testing means anything without an agent.
 var SetupStepDefs = []SetupStepDef{
+	// No registry: what answers it is the board itself, so there is nothing on
+	// this machine that could have answered it already.
+	{Kind: SetupStepName},
 	{Kind: SetupStepWorkdir, Registry: "projects"},
 	{Kind: SetupStepAgent, Registry: "agents"},
 	{Kind: SetupStepDeploy, Registry: "deploys", Optional: true},
@@ -612,7 +622,7 @@ func setupSteps(declared BoardSetup, columns []ColumnSpec, flows []FlowEntry) []
 	// said nothing, and exactly the wrong thing to lay over a board that has.
 	// So a declaration is the whole plan while there is nothing to read.
 	if len(declared.Steps) > 0 && len(columns) == 0 && len(flows) == 0 {
-		return declared.Steps
+		return append([]BoardSetupStep{{Kind: SetupStepName}}, declared.Steps...)
 	}
 
 	said := make(map[string]BoardSetupStep, len(declared.Steps))
@@ -644,6 +654,7 @@ func setupSteps(declared BoardSetup, columns []ColumnSpec, flows []FlowEntry) []
 // stages. Anything else a board declares is kept because nothing else could
 // have produced it.
 var inferredSetupKinds = map[string]bool{
+	SetupStepName:    true,
 	SetupStepWorkdir: true,
 	SetupStepAgent:   true,
 	SetupStepDeploy:  true,
@@ -664,7 +675,10 @@ func impliedSetup(columns []ColumnSpec, flows []FlowEntry) []BoardSetupStep {
 			actions[n.Action] = true
 		}
 	}
-	steps := []BoardSetupStep{{Kind: SetupStepWorkdir}, {Kind: SetupStepAgent}}
+	// Every board is asked its name, whatever it runs: it is the one question
+	// that is not about the machine, and a board with no automation at all
+	// still has to be told apart from the others in the sidebar.
+	steps := []BoardSetupStep{{Kind: SetupStepName}, {Kind: SetupStepWorkdir}, {Kind: SetupStepAgent}}
 	blank := len(columns) == 0 && len(flows) == 0
 	if blank || actions[FlowActionDeploy] {
 		steps = append(steps, BoardSetupStep{Kind: SetupStepDeploy})

@@ -642,6 +642,17 @@ them a board has is **the board's own setup plan** (`BoardSetupPlan`), so the
 menu differs by board exactly as the questions do: one that deploys offers a
 deploy host, a board of household chores offers folders alone.
 
+**The first question is the board's own name** (`SetupStepName`), and it is the
+only step that is not about this machine and the only one with no way past it.
+A board arrives called what its template is called, so the second one made from
+«Разработка» is a second «Разработка» in the sidebar — and names are unique:
+the step refuses one another board has, and so does renaming a board by its
+title. One rule, `boardTitle.ts`, used at both doors a person types a name
+through; trimmed and case-insensitive, because two boards nobody can tell apart
+on screen are two boards with the same name whatever the bytes say. The wizard
+reads the other names through `listBoards()` rather than the store, so it needs
+no provider around it in a test.
+
 **The plan is read off the board's stages, not off its template**
 (`setupSteps`). It used to be the steps the template declared in `xciiiSetup`,
 falling back to inference — and a declaration is written once, before the board

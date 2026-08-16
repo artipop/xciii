@@ -77,6 +77,62 @@ describe('components/acp/boardSetupWizard', () => {
         />,
     ))
 
+    // The one question that is not about the machine, and the one nobody may be
+    // let past: a board arrives called what its template is called, so the
+    // second «Разработка» is a second «Разработка» in the sidebar.
+    describe("the board's name", () => {
+        test('is the first step, and is not skippable', async () => {
+            stubBindings({BoardSetupPlan: vi.fn().mockResolvedValue(plan(['name', 'project', 'agent', 'done']))})
+            renderWizard()
+
+            await waitFor(() => expect(screen.getByLabelText('Board name')).toBeInTheDocument())
+            expect(screen.queryByRole('button', {name: 'Skip'})).toBeNull()
+        })
+
+        test('renames the board and records the step', async () => {
+            const bindings = stubBindings({
+                BoardSetupPlan: vi.fn().mockResolvedValue(plan(['name', 'project', 'done'])),
+            })
+            renderWizard()
+
+            const field = await screen.findByLabelText('Board name')
+            fireEvent.input(field, {target: {value: '  Ремонт кухни  '}})
+            userEvent.click(screen.getByRole('button', {name: 'Next'}))
+
+            // The record is the last thing the answer does, so waiting for it
+            // waits for the rename too. Trimmed, and filed against the board
+            // being set up; the old title is whatever it arrived with.
+            await waitFor(() => expect(bindings.RecordBoardSetupStep).toHaveBeenCalledWith(testBoard.id, 'name', 'done'))
+            expect(mockedMutator.changeBoardTitle).toHaveBeenCalledWith(testBoard.id, expect.any(String), 'Ремонт кухни')
+        })
+
+        test('refuses a name another board already has', async () => {
+            stubBindings({
+                BoardSetupPlan: vi.fn().mockResolvedValue(plan(['name', 'project', 'done'])),
+                ListBoards: vi.fn().mockResolvedValue(JSON.stringify([
+                    {id: 'other-board', title: 'Разработка'},
+                ])),
+            })
+            renderWizard()
+
+            const field = await screen.findByLabelText('Board name')
+            fireEvent.input(field, {target: {value: 'разработка'}})
+
+            await waitFor(() => expect(screen.getByText(/Another board is already called that/)).toBeInTheDocument())
+            expect(screen.getByRole('button', {name: 'Next'})).toBeDisabled()
+            expect(mockedMutator.changeBoardTitle).not.toHaveBeenCalled()
+        })
+
+        test('an empty name is no answer either', async () => {
+            stubBindings({BoardSetupPlan: vi.fn().mockResolvedValue(plan(['name', 'done']))})
+            renderWizard()
+
+            const field = await screen.findByLabelText('Board name')
+            fireEvent.input(field, {target: {value: '   '}})
+            expect(screen.getByRole('button', {name: 'Next'})).toBeDisabled()
+        })
+    })
+
     test('outside the desktop app there is no registry to read', async () => {
         expect(await readRegistry()).toBeNull()
     })

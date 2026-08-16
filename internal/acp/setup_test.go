@@ -79,7 +79,7 @@ func TestATemplateIsAskedForNothing(t *testing.T) {
 
 	// The same board, asking for the same two things, is asked them as a board
 	// and not as a template.
-	if len(m.SetupPlanFor("board1").Steps) != 2 {
+	if len(m.SetupPlanFor("board1").Steps) != 3 {
 		t.Fatalf("the board itself was asked for %v", kinds(m.SetupPlanFor("board1")))
 	}
 
@@ -90,6 +90,31 @@ func TestATemplateIsAskedForNothing(t *testing.T) {
 	}
 	if plan.Automated {
 		t.Error("a template counts as automated, so the wizard would open itself on it")
+	}
+}
+
+// The one question that is about the board rather than about the machine, and
+// the one nobody can be let past: a board arrives called what its template is
+// called, so the second one made from «Разработка» is a second «Разработка» in
+// the sidebar until somebody says what this one is for.
+func TestEveryBoardIsAskedItsNameFirst(t *testing.T) {
+	boards := map[string]*Manager{
+		"a board that declares its steps": setupManager(t, boardProps(t, map[string]any{
+			BoardPropSetup: BoardSetup{Steps: []BoardSetupStep{{Kind: SetupStepAgent}, {Kind: SetupStepDone}}},
+		})),
+		"a board that only carries automation": setupManager(t, boardProps(t, BoardAutomation{
+			Columns: []ColumnSpec{{PropertyID: "p", OptionID: "o1", Property: "Статус", Column: "В работе", Action: FlowActionAgent}},
+		})),
+		"a board with nothing at all": setupManager(t, nil),
+	}
+	for what, m := range boards {
+		plan := m.SetupPlanFor("board1")
+		if len(plan.Steps) == 0 || plan.Steps[0].Kind != SetupStepName {
+			t.Fatalf("%s: opens on %v", what, kinds(plan))
+		}
+		if plan.Steps[0].Optional {
+			t.Errorf("%s: the name is a question that may be passed over", what)
+		}
 	}
 }
 
@@ -107,10 +132,10 @@ func TestABoardAsksForTheStepsItNames(t *testing.T) {
 	if !plan.Declared {
 		t.Error("the plan does not say the board asked for it")
 	}
-	if want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDone}; !equal(kinds(plan), want) {
+	if want := []string{SetupStepName, SetupStepWorkdir, SetupStepAgent, SetupStepDone}; !equal(kinds(plan), want) {
 		t.Fatalf("steps %v, expected %v", kinds(plan), want)
 	}
-	if plan.Steps[0].Hint == "" {
+	if plan.Steps[1].Hint == "" {
 		t.Error("the board's own sentence was dropped")
 	}
 }
@@ -174,7 +199,7 @@ func TestAStepThisBuildCannotDoIsLeftOut(t *testing.T) {
 		}},
 	}))
 
-	if want := []string{SetupStepWorkdir, SetupStepDone}; !equal(kinds(m.SetupPlanFor("board1")), want) {
+	if want := []string{SetupStepName, SetupStepWorkdir, SetupStepDone}; !equal(kinds(m.SetupPlanFor("board1")), want) {
 		t.Fatalf("steps %v, expected %v", kinds(m.SetupPlanFor("board1")), want)
 	}
 }
@@ -205,7 +230,7 @@ func TestABoardThatSaysNothingIsAskedWhatItsAutomationNeeds(t *testing.T) {
 	if !plan.Automated {
 		t.Error("a board carrying columns and routes is not marked as automated")
 	}
-	if want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDone}; !equal(kinds(plan), want) {
+	if want := []string{SetupStepName, SetupStepWorkdir, SetupStepAgent, SetupStepDone}; !equal(kinds(plan), want) {
 		t.Fatalf("steps %v, expected %v", kinds(plan), want)
 	}
 }
@@ -228,14 +253,14 @@ func TestABoardIsAskedForWhatItGrewAfterItWasMade(t *testing.T) {
 	}))
 
 	plan := m.SetupPlanFor("board1")
-	want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDeploy, SetupStepDone}
+	want := []string{SetupStepName, SetupStepWorkdir, SetupStepAgent, SetupStepDeploy, SetupStepDone}
 	if !equal(kinds(plan), want) {
 		t.Fatalf("steps %v, expected %v", kinds(plan), want)
 	}
 	// The board still had something to say, and it is still said: what the
 	// declaration carries is the wording, not the list.
-	if !plan.Declared || plan.Steps[0].Hint != "Папка с домашними заметками" {
-		t.Errorf("the board's own sentence was lost: declared=%v %+v", plan.Declared, plan.Steps[0])
+	if !plan.Declared || plan.Steps[1].Hint != "Папка с домашними заметками" {
+		t.Errorf("the board's own sentence was lost: declared=%v %+v", plan.Declared, plan.Steps[1])
 	}
 	// And a stage nobody has configured is not an emergency: the question the
 	// board grew is one it may pass over, exactly as a template's own is.
@@ -263,7 +288,7 @@ func TestABoardStopsAskingForWhatItNoLongerDoes(t *testing.T) {
 		},
 	}))
 
-	want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDone}
+	want := []string{SetupStepName, SetupStepWorkdir, SetupStepAgent, SetupStepDone}
 	if got := kinds(m.SetupPlanFor("board1")); !equal(got, want) {
 		t.Fatalf("steps %v, expected %v", got, want)
 	}
@@ -284,7 +309,7 @@ func TestADeclaredSourceSurvivesTheStagesBeingRead(t *testing.T) {
 		},
 	}))
 
-	want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepSource, SetupStepDone}
+	want := []string{SetupStepName, SetupStepWorkdir, SetupStepAgent, SetupStepSource, SetupStepDone}
 	if got := kinds(m.SetupPlanFor("board1")); !equal(got, want) {
 		t.Fatalf("steps %v, expected %v", got, want)
 	}
@@ -300,7 +325,7 @@ func TestABoardThatDeploysAndTestsIsAskedForBoth(t *testing.T) {
 		},
 	}))
 
-	want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDeploy, SetupStepBrowser, SetupStepDone}
+	want := []string{SetupStepName, SetupStepWorkdir, SetupStepAgent, SetupStepDeploy, SetupStepBrowser, SetupStepDone}
 	if got := kinds(m.SetupPlanFor("board1")); !equal(got, want) {
 		t.Fatalf("steps %v, expected %v", got, want)
 	}
@@ -316,7 +341,7 @@ func TestABoardWithNoAutomationIsOfferedEverythingAndOpensNothing(t *testing.T) 
 	if plan.Automated {
 		t.Error("a board with no columns and no routes is marked as automated")
 	}
-	want := []string{SetupStepWorkdir, SetupStepAgent, SetupStepDeploy, SetupStepBrowser, SetupStepDone}
+	want := []string{SetupStepName, SetupStepWorkdir, SetupStepAgent, SetupStepDeploy, SetupStepBrowser, SetupStepDone}
 	if got := kinds(plan); !equal(got, want) {
 		t.Fatalf("steps %v, expected %v", got, want)
 	}
@@ -340,6 +365,9 @@ func TestAFilledRegistryOffersAnAnswerRatherThanBeingOne(t *testing.T) {
 	}
 
 	first := byKind("board1")
+
+	// The name step is not in this list: nothing on the machine can answer
+	// "what is this board called", so it has no registry and is never ready.
 	for _, kind := range []string{SetupStepWorkdir, SetupStepAgent} {
 		if first[kind].Status != SetupPending {
 			t.Errorf("%s: %q — a board nobody set up counts as set up", kind, first[kind].Status)
@@ -363,7 +391,7 @@ func TestAFilledRegistryOffersAnAnswerRatherThanBeingOne(t *testing.T) {
 	}
 
 	// Answering it for one board leaves the next one asking.
-	for _, kind := range []string{SetupStepWorkdir, SetupStepAgent} {
+	for _, kind := range []string{SetupStepName, SetupStepWorkdir, SetupStepAgent} {
 		if err := m.RecordSetupStep("board1", kind, SetupDone); err != nil {
 			t.Fatal(err)
 		}

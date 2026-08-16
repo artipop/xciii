@@ -5,6 +5,9 @@ import {For, Show, createEffect, createSignal, onMount} from 'solid-js'
 import {useIntl} from '../../intl'
 
 import {Board} from '../../blocks/board'
+import {titleTaken} from '../../boardTitle'
+import {listBoards} from '../../bindings/boards'
+import mutator from '../../mutator'
 import Button from '../../widgets/buttons/button'
 import Dialog from '../dialog'
 
@@ -60,6 +63,7 @@ type Props = {
     onClose: () => void
 }
 
+const STEP_NAME: SetupStepKind = 'name'
 const STEP_WORKDIR: SetupStepKind = 'project'
 const STEP_AGENT: SetupStepKind = 'agent'
 const STEP_DEPLOY: SetupStepKind = 'deploy'
@@ -131,6 +135,24 @@ const BoardSetupWizard = (props: Props) => {
         setBoardAgents((chosen) => (chosen.includes(name) ? chosen.filter((n) => n !== name) : [...chosen, name]))
     }
 
+    // Step 1: what this board is called. It arrives named after the template it
+    // was made from, so the field opens on that and on the whole of it
+    // selected — the answer is usually a replacement, not an edit.
+    const [boardName, setBoardName] = createSignal(props.board.title)
+
+    // The other boards' names, read from Go rather than from the store: this
+    // dialog talks to Go for everything else it knows, and a store dependency
+    // here would need a provider around it in every test that renders it.
+    const [boards, setBoards] = createSignal<Array<{id: string, title: string}>>([])
+    const nameTaken = () => titleTaken(boards(), boardName(), props.board.id)
+
+    const renameBoard = () => run(async () => {
+        const wanted = boardName().trim()
+        if (wanted && wanted !== props.board.title) {
+            await mutator.changeBoardTitle(props.board.id, props.board.title, wanted)
+        }
+    }, STEP_NAME)
+
     // Step 3: a Dokku host.
     const [deploy, setDeploy] = createSignal({name: '', sshHost: '', sshUser: '', sshKey: '', baseDomain: ''})
 
@@ -163,6 +185,7 @@ const BoardSetupWizard = (props: Props) => {
 
     onMount(() => {
         refresh()
+        listBoards().then(setBoards).catch(() => setBoards([]))
     })
 
     // Who the board's agent stages are already crewed with: the step opens on
@@ -354,6 +377,30 @@ const BoardSetupWizard = (props: Props) => {
 
     const body = () => {
         switch (step()) {
+        case STEP_NAME:
+            return (
+                <div class='BoardSetupWizard__step'>
+                    <p>{intl.formatMessage({id: 'BoardSetup.name-why', defaultMessage: 'A board arrives called what its template is called. Name it after the work that will be on it — that is how you will find it in the sidebar, and how a card knows which board it is being carried to.'})}</p>
+                    <label class='BoardSetupWizard__field'>
+                        {intl.formatMessage({id: 'BoardSetup.name-label', defaultMessage: 'Board name'})}
+                        <input
+                            value={boardName()}
+                            disabled={busy()}
+                            onInput={(e) => setBoardName(e.currentTarget.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && boardName().trim() && !nameTaken()) {
+                                    renameBoard()
+                                }
+                            }}
+                        />
+                    </label>
+                    <Show when={nameTaken()}>
+                        <p class='BoardSetupWizard__error'>
+                            {intl.formatMessage({id: 'BoardSetup.name-taken', defaultMessage: 'Another board is already called that — boards are told apart by their names.'})}
+                        </p>
+                    </Show>
+                </div>
+            )
         case STEP_WORKDIR:
             return (
                 <div class='BoardSetupWizard__step'>
@@ -659,6 +706,19 @@ const BoardSetupWizard = (props: Props) => {
 
     const actions = () => {
         switch (step()) {
+        // The one step with no way past it: every other question is about the
+        // machine and can be left for later, and this one is about the board
+        // in front of you.
+        case STEP_NAME:
+            return (
+                <Button
+                    emphasis='primary'
+                    disabled={busy() || !boardName().trim() || nameTaken()}
+                    onClick={renameBoard}
+                >
+                    {intl.formatMessage({id: 'BoardSetup.next', defaultMessage: 'Next'})}
+                </Button>
+            )
         case STEP_WORKDIR:
             return (
                 <>
@@ -766,6 +826,8 @@ const BoardSetupWizard = (props: Props) => {
 
     const title = (of: SetupStepKind) => {
         switch (of) {
+        case STEP_NAME:
+            return intl.formatMessage({id: 'BoardSetup.step-name', defaultMessage: 'Name'})
         case STEP_WORKDIR:
             return intl.formatMessage({id: 'BoardSetup.step-folder', defaultMessage: 'Folder'})
         case STEP_AGENT:

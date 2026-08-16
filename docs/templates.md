@@ -87,6 +87,17 @@ Whether a project has to be a git repository is never asked here and never
 named by hand: it follows from what the board does. A board that publishes a
 branch or waits for one needs git, and the wizard refuses a folder without it.
 
+## What the wizard asks first
+
+The board's own name, and it is the one step with no way past it. A board
+arrives called what its template is called, so the second one made from
+«Разработка» is a second «Разработка» in the sidebar — and the moment to say
+what this one is for is the moment it is made. Names are unique: the step
+refuses one another board has, and so does renaming a board by its title
+(`boardTitle.ts`, one rule for both doors).
+
+Everything after it is about the machine and can be left for later.
+
 ## Saving a working board as a template
 
 Half of what a board does — what runs in each column, the routes — is registry

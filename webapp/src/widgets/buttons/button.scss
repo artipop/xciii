@@ -251,3 +251,24 @@
         padding-left: 0;
     }
 }
+
+// A button that cannot be pressed has to look like it. Nothing said so before,
+// so the setup wizard's «Дальше» sat there in full accent red while it was
+// refusing every click — and the first step of the first run is exactly where
+// somebody concludes the app is broken.
+//
+// Last in the file on purpose: the emphasis blocks above give the primary
+// button its own hover, and a tie on specificity is settled by source order.
+// Not `pointer-events: none` — a disabled button still deserves its cursor.
+.Button:disabled {
+    cursor: default;
+    opacity: 0.4;
+
+    &:hover {
+        background-color: rgb(var(--button-bg-rgb));
+    }
+
+    &:not(.filled):not([class*='emphasis--']):hover {
+        background-color: transparent;
+    }
+}

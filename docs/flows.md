@@ -21,7 +21,10 @@ but no columns moves cards around without doing anything.
 The registries live on the machine, the columns and routes belong to a board. A
 board made from any of the offered templates brings its own columns and routes;
 the first time it is opened on a machine with empty registries, the setup wizard
-asks for the rest.
+asks for the rest — starting with the board's own name, which is the one
+question that is about the board rather than about the machine, and the one
+step that cannot be passed over. Board names are unique, so the second board
+made from a template cannot keep the template's name.
 
 **What it asks is read off the board's stages**, not off the template it came
 from, and it is re-read every time: a board that grows a deploy stage a month
