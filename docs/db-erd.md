@@ -1,8 +1,8 @@
-# ERD: три базы проекта
+# ERD: три базы и файл настроек
 
-Снято с живых SQLite-файлов 2026-08-15 (схемы — `server/services/store/
-sqlstore/migrations/` для бордовой, `internal/acp/store.go` и
-`internal/sources/store.go` для двух наших). Обзор словами — в
+Снято со схем 2026-08-16 (`server/services/store/sqlstore/migrations/` для
+бордовой, `internal/acp/store.go` и `internal/sources/store.go` для двух
+наших). Обзор словами — в
 `docs/db-schema-review.md`; здесь картинка.
 
 Ни в одной из баз нет физических FOREIGN KEY — бордовая унаследовала от
@@ -16,6 +16,8 @@ Focalboard стиль soft-delete с history-таблицами, а `card_id`/`b
 erDiagram
     XCIII_DB ||..o{ ACP_DB : "card_id / board_id"
     XCIII_DB ||..o{ SOURCES_DB : "card_id"
+    CONFIG_JSON ||..o{ XCIII_DB : "id папки = id опции поля «Папка»"
+    CONFIG_JSON ||..o{ ACP_DB : "путь папки = workdir_claim.workdir"
     XCIII_DB {
         file xciii_db "server/ — доска: boards, blocks, users"
     }
@@ -25,7 +27,16 @@ erDiagram
     SOURCES_DB {
         file sources_db "sources/ — входящие: дедуп и журнал"
     }
+    CONFIG_JSON {
+        file config_json "acp/config.json — реестры машины: папки, агенты, деплой-цели"
+    }
 ```
+
+**Четвёртое хранилище — не база, а файл**, и связей у него две. Реестр папок
+(`config.json`, ключ `projects`) держит `id` каждой записи, и **под этим же id
+доска заводит опцию поля «Папка»** — то есть карточка называет папку значением
+обычного select'а, которое оказывается ссылкой в реестр машины. Вторая связь
+идёт по пути: `workdir_claim.workdir` — это `path` записи реестра.
 
 Карточка — это `blocks.id` (type=card) в бордовой базе; наши базы помнят её по
 id и переживают её переезд между досками (`MoveCardToBoard` сохраняет id).
@@ -181,7 +192,7 @@ erDiagram
     terminal_session {
         text id PK
         text card_id "пусто у планирования"
-        text node_id "option id колонки; @none — карточка без колонки"
+        text node_id "род разговора: option id колонки — работа; @none — работа над карточкой без колонки; @talk — «Обсуждение», разговор о карточке"
         text column_name "имя колонки, заморожено на момент разговора"
         text board_id
         text title "имя разговора: человек или name_conversation"
@@ -209,11 +220,13 @@ erDiagram
     }
     card_stall {
         text card_id PK
-        text node_id
+        text node_id "стадия, к которой причина относится"
+        text kind "conversation — единственная, у которой есть куда пойти"
         text reason "одна текущая причина, не журнал"
     }
     stage_queue {
         text card_id PK
+        text board_id
         text column_key "board|option — очередь колонки"
         text flow "и node_id"
         int queued_at
@@ -278,6 +291,11 @@ erDiagram
 
 - **Домены разнесены по файлам, а не по схемам.** Бордовая база не знает про
   агентов, агентская — про источники; общий язык — id карточки и id доски.
+  Как эти id складываются в одну картину — `docs/model-graph.md`.
+- **Ссылки между хранилищами идут по id, а не по именам.** Карточка называет
+  папку id записи реестра, доска записывает, какое её поле — папка и какое —
+  ветка (`xciiiProjectProperty`, `xciiiBranchProperty`), а не ищет по названию.
+  Единственное, что ещё связывается путём, — `workdir_claim.workdir`.
 - **Наша автоматика не добавила таблиц в бордовую базу.** Колонки, маршруты,
   промпты и запись «какое свойство — ветка» лежат в `boards.properties`, и
   потому едут с доской при экспорте/переезде; на этой же линии живёт и
