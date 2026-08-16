@@ -1060,6 +1060,55 @@ func TestACLIWithNoToolsIsNotAskedForAName(t *testing.T) {
 	}
 }
 
+// The card's own conversation is not the work on it, and saying so is what
+// keeps the two from colliding. It claims nothing — no branch appears because
+// somebody thought out loud — and the route never finds it, whatever column the
+// card is standing in when it is opened.
+func TestTheCardsOwnConversationIsNotTheWorkOnIt(t *testing.T) {
+	fakeCLIOnPath(t, "claude", "sleep 30")
+	m, _, _, project := testManager(t, "idle", func(cfg *Config) {
+		cfg.Agents = []AgentEntry{{Name: "cl", Kind: AgentKindClaude}}
+	})
+	m.SetOrigin("http://127.0.0.1:8088/")
+
+	talk, err := m.StartCardTalk("card-talk", "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(talk.ID) }()
+
+	if !talk.Info().Talk || talk.NodeID != nodeTalk {
+		t.Errorf("the card's own conversation is filed as %q", talk.NodeID)
+	}
+	if talk.Branch != "" {
+		t.Errorf("thinking about the card left it a branch (%q)", talk.Branch)
+	}
+
+	// The card stands on a column that works it, and the stage looks for its
+	// own conversation there — not for this one.
+	stage, err := m.startStageTerminal(&Session{
+		CardID: "card-talk", BoardID: "board1", NodeID: "opt-work", ColumnName: "В работе",
+		Title: "Test task", PromptText: "Task: Test task",
+		WorkdirPath: project, Agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = m.CloseTerminal(stage.ID) }()
+	if stage.ID == talk.ID {
+		t.Fatal("the route typed the card's task into the conversation about it")
+	}
+
+	// Opening it again is continuing it, not starting a second one.
+	again, err := m.StartCardTalk("card-talk", "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if again.ID != talk.ID {
+		t.Errorf("a second conversation (%s) opened beside the card's own (%s)", again.ID, talk.ID)
+	}
+}
+
 // Conversations are keyed by node, and two nodes are two rows that have to
 // read as two: the panel once drew a pair both named after the card, in the
 // same folder, with the same agent — «два терминала, но они одинаковые».
@@ -1091,8 +1140,15 @@ func TestConversationsOnTwoNodesAreTwoDifferentRows(t *testing.T) {
 	defer func() { _ = m.CloseTerminal(stage.ID) }()
 
 	rows := m.CardConversations("card-two")
-	if len(rows) != 2 {
-		t.Fatalf("the card has %d rows, want the current node's and the stage's: %+v", len(rows), rows)
+	if len(rows) != 3 {
+		t.Fatalf("the card has %d rows, want its own, the current node's and the stage's: %+v", len(rows), rows)
+	}
+
+	// The card's own conversation stands above the work, spoken in or not: it
+	// is the one that asks nothing of the card, and being first is what says it
+	// is not one of the stages.
+	if !rows[0].Talk {
+		t.Errorf("the first row is %+v, and the card's own conversation is not first", rows[0])
 	}
 	// Neither is named after the card: a terminal starts out titled with it, so
 	// keeping that would name every row of the list the same thing. The stage's
@@ -1117,8 +1173,9 @@ func TestConversationsOnTwoNodesAreTwoDifferentRows(t *testing.T) {
 	if !stageRow.Stage || !stageRow.Running {
 		t.Errorf("the stage's row does not say a route is running it: %+v", *stageRow)
 	}
-	// The current node's row is first: it is the one the panel opens.
-	if !rows[0].Current || rows[1].Current {
-		t.Errorf("the current node's row is not first: %+v", rows)
+	// And the work is in the order the panel opens it: the node the card stands
+	// on before the stages it has been through.
+	if !rows[1].Current || rows[2].Current {
+		t.Errorf("the current node's row is not the first of the work: %+v", rows)
 	}
 }

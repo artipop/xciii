@@ -48,6 +48,14 @@ type Props = {
     // Whether a CLI is running in it, which is what the dot says.
     running?: boolean
 
+    // What kind of conversation this is, as a glyph before the name: work on
+    // the card, or thinking about it. Two shapes rather than a word, because
+    // the row's words are already the conversation's own — its name and the
+    // agent's recap — and the kind is the one thing about a row that never
+    // changes while somebody reads it.
+    icon?: string
+    iconTitle?: string
+
     // Whether this is the conversation the panel is drawing below the list.
     selected?: boolean
 
@@ -121,6 +129,14 @@ const ConversationRow = (props: Props) => {
                     when={renaming()}
                     fallback={
                         <div class='ConversationRow__nameLine'>
+                            <Show when={props.icon}>
+                                <span
+                                    class='ConversationRow__kind'
+                                    title={props.iconTitle}
+                                >
+                                    <CompassIcon icon={props.icon!}/>
+                                </span>
+                            </Show>
                             <span
                                 class='ConversationRow__dot'
                                 classList={{'ConversationRow__dot--running': Boolean(props.running)}}

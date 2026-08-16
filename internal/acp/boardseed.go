@@ -67,6 +67,12 @@ const (
 	//
 	// Written by the page (it owns the board's card properties), read here.
 	BoardPropBranch = "xciiiBranchProperty"
+	// BoardPropProject is the id of the select property a card names its folder
+	// in — «Папка» when this app makes it. An id for the same reason the branch
+	// field is one, and load-bearing for a second: it is what lets the folder be
+	// read off the card rather than *recognised* among everything the card has
+	// selected (resolveWorkdir).
+	BoardPropProject = "xciiiProjectProperty"
 )
 
 // The names these keys had before, still read because every board made until
@@ -85,6 +91,7 @@ var legacyBoardProps = map[string]string{
 	BoardPropFlows:   "acpFlows",
 	BoardPropSetup:   "acpSetup",
 	BoardPropPrompt:  "acpPrompt",
+	BoardPropProject: "acpProjectProperty",
 }
 
 // boardProp reads one of this app's own keys off a board, under whichever name

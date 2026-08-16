@@ -143,6 +143,50 @@ func TestWorkdirStatusAsksGitRatherThanTheEntry(t *testing.T) {
 	}
 }
 
+// A board that says which of its fields holds the folder is read there and
+// nowhere else. Recognising a folder by name — among every option selected on
+// the card, and then among the columns it came from — is what this replaced:
+// a label named after a repository decided where an agent worked, and, since
+// the names were collected by ranging over the property schema, which label
+// won changed from event to event.
+func TestTheCardsFolderFieldIsWhereTheFolderIsRead(t *testing.T) {
+	project := initTestWorkdir(t)
+	m := registryManager(t, "", WorkdirEntry{Name: "MyRepo", Path: project, BoardID: "board1"})
+	m.SetBoardMeta(&fakeBoardMeta{props: map[string]any{BoardPropProject: "prop-folder"}})
+
+	ev := CardMoved{
+		BoardID: "board1",
+		Props:   map[string]string{},
+		// A label that happens to be spelled like the folder, and the folder
+		// field itself, which says something else entirely.
+		OptionNames:     []string{"MyRepo"},
+		SelectedOptions: []Column{{PropertyID: "prop-tags", OptionID: "o1", Name: "MyRepo"}},
+	}
+	if _, err := m.resolveWorkdir(ev); err == nil {
+		t.Error("a label spelled like a folder still decided where the agent works")
+	}
+
+	ev.SelectedOptions = append(ev.SelectedOptions, Column{PropertyID: "prop-folder", OptionID: "o2", Name: "MyRepo"})
+	got, err := m.resolveWorkdir(ev)
+	if err != nil || got != project {
+		t.Fatalf("the card's folder field was not read: got=%q err=%v", got, err)
+	}
+
+	// And the column the card came from is not a folder either.
+	away := CardMoved{
+		BoardID:    "board1",
+		Props:      map[string]string{},
+		FromColumn: Column{PropertyName: "Статус", Name: "MyRepo"},
+	}
+	if _, err := m.resolveWorkdir(away); err == nil {
+		t.Error("the column a card came from still decided where the agent works")
+	}
+}
+
+// The scan by name survives for a board that records no folder field, which is
+// a board this app never made one for: it is that board's only way to say
+// anything, and it cannot be the accident above, because there is no field for
+// it to contradict.
 func TestResolveRepoByTag(t *testing.T) {
 	project := initTestWorkdir(t)
 	m := registryManager(t, "", WorkdirEntry{Name: "MyRepo", Path: project})

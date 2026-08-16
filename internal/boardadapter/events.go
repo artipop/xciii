@@ -91,10 +91,16 @@ func (b *EventsBackend) BlockChanged(evt notify.BlockChangeEvent) error {
 			Body:        b.cardBody(evt.Board.ID, evt.BlockChanged),
 			Props:       namedProperties(evt.BlockChanged, schema, resolver),
 			OptionNames: selectedOptionNames(newProps, schema),
-			PersonNames: personNames(newProps, schema, resolver),
-			FromColumn:  column(def, oldVal),
-			ToColumn:    column(def, newVal),
-			At:          time.Now(),
+			// With the ids kept, so a reader can ask the card for one field by
+			// the id the board recorded rather than recognise it among the
+			// names — which is how the folder is read (acp.resolveWorkdir). A
+			// card that moved carried only the names, so the same card said
+			// different things depending on how it was read.
+			SelectedOptions: selectedOptions(newProps, schema),
+			PersonNames:     personNames(newProps, schema, resolver),
+			FromColumn:      column(def, oldVal),
+			ToColumn:        column(def, newVal),
+			At:              time.Now(),
 		}
 		select {
 		case b.ch <- ev:
@@ -132,11 +138,11 @@ func (b *EventsBackend) CardByID(ctx context.Context, cardID string) (acp.CardMo
 	}
 	resolver := newUserResolver(b.appUserLookup())
 	return acp.CardMoved{
-		EventID:     uuid.NewString(),
-		CardID:      block.ID,
-		BoardID:     board.ID,
-		Title:       block.Title,
-		Body:        b.cardBody(board.ID, block),
+		EventID:         uuid.NewString(),
+		CardID:          block.ID,
+		BoardID:         board.ID,
+		Title:           block.Title,
+		Body:            b.cardBody(board.ID, block),
 		Props:           namedProperties(block, schema, resolver),
 		OptionNames:     selectedOptionNames(rawProperties(block), schema),
 		SelectedOptions: selectedOptions(rawProperties(block), schema),
@@ -222,14 +228,15 @@ func (b *EventsBackend) CardsForBoard(ctx context.Context, boardID string) ([]ac
 		}
 		props := rawProperties(block)
 		out = append(out, acp.CardMoved{
-			EventID:     uuid.NewString(),
-			CardID:      block.ID,
-			BoardID:     board.ID,
-			Title:       block.Title,
-			Props:       namedProperties(block, schema, resolver),
-			OptionNames: selectedOptionNames(props, schema),
-			PersonNames: personNames(props, schema, resolver),
-			At:          time.UnixMilli(block.UpdateAt),
+			EventID:         uuid.NewString(),
+			CardID:          block.ID,
+			BoardID:         board.ID,
+			Title:           block.Title,
+			Props:           namedProperties(block, schema, resolver),
+			OptionNames:     selectedOptionNames(props, schema),
+			SelectedOptions: selectedOptions(props, schema),
+			PersonNames:     personNames(props, schema, resolver),
+			At:              time.UnixMilli(block.UpdateAt),
 		})
 		if len(out) >= cardListLimit {
 			break

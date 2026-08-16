@@ -910,6 +910,24 @@ func (a *App) OpenCardTerminal(cardID, workdirName, agentName string, window boo
 	return a.terminalWindow(t)
 }
 
+// OpenCardTalk opens the card's own conversation rather than the work on it —
+// the wording, the plan, the brief. A door of its own rather than a flag on the
+// one above, because which of the two a person wants is the thing the app kept
+// having to guess (nodeTalk).
+func (a *App) OpenCardTalk(cardID, workdirName, agentName string, window bool) (string, error) {
+	if a.mgr == nil {
+		return "", errACPDisabled
+	}
+	t, err := a.mgr.StartCardTalk(cardID, workdirName, agentName)
+	if err != nil {
+		return "", err
+	}
+	if !window {
+		return terminalHandleJSON(a.terminalURL(t), false, t)
+	}
+	return a.terminalWindow(t)
+}
+
 // OpenPlanningTerminal opens the CLI with no card behind it — the terminal half
 // of "Plan a task". boardID is the board the dialog was opened from: the
 // conversation has no card, but it may leave cards, and that is the only board

@@ -109,10 +109,24 @@ type Manager struct {
 
 	watchers []vcs.Watcher // project watchers feeding the flow engine
 
-	sem     chan struct{}
+	sem chan struct{}
+	// rootCtx is the running manager's, and it is nil until Start. What reads
+	// the board is not always behind Start any more — resolving a card's folder
+	// asks the board which field holds it — so derive from it through rootOr
+	// rather than from the field.
 	rootCtx context.Context
 	stop    context.CancelFunc
 	wg      sync.WaitGroup
+}
+
+// rootOr is the manager's context, or a background one before it is running.
+// Deriving a timeout from a nil parent panics, and a read that happens to be
+// the first thing a manager does must not take the app down.
+func (m *Manager) rootOr() context.Context {
+	if m.rootCtx == nil {
+		return context.Background()
+	}
+	return m.rootCtx
 }
 
 // SetBoardReader supplies on-demand card reads, which the "open a console on

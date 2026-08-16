@@ -32,16 +32,16 @@ import './cardTerminal.scss'
 // What is left is the card's conversations and one of them open. **The card's
 // own** — «Обсуждение» — is where a person thinks about the card: the wording,
 // the plan, the brief. It needs nothing of the card to open (no folder, no
-// route, no agent assigned), it is kept, so tomorrow it carries on where it
-// stopped, and it is the only one that can be thrown away by hand. **The
-// route's** are one per stage the card was worked on, opened by the route
-// alone: a stage's conversation belongs to the stage, and it is listed here
-// because a person watching a card wants to see it, not because this panel
-// starts it.
+// route, no agent assigned) and it is kept, so tomorrow it carries on where it
+// stopped. **The work** is one conversation per column the card has stood on,
+// the current one first: a person who sits down at a stage and the stage itself
+// are in the same place, which is what lets the route join a conversation
+// somebody already opened.
 //
-// The two used to share a key, and a stage starting while somebody was talking
-// typed the card's task into their conversation. They are separate now, and the
-// list is what says so.
+// The two used to be told apart by where the card happened to be standing, and
+// a stage starting while somebody was talking typed the card's task into their
+// conversation. The kind is declared now (nodeTalk, and a door of its own),
+// and the glyph on each row is what says which is which.
 //
 // The list is the same one «Обсудить с агентом» draws (conversationRow.tsx),
 // because it lists the same thing. What the card's own list adds is the
@@ -95,14 +95,19 @@ const CardTerminal = (props: Props) => {
     // and the panel then bows out: two views of one pty fight over its size
     // (each tells the CLI its own columns, the CLI draws for whoever spoke
     // last), so «на весь экран» is a handover, not a copy.
-    const start = async (inWindow: boolean) => {
-        if (!bindings?.OpenCardTerminal) {
+    // Two doors, because which of the two a person wants is a thing they know
+    // and the app kept guessing: work on the card is filed under the column it
+    // is happening in, the card's own conversation under nodeTalk, and no route
+    // ever finds the second one.
+    const start = async (inWindow: boolean, talk = false) => {
+        const open = talk ? bindings?.OpenCardTalk : bindings?.OpenCardTerminal
+        if (!open) {
             return
         }
         setBusy(true)
         setError('')
         try {
-            const handle = JSON.parse(await bindings.OpenCardTerminal(props.cardId, workdirName(), agentName(), inWindow))
+            const handle = JSON.parse(await open(props.cardId, workdirName(), agentName(), inWindow))
 
             // The desktop app has already opened the window by now; a server
             // build has no windows, so the browser opens a tab instead.
@@ -216,6 +221,9 @@ const CardTerminal = (props: Props) => {
         if (c.title) {
             return c.title
         }
+        if (c.talk) {
+            return intl.formatMessage({id: 'CardTerminal.talk', defaultMessage: 'Discussion'})
+        }
         if (c.column) {
             return c.column
         }
@@ -234,6 +242,9 @@ const CardTerminal = (props: Props) => {
     }
 
     const rowTitle = (c: CardConversation) => {
+        if (c.talk) {
+            return intl.formatMessage({id: 'CardTerminal.talk-title', defaultMessage: 'The card itself — the wording, the plan, the brief. It claims no folder and no route ever runs in it'})
+        }
         if (c.running && c.stage) {
             return intl.formatMessage({id: 'CardTerminal.stage-running', defaultMessage: 'A route is running this conversation — reachable until its CLI exits'})
         }
@@ -248,6 +259,11 @@ const CardTerminal = (props: Props) => {
     // node's is shown while its CLI runs and otherwise has nothing to open —
     // it continues when the card comes back to that column.
     const pick = (c: CardConversation) => {
+        if (c.talk) {
+            setError('')
+            start(false, true)
+            return
+        }
         if (c.current) {
             setError('')
             start(false)
@@ -263,6 +279,10 @@ const CardTerminal = (props: Props) => {
         // The current node's handover goes through the start path: Go hands
         // back the same live terminal when one runs, and the desktop opens the
         // window either way.
+        if (c.talk) {
+            await start(true, true)
+            return
+        }
         if (c.current) {
             await start(true)
             return
@@ -353,7 +373,7 @@ const CardTerminal = (props: Props) => {
 
     const actionsFor = (c: CardConversation) => {
         const actions: ConversationAction[] = []
-        if (c.current || c.terminalId) {
+        if (c.talk || c.current || c.terminalId) {
             actions.push({
                 icon: 'open-in-new',
                 title: intl.formatMessage({id: 'CardTerminal.window', defaultMessage: 'Open in a separate window'}),
@@ -435,7 +455,9 @@ const CardTerminal = (props: Props) => {
                                 meta={rowMeta(c())}
                                 running={c().running}
                                 selected={Boolean(c().terminalId) && c().terminalId === terminalId()}
-                                onPick={c().current || c().terminalId ? () => pick(c()) : undefined}
+                                icon={c().talk ? 'message-text-outline' : 'console'}
+                                iconTitle={c().talk ? intl.formatMessage({id: 'Conversation.kind-talk', defaultMessage: 'A discussion'}) : intl.formatMessage({id: 'Conversation.kind-work', defaultMessage: 'Work on the card'})}
+                                onPick={c().talk || c().current || c().terminalId ? () => pick(c()) : undefined}
                                 onRename={c().terminalId ? (title) => rename(c(), title) : undefined}
                                 actions={actionsFor(c())}
                                 title={rowTitle(c())}

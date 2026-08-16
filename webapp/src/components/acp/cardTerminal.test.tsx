@@ -76,6 +76,36 @@ describe('components/acp/cardTerminal', () => {
         expect(screen.getByText('Ревью').closest('button')).not.toBeNull()
     })
 
+    // The card's own conversation and the work on it are two kinds, and the
+    // panel says which is which: «Обсуждение» goes through a door of its own,
+    // so no route can ever type a task into it and no folder is claimed by
+    // thinking out loud.
+    it('opens the card’s own conversation through its own door', async () => {
+        const bindings = stubBindings({
+            OpenCardTalk: vi.fn().mockResolvedValue(JSON.stringify({id: 'term-talk'})),
+            GetCardAgent: vi.fn().mockResolvedValue(JSON.stringify({
+                folder: '/tmp/proj',
+                conversations: [
+                    {nodeId: '@talk', talk: true},
+                    {nodeId: 'opt-review', column: 'Ревью', agent: 'клаус', current: true},
+                ],
+            })),
+        })
+        render(() => wrapStore(mockAppStore(), () => wrapIntl(() => <CardTerminal cardId='card-talk' board={board} onClose={vi.fn()}/>)))
+
+        // The panel opens the work on the card by itself; the discussion is a
+        // row a person picks.
+        expect(await screen.findByTestId('terminal')).toHaveTextContent('term-1')
+
+        // Always there, spoken in or not — it is the one row that asks nothing
+        // of the card.
+        await userEvent.click(screen.getByRole('button', {name: 'Discussion'}))
+
+        await waitFor(() => expect(bindings.OpenCardTalk).toHaveBeenCalled())
+        expect(bindings.OpenCardTalk.mock.calls[0][0]).toBe('card-talk')
+        await waitFor(() => expect(screen.getByTestId('terminal')).toHaveTextContent('term-talk'))
+    })
+
     // A stage the route is running right now is a conversation to look at, and
     // clicking it draws that pty in the panel rather than a second view of the
     // card's own.

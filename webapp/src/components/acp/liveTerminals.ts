@@ -56,10 +56,14 @@ async function reload(): Promise<void> {
         return
     }
     try {
-        const list = (JSON.parse(await bindings.ListTerminals()) || []) as Array<{id: string, cardId?: string}>
+        const list = (JSON.parse(await bindings.ListTerminals()) || []) as Array<{id: string, cardId?: string, talk?: boolean}>
         const next: Record<string, string> = {}
         for (const terminal of list) {
-            if (terminal.cardId) {
+            // Work outranks talk on the card's face. The button there says what
+            // is happening *to* the card, and a conversation about it — which
+            // claims nothing and no route runs in — is not that: on a card with
+            // both, drawing the discussion would hide the work behind it.
+            if (terminal.cardId && (!next[terminal.cardId] || !terminal.talk)) {
                 next[terminal.cardId] = terminal.id
             }
         }

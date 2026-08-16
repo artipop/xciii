@@ -340,12 +340,20 @@ func (m *Manager) resolveWorkdir(ev CardMoved) (string, error) {
 		return cfg.ValidateWorkdirPath(explicit)
 	}
 
-	// Only what this board offers: a tag left over from a template, or a column
-	// that happens to be named like somebody else's folder, must not send an
+	// Only what this board offers: a folder another board added must not take an
 	// agent into a checkout this board knows nothing about.
 	workdirs := m.WorkdirsForBoard(ev.BoardID)
 
-	candidates := append(append([]string(nil), ev.OptionNames...), ev.FromColumn.Name)
+	// The card's own folder field, found by the id the board recorded. Nothing
+	// is recognised: this used to scan every selected option on the card — and
+	// then the name of the column it came from — for anything spelled like a
+	// registry entry, so a label named after a repository decided where an
+	// agent worked. Worse, it was not even stable: OptionNames is built by
+	// ranging over the property schema, which is a Go map, so when two
+	// properties both matched the winner changed between events. It is the same
+	// rule that was already taken out of resolveSessionAgent, for the same
+	// reason: a match that outlived the field it was invented for.
+	candidates := m.cardWorkdirNames(ev)
 	for _, opt := range candidates {
 		for _, r := range workdirs {
 			if strings.EqualFold(strings.TrimSpace(opt), r.Name) {
@@ -357,9 +365,29 @@ func (m *Manager) resolveWorkdir(ev CardMoved) (string, error) {
 		}
 	}
 	if len(workdirs) == 0 {
-		return "", errNoWorkdir{fmt.Errorf("у карточки не заполнено поле «Папки» и в реестре нет ни одной папки (меню доски → «Папки…»)")}
+		return "", errNoWorkdir{fmt.Errorf("у карточки не заполнено поле «Папка» и в реестре нет ни одной папки (меню доски → «Папки…»)")}
 	}
-	return "", errNoWorkdir{fmt.Errorf("ни тег карточки, ни исходная колонка не совпали с папкой из реестра (%s)", workdirNames(workdirs))}
+	return "", errNoWorkdir{fmt.Errorf("в поле «Папка» карточки не выбрана ни одна папка из реестра (%s)", workdirNames(workdirs))}
+}
+
+// cardWorkdirNames is what the card says about its folder, in the order it is
+// believed.
+//
+// A board that records its folder property answers with that field and with
+// nothing else — that is the whole point of recording it. A board that records
+// none never had the field made for it (every board this app touches gets one
+// through syncWorkdirsToBoard), so the old scan is left as its only way to say
+// anything, marked as what it is.
+func (m *Manager) cardWorkdirNames(ev CardMoved) []string {
+	if propID := m.boardProperty(ev.BoardID, BoardPropProject); propID != "" {
+		for _, sel := range ev.SelectedOptions {
+			if sel.PropertyID == propID {
+				return []string{sel.Name}
+			}
+		}
+		return nil
+	}
+	return append(append([]string(nil), ev.OptionNames...), ev.FromColumn.Name)
 }
 
 func workdirNames(workdirs []WorkdirEntry) string {

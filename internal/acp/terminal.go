@@ -159,6 +159,10 @@ type TerminalInfo struct {
 	// CLI that can only reply through name_conversation, so a kind that took no
 	// tools must not be offered the button (AskTerminalName).
 	Tools bool `json:"tools,omitempty"`
+	// Talk says this is the card's own conversation rather than work on it
+	// (nodeTalk): it claims nothing, no route will ever join it, and the lists
+	// draw it apart from the stages.
+	Talk bool `json:"talk,omitempty"`
 }
 
 // Info describes the session for the window that draws it.
@@ -183,6 +187,7 @@ func (t *TerminalSession) Info() TerminalInfo {
 		// the app's own data directory.
 		BoardFolder: t.m != nil && t.Cwd != "" && t.Cwd == t.m.boardFolder(t.BoardID),
 		Tools:       t.boardToken != "",
+		Talk:        t.NodeID == nodeTalk,
 	}
 	select {
 	case <-t.done:
@@ -409,20 +414,60 @@ func (t *TerminalSession) finish() {
 // it exists, before anybody files it anywhere.
 const nodeNone = "@none"
 
-// StartCardTerminal opens the conversation of the node the card stands on —
-// «обсудить эту карточку», and, on a column that runs an agent, «сесть рядом с
-// работой»: person and stage share the node's one conversation.
-// projectName/agentName override what the card says, for the case where it
-// says nothing.
+// nodeTalk is the card's own conversation, apart from every stage's — thinking
+// about the card rather than working on it: the wording, the plan, the brief.
 //
-// It asks little of the card. A card with no folder is an ordinary case —
-// wording, a brief and a plan all come before anybody decides where the work
-// lives — and on a column that runs no agent it claims no workspace, so no
-// branch appears because somebody wanted to think out loud. On an agent
-// column the opposite is deliberate: the conversation *is* the stage's, so it
-// works where the stage works — the card's workspace — and a stage starting
-// later joins it there instead of opening a second CLI beside it.
+// This is the key the paragraph above says was removed, and it is back on a
+// different footing. It was removed because the split it made was arbitrary:
+// «the card's own» and «the stage's» were two conversations about the same
+// column, and what a column means is the column's setting, so a person sitting
+// down at a stage and the stage itself belong in one place. That is still true,
+// and the node key is still what work is filed under.
+//
+// What the node key could not express is the other axis. A conversation is
+// either work — it stands in the card's workspace, a route may join it, it ends
+// in finish_work and leaves a branch — or it is talk, which claims nothing and
+// ends in nothing. While that was *derived* (from the column the card happened
+// to stand in, and from whether it named a folder yet), the two kept colliding:
+// a card talked over before it had a folder took the node's key with a
+// conversation standing in the drafts folder, which the stage then adopted, or
+// could not adopt and had to work around; and neither the lists nor the button
+// on the card could say which of the two a row was, because nothing knew.
+//
+// So the kind is declared by whoever opens the conversation — two doors,
+// StartCardTerminal and StartCardTalk — rather than inferred from where the
+// card is standing at the time.
+const nodeTalk = "@talk"
+
+// StartCardTerminal opens the work conversation of the node the card stands on
+// — «сесть рядом с работой»: person and stage share the node's one
+// conversation. projectName/agentName override what the card says, for the case
+// where it says nothing.
+//
+// On a column that runs an agent the conversation *is* the stage's, so it works
+// where the stage works — the card's workspace — and a stage starting later
+// joins it there instead of opening a second CLI beside it. On every other
+// column it stands beside the work and claims nothing.
 func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*TerminalSession, error) {
+	return m.startCardConversation(cardID, projectName, agentName, false)
+}
+
+// StartCardTalk opens the card's own conversation — «обсудить эту карточку»:
+// the wording, the plan, the brief. It asks nothing of the card (no folder, no
+// route, no agent assigned) and takes nothing from it: no workspace is claimed,
+// so no branch appears because somebody wanted to think out loud, and no route
+// will ever type a task into it.
+//
+// It also stays where it started. Everything else about a conversation is
+// resolved afresh each time it is opened, but this one is a train of thought
+// with a transcript behind it, and the CLI's own resume is directory-scoped:
+// re-resolving the folder after the card gained one would leave the earlier
+// half unreachable while looking like the same row.
+func (m *Manager) StartCardTalk(cardID, projectName, agentName string) (*TerminalSession, error) {
+	return m.startCardConversation(cardID, projectName, agentName, true)
+}
+
+func (m *Manager) startCardConversation(cardID, projectName, agentName string, talk bool) (*TerminalSession, error) {
 	if m.reader == nil {
 		return nil, fmt.Errorf("чтение карточек недоступно")
 	}
@@ -433,11 +478,26 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 		return nil, fmt.Errorf("не удалось прочитать карточку: %w", err)
 	}
 	place := m.cardPlace(ev)
+	if talk {
+		// The node's crew is kept and the rest of the node is not: who works
+		// this part of the board is a fair answer to «с кем говорить», while
+		// the stage's instructions, its tools and its workspace all belong to
+		// the work, which this is not.
+		place = cardPlace{node: nodeTalk, crew: place.crew}
+	}
 	if live := m.TerminalForCardNode(cardID, place.node); live != nil {
 		return live, nil
 	}
 
 	workdirPath, err := m.resolveWorkdir(ev)
+	if talk {
+		// Where this train of thought has been happening, if it has. Read
+		// before the card is consulted, because the card is allowed to change
+		// its mind and the transcript is not.
+		if rec, ok, recErr := m.store.LastTerminalForCardNode(cardID, nodeTalk); recErr == nil && ok && rec.Cwd != "" {
+			workdirPath, err = rec.WorkdirPath, nil
+		}
+	}
 	if projectName != "" {
 		workdirPath, err = m.resolveNamedWorkdir(projectName)
 	} else if errors.As(err, &errNoWorkdir{}) {
@@ -1651,7 +1711,11 @@ type CardConversation struct {
 	// NoColumn marks the conversation of a card that had no column when it was
 	// held (nodeNone). A flag rather than a name, because what it is called is
 	// the screen's business and the screen is in Russian.
-	NoColumn   bool   `json:"noColumn,omitempty"`
+	NoColumn bool `json:"noColumn,omitempty"`
+	// Talk marks the card's own conversation (nodeTalk) — thinking about the
+	// card rather than working on it. It is always in the list, it is never a
+	// stage's, and no column names it.
+	Talk       bool   `json:"talk,omitempty"`
 	Agent      string `json:"agent,omitempty"`
 	Running    bool   `json:"running,omitempty"`
 	Current    bool   `json:"current,omitempty"`
@@ -1724,6 +1788,7 @@ func (m *Manager) CardConversations(cardID string) []CardConversation {
 			NodeID:      rec.NodeID,
 			Column:      columnOf(rec.NodeID, rec.ColumnName),
 			NoColumn:    rec.NodeID == nodeNone,
+			Talk:        rec.NodeID == nodeTalk,
 			Agent:       rec.Agent,
 			Title:       conversationTitle(rec.Title, cardTitle),
 			Summary:     rec.Summary,
@@ -1753,7 +1818,7 @@ func (m *Manager) CardConversations(cardID string) []CardConversation {
 	// what a click opens, and a card that moved to «Ревью» five seconds ago has
 	// a place to talk about the review.
 	sort.SliceStable(out, func(i, j int) bool { return out[i].Current && !out[j].Current })
-	if place.node != "" && (len(out) == 0 || !out[0].Current) {
+	if place.node != "" && place.node != nodeTalk && (len(out) == 0 || !out[0].Current) {
 		out = append([]CardConversation{{
 			NodeID:   place.node,
 			Column:   place.column,
@@ -1761,7 +1826,26 @@ func (m *Manager) CardConversations(cardID string) []CardConversation {
 			Current:  true,
 		}}, out...)
 	}
+
+	// And the card's own conversation is always there, first, spoken in or not:
+	// it is the one that asks nothing of the card, so it is the one place a
+	// person can always start — and standing above the stages is what says it
+	// is not one of them.
+	if !hasTalk(out) {
+		out = append([]CardConversation{{NodeID: nodeTalk, Talk: true}}, out...)
+	} else {
+		sort.SliceStable(out, func(i, j int) bool { return out[i].Talk && !out[j].Talk })
+	}
 	return out
+}
+
+func hasTalk(rows []CardConversation) bool {
+	for _, r := range rows {
+		if r.Talk {
+			return true
+		}
+	}
+	return false
 }
 
 // conversationTitle is the name a row carries, and the card's own title is not

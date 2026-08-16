@@ -111,6 +111,7 @@ export interface IAppWindow extends Window {
                 // window of the desktop app; without it the card draws the
                 // terminal inside itself, which is what its chevron opens.
                 OpenCardTerminal?(cardId: string, workdirName: string, agentName: string, window: boolean): Promise<string>
+                OpenCardTalk?(cardId: string, workdirName: string, agentName: string, window: boolean): Promise<string>
                 OpenPlanningTerminal?(workdirName: string, agentName: string, boardId: string): Promise<string>
                 GetTerminalInfo?(terminalId: string): Promise<string>
                 GetCardAgent?(cardId: string): Promise<string>

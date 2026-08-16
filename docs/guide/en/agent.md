@@ -75,10 +75,20 @@ asks its questions right there.
 ### The list of conversations
 
 The panel reads top to bottom: a **"Terminals"** plate with a ✕ that closes the
-panel itself; under it the card's conversations — one per column, the current
-one first; and below that the conversation being read, with a head of its own.
-That head's ✕ puts the terminal away without ending it: the CLI keeps running,
-the row keeps its green dot.
+panel itself; under it the card's conversations; and below that the conversation
+being read, with a head of its own. That head's ✕ puts the terminal away without
+ending it: the CLI keeps running, the row keeps its green dot.
+
+Conversations are of two kinds, and a glyph on the row says which:
+
+- **«Обсуждение»** (a speech glyph) — the card itself: the wording, the plan,
+  the brief. It is always first, it asks nothing of the card — no folder, no
+  route, nobody assigned — and no route ever runs in it. It opens where it
+  started: a discussion held in the board's drafts stays there even after the
+  card gains a folder;
+- **work** (a console glyph) — one conversation per column the card has worked
+  in, the current one first. This is where you sit down to watch an agent, and
+  where a stage of the route arrives.
 
 A row is built the same way as in "Talk it over with an agent":
 
@@ -102,9 +112,9 @@ A row is built the same way as in "Talk it over with an agent":
   starts on a blank screen. Every row has it except the conversation a route is
   running right now — that one cannot be deleted, the route is waiting on it.
 
-A click opens the current column's conversation, and any one with a CLI running
-in it. A past column's conversation cannot be opened — it continues when the
-card comes back to that column.
+A click opens «Обсуждение», the current column's conversation, and any one with
+a CLI running in it. A past column's conversation cannot be opened — it
+continues when the card comes back to that column.
 
 The terminal button in the corner of the card on the board also leads to a
 running one: it turns amber when the agent is waiting, and it opens that

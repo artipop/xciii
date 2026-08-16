@@ -149,13 +149,24 @@ func (m *Manager) writeCardBranch(spec WorkSpec, branch string) {
 
 // boardBranchProperty is the id of the board's branch field, if it has one.
 func (m *Manager) boardBranchProperty(boardID string) string {
-	ctx, cancel := context.WithTimeout(m.rootCtx, 10*time.Second)
+	return m.boardProperty(boardID, BoardPropBranch)
+}
+
+// boardProperty is the id of one of the card fields this app makes, as the
+// board records it. Every such field is found this way and never by name: what
+// it is called is the owner's, and «Ветка» on one board is «Branch» on the
+// next.
+func (m *Manager) boardProperty(boardID, key string) string {
+	if m.meta == nil || boardID == "" {
+		return ""
+	}
+	ctx, cancel := context.WithTimeout(m.rootOr(), 10*time.Second)
 	defer cancel()
 	props, err := m.meta.BoardProperties(ctx, boardID)
 	if err != nil {
 		return ""
 	}
-	raw, ok := boardProp(props, BoardPropBranch)
+	raw, ok := boardProp(props, key)
 	if !ok {
 		return ""
 	}

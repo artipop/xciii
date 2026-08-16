@@ -234,6 +234,12 @@ const PlanningDialog = (props: Props) => {
                             <For each={terminals()}>
                                 {(t) => (
                                     <ConversationRow
+
+                                        // Every conversation here is a
+                                        // discussion: this list is the ones
+                                        // with no card behind them.
+                                        icon='message-text-outline'
+                                        iconTitle={intl.formatMessage({id: 'Conversation.kind-talk', defaultMessage: 'A discussion'})}
                                         name={terminalName(t)}
                                         summary={t.summary}
                                         meta={`${t.agent} · ${terminalWhere(t)}`}

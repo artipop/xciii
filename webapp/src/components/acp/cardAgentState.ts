@@ -56,6 +56,11 @@ export type CardConversation = {
     // A route is running this conversation right now: the one row that cannot
     // be deleted, since the route is waiting on it.
     stage?: boolean
+
+    // The card's own conversation rather than work on it: it claims nothing, no
+    // route ever runs in it, and it is always in the list — the one place a
+    // person can start whatever the card says about itself.
+    talk?: boolean
     terminalId?: string
     startedAt?: string
     endedAt?: string

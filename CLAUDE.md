@@ -749,6 +749,18 @@ keys in `config.json` (`projects`), on the board (`xciiiProjectProperty`) and on
 a card (`project_path`, `repo_path`) keep their old spelling, because they are
 other people's stored data.
 
+**The field is read, not recognised** (`cardWorkdirNames`). The board records
+which property it is (`BoardPropProject`, `xciiiProjectProperty`), the event
+carries every selected value with its property id (`CardMoved.SelectedOptions`,
+filled on every path a card is read by), and `resolveWorkdir` asks for that one
+field. It used to scan every option selected anywhere on the card — and then the
+name of the column it came from — for anything spelled like a registry entry, so
+a label named after a repository decided where an agent worked; and since the
+names were collected by ranging over the property schema, which is a Go map,
+which one won changed between events. It is the rule already taken out of
+`resolveSessionAgent`, for the same reason. The scan survives for a board that
+records no folder property, which is a board this app never made one for.
+
 **The field is one choice, and the singular is the type talking.** A card claims
 one workspace, works one branch — which the board keeps in a single text field —
 and hands its agent one cwd, so a second folder had nowhere to go:
@@ -1081,13 +1093,34 @@ no column at all stands on `nodeNone` (`@none`, spelled with `@` because option
 ids are not made of it) and can still be talked over. A stage with no route
 behind it keys by its column's option id too (`Session.NodeID`).
 
-There was a special key for "the card's own conversation, apart from every
-stage's" (`@brainstorm`). That split existed to stop a stage typing the card's
-task into a person's discussion, and the node model answers the same problem at
-the source: what a column means — who works there, what they are told — is the
-column's setting, so the conversation a stage joins is one a person deliberately
-opened *about that stage*, and `startStageTerminal` **adopts** it (marks it a
-stage, types the task in) rather than opening a second CLI beside it.
+That is the key **work** is filed under, and a stage joins the conversation
+already open there: `startStageTerminal` **adopts** it (marks it a stage, types
+the task in) rather than opening a second CLI beside it. What a column means —
+who works there, what they are told — is the column's setting, so a person who
+sat down at a stage and the stage itself belong in one place.
+
+**A conversation is also one of two kinds, and the kind is declared rather than
+derived** (`nodeTalk`, `@talk`). Work stands in the card's workspace, a route
+may join it, it ends in `finish_work` and leaves a branch; **talk** — the
+wording, the plan, the brief — claims nothing and ends in nothing. There was a
+key for that once (`@brainstorm`), taken out because the split it made was
+arbitrary; what the node model could not express is this axis, and while the
+kind was *inferred* — from the column the card happened to stand in, and from
+whether it had named a folder yet — the two collided. A card talked over before
+it had a folder took the node's key with a conversation standing in «черновики
+доски»; the stage then typed its task into a CLI sitting there, made a branch,
+wrote the branch on the card and left it empty. Neither the lists nor the button
+on the card could say which kind a row was, because nothing knew.
+
+So there are **two doors** — `StartCardTerminal` and `StartCardTalk`, bound as
+`OpenCardTerminal`/`OpenCardTalk` — and the card's own conversation is always in
+the list, first, spoken in or not: it is the one that asks nothing of the card.
+It is also the one thing about a conversation that is *not* re-resolved each
+time it opens: it stays in the folder it started in, because it is a train of
+thought with a transcript behind it and the CLI's own resume is
+directory-scoped. `startStageTerminal` keeps a second guard behind the key —
+adopt only what stands in the stage's own place — because the cost of being
+wrong there is silent.
 
 **Where a conversation runs is the node's answer** (`cardPlace`). On a column
 that runs an agent it claims the card's workspace exactly as the stage would —
