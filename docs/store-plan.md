@@ -273,6 +273,11 @@ AUTOINCREMENT`, MySQL `BIGINT AUTO_INCREMENT`, Postgres `BIGSERIAL`; у нас �
 
 ## Целевая схема
 
+Полностью — в `docs/schema/`: `app.hcl` (Atlas HCL, все ~30 таблиц с ключами,
+индексами и `CHECK`) и `ent.md` (то же сущностями ent, с разбором, что из этого
+ent не умеет). Здесь — только связи, ради которых всё затевалось.
+
+
 ```mermaid
 erDiagram
     blocks ||--o{ conversation : "card_id ON DELETE CASCADE"

@@ -1591,7 +1591,9 @@ from them are the person's and are untouched.
   `docs/model-graph.md` is how one thing finds another — and what is still found
   by name rather than by id — and `docs/store-plan.md` is the work that follows
   from it: our tables into the board's database, registries out of `config.json`
-  and into tables, one base instead of three files and a JSON. The rule those
+  and into tables, one base instead of three files and a JSON; the target schema
+  itself is `docs/schema/app.hcl` (Atlas) and `docs/schema/ent.md` (the same as
+  ent entities), neither applied. The rule those
   three are kept to: **a reference is a foreign key** — everything referable
   lives in one database and has an id, the settings file holds only what nothing
   points at, and nothing at all is found by name.
