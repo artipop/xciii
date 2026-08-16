@@ -278,6 +278,43 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             expect(screen.queryByText('Welcome to Boards!')).toBeNull()
         })
 
+        // A template somebody saved from a board carries that board's version
+        // stamp — the board got it from the template it was made from — so the
+        // stamp cannot be what tells the install's templates from theirs. It
+        // was, and a saved copy was then in neither list: not ours by its
+        // marker, not theirs by its version. Who made it is the answer.
+        test('a template saved from a board is the person’s, whatever stamp it inherited', () => {
+            const withSavedCopy = mockAppStore({
+                ...state,
+                boards: {
+                    ...state.boards,
+                    templates: [...state.boards.templates, {
+                        id: 'saved-copy',
+                        teamId: team1.id,
+                        title: 'Разработка моя',
+                        icon: '🚴🏻‍♂️',
+                        cardProperties: [{id: 'id-9'}],
+                        isTemplate: true,
+                        templateVersion: 2,
+                        createdBy: me.id,
+                    }],
+                },
+            })
+
+            render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={withSavedCopy}>
+                    <BoardTemplateSelector onClose={vi.fn()}/>
+                </AppStoreProvider>
+                ,
+            ), {wrapper: TestRouter})
+
+            expect(screen.getByText('Разработка моя')).not.toBeNull()
+
+            // and the install's own upstream ones are still hidden, which is
+            // the half the version stamp used to be doing
+            expect(screen.queryByText('Welcome to Boards!')).toBeNull()
+        })
+
         // In this app the board's team *is* the global team, so the fetch that
         // fills globalTemplates never runs and every template — the install's
         // own and the user's alike — arrives with the board list instead.

@@ -260,3 +260,59 @@ func TestALegacyViewNameIsMendedOnLaunch(t *testing.T) {
 		t.Errorf("a view the person renamed was touched: %v", titles)
 	}
 }
+
+// «Сохранить как шаблон…» copies the board, properties and all — and a board
+// made from «Разработка» carries the marker that says it *is* «Разработка». So
+// a saved copy claimed to be one of ours: three of them stood in the picker
+// under one name, and the importer kept replacing whichever came last while the
+// rest stayed for ever.
+//
+// The marker is the app's to give. A template it did not install is disowned —
+// listed among the person's own, where it can be deleted — rather than deleted
+// out from under somebody who made it on purpose.
+func TestATemplateSomebodySavedStopsClaimingToBeOurs(t *testing.T) {
+	a := newTestApp(t)
+	logger, _ := mlog.NewLogger()
+	if err := ImportTemplates(a, logger); err != nil {
+		t.Fatal(err)
+	}
+	ours := installedTemplates(t, a)["developer-tasks"]
+	if ours == nil {
+		t.Fatal("«Разработка» is not installed")
+	}
+
+	// The copy: same marker, same version, made by a person.
+	copied := &model.Board{
+		TeamID:          model.GlobalTeamID,
+		Title:           ours.Title,
+		Type:            model.BoardTypeOpen,
+		IsTemplate:      true,
+		TemplateVersion: ours.TemplateVersion,
+		CreatedBy:       model.SingleUser,
+		Properties:      map[string]any{TemplateMarkerProperty: "developer-tasks"},
+	}
+	saved, err := a.CreateBoard(copied, model.SingleUser, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := ImportTemplates(a, logger); err != nil {
+		t.Fatal(err)
+	}
+
+	// installedTemplates fails the test if a slug is there twice, so getting an
+	// answer at all is half the assertion.
+	if kept := installedTemplates(t, a)["developer-tasks"]; kept == nil || kept.ID != ours.ID {
+		t.Errorf("the app's own copy is %v, expected %s", kept, ours.ID)
+	}
+	saved, err = a.GetBoard(saved.ID)
+	if err != nil {
+		t.Fatalf("the saved template was removed rather than disowned: %v", err)
+	}
+	if slug := templateSlug(saved); slug != "" {
+		t.Errorf("the saved template still claims to be %q", slug)
+	}
+	if !saved.IsTemplate || saved.Title != ours.Title {
+		t.Errorf("disowning changed more than the marker: %+v", saved)
+	}
+}

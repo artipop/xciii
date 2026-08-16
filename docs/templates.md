@@ -103,10 +103,29 @@ carry is the machine: the agents and deploy targets it named live in
 board they were added on, and a board made from the template asks for them
 again.
 
+A copy also carries **the marker** (`xciiiTemplate`), and that one is not the
+copy's to keep. A board made from «Разработка» carries the marker, a copy takes
+the board's properties with it, and the copy then claims to *be* «Разработка»:
+three templates of that name stood in the picker, and the importer maintained
+whichever came last while the rest stayed for ever. Both doors do it — this one
+and *«Новый шаблон из доски»* in the board's own ⋯ menu, which is a plain
+duplicate and does not come through here at all.
+
+So it is taken off where it can be taken off from either: at the next launch,
+by the importer, which owns the marker (`disownTemplate`). Disowned rather than
+removed — the copy is somebody's own board, and all that was wrong with it is a
+word it inherited; without the marker it is listed among your own templates,
+where it can be deleted.
+
 ## What is offered in the picker
 
 The templates the install ships — «Разработка», «Контент», «Домашние дела»,
-«Покупки и меню» — and every template you have made. The rest of Focalboard's
+«Покупки и меню» — and every template you have made. Which is which is read off
+**who created it** and not off its version stamp: the importer files its own
+under the system user, while a version is a thing a template can inherit — a
+board carries the version of the template it came from, and a template saved
+from that board carried it too, so a saved copy counted as shipped and appeared
+in neither list. The rest of Focalboard's
 own defaults are hidden: they know nothing about columns that run an agent, so
 a board made from one arrives with no automation at all.
 

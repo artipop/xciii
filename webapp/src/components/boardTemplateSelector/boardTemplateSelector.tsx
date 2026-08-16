@@ -73,14 +73,21 @@ function templateSlug(template: Board): string {
     return typeof marker === 'string' ? marker : ''
 }
 
-// shipped says the install put this template there rather than a person. The
-// version is the only thing that says so: the importer stamps one on every
-// template it writes, ours and the upstream examples alike, and a template made
-// in the app has none. The team does not tell them apart — here everything is
-// in the same team — and neither does `trackingTemplateId`, which "New
-// template" stamps on the user's own as readily as on the built-ins.
+// The id the importer files its own templates under. A person's board is
+// created by them, so this is what tells the install's templates from theirs.
+const SYSTEM_USER = 'system'
+
+// shipped says the install put this template there rather than a person.
+//
+// It used to read the version stamp, and that is a thing a template can
+// *inherit*: a board made from one carries its version, and a template saved
+// from that board carried it too — so somebody's own copy counted as shipped
+// and was hidden from the list it belongs to. The team does not tell them
+// apart either (here everything is in the same team), and neither does
+// `trackingTemplateId`, which "New template" stamps on the user's own as
+// readily as on the built-ins. Who made it does.
 function shipped(template: Board): boolean {
-    return Boolean(template.templateVersion)
+    return template.createdBy === SYSTEM_USER
 }
 
 const BoardTemplateSelector = (props: Props) => {

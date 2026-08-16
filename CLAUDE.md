@@ -549,6 +549,25 @@ in, and gave one set of routes two places to be edited — the second of them a
 copy nobody was looking at. `docs/templates.md` is that half written for
 somebody using it.
 
+**The marker is the app's to give** (`TemplateMarkerProperty`, `xciiiTemplate`).
+It is how the importer recognises its own copy of a template across launches, so
+a copy that carries one is a copy claiming to be it: a board made from
+«Разработка» carries the marker, `saveBoardAsTemplate` copies the board's
+properties, and three «Разработка» stood in the picker while the importer
+maintained whichever came last. A copy that carries one is **disowned** at the next
+launch — the property comes off and it is listed among the person's own —
+rather than deleted, since it is their board and all that is wrong with it is a
+word it inherited. Taken off there rather than at the moment of copying because
+there are two doors and only one of them is ours: «Сохранить как шаблон…» goes
+through `saveBoardAsTemplate`, and «Новый шаблон из доски» in the sidebar's
+board menu is a plain `duplicateBoard` that never touches our code. Read as the
+single user, because a template somebody saved is private to them and the store
+answers a caller with no user id with the open ones alone. Which templates are
+*ours* is read the same way round: `createdBy`, not the version stamp, because a
+board carries the version of the template it came from and a copy of that board
+carried it too — the picker counted such a copy as shipped and then showed it in
+neither list.
+
 **What an agent is told first is two texts, and there are two because there are
 two owners** (`internal/acp/boardprompts.go`). The board's — `boardPrompts`, on
 the board as `xciiiPrompt`, so it travels with it — goes to everybody working
@@ -741,6 +760,18 @@ and for the same reason: a field narrowed on one board and still wide on the
 next four is a migration nobody can trust. The name goes with the type, by the
 rule that lets this app rename a field at all — it is one this app gave
 (`OUR_WORKDIR_TITLES`), and a name a person typed is theirs and stays.
+
+**A board with one folder fills the field in** (`soleWorkdirOption`, applied in
+`centerPanel.newCardProperties` beside the view's filter and the group a card
+was dropped into): one option is not a choice, and making somebody give the same
+answer on every card is a question with no second option. Counted off the
+*field* rather than the registry, because options are never taken away — a board
+that has known two folders offers two, and two is a question only the person can
+answer. It writes an ordinary value, visible and clearable, which is what makes
+writing it unasked acceptable; the filter and the group still win, and a board
+grouped by its folder is left alone entirely, or its empty group could never
+take a card. `UserSettings.prefillCardFolder` is the switch, on by default,
+kept by the install like the rest of `installKept`.
 
 **A repository is an ordinary folder with a superpower, not a second kind of
 thing.** One registry, one adder, one list: in «Обсудить с агентом» and in «В

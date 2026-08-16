@@ -174,15 +174,37 @@ func importTemplates(a *app.App, log mlog.LoggerIFace, version int) error {
 	}
 	sort.Strings(files)
 
-	existing, err := a.GetTemplateBoards(model.GlobalTeamID, "")
+	// As the person, not as nobody: with no user id the store returns the open
+	// templates alone, and one somebody saved is private to them. Ours are open
+	// and come back either way — what asking as nobody hid was exactly the
+	// copies this sweep is here for. The same single user everything else in
+	// this file reads the boards as; the app has one.
+	existing, err := a.GetTemplateBoards(model.GlobalTeamID, model.SingleUser)
 	if err != nil {
 		return fmt.Errorf("read the templates already installed: %w", err)
 	}
 	installed := make(map[string]*model.Board, len(existing))
 	for _, board := range existing {
-		if slug := templateSlug(board); slug != "" {
-			installed[slug] = board
+		slug := templateSlug(board)
+		if slug == "" {
+			continue
 		}
+
+		// The marker is ours to give. A template somebody saved from a board
+		// («Сохранить как шаблон…») is a copy of that board, properties and
+		// all — and a board made from «Разработка» carries the marker, so the
+		// copy claimed to be «Разработка» too. Three of them stood in the
+		// picker under one name, and the sweep below would have kept replacing
+		// whichever came last while the others stayed for ever.
+		//
+		// Disowned rather than deleted: it is somebody's own template, made on
+		// purpose, and all that is wrong with it is a word it inherited. With
+		// the marker gone it is listed as theirs, with a way to delete it.
+		if board.CreatedBy != model.SystemUserID {
+			disownTemplate(a, log, board)
+			continue
+		}
+		installed[slug] = board
 	}
 
 	for _, file := range files {
@@ -232,6 +254,20 @@ func asTemplate(board *model.Board, version int) bool {
 	board.TemplateVersion = version
 	board.CreatedBy = model.SystemUserID
 	return true
+}
+
+// disownTemplate takes our marker off a template the app did not install, so it
+// stops being read as one of ours: the picker lists it among the person's own,
+// and the importer stops confusing it with the copy it maintains.
+func disownTemplate(a *app.App, log mlog.LoggerIFace, board *model.Board) {
+	patch := &model.BoardPatch{DeletedProperties: []string{TemplateMarkerProperty}}
+	if _, err := a.PatchBoard(patch, board.ID, model.SystemUserID); err != nil {
+		log.Warn("templates: cannot take the marker off a template we did not install",
+			mlog.String("board", board.ID), mlog.Err(err))
+		return
+	}
+	log.Info("templates: a saved template no longer claims to be one of ours",
+		mlog.String("board", board.ID), mlog.String("title", board.Title))
 }
 
 func templateSlug(board *model.Board) string {
