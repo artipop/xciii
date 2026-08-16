@@ -119,8 +119,8 @@ where it can be deleted.
 
 ## What is offered in the picker
 
-The templates the install ships — «Разработка», «Контент», «Домашние дела»,
-«Покупки и меню» — and every template you have made. Which is which is read off
+The templates the install ships — «Разработка», «Контент», «Домашние дела» —
+and every template you have made. Which is which is read off
 **who created it** and not off its version stamp: the importer files its own
 under the system user, while a version is a thing a template can inherit — a
 board carries the version of the template it came from, and a template saved

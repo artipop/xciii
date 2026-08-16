@@ -38,9 +38,9 @@ Most of the first run is built. None of it needs replacing.
   machine already has: `project → agent → deploy? → browser? → source? →
   done`. The board opens it itself. This is the spine; everything below
   hangs off it.
-- **The templates carry content.** All three ship five cards, and «Домашние
-  дела» and «Покупки и меню» each open with a card called «С чего начать»
-  whose body is prose about how the board works. Explanation as data, in the
+- **The templates carry content.** All three ship three cards, and every one
+  of them opens with a card called «С чего начать» whose body is prose about
+  how that board works. Explanation as data, in the
   board: it survives translation, it is editable, and it costs no UI.
 - **`tutorial_tour_tip/`** — the drawing half of a coach mark: a positioned
   bubble and a hole punched over a real element, measured from a selector.
@@ -93,8 +93,8 @@ board's trigger column and opens it.
   knows; an offer that fails because nothing is installed is worse than no
   offer at all.
 - **It spends the person's own quota**, so it asks first and says so.
-- A board with no agent column — «Покупки и меню» — gets no offer. It ends
-  by pointing at its own «С чего начать» card instead.
+- A board with no agent column gets no offer. It ends by pointing at its own
+  «С чего начать» card instead.
 
 This is the highest-value piece and could ship alone.
 
@@ -137,11 +137,12 @@ One trap to remember, because it will bite again: `patchProps` used
 *merges* — a preference deleted server-side lived on in the page for ever.
 It reconciles now, and `appStore.test.ts` holds the line.
 
-### 5. Make «С чего начать» the reading surface
+### 5. Make «С чего начать» the reading surface — done
 
-Two templates have it; the developer template does not. Give all three the
-same opening card, written for that board's own work, and let step 2's
-fallback and step 3's strip point at it.
+Every template opens with it now, written for that board's own work: the
+developer one got the card it never had, and each board ships two example
+tasks beside it rather than five placeholders. What is left of this item is
+the pointing: step 2's fallback and step 3's strip should lead to that card.
 
 Content in a template is data: no code path, no message id, editable by
 whoever edits the template, and it arrives with the board rather than being

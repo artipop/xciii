@@ -63,7 +63,6 @@ const VISIBLE_TEMPLATE_SLUGS = [
     'developer-tasks',
     'content-making',
     'home-chores',
-    'shopping-and-meals',
 ]
 
 // templateSlug is the marker, or '' for a board that carries none — every

@@ -121,7 +121,7 @@ func TestTemplatesAreInstalledOnceAndStayThere(t *testing.T) {
 		}
 	}
 	sort.Strings(slugs)
-	want := []string{"content-making", "developer-tasks", "home-chores", "shopping-and-meals"}
+	want := []string{"content-making", "developer-tasks", "home-chores"}
 	if strings.Join(slugs, ",") != strings.Join(want, ",") {
 		t.Fatalf("installed %v, expected %v", slugs, want)
 	}
@@ -314,5 +314,52 @@ func TestATemplateSomebodySavedStopsClaimingToBeOurs(t *testing.T) {
 	}
 	if !saved.IsTemplate || saved.Title != ours.Title {
 		t.Errorf("disowning changed more than the marker: %+v", saved)
+	}
+}
+
+// A template this build no longer ships goes with the build that dropped it.
+// It was installed by the app and is the app's: nobody else maintains it, and
+// the picker gives the app's own templates no delete button, so one left behind
+// would stand there for ever. Boards made from it are untouched — those are the
+// person's.
+func TestATemplateThisBuildNoLongerShipsIsRemoved(t *testing.T) {
+	a := newTestApp(t)
+	logger, _ := mlog.NewLogger()
+	if err := ImportTemplates(a, logger); err != nil {
+		t.Fatal(err)
+	}
+
+	// A template from an older build: same shape as ours, a slug no file has.
+	retired, err := a.CreateBoard(&model.Board{
+		TeamID: model.GlobalTeamID, Title: "Покупки и меню", Type: model.BoardTypeOpen,
+		IsTemplate: true, TemplateVersion: TemplateVersion,
+		Properties: map[string]any{TemplateMarkerProperty: "shopping-and-meals"},
+	}, model.SystemUserID, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// …and a board somebody made from it, which is not ours to touch.
+	made, err := a.CreateBoard(&model.Board{
+		TeamID: model.GlobalTeamID, Title: "Мои покупки", Type: model.BoardTypeOpen,
+		CreatedBy: model.SingleUser,
+		Properties: map[string]any{TemplateMarkerProperty: "shopping-and-meals"},
+	}, model.SingleUser, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := ImportTemplates(a, logger); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.GetBoard(retired.ID); err == nil {
+		t.Error("a template the build no longer ships is still installed")
+	}
+	if _, err := a.GetBoard(made.ID); err != nil {
+		t.Errorf("a board made from it was taken away with it: %v", err)
+	}
+	// And the ones this build does ship are still there, at this version.
+	if got := installedTemplates(t, a); len(got) != 3 {
+		t.Errorf("installed %d templates, want the three this build ships", len(got))
 	}
 }

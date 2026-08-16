@@ -53,7 +53,12 @@ var templateFiles embed.FS
 // a person's unprocessed tasks are read on the inbox view, and the main board
 // stays the board of work it was before version 15 put the column at its
 // front.
-const TemplateVersion = 17
+// 18: «Покупки и меню» is gone, and the three that remain carry three cards
+// each instead of five — «С чего начать» and two tasks an agent can actually
+// be given, all in the first column. Placeholders («Утвердить бюджет», a
+// checklist of «[Подзадача 1]») and errands no agent can run («Полить цветы»)
+// taught the board wrong on the first screen anybody sees.
+const TemplateVersion = 18
 
 // TemplateMarkerProperty is the board property each template carries its slug
 // in. Ids are regenerated on import and titles are the user's to change, so the
@@ -209,7 +214,12 @@ func importTemplates(a *app.App, log mlog.LoggerIFace, version int) error {
 
 	for _, file := range files {
 		slug := strings.TrimSuffix(path.Base(file), ".jsonl")
-		if board, ok := installed[slug]; ok {
+		board, ok := installed[slug]
+
+		// Taken off the list of what is installed as it is dealt with, so what
+		// is left at the end is what this build no longer ships.
+		delete(installed, slug)
+		if ok {
 			if board.TemplateVersion >= version {
 				continue
 			}
@@ -231,6 +241,20 @@ func importTemplates(a *app.App, log mlog.LoggerIFace, version int) error {
 			continue
 		}
 		log.Info("templates: installed", mlog.String("template", slug))
+	}
+
+	// A template we used to ship and no longer do. It was installed by this app
+	// and belongs to it, so it goes with the build that dropped it — otherwise
+	// «Покупки и меню» stands in the picker for ever, maintained by nobody and
+	// deletable by nobody, since the app's own templates carry no delete
+	// button. Boards made from it are untouched: they are the person's.
+	for slug, board := range installed {
+		if err := a.DeleteBoard(board.ID, model.SystemUserID); err != nil {
+			log.Warn("templates: cannot remove a template this build no longer ships",
+				mlog.String("template", slug), mlog.Err(err))
+			continue
+		}
+		log.Info("templates: removed, no longer shipped", mlog.String("template", slug))
 	}
 	return nil
 }
