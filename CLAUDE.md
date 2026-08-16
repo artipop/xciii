@@ -773,6 +773,18 @@ grouped by its folder is left alone entirely, or its empty group could never
 take a card. `UserSettings.prefillCardFolder` is the switch, on by default,
 kept by the install like the rest of `installKept`.
 
+**And it stops being a choice once the card has a workspace**
+(`cardDetailProperties.tsx`, read off `CardAgentState.workMode` — the claim
+record, which is what "работа началась" actually means; the column the card
+stands in is not). Work on a card lives in one place, claimed under the folder
+the card named then, so pointing the field at another folder afterwards does not
+move the work — it makes the card describe somewhere the work is not. The field
+goes read-only with the reason under it, in the one place a person changes it,
+rather than being refused later and further away. The card's face carries the
+folder too (`KanbanCard__folder`), from the field and never from where a
+conversation happens to stand: «черновики доски» is not an answer the card
+gives.
+
 **A repository is an ordinary folder with a superpower, not a second kind of
 thing.** One registry, one adder, one list: in «Обсудить с агентом» and in «В
 какой папке будет работать агент?» the repositories stand among the plain

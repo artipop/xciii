@@ -10,6 +10,7 @@ import {IUser} from '../user'
 import {Utils} from '../utils'
 import {useAppSelector} from '../store/hooks'
 import {getBoardUsers, getBoardUsersList, getMe} from '../store/users'
+import {personName} from '../userDisplay'
 
 import {ClientConfig} from '../config/clientConfig'
 import {getClientConfig} from '../store/clientConfig'
@@ -79,7 +80,7 @@ const PersonSelector = (props: Props): JSX.Element => {
                         src={profileImg}
                     />
                 </Show>
-                {Utils.getUserDisplayName(user, clientConfig().teammateNameDisplay)}
+                {personName(intl, user, clientConfig().teammateNameDisplay)}
                 <GuestBadge show={Boolean(user?.is_guest)}/>
 
                 {/* Only the single-person field: a multi one is a row of chips

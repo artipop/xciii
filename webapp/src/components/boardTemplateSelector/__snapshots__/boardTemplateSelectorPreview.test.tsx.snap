@@ -439,6 +439,7 @@ exports[`components/boardTemplateSelector/boardTemplateSelectorPreview > should 
               
             </div>
             
+            
           </div>
           <button
             type="button"

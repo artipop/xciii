@@ -144,6 +144,18 @@
         }
     }
 
+    // Why a field cannot be changed, said under the field itself. Only the
+    // folder has one: everything else on a card is a value, and this is the
+    // one that a claimed workspace turns into a fact.
+    .octo-propertyhint {
+        max-width: 595px;
+        margin: -2px 0 8px;
+        padding-left: 8px;
+        font-size: 12px;
+        line-height: 16px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
     .octo-propertyrow {
         max-width: 595px;
         display: flex;

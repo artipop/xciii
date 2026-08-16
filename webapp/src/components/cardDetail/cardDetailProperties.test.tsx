@@ -16,6 +16,15 @@ import CardDetailProperties from './cardDetailProperties'
 vi.mock('../../mutator')
 const mockedMutator = vi.mocked(mutator)
 
+// What Go knows about the card's workspace. Hoisted so the factory below can
+// close over it, and mutable so one test can say «this card has been worked»
+// without the rest of the file inheriting it.
+const cardAgent = vi.hoisted(() => ({state: {} as Record<string, unknown>}))
+vi.mock('../acp/cardAgentState', () => ({
+    cardAgentState: () => () => cardAgent.state,
+    refreshCardAgent: vi.fn(),
+}))
+
 describe('components/cardDetail/CardDetailProperties', () => {
     const board = TestBlockFactory.createBoard()
     board.cardProperties = [
@@ -152,6 +161,57 @@ describe('components/cardDetail/CardDetailProperties', () => {
         expect(branchName?.querySelector('button')).toBeNull()
         expect(plainName?.querySelector('button')).not.toBeNull()
         expect(screen.getByText('pochini-login-abcd')).toBeInTheDocument()
+    })
+
+    // A card's work lives in one place: the workspace was claimed under the
+    // folder the card named, and pointing the card at another folder afterwards
+    // does not move the work — it only makes the card describe somewhere the
+    // work is not.
+    describe('the folder of a card that has been worked', () => {
+        const folderBoard = TestBlockFactory.createBoard()
+        folderBoard.cardProperties = [
+            {id: 'prop_folder', name: 'Папка', type: 'select', options: [
+                {id: 'opt_alpha', value: 'alpha', color: 'propColorDefault'},
+                {id: 'opt_beta', value: 'beta', color: 'propColorDefault'},
+            ]},
+        ]
+        folderBoard.properties = {xciiiProjectProperty: 'prop_folder'}
+
+        const renderFolderCard = () => {
+            const folderCard = TestBlockFactory.createCard(folderBoard)
+            folderCard.fields.properties.prop_folder = 'opt_alpha'
+            return render(() => wrapIntl(() =>
+                <AppStoreProvider store={store}>
+                    <CardDetailProperties
+                        board={folderBoard}
+                        card={folderCard}
+                        cards={[folderCard]}
+                        activeView={view}
+                        views={views}
+                        readonly={false}
+                    />
+                </AppStoreProvider>,
+            ))
+        }
+
+        afterEach(() => {
+            cardAgent.state = {}
+        })
+
+        it('cannot be changed once a workspace has been claimed, and says why', () => {
+            cardAgent.state = {workMode: 'worktree'}
+            const {container} = renderFolderCard()
+
+            expect(container.querySelector('.octo-propertyvalue--readonly')).not.toBeNull()
+            expect(screen.getByText(/already working in “alpha”/)).toBeInTheDocument()
+        })
+
+        it('is an ordinary choice while nothing has been claimed', () => {
+            const {container} = renderFolderCard()
+
+            expect(container.querySelector('.octo-propertyvalue--readonly')).toBeNull()
+            expect(container.querySelector('.octo-propertyhint')).toBeNull()
+        })
     })
 
     it('should match snapshot', async () => {

@@ -14,7 +14,8 @@ Sections:
 - **"Import and export"** — board archive export and import, see
   [Moving](../transfer.md);
 - **"Other"** — the instruction for conversations without a card, "Notify me
-  when an agent is waiting", and install details.
+  when an agent is waiting", "Fill a new card's folder in when the board has
+  only one", and install details.
 
 Sections this build does not support are not shown: on a machine without
 agents, "The app itself", "Updates", "Import and export" and "Other" remain.

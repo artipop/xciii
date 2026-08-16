@@ -25,6 +25,7 @@ import {PropertyType} from '../../properties/types'
 
 import {boardBranchProperty} from '../acp/automation'
 import {cardAgentState} from '../acp/cardAgentState'
+import {findWorkdirProperty} from '../acp/workdirSync'
 
 type Props = {
     board: Board
@@ -55,6 +56,27 @@ const CardDetailProperties = (props: Props) => {
             return intl.formatMessage({id: 'CardDetail.worktree-property', defaultMessage: 'Worktree'})
         }
         return t.name
+    }
+
+    // The folder stops being a choice once the card has a workspace. Work on a
+    // card lives in one place — a copy and a branch, or a branch in the folder
+    // itself — and it was claimed under the folder the card named then: moving
+    // the card to another folder afterwards does not move the work, it only
+    // makes the card describe somewhere the work is not. The claim is the fact
+    // to read, not the column the card stands in, because that is exactly what
+    // "работа началась" means here — a folder was taken for this card.
+    //
+    // Refusing it in the one place a person changes it, rather than refusing
+    // later and further away: an agent standing on a card whose field says one
+    // folder and whose branch is in another is a state nobody can read back.
+    const workdirProperty = () => findWorkdirProperty(props.board, props.board.cardProperties)
+    const workdirLocked = () => Boolean(agentState().workMode)
+    const isWorkdirProperty = (t: IPropertyTemplate) => t.id !== '' && t.id === workdirProperty()?.id
+    const lockedFolderName = () => {
+        const property = workdirProperty()
+        const value = property && props.card.fields.properties[property.id]
+        const optionId = Array.isArray(value) ? value[0] : value
+        return property?.options.find((o) => o.id === optionId)?.value || ''
     }
 
     createEffect(() => {
@@ -152,40 +174,56 @@ const CardDetailProperties = (props: Props) => {
         <div class='octo-propertylist CardDetailProperties'>
             <For each={props.board.cardProperties}>
                 {(propertyTemplate: IPropertyTemplate) => (
-                    <div
-                        class='octo-propertyrow'
-                    >
-                        <Show
-                            when={!props.readonly && canEditBoardProperties() && !isBranchProperty(propertyTemplate)}
-                            fallback={
-                                <div class='octo-propertyname octo-propertyname--readonly'>
-                                    {isBranchProperty(propertyTemplate) ? branchLabel(propertyTemplate) : propertyTemplate.name}
-                                </div>
-                            }
+                    <>
+                        <div
+                            class='octo-propertyrow'
                         >
-                            <MenuWrapper
-                                isOpen={propertyTemplate.id === newTemplateId()}
-                                menu={
-                                    <PropertyMenu
-                                        propertyId={propertyTemplate.id}
-                                        propertyName={propertyTemplate.name}
-                                        propertyType={propRegistry.get(propertyTemplate.type)}
-                                        onTypeAndNameChanged={(newType: PropertyType, newName: string) => onPropertyChangeSetAndOpenConfirmationDialog(newType, newName, propertyTemplate)}
-                                        onDelete={() => onPropertyDeleteSetAndOpenConfirmationDialog(propertyTemplate)}
-                                    />
+                            <Show
+                                when={!props.readonly && canEditBoardProperties() && !isBranchProperty(propertyTemplate)}
+                                fallback={
+                                    <div class='octo-propertyname octo-propertyname--readonly'>
+                                        {isBranchProperty(propertyTemplate) ? branchLabel(propertyTemplate) : propertyTemplate.name}
+                                    </div>
                                 }
                             >
-                                <div class='octo-propertyname'><Button>{propertyTemplate.name}</Button></div>
-                            </MenuWrapper>
+                                <MenuWrapper
+                                    isOpen={propertyTemplate.id === newTemplateId()}
+                                    menu={
+                                        <PropertyMenu
+                                            propertyId={propertyTemplate.id}
+                                            propertyName={propertyTemplate.name}
+                                            propertyType={propRegistry.get(propertyTemplate.type)}
+                                            onTypeAndNameChanged={(newType: PropertyType, newName: string) => onPropertyChangeSetAndOpenConfirmationDialog(newType, newName, propertyTemplate)}
+                                            onDelete={() => onPropertyDeleteSetAndOpenConfirmationDialog(propertyTemplate)}
+                                        />
+                                    }
+                                >
+                                    <div class='octo-propertyname'><Button>{propertyTemplate.name}</Button></div>
+                                </MenuWrapper>
+                            </Show>
+                            <PropertyValueElement
+                                readOnly={props.readonly || !canEditBoardCards() ||
+                                isBranchProperty(propertyTemplate) ||
+                                (isWorkdirProperty(propertyTemplate) && workdirLocked())}
+                                card={props.card}
+                                board={props.board}
+                                propertyTemplate={propertyTemplate}
+                                showEmptyPlaceholder={true}
+                            />
+                        </div>
+
+                        {/* Under the row rather than beside the value: the row is
+                        one line of name and value, and the reason a field
+                        cannot be changed is a sentence. */}
+                        <Show when={isWorkdirProperty(propertyTemplate) && workdirLocked()}>
+                            <div class='octo-propertyhint'>
+                                {intl.formatMessage({
+                                    id: 'CardDetail.folder-locked',
+                                    defaultMessage: 'The card is already working in “{folder}”, where its branch is. For another folder, make a new card.',
+                                }, {folder: lockedFolderName()})}
+                            </div>
                         </Show>
-                        <PropertyValueElement
-                            readOnly={props.readonly || !canEditBoardCards() || isBranchProperty(propertyTemplate)}
-                            card={props.card}
-                            board={props.board}
-                            propertyTemplate={propertyTemplate}
-                            showEmptyPlaceholder={true}
-                        />
-                    </div>
+                    </>
                 )}
             </For>
 

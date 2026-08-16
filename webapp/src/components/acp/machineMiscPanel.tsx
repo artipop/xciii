@@ -4,6 +4,7 @@ import {Show, createSignal, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
+import {UserSettings} from '../../userSettings'
 import Button from '../../widgets/buttons/button'
 import Switch from '../../widgets/switch'
 import {sendFlashMessage} from '../flashMessages'
@@ -33,6 +34,15 @@ const MachineMiscPanel = () => {
     const [savedPrompt, setSavedPrompt] = createSignal('')
     const [namedBranches, setNamedBranches] = createSignal(false)
     const [error, setError] = createSignal('')
+
+    // Kept by the install rather than by Go: nothing on that side reads it —
+    // the card is made by the page.
+    const [prefillFolder, setPrefillFolder] = createSignal(UserSettings.prefillCardFolder)
+
+    const togglePrefillFolder = (on: boolean) => {
+        setPrefillFolder(on)
+        UserSettings.prefillCardFolder = on
+    }
 
     onMount(async () => {
         try {
@@ -150,6 +160,26 @@ const MachineMiscPanel = () => {
                 <p class='MachineMiscPanel__hint'>
                     {intl.formatMessage({id: 'Machine.named-branches-hint', defaultMessage: 'A short agent run before the card’s first branch — no terminal opens, and a slow or odd answer falls back to the card’s title.'})}
                 </p>
+
+                {/* A default, not a rule: it writes an ordinary value onto the
+                    card, which is visible and can be changed or cleared. Only
+                    ever when the board offers exactly one folder — with two
+                    there is a question, and nothing here is going to guess it.
+                    Offered where the other agent settings are, since a board
+                    with no agent has no folder field to fill. */}
+                <Show when={isAgentsAvailable()}>
+                    <label class='MachineMiscPanel__toggle'>
+                        <input
+                            type='checkbox'
+                            checked={prefillFolder()}
+                            onChange={(e) => togglePrefillFolder(e.currentTarget.checked)}
+                        />
+                        {intl.formatMessage({id: 'Machine.prefill-folder', defaultMessage: 'Fill a new card’s folder in when the board has only one'})}
+                    </label>
+                    <p class='MachineMiscPanel__hint'>
+                        {intl.formatMessage({id: 'Machine.prefill-folder-hint', defaultMessage: 'The card gets the folder the moment it is made, and it can be changed or cleared like any other field. A board that offers several folders is never filled in — that is a question only you can answer.'})}
+                    </p>
+                </Show>
 
                 {/* The guide, not docs/flows.md: this line used to name a file
                     of the source tree, which a person reading it off the

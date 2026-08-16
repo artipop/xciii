@@ -19,6 +19,7 @@ import CardActionsMenu from '../cardActionsMenu/cardActionsMenu'
 import CardActionsMenuIcon from '../cardActionsMenu/cardActionsMenuIcon'
 import {attentionHeading, useCardAttention} from '../acp/attention'
 import {isCardTerminalAvailable, openCardTerminalWindow, useCardCutOff, useCardTerminal} from '../acp/liveTerminals'
+import {findWorkdirProperty} from '../acp/workdirSync'
 
 export const OnboardingCardClassName = 'onboardingCard'
 
@@ -56,6 +57,28 @@ const KanbanCard = (props: Props) => {
         () => ({id: props.card.id, index: props.index, group: props.groupId}),
     )
     const visiblePropertyTemplates = () => props.visiblePropertyTemplates || []
+
+    // Where this card's work lives, on the card's face. It is the one property
+    // that decides what an agent can do here at all, and reading it meant
+    // opening the card — while on a board of several folders, which folder a
+    // card belongs to is most of what the board is being scanned for.
+    //
+    // The card's own field and nothing else: «черновики доски» is where a
+    // conversation stands when the card names no folder, not an answer the card
+    // gives, and printing it here would say the card belongs to a project it
+    // does not. An empty field draws nothing.
+    //
+    // Left out when the view already lists the property, or the same fact would
+    // stand on the card twice.
+    const folderChip = () => {
+        const property = findWorkdirProperty(props.board, props.board.cardProperties)
+        if (!property || visiblePropertyTemplates().some((t) => t.id === property.id)) {
+            return ''
+        }
+        const value = props.card.fields.properties[property.id]
+        const optionId = Array.isArray(value) ? value[0] : value
+        return property.options.find((o) => o.id === optionId)?.value || ''
+    }
 
     // An agent that has stopped to ask something is the one thing about a card
     // that a person has to notice without opening it — the terminal it asked in
@@ -255,6 +278,12 @@ const KanbanCard = (props: Props) => {
                         </Tooltip>
                     )}
                 </For>
+                <Show when={folderChip()}>
+                    <div class='KanbanCard__folder'>
+                        <CompassIcon icon='folder-outline'/>
+                        <span>{folderChip()}</span>
+                    </div>
+                </Show>
                 <Show when={props.visibleBadges}>
                     <CardBadges card={props.card}/>
                 </Show>

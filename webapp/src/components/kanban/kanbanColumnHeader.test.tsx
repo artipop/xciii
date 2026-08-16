@@ -370,10 +370,14 @@ describe('src/components/kanban/kanbanColumnHeader', () => {
             expect(screen.getByText('kaiten')).toBeInTheDocument()
         })
 
+        // The local user has no account, so the API synthesizes its username
+        // and cannot know the language of the page: the name comes from the
+        // catalogue («Вы» / "You"), and the id it stands for is never printed.
         test('outside the inbox the viewer stays themselves', () => {
             renderHeader(activeView, 'single-user')
-            expect(screen.getByText('Вы')).toBeInTheDocument()
+            expect(screen.getByText('You')).toBeInTheDocument()
             expect(screen.queryByText('Мои задачи')).toBeNull()
+            expect(screen.queryByText('single-user')).toBeNull()
         })
     })
 })

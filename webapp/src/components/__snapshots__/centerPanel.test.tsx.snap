@@ -1252,6 +1252,7 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
             </div>
             
             
+            
           </div>
           <div
             class="KanbanCard"
@@ -1287,6 +1288,7 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
                 card2
               </div>
             </div>
+            
             
             
           </div>
@@ -9384,6 +9386,7 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
             </div>
             
             
+            
           </div>
           <button
             class="Button"
@@ -9934,6 +9937,7 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
                 card1
               </div>
             </div>
+            
             
             
           </div>

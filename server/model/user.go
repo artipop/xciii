@@ -16,6 +16,12 @@ const (
 	// display half — the board prints the username wherever it names an
 	// author, an assignee or a group header, and "single-user" was the one
 	// name on those screens no person chose.
+	//
+	// The page translates it (webapp/src/userDisplay.ts): a constant here
+	// cannot be in the language somebody is reading in, and this session is
+	// synthesized per request rather than stored, so there is nothing to
+	// localize at the source. What is left here is the fallback for a client
+	// that does not.
 	SingleUserName = "Вы"
 )
 

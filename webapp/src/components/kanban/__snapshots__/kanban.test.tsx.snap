@@ -190,6 +190,7 @@ exports[`src/component/kanban/kanban > return kanban and change title on KanbanC
           </div>
           
           
+          
         </div>
         <div
           class="KanbanCard"
@@ -224,6 +225,7 @@ exports[`src/component/kanban/kanban > return kanban and change title on KanbanC
               title
             </div>
           </div>
+          
           
           
         </div>
@@ -273,6 +275,7 @@ exports[`src/component/kanban/kanban > return kanban and change title on KanbanC
               title
             </div>
           </div>
+          
           
           
         </div>
@@ -684,6 +687,7 @@ exports[`src/component/kanban/kanban > return kanban and click on KanbanCalculat
           </div>
           
           
+          
         </div>
         <div
           class="KanbanCard"
@@ -718,6 +722,7 @@ exports[`src/component/kanban/kanban > return kanban and click on KanbanCalculat
               title
             </div>
           </div>
+          
           
           
         </div>
@@ -767,6 +772,7 @@ exports[`src/component/kanban/kanban > return kanban and click on KanbanCalculat
               title
             </div>
           </div>
+          
           
           
         </div>
@@ -1000,6 +1006,7 @@ exports[`src/component/kanban/kanban > should match snapshot 1`] = `
           </div>
           
           
+          
         </div>
         <div
           class="KanbanCard"
@@ -1034,6 +1041,7 @@ exports[`src/component/kanban/kanban > should match snapshot 1`] = `
               title
             </div>
           </div>
+          
           
           
         </div>
@@ -1083,6 +1091,7 @@ exports[`src/component/kanban/kanban > should match snapshot 1`] = `
               title
             </div>
           </div>
+          
           
           
         </div>
@@ -1266,6 +1275,7 @@ exports[`src/component/kanban/kanban > should match snapshot without permissions
           </div>
           
           
+          
         </div>
         <div
           class="KanbanCard"
@@ -1300,6 +1310,7 @@ exports[`src/component/kanban/kanban > should match snapshot without permissions
               title
             </div>
           </div>
+          
           
           
         </div>
@@ -1340,6 +1351,7 @@ exports[`src/component/kanban/kanban > should match snapshot without permissions
               title
             </div>
           </div>
+          
           
           
         </div>

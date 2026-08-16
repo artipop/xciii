@@ -154,6 +154,23 @@ export async function syncWorkdirsToBoard(board: Board, registry: Workdir[]): Pr
     return {added: missing.length, property: target}
 }
 
+// soleWorkdirOption is the board's folder field and its one option, when the
+// field has exactly one. That is the case where filling a card in is not a
+// guess: the list a person would open has a single entry, and leaving the field
+// empty costs them a click and tells them nothing.
+//
+// Counted off the field rather than off the registry, because the field is what
+// a card can hold. Options are never taken away — cards reference them — so a
+// board that has known two folders offers two, and two is a question only the
+// person can answer.
+export function soleWorkdirOption(board: Board): {propertyId: string, optionId: string} | undefined {
+    const property = findWorkdirProperty(board, board.cardProperties)
+    if (property?.type !== 'select' || property.options.length !== 1) {
+        return undefined
+    }
+    return {propertyId: property.id, optionId: property.options[0].id}
+}
+
 // narrowWorkdirProperty makes the folder field a single choice on a board that
 // still carries it as a multiSelect.
 //

@@ -22,6 +22,7 @@ import {useSortable} from '../../hooks/sortable'
 import {useAppSelector} from '../../store/hooks'
 import {getBoardUsers, getMe} from '../../store/users'
 import {IUser} from '../../user'
+import {personNameById} from '../../userDisplay'
 
 import BoardPermissionGate from '../permissions/boardPermissionGate'
 
@@ -78,7 +79,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
         if (isInboxView(props.activeView) && id === me()?.id) {
             return MineColumnTitle
         }
-        return boardUsers()[id]?.username || id
+        return personNameById(props.intl, id, boardUsers())
     }
 
     // A person group has no option behind it to rename, so it is a label and

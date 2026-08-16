@@ -14,6 +14,7 @@ import {CardFilter} from '../cardFilter'
 import mutator from '../mutator'
 import {Utils} from '../utils'
 import {UserSettings} from '../userSettings'
+import {personName} from '../userDisplay'
 import {getCurrentBoardCards, getCurrentCard} from '../store/cards'
 import {getCardLimitTimestamp} from '../store/limits'
 import {getVisibleAndHiddenGroups} from '../boardUtils'
@@ -58,7 +59,7 @@ import ShareBoardTourStep from './onboardingTour/shareBoard/shareBoard'
 import BoardSetupWizard from './acp/boardSetupWizard'
 import {createSetupPlan, markSetupOffered, shouldOfferSetup} from './acp/boardSetup'
 import {retireAgentProperty} from './acp/agentSync'
-import {narrowWorkdirProperty} from './acp/workdirSync'
+import {narrowWorkdirProperty, soleWorkdirOption} from './acp/workdirSync'
 
 type Props = {
     clientConfig?: ClientConfig
@@ -213,8 +214,36 @@ const CenterPanel = (props: Props) => {
         props.showCard(cardId)
     }
 
-    const addCard = async (groupByOptionId?: string, show = false, properties: Record<string, string> = {}): Promise<void> => {
+    // What a new card is born with: the view's own filter (which is what puts a
+    // card made in «Входящие» into «Мои задачи»), the group it was dropped into,
+    // and the board's folder when the board has only one.
+    const newCardProperties = (groupByOptionId?: string): Record<string, string> => {
         const {activeView, board, groupByProperty} = props
+
+        const properties = CardFilter.propertiesThatMeetFilterGroup(activeView.fields.filter, board.cardProperties)
+        if ((activeView.fields.viewType === 'board' || activeView.fields.viewType === 'table') && groupByProperty) {
+            if (groupByOptionId) {
+                properties[groupByProperty.id] = groupByOptionId
+            } else {
+                delete properties[groupByProperty.id]
+            }
+        }
+
+        // Last, and never over an answer already given: the filter and the
+        // group are what a person did, and this is only a default. A board
+        // grouped by its folder is left alone entirely — there the empty group
+        // means «no folder yet», and filling it in would make that group
+        // impossible to add a card to.
+        const folder = soleWorkdirOption(board)
+        if (folder && UserSettings.prefillCardFolder &&
+            folder.propertyId !== groupByProperty?.id && !properties[folder.propertyId]) {
+            properties[folder.propertyId] = folder.optionId
+        }
+        return properties
+    }
+
+    const addCard = async (groupByOptionId?: string, show = false, properties: Record<string, string> = {}): Promise<void> => {
+        const {activeView, board} = props
 
         const card = createCard()
 
@@ -222,15 +251,7 @@ const CenterPanel = (props: Props) => {
 
         card.parentId = board.id
         card.boardId = board.id
-        const propertiesThatMeetFilters = CardFilter.propertiesThatMeetFilterGroup(activeView.fields.filter, board.cardProperties)
-        if ((activeView.fields.viewType === 'board' || activeView.fields.viewType === 'table') && groupByProperty) {
-            if (groupByOptionId) {
-                propertiesThatMeetFilters[groupByProperty.id] = groupByOptionId
-            } else {
-                delete propertiesThatMeetFilters[groupByProperty.id]
-            }
-        }
-        card.fields.properties = {...card.fields.properties, ...properties, ...propertiesThatMeetFilters}
+        card.fields.properties = {...card.fields.properties, ...properties, ...newCardProperties(groupByOptionId)}
         if (!card.fields.icon && UserSettings.prefillRandomIcons) {
             card.fields.icon = BlockIcons.shared.randomIcon()
         }
@@ -308,16 +329,9 @@ const CenterPanel = (props: Props) => {
     }
 
     const addCardFromTemplate = async (cardTemplateId: string, groupByOptionId?: string) => {
-        const {activeView, board, groupByProperty} = props
+        const {activeView, board} = props
 
-        const propertiesThatMeetFilters = CardFilter.propertiesThatMeetFilterGroup(activeView.fields.filter, board.cardProperties)
-        if ((activeView.fields.viewType === 'board' || activeView.fields.viewType === 'table') && groupByProperty) {
-            if (groupByOptionId) {
-                propertiesThatMeetFilters[groupByProperty.id] = groupByOptionId
-            } else {
-                delete propertiesThatMeetFilters[groupByProperty.id]
-            }
-        }
+        const propertiesThatMeetFilters = newCardProperties(groupByOptionId)
 
         mutator.performAsUndoGroup(async () => {
             const [, newCardId] = await mutator.duplicateCard(
@@ -411,7 +425,7 @@ const CenterPanel = (props: Props) => {
     const getUserDisplayName = (boardGroup: BoardGroup) => {
         const user = boardUsers()[boardGroup.option.id]
         if (user) {
-            return Utils.getUserDisplayName(user, clientConfig().teammateNameDisplay)
+            return personName(intl, user, clientConfig().teammateNameDisplay)
         } else if (boardGroup.option.id === 'undefined') {
             return intl.formatMessage({
                 id: 'centerPanel.undefined',

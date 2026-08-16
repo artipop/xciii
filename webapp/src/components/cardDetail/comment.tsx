@@ -6,6 +6,7 @@ import {useIntl} from '../../intl'
 import {Block} from '../../blocks/block'
 import mutator from '../../mutator'
 import {Utils} from '../../utils'
+import {personName} from '../../userDisplay'
 import IconButton from '../../widgets/buttons/iconButton'
 import DeleteIcon from '../../widgets/icons/delete'
 import OptionsIcon from '../../widgets/icons/options'
@@ -55,7 +56,7 @@ const Comment: Component<Props> = (props: Props) => {
                     class='comment-avatar'
                     src={props.userImageUrl}
                 />
-                <div class='comment-username'>{user()?.username}</div>
+                <div class='comment-username'>{user() ? personName(intl, user()!, 'username') : ''}</div>
                 <GuestBadge show={user()?.is_guest}/>
 
                 <Tooltip title={Utils.displayDateTime(date(), intl)}>

@@ -135,6 +135,32 @@
         }
     }
 
+    // Where the card's work lives. A quiet line rather than a coloured label:
+    // it is context for everything else on the card, not one of the card's
+    // values competing with them — and on a board of one folder it repeats on
+    // every card, so it has to be cheap to look past.
+    .KanbanCard__folder {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 4px;
+        min-width: 0;
+        font-size: 12px;
+        line-height: 16px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        i {
+            font-size: 14px;
+            flex: 0 0 auto;
+        }
+
+        span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
     .octo-icontitle {
         flex: 1 1 auto;
         font-weight: 600;

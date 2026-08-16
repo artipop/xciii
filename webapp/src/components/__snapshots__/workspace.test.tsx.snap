@@ -583,6 +583,7 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                   
                 </div>
                 
+                
               </div>
               <div
                 class="KanbanCard"
@@ -628,6 +629,7 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                   
                 </div>
                 
+                
               </div>
               <div
                 class="KanbanCard"
@@ -672,6 +674,7 @@ exports[`src/components/workspace > return workspace and showcard 1`] = `
                   </div>
                   
                 </div>
+                
                 
               </div>
               <button
@@ -949,6 +952,7 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
                   
                 </div>
                 
+                
               </div>
               <div
                 class="KanbanCard"
@@ -981,6 +985,7 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
                   
                 </div>
                 
+                
               </div>
               <div
                 class="KanbanCard"
@@ -1012,6 +1017,7 @@ exports[`src/components/workspace > return workspace readonly and showcard 1`] =
                   </div>
                   
                 </div>
+                
                 
               </div>
             </div>
@@ -1683,6 +1689,7 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                   
                 </div>
                 
+                
               </div>
               <div
                 class="KanbanCard"
@@ -1728,6 +1735,7 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                   
                 </div>
                 
+                
               </div>
               <div
                 class="KanbanCard"
@@ -1772,6 +1780,7 @@ exports[`src/components/workspace > should match snapshot 1`] = `
                   </div>
                   
                 </div>
+                
                 
               </div>
               <button
@@ -2049,6 +2058,7 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
                   
                 </div>
                 
+                
               </div>
               <div
                 class="KanbanCard"
@@ -2081,6 +2091,7 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
                   
                 </div>
                 
+                
               </div>
               <div
                 class="KanbanCard"
@@ -2112,6 +2123,7 @@ exports[`src/components/workspace > should match snapshot with readonly 1`] = `
                   </div>
                   
                 </div>
+                
                 
               </div>
             </div>

@@ -16,7 +16,11 @@ export enum UserSettingKey {
     NameFormat = 'nameFormat',
 
     // Whether a card whose agent is waiting for an answer says so out loud.
-    AgentNotifications = 'agentNotifications'
+    AgentNotifications = 'agentNotifications',
+
+    // Whether a new card is given the board's folder when the board offers
+    // exactly one.
+    PrefillCardFolder = 'prefillCardFolder'
 }
 
 // The keys the install keeps for itself, in <dataDir>/ui-settings.json on the
@@ -35,6 +39,7 @@ const installKept = new Set<string>([
     UserSettingKey.LastViewId,
     UserSettingKey.MobileWarningClosed,
     UserSettingKey.AgentNotifications,
+    UserSettingKey.PrefillCardFolder,
 ])
 
 // The Wails bindings, when this bundle runs in the desktop app — the same
@@ -180,6 +185,19 @@ export class UserSettings {
 
     static set agentNotifications(newValue: boolean) {
         UserSettings.set(UserSettingKey.AgentNotifications, JSON.stringify(newValue))
+    }
+
+    // On unless it has been turned off: a board with one folder has one answer
+    // to «где работать», and making a person give it on every card is asking a
+    // question that has no second option. What is written is an ordinary value
+    // on the card, so it is visible and can be changed or cleared — which is
+    // why it is safe to write it without being asked.
+    static get prefillCardFolder(): boolean {
+        return UserSettings.get(UserSettingKey.PrefillCardFolder) !== 'false'
+    }
+
+    static set prefillCardFolder(newValue: boolean) {
+        UserSettings.set(UserSettingKey.PrefillCardFolder, JSON.stringify(newValue))
     }
 
     // Off unless somebody turns it on by hand. A card gets an emoji nobody

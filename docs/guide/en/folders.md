@@ -1,7 +1,24 @@
 # Folders and branches
 
 An agent always works in some folder on your machine. The list of them is in the
-board's menu → **"Folders…"**. A card picks one of them with its «Папка» field.
+board's menu → **"Folders…"**. A card picks one of them with its «Папка» field —
+one, because a card has one working copy and one branch.
+
+When the board has only one folder, a new card is given it straight away: there
+is nothing to choose between, and the field is filled in where you can see it. A
+board with several folders leaves the field empty — that choice is yours. The
+switch is in Settings → "Other".
+
+A card shows its folder on its face on the board, as a line with a folder icon
+under the title. An empty field draws no line. «Черновики доски» never appears
+there: that is where a conversation stands when the card has not named a folder,
+not an answer the card gives.
+
+**The folder cannot be changed once work has started.** As soon as a working
+copy or a branch has been taken for the card, the field stops being editable and
+says which folder the card works in. Changing folders means making a new card:
+the work stayed in the copy it was done in, and moving the field would not move
+it there.
 
 Which items a board's menu has is decided by the template it was made from: the
 «Разработка» board asks about a folder, a deploy host and a browser, so its menu

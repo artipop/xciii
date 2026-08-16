@@ -4,12 +4,13 @@ import userEvent from '@testing-library/user-event'
 import {TestRouter, mockAppStore, mockDOM, wrapDNDIntl} from '../testUtils'
 import {AppStoreProvider} from '../store'
 import {TestBlockFactory} from '../test/testBlockFactory'
-import {IPropertyTemplate} from '../blocks/board'
+import {Board, IPropertyTemplate} from '../blocks/board'
 import {Utils} from '../utils'
 import {IUser} from '../user'
 import octoClient from '../octoClient'
 import Mutator from '../mutator'
 import {Constants} from '../constants'
+import {UserSettings} from '../userSettings'
 
 import CenterPanel from './centerPanel'
 Object.defineProperty(Constants, 'versionString', {value: '1.0.0'})
@@ -585,6 +586,67 @@ describe('components/centerPanel', () => {
             await waitFor(() => expect(mockedMutator.insertBlock).toHaveBeenCalled())
             const made = mockedMutator.insertBlock.mock.calls[0][1] as {fields: {properties: Record<string, string>}}
             expect(made.fields.properties[status.id]).toBe('opt-mine')
+        })
+
+        // A board with one folder has one answer to «where does the agent
+        // work», so asking it on every card is asking a question with no second
+        // option. The value is an ordinary one on the card, so it stays visible
+        // and can be changed.
+        const boardOfferingFolders = (...folders: string[]) => {
+            const withFolders = {...board, cardProperties: [...board.cardProperties]}
+            withFolders.cardProperties.push({
+                id: 'folderprop',
+                name: 'Папка',
+                type: 'select',
+                options: folders.map((value, i) => ({id: `folder-${i}`, value, color: 'propColorDefault'})),
+            })
+            withFolders.properties = {...withFolders.properties, xciiiProjectProperty: 'folderprop'}
+            return withFolders
+        }
+
+        const makeCardOn = async (onBoard: Board) => {
+            mockedMutator.performAsUndoGroup.mockImplementation(async (actions) => actions())
+            mockedMutator.insertBlock.mockResolvedValue({id: 'made-here'} as any)
+            const view = TestBlockFactory.createBoardView(onBoard)
+            view.fields.viewType = 'board'
+
+            const {container} = render(() => wrapDNDIntl(() =>
+                <AppStoreProvider store={store}>
+                    <TestRouter>
+                        <CenterPanel
+                            cards={[]}
+                            views={[view]}
+                            board={onBoard}
+                            activeView={view}
+                            readonly={false}
+                            showCard={vi.fn()}
+                            hiddenCardsCount={0}
+                        />
+                    </TestRouter>
+                </AppStoreProvider>,
+            ))
+            userEvent.click(container.querySelector('.ButtonWithMenu')!)
+            await waitFor(() => expect(mockedMutator.insertBlock).toHaveBeenCalled())
+            const made = mockedMutator.insertBlock.mock.calls[0][1] as {fields: {properties: Record<string, string>}}
+            return made.fields.properties
+        }
+
+        test('a new card gets the board\'s folder when the board has only one', async () => {
+            expect(await makeCardOn(boardOfferingFolders('alpha'))).toMatchObject({folderprop: 'folder-0'})
+        })
+
+        // Two folders is a question, and nothing here is going to guess it.
+        test('a new card is left without a folder when the board offers several', async () => {
+            expect(await makeCardOn(boardOfferingFolders('alpha', 'beta'))).not.toHaveProperty('folderprop')
+        })
+
+        test('a new card is left alone when the setting is off', async () => {
+            UserSettings.prefillCardFolder = false
+            try {
+                expect(await makeCardOn(boardOfferingFolders('alpha'))).not.toHaveProperty('folderprop')
+            } finally {
+                UserSettings.prefillCardFolder = true
+            }
         })
 
         test('click on new card to add card template', () => {
