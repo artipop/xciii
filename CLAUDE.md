@@ -1590,11 +1590,11 @@ from them are the person's and are untouched.
 - **Where the model is written down.** `docs/db-erd.md` is what is stored where,
   `docs/model-graph.md` is how one thing finds another — and what is still found
   by name rather than by id — and `docs/store-plan.md` is the work that follows
-  from it: registries out of `config.json` and into tables, one store for ours
-  instead of three files and a JSON. The rule those three are kept to: a store
-  references inside itself, with one declared border — our tables name the board
-  and the card by id, the board holds our ids as opaque values, and nothing goes
-  by name in either direction.
+  from it: our tables into the board's database, registries out of `config.json`
+  and into tables, one base instead of three files and a JSON. The rule those
+  three are kept to: **a reference is a foreign key** — everything referable
+  lives in one database and has an id, the settings file holds only what nothing
+  points at, and nothing at all is found by name.
 - **A rework is not finished until `docs/` says what is now true.** The rule
   below is about a feature somebody uses; this one is about the shape of the
   code. When something structural moves — a layer replaced, a plan carried out,
