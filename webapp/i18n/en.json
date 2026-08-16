@@ -110,7 +110,6 @@
   "Automation.palette": "Add a column",
   "Automation.prompt-as-column": "— as the column: “{prompt}” —",
   "Automation.prompt-as-column-none": "— as the column: nothing extra —",
-  "Automation.property": "Columns are",
   "Automation.reads": "Gets from the card",
   "Automation.ready-routes": "Ready-made routes for these columns:",
   "Automation.remove-from-route": "Take off this route",

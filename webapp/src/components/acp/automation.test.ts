@@ -9,6 +9,7 @@ import {
     Flow,
     SUCCESS,
     automationChanges,
+    automationProperty,
     boardAutomationProperties,
     boardColumns,
     condIsComplete,
@@ -46,6 +47,35 @@ function boardWith(properties: Record<string, unknown>): Board {
 }
 
 describe('components/acp/automation', () => {
+    // Which property the columns are options of is a fact about the board, not
+    // a preference: the specs and the routes were written for one of them. It
+    // used to be "the board's first select" — an accident of the order fields
+    // were added in — with a dropdown in the editor to correct it by hand.
+    test('the property the automation names wins over the board’s first select', () => {
+        const board: Board = {
+            ...createBoard(),
+            cardProperties: [
+                {id: 'prop-stage', name: 'Этап', type: 'select', options: [{id: 'o1', value: 'Черновик', color: ''}]},
+                {id: 'prop-status', name: 'Статус', type: 'select', options: [{id: 'opt-work', value: 'В работе', color: ''}]},
+            ] as Board['cardProperties'],
+        }
+
+        // Nothing written yet: the first select is all there is to go on.
+        expect(automationProperty(board, {columns: [], flows: []})?.name).toBe('Этап')
+
+        // A spec names the property by id, which survives a rename…
+        const byId: Automation = {
+            columns: [{propertyId: 'prop-status', property: 'что-то другое', column: 'В работе', action: 'agent'}],
+            flows: [],
+        }
+        expect(automationProperty(board, byId)?.name).toBe('Статус')
+
+        // …and a route names it by name, for a board whose specs have not
+        // reached the registry yet.
+        const byName: Automation = {columns: [], flows: [{name: 'Фича', property: 'Статус', nodes: [], edges: []}]}
+        expect(automationProperty(board, byName)?.name).toBe('Статус')
+    })
+
     test('a board’s columns are the options of its select property', () => {
         expect(boardColumns(boardWith({}), 'Статус')).toEqual([
             {optionId: 'opt-work', name: 'В работе', color: 'propColorBlue'},

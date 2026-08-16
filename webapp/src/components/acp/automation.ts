@@ -167,6 +167,36 @@ export function columnProperty(board: Board, name?: string): IPropertyTemplate |
     return properties.find((p) => p.name === name) || properties[0]
 }
 
+// automationProperty is the same question answered by the automation itself:
+// which of the board's select properties its columns and routes were written
+// for. A spec carries the id of that property and the name it had, a route
+// carries the name, and either is a better answer than "the first select" —
+// which is a fact about the order somebody added fields in, and would have the
+// editor draw one property's options while the engine runs another's.
+//
+// The editor used to offer a dropdown to fix that by hand. It stood at the end
+// of the row of route tabs showing one bare word, with its caption («Колонки —
+// это») only in the aria-label, so the control that decides what the whole
+// canvas is made of read as another tab. The answer is not a preference — it is
+// a fact about the board, and this is where it is read.
+export function automationProperty(board: Board, automation?: Automation): IPropertyTemplate | undefined {
+    const properties = selectProperties(board)
+    for (const spec of automation?.columns || []) {
+        const found = properties.find((p) => (spec.propertyId && p.id === spec.propertyId) ||
+            (spec.property && p.name === spec.property))
+        if (found) {
+            return found
+        }
+    }
+    for (const flow of automation?.flows || []) {
+        const found = properties.find((p) => flow.property && p.name === flow.property)
+        if (found) {
+            return found
+        }
+    }
+    return properties[0]
+}
+
 export function boardColumns(board: Board, propertyName?: string): BoardColumn[] {
     const property = columnProperty(board, propertyName)
     return (property?.options || []).map((o: IPropertyOption) => ({optionId: o.id, name: o.value, color: o.color}))

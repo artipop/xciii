@@ -61,8 +61,10 @@ type Agent = Named & {mcpServers?: MCPServers}
 type Props = {
     boardId: string
 
-    // The select property the columns are options of, and the others a board
-    // could be organised by instead.
+    // The select property the columns are options of — read off the automation
+    // rather than chosen here (automationProperty), because which property the
+    // board runs on is a fact about the board and not a preference. The others
+    // are what a transition's condition can ask about.
     property?: IPropertyTemplate
     properties: IPropertyTemplate[]
 
@@ -89,7 +91,6 @@ type Props = {
     focusColumnId?: string
 
     onChange: (next: Automation) => void
-    onPropertyChange?: (property: IPropertyTemplate) => void
 
     // A column is the board's, not the automation's: making or renaming one
     // changes the board itself, which is why the editor asks rather than does.
@@ -800,21 +801,6 @@ const AutomationEditor = (props: Props) => {
                 >
                     {intl.formatMessage({id: 'Automation.add-route', defaultMessage: '+ route'})}
                 </button>
-
-                <Show when={props.properties.length > 1}>
-                    <Select
-                        class='AutomationEditor__property'
-                        value={props.property?.name || ''}
-                        options={props.properties.map((p) => ({value: p.name, label: p.name}))}
-                        onChange={(name) => {
-                            const next = props.properties.find((p) => p.name === name)
-                            if (next) {
-                                props.onPropertyChange?.(next)
-                            }
-                        }}
-                        label={intl.formatMessage({id: 'Automation.property', defaultMessage: 'Columns are'})}
-                    />
-                </Show>
             </div>
 
             {/* Making a column is one line above the canvas rather than a

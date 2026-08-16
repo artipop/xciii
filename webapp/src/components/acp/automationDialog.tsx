@@ -1,6 +1,6 @@
 // The Wails-generated Go bindings are PascalCase methods, not constructors.
 /* eslint-disable new-cap */
-import {For, Show, createSignal, onMount} from 'solid-js'
+import {For, Show, createMemo, createSignal, onMount} from 'solid-js'
 
 import {useIntl} from '../../intl'
 
@@ -23,8 +23,8 @@ import {
     Flow,
     FlowTrigger,
     automationChanges,
+    automationProperty,
     boardColumns,
-    columnProperty,
     routeOptionMissing,
     selectProperties,
 } from './automation'
@@ -85,7 +85,12 @@ const AutomationDialog = (props: Props) => {
     // time — and changing it is done on their own screen, «Папки…».
     const [workdirs, setWorkdirs] = createSignal<Array<{git?: boolean, mode?: string}>>([])
     const worktrees = () => !workdirs().some((w) => w.git && w.mode === 'branch')
-    const [property, setProperty] = createSignal<IPropertyTemplate | undefined>(columnProperty(props.board))
+
+    // Which of the board's select properties the columns are options of. Read
+    // off the automation itself rather than picked in the editor: what the
+    // specs and the routes were written for is a fact, and the dropdown that
+    // used to offer it read as a stray word at the end of the tab row.
+    const property = createMemo(() => automationProperty(props.board, draft()))
     const [error, setError] = createSignal('')
     const [dirty, setDirty] = createSignal(false)
 
@@ -298,7 +303,6 @@ const AutomationDialog = (props: Props) => {
                     worktrees={worktrees()}
                     focusColumnId={props.focusColumnId}
                     onChange={change}
-                    onPropertyChange={setProperty}
                     onCreateColumn={createColumn}
                     onRenameColumn={renameColumn}
                     onAddRouteOption={addRouteOption}

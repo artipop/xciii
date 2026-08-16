@@ -398,6 +398,18 @@ describe('components/acp/automationEditor', () => {
             toEqual({figma: {command: 'figma-mcp'}})
     })
 
+    // What the columns are options of is not a choice on this screen. The
+    // dropdown that offered it stood at the end of the row of route tabs
+    // showing one bare word — its caption lived in the aria-label — so the
+    // control that decides what the whole canvas is made of read as another
+    // tab. The answer comes from the automation itself now.
+    test('the canvas offers no property to switch to', () => {
+        renderEditor({properties: [property, {...property, id: 'prop-stage', name: 'Этап'}]})
+
+        expect(screen.queryByRole('button', {name: 'Columns are'})).toBeNull()
+        expect(screen.queryByText('Этап')).toBeNull()
+    })
+
     // A test stage is the one kind that will not start without something — an
     // agent clicking through a browser needs a browser — so the editor says so
     // at the stage, and says what happens instead: the card waits for a person.
