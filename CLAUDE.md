@@ -667,6 +667,38 @@ columns and routes, and a fold under a canvas is a place nobody opens, which is
 how somebody who had just answered "which folder" in the wizard ended up with a
 card that could not name one.
 
+**Relaxed mode is the word for that, and for the moment it is a word and not a
+thing.** Every setup question may be left unanswered — «Пропустить» in the
+wizard, or a chip nobody ticked — and the board still works, on a default this
+side picks. What makes it a mode rather than a pile of accidents is that each
+default is *named where the question is asked*, so leaving one is a choice with
+a stated consequence rather than a screen somebody escaped from. There is
+nothing in the code called `relaxed`: nothing stores it, nothing branches on
+it, and a board is in it by not having said otherwise. Whether it should become
+a thing the code knows — a flag, or a state a board reports — is open; the term
+exists so the defaults can be argued about together instead of one dialog at a
+time.
+
+What it means today, question by question:
+
+- **no folder** — a conversation about a card opens in «черновики доски», and
+  an agent stage of a route stalls with a reason and keeps the card where it
+  is (`errNoWorkdir`, `StartCardTerminal`);
+- **no crew on the board's agent stages** — the card's assignee field offers
+  every agent on the machine rather than none (`BoardAgentNames` empty narrows
+  nothing), and who works the card is whoever it is assigned to; one agent
+  registered answers that by itself, several and nobody assigned is the stall
+  `resolveSessionAgent` reports;
+- **no deploy target, no browser** — the stage does not start and the card
+  waits for a person, which is the "not a broken board" rule above;
+- **no action on a column at all** — a person works the card there, and that is
+  what most columns on most boards are.
+
+The rule a new default has to meet is the one those share: it must be sayable
+in one sentence on the screen that leaves the question open, and it must be the
+answer that keeps a person able to work — offering too many agents rather than
+none, waiting rather than refusing, a folder of drafts rather than an error.
+
 The rest of the ⋯ menu is export — the archive in the settings dialog is every
 board there is, and one board's own is the board's own business, which is also
 the whole of why import is not offered per board: what an archive brings is
