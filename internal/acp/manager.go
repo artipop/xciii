@@ -193,6 +193,18 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 		}
 	}
 
+	// Before anything reads a registry: whichever side holds it. A database
+	// that already has entries is the truth; an empty one beside a populated
+	// settings file is the install that has just upgraded, and its file is
+	// carried in (registrymove.go). Failing here is not a reason to refuse to
+	// start — the registries are then whatever the file says, which is what
+	// every previous version did.
+	m.cfgMu.Lock()
+	if err := m.loadRegistriesLocked(); err != nil {
+		m.log.Error("acp: could not settle the registries", "err", err)
+	}
+	m.cfgMu.Unlock()
+
 	// Before anything can edit either side: whatever automation the file still
 	// carries goes onto the boards that own it (boardseed.go).
 	m.moveAutomationToBoards()

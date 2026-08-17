@@ -107,7 +107,13 @@ func (p WorkdirEntry) Attached() bool { return p.Global || p.BoardID != "" }
 // is how several agents (e.g. two Codex accounts) coexist on one machine: give
 // each its own CODEX_HOME/OPENAI_API_KEY (or CLAUDE_CONFIG_DIR/ANTHROPIC_API_KEY).
 type AgentEntry struct {
-	Name    string            `json:"name"`              // registry key; matches the card's assignee
+	// ID is what a column's crew and a card's session record point at. The name
+	// used to be the key, and renaming an agent therefore broke the crew of
+	// every route on every board and unassigned every card — silently, because
+	// nothing can check a name against a name. Filled in at startup for an
+	// entry written before this field.
+	ID      string            `json:"id,omitempty"`
+	Name    string            `json:"name"`              // shown on screen; the account's username
 	Kind    string            `json:"kind"`              // "claude" | "codex" | "antigravity" | "copilot" | "junie" | "acp"
 	BinPath string            `json:"binPath,omitempty"` // overrides adapter discovery
 	Model   string            `json:"model,omitempty"`   // the model the adapter is asked for
@@ -365,7 +371,10 @@ func (n NetworkSettings) redactProxySecret(text string) string {
 // ProxyEntry is one named network configuration in the registry, referenced by
 // agents through AgentEntry.ProxyName.
 type ProxyEntry struct {
-	Name string `json:"name"` // registry key; matches AgentEntry.ProxyName
+	// ID is what an agent's proxy_id points at. Filled in at startup for an
+	// entry written before this field.
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name"` // shown on screen; matches AgentEntry.ProxyName
 	NetworkSettings
 }
 
@@ -377,7 +386,10 @@ type ProxyEntry struct {
 // The Dokku half is dokku.Target verbatim, because that is exactly what the MCP
 // subprocess is handed at session start.
 type DeployEntry struct {
-	Name string `json:"name"` // registry key; matches the card "Deploy target" option
+	// ID is what a route's deploy stage points at. Filled in at startup for an
+	// entry written before this field.
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name"` // shown on screen; matches the card "Deploy target" option
 
 	// An entry is the host and the domain, nothing else: what a preview needs
 	// beyond that — environment, TLS, how long a build may take — is a property

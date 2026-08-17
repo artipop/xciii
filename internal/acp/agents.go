@@ -163,6 +163,10 @@ func (m *Manager) AddAgent(a AgentEntry) (AgentEntry, error) {
 	if err := m.persistConfigLocked(); err != nil {
 		return AgentEntry{}, err
 	}
+	// What is handed back is the entry as it was stored, not the copy that went
+	// in: saving is what gives it its id, and a caller holding an entry without
+	// one holds something it cannot point anything at.
+	a = m.cfg.Agents[len(m.cfg.Agents)-1]
 
 	// The account is made here, at the one moment there is something new: a
 	// registered agent is a name a card can be assigned to, and it can be
@@ -236,6 +240,13 @@ func (m *Manager) UpdateAgent(a AgentEntry) (AgentEntry, error) {
 			if _, err := resolveNetworkIn(m.cfg.Proxies, a); err != nil {
 				return AgentEntry{}, err
 			}
+			// The identity is the entry's, not the caller's. A caller that read
+			// the agent, did something else that saved, and then handed the copy
+			// back would otherwise replace a registered agent with one that has
+			// no id — and the next save would insert it a second time under the
+			// same name. Which is contradiction 2 in miniature: while the name
+			// was the key, losing the id cost nothing and nobody noticed.
+			a.ID = e.ID
 			m.cfg.Agents[i] = a
 			return a, m.persistConfigLocked()
 		}

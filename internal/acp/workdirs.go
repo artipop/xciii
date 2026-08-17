@@ -282,6 +282,13 @@ func (m *Manager) RemoveWorkdir(name string) error {
 }
 
 func (m *Manager) persistConfigLocked() error {
+	// The registries live in tables now (registrymove.go), so they are saved
+	// whether or not there is a settings file to write — which is also what
+	// gives a test a registry that survives a restart without one.
+	if err := m.persistRegistriesLocked(); err != nil {
+		m.log.Error("acp: failed to persist the registries", "err", err)
+		return fmt.Errorf("не удалось сохранить реестры: %w", err)
+	}
 	if m.cfgPath == "" {
 		return nil // tests / ephemeral configs
 	}

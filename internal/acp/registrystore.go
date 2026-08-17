@@ -121,43 +121,41 @@ func (s *Store) DeleteWorkspace(id string) error {
 	return err
 }
 
-// SaveProxy writes one named network configuration.
-func (s *Store) SaveProxy(e ProxyEntry, id string) (string, error) {
-	if id == "" {
-		id = newID()
+// SaveProxy writes one named network configuration, giving it an id if it
+// arrived without one.
+func (s *Store) SaveProxy(e ProxyEntry) (ProxyEntry, error) {
+	if e.ID == "" {
+		e.ID = newID()
 	}
 	_, err := s.exec(`INSERT INTO {proxy} (id, name, url, no_proxy, ca_cert, username, password, created_at)
 		VALUES (?,?,?,?,?,?,?,?)
 		ON CONFLICT(id) DO UPDATE SET
 			name=excluded.name, url=excluded.url, no_proxy=excluded.no_proxy,
 			ca_cert=excluded.ca_cert, username=excluded.username, password=excluded.password`,
-		id, e.Name, nullable(e.Proxy), nullable(e.NoProxy), nullable(e.CACert),
+		e.ID, e.Name, nullable(e.Proxy), nullable(e.NoProxy), nullable(e.CACert),
 		nullable(e.Username), nullable(e.Password), time.Now().UnixMilli())
-	return id, err
+	return e, err
 }
 
-// Proxies is the registry, with each entry's id beside it.
-func (s *Store) Proxies() ([]ProxyEntry, map[string]string, error) {
+// Proxies is the registry.
+func (s *Store) Proxies() ([]ProxyEntry, error) {
 	rows, err := s.query(`SELECT id, name, COALESCE(url,''), COALESCE(no_proxy,''),
 		COALESCE(ca_cert,''), COALESCE(username,''), COALESCE(password,'')
 		FROM {proxy} ORDER BY created_at, id`)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	defer rows.Close()
 	var out []ProxyEntry
-	ids := map[string]string{}
 	for rows.Next() {
 		var e ProxyEntry
-		var id string
-		if err := rows.Scan(&id, &e.Name, &e.Proxy, &e.NoProxy, &e.CACert,
+		if err := rows.Scan(&e.ID, &e.Name, &e.Proxy, &e.NoProxy, &e.CACert,
 			&e.Username, &e.Password); err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		ids[e.Name] = id
 		out = append(out, e)
 	}
-	return out, ids, rows.Err()
+	return out, rows.Err()
 }
 
 // DeleteProxy removes one. An agent pointing at it is set to no proxy by the
@@ -186,10 +184,12 @@ type agentSettings struct {
 	ProxyName string `json:"proxyName,omitempty"`
 }
 
-// SaveAgent writes one registered agent. proxyID may be empty.
-func (s *Store) SaveAgent(e AgentEntry, id, proxyID, userID string) (string, error) {
-	if id == "" {
-		id = newID()
+// SaveAgent writes one registered agent. proxyID and userID may be empty: an
+// agent need not go through a proxy, and it has no board account until one is
+// made for it.
+func (s *Store) SaveAgent(e AgentEntry, proxyID, userID string) (AgentEntry, error) {
+	if e.ID == "" {
+		e.ID = newID()
 	}
 	settings, err := json.Marshal(agentSettings{
 		Env: e.Env, Args: e.Args, CLIArgs: e.CLIArgs, Options: e.Options,
@@ -198,7 +198,7 @@ func (s *Store) SaveAgent(e AgentEntry, id, proxyID, userID string) (string, err
 		ProxyName: e.ProxyName,
 	})
 	if err != nil {
-		return "", err
+		return e, err
 	}
 	_, err = s.exec(`INSERT INTO {agent}
 		(id, name, kind, user_id, proxy_id, bin_path, model, prompt, settings, created_at)
@@ -207,42 +207,40 @@ func (s *Store) SaveAgent(e AgentEntry, id, proxyID, userID string) (string, err
 			name=excluded.name, kind=excluded.kind, user_id=excluded.user_id,
 			proxy_id=excluded.proxy_id, bin_path=excluded.bin_path,
 			model=excluded.model, prompt=excluded.prompt, settings=excluded.settings`,
-		id, e.Name, e.Kind, nullable(userID), nullable(proxyID),
+		e.ID, e.Name, e.Kind, nullable(userID), nullable(proxyID),
 		nullable(e.BinPath), nullable(e.Model), nullable(e.Prompt),
 		string(settings), time.Now().UnixMilli())
-	return id, err
+	return e, err
 }
 
-// Agents is the registry, with each entry's id beside it.
-func (s *Store) Agents() ([]AgentEntry, map[string]string, error) {
+// Agents is the registry.
+func (s *Store) Agents() ([]AgentEntry, error) {
 	rows, err := s.query(`SELECT id, name, kind, COALESCE(bin_path,''), COALESCE(model,''),
 		COALESCE(prompt,''), COALESCE(settings,'')
 		FROM {agent} ORDER BY created_at, id`)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	defer rows.Close()
 	var out []AgentEntry
-	ids := map[string]string{}
 	for rows.Next() {
 		var e AgentEntry
-		var id, settings string
-		if err := rows.Scan(&id, &e.Name, &e.Kind, &e.BinPath, &e.Model, &e.Prompt, &settings); err != nil {
-			return nil, nil, err
+		var settings string
+		if err := rows.Scan(&e.ID, &e.Name, &e.Kind, &e.BinPath, &e.Model, &e.Prompt, &settings); err != nil {
+			return nil, err
 		}
 		if settings != "" {
 			var st agentSettings
 			if err := json.Unmarshal([]byte(settings), &st); err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			e.Env, e.Args, e.CLIArgs, e.Options = st.Env, st.Args, st.CLIArgs, st.Options
 			e.AutoAllowTools, e.Command, e.TerminalCommand = st.AutoAllowTools, st.Command, st.TerminalCommand
 			e.MCPServers, e.ProxyName = st.MCPServers, st.ProxyName
 		}
-		ids[e.Name] = id
 		out = append(out, e)
 	}
-	return out, ids, rows.Err()
+	return out, rows.Err()
 }
 
 // DeleteAgent removes one. A conversation it held keeps its own record: the
@@ -260,9 +258,9 @@ func (s *Store) SetAgentAccount(agentID, userID string) error {
 }
 
 // SaveDeployTarget writes one named Dokku destination.
-func (s *Store) SaveDeployTarget(e DeployEntry, id string) (string, error) {
-	if id == "" {
-		id = newID()
+func (s *Store) SaveDeployTarget(e DeployEntry) (DeployEntry, error) {
+	if e.ID == "" {
+		e.ID = newID()
 	}
 	_, err := s.exec(`INSERT INTO {deploy_target}
 		(id, name, ssh_host, ssh_user, ssh_port, ssh_key, base_app, base_domain, created_at)
@@ -271,34 +269,31 @@ func (s *Store) SaveDeployTarget(e DeployEntry, id string) (string, error) {
 			name=excluded.name, ssh_host=excluded.ssh_host, ssh_user=excluded.ssh_user,
 			ssh_port=excluded.ssh_port, ssh_key=excluded.ssh_key,
 			base_app=excluded.base_app, base_domain=excluded.base_domain`,
-		id, e.Name, e.SSHHost, nullable(e.SSHUser), nullableInt(e.SSHPort),
+		e.ID, e.Name, e.SSHHost, nullable(e.SSHUser), nullableInt(e.SSHPort),
 		nullable(e.SSHKey), nullable(e.BaseApp), nullable(e.BaseDomain),
 		time.Now().UnixMilli())
-	return id, err
+	return e, err
 }
 
-// DeployTargets is the registry, with each entry's id beside it.
-func (s *Store) DeployTargets() ([]DeployEntry, map[string]string, error) {
+// DeployTargets is the registry.
+func (s *Store) DeployTargets() ([]DeployEntry, error) {
 	rows, err := s.query(`SELECT id, name, ssh_host, COALESCE(ssh_user,''), COALESCE(ssh_port,0),
 		COALESCE(ssh_key,''), COALESCE(base_app,''), COALESCE(base_domain,'')
 		FROM {deploy_target} ORDER BY created_at, id`)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	defer rows.Close()
 	var out []DeployEntry
-	ids := map[string]string{}
 	for rows.Next() {
 		var e DeployEntry
-		var id string
-		if err := rows.Scan(&id, &e.Name, &e.SSHHost, &e.SSHUser, &e.SSHPort,
+		if err := rows.Scan(&e.ID, &e.Name, &e.SSHHost, &e.SSHUser, &e.SSHPort,
 			&e.SSHKey, &e.BaseApp, &e.BaseDomain); err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		ids[e.Name] = id
 		out = append(out, e)
 	}
-	return out, ids, rows.Err()
+	return out, rows.Err()
 }
 
 // DeleteDeployTarget removes one.
