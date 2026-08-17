@@ -704,10 +704,6 @@ type Config struct {
 	TestPassColumn string `json:"testPassColumn"`
 	TestFailColumn string `json:"testFailColumn"`
 
-	// ProjectWhitelist lists directory roots a card's project_path must be
-	// under. Empty means every project_path is rejected (explicit opt-in).
-	ProjectWhitelist []string `json:"projectWhitelist"`
-
 	// Workdirs is the registry of named local folders. A card is mapped to
 	// a folder when one of its select/multiSelect option names (e.g. a tag)
 	// matches a registry entry name. Registered paths are implicitly allowed.
@@ -852,7 +848,6 @@ func DefaultConfig(dataDir string) Config {
 		TestColumn:               "QA",
 		TestPassColumn:           "Проверено",
 		TestFailColumn:           "Не прошло",
-		ProjectWhitelist:         []string{},
 		Workdirs:                 []WorkdirEntry{},
 		Agents:                   []AgentEntry{},
 		Proxies:                  []ProxyEntry{},
@@ -1129,34 +1124,4 @@ func SaveConfig(path string, cfg Config) error {
 	// config keeps whatever it had — tighten it, the file can hold proxy
 	// credentials and API keys (agent env).
 	return os.Chmod(path, 0o600)
-}
-
-// ValidateWorkdirPath checks a card's repo_path against the whitelist, the folder
-// registry and the filesystem. It returns the cleaned absolute path.
-func (c Config) ValidateWorkdirPath(workdirPath string) (string, error) {
-	if strings.TrimSpace(workdirPath) == "" {
-		return "", fmt.Errorf("repo_path is empty")
-	}
-	if !filepath.IsAbs(workdirPath) {
-		return "", fmt.Errorf("repo_path must be absolute: %s", workdirPath)
-	}
-	clean := filepath.Clean(workdirPath)
-	info, err := os.Stat(clean)
-	if err != nil {
-		return "", fmt.Errorf("repo_path does not exist: %s", clean)
-	}
-	if !info.IsDir() {
-		return "", fmt.Errorf("repo_path is not a directory: %s", clean)
-	}
-	roots := append([]string(nil), c.ProjectWhitelist...)
-	for _, r := range c.Workdirs {
-		roots = append(roots, r.Path)
-	}
-	for _, root := range roots {
-		rootClean := filepath.Clean(root)
-		if clean == rootClean || strings.HasPrefix(clean, rootClean+string(filepath.Separator)) {
-			return clean, nil
-		}
-	}
-	return "", fmt.Errorf("repo_path %s is not under any whitelisted root (repoWhitelist / projects in acp config)", clean)
 }

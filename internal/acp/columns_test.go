@@ -178,20 +178,20 @@ func TestCrewTakesTheFreeAgent(t *testing.T) {
 // The column's limit is what a WIP limit is on a board: the third card waits in
 // place and says so, and starts by itself when somebody finishes.
 func TestColumnLimitQueuesTheCard(t *testing.T) {
-	m, writer, events, project := testManager(t, fakeClaudeHang, func(c *Config) {
+	m, writer, events, _ := testManager(t, fakeClaudeHang, func(c *Config) {
 		c.Columns = []ColumnSpec{{
 			Property: c.TriggerProperty, Column: c.TriggerColumn,
 			Action: FlowActionAgent, MaxRunning: 1,
 		}}
 	})
 
-	events.ch <- moveEvent("cardOne", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardOne", "opt-backlog", "opt-agent")
 	waitFor(t, 10*time.Second, "the first card is working", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardOne")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusRunning
 	})
 
-	events.ch <- moveEvent("cardTwo", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardTwo", "opt-backlog", "opt-agent")
 
 	// Waiting is a state the card shows live (the strip says queued), not a
 	// comment: a comment outlives the wait and reads as noise afterwards.
@@ -419,11 +419,11 @@ func TestBoardFlowOverviewCountsWhereTheCardsAre(t *testing.T) {
 // same card up would do the work twice and — on a route — move the card on the
 // moment it decided it was done.
 func TestCardAssignedToAPersonIsLeftAlone(t *testing.T) {
-	m, writer, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, writer, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{Name: "claude-1", Kind: "claude"}}
 	})
 
-	ev := moveEvent("cardMine", project, "opt-backlog", "opt-agent")
+	ev := moveEvent("cardMine", "opt-backlog", "opt-agent")
 	ev.PersonNames = []string{"artem"}
 	events.ch <- ev
 
@@ -445,7 +445,7 @@ func TestCardAssignedToAPersonIsLeftAlone(t *testing.T) {
 	}
 
 	// An assignee that is an agent means the opposite: that agent works.
-	agentEv := moveEvent("cardTheirs", project, "opt-backlog", "opt-agent")
+	agentEv := moveEvent("cardTheirs", "opt-backlog", "opt-agent")
 	agentEv.PersonNames = []string{"claude-1"}
 	events.ch <- agentEv
 	waitFor(t, 10*time.Second, "the assigned agent takes its card", func() bool {
@@ -459,7 +459,7 @@ func TestCardAssignedToAPersonIsLeftAlone(t *testing.T) {
 // into «Кто занимается». A card that already names its agent is left alone —
 // nothing is written twice.
 func TestCrewedColumnWritesItsWorkerIntoTheAssignee(t *testing.T) {
-	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, _, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}}
 		c.Columns = []ColumnSpec{{
 			Property: c.TriggerProperty, Column: c.TriggerColumn,
@@ -469,14 +469,14 @@ func TestCrewedColumnWritesItsWorkerIntoTheAssignee(t *testing.T) {
 	users := &fakeBoardUsers{}
 	m.SetBoardUsers(users)
 
-	events.ch <- moveEvent("cardCrew", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardCrew", "opt-backlog", "opt-agent")
 	waitFor(t, 10*time.Second, "the crew member lands in the assignee", func() bool {
 		return users.assignedTo("cardCrew") == "клаус"
 	})
 
 	// Assigned already — resolution takes the assignee, and the field is not
 	// rewritten to say what it says.
-	ev := moveEvent("cardSaid", project, "opt-backlog", "opt-agent")
+	ev := moveEvent("cardSaid", "opt-backlog", "opt-agent")
 	ev.PersonNames = []string{"клаус"}
 	events.ch <- ev
 	waitFor(t, 10*time.Second, "the assigned card starts", func() bool {
@@ -492,7 +492,7 @@ func TestCrewedColumnWritesItsWorkerIntoTheAssignee(t *testing.T) {
 // «Кто занимается» answers "who is on this card now" wherever it stands, and a
 // card being tested by an agent the field did not name is the field lying.
 func TestCrewedTestColumnWritesItsTesterIntoTheAssignee(t *testing.T) {
-	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, _, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{
 			Name: "тестер", Kind: "claude",
 			MCPServers: MCPServerSet{"playwright": {Command: "npx"}},
@@ -506,7 +506,7 @@ func TestCrewedTestColumnWritesItsTesterIntoTheAssignee(t *testing.T) {
 	m.SetBoardUsers(users)
 
 	// A test run needs somewhere to click: the card carries its preview.
-	ev := moveEvent("cardQA", project, "opt-backlog", "opt-agent")
+	ev := moveEvent("cardQA", "opt-backlog", "opt-agent")
 	ev.Props["preview_url"] = "https://feat-x.example.com"
 	events.ch <- ev
 
@@ -519,11 +519,11 @@ func TestCrewedTestColumnWritesItsTesterIntoTheAssignee(t *testing.T) {
 // registered agent — that is the card's or the machine's answer, not the
 // stage's, and the machine has nothing of its own to write into the field.
 func TestUncrewedColumnWritesNoAssignee(t *testing.T) {
-	m, _, events, project := testManager(t, fakeClaudeHappy, nil)
+	m, _, events, _ := testManager(t, fakeClaudeHappy, nil)
 	users := &fakeBoardUsers{}
 	m.SetBoardUsers(users)
 
-	events.ch <- moveEvent("cardFree", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardFree", "opt-backlog", "opt-agent")
 	waitFor(t, 10*time.Second, "the session starts", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardFree")
 		return err == nil && len(sessions) == 1

@@ -159,7 +159,7 @@ func TestTestSessionNeedsABrowserServer(t *testing.T) {
 	m.cfg.Deploys = []DeployEntry{deployEntry("prod")}
 	m.cfg.Workdirs = []WorkdirEntry{{Name: "webapp", Path: project}}
 
-	ev := CardMoved{CardID: "cardT", Title: "Проверить", Props: map[string]string{"repo_path": project, "branch": "feat/x"}}
+	ev := CardMoved{CardID: "cardT", Title: "Проверить", Props: map[string]string{"branch": "feat/x"}, OptionNames: []string{"webapp"}}
 	_, err := m.startSession(ev, startOptions{test: true})
 	if err == nil {
 		t.Fatal("a test session without a browser server should not start")
@@ -178,9 +178,12 @@ func TestTestSessionTakesTheBrowserFromTheColumn(t *testing.T) {
 		c.Agents = []AgentEntry{{Name: "bare", Kind: "claude"}}
 		c.Deploys = []DeployEntry{deployEntry("prod")}
 	})
-	m.cfg.Workdirs = []WorkdirEntry{{Name: "webapp", Path: project}}
+	// Attached to the board, because that is what makes a folder offered there
+	// — and the card resolving its folder now goes through what the board
+	// offers rather than through a path the card carried.
+	m.cfg.Workdirs = []WorkdirEntry{{Name: "webapp", Path: project, BoardID: "board1"}}
 	ev := CardMoved{CardID: "cardQA", BoardID: "board1", Title: "Проверить",
-		Props: map[string]string{"repo_path": project, "branch": "feat/x"}}
+		Props: map[string]string{"branch": "feat/x"}, OptionNames: []string{"webapp"}}
 	column := ColumnSpec{Property: "Статус", Column: "QA", Action: FlowActionTest,
 		MCPServers: MCPServerSet{"playwright": {Command: "npx"}}}
 

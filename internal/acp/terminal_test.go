@@ -541,9 +541,9 @@ func TestCardTerminalStillRefusesABrokenProject(t *testing.T) {
 		cfg.Agents = []AgentEntry{{Name: "shellish", Kind: AgentKindClaude, TerminalCommand: []string{"sh"}}}
 	})
 	m.SetBoardReader(&fakeReader{ev: CardMoved{
-		BoardID: "board1",
-		Title:   "Сломанный проект",
-		Props:   map[string]string{"repo_path": "/no/such/dir"},
+		BoardID:     "board1",
+		Title:       "Сломанный проект",
+		OptionNames: []string{"нет такой папки"},
 	}})
 
 	if _, err := m.StartCardTerminal("card-broken", "", ""); err == nil {

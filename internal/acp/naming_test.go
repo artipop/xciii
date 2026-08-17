@@ -28,11 +28,11 @@ func TestBranchNameFromAnswer(t *testing.T) {
 // final message slugged — and the owner's tail stays, because two cards must
 // not collide however alike their answers.
 func TestAgentNamesTheBranchWhenAsked(t *testing.T) {
-	m, _, events, project := testManager(t, fakeClaudeHappy, func(c *Config) {
+	m, _, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.AgentNamedBranches = true
 	})
 
-	events.ch <- moveEvent("cardN", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardN", "opt-backlog", "opt-agent")
 	waitFor(t, 20*time.Second, "agent-named session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardN")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusDone

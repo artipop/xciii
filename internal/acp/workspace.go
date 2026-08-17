@@ -103,16 +103,13 @@ func (m *Manager) workspaceID(path string) string {
 	}
 	m.cfgMu.RUnlock()
 	if !known {
-		// A folder the app is working in that nobody registered. There is one
-		// way to get here and it is on its way out: a card naming its own path
-		// through `repo_path`, checked against the whitelist rather than
-		// against the registry (contradiction 6, removed at step 3).
-		//
-		// It is registered rather than refused, because the alternative is
-		// worse than untidy: a checkout has to name a workspace, so a folder
-		// with no entry could hold nothing — and in branch mode holding is the
-		// whole mechanism, so the second card would walk straight into the
-		// first one's working copy.
+		// A folder the app is working in that nobody registered. This should
+		// now be unreachable: the one way in was a card naming its own path
+		// through `repo_path`, and that went with contradiction 6. It is kept,
+		// and it says so out loud, because the failure it prevents is silent —
+		// a checkout has to name a workspace, so a folder with no entry could
+		// record nothing, and in branch mode the record *is* the lock, so the
+		// second card would walk into the first one's working copy.
 		return m.registerWorkedFolder(path)
 	}
 	if found != "" {
@@ -132,9 +129,13 @@ func (m *Manager) workspaceID(path string) string {
 //
 // Unattached on purpose: «не привязана ни к какой доске» is a state the product
 // already has, and it is the honest one here — nobody chose this folder on a
-// board, a card named a path. So it is offered nowhere and picked by nothing;
-// it exists so the work in it can be recorded, and so a person can see in
-// «Папки» what their cards have actually been opening.
+// board. So it is offered nowhere and picked by nothing; it exists so the work
+// in it can be recorded, and so a person can see in «Папки» what has actually
+// been opened.
+//
+// Reaching it at all is a bug somewhere else, hence the warning: since a card
+// can only name a folder the registry offers, there is no longer a path by
+// which an unregistered one should arrive.
 func (m *Manager) registerWorkedFolder(path string) string {
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
@@ -150,7 +151,8 @@ func (m *Manager) registerWorkedFolder(path string) string {
 		m.log.Warn("acp: cannot register the folder a card named", "workdir", path, "err", err)
 		return ""
 	}
-	m.log.Info("acp: registered the folder a card named by path", "workdir", path, "name", entry.Name)
+	m.log.Warn("acp: worked in a folder nobody registered, and registered it",
+		"workdir", path, "name", entry.Name)
 	return entry.ID
 }
 

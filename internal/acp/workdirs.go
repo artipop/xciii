@@ -23,6 +23,20 @@ func (m *Manager) Workdirs() []WorkdirEntry {
 	return append([]WorkdirEntry(nil), m.cfg.Workdirs...)
 }
 
+// workdirPaths is every registered folder's directory, for the jobs that sweep
+// the disk rather than answer a question about a card.
+func (m *Manager) workdirPaths() []string {
+	m.cfgMu.RLock()
+	defer m.cfgMu.RUnlock()
+	out := make([]string, 0, len(m.cfg.Workdirs))
+	for _, e := range m.cfg.Workdirs {
+		if e.Path != "" {
+			out = append(out, e.Path)
+		}
+	}
+	return out
+}
+
 // WorkdirsForBoard is the registry as one board sees it: its own folders and
 // the ones marked global. An empty boardID asks for all of them, which is what
 // a place with no board behind it (the planning dialog) gets.
@@ -299,12 +313,6 @@ func (m *Manager) persistConfigLocked() error {
 	return nil
 }
 
-// resolveWorkdir maps a trigger event to a folder path. Priority:
-//  1. explicit repo_path card property (validated against whitelist+registry);
-//  2. a select/multiSelect option name (tag) matching a registry entry;
-//  3. the name of the column the card was dragged out of — supports boards
-//     whose trigger property has one lane per folder.
-//
 // resolveNamedWorkdir looks a registry entry up by name. Opening a console on a
 // card that carries no folder tag would otherwise be a dead end: the card
 // is not going to grow one just because someone wants to talk about it.
@@ -321,23 +329,6 @@ func (m *Manager) resolveNamedWorkdir(name string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("папка %q не найдена в реестре (%s)", name, workdirNames(workdirs))
-}
-
-// cardWorkdirPathProps are the card fields that name a path outright, newest
-// first. `repo_path` is what the field was called before folders were called
-// folders, and a card that already carries one keeps working: a board is
-// somebody's data, and renaming a field under them would quietly stop their
-// cards from finding anywhere to run.
-var cardWorkdirPathProps = []string{"project_path", "repo_path"}
-
-// firstProp returns the first of the named card fields that has a value.
-func firstProp(props map[string]string, names []string) string {
-	for _, name := range names {
-		if v := strings.TrimSpace(props[name]); v != "" {
-			return v
-		}
-	}
-	return ""
 }
 
 // errNoWorkdir marks the refusals that mean "the card names no folder" — as
@@ -369,14 +360,17 @@ func (m *Manager) CardFolder(cardID string) (string, bool) {
 	return path, true
 }
 
+// resolveWorkdir maps a trigger event to a folder path.
+//
+// There used to be a step in front of this one: a card could name a directory
+// outright, in a `project_path` or `repo_path` field, and that path won over
+// the folder field. It was the second way to say the same thing (contradiction
+// 6 of docs/model-graph.md) and the worse one — nothing creates such a field,
+// it means nothing on another machine, and being a path rather than a reference
+// it tied to no registry entry, so the only thing standing between a card and
+// any directory on the disk was a whitelist in the settings file. Both are
+// gone; a card says where it works by naming a folder, and only that.
 func (m *Manager) resolveWorkdir(ev CardMoved) (string, error) {
-	if explicit := firstProp(ev.Props, cardWorkdirPathProps); explicit != "" {
-		m.cfgMu.RLock()
-		cfg := m.cfg
-		m.cfgMu.RUnlock()
-		return cfg.ValidateWorkdirPath(explicit)
-	}
-
 	// Only what this board offers: a folder another board added must not take an
 	// agent into a checkout this board knows nothing about.
 	workdirs := m.WorkdirsForBoard(ev.BoardID)

@@ -328,25 +328,25 @@ func TestMCPServersForSessionNew(t *testing.T) {
 	}
 }
 
-func deployMoveEvent(cardID, project, column string) CardMoved {
+func deployMoveEvent(cardID, column string) CardMoved {
 	return CardMoved{
-		EventID:    "ev-" + cardID + column,
-		CardID:     cardID,
-		BoardID:    "board1",
-		Title:      "Deploy me",
-		Props:      map[string]string{"repo_path": project},
-		FromColumn: Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: "opt-backlog", Name: "Backlog"},
-		ToColumn:   Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: "opt-deploy", Name: column},
-		At:         time.Now(),
+		EventID:     "ev-" + cardID + column,
+		CardID:      cardID,
+		BoardID:     "board1",
+		Title:       "Deploy me",
+		OptionNames: []string{testWorkdirName},
+		FromColumn:  Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: "opt-backlog", Name: "Backlog"},
+		ToColumn:    Column{PropertyID: "p1", PropertyName: DefaultTriggerProperty, OptionID: "opt-deploy", Name: column},
+		At:          time.Now(),
 	}
 }
 
 func TestDeployColumnStartsASessionWithTheDokkuTools(t *testing.T) {
-	m, writer, events, project := testManager(t, fakeClaudeRecordingArgs, func(c *Config) {
+	m, writer, events, _ := testManager(t, fakeClaudeRecordingArgs, func(c *Config) {
 		c.Deploys = []DeployEntry{deployEntry("prod")}
 	})
 
-	events.ch <- deployMoveEvent("cardD", project, DefaultConfig("").DeployColumn)
+	events.ch <- deployMoveEvent("cardD", DefaultConfig("").DeployColumn)
 
 	waitFor(t, 15*time.Second, "deploy session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardD")
@@ -387,12 +387,12 @@ func TestDeployColumnStartsASessionWithTheDokkuTools(t *testing.T) {
 }
 
 func TestDeployColumnIgnoredWhenDisabled(t *testing.T) {
-	m, writer, events, project := testManager(t, fakeClaudeRecordingArgs, func(c *Config) {
+	m, writer, events, _ := testManager(t, fakeClaudeRecordingArgs, func(c *Config) {
 		c.DeployColumn = ""
 		c.Deploys = []DeployEntry{deployEntry("prod")}
 	})
 
-	events.ch <- deployMoveEvent("cardOff", project, DefaultConfig("").DeployColumn)
+	events.ch <- deployMoveEvent("cardOff", DefaultConfig("").DeployColumn)
 
 	// Nothing should happen at all — give the trigger loop a moment to prove it.
 	time.Sleep(500 * time.Millisecond)
@@ -406,9 +406,9 @@ func TestDeployColumnIgnoredWhenDisabled(t *testing.T) {
 }
 
 func TestDeployWithoutTargetsStallsTheCard(t *testing.T) {
-	m, writer, events, project := testManager(t, fakeClaudeRecordingArgs, nil)
+	m, writer, events, _ := testManager(t, fakeClaudeRecordingArgs, nil)
 
-	events.ch <- deployMoveEvent("cardNoTarget", project, DefaultConfig("").DeployColumn)
+	events.ch <- deployMoveEvent("cardNoTarget", DefaultConfig("").DeployColumn)
 
 	// A deploy column with nothing to deploy to is the card's current state,
 	// shown where the card shows its state — not a comment that outlives it.
@@ -445,8 +445,9 @@ func TestStartDeployForCardPublishesTheGivenBranch(t *testing.T) {
 	if s.Deploy == nil || s.Deploy.Name != "prod" {
 		t.Fatalf("deploy target: %+v", s.Deploy)
 	}
-	// The app is named after the folder, and the host doubles as the domain.
-	if want := dokku.AppLabel(filepath.Base(project)); s.Deploy.BaseApp != want {
+	// The app is named after the folder — the registry entry's name, not the
+	// directory's, since that is what a person chose.
+	if want := dokku.AppLabel(testWorkdirName); s.Deploy.BaseApp != want {
 		t.Errorf("base app %q, want %q", s.Deploy.BaseApp, want)
 	}
 	if s.WorkdirPath != project {
@@ -478,12 +479,12 @@ func TestStartDeployForCardPublishesTheGivenBranch(t *testing.T) {
 func TestDeployRunsAlongsideTheCardsOwnSession(t *testing.T) {
 	// Worktrees off is the strict case: the folder-busy rule would otherwise
 	// refuse, even though a deploy only pushes an existing branch.
-	m, _, events, project := testManager(t, fakeClaudeHang, func(c *Config) {
+	m, _, events, _ := testManager(t, fakeClaudeHang, func(c *Config) {
 		c.WorktreeMode = "never"
 		c.Deploys = []DeployEntry{{Name: "prod", Target: dokku.Target{SSHHost: "dokku.example.com"}}}
 	})
 
-	events.ch <- moveEvent("cardE", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("cardE", "opt-backlog", "opt-agent")
 	waitFor(t, 10*time.Second, "agent session running", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardE")
 		return err == nil && len(sessions) == 1 && sessions[0].Status == StatusRunning

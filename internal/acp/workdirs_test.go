@@ -236,38 +236,23 @@ func TestResolveRepoByTag(t *testing.T) {
 	}
 }
 
-func TestResolveRepoExplicitOverride(t *testing.T) {
-	project := initTestWorkdir(t)
-	other := initTestWorkdir(t)
-	m := registryManager(t, "", WorkdirEntry{Name: "tagged", Path: other})
-
-	// Explicit repo_path wins over tags, and registered paths are allowed
-	// without being whitelisted.
-	ev := CardMoved{
-		Props:       map[string]string{"repo_path": project},
-		OptionNames: []string{"tagged"},
-	}
-	if _, err := m.resolveWorkdir(ev); err == nil {
-		t.Fatal("unregistered repo_path should be rejected (not whitelisted)")
-	}
-
-	ev.Props["repo_path"] = other
-	got, err := m.resolveWorkdir(ev)
-	if err != nil || got != other {
-		t.Fatalf("registered repo_path should be allowed: got=%q err=%v", got, err)
-	}
-}
+// What used to stand here: a test that a card could name a directory outright
+// in `repo_path`, and that such a path won over the folder it had been tagged
+// with. Both are gone — a card says where it works by naming a folder, and only
+// that (contradiction 6 of docs/model-graph.md, closed by step 3 of the store
+// plan). The whitelist that fenced those paths went with them.
 
 func TestTriggerSessionViaTag(t *testing.T) {
-	m, writer, events, project := testManager(t, fakeClaudeHappy, nil)
+	m, writer, events, _ := testManager(t, fakeClaudeHappy, nil)
+	// A second folder, beside the one the fixture registers: the point is that
+	// the card's own option picks between them.
+	project := initTestWorkdir(t)
 	if _, err := m.AddWorkdir("boardrepo", project, "board1", "", false); err != nil {
 		t.Fatal(err)
 	}
 
-	ev := moveEvent("card10", "", "opt-backlog", "opt-agent")
-	delete(ev.Props, "repo_path")
-	ev.Props["repo_path"] = ""             // no explicit path
-	ev.OptionNames = []string{"BoardRepo"} // tag, case-insensitive
+	ev := moveEvent("card10", "opt-backlog", "opt-agent")
+	ev.OptionNames = []string{"BoardRepo"} // the folder's own name, case-insensitive
 	events.ch <- ev
 
 	waitFor(t, 15*time.Second, "tag-mapped session done", func() bool {

@@ -221,7 +221,10 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 	m.ensureWorkdirIDs()
 
 	m.recover()
-	PruneStale(m.rootCtx, m.cfg.ProjectWhitelist)
+	// Worktrees whose directory has gone, pruned in the folders that could have
+	// one. The registry is the list now; it used to be the whitelist, which was
+	// about a card naming a path and never about where worktrees live.
+	PruneStale(m.rootCtx, m.workdirPaths())
 
 	ch, err := events.Subscribe(m.rootCtx)
 	if err != nil {

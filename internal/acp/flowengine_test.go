@@ -10,12 +10,13 @@ import (
 // flowEvent is a card move onto a named column of the flow property.
 func flowEvent(cardID, project, from, to string) CardMoved {
 	return CardMoved{
-		EventID: "ev-" + cardID + "-" + to,
-		CardID:  cardID,
-		BoardID: "board1",
-		Title:   "Test task",
-		Body:    "Do nothing useful.",
-		Props:   map[string]string{"repo_path": project, "branch": flowTestBranch},
+		EventID:     "ev-" + cardID + "-" + to,
+		CardID:      cardID,
+		BoardID:     "board1",
+		Title:       "Test task",
+		Body:        "Do nothing useful.",
+		Props:       map[string]string{"branch": flowTestBranch},
+		OptionNames: []string{testWorkdirName},
 		FromColumn: Column{PropertyID: "p1", PropertyName: "Status",
 			OptionID: "opt-" + strings.ToLower(from), Name: from},
 		ToColumn: Column{PropertyID: "p1", PropertyName: "Status",
@@ -31,9 +32,10 @@ func flowManager(t *testing.T, scenario string, flow FlowEntry) (*Manager, *fake
 	// Re-reading a card gives back what it says, branch included — the real
 	// reader does, and the route asks it again on every transition.
 	m.SetBoardReader(&fakeReader{ev: CardMoved{
-		BoardID: "board1",
-		Title:   "Test task",
-		Props:   map[string]string{"repo_path": project, "branch": flowTestBranch},
+		BoardID:     "board1",
+		Title:       "Test task",
+		Props:       map[string]string{"branch": flowTestBranch},
+		OptionNames: []string{testWorkdirName},
 	}})
 	// The cards below name the branch their work lives on, and a session bases
 	// its worktree on it — so it has to exist, as it would on a real board.
@@ -240,9 +242,9 @@ func TestFlowIgnoresOtherProperties(t *testing.T) {
 
 func TestLegacyColumnsStillWorkWithoutAFlow(t *testing.T) {
 	// No flow registered: the standalone trigger columns keep their behaviour.
-	m, _, events, project := testManager(t, fakeClaudeHappy, nil)
+	m, _, events, _ := testManager(t, fakeClaudeHappy, nil)
 
-	events.ch <- moveEvent("card7", project, "opt-backlog", "opt-agent")
+	events.ch <- moveEvent("card7", "opt-backlog", "opt-agent")
 
 	waitFor(t, 20*time.Second, "legacy session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("card7")
