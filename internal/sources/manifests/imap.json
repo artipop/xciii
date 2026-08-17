@@ -1,0 +1,13 @@
+{
+  "name": "imap",
+  "title": "Почта (IMAP)",
+  "command": "$self",
+  "args": ["sourceplugin", "imap"],
+  "auth": {"type": "token"},
+  "fields": [
+    {"key": "host", "title": "Сервер", "type": "string"},
+    {"key": "port", "title": "Порт", "type": "number", "default": "993"},
+    {"key": "username", "title": "Логин", "type": "string"},
+    {"key": "mailbox", "title": "Папка", "type": "string", "default": "INBOX"}
+  ]
+}

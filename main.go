@@ -81,6 +81,10 @@ func main() {
 	// that must not open a database or take a port on its way to one HTTP call.
 	maybeRunHook(os.Args[1:])
 
+	// `xciii sourceplugin imap` runs this same binary as a source plugin a
+	// manifest starts with `$self`; same requirement, same reason.
+	maybeRunSourcePlugin(os.Args[1:])
+
 	ignoreViteDevServer()
 
 	// Before anything can be spawned: a packaged app is started by launchd and

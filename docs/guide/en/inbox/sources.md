@@ -8,7 +8,7 @@ If the board has no inbox yet (it was created empty), **"Sources"** stays in the
 board's own menu. The view appears with the first source, and the setting moves
 into it.
 
-There are three ways.
+There are four ways.
 
 ## Share (macOS)
 
@@ -50,6 +50,32 @@ creates no duplicates, and a changed task updates its card.
 
 Next to the source's name is its state — "working", "needs a token", "failed".
 The **"Log"** button shows what the source has brought.
+
+## Mail (IMAP)
+
+Brings over mail from one mailbox.
+
+In the sources dialog set a name, pick **"Mail (IMAP)"** from the list and
+fill in:
+
+- **the server** — the mail server's address, e.g. `imap.gmail.com`;
+- **the port** — 993 by default (an encrypted connection); for another port
+  the app negotiates encryption separately (STARTTLS);
+- **the login** — the mailbox's address;
+- **the folder** — `INBOX` by default;
+- **"Token from the service"** — the mailbox's password. For Gmail and
+  Yandex Mail, if two-factor authentication is on (and it usually is), this
+  is not the account password but a separate **app password**, issued in the
+  account's security settings. The password is stored in the keychain, not
+  in a settings file.
+
+The source brings over nothing that was already in the mailbox when it was
+set up — only mail that arrives afterwards. From then on the app checks the
+mailbox on a schedule; one message is one card, and checking again does not
+duplicate it.
+
+Signing in to Gmail or Yandex Mail without an app password, with a "Sign in
+with Google" button — is not built yet.
 
 ## HTTP: a script, a webhook, a phone
 
