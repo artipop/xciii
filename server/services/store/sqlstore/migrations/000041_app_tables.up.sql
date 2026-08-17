@@ -6,6 +6,63 @@
 -- somebody has to remember three answers to one question.
 
 {{if .sqlite}}
+-- Network settings several agents share, so they are edited in one
+-- place. Was the `proxies` array in config.json.
+--   password: Kept apart from the URL so it is entered raw and masked on screen.
+--     Still stored in the clear here, exactly as it was in the settings
+--     file: moving it into internal/secrets is its own change.
+CREATE TABLE `{{.prefix}}proxy` (`id` varchar NOT NULL, `name` varchar NOT NULL, `url` text NULL, `no_proxy` text NULL, `ca_cert` text NULL, `username` varchar NULL, `password` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`));
+
+CREATE UNIQUE INDEX `idx_{{.prefix}}proxy_name` ON `{{.prefix}}proxy` (`name`);
+
+-- A named place an agent can work in. Was the `projects` array in
+-- config.json; a card points at it by id, which is also the id of the
+-- board option offered for it, so a card naming its folder is a card
+-- holding an ordinary select value that happens to be a reference.
+--   name: A caption, not a key. Renaming it breaks nothing, which is the
+--     whole reason the id exists.
+--   board_id: The board that offers this folder, and the only one that does.
+--     NULL means no board has claimed it — a state the product already
+--     has a name and a screen for, which is why a deleted board sets this
+--     to NULL rather than taking the registry entry with it.
+--   global: «На всех досках»: one entry seen from several boards, which is what
+--     makes the mode belong to the pair rather than to the folder.
+--   kind: What somebody was promised, not what the folder happens to be:
+--     'git' means a repository was demanded and one without git is an
+--     error. NULL is the ordinary case and means nobody said.
+CREATE TABLE `{{.prefix}}workspace` (`id` varchar NOT NULL, `name` varchar NOT NULL, `path` text NULL, `board_id` varchar NULL, `global` boolean NOT NULL, `kind` varchar NULL, `base_branch` varchar NULL, `branch_prefix` varchar NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), CONSTRAINT `workspace_offered_on` FOREIGN KEY (`board_id`) REFERENCES `{{.prefix}}boards` (`id`) ON DELETE SET NULL);
+
+CREATE UNIQUE INDEX `idx_{{.prefix}}workspace_name` ON `{{.prefix}}workspace` (`name`);
+
+-- Which board a folder is offered to and how work happens in it there.
+-- Keyed by the pair rather than by the folder, because a folder marked
+-- «на всех досках» is one entry with a different answer per board: a copy
+-- per card where three people work it, a branch in place where one does.
+-- Was WorkdirEntry.Modes, a map keyed by board id.
+--   mode: worktree | branch. NULL means nobody answered, and the machine's
+--     own default stands in.
+CREATE TABLE `{{.prefix}}workspace_board` (`workspace_id` varchar NOT NULL, `board_id` varchar NOT NULL, `mode` varchar NULL, PRIMARY KEY (`workspace_id`, `board_id`), CONSTRAINT `workspace_board_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `{{.prefix}}workspace` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_board` FOREIGN KEY (`board_id`) REFERENCES `{{.prefix}}boards` (`id`) ON DELETE CASCADE);
+
+-- A registered agent. Its board account is a row in users, and the two
+-- are joined by a key rather than by their names happening to match —
+-- which is what made renaming an agent break the crew of every route on
+-- every board, silently.
+--   name: On screen and in the account's username. No longer a reference.
+--   user_id: The board account. NULL until one is made, and NULL again if it is
+--     deleted: the registry entry is the machine's and outlives it.
+--   settings: env, args, cliArgs, options, autoAllowTools, command,
+--     terminalCommand, mcpServers. JSON on purpose: this is how to start
+--     a process, it points at nothing and nothing joins to it.
+CREATE TABLE `{{.prefix}}agent` (`id` varchar NOT NULL, `name` varchar NOT NULL, `kind` varchar NOT NULL, `user_id` varchar NULL, `proxy_id` varchar NULL, `bin_path` text NULL, `model` varchar NULL, `prompt` text NULL, `settings` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), CONSTRAINT `agent_user` FOREIGN KEY (`user_id`) REFERENCES `{{.prefix}}users` (`id`) ON DELETE SET NULL, CONSTRAINT `agent_proxy` FOREIGN KEY (`proxy_id`) REFERENCES `{{.prefix}}proxy` (`id`) ON DELETE SET NULL);
+
+CREATE UNIQUE INDEX `idx_{{.prefix}}agent_name` ON `{{.prefix}}agent` (`name`);
+
+-- Where a card's branch is published. Was the `deploys` array in
+-- config.json, and a route's stage named it by name.
+CREATE TABLE `{{.prefix}}deploy_target` (`id` varchar NOT NULL, `name` varchar NOT NULL, `ssh_host` varchar NOT NULL, `ssh_user` varchar NULL, `ssh_port` bigint NULL, `ssh_key` text NULL, `base_app` varchar NULL, `base_domain` varchar NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`));
+
+CREATE UNIQUE INDEX `idx_{{.prefix}}deploy_target_name` ON `{{.prefix}}deploy_target` (`name`);
+
 -- A run of an agent over ACP. One process, one verdict: unlike a
 -- conversation, it is never resumed, which is why the two are
 -- separate tables and not one row with a transport column.
@@ -33,8 +90,8 @@ CREATE INDEX `idx_{{.prefix}}session_event_session` ON `{{.prefix}}session_event
 --   column_name: What the column was called at the time, frozen: the option may be
 --     gone, and the row still has to read the same.
 --   summary: The agent's own line about what this conversation is doing.
---   workdir_path: Was repo_path. Becomes workdir_id at step 2, when the registry
---     is a table and a folder stops being addressed by its path.
+--   workdir_path: Was repo_path. Becomes workspace_id in the second half of step 2,
+--     together with the code that resolves a folder to its registry id.
 CREATE TABLE `{{.prefix}}conversation` (`id` varchar NOT NULL, `card_id` varchar NULL, `board_id` varchar NULL, `node_id` varchar NOT NULL, `column_name` varchar NULL, `title` text NULL, `summary` text NULL, `agent` varchar NULL, `kind` varchar NULL, `workdir_path` text NULL, `cwd` text NULL, `branch` varchar NULL, `started_at` bigint NOT NULL, `ended_at` bigint NULL, `exit_code` bigint NULL, PRIMARY KEY (`id`), CONSTRAINT `conversation_card` FOREIGN KEY (`card_id`) REFERENCES `{{.prefix}}blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `conversation_board` FOREIGN KEY (`board_id`) REFERENCES `{{.prefix}}boards` (`id`) ON DELETE CASCADE);
 
 CREATE INDEX `idx_{{.prefix}}conversation_card` ON `{{.prefix}}conversation` (`card_id`, `started_at`);
@@ -82,16 +139,14 @@ CREATE INDEX `idx_{{.prefix}}stage_queue_column` ON `{{.prefix}}stage_queue` (`c
 --   changed_at: Was `at`. AT is a keyword in Postgres and a name not worth having.
 CREATE TABLE `{{.prefix}}board_setup` (`board_id` varchar NOT NULL, `step` varchar NOT NULL, `status` varchar NOT NULL, `changed_at` bigint NOT NULL, PRIMARY KEY (`board_id`, `step`), CONSTRAINT `board_setup_board` FOREIGN KEY (`board_id`) REFERENCES `{{.prefix}}boards` (`id`) ON DELETE CASCADE);
 
--- This branch event has already been acted on. Keyed by path today,
--- which MySQL would refuse in a key of any real length — step 2 moves it
--- onto the folder's id, and that is the same conclusion from two sides.
+-- This branch event has already been acted on. Keyed by path still; the
+-- second half of step 2 moves it onto the workspace id, which is also what
+-- stops MySQL refusing a path in a key of any real length.
 --   marker: The commit the event refers to: the same state seen twice fires once.
 CREATE TABLE `{{.prefix}}vcs_seen` (`workdir_path` varchar NOT NULL, `branch` varchar NOT NULL, `kind` varchar NOT NULL, `marker` varchar NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`workdir_path`, `branch`, `kind`));
 
--- The copy and the branch one owner holds in one folder. The owner is a
--- card id or "board:<id>", which is why there is no foreign key here yet:
--- one column cannot point at two tables. Step 2 splits it into card_id and
--- board_id, and keys the folder by id rather than by its path.
+-- The copy and the branch one owner holds in one folder. No foreign key
+-- here yet, for the reason above.
 --   branch: NULL for an ordinary folder: it has no branch, and that is absence
 --     rather than an empty name.
 --   released_at: NULL means the workspace is live.
@@ -116,25 +171,46 @@ CREATE INDEX `idx_{{.prefix}}source_event_source` ON `{{.prefix}}source_event` (
 {{end}}
 
 {{if .mysql}}
--- This branch event has already been acted on. Keyed by path today,
--- which MySQL would refuse in a key of any real length — step 2 moves it
--- onto the folder's id, and that is the same conclusion from two sides.
---   marker: The commit the event refers to: the same state seen twice fires once.
-CREATE TABLE `{{.prefix}}vcs_seen` (`workdir_path` varchar(255) NOT NULL, `branch` varchar(255) NOT NULL, `kind` varchar(32) NOT NULL, `marker` varchar(64) NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`workdir_path`, `branch`, `kind`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
-
 -- One route event, handled once. `key` was the column's name and is a
 -- reserved word in MySQL, so it is `token` — cheaper than backticks in
 -- every query for ever.
 CREATE TABLE `{{.prefix}}idempotency` (`token` varchar(255) NOT NULL, `session_id` varchar(36) NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`token`), INDEX `idx_{{.prefix}}idempotency_created` (`created_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
--- The copy and the branch one owner holds in one folder. The owner is a
--- card id or "board:<id>", which is why there is no foreign key here yet:
--- one column cannot point at two tables. Step 2 splits it into card_id and
--- board_id, and keys the folder by id rather than by its path.
+-- The copy and the branch one owner holds in one folder. No foreign key
+-- here yet, for the reason above.
 --   branch: NULL for an ordinary folder: it has no branch, and that is absence
 --     rather than an empty name.
 --   released_at: NULL means the workspace is live.
 CREATE TABLE `{{.prefix}}workdir_claim` (`workdir_path` varchar(255) NOT NULL, `owner` varchar(128) NOT NULL, `mode` varchar(16) NOT NULL, `branch` varchar(255) NULL, `path` text NULL, `base` varchar(255) NULL, `created_at` bigint NOT NULL, `released_at` bigint NULL, PRIMARY KEY (`workdir_path`, `owner`), INDEX `idx_{{.prefix}}workdir_claim_live` (`workdir_path`, `released_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- Where a card's branch is published. Was the `deploys` array in
+-- config.json, and a route's stage named it by name.
+CREATE TABLE `{{.prefix}}deploy_target` (`id` varchar(36) NOT NULL, `name` varchar(100) NOT NULL, `ssh_host` varchar(255) NOT NULL, `ssh_user` varchar(64) NULL, `ssh_port` bigint NULL, `ssh_key` text NULL, `base_app` varchar(100) NULL, `base_domain` varchar(255) NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), UNIQUE INDEX `idx_{{.prefix}}deploy_target_name` (`name`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- This branch event has already been acted on. Keyed by path still; the
+-- second half of step 2 moves it onto the workspace id, which is also what
+-- stops MySQL refusing a path in a key of any real length.
+--   marker: The commit the event refers to: the same state seen twice fires once.
+CREATE TABLE `{{.prefix}}vcs_seen` (`workdir_path` varchar(255) NOT NULL, `branch` varchar(255) NOT NULL, `kind` varchar(32) NOT NULL, `marker` varchar(64) NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`workdir_path`, `branch`, `kind`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- Network settings several agents share, so they are edited in one
+-- place. Was the `proxies` array in config.json.
+--   password: Kept apart from the URL so it is entered raw and masked on screen.
+--     Still stored in the clear here, exactly as it was in the settings
+--     file: moving it into internal/secrets is its own change.
+CREATE TABLE `{{.prefix}}proxy` (`id` varchar(36) NOT NULL, `name` varchar(100) NOT NULL, `url` text NULL, `no_proxy` text NULL, `ca_cert` text NULL, `username` varchar(100) NULL, `password` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), UNIQUE INDEX `idx_{{.prefix}}proxy_name` (`name`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- A registered agent. Its board account is a row in users, and the two
+-- are joined by a key rather than by their names happening to match —
+-- which is what made renaming an agent break the crew of every route on
+-- every board, silently.
+--   name: On screen and in the account's username. No longer a reference.
+--   user_id: The board account. NULL until one is made, and NULL again if it is
+--     deleted: the registry entry is the machine's and outlives it.
+--   settings: env, args, cliArgs, options, autoAllowTools, command,
+--     terminalCommand, mcpServers. JSON on purpose: this is how to start
+--     a process, it points at nothing and nothing joins to it.
+CREATE TABLE `{{.prefix}}agent` (`id` varchar(36) NOT NULL, `name` varchar(100) NOT NULL, `kind` varchar(32) NOT NULL, `user_id` varchar(36) NULL, `proxy_id` varchar(36) NULL, `bin_path` text NULL, `model` varchar(100) NULL, `prompt` text NULL, `settings` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), UNIQUE INDEX `idx_{{.prefix}}agent_name` (`name`), CONSTRAINT `agent_user` FOREIGN KEY (`user_id`) REFERENCES `{{.prefix}}users` (`id`) ON DELETE SET NULL, CONSTRAINT `agent_proxy` FOREIGN KEY (`proxy_id`) REFERENCES `{{.prefix}}proxy` (`id`) ON DELETE SET NULL) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- A run of an agent over ACP. One process, one verdict: unlike a
 -- conversation, it is never resumed, which is why the two are
@@ -167,8 +243,8 @@ CREATE TABLE `{{.prefix}}card_stall` (`card_id` varchar(36) NOT NULL, `node_id` 
 --   column_name: What the column was called at the time, frozen: the option may be
 --     gone, and the row still has to read the same.
 --   summary: The agent's own line about what this conversation is doing.
---   workdir_path: Was repo_path. Becomes workdir_id at step 2, when the registry
---     is a table and a folder stops being addressed by its path.
+--   workdir_path: Was repo_path. Becomes workspace_id in the second half of step 2,
+--     together with the code that resolves a folder to its registry id.
 CREATE TABLE `{{.prefix}}conversation` (`id` varchar(36) NOT NULL, `card_id` varchar(36) NULL, `board_id` varchar(36) NULL, `node_id` varchar(64) NOT NULL, `column_name` varchar(200) NULL, `title` text NULL, `summary` text NULL, `agent` varchar(100) NULL, `kind` varchar(32) NULL, `workdir_path` text NULL, `cwd` text NULL, `branch` varchar(255) NULL, `started_at` bigint NOT NULL, `ended_at` bigint NULL, `exit_code` bigint NULL, PRIMARY KEY (`id`), INDEX `idx_{{.prefix}}conversation_card` (`card_id`, `started_at`), INDEX `idx_{{.prefix}}conversation_card_node` (`card_id`, `node_id`, `started_at`), CONSTRAINT `conversation_card` FOREIGN KEY (`card_id`) REFERENCES `{{.prefix}}blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `conversation_board` FOREIGN KEY (`board_id`) REFERENCES `{{.prefix}}boards` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Every transition a card made, and what the agent said on it.
@@ -203,15 +279,35 @@ CREATE TABLE `{{.prefix}}source_item` (`source` varchar(100) NOT NULL, `external
 -- A card waiting for its column to free up a place.
 --   column_key: board|option — the queue belongs to one column of one board.
 CREATE TABLE `{{.prefix}}stage_queue` (`card_id` varchar(36) NOT NULL, `board_id` varchar(36) NULL, `column_key` varchar(128) NOT NULL, `flow` varchar(200) NULL, `node_id` varchar(64) NULL, `queued_at` bigint NOT NULL, PRIMARY KEY (`card_id`), INDEX `idx_{{.prefix}}stage_queue_column` (`column_key`, `queued_at`), CONSTRAINT `stage_queue_card` FOREIGN KEY (`card_id`) REFERENCES `{{.prefix}}blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `stage_queue_board` FOREIGN KEY (`board_id`) REFERENCES `{{.prefix}}boards` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- A named place an agent can work in. Was the `projects` array in
+-- config.json; a card points at it by id, which is also the id of the
+-- board option offered for it, so a card naming its folder is a card
+-- holding an ordinary select value that happens to be a reference.
+--   name: A caption, not a key. Renaming it breaks nothing, which is the
+--     whole reason the id exists.
+--   board_id: The board that offers this folder, and the only one that does.
+--     NULL means no board has claimed it — a state the product already
+--     has a name and a screen for, which is why a deleted board sets this
+--     to NULL rather than taking the registry entry with it.
+--   global: «На всех досках»: one entry seen from several boards, which is what
+--     makes the mode belong to the pair rather than to the folder.
+--   kind: What somebody was promised, not what the folder happens to be:
+--     'git' means a repository was demanded and one without git is an
+--     error. NULL is the ordinary case and means nobody said.
+CREATE TABLE `{{.prefix}}workspace` (`id` varchar(36) NOT NULL, `name` varchar(200) NOT NULL, `path` text NULL, `board_id` varchar(36) NULL, `global` bool NOT NULL, `kind` varchar(16) NULL, `base_branch` varchar(200) NULL, `branch_prefix` varchar(64) NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), UNIQUE INDEX `idx_{{.prefix}}workspace_name` (`name`), CONSTRAINT `workspace_offered_on` FOREIGN KEY (`board_id`) REFERENCES `{{.prefix}}boards` (`id`) ON DELETE SET NULL) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- Which board a folder is offered to and how work happens in it there.
+-- Keyed by the pair rather than by the folder, because a folder marked
+-- «на всех досках» is one entry with a different answer per board: a copy
+-- per card where three people work it, a branch in place where one does.
+-- Was WorkdirEntry.Modes, a map keyed by board id.
+--   mode: worktree | branch. NULL means nobody answered, and the machine's
+--     own default stands in.
+CREATE TABLE `{{.prefix}}workspace_board` (`workspace_id` varchar(36) NOT NULL, `board_id` varchar(36) NOT NULL, `mode` varchar(16) NULL, PRIMARY KEY (`workspace_id`, `board_id`), CONSTRAINT `workspace_board_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `{{.prefix}}workspace` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_board` FOREIGN KEY (`board_id`) REFERENCES `{{.prefix}}boards` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 {{end}}
 
 {{if .postgres}}
--- This branch event has already been acted on. Keyed by path today,
--- which MySQL would refuse in a key of any real length — step 2 moves it
--- onto the folder's id, and that is the same conclusion from two sides.
---   marker: The commit the event refers to: the same state seen twice fires once.
-CREATE TABLE "{{.prefix}}vcs_seen" ("workdir_path" character varying(255) NOT NULL, "branch" character varying(255) NOT NULL, "kind" character varying(32) NOT NULL, "marker" character varying(64) NULL, "created_at" bigint NOT NULL, PRIMARY KEY ("workdir_path", "branch", "kind"));
-
 -- One route event, handled once. `key` was the column's name and is a
 -- reserved word in MySQL, so it is `token` — cheaper than backticks in
 -- every query for ever.
@@ -222,23 +318,71 @@ CREATE TABLE "{{.prefix}}idempotency" ("token" character varying(255) NOT NULL, 
 -- every query for ever.
 CREATE INDEX "idx_{{.prefix}}idempotency_created" ON "{{.prefix}}idempotency" ("created_at");
 
--- The copy and the branch one owner holds in one folder. The owner is a
--- card id or "board:<id>", which is why there is no foreign key here yet:
--- one column cannot point at two tables. Step 2 splits it into card_id and
--- board_id, and keys the folder by id rather than by its path.
+-- The copy and the branch one owner holds in one folder. No foreign key
+-- here yet, for the reason above.
 --   branch: NULL for an ordinary folder: it has no branch, and that is absence
 --     rather than an empty name.
 --   released_at: NULL means the workspace is live.
 CREATE TABLE "{{.prefix}}workdir_claim" ("workdir_path" character varying(255) NOT NULL, "owner" character varying(128) NOT NULL, "mode" character varying(16) NOT NULL, "branch" character varying(255) NULL, "path" text NULL, "base" character varying(255) NULL, "created_at" bigint NOT NULL, "released_at" bigint NULL, PRIMARY KEY ("workdir_path", "owner"));
 
--- The copy and the branch one owner holds in one folder. The owner is a
--- card id or "board:<id>", which is why there is no foreign key here yet:
--- one column cannot point at two tables. Step 2 splits it into card_id and
--- board_id, and keys the folder by id rather than by its path.
+-- The copy and the branch one owner holds in one folder. No foreign key
+-- here yet, for the reason above.
 --   branch: NULL for an ordinary folder: it has no branch, and that is absence
 --     rather than an empty name.
 --   released_at: NULL means the workspace is live.
 CREATE INDEX "idx_{{.prefix}}workdir_claim_live" ON "{{.prefix}}workdir_claim" ("workdir_path", "released_at");
+
+-- Where a card's branch is published. Was the `deploys` array in
+-- config.json, and a route's stage named it by name.
+CREATE TABLE "{{.prefix}}deploy_target" ("id" character varying(36) NOT NULL, "name" character varying(100) NOT NULL, "ssh_host" character varying(255) NOT NULL, "ssh_user" character varying(64) NULL, "ssh_port" bigint NULL, "ssh_key" text NULL, "base_app" character varying(100) NULL, "base_domain" character varying(255) NULL, "created_at" bigint NOT NULL, PRIMARY KEY ("id"));
+
+-- Where a card's branch is published. Was the `deploys` array in
+-- config.json, and a route's stage named it by name.
+CREATE UNIQUE INDEX "idx_{{.prefix}}deploy_target_name" ON "{{.prefix}}deploy_target" ("name");
+
+-- This branch event has already been acted on. Keyed by path still; the
+-- second half of step 2 moves it onto the workspace id, which is also what
+-- stops MySQL refusing a path in a key of any real length.
+--   marker: The commit the event refers to: the same state seen twice fires once.
+CREATE TABLE "{{.prefix}}vcs_seen" ("workdir_path" character varying(255) NOT NULL, "branch" character varying(255) NOT NULL, "kind" character varying(32) NOT NULL, "marker" character varying(64) NULL, "created_at" bigint NOT NULL, PRIMARY KEY ("workdir_path", "branch", "kind"));
+
+-- Network settings several agents share, so they are edited in one
+-- place. Was the `proxies` array in config.json.
+--   password: Kept apart from the URL so it is entered raw and masked on screen.
+--     Still stored in the clear here, exactly as it was in the settings
+--     file: moving it into internal/secrets is its own change.
+CREATE TABLE "{{.prefix}}proxy" ("id" character varying(36) NOT NULL, "name" character varying(100) NOT NULL, "url" text NULL, "no_proxy" text NULL, "ca_cert" text NULL, "username" character varying(100) NULL, "password" text NULL, "created_at" bigint NOT NULL, PRIMARY KEY ("id"));
+
+-- Network settings several agents share, so they are edited in one
+-- place. Was the `proxies` array in config.json.
+--   password: Kept apart from the URL so it is entered raw and masked on screen.
+--     Still stored in the clear here, exactly as it was in the settings
+--     file: moving it into internal/secrets is its own change.
+CREATE UNIQUE INDEX "idx_{{.prefix}}proxy_name" ON "{{.prefix}}proxy" ("name");
+
+-- A registered agent. Its board account is a row in users, and the two
+-- are joined by a key rather than by their names happening to match —
+-- which is what made renaming an agent break the crew of every route on
+-- every board, silently.
+--   name: On screen and in the account's username. No longer a reference.
+--   user_id: The board account. NULL until one is made, and NULL again if it is
+--     deleted: the registry entry is the machine's and outlives it.
+--   settings: env, args, cliArgs, options, autoAllowTools, command,
+--     terminalCommand, mcpServers. JSON on purpose: this is how to start
+--     a process, it points at nothing and nothing joins to it.
+CREATE TABLE "{{.prefix}}agent" ("id" character varying(36) NOT NULL, "name" character varying(100) NOT NULL, "kind" character varying(32) NOT NULL, "user_id" character varying(36) NULL, "proxy_id" character varying(36) NULL, "bin_path" text NULL, "model" character varying(100) NULL, "prompt" text NULL, "settings" text NULL, "created_at" bigint NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "agent_user" FOREIGN KEY ("user_id") REFERENCES "{{.prefix}}users" ("id") ON DELETE SET NULL, CONSTRAINT "agent_proxy" FOREIGN KEY ("proxy_id") REFERENCES "{{.prefix}}proxy" ("id") ON DELETE SET NULL);
+
+-- A registered agent. Its board account is a row in users, and the two
+-- are joined by a key rather than by their names happening to match —
+-- which is what made renaming an agent break the crew of every route on
+-- every board, silently.
+--   name: On screen and in the account's username. No longer a reference.
+--   user_id: The board account. NULL until one is made, and NULL again if it is
+--     deleted: the registry entry is the machine's and outlives it.
+--   settings: env, args, cliArgs, options, autoAllowTools, command,
+--     terminalCommand, mcpServers. JSON on purpose: this is how to start
+--     a process, it points at nothing and nothing joins to it.
+CREATE UNIQUE INDEX "idx_{{.prefix}}agent_name" ON "{{.prefix}}agent" ("name");
 
 -- A run of an agent over ACP. One process, one verdict: unlike a
 -- conversation, it is never resumed, which is why the two are
@@ -278,8 +422,8 @@ CREATE TABLE "{{.prefix}}card_stall" ("card_id" character varying(36) NOT NULL, 
 --   column_name: What the column was called at the time, frozen: the option may be
 --     gone, and the row still has to read the same.
 --   summary: The agent's own line about what this conversation is doing.
---   workdir_path: Was repo_path. Becomes workdir_id at step 2, when the registry
---     is a table and a folder stops being addressed by its path.
+--   workdir_path: Was repo_path. Becomes workspace_id in the second half of step 2,
+--     together with the code that resolves a folder to its registry id.
 CREATE TABLE "{{.prefix}}conversation" ("id" character varying(36) NOT NULL, "card_id" character varying(36) NULL, "board_id" character varying(36) NULL, "node_id" character varying(64) NOT NULL, "column_name" character varying(200) NULL, "title" text NULL, "summary" text NULL, "agent" character varying(100) NULL, "kind" character varying(32) NULL, "workdir_path" text NULL, "cwd" text NULL, "branch" character varying(255) NULL, "started_at" bigint NOT NULL, "ended_at" bigint NULL, "exit_code" bigint NULL, PRIMARY KEY ("id"), CONSTRAINT "conversation_card" FOREIGN KEY ("card_id") REFERENCES "{{.prefix}}blocks" ("id") ON DELETE CASCADE, CONSTRAINT "conversation_board" FOREIGN KEY ("board_id") REFERENCES "{{.prefix}}boards" ("id") ON DELETE CASCADE);
 
 -- A conversation with an agent: its CLI in a pty, keyed (card, node).
@@ -292,8 +436,8 @@ CREATE TABLE "{{.prefix}}conversation" ("id" character varying(36) NOT NULL, "ca
 --   column_name: What the column was called at the time, frozen: the option may be
 --     gone, and the row still has to read the same.
 --   summary: The agent's own line about what this conversation is doing.
---   workdir_path: Was repo_path. Becomes workdir_id at step 2, when the registry
---     is a table and a folder stops being addressed by its path.
+--   workdir_path: Was repo_path. Becomes workspace_id in the second half of step 2,
+--     together with the code that resolves a folder to its registry id.
 CREATE INDEX "idx_{{.prefix}}conversation_card" ON "{{.prefix}}conversation" ("card_id", "started_at");
 
 -- A conversation with an agent: its CLI in a pty, keyed (card, node).
@@ -306,8 +450,8 @@ CREATE INDEX "idx_{{.prefix}}conversation_card" ON "{{.prefix}}conversation" ("c
 --   column_name: What the column was called at the time, frozen: the option may be
 --     gone, and the row still has to read the same.
 --   summary: The agent's own line about what this conversation is doing.
---   workdir_path: Was repo_path. Becomes workdir_id at step 2, when the registry
---     is a table and a folder stops being addressed by its path.
+--   workdir_path: Was repo_path. Becomes workspace_id in the second half of step 2,
+--     together with the code that resolves a folder to its registry id.
 CREATE INDEX "idx_{{.prefix}}conversation_card_node" ON "{{.prefix}}conversation" ("card_id", "node_id", "started_at");
 
 -- Every transition a card made, and what the agent said on it.
@@ -368,4 +512,47 @@ CREATE TABLE "{{.prefix}}stage_queue" ("card_id" character varying(36) NOT NULL,
 -- A card waiting for its column to free up a place.
 --   column_key: board|option — the queue belongs to one column of one board.
 CREATE INDEX "idx_{{.prefix}}stage_queue_column" ON "{{.prefix}}stage_queue" ("column_key", "queued_at");
+
+-- A named place an agent can work in. Was the `projects` array in
+-- config.json; a card points at it by id, which is also the id of the
+-- board option offered for it, so a card naming its folder is a card
+-- holding an ordinary select value that happens to be a reference.
+--   name: A caption, not a key. Renaming it breaks nothing, which is the
+--     whole reason the id exists.
+--   board_id: The board that offers this folder, and the only one that does.
+--     NULL means no board has claimed it — a state the product already
+--     has a name and a screen for, which is why a deleted board sets this
+--     to NULL rather than taking the registry entry with it.
+--   global: «На всех досках»: one entry seen from several boards, which is what
+--     makes the mode belong to the pair rather than to the folder.
+--   kind: What somebody was promised, not what the folder happens to be:
+--     'git' means a repository was demanded and one without git is an
+--     error. NULL is the ordinary case and means nobody said.
+CREATE TABLE "{{.prefix}}workspace" ("id" character varying(36) NOT NULL, "name" character varying(200) NOT NULL, "path" text NULL, "board_id" character varying(36) NULL, "global" boolean NOT NULL, "kind" character varying(16) NULL, "base_branch" character varying(200) NULL, "branch_prefix" character varying(64) NULL, "created_at" bigint NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "workspace_offered_on" FOREIGN KEY ("board_id") REFERENCES "{{.prefix}}boards" ("id") ON DELETE SET NULL);
+
+-- A named place an agent can work in. Was the `projects` array in
+-- config.json; a card points at it by id, which is also the id of the
+-- board option offered for it, so a card naming its folder is a card
+-- holding an ordinary select value that happens to be a reference.
+--   name: A caption, not a key. Renaming it breaks nothing, which is the
+--     whole reason the id exists.
+--   board_id: The board that offers this folder, and the only one that does.
+--     NULL means no board has claimed it — a state the product already
+--     has a name and a screen for, which is why a deleted board sets this
+--     to NULL rather than taking the registry entry with it.
+--   global: «На всех досках»: one entry seen from several boards, which is what
+--     makes the mode belong to the pair rather than to the folder.
+--   kind: What somebody was promised, not what the folder happens to be:
+--     'git' means a repository was demanded and one without git is an
+--     error. NULL is the ordinary case and means nobody said.
+CREATE UNIQUE INDEX "idx_{{.prefix}}workspace_name" ON "{{.prefix}}workspace" ("name");
+
+-- Which board a folder is offered to and how work happens in it there.
+-- Keyed by the pair rather than by the folder, because a folder marked
+-- «на всех досках» is one entry with a different answer per board: a copy
+-- per card where three people work it, a branch in place where one does.
+-- Was WorkdirEntry.Modes, a map keyed by board id.
+--   mode: worktree | branch. NULL means nobody answered, and the machine's
+--     own default stands in.
+CREATE TABLE "{{.prefix}}workspace_board" ("workspace_id" character varying(36) NOT NULL, "board_id" character varying(36) NOT NULL, "mode" character varying(16) NULL, PRIMARY KEY ("workspace_id", "board_id"), CONSTRAINT "workspace_board_workspace" FOREIGN KEY ("workspace_id") REFERENCES "{{.prefix}}workspace" ("id") ON DELETE CASCADE, CONSTRAINT "workspace_board_board" FOREIGN KEY ("board_id") REFERENCES "{{.prefix}}boards" ("id") ON DELETE CASCADE);
 {{end}}

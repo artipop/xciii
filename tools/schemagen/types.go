@@ -55,6 +55,9 @@ const (
 	KindMillis
 	// KindInt is a whole number: an exit code, a sort order.
 	KindInt
+	// KindBool is a flag. SQLite and Postgres have a boolean; MySQL spells it
+	// tinyint(1) and the driver hands back the same Go bool either way.
+	KindBool
 )
 
 // ID is an identifier column, ours or the board's.
@@ -74,6 +77,9 @@ func Millis() Type { return Type{kind: KindMillis} }
 
 // Int is a whole number.
 func Int() Type { return Type{kind: KindInt} }
+
+// Bool is a flag.
+func Bool() Type { return Type{kind: KindBool} }
 
 // Column is one column of one table.
 type Column struct {

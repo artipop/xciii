@@ -45,6 +45,7 @@ const migration = "migrations/000041_app_tables.up.sql"
 const boardStubs = `
 CREATE TABLE IF NOT EXISTS boards (id VARCHAR(36) PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS blocks (id VARCHAR(36) PRIMARY KEY, board_id VARCHAR(36));
+CREATE TABLE IF NOT EXISTS users (id VARCHAR(36) PRIMARY KEY, username VARCHAR(100));
 `
 
 // Open makes a SQLite database at path with the application's tables in it.

@@ -40,6 +40,8 @@ func dialects() []dialect {
 					return &schema.StringType{T: "varchar", Size: t.size}
 				case KindText, KindJSON:
 					return &schema.StringType{T: "text"}
+				case KindBool:
+					return &schema.BoolType{T: "boolean"}
 				default:
 					return &schema.IntegerType{T: "bigint"}
 				}
@@ -56,6 +58,10 @@ func dialects() []dialect {
 					return &schema.StringType{T: "varchar", Size: t.size}
 				case KindText, KindJSON:
 					return &schema.StringType{T: "text"}
+				case KindBool:
+					// MySQL has no boolean of its own; tinyint(1) is what its
+					// own driver reads back as a Go bool.
+					return &schema.BoolType{T: "tinyint"}
 				default:
 					return &schema.IntegerType{T: "bigint"}
 				}
@@ -76,6 +82,8 @@ func dialects() []dialect {
 					return &schema.StringType{T: "varchar", Size: t.size}
 				case KindText, KindJSON:
 					return &schema.StringType{T: "text"}
+				case KindBool:
+					return &schema.BoolType{T: "boolean"}
 				default:
 					return &schema.IntegerType{T: "bigint"}
 				}

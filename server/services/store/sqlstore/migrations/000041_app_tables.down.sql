@@ -45,6 +45,21 @@ PRAGMA foreign_keys = on;
 PRAGMA foreign_keys = off;
 DROP TABLE `{{.prefix}}agent_session`;
 PRAGMA foreign_keys = on;
+PRAGMA foreign_keys = off;
+DROP TABLE `{{.prefix}}deploy_target`;
+PRAGMA foreign_keys = on;
+PRAGMA foreign_keys = off;
+DROP TABLE `{{.prefix}}agent`;
+PRAGMA foreign_keys = on;
+PRAGMA foreign_keys = off;
+DROP TABLE `{{.prefix}}workspace_board`;
+PRAGMA foreign_keys = on;
+PRAGMA foreign_keys = off;
+DROP TABLE `{{.prefix}}workspace`;
+PRAGMA foreign_keys = on;
+PRAGMA foreign_keys = off;
+DROP TABLE `{{.prefix}}proxy`;
+PRAGMA foreign_keys = on;
 {{end}}
 
 {{if .mysql}}
@@ -61,6 +76,11 @@ DROP TABLE `{{.prefix}}idempotency`;
 DROP TABLE `{{.prefix}}conversation`;
 DROP TABLE `{{.prefix}}session_event`;
 DROP TABLE `{{.prefix}}agent_session`;
+DROP TABLE `{{.prefix}}deploy_target`;
+DROP TABLE `{{.prefix}}agent`;
+DROP TABLE `{{.prefix}}workspace_board`;
+DROP TABLE `{{.prefix}}workspace`;
+DROP TABLE `{{.prefix}}proxy`;
 {{end}}
 
 {{if .postgres}}
@@ -77,4 +97,9 @@ DROP TABLE "{{.prefix}}idempotency";
 DROP TABLE "{{.prefix}}conversation";
 DROP TABLE "{{.prefix}}session_event";
 DROP TABLE "{{.prefix}}agent_session";
+DROP TABLE "{{.prefix}}deploy_target";
+DROP TABLE "{{.prefix}}agent";
+DROP TABLE "{{.prefix}}workspace_board";
+DROP TABLE "{{.prefix}}workspace";
+DROP TABLE "{{.prefix}}proxy";
 {{end}}

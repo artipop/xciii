@@ -19,6 +19,16 @@ package main
 // and the board's change in one migration or in none.
 func appTables() []Table {
 	return []Table{
+		// The machine's registries. They were arrays in config.json, which is a
+		// file nothing can point at: a card named its folder by an id the
+		// settings file happened to carry, and a column named its agent by the
+		// name a person typed.
+		proxy(),
+		workspace(),
+		workspaceBoard(),
+		agent(),
+		deployTarget(),
+
 		agentSession(),
 		sessionEvent(),
 		conversation(),
@@ -35,11 +45,176 @@ func appTables() []Table {
 	}
 }
 
+// workspace is a named place where work can happen. It was `workdir`, and the
+// rename is the point rather than decoration: nothing about the entry has to be
+// a directory except its `path`, and the reason it has an id at all is that
+// tomorrow it may be a repository to clone, a drive or a machine over ssh. The
+// screen calls it «папка» and will go on doing so.
+//
+// The git *settings* live here — kind, base branch, branch prefix, and the mode
+// per board in workspace_board. The git *state* of one card's work is a
+// checkout (below).
+func workspace() Table {
+	return Table{
+		Name: "workspace",
+		Why: "A named place an agent can work in. Was the `projects` array in\n" +
+			"config.json; a card points at it by id, which is also the id of the\n" +
+			"board option offered for it, so a card naming its folder is a card\n" +
+			"holding an ordinary select value that happens to be a reference.",
+		Columns: []Column{
+			{Name: "id", Type: ID()},
+			{Name: "name", Type: Name(200),
+				Why: "A caption, not a key. Renaming it breaks nothing, which is the\n" +
+					"whole reason the id exists."},
+			{Name: "path", Type: Text(), Null: true},
+			{Name: "board_id", Type: ID(), Null: true,
+				Why: "The board that offers this folder, and the only one that does.\n" +
+					"NULL means no board has claimed it — a state the product already\n" +
+					"has a name and a screen for, which is why a deleted board sets this\n" +
+					"to NULL rather than taking the registry entry with it."},
+			{Name: "global", Type: Bool(),
+				Why: "«На всех досках»: one entry seen from several boards, which is what\n" +
+					"makes the mode belong to the pair rather than to the folder."},
+			{Name: "kind", Type: Name(16), Null: true,
+				Why: "What somebody was promised, not what the folder happens to be:\n" +
+					"'git' means a repository was demanded and one without git is an\n" +
+					"error. NULL is the ordinary case and means nobody said."},
+			{Name: "base_branch", Type: Name(200), Null: true},
+			{Name: "branch_prefix", Type: Name(64), Null: true},
+			{Name: "created_at", Type: Millis()},
+		},
+		PK: []string{"id"},
+		FKs: []FK{{
+			Name: "workspace_offered_on", Columns: []string{"board_id"},
+			RefTable: tableBoards, RefCols: []string{"id"}, OnDelete: SetNull,
+		}},
+		Indexes: []Index{
+			{Name: "idx_workspace_name", Columns: []string{"name"}, Unique: true},
+		},
+	}
+}
+
+// workspace_board is how a folder is worked in on one board.
+func workspaceBoard() Table {
+	return Table{
+		Name: "workspace_board",
+		Why: "Which board a folder is offered to and how work happens in it there.\n" +
+			"Keyed by the pair rather than by the folder, because a folder marked\n" +
+			"«на всех досках» is one entry with a different answer per board: a copy\n" +
+			"per card where three people work it, a branch in place where one does.\n" +
+			"Was WorkdirEntry.Modes, a map keyed by board id.",
+		Columns: []Column{
+			{Name: "workspace_id", Type: ID()},
+			{Name: "board_id", Type: ID()},
+			{Name: "mode", Type: Name(16), Null: true,
+				Why: "worktree | branch. NULL means nobody answered, and the machine's\n" +
+					"own default stands in."},
+		},
+		PK: []string{"workspace_id", "board_id"},
+		FKs: []FK{
+			{Name: "workspace_board_workspace", Columns: []string{"workspace_id"},
+				RefTable: "workspace", RefCols: []string{"id"}, OnDelete: Cascade},
+			{Name: "workspace_board_board", Columns: []string{"board_id"},
+				RefTable: tableBoards, RefCols: []string{"id"}, OnDelete: Cascade},
+		},
+	}
+}
+
+// proxy is one named network configuration.
+func proxy() Table {
+	return Table{
+		Name: "proxy",
+		Why: "Network settings several agents share, so they are edited in one\n" +
+			"place. Was the `proxies` array in config.json.",
+		Columns: []Column{
+			{Name: "id", Type: ID()},
+			{Name: "name", Type: Name(100)},
+			{Name: "url", Type: Text(), Null: true},
+			{Name: "no_proxy", Type: Text(), Null: true},
+			{Name: "ca_cert", Type: Text(), Null: true},
+			{Name: "username", Type: Name(100), Null: true},
+			{Name: "password", Type: Text(), Null: true,
+				Why: "Kept apart from the URL so it is entered raw and masked on screen.\n" +
+					"Still stored in the clear here, exactly as it was in the settings\n" +
+					"file: moving it into internal/secrets is its own change."},
+			{Name: "created_at", Type: Millis()},
+		},
+		PK: []string{"id"},
+		Indexes: []Index{
+			{Name: "idx_proxy_name", Columns: []string{"name"}, Unique: true},
+		},
+	}
+}
+
+// agent is one registered coding agent.
+func agent() Table {
+	return Table{
+		Name: "agent",
+		Why: "A registered agent. Its board account is a row in users, and the two\n" +
+			"are joined by a key rather than by their names happening to match —\n" +
+			"which is what made renaming an agent break the crew of every route on\n" +
+			"every board, silently.",
+		Columns: []Column{
+			{Name: "id", Type: ID()},
+			{Name: "name", Type: Name(100),
+				Why: "On screen and in the account's username. No longer a reference."},
+			{Name: "kind", Type: Name(32)},
+			{Name: "user_id", Type: ID(), Null: true,
+				Why: "The board account. NULL until one is made, and NULL again if it is\n" +
+					"deleted: the registry entry is the machine's and outlives it."},
+			{Name: "proxy_id", Type: ID(), Null: true},
+			{Name: "bin_path", Type: Text(), Null: true},
+			{Name: "model", Type: Name(100), Null: true},
+			{Name: "prompt", Type: Text(), Null: true},
+			{Name: "settings", Type: JSON(), Null: true,
+				Why: "env, args, cliArgs, options, autoAllowTools, command,\n" +
+					"terminalCommand, mcpServers. JSON on purpose: this is how to start\n" +
+					"a process, it points at nothing and nothing joins to it."},
+			{Name: "created_at", Type: Millis()},
+		},
+		PK: []string{"id"},
+		FKs: []FK{
+			{Name: "agent_user", Columns: []string{"user_id"},
+				RefTable: tableUsers, RefCols: []string{"id"}, OnDelete: SetNull},
+			{Name: "agent_proxy", Columns: []string{"proxy_id"},
+				RefTable: "proxy", RefCols: []string{"id"}, OnDelete: SetNull},
+		},
+		Indexes: []Index{
+			{Name: "idx_agent_name", Columns: []string{"name"}, Unique: true},
+		},
+	}
+}
+
+// deploy_target is one named Dokku destination.
+func deployTarget() Table {
+	return Table{
+		Name: "deploy_target",
+		Why: "Where a card's branch is published. Was the `deploys` array in\n" +
+			"config.json, and a route's stage named it by name.",
+		Columns: []Column{
+			{Name: "id", Type: ID()},
+			{Name: "name", Type: Name(100)},
+			{Name: "ssh_host", Type: Name(255)},
+			{Name: "ssh_user", Type: Name(64), Null: true},
+			{Name: "ssh_port", Type: Int(), Null: true},
+			{Name: "ssh_key", Type: Text(), Null: true},
+			{Name: "base_app", Type: Name(100), Null: true},
+			{Name: "base_domain", Type: Name(255), Null: true},
+			{Name: "created_at", Type: Millis()},
+		},
+		PK: []string{"id"},
+		Indexes: []Index{
+			{Name: "idx_deploy_target_name", Columns: []string{"name"}, Unique: true},
+		},
+	}
+}
+
 // boardTables are the fork's own, named here only so a foreign key has
 // something to point at. They are not emitted: migration 000001 made them.
 const (
 	tableBlocks = "blocks"
 	tableBoards = "boards"
+	tableUsers  = "users"
 )
 
 // cardFK is the key almost every table here wants: what we know about a card
@@ -151,8 +326,8 @@ func conversation() Table {
 			{Name: "agent", Type: Name(100), Null: true},
 			{Name: "kind", Type: Name(32), Null: true},
 			{Name: "workdir_path", Type: Text(), Null: true,
-				Why: "Was repo_path. Becomes workdir_id at step 2, when the registry\n" +
-					"is a table and a folder stops being addressed by its path."},
+				Why: "Was repo_path. Becomes workspace_id in the second half of step 2,\n" +
+					"together with the code that resolves a folder to its registry id."},
 			{Name: "cwd", Type: Text(), Null: true},
 			{Name: "branch", Type: Name(255), Null: true},
 			{Name: "started_at", Type: Millis()},
@@ -303,9 +478,9 @@ func boardSetup() Table {
 func vcsSeen() Table {
 	return Table{
 		Name: "vcs_seen",
-		Why: "This branch event has already been acted on. Keyed by path today,\n" +
-			"which MySQL would refuse in a key of any real length — step 2 moves it\n" +
-			"onto the folder's id, and that is the same conclusion from two sides.",
+		Why: "This branch event has already been acted on. Keyed by path still; the\n" +
+			"second half of step 2 moves it onto the workspace id, which is also what\n" +
+			"stops MySQL refusing a path in a key of any real length.",
 		Columns: []Column{
 			{Name: "workdir_path", Type: Name(255)},
 			{Name: "branch", Type: Name(255)},
@@ -318,14 +493,17 @@ func vcsSeen() Table {
 	}
 }
 
-// workdir_claim is a workspace taken under an owner.
+// workdir_claim is the git state of one owner's work in one folder. It becomes
+// `checkout`, keyed by workspace id and with the owner split into card_id and
+// board_id, in the second half of step 2 — together with the code that resolves
+// a folder to its registry id. Both halves are one change: the owner is a card
+// id or "board:<id>" in one column today, and a foreign key cannot point at two
+// tables through one.
 func workdirClaim() Table {
 	return Table{
 		Name: "workdir_claim",
-		Why: "The copy and the branch one owner holds in one folder. The owner is a\n" +
-			"card id or \"board:<id>\", which is why there is no foreign key here yet:\n" +
-			"one column cannot point at two tables. Step 2 splits it into card_id and\n" +
-			"board_id, and keys the folder by id rather than by its path.",
+		Why: "The copy and the branch one owner holds in one folder. No foreign key\n" +
+			"here yet, for the reason above.",
 		Columns: []Column{
 			{Name: "workdir_path", Type: Name(255)},
 			{Name: "owner", Type: Name(128)},
