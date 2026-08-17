@@ -346,7 +346,7 @@ func TestDeployColumnStartsASessionWithTheDokkuTools(t *testing.T) {
 		c.Deploys = []DeployEntry{deployEntry("prod")}
 	})
 
-	events.ch <- deployMoveEvent("cardD", DefaultConfig("").DeployColumn)
+	events.ch <- deployMoveEvent("cardD", TemplateDeployColumn)
 
 	waitFor(t, 15*time.Second, "deploy session done", func() bool {
 		sessions, _, err := m.store.SessionsForCard("cardD")
@@ -386,13 +386,17 @@ func TestDeployColumnStartsASessionWithTheDokkuTools(t *testing.T) {
 	}
 }
 
-func TestDeployColumnIgnoredWhenDisabled(t *testing.T) {
+// A column nothing is configured for does nothing, and that is now the only way
+// to say so: there used to be a `deployColumn` key in the machine's settings
+// which could be emptied to switch deploys off everywhere, and a column is a
+// board's own answer now.
+func TestAColumnWithNoActionDoesNothing(t *testing.T) {
 	m, writer, events, _ := testManager(t, fakeClaudeRecordingArgs, func(c *Config) {
-		c.DeployColumn = ""
+		c.Columns = nil
 		c.Deploys = []DeployEntry{deployEntry("prod")}
 	})
 
-	events.ch <- deployMoveEvent("cardOff", DefaultConfig("").DeployColumn)
+	events.ch <- deployMoveEvent("cardOff", TemplateDeployColumn)
 
 	// Nothing should happen at all — give the trigger loop a moment to prove it.
 	time.Sleep(500 * time.Millisecond)
@@ -401,14 +405,14 @@ func TestDeployColumnIgnoredWhenDisabled(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(sessions) != 0 || len(writer.cardComments("cardOff")) != 0 {
-		t.Fatalf("an empty deployColumn must disable the trigger: %v %v", sessions, writer.cardComments("cardOff"))
+		t.Fatalf("a column with no action started something: %v %v", sessions, writer.cardComments("cardOff"))
 	}
 }
 
 func TestDeployWithoutTargetsStallsTheCard(t *testing.T) {
 	m, writer, events, _ := testManager(t, fakeClaudeRecordingArgs, nil)
 
-	events.ch <- deployMoveEvent("cardNoTarget", DefaultConfig("").DeployColumn)
+	events.ch <- deployMoveEvent("cardNoTarget", TemplateDeployColumn)
 
 	// A deploy column with nothing to deploy to is the card's current state,
 	// shown where the card shows its state — not a comment that outlives it.

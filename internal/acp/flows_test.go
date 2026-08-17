@@ -2,7 +2,6 @@ package acp
 
 import (
 	"encoding/json"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -278,18 +277,19 @@ func TestTriggerMetadata(t *testing.T) {
 	}
 }
 
-func TestTemplateFlowsUseTheConfigsOwnColumns(t *testing.T) {
+// The routes the editor offers a board that has none. They used to be built
+// from five column-name keys in the machine's settings — which is how the
+// settings of one machine came to name the columns of everybody's board — and
+// the names are the templates' own now.
+func TestTheOfferedRoutesAreValidAndStandOnTheTemplateColumns(t *testing.T) {
 	cfg := DefaultConfig(t.TempDir())
-	cfg.TriggerColumn = "К агенту"
-	cfg.TestColumn = "На тест"
-	cfg.TestPassColumn = "Проверено"
-
 	flows := TemplateFlows(cfg)
 	if len(flows) < 2 {
 		t.Fatalf("a template with one route offers no choice: %+v", flows)
 	}
-	// Every seeded route must be one the engine would accept from the editor.
 	for _, f := range flows {
+		// Every offered route has to be one the engine would accept from the
+		// editor: offering a route that cannot be saved is offering nothing.
 		if _, err := validateFlow(f, nil, nil, nil); err != nil {
 			t.Fatalf("template flow %q is invalid: %v", f.Name, err)
 		}
@@ -298,77 +298,30 @@ func TestTemplateFlowsUseTheConfigsOwnColumns(t *testing.T) {
 		}
 	}
 
-	feature := flows[0]
-	if feature.Name != TemplateFlowFeature {
-		t.Fatalf("the full route should come first: %q", feature.Name)
+	feature, ok := flowNamed(flows, TemplateFlowFeature)
+	if !ok {
+		t.Fatalf("no %q route among %+v", TemplateFlowFeature, flows)
 	}
-	if n, ok := feature.NodeByColumn("К агенту"); !ok || n.Action != FlowActionAgent {
-		t.Fatalf("agent stage: %+v", n)
-	}
-	if n, _, ok := feature.Next("qa", TriggerSuccess, nil, ""); !ok || n.Column != "Проверено" {
-		t.Fatalf("QA success edge: %+v", n)
-	}
-	// A failed check goes back to the agent rather than to a person.
-	if n, _, ok := feature.Next("qa", TriggerFailure, nil, ""); !ok || n.Column != "К агенту" {
-		t.Fatalf("QA failure edge: %+v", n)
-	}
-	// Waiting for the merge needs no token: it is the local git watcher.
-	if !IsVCSTrigger(TriggerBranchMerged) || IsGitHubTrigger(TriggerBranchMerged) {
-		t.Fatal("the seeded routes must work without GitHub credentials")
-	}
-	if n, _, ok := feature.Next("review", TriggerBranchMerged, nil, ""); !ok || n.Column != cfg.DeployColumn {
-		t.Fatalf("review edge: %+v", n)
-	}
-
-	// A column the config does not name produces no stage, and the transitions
-	// that would have led there go with it.
-	cfg.DeployColumn = ""
-	for _, f := range TemplateFlows(cfg) {
-		if _, ok := f.NodeByColumn("Deploy"); ok {
-			t.Fatalf("%s: an empty deployColumn should not become a stage", f.Name)
-		}
-		if _, err := validateFlow(f, nil, nil, nil); err != nil {
-			t.Fatalf("%s: dropping a column left a dangling edge: %v", f.Name, err)
+	for _, column := range []string{TemplateWorkColumn, TemplateDeployColumn, TemplateTestColumn} {
+		if _, ok := feature.NodeByColumn(column); !ok {
+			t.Errorf("the feature route has no stage on %q", column)
 		}
 	}
 }
 
-func TestLoadConfigSeedsAndRespectsAnEmptyRegistry(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-
-	// A config written before flows existed gets the template routes.
-	if err := os.WriteFile(path, []byte(`{"triggerColumn":"К агенту","testColumn":"На тест"}`), 0o600); err != nil {
-		t.Fatal(err)
+func flowNamed(flows []FlowEntry, name string) (FlowEntry, bool) {
+	for _, f := range flows {
+		if f.Name == name {
+			return f, true
+		}
 	}
-	cfg, err := LoadConfig(path, dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(cfg.Flows) != len(TemplateFlows(cfg)) || len(cfg.Flows) == 0 {
-		t.Fatalf("template flows not seeded: %+v", cfg.Flows)
-	}
-	if _, ok := cfg.Flows[0].NodeByColumn("К агенту"); !ok {
-		t.Fatalf("the seeded flows ignored the config's own columns: %+v", cfg.Flows[0])
-	}
-	// Seeding several routes also means no card is silently adopted by one:
-	// resolveFlow's single-entry fallback only fires when there is exactly one.
-	if len(cfg.Flows) < 2 {
-		t.Fatalf("a single seeded route would adopt every card: %+v", cfg.Flows)
-	}
-
-	// Deleting every route is a decision and must survive a restart.
-	if err := os.WriteFile(path, []byte(`{"flows":[]}`), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	cfg, err = LoadConfig(path, dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(cfg.Flows) != 0 {
-		t.Fatalf("an empty registry was re-seeded: %+v", cfg.Flows)
-	}
+	return FlowEntry{}, false
 }
+
+// What used to stand here: a test that LoadConfig seeded the template routes
+// into the machine's settings for an install that predated routes, and that an
+// emptied list survived a restart. Both went with the seeding
+// (docs/store-plan.md, step 3): a board carries its own routes.
 
 func TestFlowEntryJSONRoundTrip(t *testing.T) {
 	b, err := json.Marshal(sampleFlow())

@@ -687,22 +687,6 @@ type Config struct {
 	AgentCommand []string `json:"agentCommand,omitempty"`
 
 	TriggerProperty string `json:"triggerProperty"`
-	TriggerColumn   string `json:"triggerColumn"`
-
-	// DeployColumn is the second trigger on the same property: a card dragged
-	// into it starts a session whose job is to publish the card's branch to the
-	// Dokku target it resolves to. Empty disables the deploy trigger.
-	DeployColumn string `json:"deployColumn"`
-
-	// TestColumn is the third trigger on the same property: a card dragged into
-	// it starts a session that opens the card's preview in a real browser and
-	// checks it against the card's description. Empty disables the test trigger.
-	TestColumn string `json:"testColumn"`
-
-	// TestPassColumn and TestFailColumn are where the card goes once the verdict
-	// is in. Empty means the card stays put and a human decides.
-	TestPassColumn string `json:"testPassColumn"`
-	TestFailColumn string `json:"testFailColumn"`
 
 	// Workdirs is the registry of named local folders. A card is mapped to
 	// a folder when one of its select/multiSelect option names (e.g. a tag)
@@ -728,8 +712,7 @@ type Config struct {
 
 	// Columns is what happens in each column of a board: the action a card
 	// entering it starts, who works it, how many at once. It is the single
-	// answer to "what does this column do" — the TriggerColumn/DeployColumn/
-	// TestColumn keys above are only the seed it is migrated from. See columns.go.
+	// answer to "what does this column do". See columns.go.
 	Columns []ColumnSpec `json:"columns"`
 
 	// Flows is the registry of named routes across the board: which column
@@ -737,15 +720,6 @@ type Config struct {
 	// gets whatever its column does — a flow adds the transitions, not the
 	// behaviour. See flows.go.
 	Flows []FlowEntry `json:"flows"`
-
-	// SystemPrompt was the instruction prepended to every triggered session's
-	// prompt, for every board at once. It is kept only as the source the
-	// migration below reads: a board is what a prompt is about, and one
-	// setting shared by the household board and the code board was a setting
-	// nobody could fill in. Nothing reads it after LoadConfig.
-	//
-	// Deprecated: use BoardPrompts.
-	SystemPrompt string `json:"systemPrompt,omitempty"`
 
 	// BoardPrompts is that instruction, per board: the text prepended to every
 	// prompt a session of that board is given, before the agent's own system
@@ -830,7 +804,10 @@ type Config struct {
 const (
 	// DefaultTriggerProperty is the select property the columns live on.
 	DefaultTriggerProperty = "Статус"
-	DefaultTriggerColumn   = "В работе"
+	// DefaultTriggerColumn is what a board made from a template calls the column
+	// an agent works in. Kept as the one name the fixtures and the templates
+	// share; the templates' own names are in flowtemplates.go.
+	DefaultTriggerColumn = TemplateWorkColumn
 	// legacyTriggerColumn is the column earlier versions triggered on; configs
 	// still carrying it are migrated on load.
 	legacyTriggerColumn = "To Agent"
@@ -843,11 +820,6 @@ func DefaultConfig(dataDir string) Config {
 		Enabled:                  true,
 		AgentMode:                "claude",
 		TriggerProperty:          DefaultTriggerProperty,
-		TriggerColumn:            DefaultTriggerColumn,
-		DeployColumn:             "Деплой",
-		TestColumn:               "QA",
-		TestPassColumn:           "Проверено",
-		TestFailColumn:           "Не прошло",
 		Workdirs:                 []WorkdirEntry{},
 		Agents:                   []AgentEntry{},
 		Proxies:                  []ProxyEntry{},
@@ -968,11 +940,9 @@ func (c Config) TestTimeout() time.Duration {
 func LoadConfig(path, dataDir string) (Config, error) {
 	b, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
-		// A new install seeds no routes: the board brings its own (the "My
-		// Folder Tasks" template ships them), and the editor offers the same
-		// ones to a board that does not. Columns are still derived from the
-		// trigger-column keys, so a hand-made board behaves as it always did.
-		cfg := withColumns(DefaultConfig(dataDir))
+		// A new install seeds neither columns nor routes: a board brings its
+		// own, and the editor offers the templates to a board that has none.
+		cfg := DefaultConfig(dataDir)
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			return cfg, err
 		}
@@ -989,89 +959,19 @@ func LoadConfig(path, dataDir string) (Config, error) {
 	if err := json.Unmarshal(b, &cfg); err != nil {
 		return Config{}, fmt.Errorf("parse %s: %w", path, err)
 	}
-	// An existing config keeps whatever it says, so the old default would live
-	// on forever in installs that never touched it. Only the abandoned default
-	// is rewritten; a column the user chose is left alone. It happens before the
-	// routes are seeded, so their stages name the column cards land in now.
-	if strings.EqualFold(strings.TrimSpace(cfg.TriggerColumn), legacyTriggerColumn) {
-		cfg.TriggerColumn = DefaultTriggerColumn
-	}
-	// Seed the routes and the columns only when the file has no such key at
-	// all. An empty list is a decision — the user deleted every route, or
-	// cleared every column — and must survive restarts, which an emptiness
-	// check could not tell from a config written before either existed.
-	var probe struct {
-		Flows   *[]FlowEntry  `json:"flows"`
-		Columns *[]ColumnSpec `json:"columns"`
-	}
-	if err := json.Unmarshal(b, &probe); err != nil {
-		probe.Flows, probe.Columns = nil, nil
-	}
-	if probe.Columns == nil {
-		cfg = withColumns(cfg)
-	}
-	if probe.Flows == nil && len(cfg.Columns) > 0 {
-		// An install that predates flows keeps the routes it would have been
-		// given then; a fresh one gets them from its board instead.
-		cfg = withTemplateFlows(cfg)
-	}
-	cfg = withBoardPrompts(cfg)
+	// What used to happen here: three seedings, all of them for an install that
+	// predated something. The trigger column was rewritten off an abandoned
+	// default; columns were built from the five column-name keys this file used
+	// to carry; routes were built from those columns. All three are gone with
+	// the keys (docs/store-plan.md, step 3, contradiction 9): a board carries
+	// its own columns and routes, and the machine's settings no longer name the
+	// columns of anybody's board.
 	return cfg, nil
 }
 
-// withBoardPrompts moves the one prompt every board used to share onto the
-// boards that actually run something. It runs once: the global field is blanked
-// afterwards, so the next load finds nothing to move.
-//
-// Every board named by a column or a route gets the text, because those are the
-// boards the prompt was reaching — a board with neither never ran a session and
-// so never saw it. Boards the user has since deleted leave a key behind, which
-// costs a line of JSON and is cheaper than reaching into the store from here.
-func withBoardPrompts(cfg Config) Config {
-	text := strings.TrimSpace(cfg.SystemPrompt)
-	if text == "" || len(cfg.BoardPrompts) > 0 {
-		cfg.SystemPrompt = ""
-		return cfg
-	}
-	prompts := map[string]string{}
-	for _, c := range cfg.Columns {
-		if c.BoardID != "" {
-			prompts[c.BoardID] = cfg.SystemPrompt
-		}
-	}
-	for _, f := range cfg.Flows {
-		if f.BoardID != "" {
-			prompts[f.BoardID] = cfg.SystemPrompt
-		}
-	}
-	if len(prompts) > 0 {
-		cfg.BoardPrompts = prompts
-	}
-	cfg.SystemPrompt = ""
-	return cfg
-}
-
-// withColumns fills the column registry from the trigger-column keys the config
-// already carries, so an install that predates it keeps behaving exactly as it
-// did: the trigger column runs an agent, the deploy column deploys, the test
-// column tests. The keys stay in the file as the seed; from here on the
-// registry is what the trigger loop reads.
-func withColumns(cfg Config) Config {
-	if len(cfg.Columns) == 0 {
-		cfg.Columns = migratedColumns(cfg)
-	}
-	return cfg
-}
-
-// withTemplateFlows seeds the registry with the template routes, built from the
-// trigger columns the config already names. It runs after unmarshalling so the
-// routes reflect the user's own column names rather than the defaults.
-func withTemplateFlows(cfg Config) Config {
-	if flows := TemplateFlows(cfg); len(flows) > 0 {
-		cfg.Flows = flows
-	}
-	return cfg
-}
+// What used to stand here: withBoardPrompts, withColumns and withTemplateFlows
+// — the three functions that carried an older config forward. Removed with the
+// keys they read, since none of the installs they were for exist.
 
 // GithubTokenValue is the token to authorize pull-request polling with: the
 // configured one, else whatever the environment already holds.

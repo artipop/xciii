@@ -729,17 +729,13 @@ func (m *Manager) configToStore() Config {
 	}
 	cfg.Columns, cfg.Flows = columns, flows
 
-	// The map is rebuilt rather than edited: cfg is a shallow copy of m.cfg, so
-	// deleting from it would delete from what the engine reads.
-	if len(cfg.BoardPrompts) > 0 {
-		prompts := make(map[string]string, len(cfg.BoardPrompts))
-		for boardID, text := range cfg.BoardPrompts {
-			if !m.boardStored[boardID] {
-				prompts[boardID] = text
-			}
-		}
-		cfg.BoardPrompts = prompts
-	}
+	// The prompts are not written at all. Every board holds its own as
+	// `xciiiPrompt` and it is read back from there (adoptPrompt), so the copy in
+	// the settings file was the machine naming something that belongs to a
+	// board — the same shape as the column keys, and gone for the same reason
+	// (docs/store-plan.md, step 3). The map stays in memory, where the engine
+	// reads it on every session.
+	cfg.BoardPrompts = nil
 	return cfg
 }
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -538,79 +537,11 @@ func TestResolveAgentSingleAndFallback(t *testing.T) {
 	}
 }
 
-func TestLoadConfigMigratesLegacyTriggerColumn(t *testing.T) {
-	dir := t.TempDir()
-	write := func(triggerColumn string) Config {
-		t.Helper()
-		path := filepath.Join(t.TempDir(), "config.json")
-		if err := os.WriteFile(path, []byte(`{"triggerColumn":"`+triggerColumn+`"}`), 0o600); err != nil {
-			t.Fatal(err)
-		}
-		cfg, err := LoadConfig(path, dir)
-		if err != nil {
-			t.Fatal(err)
-		}
-		return cfg
-	}
-
-	// The abandoned default is rewritten, whatever its case…
-	if got := write("To Agent").TriggerColumn; got != DefaultTriggerColumn {
-		t.Errorf("legacy column = %q, want %q", got, DefaultTriggerColumn)
-	}
-	if got := write("to agent").TriggerColumn; got != DefaultTriggerColumn {
-		t.Errorf("legacy column (lowercase) = %q, want %q", got, DefaultTriggerColumn)
-	}
-	// …but a column the user picked is theirs.
-	if got := write("Ready for agent").TriggerColumn; got != "Ready for agent" {
-		t.Errorf("custom column was rewritten to %q", got)
-	}
-}
-
-// A prompt used to be one string for the whole machine, which meant the board
-// of household chores and the board of code shared it and so nobody could write
-// anything useful in it. Installs that did write something must not lose it: it
-// moves to the boards it was actually reaching, and the global field goes.
-func TestLoadConfigMovesTheOldPromptOntoTheBoardsThatRunSomething(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(t.TempDir(), "config.json")
-	old := `{"systemPrompt":"Отвечай по-русски.",
-		"columns":[{"boardId":"board1","property":"Статус","column":"В работе","action":"agent"}],
-		"flows":[{"boardId":"board2","name":"Фича","nodes":[],"edges":[]}]}`
-	if err := os.WriteFile(path, []byte(old), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	cfg, err := LoadConfig(path, dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, board := range []string{"board1", "board2"} {
-		if got := cfg.BoardPrompts[board]; got != "Отвечай по-русски." {
-			t.Errorf("%s prompt = %q, want the migrated text", board, got)
-		}
-	}
-	if cfg.SystemPrompt != "" {
-		t.Errorf("the global prompt survived as %q", cfg.SystemPrompt)
-	}
-
-	// Saved back and reloaded, the migration finds nothing to do — so a board
-	// that later empties its prompt does not have the old text handed to it
-	// again on the next launch.
-	if err := SaveConfig(path, cfg); err != nil {
-		t.Fatal(err)
-	}
-	cfg.BoardPrompts = nil
-	if err := SaveConfig(path, cfg); err != nil {
-		t.Fatal(err)
-	}
-	again, err := LoadConfig(path, dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(again.BoardPrompts) != 0 {
-		t.Errorf("emptied prompts came back as %v", again.BoardPrompts)
-	}
-}
+// What used to stand here: two tests of config migrations that no longer exist
+// — the abandoned trigger-column default being rewritten, and the one
+// machine-wide system prompt being spread onto the boards that ran something.
+// Both keys are gone (docs/store-plan.md, step 3), and with no release there is
+// no config file in the world that still carries them.
 
 func TestAgentMCPServersValidation(t *testing.T) {
 	ok, err := validateAgent(AgentEntry{Name: "jojo", Kind: "junie", MCPServers: map[string]AgentMCPServer{

@@ -326,7 +326,7 @@ func main() {
 				if sourcePlugins != nil {
 					sourcePlugins.SetAgentRunner(inboxAgentRunner{mgr})
 				}
-				log.Printf("acp: enabled (trigger %q/%q)", acpCfg.TriggerProperty, acpCfg.TriggerColumn)
+				log.Printf("acp: enabled (columns on %q)", acpCfg.TriggerProperty)
 			}
 		}
 	}

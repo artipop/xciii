@@ -115,6 +115,11 @@ func (m *Manager) BoardColumns(boardID string) []ColumnSpec {
 // spec that names no board at all (a migrated one).
 func matchColumn(specs []ColumnSpec, boardID string, c Column) (ColumnSpec, int, bool) {
 	byName := func(s ColumnSpec) bool {
+		// An unnamed column is not a column: matching one by name would make it
+		// the answer for every column nobody named, on every board.
+		if strings.TrimSpace(s.Column) == "" {
+			return false
+		}
 		return strings.EqualFold(s.Property, c.PropertyName) && strings.EqualFold(s.Column, c.Name)
 	}
 	if c.OptionID != "" {
@@ -289,29 +294,10 @@ func sameColumn(a, b ColumnSpec) bool {
 		(a.BoardID == b.BoardID || a.BoardID == "" || b.BoardID == "")
 }
 
-// migratedColumns turns the config's legacy column keys into specs, so an
-// install that has never seen this feature behaves exactly as it did: the
-// trigger column runs an agent, the deploy column deploys, the test column
-// tests. They carry no ids — the first card moved into one fills those in.
-func migratedColumns(cfg Config) []ColumnSpec {
-	out := make([]ColumnSpec, 0, 3)
-	add := func(column, action string) {
-		column = strings.TrimSpace(column)
-		if column == "" {
-			return
-		}
-		for _, c := range out {
-			if strings.EqualFold(c.Column, column) {
-				return // two keys naming one column: the first wins
-			}
-		}
-		out = append(out, ColumnSpec{Property: cfg.TriggerProperty, Column: column, Action: action})
-	}
-	add(cfg.TriggerColumn, FlowActionAgent)
-	add(cfg.DeployColumn, FlowActionDeploy)
-	add(cfg.TestColumn, FlowActionTest)
-	return out
-}
+// What used to stand here: migratedColumns, which built a column registry out
+// of the five column-name keys the machine's settings carried. Those keys named
+// the columns of whatever board a card happened to move on, matched by name
+// (contradiction 9 of docs/model-graph.md), and they are gone.
 
 // errStageBusy is not a failure: the column's crew is fully occupied, so the
 // card waits for a free member instead of taking its failure branch.

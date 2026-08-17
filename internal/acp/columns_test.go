@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -59,46 +57,9 @@ func TestColumnPrefersTheBoardsOwnSpec(t *testing.T) {
 
 // Upgrading an install must not change what its columns do: the old keys become
 // specs saying exactly what they said before.
-func TestColumnsMigratedFromTheLegacyKeys(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.json")
-	if err := os.WriteFile(path, []byte(`{"triggerColumn":"К агенту","deployColumn":"Деплой","testColumn":"На тест"}`), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	cfg, err := LoadConfig(path, dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	want := map[string]string{"К агенту": FlowActionAgent, "Деплой": FlowActionDeploy, "На тест": FlowActionTest}
-	if len(cfg.Columns) != len(want) {
-		t.Fatalf("columns: %+v", cfg.Columns)
-	}
-	for _, c := range cfg.Columns {
-		if want[c.Column] != c.Action {
-			t.Errorf("column %q does what it should not: %q", c.Column, c.Action)
-		}
-		if c.Property != cfg.TriggerProperty {
-			t.Errorf("column %q landed on property %q", c.Column, c.Property)
-		}
-		if c.OptionID != "" {
-			t.Errorf("a migrated column cannot know its option yet: %+v", c)
-		}
-	}
-
-	// Clearing every column is a decision and must survive a restart, exactly
-	// as an emptied flow registry does.
-	if err := os.WriteFile(path, []byte(`{"columns":[]}`), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	cfg, err = LoadConfig(path, dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(cfg.Columns) != 0 {
-		t.Fatalf("an emptied column registry was re-seeded: %+v", cfg.Columns)
-	}
-}
+// What used to stand here: a test that the five column-name keys in the
+// machine's settings became a column registry. Those keys named the columns of
+// anybody's board and are gone (docs/store-plan.md, step 3, contradiction 9).
 
 func TestSaveColumnValidatesAndReplaces(t *testing.T) {
 	m := agentManager(t, "", AgentEntry{Name: "claude-1", Kind: "claude"})
@@ -180,7 +141,7 @@ func TestCrewTakesTheFreeAgent(t *testing.T) {
 func TestColumnLimitQueuesTheCard(t *testing.T) {
 	m, writer, events, _ := testManager(t, fakeClaudeHang, func(c *Config) {
 		c.Columns = []ColumnSpec{{
-			Property: c.TriggerProperty, Column: c.TriggerColumn,
+			Property: c.TriggerProperty, Column: TemplateWorkColumn,
 			Action: FlowActionAgent, MaxRunning: 1,
 		}}
 	})
@@ -462,7 +423,7 @@ func TestCrewedColumnWritesItsWorkerIntoTheAssignee(t *testing.T) {
 	m, _, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}}
 		c.Columns = []ColumnSpec{{
-			Property: c.TriggerProperty, Column: c.TriggerColumn,
+			Property: c.TriggerProperty, Column: TemplateWorkColumn,
 			Action: FlowActionAgent, Agents: []string{"клаус"},
 		}}
 	})
@@ -498,7 +459,7 @@ func TestCrewedTestColumnWritesItsTesterIntoTheAssignee(t *testing.T) {
 			MCPServers: MCPServerSet{"playwright": {Command: "npx"}},
 		}}
 		c.Columns = []ColumnSpec{{
-			Property: c.TriggerProperty, Column: c.TriggerColumn,
+			Property: c.TriggerProperty, Column: TemplateWorkColumn,
 			Action: FlowActionTest, Agents: []string{"тестер"},
 		}}
 	})

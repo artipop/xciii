@@ -247,12 +247,17 @@ func testManagerWithEmitter(t *testing.T, scenario string, mutate func(*Config))
 	cfg.AgentCommand = []string{writeFakeAgent(t, scenario)}
 	cfg.Workdirs = []WorkdirEntry{testWorkdir(project)}
 	cfg.WorktreeDir = filepath.Join(dir, "wt")
+	// The columns a fixture works with: the registry is a board's own answer
+	// now, so a config built in code has to say so itself — and before the
+	// test's own mutate, which is entitled to replace them.
+	cfg.Columns = []ColumnSpec{
+		{Property: cfg.TriggerProperty, Column: TemplateWorkColumn, Action: FlowActionAgent},
+		{Property: cfg.TriggerProperty, Column: TemplateDeployColumn, Action: FlowActionDeploy},
+		{Property: cfg.TriggerProperty, Column: TemplateTestColumn, Action: FlowActionTest},
+	}
 	if mutate != nil {
 		mutate(&cfg)
 	}
-	// LoadConfig is what fills the column registry from the trigger-column keys
-	// on a real install; a config built in code needs the same step.
-	cfg = withColumns(cfg)
 
 	st, err := newTestStore(t, filepath.Join(dir, "acp.db"))
 	if err != nil {

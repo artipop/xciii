@@ -207,35 +207,34 @@ func TestTestSessionTakesTheBrowserFromTheColumn(t *testing.T) {
 
 func TestTestColumnRouting(t *testing.T) {
 	m := agentManager(t, "")
-	m.cfg.Columns = migratedColumns(m.cfg)
+	m.cfg.Columns = []ColumnSpec{
+		{Property: m.cfg.TriggerProperty, Column: TemplateTestColumn, Action: FlowActionTest},
+	}
 
 	col := func(name string) Column {
 		return Column{PropertyName: strings.ToLower(m.cfg.TriggerProperty), Name: name}
 	}
-	spec, ok := m.columnFor("board1", col(strings.ToLower(m.cfg.TestColumn)))
+	spec, ok := m.columnFor("board1", col(strings.ToLower(TemplateTestColumn)))
 	if !ok || spec.Action != FlowActionTest {
 		t.Fatalf("the test column should match case-insensitively: %+v, %v", spec, ok)
 	}
-	if spec, _ := m.columnFor("board1", col(m.cfg.TriggerColumn)); spec.Action != FlowActionAgent {
-		t.Fatalf("the trigger column should run an agent: %+v", spec)
-	}
-	if _, ok := m.columnFor("board1", Column{PropertyName: "Other", Name: m.cfg.TestColumn}); ok {
+	if _, ok := m.columnFor("board1", Column{PropertyName: "Other", Name: TemplateTestColumn}); ok {
 		t.Fatal("only the configured property may match")
 	}
 
 	// An empty name is not a column: it must not match every unnamed one.
-	m.cfg.TestColumn = ""
-	m.cfg.Columns = migratedColumns(m.cfg)
+	m.cfg.Columns = []ColumnSpec{
+		{Property: m.cfg.TriggerProperty, Column: "", Action: FlowActionTest},
+	}
 	if _, ok := m.columnFor("board1", Column{PropertyName: m.cfg.TriggerProperty}); ok {
 		t.Fatal("an empty column name must not become a trigger")
 	}
 }
 
-func TestDefaultConfigShipsTheTestColumn(t *testing.T) {
+func TestDefaultConfigShipsTheTestSettings(t *testing.T) {
 	cfg := DefaultConfig(t.TempDir())
-	if cfg.TestColumn == "" || cfg.TestPassColumn == "" || cfg.TestFailColumn == "" {
-		t.Fatalf("test columns: %+v", cfg)
-	}
+	// The column names are the templates' own now; the machine's settings keep
+	// only what is about this machine.
 	if cfg.TestPrompt != DefaultTestPrompt || cfg.ArtifactsDir == "" {
 		t.Fatalf("test defaults missing: %+v", cfg)
 	}
