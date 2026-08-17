@@ -71,13 +71,13 @@ func (m *Manager) CardFlowFor(cardID string) (*CardFlow, error) {
 	for _, n := range flow.Nodes {
 		action := n.Action
 		if action == "" {
-			if spec, ok := m.columnByName(flow.PropertyOr(m.triggerProperty()), n.Column); ok {
+			if spec, ok := m.columnOf(n, flow.PropertyOr(m.triggerProperty())); ok {
 				action = spec.Action
 			}
 		}
 		crew := n.Crew()
 		if len(crew) == 0 {
-			if spec, ok := m.columnByName(flow.PropertyOr(m.triggerProperty()), n.Column); ok {
+			if spec, ok := m.columnOf(n, flow.PropertyOr(m.triggerProperty())); ok {
 				crew = spec.Agents
 			}
 		}
@@ -121,7 +121,7 @@ func (m *Manager) cardIsQueued(cardID string) bool {
 	if !found {
 		return false
 	}
-	spec, found := m.columnByName(flow.PropertyOr(m.triggerProperty()), node.Column)
+	spec, found := m.columnOf(node, flow.PropertyOr(m.triggerProperty()))
 	if !found {
 		return false
 	}
@@ -129,12 +129,25 @@ func (m *Manager) cardIsQueued(cardID string) bool {
 	return err == nil && ok && q.CardID == cardID
 }
 
-// columnByName finds a configured column the way a flow node names one.
-func (m *Manager) columnByName(property, column string) (ColumnSpec, bool) {
+// columnOf finds the configured column a route's stage stands on.
+//
+// By the stage's option id where it has one, which is what makes renaming a
+// column — or the property it lives on — cost nothing (contradiction 1 of
+// docs/model-graph.md). The names are the fallback for a route written before
+// stages recorded an option, and `matchColumn` backfills those the first time a
+// card moves through, so the fallback empties itself.
+func (m *Manager) columnOf(node FlowNode, property string) (ColumnSpec, bool) {
 	m.cfgMu.RLock()
 	defer m.cfgMu.RUnlock()
+	if node.OptionID != "" {
+		for _, c := range m.cfg.Columns {
+			if c.OptionID != "" && c.OptionID == node.OptionID {
+				return c, true
+			}
+		}
+	}
 	for _, c := range m.cfg.Columns {
-		if strings.EqualFold(c.Column, column) &&
+		if strings.EqualFold(c.Column, node.Column) &&
 			(property == "" || c.Property == "" || strings.EqualFold(c.Property, property)) {
 			return c, true
 		}

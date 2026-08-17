@@ -251,7 +251,7 @@ func (m *Manager) BoardToolFlows(token string) ([]BoardToolFlow, error) {
 			// A stage that names neither falls back to its column's, which is
 			// what the engine itself resolves — the agent must be told what
 			// will run, not what the stage happened to write down.
-			if spec, found := m.columnByName(property, node.Column); found {
+			if spec, found := m.columnOf(node, property); found {
 				if stage.Action == "" {
 					stage.Action = spec.Action
 				}

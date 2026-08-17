@@ -595,9 +595,9 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 	if st, ok, _ := m.flowState(ev.CardID); ok {
 		if flow, found := m.FlowByName(st.Flow); found {
 			property = flow.PropertyOr(property)
-			if node, has := flow.Node(st.NodeID); has && columnMatchesCard(ev, property, node.Column) {
+			if node, has := flow.Node(st.NodeID); has && columnMatchesCard(ev, node, property) {
 				place := cardPlace{node: st.NodeID, column: node.Column, crew: node.Crew(), runIn: node.RunIn}
-				spec, _ := m.columnByName(property, node.Column)
+				spec, _ := m.columnOf(node, property)
 				if len(place.crew) == 0 {
 					place.crew = spec.Agents
 				}
@@ -637,16 +637,36 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 	return cardPlace{node: nodeNone}
 }
 
-// columnMatchesCard reports whether the card's value on the property is this
-// column — or whether the card cannot say (no options carried, as in a test
-// fake), in which case the route's record is trusted.
-func columnMatchesCard(ev CardMoved, property, column string) bool {
+// columnMatchesCard reports whether the card is standing on this node's column
+// — or whether the card cannot say (no options carried, as in a test fake), in
+// which case the route's record is trusted.
+//
+// The node's own option id answers first, and that is the point: it used to be
+// the property's name against the option's name, which is the last load-bearing
+// place a name decided something (contradiction 1 of docs/model-graph.md). A
+// board whose column property somebody renamed from «Статус», or a board in
+// English, matched nothing — so every conversation on it read as belonging to a
+// column the card had already left.
+//
+// The names still answer the *negative*: "this card is not here any more" needs
+// to know which of the card's options is the column, and neither the stage nor
+// the route records the property's id — only its name. So a rename can still
+// cost a card the answer "you have left", which is the harmless direction: the
+// route's own record stands instead.
+func columnMatchesCard(ev CardMoved, node FlowNode, property string) bool {
 	if len(ev.SelectedOptions) == 0 {
 		return true
 	}
+	if node.OptionID != "" {
+		for _, opt := range ev.SelectedOptions {
+			if opt.OptionID == node.OptionID {
+				return true
+			}
+		}
+	}
 	for _, opt := range ev.SelectedOptions {
 		if strings.EqualFold(opt.PropertyName, property) {
-			return strings.EqualFold(opt.Name, column)
+			return strings.EqualFold(opt.Name, node.Column)
 		}
 	}
 	return true
