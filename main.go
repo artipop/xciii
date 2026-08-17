@@ -41,6 +41,28 @@ func appDataDir(name string, perm os.FileMode) (string, error) {
 	return dir, nil
 }
 
+// openAgentStore hands the agent integration the board's database, after
+// carrying over whatever an `acp.db` from before the move still holds. The
+// import is at startup and happens once: it renames the file when it is done.
+func openAgentStore(brd board, dir string) (*acp.Store, error) {
+	if n, err := acp.ImportLegacyStore(brd.db, brd.tablePrefix, filepath.Join(dir, "acp.db")); err != nil {
+		return nil, err
+	} else if n > 0 {
+		log.Printf("acp: %d rows carried over from acp.db, which is now acp.db.migrated", n)
+	}
+	return acp.NewStore(brd.db, brd.tablePrefix), nil
+}
+
+// openSourceStore does the same for `sources.db`.
+func openSourceStore(brd board, dir string) (*sources.Store, error) {
+	if n, err := sources.ImportLegacyStore(brd.db, brd.tablePrefix, filepath.Join(dir, "sources.db")); err != nil {
+		return nil, err
+	} else if n > 0 {
+		log.Printf("sources: %d rows carried over from sources.db, which is now sources.db.migrated", n)
+	}
+	return sources.NewStore(brd.db, brd.tablePrefix), nil
+}
+
 // acpDataDir returns the ACP integration's own state directory.
 func acpDataDir() (string, error) { return appDataDir("acp", 0o750) }
 
@@ -130,10 +152,11 @@ func main() {
 		backends = append(backends, events)
 	}
 
-	srv, err := runServerWithLogger(logger, port, sessionToken, backends)
+	brd, err := runServerWithLogger(logger, port, sessionToken, backends)
 	if err != nil {
 		log.Fatalf("failed to start the server: %v", err)
 	}
+	srv := brd.srv
 
 	// The templates this app offers are its own (internal/boardadapter/
 	// templates); the server module's are the upstream's examples and carry no
@@ -209,7 +232,7 @@ func main() {
 		log.Printf("sources: disabled, no data dir: %v", err)
 	} else if cfg, err := sources.LoadConfig(filepath.Join(dir, "sources.json")); err != nil {
 		log.Printf("sources: disabled, config error: %v", err)
-	} else if sourceStore, err = sources.OpenStore(filepath.Join(dir, "sources.db")); err != nil {
+	} else if sourceStore, err = openSourceStore(brd, dir); err != nil {
 		log.Printf("sources: disabled, store error: %v", err)
 		sourceStore = nil
 	} else {
@@ -270,7 +293,7 @@ func main() {
 	if acpEnabled {
 		events.SetApp(srv.App())
 		dir, _ := acpDataDir()
-		store, err := acp.OpenStore(filepath.Join(dir, "acp.db"))
+		store, err := openAgentStore(brd, dir)
 		if err != nil {
 			log.Printf("acp: disabled, store error: %v", err)
 		} else {
@@ -324,9 +347,8 @@ func main() {
 		if sourcePlugins != nil {
 			sourcePlugins.Stop(5 * time.Second)
 		}
-		if sourceStore != nil {
-			_ = sourceStore.Close()
-		}
+		// The stores are not closed here: their tables are in the board's
+		// database, and closing that is the board's own shutdown below.
 		_ = srv.Shutdown()
 	}
 

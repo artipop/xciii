@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/artipop/xciii/internal/appschema"
 	"github.com/artipop/xciii/internal/sources"
 )
 
@@ -35,11 +36,12 @@ const testToken = "test-token"
 
 func ingestRoutes(t *testing.T) (*sourceRoutes, *recordingBoard) {
 	t.Helper()
-	store, err := sources.OpenStore(filepath.Join(t.TempDir(), "sources.db"))
+	db, err := appschema.Open(filepath.Join(t.TempDir(), "sources.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = db.Close() })
+	store := sources.NewStore(db, "")
 
 	board := &recordingBoard{}
 	cfg := sources.Config{Sources: []sources.SourceEntry{{

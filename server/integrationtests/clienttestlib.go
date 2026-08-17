@@ -151,7 +151,7 @@ func newTestServerWithLicense(singleUserToken string, licenseType LicenseType) *
 		panic(err)
 	}
 	singleUser := len(singleUserToken) > 0
-	innerStore, err := server.NewStore(cfg, singleUser, logger)
+	innerStore, _, err := server.NewStore(cfg, singleUser, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -199,7 +199,7 @@ func newTestServerLocalMode() *server.Server {
 		panic(err)
 	}
 
-	db, err := server.NewStore(cfg, false, logger)
+	db, _, err := server.NewStore(cfg, false, logger)
 	if err != nil {
 		panic(err)
 	}

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Git watches the project itself: no tokens, no API, works with any hosting.
+// Git watches the folder itself: no tokens, no API, works with any hosting.
 // It answers the two questions that do not need a forge — is the branch on the
 // remote, and has it landed on the default branch.
 type Git struct {
@@ -18,12 +18,12 @@ type Git struct {
 	Run Runner
 }
 
-// Runner executes a git command in a project and returns its output.
-type Runner func(ctx context.Context, project string, args ...string) (string, error)
+// Runner executes a git command in a working directory and returns its output.
+type Runner func(ctx context.Context, dir string, args ...string) (string, error)
 
 // Exec is the real Runner.
-func Exec(ctx context.Context, project string, args ...string) (string, error) {
-	cmd := exec.CommandContext(ctx, "git", append([]string{"-C", project}, args...)...)
+func Exec(ctx context.Context, dir string, args ...string) (string, error) {
+	cmd := exec.CommandContext(ctx, "git", append([]string{"-C", dir}, args...)...)
 	out, err := cmd.CombinedOutput()
 	text := strings.TrimSpace(string(out))
 	if err != nil {
@@ -34,11 +34,11 @@ func Exec(ctx context.Context, project string, args ...string) (string, error) {
 
 func (g *Git) Name() string { return "git" }
 
-func (g *Git) run(ctx context.Context, project string, args ...string) (string, error) {
+func (g *Git) run(ctx context.Context, dir string, args ...string) (string, error) {
 	if g.Run != nil {
-		return g.Run(ctx, project, args...)
+		return g.Run(ctx, dir, args...)
 	}
-	return Exec(ctx, project, args...)
+	return Exec(ctx, dir, args...)
 }
 
 // Poll fetches the remote once and answers whatever the target waits for.
@@ -165,17 +165,17 @@ func (g *Git) branchTip(ctx context.Context, t Target, remote string) (string, e
 	return "", nil
 }
 
-// defaultBranch is the remote's HEAD — main, master or whatever the project
+// defaultBranch is the remote's HEAD — main, master or whatever the repository
 // uses. The symbolic ref is only present after a clone or an explicit
 // set-head, so a guess follows.
-func (g *Git) defaultBranch(ctx context.Context, project, remote string) (string, error) {
-	if out, err := g.run(ctx, project, "symbolic-ref", "--quiet", "--short", "refs/remotes/"+remote+"/HEAD"); err == nil {
+func (g *Git) defaultBranch(ctx context.Context, dir, remote string) (string, error) {
+	if out, err := g.run(ctx, dir, "symbolic-ref", "--quiet", "--short", "refs/remotes/"+remote+"/HEAD"); err == nil {
 		if name := strings.TrimPrefix(strings.TrimSpace(out), remote+"/"); name != "" {
 			return name, nil
 		}
 	}
 	for _, guess := range []string{"main", "master"} {
-		if _, err := g.run(ctx, project, "rev-parse", "--verify", "--quiet", "refs/remotes/"+remote+"/"+guess); err == nil {
+		if _, err := g.run(ctx, dir, "rev-parse", "--verify", "--quiet", "refs/remotes/"+remote+"/"+guess); err == nil {
 			return guess, nil
 		}
 	}

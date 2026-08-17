@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"io"
 	"io/fs"
@@ -128,14 +129,26 @@ func newServerLogger() mlog.LoggerIFace {
 	return logger
 }
 
+// board is the running board server and the database under it. The handle and
+// the prefix travel with it because this application's own tables live in that
+// same database (docs/store-plan.md): one file to back up, one connection, and
+// a composite write that can be one transaction.
+type board struct {
+	srv *server.Server
+	db  *sql.DB
+	// tablePrefix is what every table in this database carries, the board's own
+	// and ours alike.
+	tablePrefix string
+}
+
 // runServerWithLogger starts the board server in-process (single-user
 // mode) on the given port, returning the running server so the caller can
 // Shutdown() it. notifyBackends are registered with the server's notification
 // service (used by the ACP agent integration to observe card moves).
-func runServerWithLogger(logger mlog.LoggerIFace, port int, sessionToken string, notifyBackends []notify.Backend) (*server.Server, error) {
+func runServerWithLogger(logger mlog.LoggerIFace, port int, sessionToken string, notifyBackends []notify.Backend) (board, error) {
 	data, err := dataDir()
 	if err != nil {
-		return nil, fmt.Errorf("resolving data dir: %w", err)
+		return board{}, fmt.Errorf("resolving data dir: %w", err)
 	}
 
 	cfg := &config.Configuration{
@@ -159,9 +172,9 @@ func runServerWithLogger(logger mlog.LoggerIFace, port int, sessionToken string,
 	}
 
 	singleUser := len(sessionToken) > 0
-	db, err := server.NewStore(cfg, singleUser, logger)
+	db, handle, err := server.NewStore(cfg, singleUser, logger)
 	if err != nil {
-		return nil, fmt.Errorf("initializing store: %w", err)
+		return board{}, fmt.Errorf("initializing store: %w", err)
 	}
 
 	permissionsService := localpermissions.New(db, logger)
@@ -177,11 +190,11 @@ func runServerWithLogger(logger mlog.LoggerIFace, port int, sessionToken string,
 
 	srv, err := server.New(params)
 	if err != nil {
-		return nil, fmt.Errorf("initializing server: %w", err)
+		return board{}, fmt.Errorf("initializing server: %w", err)
 	}
 
 	if err := srv.Start(); err != nil {
-		return nil, fmt.Errorf("starting server: %w", err)
+		return board{}, fmt.Errorf("starting server: %w", err)
 	}
-	return srv, nil
+	return board{srv: srv, db: handle, tablePrefix: cfg.DBTablePrefix}, nil
 }

@@ -13,11 +13,10 @@ func workspaceManager(t *testing.T) (*Manager, string) {
 	t.Helper()
 	dataDir := t.TempDir()
 	cfg := DefaultConfig(dataDir)
-	st, err := OpenStore(filepath.Join(dataDir, "acp.db"))
+	st, err := newTestStore(t, filepath.Join(dataDir, "acp.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { _ = st.Close() })
 	m := NewManager(cfg, "", st, newFakeWriter(), &fakeEmitter{}, nil)
 	m.rootCtx = context.Background()
 	repo := initTestWorkdir(t)

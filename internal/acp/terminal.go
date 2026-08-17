@@ -441,15 +441,15 @@ const nodeTalk = "@talk"
 
 // StartCardTerminal opens the work conversation of the node the card stands on
 // — «сесть рядом с работой»: person and stage share the node's one
-// conversation. projectName/agentName override what the card says, for the case
+// conversation. folderName/agentName override what the card says, for the case
 // where it says nothing.
 //
 // On a column that runs an agent the conversation *is* the stage's, so it works
 // where the stage works — the card's workspace — and a stage starting later
 // joins it there instead of opening a second CLI beside it. On every other
 // column it stands beside the work and claims nothing.
-func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*TerminalSession, error) {
-	return m.startCardConversation(cardID, projectName, agentName, false)
+func (m *Manager) StartCardTerminal(cardID, folderName, agentName string) (*TerminalSession, error) {
+	return m.startCardConversation(cardID, folderName, agentName, false)
 }
 
 // StartCardTalk opens the card's own conversation — «обсудить эту карточку»:
@@ -463,11 +463,11 @@ func (m *Manager) StartCardTerminal(cardID, projectName, agentName string) (*Ter
 // with a transcript behind it, and the CLI's own resume is directory-scoped:
 // re-resolving the folder after the card gained one would leave the earlier
 // half unreachable while looking like the same row.
-func (m *Manager) StartCardTalk(cardID, projectName, agentName string) (*TerminalSession, error) {
-	return m.startCardConversation(cardID, projectName, agentName, true)
+func (m *Manager) StartCardTalk(cardID, folderName, agentName string) (*TerminalSession, error) {
+	return m.startCardConversation(cardID, folderName, agentName, true)
 }
 
-func (m *Manager) startCardConversation(cardID, projectName, agentName string, talk bool) (*TerminalSession, error) {
+func (m *Manager) startCardConversation(cardID, folderName, agentName string, talk bool) (*TerminalSession, error) {
 	if m.reader == nil {
 		return nil, fmt.Errorf("чтение карточек недоступно")
 	}
@@ -498,8 +498,8 @@ func (m *Manager) startCardConversation(cardID, projectName, agentName string, t
 			workdirPath, err = rec.WorkdirPath, nil
 		}
 	}
-	if projectName != "" {
-		workdirPath, err = m.resolveNamedWorkdir(projectName)
+	if folderName != "" {
+		workdirPath, err = m.resolveNamedWorkdir(folderName)
 	} else if talk && errors.As(err, &errNoWorkdir{}) {
 		// Talk needs no folder: the wording and the plan come before anybody
 		// decides where the work lives, and the conversation opens in the
@@ -663,7 +663,6 @@ func joinPrompts(parts ...string) string {
 	return strings.Join(out, "\n\n")
 }
 
-
 // cardIntro is what the card's own conversation opens with: which card it is
 // about, in the card's own words.
 //
@@ -745,8 +744,8 @@ func (m *Manager) terminalAgent(ev CardMoved, crew []string) (AgentEntry, error)
 // StartPlanningTerminal opens the CLI with no card behind it — the terminal
 // half of "Plan a task". It runs in the folder itself and never creates a
 // branch: there is nothing yet to put on one.
-func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) (*TerminalSession, error) {
-	project, err := m.planningWorkdir(projectName)
+func (m *Manager) StartPlanningTerminal(folderName, agentName, boardID string) (*TerminalSession, error) {
+	workdir, err := m.planningWorkdir(folderName)
 	if err != nil {
 		return nil, err
 	}
@@ -754,7 +753,7 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 	if err != nil {
 		return nil, err
 	}
-	if project.Path == "" {
+	if workdir.Path == "" {
 		// Planning with no folder talks in «черновики доски» — the same answer
 		// the card's dialog gives, for a conversation that is about the
 		// board's cards rather than about code. The name is what the prompt
@@ -766,13 +765,13 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 		if err := os.MkdirAll(folder, 0o755); err != nil {
 			return nil, fmt.Errorf("не удалось создать папку черновиков доски: %w", err)
 		}
-		project = WorkdirEntry{Name: "черновики доски", Path: folder}
+		workdir = WorkdirEntry{Name: "черновики доски", Path: folder}
 	}
 	// The same rule a card's terminal follows: asking twice means "show me the
 	// one I have", not "start another CLI". A planning terminal has no card to
 	// be found through, so without this a closed window left it running with
 	// nothing in the UI pointing at it.
-	if live := m.planningTerminal(project.Path, agent.Name); live != nil {
+	if live := m.planningTerminal(workdir.Path, agent.Name); live != nil {
 		return live, nil
 	}
 	return m.startTerminal(terminalSpec{
@@ -784,8 +783,8 @@ func (m *Manager) StartPlanningTerminal(projectName, agentName, boardID string) 
 		// card's terminal already does with its card: the CLI is not ready for
 		// input when it starts, so the terminal page offers it as a button
 		// rather than typing it in.
-		task:        planningPrompt(m.BoardPrompt(boardID), m.PlanningPrompt(), agent, project),
-		workdirPath: project.Path,
+		task:        planningPrompt(m.BoardPrompt(boardID), m.PlanningPrompt(), agent, workdir),
+		workdirPath: workdir.Path,
 		agent:       agent,
 	})
 }

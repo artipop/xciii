@@ -107,7 +107,7 @@ type Manager struct {
 	optionsMu    sync.Mutex
 	optionsCache map[string][]AgentOption
 
-	watchers []vcs.Watcher // project watchers feeding the flow engine
+	watchers []vcs.Watcher // folder watchers feeding the flow engine
 
 	sem chan struct{}
 	// rootCtx is the running manager's, and it is nil until Start. What reads
@@ -251,9 +251,9 @@ type startOptions struct {
 	// test makes this a test session: it resolves the card's preview address, is
 	// given the browser MCP tools and gets the tester prompt.
 	test bool
-	// projectName picks a folder explicitly, for a console opened on a card
+	// folderName picks a folder explicitly, for a console opened on a card
 	// that does not say which one it is about.
-	projectName string
+	folderName string
 	// flowName/flowNodeID tie the session to the stage of a route that started
 	// it, so its outcome can move the card on.
 	flowName, flowNodeID string
@@ -348,10 +348,10 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	}
 
 	workdirPath, err := m.resolveWorkdir(ev)
-	if opts.projectName != "" {
+	if opts.folderName != "" {
 		// An explicit choice wins: the console offers one exactly when the card
 		// itself does not say which folder it is about.
-		workdirPath, err = m.resolveNamedWorkdir(opts.projectName)
+		workdirPath, err = m.resolveNamedWorkdir(opts.folderName)
 	}
 	if err != nil {
 		return nil, err
@@ -712,9 +712,8 @@ func (m *Manager) Shutdown(grace time.Duration) {
 	case <-time.After(grace):
 		m.log.Warn("acp: shutdown grace expired with sessions still winding down")
 	}
-	if m.store != nil {
-		_ = m.store.Close()
-	}
+	// The store is not closed here: the database is the board's, and the board
+	// outlives this manager by the length of its own shutdown.
 	m.tr.Close()
 }
 

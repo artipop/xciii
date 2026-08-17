@@ -15,11 +15,10 @@ import (
 func setupManager(t *testing.T, props map[string]any) *Manager {
 	t.Helper()
 	dir := t.TempDir()
-	store, err := OpenStore(filepath.Join(dir, "acp.db"))
+	store, err := newTestStore(t, filepath.Join(dir, "acp.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { _ = store.Close() })
 
 	m := NewManager(DefaultConfig(dir), "", store, newFakeWriter(), &fakeEmitter{}, nil)
 	m.cfg.Columns = nil
@@ -600,7 +599,7 @@ func TestABoardIsNotAskedForWhatOnlyTheMachineHas(t *testing.T) {
 // launch, so "do not show me this again" lasted exactly one launch.
 func TestTheOfferIsRememberedAcrossRestarts(t *testing.T) {
 	dir := t.TempDir()
-	store, err := OpenStore(filepath.Join(dir, "acp.db"))
+	store, err := newTestStore(t, filepath.Join(dir, "acp.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -627,17 +626,12 @@ func TestTheOfferIsRememberedAcrossRestarts(t *testing.T) {
 	if m.SetupPlanFor("board2").Offered {
 		t.Error("one board's offer stood in for another's")
 	}
-	if err := store.Close(); err != nil {
-		t.Fatal(err)
-	}
-
 	// The next launch: a new store on the same file, and nothing else carried
 	// over — no page, no memory.
-	reopened, err := OpenStore(filepath.Join(dir, "acp.db"))
+	reopened, err := newTestStore(t, filepath.Join(dir, "acp.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { _ = reopened.Close() })
 	if !manager(reopened).SetupPlanFor("board1").Offered {
 		t.Fatal("the offer did not survive the restart")
 	}

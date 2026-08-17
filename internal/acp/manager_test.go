@@ -254,7 +254,7 @@ func testManagerWithEmitter(t *testing.T, scenario string, mutate func(*Config))
 	// on a real install; a config built in code needs the same step.
 	cfg = withColumns(cfg)
 
-	st, err := OpenStore(filepath.Join(dir, "acp.db"))
+	st, err := newTestStore(t, filepath.Join(dir, "acp.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -513,7 +513,7 @@ func TestRecoveryMarksStaleFailed(t *testing.T) {
 	cfg.ProjectWhitelist = []string{filepath.Dir(project)}
 
 	dbPath := filepath.Join(dir, "acp.db")
-	st, err := OpenStore(dbPath)
+	st, err := newTestStore(t, dbPath)
 	if err != nil {
 		t.Fatal(err)
 	}

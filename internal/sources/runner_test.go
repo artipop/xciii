@@ -79,11 +79,10 @@ func item(id, title string) json.RawMessage {
 // runnerManager wires a manager whose plugin is the fake above.
 func runnerManager(t *testing.T, entry SourceEntry, fake *fakePlugin) (*Manager, *fakeBoard) {
 	t.Helper()
-	store, err := OpenStore(filepath.Join(t.TempDir(), "sources.db"))
+	store, err := newTestStore(t, filepath.Join(t.TempDir(), "sources.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { store.Close() })
 
 	board := &fakeBoard{}
 	m := NewManager(Config{

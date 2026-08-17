@@ -59,7 +59,7 @@ func newTestAppWith(t *testing.T, backends ...notify.Backend) *app.App {
 		AuthMode:          "native",
 		SessionExpireTime: 259200000000,
 	}
-	store, err := server.NewStore(cfg, true, logger)
+	store, _, err := server.NewStore(cfg, true, logger)
 	if err != nil {
 		t.Skipf("cannot open a board store here: %v", err)
 	}

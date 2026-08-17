@@ -64,8 +64,8 @@ func (m *Manager) PollVCS() {
 			events, err := w.Poll(ctx, target)
 			cancel()
 			if err != nil {
-				m.log.Warn("acp: project poll failed", "watcher", w.Name(),
-					"project", ft.WorkdirPath, "branch", ft.Branch, "err", err)
+				m.log.Warn("acp: folder poll failed", "watcher", w.Name(),
+					"workdir", ft.WorkdirPath, "branch", ft.Branch, "err", err)
 			}
 			for _, e := range events {
 				m.deliverVCSEvent(e)
@@ -88,7 +88,7 @@ func (m *Manager) deliverVCSEvent(e vcs.Event) {
 			return
 		}
 	}
-	m.log.Info("acp: project event", "kind", e.Kind, "project", e.WorkdirPath, "branch", e.Branch)
+	m.log.Info("acp: folder event", "kind", e.Kind, "workdir", e.WorkdirPath, "branch", e.Branch)
 	m.OnVCSEvent(VCSEvent{Kind: e.Kind, WorkdirPath: e.WorkdirPath, Branch: e.Branch, Detail: e.Detail})
 }
 

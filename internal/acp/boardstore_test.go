@@ -304,11 +304,10 @@ func (f *fakeCardState) BoardCardFlows(_ context.Context, boardID string) ([]Flo
 // branches to poll, so a card nobody indexed is a card waiting on a branch
 // nobody is watching.
 func TestParkedCardsOfANewBoardAreIndexedFromIt(t *testing.T) {
-	store, err := OpenStore(filepath.Join(t.TempDir(), "acp.db"))
+	store, err := newTestStore(t, filepath.Join(t.TempDir(), "acp.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { _ = store.Close() })
 
 	cfg := DefaultConfig(t.TempDir())
 	m := NewManager(cfg, filepath.Join(t.TempDir(), "config.json"), store, newFakeWriter(), &fakeEmitter{}, nil)

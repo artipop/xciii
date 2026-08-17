@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"io"
 	"os"
 	"testing"
 
@@ -150,6 +151,14 @@ func TestAnInterruptedMigrationIsRunAgainRatherThanRefused(t *testing.T) {
 		t.Skip("MySQL cannot roll a migration back, so an interrupted one is reported rather than retried")
 	}
 
+	// What an interruption actually leaves behind is both halves: the version
+	// marked dirty, *and* the migration rolled back with the transaction it ran
+	// in. Setting only the flag would test something else — whether the last
+	// migration in the ladder happens to be re-runnable, which is a property
+	// none of them promise and which the first CREATE TABLE at the end of the
+	// ladder took away.
+	rollBackLastMigration(t, db, open(t), version)
+
 	_, err := db.Exec(fmt.Sprintf("UPDATE %sschema_migrations SET dirty = true", migrationTestPrefix))
 	require.NoError(t, err)
 
@@ -159,4 +168,24 @@ func TestAnInterruptedMigrationIsRunAgainRatherThanRefused(t *testing.T) {
 	recoveredVersion, dirty := schemaVersion(t, db)
 	require.False(t, dirty, "the interrupted migration should have been cleared")
 	require.Equal(t, version, recoveredVersion, "the board should be back at the version it had reached")
+}
+
+// rollBackLastMigration undoes the migration the database has just applied, by
+// running the engine's own down side for it. That is what the transaction
+// around an interrupted migration does by itself on SQLite and Postgres, and it
+// is the state the recovery path is written against.
+func rollBackLastMigration(t *testing.T, db *sql.DB, store *SQLStore, version int) {
+	t.Helper()
+	defer func() { _ = store.Shutdown() }()
+
+	src, err := store.NewMigrationSource()
+	require.NoError(t, err)
+	body, _, err := src.ReadDown(uint(version))
+	require.NoError(t, err)
+	statements, err := io.ReadAll(body)
+	require.NoError(t, err)
+	require.NoError(t, body.Close())
+
+	_, err = db.Exec(string(statements))
+	require.NoError(t, err)
 }

@@ -79,7 +79,14 @@ in a browser and as a Mattermost plugin.
   the headless build, which has its own files. `./...` also walks
   `webapp/node_modules`, where an npm package happens to ship Go sources; that is
   cosmetic, and a nested `go.mod` would not fix it — `go:embed` cannot cross a
-  module boundary, and `webapp/pack` is what it embeds.
+  module boundary, and `webapp/pack` is what it embeds. **`server/
+  integrationtests` is flaky** and has been for a while: which permission tests
+  fail changes between runs, and `TestPermissionsGetTeamTemplates` fails every
+  time. Compare against a clean checkout before believing a failure there is
+  yours.
+- `go generate ./tools/schemagen` — after any change to the application's own
+  tables. It rewrites the migration for all three dialects; `go test
+  ./tools/schemagen` is what fails when somebody forgets.
 
 `webapp/pack` must never stop existing, even for a moment: `go mod tidy` resolves
 the `go:embed all:` pattern under every build tag and runs in parallel with the
@@ -92,7 +99,7 @@ installers are native-tool jobs (AppImage shells out to `ldd`, NSIS is `makensis
 
 ## Architecture
 
-Ten ideas hold this together. Read them before changing anything structural.
+Eleven ideas hold this together. Read them before changing anything structural.
 
 ### The front door owns the origin
 
@@ -1528,6 +1535,75 @@ startup**, which predates editions (`importTemplates`) and is what makes
 installing base over lifetime take the two extra templates away. Boards made
 from them are the person's and are untouched.
 
+### One database, and the schema is written once
+
+Everything this application knows is about a card or a board, and both of those
+are rows in the board's database. So our tables are in it too — `conversation`,
+`agent_session`, `flow_state`, `card_stall`, `stage_queue`, `workdir_claim`,
+`source_item` and the rest — rather than in files beside it, which is where they
+began (`acp.db`, `sources.db`). `internal/acp` and `internal/sources` take a
+`*sql.DB` (`NewStore(db, prefix)`) and create nothing; `server.NewStore` hands
+back both the store and the handle under it, and `runServerWithLogger` carries
+the pair as `board{srv, db, tablePrefix}`.
+
+**The reason is a leak rather than tidiness.** Deleting a card is a real
+`DELETE FROM blocks`, and this side never heard about it — `BlockChanged`
+handles only `notify.Update` — so a deleted card left its conversations, its
+place on a route, its stall and its queue slot behind for ever. A foreign key
+onto `blocks(id)` is the fix, and it cannot be added later: SQLite's
+`ALTER TABLE` has no `ADD CONSTRAINT`, so a key is written in `CREATE TABLE` or
+never. The keys are written; **turning the check on is a separate step**
+(`docs/store-plan.md`, step 4), because every remaining empty string that means
+"nothing" has to become NULL first, and because `PRAGMA foreign_keys` is a DSN
+parameter whose name depends on which SQLite driver the build tag chose.
+
+**The schema is Go data, and the SQL is generated.** `tools/schemagen` holds
+every table once with dialect-neutral types, and `ariga.io/atlas` renders
+`000041_app_tables.{up,down}.sql` for SQLite, MySQL and Postgres. Writing three
+dialects by hand is what the fork's other eighty migrations do, and every
+`{{if .postgres}}JSON{{else}}TEXT{{end}}` is a place somebody has to remember
+three answers to one question — here the question is asked once and one table of
+types answers it. Atlas is a build-time dependency: what ships is the SQL, in
+the repository, and `go test ./tools/schemagen` fails when the two disagree.
+**golang-migrate still runs it**: this is a generator, not a migration engine,
+and the engine already knows about versions, dirty marks and the record the
+previous one kept. `go generate ./tools/schemagen` after any schema change.
+
+Three consequences worth knowing before touching a query. Table names are
+written `{in braces}` and resolved by `Store.sql`, cached — braces are not SQL,
+so a query that forgot one fails at the database rather than quietly reading a
+table that is not there. **Absence is NULL** wherever a key looks: a planning
+conversation has no card, and `''` is a card id that does not exist; the reads
+say `COALESCE(...,'')` because in Go absence here is the zero value. And **no
+journal has an autoincrement** any more — `session_event`, `flow_event` and
+`source_event` take UUIDv7, which sorts by the moment it was made, so
+`ORDER BY id` still means "as it happened" and three spellings of
+`AUTO_INCREMENT` are gone. `session_event.seq` went with them.
+
+A test needs that schema and must not carry a copy of the DDL, because a copy
+drifts — the exact bug all of this is about. `internal/appschema` renders the
+same migration out of the same embedded filesystem onto a scratch file; that is
+the only thing it is for, and the running application never touches it.
+
+`conversation` and `agent_session` stay two tables on purpose. **A conversation
+outlives every process that drew it** — it is resumed, `claude --continue`, and
+the row is the conversation while the pty under it has changed three times —
+where a session is one run and one verdict. `docs/deferred.md` records the rest.
+
+**The registry's own name is decided but not yet applied.** `workdir` says
+directory, and the whole point of the entry having an id is that tomorrow it need
+not be one. At step 2, where these columns are rewritten anyway, it becomes
+**`workspace`** — the named place, carrying the git *settings*: `kind`,
+`base_branch`, `branch_prefix`, the per-board mode. What it hands one owner
+becomes **`checkout`** — dir, branch, base, mode, the git *state* — in a table of
+that name instead of `workdir_claim`. That reads as what it already is, because a
+plain folder records no row at all: `ClaimWorkspace` creates and writes nothing
+for `WorkModePlain`, so the table only ever held git copies. Not `project`,
+though every stored key still says so (`projects`, `xciiiProjectProperty`,
+`project_path`): that word was removed for a product reason which has not changed
+— a folder of household notes is not a project, and it made every board of
+shopping lists look like it was missing one.
+
 ## Conventions
 
 - **Comments say why, not what.** The code says what. A comment earns its place by
@@ -1590,13 +1666,13 @@ from them are the person's and are untouched.
 - **Where the model is written down.** `docs/db-erd.md` is what is stored where,
   `docs/model-graph.md` is how one thing finds another — and what is still found
   by name rather than by id — and `docs/store-plan.md` is the work that follows
-  from it: our tables into the board's database, registries out of `config.json`
-  and into tables, one base instead of three files and a JSON; the target schema
-  itself is `docs/schema/app.hcl` (Atlas) and `docs/schema/ent.md` (the same as
-  ent entities), neither applied. The rule those
-  three are kept to: **a reference is a foreign key** — everything referable
-  lives in one database and has an id, the settings file holds only what nothing
-  points at, and nothing at all is found by name.
+  from it: registries out of `config.json` and into tables, one base instead of
+  three files and a JSON. `docs/schema/app.hcl` (Atlas HCL) is the shape that
+  work ends at, a snapshot for reading rather than a source; `docs/schema/ent.md`
+  is why ent was weighed and turned down. The rule they are kept to: **a
+  reference is a foreign key** — everything referable lives in one database and
+  has an id, the settings file holds only what nothing points at, and nothing at
+  all is found by name.
 - **A rework is not finished until `docs/` says what is now true.** The rule
   below is about a feature somebody uses; this one is about the shape of the
   code. When something structural moves — a layer replaced, a plan carried out,

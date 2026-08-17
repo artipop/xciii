@@ -198,17 +198,22 @@ func New(params Params) (*Server, error) {
 	return &server, nil
 }
 
-func NewStore(config *config.Configuration, isSingleUser bool, logger mlog.LoggerIFace) (store.Store, error) {
+// NewStore opens the database and hands back both the board's store and the
+// handle under it. The handle is returned rather than kept private because the
+// application's own tables live in this same database now (docs/store-plan.md):
+// one file, one connection, one transaction — and on SQLite the pool below is
+// capped at one connection, so a second handle would be a second writer.
+func NewStore(config *config.Configuration, isSingleUser bool, logger mlog.LoggerIFace) (store.Store, *sql.DB, error) {
 	sqlDB, err := sql.Open(config.DBType, config.DBConfigString)
 	if err != nil {
 		logger.Error("connectDatabase failed", mlog.Err(err))
-		return nil, err
+		return nil, nil, err
 	}
 
 	err = sqlDB.Ping()
 	if err != nil {
 		logger.Error(`Database Ping failed`, mlog.Err(err))
-		return nil, err
+		return nil, nil, err
 	}
 
 	storeParams := sqlstore.Params{
@@ -224,7 +229,7 @@ func NewStore(config *config.Configuration, isSingleUser bool, logger mlog.Logge
 	var db store.Store
 	db, err = sqlstore.New(storeParams)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// SQLite locks the whole table for a write, and a second connection writing
@@ -245,7 +250,7 @@ func NewStore(config *config.Configuration, isSingleUser bool, logger mlog.Logge
 		sqlDB.SetMaxOpenConns(1)
 	}
 
-	return db, nil
+	return db, sqlDB, nil
 }
 
 func (s *Server) Start() error {
