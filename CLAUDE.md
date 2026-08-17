@@ -1572,6 +1572,22 @@ the repository, and `go test ./tools/schemagen` fails when the two disagree.
 and the engine already knows about versions, dirty marks and the record the
 previous one kept. `go generate ./tools/schemagen` after any schema change.
 
+**The ladder is one rung.** `000001_init` is the whole schema — the fork's tables
+and ours — where there used to be eighty-one files of archaeology leading to it
+(`{{if doesColumnExist "boards" "minimum_role"}}`, `ALTER TABLE blocks DROP
+PRIMARY KEY`, three data migrations interleaved at particular versions to repair
+rows the next step would refuse). None of it means anything to a database made
+today. What made deleting it safe is that the result is *checkable*: the
+generator can print the schema as plain SQLite DDL, and a test compares it —
+column, type, nullability, default, key and index — against a snapshot of what
+the ladder actually built (`tools/schemagen/testdata/`). Column widths are
+checked separately, because SQLite ignores them and atlas therefore does not
+emit them, so a `varchar(64)` narrowed to `varchar(32)` is invisible to the
+first check and silently truncates data on the two dialects nothing here can
+run. A database built by the old ladder is refused with a message saying to
+delete it: there is no release, so the only ones that exist belong to whoever is
+working on this.
+
 Three consequences worth knowing before touching a query. Table names are
 written `{in braces}` and resolved by `Store.sql`, cached — braces are not SQL,
 so a query that forgot one fails at the database rather than quietly reading a

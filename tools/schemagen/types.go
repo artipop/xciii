@@ -58,6 +58,14 @@ const (
 	// KindBool is a flag. SQLite and Postgres have a boolean; MySQL spells it
 	// tinyint(1) and the driver hands back the same Go bool either way.
 	KindBool
+	// KindInt32 is a narrower whole number, and it exists only because the
+	// fork's schema has some: reproducing that schema means reproducing its
+	// widths, or the collapsed migration is not the same schema.
+	KindInt32
+	// KindTimestamp is a real moment, as opposed to KindMillis. The board's
+	// history tables already use one — it is the one place the fork got this
+	// right — and the collapse has to keep it.
+	KindTimestamp
 )
 
 // ID is an identifier column, ours or the board's.
@@ -81,6 +89,13 @@ func Int() Type { return Type{kind: KindInt} }
 // Bool is a flag.
 func Bool() Type { return Type{kind: KindBool} }
 
+// Int32 is a narrower whole number: the fork has a few, and the collapse copies
+// the schema rather than improving it.
+func Int32() Type { return Type{kind: KindInt32} }
+
+// Timestamp is a real moment in time.
+func Timestamp() Type { return Type{kind: KindTimestamp} }
+
 // Column is one column of one table.
 type Column struct {
 	Name string
@@ -89,10 +104,33 @@ type Column struct {
 	// string: a card-less conversation has no card, and a foreign key can only
 	// say so with NULL.
 	Null bool
+	// Default is what the column holds when nobody says. It is a closed set
+	// rather than a string because the interesting one — "now" — is spelled
+	// differently in each dialect, and that difference belongs in one place.
+	Default Default
 	// Why records the decision behind a column that is not obvious. It is
 	// emitted as a comment above the table, not into the database.
 	Why string
 }
+
+// Default is the closed set of column defaults this schema needs.
+type Default int
+
+const (
+	// NoDefault is the ordinary case: absence is NULL.
+	NoDefault Default = iota
+	// DefaultNow is the database's own clock at insert. The board's history
+	// tables use it, and it is the reason they cannot be written inside a
+	// transaction on SQLite without colliding on their own primary key
+	// (docs/sql-plan.md, point 1) — carried across unchanged because fixing
+	// that is a change to how history is written, not to the schema's shape.
+	DefaultNow
+	// DefaultZero and DefaultFalse and DefaultEmptyString are the literals the
+	// fork's own columns carry.
+	DefaultZero
+	DefaultFalse
+	DefaultEmptyString
+)
 
 // Action is what happens to a row when what it points at is deleted.
 type Action string

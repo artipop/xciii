@@ -28,25 +28,17 @@ import (
 	"github.com/artipop/xciii/server/services/store/sqlstore"
 )
 
-// migration is the rung that creates the application's own tables. Named
-// rather than searched for: when it is folded into a collapsed 000001_init
-// (docs/store-plan.md, step 0) this is the one line that has to change, and it
-// should fail loudly rather than quietly matching nothing.
-const migration = "migrations/000041_app_tables.up.sql"
+// migration is the one that creates the schema — the whole of it, the fork's
+// tables and ours, since the ladder was collapsed (docs/store-plan.md, step 0).
+// Named rather than searched for, so that renaming it fails loudly here instead
+// of quietly matching nothing.
+const migration = "migrations/000001_init.up.sql"
 
-// boardStubs are the two board tables our foreign keys point at, reduced to the
-// one column those keys name. The real ones are made by migration 000001 and
-// have thirty columns between them; nothing on this side reads any of the
-// others, and a test that needed them would be a test of the board.
-//
-// They are here rather than left out because the import of a pre-move database
-// asks the board whether a card still exists — which is what stops it writing a
-// dangling reference — and "there is no blocks table" is not an answer.
-const boardStubs = `
-CREATE TABLE IF NOT EXISTS boards (id VARCHAR(36) PRIMARY KEY);
-CREATE TABLE IF NOT EXISTS blocks (id VARCHAR(36) PRIMARY KEY, board_id VARCHAR(36));
-CREATE TABLE IF NOT EXISTS users (id VARCHAR(36) PRIMARY KEY, username VARCHAR(100));
-`
+// The board's own tables used to be stubbed here, because the migration that
+// made ours did not make them. Since the collapse there is one migration and it
+// makes everything, so a test database is now the real schema — which is
+// strictly better: a fixture that inserts a card inserts it into the same
+// blocks table the application uses.
 
 // Open makes a SQLite database at path with the application's tables in it,
 // with the foreign keys written but not enforced.
@@ -64,7 +56,6 @@ func Open(path string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	ddl = boardStubs + ddl
 	db, err := sql.Open("sqlite3", path+"?_busy_timeout=5000")
 	if err != nil {
 		return nil, err
@@ -147,12 +138,17 @@ func AddCard(db *sql.DB, boardID, cardID string) error {
 	if err := AddBoard(db, boardID); err != nil {
 		return err
 	}
-	_, err := db.Exec(`INSERT INTO blocks (id, board_id) VALUES (?,?) ON CONFLICT(id) DO NOTHING`, cardID, boardID)
+	_, err := db.Exec(`INSERT INTO blocks (id, board_id, type) VALUES (?,?,'card') ON CONFLICT(id) DO NOTHING`,
+		cardID, boardID)
 	return err
 }
 
-// AddBoard puts a board in the database.
+// AddBoard puts a board in the database, filling in the columns the board's own
+// schema insists on. Since the migrations were collapsed these tables are the
+// real ones rather than stubs, so a fixture has to make a board a board: one
+// team ('0', the only one this product has), a type, and a title.
 func AddBoard(db *sql.DB, boardID string) error {
-	_, err := db.Exec(`INSERT INTO boards (id) VALUES (?) ON CONFLICT(id) DO NOTHING`, boardID)
+	_, err := db.Exec(`INSERT INTO boards (id, team_id, type, title, minimum_role)
+		VALUES (?, '0', 'P', ?, '') ON CONFLICT(id) DO NOTHING`, boardID, boardID)
 	return err
 }

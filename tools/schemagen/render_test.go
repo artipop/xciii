@@ -1,10 +1,16 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"sort"
 	"strings"
 	"testing"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // The checked-in migration is what runs; this generator is only how it was
@@ -124,4 +130,239 @@ func TestNoKeyIsWiderThanMySQLAllows(t *testing.T) {
 			t.Errorf("%s: primary key is %d characters, more than InnoDB will index", tbl.Name, total)
 		}
 	}
+}
+
+// The collapsed migration has to build the schema the eighty-one it replaced
+// built. That is the entire claim the collapse rests on — an existing database
+// is left alone precisely because it already has this schema — and it is the
+// kind of claim that is worth checking rather than believing.
+//
+// Checked by shape rather than by text: SQLite reports a UNIQUE constraint as an
+// anonymous autoindex and a CREATE UNIQUE INDEX under its own name, and the two
+// enforce the same thing. Columns, types, nullability, defaults, primary keys
+// and what each index covers all have to match.
+//
+// The reference is a database built by the old ladder, kept as a fixture because
+// the ladder itself is gone: it cannot be rebuilt from this tree any more, which
+// is exactly why the snapshot of what it produced is worth keeping.
+func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
+	root, err := moduleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	reference := filepath.Join(root, "tools", "schemagen", "testdata", "schema_before_collapse.sql")
+	want, err := os.ReadFile(reference)
+	if err != nil {
+		t.Skipf("no snapshot of the pre-collapse schema: %v", err)
+	}
+
+	got, err := renderUp(dialects()[0], append(boardTables(), appTables()...))
+	if err != nil {
+		t.Fatal(err)
+	}
+	gotShape := shapeOf(t, strings.ReplaceAll(got, "{{.prefix}}", ""))
+	wantShape := shapeOf(t, string(want))
+
+	for name, w := range wantShape {
+		g, ok := gotShape[name]
+		if !ok {
+			t.Errorf("the collapsed schema has no %s", name)
+			continue
+		}
+		if g != w {
+			t.Errorf("%s differs\n  ladder:    %s\n  collapsed: %s", name, w, g)
+		}
+	}
+	for name := range gotShape {
+		if _, ok := wantShape[name]; !ok {
+			t.Errorf("the collapsed schema adds %s, which the ladder never made", name)
+		}
+	}
+}
+
+// shapeOf is what a table is, as SQLite itself reports it after the DDL has been
+// applied — which normalises away everything that is spelling rather than
+// meaning.
+func shapeOf(t *testing.T, ddl string) map[string]string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "schema.db")
+	db, err := sql.Open("sqlite3", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(ddl); err != nil {
+		t.Fatalf("the DDL would not apply: %v", err)
+	}
+
+	out := map[string]string{}
+	tables, err := db.Query(
+		`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name<>'schema_migrations'`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for tables.Next() {
+		var name string
+		if err := tables.Scan(&name); err != nil {
+			t.Fatal(err)
+		}
+		names = append(names, name)
+	}
+	tables.Close()
+
+	for _, name := range names {
+		var parts []string
+		cols, err := db.Query(`SELECT name, type, "notnull", COALESCE(dflt_value,''), pk FROM pragma_table_info(?)`, name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for cols.Next() {
+			var cname, ctype, dflt string
+			var notnull, pk int
+			if err := cols.Scan(&cname, &ctype, &notnull, &dflt, &pk); err != nil {
+				t.Fatal(err)
+			}
+			parts = append(parts, fmt.Sprintf("%s:%s:%d:%s:%d",
+				cname, normalizeType(ctype), notnull, normalizeDefault(dflt), pk))
+		}
+		cols.Close()
+
+		var idx []string
+		rows, err := db.Query(`SELECT name, "unique", origin FROM pragma_index_list(?)`, name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		type indexRow struct {
+			name   string
+			unique int
+			origin string
+		}
+		var found []indexRow
+		for rows.Next() {
+			var r indexRow
+			if err := rows.Scan(&r.name, &r.unique, &r.origin); err != nil {
+				t.Fatal(err)
+			}
+			found = append(found, r)
+		}
+		rows.Close()
+		for _, r := range found {
+			if r.origin == "pk" {
+				continue
+			}
+			icols, err := db.Query(`SELECT name FROM pragma_index_info(?)`, r.name)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var on []string
+			for icols.Next() {
+				var c string
+				if err := icols.Scan(&c); err != nil {
+					t.Fatal(err)
+				}
+				on = append(on, c)
+			}
+			icols.Close()
+			idx = append(idx, fmt.Sprintf("(%s):%d", strings.Join(on, ","), r.unique))
+		}
+		sort.Strings(idx)
+		out["table "+name] = strings.Join(parts, " ") + " | " + strings.Join(idx, " ")
+	}
+	return out
+}
+
+// normalizeType folds the spellings that mean the same thing to SQLite, which
+// records the declared type verbatim and applies affinity rules to it.
+func normalizeType(t string) string {
+	t = strings.ToLower(strings.ReplaceAll(t, " ", ""))
+	t = regexp.MustCompile(`^varchar\(\d+\)$`).ReplaceAllString(t, "varchar")
+	if t == "int" {
+		t = "integer"
+	}
+	return t
+}
+
+func normalizeDefault(d string) string {
+	return strings.Trim(strings.ToLower(strings.ReplaceAll(d, " ", "")), "()")
+}
+
+// Column widths are checked separately, and they have to be: SQLite ignores
+// them, so atlas does not even emit them there — which means the shape check
+// above cannot see a varchar(64) that has become a varchar(32). On MySQL and
+// Postgres that difference silently truncates somebody's data, and those are the
+// two dialects nothing here can run. This is the only thing standing between a
+// typo and a schema nobody would notice was wrong.
+func TestTheColumnWidthsAreTheOnesTheLadderDeclared(t *testing.T) {
+	root, err := moduleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := os.ReadFile(filepath.Join(root, "tools", "schemagen", "testdata", "schema_before_collapse.sql"))
+	if err != nil {
+		t.Skipf("no snapshot of the pre-collapse schema: %v", err)
+	}
+
+	declared := widthsInDDL(string(want))
+	if len(declared) < 50 {
+		t.Fatalf("only %d widths read out of the snapshot; the parser has stopped working", len(declared))
+	}
+	for _, tbl := range append(boardTables(), appTables()...) {
+		for _, c := range tbl.Columns {
+			key := tbl.Name + "." + c.Name
+			was, ok := declared[key]
+			if !ok {
+				continue // a column the snapshot has not got is the shape check's business
+			}
+			var is int
+			switch c.Type.kind {
+			case KindID:
+				is = idLen
+			case KindName:
+				is = c.Type.size
+			default:
+				continue // only the sized types have a width to get wrong
+			}
+			if is != was {
+				t.Errorf("%s is varchar(%d), and the ladder declared varchar(%d)", key, is, was)
+			}
+		}
+	}
+}
+
+// widthsInDDL reads `name varchar(n)` out of every CREATE TABLE in the snapshot,
+// as table.column → n.
+func widthsInDDL(ddl string) map[string]int {
+	out := map[string]int{}
+	tableAt := regexp.MustCompile(`(?i)^\s*CREATE TABLE(?: IF NOT EXISTS)?\s+"?(\w+)"?`)
+	anyColumn := regexp.MustCompile(`(?i)"?(\w+)"?\s+varchar\((\d+)\)`)
+	table := ""
+	for _, line := range strings.Split(ddl, "\n") {
+		if m := tableAt.FindStringSubmatch(line); m != nil {
+			table = m[1]
+			// A one-line CREATE carries its columns on the same line.
+			for _, cm := range anyColumn.FindAllStringSubmatch(line, -1) {
+				out[table+"."+cm[1]] = atoi(cm[2])
+			}
+			continue
+		}
+		if table == "" {
+			continue
+		}
+		if m := anyColumn.FindStringSubmatch(line); m != nil {
+			out[table+"."+m[1]] = atoi(m[2])
+		}
+		if strings.Contains(line, ");") {
+			table = ""
+		}
+	}
+	return out
+}
+
+func atoi(s string) int {
+	n := 0
+	for _, r := range s {
+		n = n*10 + int(r-'0')
+	}
+	return n
 }

@@ -25,6 +25,8 @@ type dialect struct {
 	// attrs are table attributes this dialect wants: MySQL needs the charset
 	// spelled out or a Russian column name comes back as question marks.
 	attrs []schema.Attr
+	// now is this dialect's "the database's own clock", for DefaultNow.
+	now string
 }
 
 func dialects() []dialect {
@@ -42,10 +44,15 @@ func dialects() []dialect {
 					return &schema.StringType{T: "text"}
 				case KindBool:
 					return &schema.BoolType{T: "boolean"}
+				case KindInt32:
+					return &schema.IntegerType{T: "int"}
+				case KindTimestamp:
+					return &schema.TimeType{T: "datetime"}
 				default:
 					return &schema.IntegerType{T: "bigint"}
 				}
 			},
+			now: "STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')",
 		},
 		{
 			name: "mysql",
@@ -62,6 +69,10 @@ func dialects() []dialect {
 					// MySQL has no boolean of its own; tinyint(1) is what its
 					// own driver reads back as a Go bool.
 					return &schema.BoolType{T: "tinyint"}
+				case KindInt32:
+					return &schema.IntegerType{T: "int"}
+				case KindTimestamp:
+					return &schema.TimeType{T: "datetime", Precision: intp(6)}
 				default:
 					return &schema.IntegerType{T: "bigint"}
 				}
@@ -70,6 +81,7 @@ func dialects() []dialect {
 				&schema.Charset{V: "utf8mb4"},
 				&schema.Collation{V: "utf8mb4_general_ci"},
 			},
+			now: "NOW(6)",
 		},
 		{
 			name: "postgres",
@@ -84,11 +96,36 @@ func dialects() []dialect {
 					return &schema.StringType{T: "text"}
 				case KindBool:
 					return &schema.BoolType{T: "boolean"}
+				case KindInt32:
+					return &schema.IntegerType{T: "integer"}
+				case KindTimestamp:
+					return &schema.TimeType{T: "timestamptz"}
 				default:
 					return &schema.IntegerType{T: "bigint"}
 				}
 			},
+			now: "NOW()",
 		},
+	}
+}
+
+func intp(i int) *int { return &i }
+
+// defaultOf renders a column default. `now` is the only one that differs
+// between dialects, and it is the reason this is a closed set rather than a
+// string somebody writes at each call site.
+func defaultOf(d dialect, c Column) schema.Expr {
+	switch c.Default {
+	case DefaultNow:
+		return &schema.RawExpr{X: d.now}
+	case DefaultZero:
+		return &schema.RawExpr{X: "0"}
+	case DefaultFalse:
+		return &schema.RawExpr{X: "false"}
+	case DefaultEmptyString:
+		return &schema.RawExpr{X: "''"}
+	default:
+		return nil
 	}
 }
 
@@ -106,11 +143,15 @@ const idLen = 36
 // identifier in all three dialects.
 func prefixed(name string) string { return "{{.prefix}}" + name }
 
-// indexName puts the prefix where the board's own migrations put it — after
-// the idx_ — so `idx_focalboard_conversation_card` reads the same way as the
-// eighty index names already in this database.
+// indexName puts the prefix where the board's own migrations put it — after the
+// idx_ — so `idx_focalboard_conversation_card` reads the same way as the eighty
+// index names already in this database. A name that is not an idx_ one keeps its
+// own shape: the fork has a `unique_user_category_board`.
 func indexName(name string) string {
-	return "idx_" + prefixed(strings.TrimPrefix(name, "idx_"))
+	if rest, ok := strings.CutPrefix(name, "idx_"); ok {
+		return "idx_" + prefixed(rest)
+	}
+	return prefixed(name)
 }
 
 // build turns the dialect-neutral tables into an atlas schema. The schema is
@@ -140,17 +181,26 @@ func build(d dialect, tables []Table) (*schema.Schema, error) {
 		at := schema.NewTable(prefixed(tbl.Name))
 		at.AddAttrs(d.attrs...)
 		for _, c := range tbl.Columns {
-			at.AddColumns(schema.NewColumn(c.Name).SetType(d.column(c.Type)).SetNull(c.Null))
-		}
-		pk := make([]*schema.Column, 0, len(tbl.PK))
-		for _, name := range tbl.PK {
-			col, ok := at.Column(name)
-			if !ok {
-				return nil, fmt.Errorf("%s: primary key names a column that is not there: %s", tbl.Name, name)
+			col := schema.NewColumn(c.Name).SetType(d.column(c.Type)).SetNull(c.Null)
+			if def := defaultOf(d, c); def != nil {
+				col.SetDefault(def)
 			}
-			pk = append(pk, col)
+			at.AddColumns(col)
 		}
-		at.SetPrimaryKey(schema.NewPrimaryKey(pk...))
+		// A table with no primary key stays without one. file_info is the case,
+		// and it is what the migrations leave: 000041 was where one would have
+		// been added, and the collapse reproduces rather than repairs.
+		if len(tbl.PK) > 0 {
+			pk := make([]*schema.Column, 0, len(tbl.PK))
+			for _, name := range tbl.PK {
+				col, ok := at.Column(name)
+				if !ok {
+					return nil, fmt.Errorf("%s: primary key names a column that is not there: %s", tbl.Name, name)
+				}
+				pk = append(pk, col)
+			}
+			at.SetPrimaryKey(schema.NewPrimaryKey(pk...))
+		}
 		built[tbl.Name] = at
 		s.AddTables(at)
 	}

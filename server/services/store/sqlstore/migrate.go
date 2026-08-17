@@ -37,13 +37,6 @@ import (
 //go:embed migrations/*.sql
 var Assets embed.FS
 
-const (
-	uniqueIDsMigrationRequiredVersion        = 14
-	teamLessBoardsMigrationRequiredVersion   = 18
-	categoriesUUIDIDMigrationRequiredVersion = 20
-	deDuplicateCategoryBoards                = 35
-)
-
 // getMigrationConnection opens the connection the migrations run on. MySQL
 // needs one of its own: several statements arrive in one round trip, which its
 // driver refuses unless the DSN says so, and a long migration must not be cut
@@ -154,6 +147,10 @@ func (s *SQLStore) Migrate() error {
 		return err
 	}
 
+	if err := s.refuseOldLadder(engine); err != nil {
+		return err
+	}
+
 	return s.runMigrationSequence(engine)
 }
 
@@ -216,61 +213,75 @@ func (s *SQLStore) recoverInterruptedMigration(engine *migrate.Migrate) error {
 		mlog.Uint("version", version))
 
 	// Force takes a version and marks it clean. The interrupted migration is
-	// the one to redo, so the version to stand on is the one before it.
-	if err := engine.Force(int(version) - 1); err != nil {
+	// the one to redo, so the version to stand on is the one before it — and
+	// since the ladder was collapsed there usually is no "before": the schema is
+	// one step, so the version to stand on is no version at all, which is what
+	// Force(-1) means. Asking for version 0 was fine while the first rung was
+	// 1 of 81 and is an error now that it is 1 of 1.
+	previous := int(version) - 1
+	if previous < 1 {
+		previous = -1
+	}
+	if err := engine.Force(previous); err != nil {
 		return fmt.Errorf("cannot clear the interrupted migration %d: %w", version, err)
 	}
 
 	return nil
 }
 
-// runMigrationSequence executes all the migrations in order, both
-// plain SQL and data migrations.
-func (s *SQLStore) runMigrationSequence(engine *migrate.Migrate) error {
-	if mErr := s.ensureMigrationsAppliedUpToVersion(engine, uniqueIDsMigrationRequiredVersion); mErr != nil {
-		return mErr
+// refuseOldLadder stops a database built by the migrations this schema replaced.
+//
+// The engine cannot open one anyway — it looks for the migration matching the
+// version recorded and that file is gone — but the error it gives says "no
+// migration found for version 41: file does not exist", which tells nobody
+// anything. This says what happened and what to do about it.
+//
+// Adopting such a database instead would work, and was written and thrown away:
+// the collapsed migration builds the same schema (tools/schemagen checks it), so
+// re-stamping the version would be enough. It was deleted because there is no
+// release — the only databases in existence are the ones on the desks of people
+// working on this — and a version-mapping constant carried for ever to serve a
+// case that never happens is exactly the archaeology this change removed
+// eighty-one files of.
+func (s *SQLStore) refuseOldLadder(engine *migrate.Migrate) error {
+	version, _, err := engine.Version()
+	if errors.Is(err, migrate.ErrNilVersion) {
+		return nil // no schema yet: the migration below makes it.
 	}
-
-	if mErr := s.RunUniqueIDsMigration(); mErr != nil {
-		return fmt.Errorf("error running unique IDs migration: %w", mErr)
-	}
-
-	if mErr := s.ensureMigrationsAppliedUpToVersion(engine, teamLessBoardsMigrationRequiredVersion); mErr != nil {
-		return mErr
-	}
-
-	if mErr := s.ensureMigrationsAppliedUpToVersion(engine, categoriesUUIDIDMigrationRequiredVersion); mErr != nil {
-		return mErr
-	}
-
-	if mErr := s.RunCategoryUUIDIDMigration(); mErr != nil {
-		return fmt.Errorf("error running categoryID migration: %w", mErr)
-	}
-
-	// Read before the migration below, not after: what the de-duplication is
-	// told is the version the database stood on when it started.
-	currentMigrationVersion, err := s.currentMigrationVersion(engine)
 	if err != nil {
 		return err
 	}
-
-	if mErr := s.ensureMigrationsAppliedUpToVersion(engine, deDuplicateCategoryBoards); mErr != nil {
-		return mErr
+	if version <= 1 {
+		return nil
 	}
+	return fmt.Errorf("this database was built by the previous migrations (it records version %d, "+
+		"and the schema is now made in one step). There is no upgrade path on purpose, because there "+
+		"has been no release: delete the database file and start it again", version)
+}
 
-	if mErr := s.RunDeDuplicateCategoryBoardsMigration(currentMigrationVersion); mErr != nil {
-		return mErr
-	}
-
-	s.logger.Debug("== Applying all remaining migrations ====================",
-		mlog.Int("current_version", currentMigrationVersion),
-	)
-
+// runMigrationSequence applies the schema.
+//
+// There used to be a good deal more here: the ladder was eighty-one files, and
+// three data migrations had to be interleaved at particular rungs — unique ids
+// at 14, category ids at 20, de-duplicated category boards at 35 — because each
+// fixed up rows the next step's constraints would refuse. All of it led to one
+// schema, which is now made in one step, so none of it means anything to a
+// database being created today.
+//
+// An existing database is left alone by the same mechanism that always left it
+// alone: it records a version above this one, the source has nothing after this
+// one, and the engine reports no change. That works only because the collapsed
+// migration is the same schema the ladder built — which is checked, not assumed
+// (tools/schemagen).
+func (s *SQLStore) runMigrationSequence(engine *migrate.Migrate) error {
 	if err := engine.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return err
 	}
 
-	// always run the collations & charset fix-ups
+	// Still always run, and still only doing anything on MySQL: an install made
+	// before the charset was spelled out in the CREATE has tables in the
+	// server's default collation, and comparing a Russian title against one of
+	// those is a comparison nobody can predict.
 	if mErr := s.RunFixCollationsAndCharsetsMigration(); mErr != nil {
 		return fmt.Errorf("error running fix collations and charsets migration: %w", mErr)
 	}
