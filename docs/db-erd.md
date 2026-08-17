@@ -12,38 +12,38 @@
 удаление карточки — настоящий `DELETE FROM blocks`, и наша сторона об этом не
 узнавала никогда, так что удалённая карточка навсегда оставляла за собой
 разговоры, позицию на маршруте, стоп-запись и место в очереди. Теперь таблицы в
-одном файле, ключи написаны в `CREATE TABLE` (`docs/store-plan.md`, шаг 1), а
-включение проверки — шаг 4. Старые файлы переливаются один раз при старте и
+одном файле, ключи написаны в `CREATE TABLE` и **включены** (`foreign_keys` — в
+DSN, потому что это настройка соединения). Удалённая карточка больше ничего за
+собой не оставляет. Старые файлы переливаются один раз при старте и
 переименовываются в `*.migrated`.
 
-В бордовых таблицах внешних ключей по-прежнему нет: там наследный от Focalboard
-стиль soft-delete с history-таблицами, и переписать их можно только вместе с
-типами (шаг 0).
+В бордовых таблицах внешних ключей по-прежнему нет, и намеренно: там наследный
+от Focalboard стиль soft-delete, так что настоящий ключ сработал бы на тех
+путях, где удаление настоящее.
 
 ## Что осталось снаружи базы
 
 ```mermaid
 erDiagram
     XCIII_DB ||--o{ APP_TABLES : "внешний ключ на blocks/boards"
-    CONFIG_JSON ||..o{ XCIII_DB : "id папки = id опции поля «Папка»"
-    CONFIG_JSON ||..o{ APP_TABLES : "путь папки = workdir_claim.workdir_path"
+    CONFIG_JSON ||..o{ APP_TABLES : "копия реестров, ещё одну версию"
     XCIII_DB {
         file xciii_db "доска: boards, blocks, users"
     }
     APP_TABLES {
-        file app_tables "в том же файле: разговоры, сессии, маршруты, рабочие места, входящие"
+        file app_tables "в том же файле: реестры, разговоры, сессии, маршруты, checkout, входящие"
     }
     CONFIG_JSON {
-        file config_json "acp/config.json — реестры машины: папки, агенты, деплой-цели"
+        file config_json "acp/config.json — пределы, таймауты, переключатели, тексты промптов"
     }
 ```
 
-**Второе хранилище — не база, а файл**, и связей у него две. Реестр папок
-(`config.json`, ключ `projects`) держит `id` каждой записи, и **под этим же id
-доска заводит опцию поля «Папка»** — то есть карточка называет папку значением
-обычного select'а, которое оказывается ссылкой в реестр машины. Вторая связь
-идёт по пути: `workdir_claim.workdir_path` — это `path` записи реестра. Обе
-исчезают на шаге 2, когда реестры станут таблицами.
+**Реестры больше не в файле.** Папки, агенты, прокси и деплой-цели — таблицы
+(`workspace`, `agent`, `proxy`, `deploy_target`), и правда живёт там; в
+`config.json` их копия лежит ещё одну версию как путь отката, и следующая её
+удаляет. Карточка называет папку id записи, и **под этим же id доска заводит
+опцию поля «Папка»**, так что карточка хранит обычный select, который
+оказывается ссылкой.
 
 Карточка — это `blocks.id` (type=card) в той же базе; наши таблицы помнят её по
 id и переживают её переезд между досками (`MoveCardToBoard` сохраняет id).
@@ -137,7 +137,7 @@ erDiagram
         bigint notify_at
     }
     file_info {
-        varchar id PK "см. review: до 000041 был без индекса"
+        varchar id "первичного ключа нет — так оставила лестница"
         text name
         bigint size
         text path
@@ -177,7 +177,8 @@ erDiagram
     blocks ||--o{ flow_event : "card_id CASCADE (журнал переходов)"
     blocks ||--o| card_stall : "card_id CASCADE (почему стоит)"
     blocks ||--o| stage_queue : "card_id CASCADE (ждёт места в колонке)"
-    blocks ||..o{ workdir_claim : "owner = card_id (ключа ещё нет)"
+    blocks ||--o{ checkout : "card_id CASCADE (git-состояние работы)"
+    workspace ||--o{ checkout : "workspace_id RESTRICT"
 
     agent_session {
         varchar id PK
@@ -237,14 +238,22 @@ erDiagram
         varchar flow "и node_id"
         bigint queued_at
     }
-    workdir_claim {
-        varchar workdir_path PK "папка; было workdir"
-        varchar owner PK "card_id или board:<id> — потому ключа и нет"
+    checkout {
+        varchar id PK "суррогат: в естественном ключе была бы NULL-колонка"
+        varchar workspace_id FK "RESTRICT — папку в работе не удалить"
+        varchar card_id FK "CASCADE; ровно одна из двух заполнена"
+        varchar board_id FK "CASCADE — «черновики доски»"
         varchar mode "worktree | branch | plain"
         varchar branch "ветка карточки; NULL у обычной папки"
         text path "где копия"
         varchar base "от чего отрезана — FROM main на штампе"
-        bigint created_at "released_at NULL = живое рабочее место"
+        bigint created_at "released_at NULL = живой checkout"
+    }
+    workspace {
+        varchar id PK "он же id опции поля «Папка» на доске"
+        varchar name "подпись, а не ключ"
+        text path "у папки на диске; у другого рода места — своё"
+        varchar kind "git — репозиторий обещали; и base_branch, branch_prefix"
     }
     idempotency {
         varchar token PK "flow|card|node|событие; было key — слово MySQL"
@@ -252,7 +261,7 @@ erDiagram
         bigint created_at "окно дедупликации"
     }
     vcs_seen {
-        varchar workdir_path PK "и branch, kind в PK; было project"
+        varchar workspace_id PK "FK CASCADE; и branch, kind в PK"
         varchar marker "base:branch tip — событие уже отработано"
     }
     board_setup {
@@ -265,10 +274,11 @@ erDiagram
 `idempotency`, `vcs_seen` и `board_setup` стоят отдельно — это защёлки («это
 событие уже обработано», «этот шаг уже пройден»), а не сущности со связями.
 
-`workdir_claim` — единственная таблица здесь без ключа на карточку, и по
-понятной причине: `owner` — это либо `card_id`, либо `board:<id>`, а одна
-колонка не может смотреть на две таблицы. Расщепление на `card_id`/`board_id`
-и ключ на папку — шаг 2.
+`checkout` был `workdir_claim`, с ключом из пути папки и строки `owner` — либо
+`card_id`, либо `board:<id>`. Одна колонка не может смотреть на две таблицы, так
+что ключа не было вовсе; теперь владелец разложен на две колонки, папка названа
+id, а суррогатный `id` появился потому, что в естественный ключ пришлось бы
+включить NULL-колонку, чего MySQL и Postgres в первичном ключе не допускают.
 
 ## Входящие (`internal/sources/store.go`)
 
@@ -308,7 +318,7 @@ erDiagram
 - **Ссылки между хранилищами идут по id, а не по именам.** Карточка называет
   папку id записи реестра, доска записывает, какое её поле — папка и какое —
   ветка (`xciiiProjectProperty`, `xciiiBranchProperty`), а не ищет по названию.
-  Единственное, что ещё связывается путём, — `workdir_claim.workdir_path`.
+  Путём не связывается уже ничего.
 - **Наша автоматика не добавила таблиц в бордовую базу.** Колонки, маршруты,
   промпты и запись «какое свойство — ветка» лежат в `boards.properties`, и
   потому едут с доской при экспорте/переезде; на этой же линии живёт и
