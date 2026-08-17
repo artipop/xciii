@@ -48,11 +48,17 @@ CREATE TABLE IF NOT EXISTS blocks (id VARCHAR(36) PRIMARY KEY, board_id VARCHAR(
 CREATE TABLE IF NOT EXISTS users (id VARCHAR(36) PRIMARY KEY, username VARCHAR(100));
 `
 
-// Open makes a SQLite database at path with the application's tables in it.
+// Open makes a SQLite database at path with the application's tables in it,
+// with the foreign keys written but not enforced.
 //
-// The foreign keys onto blocks and boards resolve, but nothing enforces them:
-// `foreign_keys` is off, here as in the application, until step 4 of
-// docs/store-plan.md turns it on.
+// Not enforced because a test is about behaviour, not about bookkeeping: the
+// fixtures name cards like "card-1" and boards like "board1", which no board
+// ever had, and making every one of them insert a row into blocks first would
+// turn each test into a small model of the board and test the model. In the
+// application the cards are real, so the constraint costs nothing there.
+//
+// What the constraint itself does is tested where it belongs, on a database
+// opened with OpenEnforcing.
 func Open(path string) (*sql.DB, error) {
 	ddl, err := SQLite("")
 	if err != nil {
@@ -119,6 +125,20 @@ func SQLite(tablePrefix string) (string, error) {
 		return "", fmt.Errorf("%s rendered nothing for SQLite", migration)
 	}
 	return out.String(), nil
+}
+
+// OpenEnforcing is Open with the keys enforced, through the same DSN helper the
+// application uses — so a test of the constraints cannot pass on a rule the app
+// does not actually apply.
+func OpenEnforcing(path string) (*sql.DB, error) {
+	db, err := Open(path)
+	if err != nil {
+		return nil, err
+	}
+	if err := db.Close(); err != nil {
+		return nil, err
+	}
+	return sql.Open("sqlite3", sqlstore.SQLiteDSN(path))
 }
 
 // AddCard puts a card on the board, which is all this side ever needs to know

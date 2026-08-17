@@ -204,7 +204,20 @@ func New(params Params) (*Server, error) {
 // one file, one connection, one transaction — and on SQLite the pool below is
 // capped at one connection, so a second handle would be a second writer.
 func NewStore(config *config.Configuration, isSingleUser bool, logger mlog.LoggerIFace) (store.Store, *sql.DB, error) {
-	sqlDB, err := sql.Open(config.DBType, config.DBConfigString)
+	dsn := config.DBConfigString
+	if config.DBType == appModel.SqliteDBType {
+		// Foreign keys are a connection setting on SQLite, off by default, and
+		// the whole point of our tables having moved into this database
+		// (docs/store-plan.md, step 4): without this a deleted card goes on
+		// leaving its conversations, its place on a route and its stall behind
+		// for ever, exactly as it did when they were separate files.
+		//
+		// A DSN rather than a PRAGMA because it has to hold for every
+		// connection, and how it is spelled depends on which driver the build
+		// tag chose — see sqlstore.SQLiteParams.
+		dsn = sqlstore.SQLiteDSN(dsn)
+	}
+	sqlDB, err := sql.Open(config.DBType, dsn)
 	if err != nil {
 		logger.Error("connectDatabase failed", mlog.Err(err))
 		return nil, nil, err
