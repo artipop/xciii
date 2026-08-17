@@ -4,15 +4,13 @@ package permissions
 
 import (
 	"github.com/artipop/xciii/server/model"
-
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
 type PermissionsService interface {
-	HasPermissionTo(userID string, permission *mmModel.Permission) bool
-	HasPermissionToTeam(userID, teamID string, permission *mmModel.Permission) bool
-	HasPermissionToChannel(userID, channelID string, permission *mmModel.Permission) bool
-	HasPermissionToBoard(userID, boardID string, permission *mmModel.Permission) bool
+	HasPermissionTo(userID string, permission *model.Permission) bool
+	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
+	HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool
+	HasPermissionToBoard(userID, boardID string, permission *model.Permission) bool
 }
 
 type Store interface {

@@ -45,9 +45,9 @@ type ServicesAPI interface {
 	CreateMember(teamID string, userID string) (*mm_model.TeamMember, error)
 
 	// Permissions service
-	HasPermissionTo(userID string, permission *mm_model.Permission) bool
-	HasPermissionToTeam(userID, teamID string, permission *mm_model.Permission) bool
-	HasPermissionToChannel(askingUserID string, channelID string, permission *mm_model.Permission) bool
+	HasPermissionTo(userID string, permission *Permission) bool
+	HasPermissionToTeam(userID, teamID string, permission *Permission) bool
+	HasPermissionToChannel(askingUserID string, channelID string, permission *Permission) bool
 
 	// Bot service
 	EnsureBot(bot *mm_model.Bot) (string, error)

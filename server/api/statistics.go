@@ -6,7 +6,6 @@ import (
 
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/web"
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
 func (a *API) registerStatisticsRoutes(r *web.Router) {
@@ -40,7 +39,7 @@ func (a *API) handleStatistics(w http.ResponseWriter, r *http.Request) {
 
 	// user must have right to access analytics
 	userID := getUserID(r)
-	if !a.permissions.HasPermissionTo(userID, mmModel.PermissionGetAnalytics) {
+	if !a.permissions.HasPermissionTo(userID, model.PermissionGetAnalytics) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied System Statistics"))
 		return
 	}

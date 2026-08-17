@@ -1,9 +1,9 @@
 package app
 
 import (
-	mm_model "github.com/mattermost/mattermost/server/public/model"
+	"github.com/artipop/xciii/server/model"
 )
 
-func (a *App) HasPermissionToBoard(userID, boardID string, permission *mm_model.Permission) bool {
+func (a *App) HasPermissionToBoard(userID, boardID string, permission *model.Permission) bool {
 	return a.permissions.HasPermissionToBoard(userID, boardID, permission)
 }

@@ -7,8 +7,8 @@ package mocks
 import (
 	reflect "reflect"
 
+	model "github.com/artipop/xciii/server/model"
 	gomock "github.com/golang/mock/gomock"
-	model "github.com/mattermost/mattermost/server/public/model"
 )
 
 // MockPermissionsService is a mock of PermissionsService interface.
