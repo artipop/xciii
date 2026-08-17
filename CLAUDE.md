@@ -79,11 +79,14 @@ in a browser and as a Mattermost plugin.
   the headless build, which has its own files. `./...` also walks
   `webapp/node_modules`, where an npm package happens to ship Go sources; that is
   cosmetic, and a nested `go.mod` would not fix it — `go:embed` cannot cross a
-  module boundary, and `webapp/pack` is what it embeds. **`server/
-  integrationtests` is flaky** and has been for a while: which permission tests
-  fail changes between runs, and `TestPermissionsGetTeamTemplates` fails every
-  time. Compare against a clean checkout before believing a failure there is
-  yours.
+  module boundary, and `webapp/pack` is what it embeds. **Two suites are flaky,
+  and were before this was written**: `server/integrationtests`, where which
+  permission tests fail changes between runs and
+  `TestPermissionsGetTeamTemplates` fails every time; and
+  `internal/boardadapter`, where `TestATemplateThisBuildNoLongerShipsIsRemoved`
+  fails perhaps one run in four, and only as part of the whole package. Run a
+  clean checkout half a dozen times before believing a failure in either is
+  yours — twice is not enough to tell, which is a mistake already made here.
 - `go generate ./tools/schemagen` — after any change to the application's own
   tables. It rewrites the migration for all three dialects; `go test
   ./tools/schemagen` is what fails when somebody forgets.

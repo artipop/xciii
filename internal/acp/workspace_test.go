@@ -215,7 +215,7 @@ func TestAnOrdinaryFolderIsItsOwnWorkspace(t *testing.T) {
 	if ws.Mode != WorkModePlain || ws.Cwd != notes || ws.Branch != "" {
 		t.Errorf("an ordinary folder gave %+v", ws)
 	}
-	if _, held, err := m.store.WorkspaceOf(notes, "card-1"); err != nil || held {
+	if _, held, err := m.store.CheckoutOf(m.workspaceID(notes), "card-1", ""); err != nil || held {
 		t.Errorf("a folder that created nothing was recorded anyway (held=%v err=%v)", held, err)
 	}
 }

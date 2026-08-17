@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -62,7 +63,140 @@ var (
 // BoardOwner is the owner of a conversation that has no card: the board's own,
 // so that «черновики доски» and a planning terminal are one thing rather than a
 // row per window.
-func BoardOwner(boardID string) string { return "board:" + boardID }
+func BoardOwner(boardID string) string { return boardOwnerPrefix + boardID }
+
+const boardOwnerPrefix = "board:"
+
+// ownerColumns splits the owner into the two columns a checkout keeps it in.
+// One string was fine while nothing pointed at it; a foreign key cannot point
+// at two tables through one column, so the split is what buys the keys.
+func ownerColumns(owner string) (cardID, boardID string) {
+	if rest, ok := strings.CutPrefix(owner, boardOwnerPrefix); ok {
+		return "", rest
+	}
+	return owner, ""
+}
+
+// workspaceID is the registry id of the folder at this path, and it answers
+// with one for any folder work actually happens in — registering it, or giving
+// it the id it never got, rather than saying no.
+//
+// It says "" for an empty path alone. That matters because a checkout has to
+// name a workspace: an id of "" would mean "record nothing", and recording
+// nothing is how a card loses its working copy and the next claim builds a
+// second one on top of it.
+//
+// The whole function is a translation between how a folder is addressed today
+// (a path, in a dozen call sites) and how it is stored (an id). It goes away
+// when the paths do.
+func (m *Manager) workspaceID(path string) string {
+	if path == "" {
+		return ""
+	}
+	m.cfgMu.RLock()
+	found, known := "", false
+	for _, e := range m.cfg.Workdirs {
+		if e.Path != "" && e.Path == path {
+			found, known = e.ID, true
+			break
+		}
+	}
+	m.cfgMu.RUnlock()
+	if !known {
+		// A folder the app is working in that nobody registered. There is one
+		// way to get here and it is on its way out: a card naming its own path
+		// through `repo_path`, checked against the whitelist rather than
+		// against the registry (contradiction 6, removed at step 3).
+		//
+		// It is registered rather than refused, because the alternative is
+		// worse than untidy: a checkout has to name a workspace, so a folder
+		// with no entry could hold nothing — and in branch mode holding is the
+		// whole mechanism, so the second card would walk straight into the
+		// first one's working copy.
+		return m.registerWorkedFolder(path)
+	}
+	if found != "" {
+		return found
+	}
+	// A registered folder with no id: an entry somebody wrote into config.json
+	// by hand, or one from before ids existed. It gets one here rather than
+	// answering "" — which would quietly mean "not registered" and cost the
+	// card its checkout, so every claim would make a second worktree over the
+	// first. Startup does the same thing to the whole registry
+	// (ensureWorkdirIDs); this is the same repair, at the moment it matters.
+	return m.assignWorkspaceID(path)
+}
+
+// registerWorkedFolder adds a folder the app found itself working in, under
+// the directory's own name and attached to no board.
+//
+// Unattached on purpose: «не привязана ни к какой доске» is a state the product
+// already has, and it is the honest one here — nobody chose this folder on a
+// board, a card named a path. So it is offered nowhere and picked by nothing;
+// it exists so the work in it can be recorded, and so a person can see in
+// «Папки» what their cards have actually been opening.
+func (m *Manager) registerWorkedFolder(path string) string {
+	m.cfgMu.Lock()
+	defer m.cfgMu.Unlock()
+	// Between the read above and this lock somebody may have registered it.
+	for i := range m.cfg.Workdirs {
+		if m.cfg.Workdirs[i].Path == path {
+			return m.cfg.Workdirs[i].ID
+		}
+	}
+	entry := WorkdirEntry{ID: newID(), Path: path, Name: m.freeWorkdirNameLocked(filepath.Base(path))}
+	m.cfg.Workdirs = append(m.cfg.Workdirs, entry)
+	if err := m.persistConfigLocked(); err != nil {
+		m.log.Warn("acp: cannot register the folder a card named", "workdir", path, "err", err)
+		return ""
+	}
+	m.log.Info("acp: registered the folder a card named by path", "workdir", path, "name", entry.Name)
+	return entry.ID
+}
+
+// freeWorkdirNameLocked makes the name unique, because the registry now says so
+// with an index. Two folders called `web` under different parents is the
+// ordinary way this happens.
+func (m *Manager) freeWorkdirNameLocked(name string) string {
+	if name == "" || name == "." || name == string(filepath.Separator) {
+		name = "папка"
+	}
+	taken := func(candidate string) bool {
+		for _, e := range m.cfg.Workdirs {
+			if strings.EqualFold(e.Name, candidate) {
+				return true
+			}
+		}
+		return false
+	}
+	if !taken(name) {
+		return name
+	}
+	for n := 2; ; n++ {
+		candidate := fmt.Sprintf("%s %d", name, n)
+		if !taken(candidate) {
+			return candidate
+		}
+	}
+}
+
+func (m *Manager) assignWorkspaceID(path string) string {
+	m.cfgMu.Lock()
+	defer m.cfgMu.Unlock()
+	for i := range m.cfg.Workdirs {
+		if m.cfg.Workdirs[i].Path != path {
+			continue
+		}
+		if m.cfg.Workdirs[i].ID == "" {
+			m.cfg.Workdirs[i].ID = newID()
+			if err := m.persistConfigLocked(); err != nil {
+				m.log.Warn("acp: cannot record the folder's id", "workdir", path, "err", err)
+			}
+		}
+		return m.cfg.Workdirs[i].ID
+	}
+	return ""
+}
 
 // ClaimWorkspace gives the owner its workspace in this folder, making it the
 // first time and handing back the same one after that.
@@ -182,9 +316,14 @@ func (m *Manager) heldWorkspace(workdir, owner, mode string) (Workspace, bool) {
 	if m.store == nil {
 		return Workspace{}, false
 	}
-	c, ok, err := m.store.WorkspaceOf(workdir, owner)
+	workspaceID := m.workspaceID(workdir)
+	if workspaceID == "" {
+		return Workspace{}, false
+	}
+	cardID, boardID := ownerColumns(owner)
+	c, ok, err := m.store.CheckoutOf(workspaceID, cardID, boardID)
 	if err != nil {
-		m.log.Warn("acp: cannot read the folder's workspaces", "workdir", workdir, "err", err)
+		m.log.Warn("acp: cannot read the folder's checkouts", "workdir", workdir, "err", err)
 		return Workspace{}, false
 	}
 	if !ok {
@@ -219,28 +358,40 @@ func (m *Manager) folderIsFree(workdir, owner string) error {
 	if m.store == nil {
 		return nil
 	}
-	held, ok, err := m.store.WorkdirHeldBy(workdir)
-	if err != nil || !ok || held.Owner == owner {
+	workspaceID := m.workspaceID(workdir)
+	if workspaceID == "" {
+		return nil
+	}
+	held, ok, err := m.store.WorkspaceHeldBy(workspaceID)
+	if err != nil || !ok || held.Owner() == owner {
 		return err
 	}
 	// The reason says what will end it, because that is the only thing a
 	// person reading it off the card can act on.
-	return fmt.Errorf("%w (%s) — освободится, когда её ветка будет влита в основную", errWorkdirBusy, held.Owner)
+	return fmt.Errorf("%w (%s) — освободится, когда её ветка будет влита в основную", errWorkdirBusy, held.Owner())
 }
 
 func (m *Manager) recordClaim(workdir, owner string, ws Workspace) {
 	if m.store == nil {
 		return
 	}
-	if err := m.store.ClaimWorkdir(WorkspaceClaim{
-		Workdir: workdir,
-		Owner:   owner,
-		Mode:    ws.Mode,
-		Branch:  ws.Branch,
-		Path:    ws.Cwd,
-		Base:    ws.Base,
+	workspaceID := m.workspaceID(workdir)
+	if workspaceID == "" {
+		// A directory nobody registered — «черновики доски» is the one that
+		// happens — claims nothing, which is also what an ordinary folder does.
+		return
+	}
+	cardID, boardID := ownerColumns(owner)
+	if err := m.store.SaveCheckout(Checkout{
+		WorkspaceID: workspaceID,
+		CardID:      cardID,
+		BoardID:     boardID,
+		Mode:        ws.Mode,
+		Branch:      ws.Branch,
+		Path:        ws.Cwd,
+		Base:        ws.Base,
 	}); err != nil {
-		m.log.Warn("acp: cannot record the workspace", "workdir", workdir, "owner", owner, "err", err)
+		m.log.Warn("acp: cannot record the checkout", "workdir", workdir, "owner", owner, "err", err)
 	}
 }
 
@@ -251,7 +402,12 @@ func (m *Manager) ReleaseWorkspace(workdir, owner string) {
 	if m.store == nil {
 		return
 	}
-	if err := m.store.ReleaseWorkdir(workdir, owner); err != nil {
+	workspaceID := m.workspaceID(workdir)
+	if workspaceID == "" {
+		return
+	}
+	cardID, boardID := ownerColumns(owner)
+	if err := m.store.ReleaseCheckout(workspaceID, cardID, boardID); err != nil {
 		m.log.Warn("acp: cannot release the folder", "workdir", workdir, "owner", owner, "err", err)
 	}
 }
@@ -263,7 +419,11 @@ func (m *Manager) ReleaseMergedBranch(workdir, branch string) {
 	if m.store == nil || strings.TrimSpace(branch) == "" {
 		return
 	}
-	owner, err := m.store.ReleaseBranch(workdir, branch)
+	workspaceID := m.workspaceID(workdir)
+	if workspaceID == "" {
+		return
+	}
+	owner, err := m.store.ReleaseBranch(workspaceID, branch)
 	if err != nil {
 		m.log.Warn("acp: cannot release the merged branch", "workdir", workdir, "branch", branch, "err", err)
 		return
@@ -280,7 +440,7 @@ func (m *Manager) WorkspaceModeForCard(cardID string) (mode, branch, base string
 	if m.store == nil || cardID == "" {
 		return "", "", ""
 	}
-	mode, branch, base, err := m.store.WorkspaceModeForOwner(cardID)
+	mode, branch, base, err := m.store.CheckoutModeForCard(cardID)
 	if err != nil {
 		m.log.Warn("acp: cannot read the card's workspace mode", "card", cardID, "err", err)
 		return "", "", ""

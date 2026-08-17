@@ -384,52 +384,39 @@ func carrySetup(s *Store, old *sql.DB) (int, error) {
 	return n, rows.Err()
 }
 
+// carryVCSSeen does not carry them either, and for the same reason as the
+// claims below: the old rows name a folder by its path, the table keys by the
+// workspace's id, and the registry that maps one to the other is not settled
+// until the manager starts.
+//
+// What these rows are is a latch — "this branch event has already been acted
+// on" — so losing them costs at most one event firing a second time on the
+// first poll after the upgrade. The route engine's own idempotency key is the
+// second net under that, and a card that has already moved on has no edge
+// waiting for the event anyway.
 func carryVCSSeen(s *Store, old *sql.DB) (int, error) {
-	rows, err := old.Query(`SELECT project, branch, kind, marker, created_at FROM vcs_seen`)
-	if err != nil {
-		return 0, skipMissingTable(err)
-	}
-	defer rows.Close()
-	n := 0
-	for rows.Next() {
-		var project, branch, kind, marker string
-		var created int64
-		if err := rows.Scan(&project, &branch, &kind, &marker, &created); err != nil {
-			return n, err
-		}
-		if _, err := s.exec(`INSERT INTO {vcs_seen} (workdir_path, branch, kind, marker, created_at)
-			VALUES (?,?,?,?,?) ON CONFLICT(workdir_path, branch, kind) DO NOTHING`,
-			project, branch, kind, nullable(marker), created); err != nil {
-			return n, err
-		}
-		n++
-	}
-	return n, rows.Err()
+	return 0, nil
 }
 
+// carryClaims does not carry them, and this is the one thing the import
+// deliberately drops.
+//
+// The old rows are keyed by the folder's path; a checkout is keyed by the
+// workspace's id. Resolving one to the other needs the registry, and the
+// registry is not there yet: the import runs when the store is opened, and the
+// registries are settled later, when the manager starts. Deferring the claims
+// until then would be a second import with its own ordering to get wrong, for
+// data that rebuilds itself.
+//
+// Because it does rebuild itself, and that is what makes this safe. None of a
+// person's work is in these rows: the branch is on the card and in git, the
+// copy is on disk, and the branch name is derived from the card and its owner
+// rather than remembered — so the next time the card is worked on, the same
+// name is computed and the same worktree is picked up. What is lost is this
+// machine's note of which folder was held, so a card that had a folder to
+// itself in branch mode stops holding it until it is worked on again.
 func carryClaims(s *Store, old *sql.DB) (int, error) {
-	rows, err := old.Query(`SELECT workdir, owner, mode, branch, path, base, created_at, released_at FROM workdir_claim`)
-	if err != nil {
-		return 0, skipMissingTable(err)
-	}
-	defer rows.Close()
-	n := 0
-	for rows.Next() {
-		var workdir, owner, mode, branch, path, base string
-		var created int64
-		var released sql.NullInt64
-		if err := rows.Scan(&workdir, &owner, &mode, &branch, &path, &base, &created, &released); err != nil {
-			return n, err
-		}
-		if _, err := s.exec(`INSERT INTO {workdir_claim} (workdir_path, owner, mode, branch, path, base, created_at, released_at)
-			VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(workdir_path, owner) DO NOTHING`,
-			workdir, owner, mode, nullable(branch), nullable(path), nullable(base),
-			created, nullableMillis(released)); err != nil {
-			return n, err
-		}
-		n++
-	}
-	return n, rows.Err()
+	return 0, nil
 }
 
 // sqliteDriver is whichever SQLite driver this build registered. Which one it

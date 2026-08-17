@@ -162,7 +162,7 @@ func (m *Manager) cardBranch(cardID string) string {
 	// The card's own workspace, for a card whose branch was made before any
 	// session ran in it — a person opening the terminal first, which is the
 	// ordinary way to start now.
-	branch, err = m.store.BranchForOwner(cardID)
+	branch, err = m.store.BranchForCard(cardID)
 	if err != nil {
 		m.log.Warn("acp: cannot read the card's workspace", "card", cardID, "err", err)
 		return ""

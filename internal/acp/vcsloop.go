@@ -78,8 +78,12 @@ func (m *Manager) PollVCS() {
 // reports the state it sees, not a change: a merged branch stays merged, and
 // without this the card would move on every poll.
 func (m *Manager) deliverVCSEvent(e vcs.Event) {
-	if m.store != nil {
-		fresh, err := m.store.ClaimVCSEvent(e.WorkdirPath, e.Branch, e.Kind, e.Marker)
+	// The latch belongs to the workspace, not to where it happens to be: a
+	// folder somebody moved used to keep its latches and go on ignoring events
+	// it had never acted on. A folder outside the registry cannot latch, and
+	// nothing polls one — the watcher's targets come from the registry.
+	if workspaceID := m.workspaceID(e.WorkdirPath); m.store != nil && workspaceID != "" {
+		fresh, err := m.store.ClaimVCSEvent(workspaceID, e.Branch, e.Kind, e.Marker)
 		if err != nil {
 			m.log.Error("acp: vcs dedup failed", "err", err)
 			return

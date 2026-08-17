@@ -66,7 +66,6 @@ INSERT INTO card_stall VALUES ('card-2','opt-1','conversation','терминал
 INSERT INTO stage_queue VALUES ('card-3','board-1','board-1|opt-1','feature','opt-1',1000);
 INSERT INTO board_setup VALUES ('board-1','folders','done',1000);
 INSERT INTO vcs_seen VALUES ('/repo','feat/x','branch.merged','abc123',1000);
-INSERT INTO workdir_claim VALUES ('/repo','card-1','worktree','feat/x','/repo/wt/1','main',1000,NULL);
 
 -- card-9 was deleted from the board months ago. Nothing told this side, so the
 -- old file is still full of it: that is the leak the move into one database is
@@ -164,12 +163,13 @@ func TestAnAcpDatabaseFromBeforeTheMoveIsCarriedOver(t *testing.T) {
 	if steps, err := st.SetupSteps("board-1"); err != nil || len(steps) != 1 {
 		t.Errorf("the setup answers did not arrive: %+v %v", steps, err)
 	}
-	if fresh, err := st.ClaimVCSEvent("/repo", "feat/x", "branch.merged", "abc123"); err != nil || fresh {
-		t.Errorf("an event already acted on came back as new: %v %v", fresh, err)
-	}
-	if branch, err := st.BranchForOwner("card-1"); err != nil || branch != "feat/x" {
-		t.Errorf("the workspace claim did not arrive: %q %v", branch, err)
-	}
+	// The git latches are deliberately not carried: they name a folder by its
+	// path and the table keys by the workspace's id, which nothing can resolve
+	// this early. Losing them costs one event firing again on the first poll.
+	// The checkout is not carried over: it is keyed by the workspace's id now,
+	// and the old file knew the folder only by its path — a path this machine
+	// may no longer have. What it held is remade the first time the card is
+	// worked on again, from the branch, which the card itself carries.
 
 	// A card the board no longer has takes everything about it with it — which
 	// is what ON DELETE CASCADE would have done had the tables ever been in one

@@ -39,7 +39,7 @@ func appTables() []Table {
 		stageQueue(),
 		boardSetup(),
 		vcsSeen(),
-		workdirClaim(),
+		checkout(),
 		sourceItem(),
 		sourceEvent(),
 	}
@@ -478,48 +478,82 @@ func boardSetup() Table {
 func vcsSeen() Table {
 	return Table{
 		Name: "vcs_seen",
-		Why: "This branch event has already been acted on. Keyed by path still; the\n" +
-			"second half of step 2 moves it onto the workspace id, which is also what\n" +
-			"stops MySQL refusing a path in a key of any real length.",
+		Why: "This branch event has already been acted on. Keyed by the workspace\n" +
+			"rather than by its path: a folder somebody moved used to keep its\n" +
+			"latches, and MySQL would refuse a path in a key of any real length.",
 		Columns: []Column{
-			{Name: "workdir_path", Type: Name(255)},
+			{Name: "workspace_id", Type: ID()},
 			{Name: "branch", Type: Name(255)},
 			{Name: "kind", Type: Name(32)},
 			{Name: "marker", Type: Name(64), Null: true,
 				Why: "The commit the event refers to: the same state seen twice fires once."},
 			{Name: "created_at", Type: Millis()},
 		},
-		PK: []string{"workdir_path", "branch", "kind"},
+		PK: []string{"workspace_id", "branch", "kind"},
+		FKs: []FK{{
+			Name: "vcs_seen_workspace", Columns: []string{"workspace_id"},
+			RefTable: "workspace", RefCols: []string{"id"}, OnDelete: Cascade,
+		}},
 	}
 }
 
-// workdir_claim is the git state of one owner's work in one folder. It becomes
-// `checkout`, keyed by workspace id and with the owner split into card_id and
-// board_id, in the second half of step 2 — together with the code that resolves
-// a folder to its registry id. Both halves are one change: the owner is a card
-// id or "board:<id>" in one column today, and a foreign key cannot point at two
-// tables through one.
-func workdirClaim() Table {
+// checkout is the git state of one owner's work in one workspace. It was
+// workdir_claim, keyed by the folder's path and by an `owner` string that was
+// either a card id or "board:<id>" — one column pointing at two tables, so no
+// key was possible and a folder somebody moved orphaned every claim in it.
+//
+// The name describes what was already true rather than reinterpreting
+// anything: an ordinary folder creates no row here at all, because
+// ClaimWorkspace records nothing for WorkModePlain. This table has only ever
+// held git copies.
+func checkout() Table {
 	return Table{
-		Name: "workdir_claim",
-		Why: "The copy and the branch one owner holds in one folder. No foreign key\n" +
-			"here yet, for the reason above.",
+		Name: "checkout",
+		Why: "The directory and the branch one owner holds in one workspace. The\n" +
+			"owner is a card, or a board for a conversation with no card — two\n" +
+			"nullable columns rather than one string, because a foreign key cannot\n" +
+			"point at two tables through one.",
 		Columns: []Column{
-			{Name: "workdir_path", Type: Name(255)},
-			{Name: "owner", Type: Name(128)},
+			{Name: "id", Type: ID(),
+				Why: "A surrogate, and the one place in this schema where that is right:\n" +
+					"the natural key would have to include a nullable column, which MySQL\n" +
+					"and Postgres forbid in a primary key. Uniqueness is stated in the\n" +
+					"indexes below instead, where a NULL is allowed to differ from a NULL.\n" +
+					"Nothing outside this application creates a checkout, so no client has\n" +
+					"to be able to supply the id."},
+			{Name: "workspace_id", Type: ID()},
+			{Name: "card_id", Type: ID(), Null: true},
+			{Name: "board_id", Type: ID(), Null: true,
+				Why: "Set for «черновики доски»: a conversation with no card still works\n" +
+					"somewhere, and that somewhere belongs to the board."},
 			{Name: "mode", Type: Name(16)},
-			{Name: "branch", Type: Name(255), Null: true,
-				Why: "NULL for an ordinary folder: it has no branch, and that is absence\n" +
-					"rather than an empty name."},
-			{Name: "path", Type: Text(), Null: true},
-			{Name: "base", Type: Name(255), Null: true},
+			{Name: "branch", Type: Name(255), Null: true},
+			{Name: "path", Type: Text(), Null: true,
+				Why: "Where the copy is. Not the workspace's own path — that is on the\n" +
+					"workspace, and this is the worktree cut from it."},
+			{Name: "base", Type: Name(255), Null: true,
+				Why: "What the branch was cut from, and therefore what «merged» means."},
 			{Name: "created_at", Type: Millis()},
 			{Name: "released_at", Type: Millis(), Null: true,
-				Why: "NULL means the workspace is live."},
+				Why: "NULL means the checkout is live."},
 		},
-		PK: []string{"workdir_path", "owner"},
+		PK: []string{"id"},
+		FKs: []FK{
+			// A workspace a card is still working in cannot be deleted: there
+			// is a copy on disk and it has to be folded away first.
+			{Name: "checkout_workspace", Columns: []string{"workspace_id"},
+				RefTable: "workspace", RefCols: []string{"id"}, OnDelete: Restrict},
+			cardFK("checkout"),
+			boardFK("checkout"),
+		},
 		Indexes: []Index{
-			{Name: "idx_workdir_claim_live", Columns: []string{"workdir_path", "released_at"}},
+			// One checkout per owner per workspace, said twice because the
+			// owner is one column or the other. A NULL does not collide with a
+			// NULL in any of the three dialects, which is what lets these two
+			// say what a composite primary key could not.
+			{Name: "idx_checkout_card", Columns: []string{"workspace_id", "card_id"}, Unique: true},
+			{Name: "idx_checkout_board", Columns: []string{"workspace_id", "board_id"}, Unique: true},
+			{Name: "idx_checkout_live", Columns: []string{"workspace_id", "released_at"}},
 		},
 	}
 }

@@ -13,7 +13,7 @@ PRAGMA foreign_keys = off;
 DROP TABLE `{{.prefix}}source_item`;
 PRAGMA foreign_keys = on;
 PRAGMA foreign_keys = off;
-DROP TABLE `{{.prefix}}workdir_claim`;
+DROP TABLE `{{.prefix}}checkout`;
 PRAGMA foreign_keys = on;
 PRAGMA foreign_keys = off;
 DROP TABLE `{{.prefix}}vcs_seen`;
@@ -65,7 +65,7 @@ PRAGMA foreign_keys = on;
 {{if .mysql}}
 DROP TABLE `{{.prefix}}source_event`;
 DROP TABLE `{{.prefix}}source_item`;
-DROP TABLE `{{.prefix}}workdir_claim`;
+DROP TABLE `{{.prefix}}checkout`;
 DROP TABLE `{{.prefix}}vcs_seen`;
 DROP TABLE `{{.prefix}}board_setup`;
 DROP TABLE `{{.prefix}}stage_queue`;
@@ -86,7 +86,7 @@ DROP TABLE `{{.prefix}}proxy`;
 {{if .postgres}}
 DROP TABLE "{{.prefix}}source_event";
 DROP TABLE "{{.prefix}}source_item";
-DROP TABLE "{{.prefix}}workdir_claim";
+DROP TABLE "{{.prefix}}checkout";
 DROP TABLE "{{.prefix}}vcs_seen";
 DROP TABLE "{{.prefix}}board_setup";
 DROP TABLE "{{.prefix}}stage_queue";

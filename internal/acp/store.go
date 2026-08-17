@@ -176,10 +176,10 @@ func (s *Store) SetupSteps(boardID string) ([]SetupStepState, error) {
 // ClaimVCSEvent reports whether a folder event is new, and remembers it. A
 // watcher sees the same state on every poll — the branch stays merged — so the
 // event fires once per marker (the commit it refers to) instead of once a minute.
-func (s *Store) ClaimVCSEvent(workdirPath, branch, kind, marker string) (bool, error) {
+func (s *Store) ClaimVCSEvent(workspaceID, branch, kind, marker string) (bool, error) {
 	var seen string
-	err := s.queryRow(`SELECT COALESCE(marker,'') FROM {vcs_seen} WHERE workdir_path=? AND branch=? AND kind=?`,
-		workdirPath, branch, kind).Scan(&seen)
+	err := s.queryRow(`SELECT COALESCE(marker,'') FROM {vcs_seen} WHERE workspace_id=? AND branch=? AND kind=?`,
+		workspaceID, branch, kind).Scan(&seen)
 	switch {
 	case err == sql.ErrNoRows:
 	case err != nil:
@@ -187,9 +187,9 @@ func (s *Store) ClaimVCSEvent(workdirPath, branch, kind, marker string) (bool, e
 	case seen == marker:
 		return false, nil
 	}
-	_, err = s.exec(`INSERT INTO {vcs_seen} (workdir_path, branch, kind, marker, created_at) VALUES (?,?,?,?,?)
-		ON CONFLICT(workdir_path, branch, kind) DO UPDATE SET marker=excluded.marker, created_at=excluded.created_at`,
-		workdirPath, branch, kind, marker, time.Now().UnixMilli())
+	_, err = s.exec(`INSERT INTO {vcs_seen} (workspace_id, branch, kind, marker, created_at) VALUES (?,?,?,?,?)
+		ON CONFLICT(workspace_id, branch, kind) DO UPDATE SET marker=excluded.marker, created_at=excluded.created_at`,
+		workspaceID, branch, kind, marker, time.Now().UnixMilli())
 	if err != nil {
 		return false, err
 	}
@@ -776,104 +776,150 @@ func scanTerminal(row scanner) (TerminalRecord, error) {
 	return rec, nil
 }
 
-// WorkspaceClaim is a folder handed to one owner: which branch was made for it,
-// which directory the work happens in, and what it was cut from. A row exists
-// only for a folder that is a repository — an ordinary folder creates nothing
-// and so has nothing to record.
+// Checkout is the git state of one owner's work in one workspace: which branch
+// was made for it, which directory the work happens in, and what it was cut
+// from. A row exists only where the workspace is a repository — an ordinary
+// folder creates nothing and so has nothing to record, which is why this is
+// called a checkout at all.
 //
-// The owner is a card, or "board:<id>" for a conversation with no card. It is
-// what makes a workspace outlive the run that made it: the second stage of a
+// The owner is a card, or a board for a conversation with no card, and they are
+// two columns because a foreign key cannot point at two tables through one. It
+// is what makes a checkout outlive the run that made it: the second stage of a
 // route, and the terminal a person opens beside it, get the same branch and the
 // same directory as the first, instead of each making its own.
-type WorkspaceClaim struct {
-	Workdir   string
-	Owner     string
-	Mode      string
-	Branch    string
-	Path      string
-	Base      string
-	CreatedAt time.Time
+type Checkout struct {
+	WorkspaceID string
+	CardID      string
+	BoardID     string
+	Mode        string
+	Branch      string
+	Path        string
+	Base        string
+	CreatedAt   time.Time
 }
 
-// ClaimWorkdir records a workspace. Called once, when it is created.
-func (s *Store) ClaimWorkdir(c WorkspaceClaim) error {
+// Owner names whoever holds this checkout, for a message a person reads. It is
+// not a key and nothing looks anything up by it.
+func (c Checkout) Owner() string {
+	if c.CardID != "" {
+		return c.CardID
+	}
+	if c.BoardID != "" {
+		return BoardOwner(c.BoardID)
+	}
+	return ""
+}
+
+// SaveCheckout records one. Called when it is created, and again when an owner
+// that had released it takes it back.
+func (s *Store) SaveCheckout(c Checkout) error {
 	if c.CreatedAt.IsZero() {
 		c.CreatedAt = time.Now()
 	}
-	_, err := s.exec(`INSERT INTO {workdir_claim} (workdir_path, owner, mode, branch, path, base, created_at, released_at)
-		VALUES (?,?,?,?,?,?,?,NULL)
-		ON CONFLICT(workdir_path, owner) DO UPDATE SET
+	// Upserted on the owner rather than on the id: the id is ours and a second
+	// claim by the same owner is the same checkout, not another one.
+	column, value := "card_id", any(c.CardID)
+	if c.CardID == "" {
+		column, value = "board_id", any(nullable(c.BoardID))
+	}
+	var id string
+	err := s.queryRow(`SELECT id FROM {checkout} WHERE workspace_id=? AND `+column+`=?`,
+		c.WorkspaceID, value).Scan(&id)
+	switch {
+	case err == sql.ErrNoRows:
+		id = newID()
+	case err != nil:
+		return err
+	}
+	_, err = s.exec(`INSERT INTO {checkout}
+		(id, workspace_id, card_id, board_id, mode, branch, path, base, created_at, released_at)
+		VALUES (?,?,?,?,?,?,?,?,?,NULL)
+		ON CONFLICT(id) DO UPDATE SET
 			mode=excluded.mode, branch=excluded.branch, path=excluded.path,
 			base=excluded.base, created_at=excluded.created_at, released_at=NULL`,
-		c.Workdir, c.Owner, c.Mode, c.Branch, c.Path, c.Base, c.CreatedAt.UnixMilli())
+		id, c.WorkspaceID, nullable(c.CardID), nullable(c.BoardID), c.Mode,
+		nullable(c.Branch), nullable(c.Path), nullable(c.Base), c.CreatedAt.UnixMilli())
 	return err
 }
 
-// WorkspaceOf is the workspace this owner holds in this folder, if it still
-// holds one.
-func (s *Store) WorkspaceOf(workdir, owner string) (WorkspaceClaim, bool, error) {
-	row := s.queryRow(`SELECT workdir_path, owner, mode, COALESCE(branch,''), COALESCE(path,''), COALESCE(base,''), created_at
-		FROM {workdir_claim} WHERE workdir_path=? AND owner=? AND released_at IS NULL`, workdir, owner)
-	return scanClaim(row)
+const checkoutColumns = `workspace_id, COALESCE(card_id,''), COALESCE(board_id,''), mode,
+	COALESCE(branch,''), COALESCE(path,''), COALESCE(base,''), created_at`
+
+// CheckoutOf is what this owner holds in this workspace, if it still holds
+// anything.
+func (s *Store) CheckoutOf(workspaceID, cardID, boardID string) (Checkout, bool, error) {
+	column, value := "card_id", any(cardID)
+	if cardID == "" {
+		column, value = "board_id", any(nullable(boardID))
+	}
+	row := s.queryRow(`SELECT `+checkoutColumns+` FROM {checkout}
+		WHERE workspace_id=? AND `+column+`=? AND released_at IS NULL`, workspaceID, value)
+	return scanCheckout(row)
 }
 
-// WorkdirHeldBy is whoever holds this folder now — and only a branch in the
-// folder itself holds one. A copy per card holds nothing: that is the whole
-// point of it, and counting those claims made a card that had finished months
-// ago keep every later card out of a folder it was never standing in.
-func (s *Store) WorkdirHeldBy(workdir string) (WorkspaceClaim, bool, error) {
-	row := s.queryRow(`SELECT workdir_path, owner, mode, COALESCE(branch,''), COALESCE(path,''), COALESCE(base,''), created_at
-		FROM {workdir_claim} WHERE workdir_path=? AND released_at IS NULL AND mode=?
-		ORDER BY created_at LIMIT 1`, workdir, WorkModeBranch)
-	return scanClaim(row)
+// WorkspaceHeldBy is whoever holds this workspace now — and only a branch in
+// the folder itself holds one. A copy per card holds nothing: that is the whole
+// point of it, and counting those made a card finished months ago keep every
+// later card out of a folder it was never standing in.
+func (s *Store) WorkspaceHeldBy(workspaceID string) (Checkout, bool, error) {
+	row := s.queryRow(`SELECT `+checkoutColumns+` FROM {checkout}
+		WHERE workspace_id=? AND released_at IS NULL AND mode=?
+		ORDER BY created_at LIMIT 1`, workspaceID, WorkModeBranch)
+	return scanCheckout(row)
 }
 
-// ReleaseWorkdir gives a folder back. The row stays: what branch a card worked
-// on is worth remembering after the folder is free again.
-func (s *Store) ReleaseWorkdir(workdir, owner string) error {
-	_, err := s.exec(`UPDATE {workdir_claim} SET released_at=?
-		WHERE workdir_path=? AND owner=? AND released_at IS NULL`,
-		time.Now().UnixMilli(), workdir, owner)
+// ReleaseCheckout gives a workspace back. The row stays: which branch a card
+// worked on is worth remembering after the folder is free again.
+func (s *Store) ReleaseCheckout(workspaceID, cardID, boardID string) error {
+	column, value := "card_id", any(cardID)
+	if cardID == "" {
+		column, value = "board_id", any(nullable(boardID))
+	}
+	_, err := s.exec(`UPDATE {checkout} SET released_at=?
+		WHERE workspace_id=? AND `+column+`=? AND released_at IS NULL`,
+		time.Now().UnixMilli(), workspaceID, value)
 	return err
 }
 
-// ReleaseBranch gives back whatever workspace was on this branch, whoever holds
-// it — how a merge frees the folder for the next card.
-func (s *Store) ReleaseBranch(workdir, branch string) (string, error) {
-	row := s.queryRow(`SELECT owner FROM {workdir_claim}
-		WHERE workdir_path=? AND branch=? AND released_at IS NULL`, workdir, branch)
-	var owner string
-	switch err := row.Scan(&owner); {
+// ReleaseBranch gives back whatever checkout was on this branch, whoever holds
+// it — how a merge frees the folder for the next card. It answers with the
+// owner, for the line that says so in the log.
+func (s *Store) ReleaseBranch(workspaceID, branch string) (string, error) {
+	row := s.queryRow(`SELECT COALESCE(card_id,''), COALESCE(board_id,'') FROM {checkout}
+		WHERE workspace_id=? AND branch=? AND released_at IS NULL`, workspaceID, branch)
+	var cardID, boardID string
+	switch err := row.Scan(&cardID, &boardID); {
 	case err == sql.ErrNoRows:
 		return "", nil
 	case err != nil:
 		return "", err
 	}
-	return owner, s.ReleaseWorkdir(workdir, owner)
+	owner := Checkout{CardID: cardID, BoardID: boardID}.Owner()
+	return owner, s.ReleaseCheckout(workspaceID, cardID, boardID)
 }
 
-func scanClaim(row scanner) (WorkspaceClaim, bool, error) {
+func scanCheckout(row scanner) (Checkout, bool, error) {
 	var (
-		c       WorkspaceClaim
+		c       Checkout
 		created int64
 	)
-	switch err := row.Scan(&c.Workdir, &c.Owner, &c.Mode, &c.Branch, &c.Path, &c.Base, &created); {
+	switch err := row.Scan(&c.WorkspaceID, &c.CardID, &c.BoardID, &c.Mode,
+		&c.Branch, &c.Path, &c.Base, &created); {
 	case err == sql.ErrNoRows:
-		return WorkspaceClaim{}, false, nil
+		return Checkout{}, false, nil
 	case err != nil:
-		return WorkspaceClaim{}, false, err
+		return Checkout{}, false, err
 	}
 	c.CreatedAt = time.UnixMilli(created)
 	return c, true, nil
 }
 
-// BranchForOwner is the branch this owner works on, in whichever folder it
-// holds one — the card's own workspace, in other words. What a deploy
-// publishes when the card names no branch itself.
-func (s *Store) BranchForOwner(owner string) (string, error) {
-	row := s.queryRow(`SELECT branch FROM {workdir_claim}
-		WHERE owner=? AND released_at IS NULL AND branch IS NOT NULL AND branch<>''
-		ORDER BY created_at DESC LIMIT 1`, owner)
+// BranchForCard is the branch this card works on, in whichever workspace it
+// holds one. What a deploy publishes when the card names no branch itself.
+func (s *Store) BranchForCard(cardID string) (string, error) {
+	row := s.queryRow(`SELECT branch FROM {checkout}
+		WHERE card_id=? AND released_at IS NULL AND branch IS NOT NULL AND branch<>''
+		ORDER BY created_at DESC LIMIT 1`, cardID)
 	var branch string
 	switch err := row.Scan(&branch); {
 	case err == sql.ErrNoRows:
@@ -884,14 +930,14 @@ func (s *Store) BranchForOwner(owner string) (string, error) {
 	return branch, nil
 }
 
-// WorkspaceModeForOwner is how the owner's live workspace is arranged —
-// "worktree" or "branch" — or "" when it holds none. The card's stamp names
-// its line after it: a person who set «отдельная копия» should read worktree
-// off the card, not a bare branch label that spells the *other* setting.
-func (s *Store) WorkspaceModeForOwner(owner string) (mode, branch, base string, err error) {
-	row := s.queryRow(`SELECT mode, COALESCE(branch,''), COALESCE(base,'') FROM {workdir_claim}
-		WHERE owner=? AND released_at IS NULL
-		ORDER BY created_at DESC LIMIT 1`, owner)
+// CheckoutModeForCard is how the card's live checkout is arranged — "worktree"
+// or "branch" — or "" when it holds none. The card's stamp names its line after
+// it: a person who set «отдельная копия» should read worktree off the card, not
+// a bare branch label that spells the *other* setting.
+func (s *Store) CheckoutModeForCard(cardID string) (mode, branch, base string, err error) {
+	row := s.queryRow(`SELECT mode, COALESCE(branch,''), COALESCE(base,'') FROM {checkout}
+		WHERE card_id=? AND released_at IS NULL
+		ORDER BY created_at DESC LIMIT 1`, cardID)
 	switch err := row.Scan(&mode, &branch, &base); {
 	case err == sql.ErrNoRows:
 		return "", "", "", nil
