@@ -163,6 +163,18 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 	gotShape := shapeOf(t, strings.ReplaceAll(got, "{{.prefix}}", ""))
 	wantShape := shapeOf(t, string(want))
 
+	// The tables this schema deliberately differs from the ladder on, and why.
+	// Declared here rather than by editing the snapshot: the snapshot is what
+	// the ladder built and it stays true, so every deviation stays visible.
+	intendedTables := map[string]string{
+		"table boards_history":        historyKeyReason,
+		"table blocks_history":        historyKeyReason,
+		"table board_members_history": historyKeyReason,
+		// Widened: utils.NewID was already overflowing varchar(26) by one
+		// character, and UUIDv7 needs 36.
+		"table file_info": "id widened to hold the ids actually written to it",
+	}
+
 	for name, w := range wantShape {
 		g, ok := gotShape[name]
 		if !ok {
@@ -170,6 +182,10 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 			continue
 		}
 		if g != w {
+			if why, ok := intendedTables[name]; ok {
+				t.Logf("%s differs on purpose — %s", name, why)
+				continue
+			}
 			t.Errorf("%s differs\n  ladder:    %s\n  collapsed: %s", name, w, g)
 		}
 	}
@@ -179,6 +195,12 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 		}
 	}
 }
+
+// historyKeyReason is why the three history tables lost their primary key.
+const historyKeyReason = "an append-only journal needs no unique key, and the " +
+	"(id, insert_at) one it had refused a second row written in the same " +
+	"millisecond — which is a 500 on undelete and the reason transactions are " +
+	"off on SQLite (docs/sql-plan.md, point 1)"
 
 // shapeOf is what a table is, as SQLite itself reports it after the DDL has been
 // applied — which normalises away everything that is spelling rather than
@@ -303,6 +325,14 @@ func TestTheColumnWidthsAreTheOnesTheLadderDeclared(t *testing.T) {
 		t.Skipf("no snapshot of the pre-collapse schema: %v", err)
 	}
 
+	// Where this schema deliberately differs from the ladder's. Declared here,
+	// with the reason, rather than by editing the snapshot: the snapshot is what
+	// the ladder built, and it stays true.
+	intended := map[string]string{
+		"file_info.id": "was too narrow for the 27-character ids already going into it, " +
+			"and is now 36 for UUIDv7",
+	}
+
 	declared := widthsInDDL(string(want))
 	if len(declared) < 50 {
 		t.Fatalf("only %d widths read out of the snapshot; the parser has stopped working", len(declared))
@@ -323,9 +353,14 @@ func TestTheColumnWidthsAreTheOnesTheLadderDeclared(t *testing.T) {
 			default:
 				continue // only the sized types have a width to get wrong
 			}
-			if is != was {
-				t.Errorf("%s is varchar(%d), and the ladder declared varchar(%d)", key, is, was)
+			if is == was {
+				continue
 			}
+			if why, ok := intended[key]; ok {
+				t.Logf("%s: varchar(%d) rather than the ladder's varchar(%d) — %s", key, is, was, why)
+				continue
+			}
+			t.Errorf("%s is varchar(%d), and the ladder declared varchar(%d)", key, is, was)
 		}
 	}
 }

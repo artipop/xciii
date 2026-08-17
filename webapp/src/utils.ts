@@ -58,9 +58,36 @@ export type RouterMatch = {
 }
 
 class Utils {
+    // A UUIDv7 in its ordinary written form, thirty-six characters, which is
+    // exactly what every id column on the server holds.
+    //
+    // The page makes ids rather than asking the server for them, and that is
+    // load-bearing: a card is rendered optimistically the moment it is made,
+    // and undo sends patches by id (createPatchesFromBoardsAndBlocks). So the
+    // format has to be agreed rather than issued, and this is the same one
+    // utils.NewID produces on the Go side.
+    //
+    // v7 is time-ordered and unique across machines by construction. It
+    // replaced a type letter followed by base32 of sixteen random bytes; the
+    // letter is dropped because nothing ever read it — what a block is, the
+    // block's own `type` says.
     static createGuid(idType: IDType): string {
-        const data = Utils.randomArray(16)
-        return idType + Utils.base32encode(data, false)
+        const bytes = Utils.randomArray(16)
+        const now = Date.now()
+
+        // 48 bits of milliseconds, then the version and variant nibbles the
+        // format reserves, then whatever randomness is left.
+        bytes[0] = (now / 2 ** 40) & 0xff
+        bytes[1] = (now / 2 ** 32) & 0xff
+        bytes[2] = (now / 2 ** 24) & 0xff
+        bytes[3] = (now / 2 ** 16) & 0xff
+        bytes[4] = (now / 2 ** 8) & 0xff
+        bytes[5] = now & 0xff
+        bytes[6] = 0x70 | (bytes[6] & 0x0f)
+        bytes[8] = 0x80 | (bytes[8] & 0x3f)
+
+        const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+        return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
     }
 
     static blockTypeToIDType(blockType: string | undefined): IDType {

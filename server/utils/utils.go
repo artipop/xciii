@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/google/uuid"
+
 	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -24,12 +26,27 @@ const (
 	IDTypeAttachment IDType = 'i'
 )
 
-// NewId is a globally unique identifier.  It is a [A-Z0-9] string 27
-// characters long.  It is a UUID version 4 Guid that is zbased32 encoded
-// with the padding stripped off, and a one character alpha prefix indicating the
-// type of entity or a `7` if unknown type.
+// NewID is a globally unique identifier: a UUIDv7 in its ordinary written form,
+// thirty-six characters, which is exactly what every id column holds.
+//
+// It was a one-character type letter followed by base32 of sixteen random
+// bytes. The letter is gone because nothing ever read it — it was written and
+// never parsed, and what a row is, `blocks` already says in its `type` column.
+// v7 buys the two things the old form did not have: it is unique across
+// machines by construction rather than by agreement, so a card carried to
+// another machine cannot collide, and it sorts by the moment it was made, which
+// is what lets a journal be ordered by its own key.
+//
+// idType is kept in the signature and ignored. Every caller says what it is
+// making, at a hundred call sites, and reading like an id of a particular kind
+// is worth more than the parameter costs.
 func NewID(idType IDType) string {
-	return string(idType) + mmModel.NewId()
+	id, err := uuid.NewV7()
+	if err != nil {
+		// A worse order, never a refused id: the caller is making a row.
+		return uuid.NewString()
+	}
+	return id.String()
 }
 
 // GetMillis is a convenience method to get milliseconds since epoch.

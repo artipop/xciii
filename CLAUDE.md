@@ -79,14 +79,12 @@ in a browser and as a Mattermost plugin.
   the headless build, which has its own files. `./...` also walks
   `webapp/node_modules`, where an npm package happens to ship Go sources; that is
   cosmetic, and a nested `go.mod` would not fix it — `go:embed` cannot cross a
-  module boundary, and `webapp/pack` is what it embeds. **Two suites are flaky,
-  and were before this was written**: `server/integrationtests`, where which
-  permission tests fail changes between runs and
-  `TestPermissionsGetTeamTemplates` fails every time; and
-  `internal/boardadapter`, where `TestATemplateThisBuildNoLongerShipsIsRemoved`
-  fails perhaps one run in four, and only as part of the whole package. Run a
-  clean checkout half a dozen times before believing a failure in either is
-  yours — twice is not enough to tell, which is a mistake already made here.
+  module boundary, and `webapp/pack` is what it embeds. One test fails every
+  time and is known: `TestPermissionsGetTeamTemplates`. Two suites used to be
+  *flaky* on top of that — `server/integrationtests`, where which permission
+  tests failed changed between runs, and `internal/boardadapter` about one run
+  in four — and they are not any more: the cause was composite writes going
+  through without a transaction on SQLite, which is fixed (below).
 - `go generate ./tools/schemagen` — after any change to the application's own
   tables. It rewrites the migration for all three dialects; `go test
   ./tools/schemagen` is what fails when somebody forgets.
@@ -1568,6 +1566,20 @@ dialects by hand is what the fork's other eighty migrations do, and every
 three answers to one question — here the question is asked once and one table of
 types answers it. Atlas is a build-time dependency: what ships is the SQL, in
 the repository, and `go test ./tools/schemagen` fails when the two disagree.
+**Transactions work on SQLite**, and getting there is a chain worth knowing.
+`@withTransaction` was switched off for SQLite because turning it on failed with
+`UNIQUE constraint failed: blocks_history.id, blocks_history.insert_at`: the
+history tables keyed on `(id, insert_at)`, `insert_at` comes from the database's
+own clock, and inside a transaction SQLite hands every statement the same
+instant. So the fork's composite operations — insert a block, write its history,
+touch the board — ran as separate statements on the database everyone actually
+uses, and a failure halfway left the database half-changed. That is what made
+two test suites flaky, and it is why deleting a board and undeleting it at once
+returned a 500 about a third of the time. Collapsing the migrations is what made
+it fixable: the history tables have no primary key now (an append-only journal
+needs none), the collision cannot happen, and the SQLite branch is gone from
+`generators/transactional_store.go.tmpl`.
+
 **golang-migrate still runs it**: this is a generator, not a migration engine,
 and the engine already knows about versions, dirty marks and the record the
 previous one kept. `go generate ./tools/schemagen` after any schema change.
