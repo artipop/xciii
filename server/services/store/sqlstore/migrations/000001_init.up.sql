@@ -10,21 +10,17 @@
 -- with no column to tell them apart — the agents and the sources.
 -- password, mfa_secret, auth_service and auth_data are unused: this
 -- application creates every account itself and has no passwords.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `users` (`id` varchar NOT NULL, `username` varchar NULL, `email` varchar NULL, `password` varchar NULL, `mfa_secret` varchar NULL, `auth_service` varchar NULL, `auth_data` varchar NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`id`));
 
 -- The team a board belongs to. In this product there is exactly one and
 -- its id is '0' — but the column is in two hundred queries of the fork,
 -- and working with teams stays as it is.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `teams` (`id` varchar NOT NULL, `signup_token` varchar NOT NULL, `settings` text NULL, `modified_by` varchar NULL, `update_at` bigint NULL, PRIMARY KEY (`id`));
 
 -- A logged-in session. Its token is what proxy.go hands the page.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `sessions` (`id` varchar NOT NULL, `token` varchar NULL, `user_id` varchar NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `auth_service` varchar NULL, PRIMARY KEY (`id`));
 
 -- Key and value, for the handful of things the server records about itself.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `system_settings` (`id` varchar NOT NULL, `value` text NULL, PRIMARY KEY (`id`));
 
 -- A board.
@@ -101,7 +97,6 @@ CREATE TABLE `category_boards` (`id` varchar NOT NULL, `user_id` varchar NOT NUL
 CREATE UNIQUE INDEX `unique_user_category_board` ON `category_boards` (`user_id`, `board_id`);
 
 -- A board's public link. The id is the board's, so this is one-to-one.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `sharing` (`id` varchar NOT NULL, `enabled` boolean NULL, `token` varchar NULL, `modified_by` varchar NULL, `update_at` bigint NULL, PRIMARY KEY (`id`));
 
 -- An attachment. It has no primary key, which is what the migrations
@@ -124,14 +119,11 @@ CREATE INDEX `idx_preferences_category` ON `preferences` (`category`);
 CREATE INDEX `idx_preferences_name` ON `preferences` (`name`);
 
 -- Who is watching a block, for the notification service.
---   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
---   subscriber_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `subscriptions` (`block_type` varchar NULL, `block_id` varchar NOT NULL, `subscriber_type` varchar NULL, `subscriber_id` varchar NOT NULL, `notified_at` bigint NULL, `create_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`block_id`, `subscriber_id`));
 
 CREATE INDEX `idx_subscriptions_subscriber_id` ON `subscriptions` (`subscriber_id`);
 
 -- A block that has changed and whose watchers have not been told yet.
---   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `notification_hints` (`block_type` varchar NULL, `block_id` varchar NOT NULL, `modified_by_id` varchar NULL, `create_at` bigint NULL, `notify_at` bigint NULL, PRIMARY KEY (`block_id`));
 
 -- Network settings several agents share, so they are edited in one
@@ -317,7 +309,6 @@ CREATE INDEX `idx_source_event_source` ON `source_event` (`source`, `id`);
 
 {{if .mysql}}
 -- A block that has changed and whose watchers have not been told yet.
---   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `notification_hints` (`block_type` varchar(10) NULL, `block_id` varchar(36) NOT NULL, `modified_by_id` varchar(36) NULL, `create_at` bigint NULL, `notify_at` bigint NULL, PRIMARY KEY (`block_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- One route event, handled once. `key` was the column's name and is a
@@ -326,18 +317,15 @@ CREATE TABLE `notification_hints` (`block_type` varchar(10) NULL, `block_id` var
 CREATE TABLE `idempotency` (`token` varchar(255) NOT NULL, `session_id` varchar(36) NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`token`), INDEX `idx_idempotency_created` (`created_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- A logged-in session. Its token is what proxy.go hands the page.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `sessions` (`id` varchar(100) NOT NULL, `token` varchar(100) NULL, `user_id` varchar(100) NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `auth_service` varchar(20) NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Key and value, for the handful of things the server records about itself.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `system_settings` (`id` varchar(100) NOT NULL, `value` text NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Everybody the board knows: people, and — under their own names and
 -- with no column to tell them apart — the agents and the sources.
 -- password, mfa_secret, auth_service and auth_data are unused: this
 -- application creates every account itself and has no passwords.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `users` (`id` varchar(100) NOT NULL, `username` varchar(100) NULL, `email` varchar(255) NULL, `password` varchar(100) NULL, `mfa_secret` varchar(100) NULL, `auth_service` varchar(20) NULL, `auth_data` varchar(255) NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Every version of every board, one row per edit, never pruned. The
@@ -381,7 +369,6 @@ CREATE TABLE `categories` (`id` varchar(36) NOT NULL, `name` varchar(100) NOT NU
 CREATE TABLE `category_boards` (`id` varchar(36) NOT NULL, `user_id` varchar(36) NOT NULL, `category_id` varchar(36) NOT NULL, `board_id` varchar(36) NOT NULL, `create_at` bigint NULL, `update_at` bigint NULL, `sort_order` bigint NULL, `hidden` bool NULL, PRIMARY KEY (`id`), UNIQUE INDEX `unique_user_category_board` (`user_id`, `board_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- A board's public link. The id is the board's, so this is one-to-one.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `sharing` (`id` varchar(36) NOT NULL, `enabled` bool NULL, `token` varchar(100) NULL, `modified_by` varchar(36) NULL, `update_at` bigint NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- An attachment. It has no primary key, which is what the migrations
@@ -400,14 +387,11 @@ CREATE TABLE `file_info` (`id` varchar(36) NOT NULL, `create_at` bigint NOT NULL
 CREATE TABLE `preferences` (`userid` varchar(36) NOT NULL, `category` varchar(32) NOT NULL, `name` varchar(32) NOT NULL, `value` text NULL, PRIMARY KEY (`userid`, `category`, `name`), INDEX `idx_preferences_category` (`category`), INDEX `idx_preferences_name` (`name`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Who is watching a block, for the notification service.
---   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
---   subscriber_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `subscriptions` (`block_type` varchar(10) NULL, `block_id` varchar(36) NOT NULL, `subscriber_type` varchar(10) NULL, `subscriber_id` varchar(36) NOT NULL, `notified_at` bigint NULL, `create_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`block_id`, `subscriber_id`), INDEX `idx_subscriptions_subscriber_id` (`subscriber_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- The team a board belongs to. In this product there is exactly one and
 -- its id is '0' — but the column is in two hundred queries of the fork,
 -- and working with teams stays as it is.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE `teams` (`id` varchar(36) NOT NULL, `signup_token` varchar(100) NOT NULL, `settings` text NULL, `modified_by` varchar(36) NULL, `update_at` bigint NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Network settings several agents share, so they are edited in one
@@ -573,7 +557,6 @@ CREATE TABLE `workspace_board` (`workspace_id` varchar(36) NOT NULL, `board_id` 
 
 {{if .postgres}}
 -- A block that has changed and whose watchers have not been told yet.
---   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE "notification_hints" ("block_type" character varying(10) NULL, "block_id" character varying(36) NOT NULL, "modified_by_id" character varying(36) NULL, "create_at" bigint NULL, "notify_at" bigint NULL, PRIMARY KEY ("block_id"));
 
 -- One route event, handled once. `key` was the column's name and is a
@@ -587,18 +570,15 @@ CREATE TABLE "idempotency" ("token" character varying(255) NOT NULL, "session_id
 CREATE INDEX "idx_idempotency_created" ON "idempotency" ("created_at");
 
 -- A logged-in session. Its token is what proxy.go hands the page.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE "sessions" ("id" character varying(100) NOT NULL, "token" character varying(100) NULL, "user_id" character varying(100) NULL, "props" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "auth_service" character varying(20) NULL, PRIMARY KEY ("id"));
 
 -- Key and value, for the handful of things the server records about itself.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE "system_settings" ("id" character varying(100) NOT NULL, "value" text NULL, PRIMARY KEY ("id"));
 
 -- Everybody the board knows: people, and — under their own names and
 -- with no column to tell them apart — the agents and the sources.
 -- password, mfa_secret, auth_service and auth_data are unused: this
 -- application creates every account itself and has no passwords.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE "users" ("id" character varying(100) NOT NULL, "username" character varying(100) NULL, "email" character varying(255) NULL, "password" character varying(100) NULL, "mfa_secret" character varying(100) NULL, "auth_service" character varying(20) NULL, "auth_data" character varying(255) NULL, "props" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, PRIMARY KEY ("id"));
 
 -- Every version of every board, one row per edit, never pruned. The
@@ -662,7 +642,6 @@ CREATE TABLE "category_boards" ("id" character varying(36) NOT NULL, "user_id" c
 CREATE UNIQUE INDEX "unique_user_category_board" ON "category_boards" ("user_id", "board_id");
 
 -- A board's public link. The id is the board's, so this is one-to-one.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE "sharing" ("id" character varying(36) NOT NULL, "enabled" boolean NULL, "token" character varying(100) NULL, "modified_by" character varying(36) NULL, "update_at" bigint NULL, PRIMARY KEY ("id"));
 
 -- An attachment. It has no primary key, which is what the migrations
@@ -691,19 +670,14 @@ CREATE INDEX "idx_preferences_category" ON "preferences" ("category");
 CREATE INDEX "idx_preferences_name" ON "preferences" ("name");
 
 -- Who is watching a block, for the notification service.
---   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
---   subscriber_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE "subscriptions" ("block_type" character varying(10) NULL, "block_id" character varying(36) NOT NULL, "subscriber_type" character varying(10) NULL, "subscriber_id" character varying(36) NOT NULL, "notified_at" bigint NULL, "create_at" bigint NULL, "delete_at" bigint NULL, PRIMARY KEY ("block_id", "subscriber_id"));
 
 -- Who is watching a block, for the notification service.
---   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
---   subscriber_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE INDEX "idx_subscriptions_subscriber_id" ON "subscriptions" ("subscriber_id");
 
 -- The team a board belongs to. In this product there is exactly one and
 -- its id is '0' — but the column is in two hundred queries of the fork,
 -- and working with teams stays as it is.
---   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE TABLE "teams" ("id" character varying(36) NOT NULL, "signup_token" character varying(100) NOT NULL, "settings" text NULL, "modified_by" character varying(36) NULL, "update_at" bigint NULL, PRIMARY KEY ("id"));
 
 -- Network settings several agents share, so they are edited in one

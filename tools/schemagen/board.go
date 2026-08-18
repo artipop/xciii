@@ -69,16 +69,12 @@ func boardTables() []Table {
 // journal does not need one: nothing upserts into these tables, nothing joins
 // to them by key, and the only thing anybody asks is "the versions of this row,
 // newest first" — which is an index, and is what they have.
-// nullablePK is the note on a key column the fork's SQLite migrations left
-// nullable — SQLite allows it for a table-level PRIMARY KEY on a non-integer
-// column, and the older CREATEs simply never said NOT NULL.
-//
-// It is a note about where the column came from, not what it is: build() forces
-// NOT NULL on every key column, because MySQL refuses a nullable one outright
-// ("Error 1171") and the whole migration died on its first table. The ladder
-// got away with the difference by writing each dialect by hand; one description
-// cannot say both, and NOT NULL is the true one.
-const nullablePK = "The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL."
+// Key columns are declared Null: true where the fork's SQLite migrations left
+// them so — SQLite allows a nullable column in a table-level PRIMARY KEY, and
+// the older CREATEs never said NOT NULL. build() forces NOT NULL on all of
+// them anyway, because MySQL refuses a nullable key outright ("Error 1171") and
+// the migration died on its first table. The ladder got away with the
+// difference by writing each dialect by hand.
 
 func insertAt() Column {
 	return Column{Name: "insert_at", Type: Timestamp(), Default: DefaultNow}
@@ -92,7 +88,7 @@ func users() Table {
 			"password, mfa_secret, auth_service and auth_data are unused: this\n" +
 			"application creates every account itself and has no passwords.",
 		Columns: []Column{
-			{Name: "id", Type: Name(100), Null: true, Why: nullablePK},
+			{Name: "id", Type: Name(100), Null: true},
 			{Name: "username", Type: Name(100), Null: true},
 			{Name: "email", Type: Name(255), Null: true},
 			{Name: "password", Type: Name(100), Null: true},
@@ -115,7 +111,7 @@ func teams() Table {
 			"its id is '0' — but the column is in two hundred queries of the fork,\n" +
 			"and working with teams stays as it is.",
 		Columns: []Column{
-			{Name: "id", Type: Name(36), Null: true, Why: nullablePK},
+			{Name: "id", Type: Name(36), Null: true},
 			{Name: "signup_token", Type: Name(100)},
 			{Name: "settings", Type: Text(), Null: true},
 			{Name: "modified_by", Type: Name(36), Null: true},
@@ -130,7 +126,7 @@ func sessions() Table {
 		Name: "sessions",
 		Why:  "A logged-in session. Its token is what proxy.go hands the page.",
 		Columns: []Column{
-			{Name: "id", Type: Name(100), Null: true, Why: nullablePK},
+			{Name: "id", Type: Name(100), Null: true},
 			{Name: "token", Type: Name(100), Null: true},
 			{Name: "user_id", Type: Name(100), Null: true},
 			{Name: "props", Type: Text(), Null: true},
@@ -147,7 +143,7 @@ func systemSettings() Table {
 		Name: "system_settings",
 		Why:  "Key and value, for the handful of things the server records about itself.",
 		Columns: []Column{
-			{Name: "id", Type: Name(100), Null: true, Why: nullablePK},
+			{Name: "id", Type: Name(100), Null: true},
 			{Name: "value", Type: Text(), Null: true},
 		},
 		PK: []string{"id"},
@@ -363,7 +359,7 @@ func sharingTable() Table {
 		Name: "sharing",
 		Why:  "A board's public link. The id is the board's, so this is one-to-one.",
 		Columns: []Column{
-			{Name: "id", Type: Name(36), Null: true, Why: nullablePK},
+			{Name: "id", Type: Name(36), Null: true},
 			{Name: "enabled", Type: Bool(), Null: true},
 			{Name: "token", Type: Name(100), Null: true},
 			{Name: "modified_by", Type: Name(36), Null: true},
@@ -423,9 +419,9 @@ func subscriptions() Table {
 		Why:  "Who is watching a block, for the notification service.",
 		Columns: []Column{
 			{Name: "block_type", Type: Name(10), Null: true},
-			{Name: "block_id", Type: Name(36), Null: true, Why: nullablePK},
+			{Name: "block_id", Type: Name(36), Null: true},
 			{Name: "subscriber_type", Type: Name(10), Null: true},
-			{Name: "subscriber_id", Type: Name(36), Null: true, Why: nullablePK},
+			{Name: "subscriber_id", Type: Name(36), Null: true},
 			{Name: "notified_at", Type: Millis(), Null: true},
 			{Name: "create_at", Type: Millis(), Null: true},
 			{Name: "delete_at", Type: Millis(), Null: true},
@@ -443,7 +439,7 @@ func notificationHints() Table {
 		Why:  "A block that has changed and whose watchers have not been told yet.",
 		Columns: []Column{
 			{Name: "block_type", Type: Name(10), Null: true},
-			{Name: "block_id", Type: Name(36), Null: true, Why: nullablePK},
+			{Name: "block_id", Type: Name(36), Null: true},
 			{Name: "modified_by_id", Type: Name(36), Null: true},
 			{Name: "create_at", Type: Millis(), Null: true},
 			{Name: "notify_at", Type: Millis(), Null: true},

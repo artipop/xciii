@@ -182,6 +182,10 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 		"table sessions":        {tightenedKey},
 		"table teams":           {tightenedKey},
 		"table system_settings": {tightenedKey},
+		// The route stopped being addressed by its name.
+		"table flow_state":  {routeByID},
+		"table flow_event":  {routeByID},
+		"table stage_queue": {routeByID},
 	}
 
 	for name, w := range wantShape {
@@ -204,6 +208,11 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 		}
 	}
 }
+
+// routeByID is why the three tables that record a card's place on a route no
+// longer carry the route's name. Renaming a route lost the place of every card
+// standing on it (docs/model-graph.md, contradiction 4).
+const routeByID = "flow (the route's name) became flow_id"
 
 // deadColumns is why five tables are narrower than the ladder left them.
 const deadColumns = "a remnant column dropped: root_id (always equal to " +
