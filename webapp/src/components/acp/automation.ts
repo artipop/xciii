@@ -23,7 +23,10 @@ export type FlowNode = {
     // Empty means "whatever the column does"; 'none' means the stage runs
     // nothing and waits for an event.
     action: string
-    agentNames?: string[]
+
+    // The crew for this stage, by registry id: renaming an agent used to empty
+    // the crew of every stage on every board.
+    agentIds?: string[]
 
     // The deploy target this stage publishes to, by the registry entry's id.
     // It used to be the entry's name, and renaming a target then unpinned every
@@ -100,7 +103,7 @@ export type ColumnSpec = {
     property: string
     column: string
     action: string
-    agents?: string[]
+    agentIds?: string[]
     deployId?: string
     maxRunning?: number
 

@@ -46,7 +46,7 @@ func TestALegacyDeployNameIsFoldedIntoItsID(t *testing.T) {
 	deploys := []DeployEntry{{ID: "dep-1", Name: "staging"}}
 
 	spec := ColumnSpec{Column: "Публикация", DeployName: "STAGING"}
-	if !bindColumnRefs(&spec, deploys) {
+	if !bindColumnRefs(&spec, nil, deploys) {
 		t.Fatal("a legacy name was not folded")
 	}
 	if spec.DeployID != "dep-1" || spec.DeployName != "" {
@@ -56,7 +56,7 @@ func TestALegacyDeployNameIsFoldedIntoItsID(t *testing.T) {
 	// A board from another machine names targets registered there, so an
 	// unresolvable name is kept: registering it here is what fixes the board.
 	unknown := ColumnSpec{Column: "Публикация", DeployName: "somebody else's"}
-	if bindColumnRefs(&unknown, deploys) {
+	if bindColumnRefs(&unknown, nil, deploys) {
 		t.Error("a name this machine cannot resolve was folded anyway")
 	}
 	if unknown.DeployName == "" {

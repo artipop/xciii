@@ -599,7 +599,7 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 				place := cardPlace{node: st.NodeID, column: node.Column, crew: node.Crew(), runIn: node.RunIn}
 				spec, _ := m.columnOf(node, property)
 				if len(place.crew) == 0 {
-					place.crew = spec.Agents
+					place.crew = spec.AgentIDs
 				}
 				action := node.Action
 				if action == "" {
@@ -626,7 +626,7 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 		}
 		place := cardPlace{node: opt.OptionID, column: opt.Name}
 		if spec, ok := m.columnFor(ev.BoardID, opt); ok {
-			place.crew = spec.Agents
+			place.crew = spec.AgentIDs
 			place.works = spec.Action == FlowActionAgent
 			place.prompt = spec.Prompt
 			place.reads = spec.Reads

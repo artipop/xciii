@@ -170,11 +170,20 @@ type AgentEntry struct {
 	// config file reads the same as the agent's own.
 	MCPServers MCPServerSet `json:"mcpServers,omitempty"`
 
-	// ProxyName selects a named entry from the proxy registry (Config.Proxies).
-	// Network settings live there rather than on the agent, so several agents
-	// share one configuration and it is edited in a single place. Empty means
-	// the agent inherits the app's own environment.
+	// ProxyID selects an entry of the proxy registry. Network settings live
+	// there rather than on the agent, so several agents share one configuration
+	// and it is edited in a single place. Empty means the agent inherits the
+	// app's own environment.
+	ProxyID string `json:"proxyId,omitempty"`
+	// ProxyName is what the selection used to be written as. Read once and
+	// folded into ProxyID (bindrefs.go); never written back.
 	ProxyName string `json:"proxyName,omitempty"`
+
+	// UserID is the agent's board account. It is what «Кто занимается» on a
+	// card actually stores, so it — and not the username derived from Name — is
+	// how an assigned card finds its agent: renaming an agent must not
+	// unassign every card it was working on.
+	UserID string `json:"userId,omitempty"`
 }
 
 // AgentMCPServer is one MCP server an agent carries of its own, in the standard

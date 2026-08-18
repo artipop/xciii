@@ -191,12 +191,26 @@ func (s *Store) SaveAgent(e AgentEntry, proxyID, userID string) (AgentEntry, err
 	if e.ID == "" {
 		e.ID = newID()
 	}
+	// The arguments are what a caller resolved on the way in — the fold of a
+	// legacy proxy name, an account just created. What the entry already
+	// carries stands when they say nothing, or every save would drop the
+	// account and the proxy of an entry read straight back out of the registry.
+	if proxyID == "" {
+		proxyID = e.ProxyID
+	}
+	if userID == "" {
+		userID = e.UserID
+	}
+	e.ProxyID, e.UserID = proxyID, userID
 	settings, err := json.Marshal(agentSettings{
 		Env: e.Env, Args: e.Args, CLIArgs: e.CLIArgs, Options: e.Options,
 		AutoAllowTools: e.AutoAllowTools, Command: e.Command,
 		TerminalCommand: e.TerminalCommand, MCPServers: e.MCPServers,
 		ProxyName: e.ProxyName,
 	})
+	if e.ProxyID != "" {
+		e.ProxyName = ""
+	}
 	if err != nil {
 		return e, err
 	}
@@ -216,7 +230,7 @@ func (s *Store) SaveAgent(e AgentEntry, proxyID, userID string) (AgentEntry, err
 // Agents is the registry.
 func (s *Store) Agents() ([]AgentEntry, error) {
 	rows, err := s.query(`SELECT id, name, kind, COALESCE(bin_path,''), COALESCE(model,''),
-		COALESCE(prompt,''), COALESCE(settings,'')
+		COALESCE(prompt,''), COALESCE(settings,''), COALESCE(proxy_id,''), COALESCE(user_id,'')
 		FROM agent ORDER BY created_at, id`)
 	if err != nil {
 		return nil, err
@@ -226,7 +240,8 @@ func (s *Store) Agents() ([]AgentEntry, error) {
 	for rows.Next() {
 		var e AgentEntry
 		var settings string
-		if err := rows.Scan(&e.ID, &e.Name, &e.Kind, &e.BinPath, &e.Model, &e.Prompt, &settings); err != nil {
+		if err := rows.Scan(&e.ID, &e.Name, &e.Kind, &e.BinPath, &e.Model, &e.Prompt, &settings,
+			&e.ProxyID, &e.UserID); err != nil {
 			return nil, err
 		}
 		if settings != "" {
@@ -237,6 +252,11 @@ func (s *Store) Agents() ([]AgentEntry, error) {
 			e.Env, e.Args, e.CLIArgs, e.Options = st.Env, st.Args, st.CLIArgs, st.Options
 			e.AutoAllowTools, e.Command, e.TerminalCommand = st.AutoAllowTools, st.Command, st.TerminalCommand
 			e.MCPServers, e.ProxyName = st.MCPServers, st.ProxyName
+		}
+		// The key column wins over the name kept in the settings blob: the name
+		// is only there to be folded into an id once (bindrefs.go).
+		if e.ProxyID != "" {
+			e.ProxyName = ""
 		}
 		out = append(out, e)
 	}

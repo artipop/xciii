@@ -369,7 +369,7 @@ func (m *Manager) adoptColumns(boardID string, columns []ColumnSpec) (int, []Col
 		// nothing the registry answers to (bindrefs.go). Not counted as an
 		// addition: nothing new was registered, and seedFromBoard writes the
 		// board back either way.
-		bindColumnRefs(&c, m.cfg.Deploys)
+		bindColumnRefs(&c, m.cfg.Agents, m.cfg.Deploys)
 		valid, err := validateColumn(c, m.cfg.Agents, m.cfg.Deploys)
 		if err != nil {
 			m.log.Warn("acp: the board offers a column that cannot be used", "board", boardID, "column", c.Column, "err", err)
@@ -395,7 +395,7 @@ func (m *Manager) adoptColumns(boardID string, columns []ColumnSpec) (int, []Col
 			// The registry's own copy is bound too. Leaving it out is what
 			// would make the fold look done and not be: the board would be
 			// rewritten from a registry entry still carrying the name.
-			if bindColumnRefs(&m.cfg.Columns[i], m.cfg.Deploys) {
+			if bindColumnRefs(&m.cfg.Columns[i], m.cfg.Agents, m.cfg.Deploys) {
 				added++
 			}
 			break
@@ -428,7 +428,7 @@ func (m *Manager) adoptFlows(boardID string, flows []FlowEntry) (int, []FlowEntr
 	var unusable []FlowEntry
 	for _, f := range flows {
 		f.BoardID = boardID
-		bindFlowRefs(&f, m.cfg.Deploys)
+		bindFlowRefs(&f, m.cfg.Agents, m.cfg.Deploys)
 		valid, err := validateFlow(f, m.cfg.Workdirs, m.cfg.Agents, m.cfg.Deploys)
 		if err != nil {
 			m.log.Warn("acp: the board offers a route that cannot be used", "board", boardID, "flow", f.Name, "err", err)
@@ -439,7 +439,7 @@ func (m *Manager) adoptFlows(boardID string, flows []FlowEntry) (int, []FlowEntr
 		for i, existing := range m.cfg.Flows {
 			if sameFlow(existing, valid) {
 				known = true
-				if bindFlowRefs(&m.cfg.Flows[i], m.cfg.Deploys) {
+				if bindFlowRefs(&m.cfg.Flows[i], m.cfg.Agents, m.cfg.Deploys) {
 					added++
 				}
 				break

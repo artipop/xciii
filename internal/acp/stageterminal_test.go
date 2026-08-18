@@ -39,7 +39,7 @@ func stageManager(t *testing.T, script string, mutate func(*Config)) (*Manager, 
 	t.Helper()
 	fakeCLIOnPath(t, "claude", script)
 	m, writer, events, project, emitter := testManagerWithEmitter(t, "idle", func(cfg *Config) {
-		cfg.Agents = []AgentEntry{{Name: "clauuus", Kind: AgentKindClaude}}
+		cfg.Agents = []AgentEntry{{ID: newID(), Name: "clauuus", Kind: AgentKindClaude}}
 		if mutate != nil {
 			mutate(cfg)
 		}
@@ -373,7 +373,7 @@ func TestAStageAdoptsTheConversationAPersonOpenedOnItsNode(t *testing.T) {
 	mine, err := m.startTerminal(terminalSpec{
 		cardID: "card-adopt", nodeID: "opt-agent", columnName: "В работе", boardID: "board1",
 		title: "Починить логин", workdirPath: project,
-		agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -383,7 +383,7 @@ func TestAStageAdoptsTheConversationAPersonOpenedOnItsNode(t *testing.T) {
 	stage, err := m.startStageTerminal(&Session{
 		CardID: "card-adopt", BoardID: "board1", NodeID: "opt-agent", ColumnName: "В работе",
 		Title: "Починить логин", PromptText: "Task: Починить логин",
-		WorkdirPath: project, Agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		WorkdirPath: project, Agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -410,7 +410,7 @@ func TestAStageDoesNotAdoptAConversationStandingSomewhereElse(t *testing.T) {
 	mine, err := m.startTerminal(terminalSpec{
 		cardID: "card-drafts", nodeID: "opt-agent", columnName: "В работе", boardID: "board1",
 		title: "Починить логин",
-		agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -423,7 +423,7 @@ func TestAStageDoesNotAdoptAConversationStandingSomewhereElse(t *testing.T) {
 	stage, err := m.startStageTerminal(&Session{
 		CardID: "card-drafts", BoardID: "board1", NodeID: "opt-agent", ColumnName: "В работе",
 		Title: "Починить логин", PromptText: "Task: Починить логин",
-		WorkdirPath: project, Agent: AgentEntry{Name: "cl", Kind: AgentKindClaude},
+		WorkdirPath: project, Agent: AgentEntry{ID: newID(), Name: "cl", Kind: AgentKindClaude},
 	})
 	if err != nil {
 		t.Fatal(err)

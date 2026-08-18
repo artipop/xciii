@@ -78,14 +78,14 @@ func (m *Manager) CardFlowFor(cardID string) (*CardFlow, error) {
 		crew := n.Crew()
 		if len(crew) == 0 {
 			if spec, ok := m.columnOf(n, flow.PropertyOr(m.triggerProperty())); ok {
-				crew = spec.Agents
+				crew = spec.AgentIDs
 			}
 		}
 		out.Stages = append(out.Stages, CardFlowStage{
 			NodeID:  n.ID,
 			Column:  n.Column,
 			Action:  action,
-			Crew:    crew,
+			Crew:    m.crewNames(crew),
 			Current: n.ID == st.NodeID,
 			Done:    visited[n.ID] && n.ID != st.NodeID,
 		})

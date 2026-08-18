@@ -22,7 +22,17 @@ func agentManager(t *testing.T, cfgPath string, agents ...AgentEntry) *Manager {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return NewManager(cfg, cfgPath, store, newFakeWriter(), &fakeEmitter{}, nil)
+	m := NewManager(cfg, cfgPath, store, newFakeWriter(), &fakeEmitter{}, nil)
+	// Through the registry rather than straight into the struct: the id is
+	// minted by the store, and a crew points at ids now — an agent that never
+	// went through a save has nothing for a column to name.
+	m.cfgMu.Lock()
+	err = m.persistConfigLocked()
+	m.cfgMu.Unlock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return m
 }
 
 // reloaded is the registry as the next launch reads it: a second manager over
@@ -378,7 +388,7 @@ func TestAgentAccountsAreCaughtUpAtStartup(t *testing.T) {
 // sync asked for accounts and was handed nothing to create.
 func TestAgentUsersKeepsRussianNames(t *testing.T) {
 	m := &Manager{}
-	m.cfg.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}, {Name: "Codex", Kind: "codex"}}
+	m.cfg.Agents = []AgentEntry{{ID: newID(), Name: "клаус", Kind: "claude"}, {ID: newID(), Name: "Codex", Kind: "codex"}}
 
 	users := m.AgentUsers()
 	if len(users) != 2 {
@@ -706,4 +716,21 @@ func TestAColumnsServerReplacesTheAgentsOfTheSameName(t *testing.T) {
 	if specs[0].Command != "/opt/pw" {
 		t.Errorf("the column's answer should win over the agent's: %+v", specs[0])
 	}
+}
+
+// crewIDs is a roster as it is stored: the registry ids of the named agents.
+// A crew used to be the names themselves, which is contradiction 2 — a test
+// that still spells names would be testing a shape nothing writes any more.
+func crewIDs(t *testing.T, m *Manager, names ...string) []string {
+	t.Helper()
+	agents := m.Agents()
+	out := make([]string, 0, len(names))
+	for _, name := range names {
+		a, ok := agentByName(agents, name)
+		if !ok {
+			t.Fatalf("no agent named %q in the registry", name)
+		}
+		out = append(out, a.ID)
+	}
+	return out
 }

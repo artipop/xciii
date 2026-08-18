@@ -57,6 +57,18 @@ func (m *Manager) loadRegistriesLocked() error {
 	m.cfg.Agents = agents
 	m.cfg.Proxies = proxies
 	m.cfg.Deploys = deploys
+	// An agent saved before proxies had ids still names its configuration; fold
+	// it once, here, so nothing downstream has to know the name was ever a way
+	// of pointing at one.
+	bound := false
+	for i := range m.cfg.Agents {
+		if bindAgentRefs(&m.cfg.Agents[i], m.cfg.Proxies) {
+			bound = true
+		}
+	}
+	if bound {
+		return m.persistRegistriesLocked()
+	}
 	return nil
 }
 

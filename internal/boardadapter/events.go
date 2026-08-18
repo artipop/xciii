@@ -73,6 +73,7 @@ func (b *EventsBackend) BlockChanged(evt notify.BlockChangeEvent) error {
 	oldProps := rawProperties(evt.BlockOld)
 	newProps := rawProperties(evt.BlockChanged)
 	resolver := newUserResolver(b.appUserLookup())
+	movedNames, movedIDs := personNames(newProps, schema, resolver)
 
 	for propID, def := range schema {
 		if def.Type != "select" {
@@ -98,7 +99,8 @@ func (b *EventsBackend) BlockChanged(evt notify.BlockChangeEvent) error {
 			// card that moved carried only the names, so the same card said
 			// different things depending on how it was read.
 			SelectedOptions: selectedOptions(newProps, schema),
-			PersonNames:     personNames(newProps, schema, resolver),
+			PersonNames:     movedNames,
+			PersonIDs:       movedIDs,
 			FromColumn:      column(def, oldVal),
 			ToColumn:        column(def, newVal),
 			At:              time.Now(),
@@ -138,6 +140,7 @@ func (b *EventsBackend) CardByID(ctx context.Context, cardID string) (acp.CardMo
 		return acp.CardMoved{}, fmt.Errorf("parse board schema: %w", err)
 	}
 	resolver := newUserResolver(b.appUserLookup())
+	readNames, readIDs := personNames(rawProperties(block), schema, resolver)
 	return acp.CardMoved{
 		EventID:         uuid.NewString(),
 		CardID:          block.ID,
@@ -148,7 +151,8 @@ func (b *EventsBackend) CardByID(ctx context.Context, cardID string) (acp.CardMo
 		Values:          valuesByID(block, schema, resolver),
 		OptionNames:     selectedOptionNames(rawProperties(block), schema),
 		SelectedOptions: selectedOptions(rawProperties(block), schema),
-		PersonNames:     personNames(rawProperties(block), schema, resolver),
+		PersonNames:     readNames,
+		PersonIDs:       readIDs,
 		At:              time.Now(),
 	}, nil
 }
@@ -229,6 +233,7 @@ func (b *EventsBackend) CardsForBoard(ctx context.Context, boardID string) ([]ac
 			continue
 		}
 		props := rawProperties(block)
+		listNames, listIDs := personNames(props, schema, resolver)
 		out = append(out, acp.CardMoved{
 			EventID:         uuid.NewString(),
 			CardID:          block.ID,
@@ -238,7 +243,8 @@ func (b *EventsBackend) CardsForBoard(ctx context.Context, boardID string) ([]ac
 			Values:          valuesByID(block, schema, resolver),
 			OptionNames:     selectedOptionNames(props, schema),
 			SelectedOptions: selectedOptions(props, schema),
-			PersonNames:     personNames(props, schema, resolver),
+			PersonNames:     listNames,
+			PersonIDs:       listIDs,
 			At:              time.UnixMilli(block.UpdateAt),
 		})
 		if len(out) >= cardListLimit {
@@ -416,16 +422,19 @@ func (b *EventsBackend) appUserLookup() userLookup {
 
 // personNames collects the usernames of every selected person/multiPerson
 // value — how an assignee routes a card to an agent.
-func personNames(props map[string]any, schema model.PropSchema, resolver *userResolver) []string {
-	var out []string
+func personNames(props map[string]any, schema model.PropSchema, resolver *userResolver) (names, ids []string) {
 	appendUser := func(v any) {
 		id, ok := v.(string)
 		if !ok || id == "" {
 			return
 		}
+		// The id goes out whether or not the account can be read: it is what
+		// the card stores and what an agent is matched by, and a user the
+		// resolver cannot reach right now must not read as an empty assignee.
+		ids = append(ids, id)
 		user, _ := resolver.GetUserByID(id)
 		if user != nil && user.Username != "" {
-			out = append(out, user.Username)
+			names = append(names, user.Username)
 		}
 	}
 	for propID, def := range schema {
@@ -444,7 +453,7 @@ func personNames(props map[string]any, schema model.PropSchema, resolver *userRe
 			}
 		}
 	}
-	return out
+	return names, ids
 }
 
 // namedProperties resolves the card's properties into a lowercased

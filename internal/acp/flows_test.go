@@ -27,7 +27,7 @@ func sampleFlow() FlowEntry {
 
 func TestValidateFlow(t *testing.T) {
 	workdirs := []WorkdirEntry{{Name: "webapp", Path: "/projects/webapp"}}
-	agents := []AgentEntry{{Name: "claude-1", Kind: AgentKindClaude}}
+	agents := []AgentEntry{{ID: "ag-claude-1", Name: "claude-1", Kind: AgentKindClaude}}
 	deploys := []DeployEntry{deployEntry("prod")}
 
 	if _, err := validateFlow(sampleFlow(), workdirs, agents, deploys); err != nil {
@@ -88,7 +88,8 @@ func TestValidateFlow(t *testing.T) {
 	if got.Nodes[1].Action != "" {
 		t.Fatalf("an empty action must stay empty: %+v", got.Nodes[1])
 	}
-	if len(got.Nodes[0].AgentNames) != 1 || got.Nodes[0].AgentNames[0] != "claude-1" || got.Nodes[0].AgentName != "" {
+	if len(got.Nodes[0].AgentIDs) != 1 || got.Nodes[0].AgentIDs[0] != "ag-claude-1" ||
+		got.Nodes[0].AgentName != "" || len(got.Nodes[0].AgentNames) != 0 {
 		t.Fatalf("the old single agent was not folded into the crew: %+v", got.Nodes[0])
 	}
 

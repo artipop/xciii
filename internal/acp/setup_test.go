@@ -353,7 +353,7 @@ func TestABoardWithNoAutomationIsOfferedEverythingAndOpensNothing(t *testing.T) 
 func TestAFilledRegistryOffersAnAnswerRatherThanBeingOne(t *testing.T) {
 	m := setupManager(t, nil)
 	m.cfg.Workdirs = []WorkdirEntry{{Name: "notes", Path: "/tmp/notes"}}
-	m.cfg.Agents = []AgentEntry{{Name: "claude", Kind: "claude"}}
+	m.cfg.Agents = []AgentEntry{{ID: newID(), Name: "claude", Kind: "claude"}}
 
 	byKind := func(boardID string) map[string]SetupStep {
 		out := map[string]SetupStep{}
@@ -648,7 +648,7 @@ func TestTheQAAnswerPutsTheBrowserOnTheStageThatTests(t *testing.T) {
 			{PropertyID: "p", OptionID: "o3", Property: "Статус", Column: "QA", Action: FlowActionTest},
 		},
 	}))
-	m.cfg.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}, {Name: "тестер", Kind: "claude"}}
+	m.cfg.Agents = []AgentEntry{{ID: newID(), Name: "клаус", Kind: "claude"}, {ID: newID(), Name: "тестер", Kind: "claude"}}
 
 	servers := MCPServerSet{"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest"}}}
 	if err := m.SetTestAgent("board1", "тестер", servers); err != nil {
@@ -669,12 +669,12 @@ func TestTheQAAnswerPutsTheBrowserOnTheStageThatTests(t *testing.T) {
 			if _, ok := c.MCPServers["playwright"]; !ok {
 				t.Errorf("the stage that tests was not given the browser: %+v", c.MCPServers)
 			}
-			if len(c.Agents) != 1 || c.Agents[0] != "тестер" {
-				t.Errorf("the test column's crew is %v, so the browser and the worker can part ways", c.Agents)
+			if names := m.crewNames(c.AgentIDs); len(names) != 1 || names[0] != "тестер" {
+				t.Errorf("the test column's crew is %v, so the browser and the worker can part ways", names)
 			}
 		case FlowActionAgent:
-			if len(c.Agents) > 0 {
-				t.Errorf("answering the QA question crewed the column that works the card: %v", c.Agents)
+			if len(c.AgentIDs) > 0 {
+				t.Errorf("answering the QA question crewed the column that works the card: %v", m.crewNames(c.AgentIDs))
 			}
 			if len(c.MCPServers) > 0 {
 				t.Errorf("the browser landed on a column that does not test: %+v", c.MCPServers)
@@ -704,7 +704,7 @@ func TestTheAgentAnswerCrewsTheStagesThatWorkTheCard(t *testing.T) {
 			{PropertyID: "p", OptionID: "o3", Property: "Статус", Column: "QA", Action: FlowActionTest},
 		},
 	}))
-	m.cfg.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}, {Name: "тестер", Kind: "claude"}}
+	m.cfg.Agents = []AgentEntry{{ID: newID(), Name: "клаус", Kind: "claude"}, {ID: newID(), Name: "тестер", Kind: "claude"}}
 
 	// Before the answer: two agents, nobody assigned, and the card cannot be
 	// given to either.
@@ -720,13 +720,13 @@ func TestTheAgentAnswerCrewsTheStagesThatWorkTheCard(t *testing.T) {
 	for _, c := range m.BoardColumns("board1") {
 		switch c.Action {
 		case FlowActionAgent:
-			crew = c.Agents
-			if len(c.Agents) != 1 || c.Agents[0] != "клаус" {
-				t.Errorf("the column that works a card is crewed %v", c.Agents)
+			crew = c.AgentIDs
+			if names := m.crewNames(c.AgentIDs); len(names) != 1 || names[0] != "клаус" {
+				t.Errorf("the column that works a card is crewed %v", names)
 			}
 		case FlowActionTest:
-			if len(c.Agents) > 0 {
-				t.Errorf("answering who works the cards also crewed the column that tests: %v", c.Agents)
+			if len(c.AgentIDs) > 0 {
+				t.Errorf("answering who works the cards also crewed the column that tests: %v", m.crewNames(c.AgentIDs))
 			}
 		}
 	}
@@ -759,7 +759,7 @@ func TestTheAgentAnswerCanTakeTheCrewOff(t *testing.T) {
 			Nodes: []FlowNode{{ID: "work", Column: "В работе", OptionID: "o1", Action: FlowActionAgent, AgentName: "клаус"}},
 		}},
 	}))
-	m.cfg.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}, {Name: "тестер", Kind: "claude"}}
+	m.cfg.Agents = []AgentEntry{{ID: newID(), Name: "клаус", Kind: "claude"}, {ID: newID(), Name: "тестер", Kind: "claude"}}
 
 	if err := m.SetWorkAgents("board1", []string{"клаус", "тестер"}); err != nil {
 		t.Fatal(err)
@@ -830,7 +830,7 @@ func TestTheQAAnswerFollowsATestStageOfARoute(t *testing.T) {
 			Nodes: []FlowNode{{ID: "check", Column: "Проверка", OptionID: "o1", Action: FlowActionTest}},
 		}},
 	}))
-	m.cfg.Agents = []AgentEntry{{Name: "тестер", Kind: "claude"}}
+	m.cfg.Agents = []AgentEntry{{ID: newID(), Name: "тестер", Kind: "claude"}}
 
 	if err := m.SetTestAgent("board1", "тестер", MCPServerSet{"playwright": {Command: "npx"}}); err != nil {
 		t.Fatal(err)
@@ -843,8 +843,8 @@ func TestTheQAAnswerFollowsATestStageOfARoute(t *testing.T) {
 	if _, ok := node.MCPServers["playwright"]; !ok {
 		t.Errorf("the stage that tests was not given the browser: %+v", node.MCPServers)
 	}
-	if len(node.Crew()) != 1 || node.Crew()[0] != "тестер" {
-		t.Errorf("the stage's crew is %v", node.Crew())
+	if names := m.crewNames(node.Crew()); len(names) != 1 || names[0] != "тестер" {
+		t.Errorf("the stage's crew is %v", names)
 	}
 	if len(m.Agents()[0].MCPServers) > 0 {
 		t.Error("the agent was edited even though the stage could hold the answer")

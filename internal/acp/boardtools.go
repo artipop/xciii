@@ -222,7 +222,7 @@ func (m *Manager) BoardToolColumns(token string) ([]BoardToolColumn, error) {
 	specs := m.BoardColumns(g.BoardID)
 	out := make([]BoardToolColumn, 0, len(specs))
 	for _, s := range specs {
-		out = append(out, BoardToolColumn{Name: s.Column, Action: s.Action, Agents: s.Agents})
+		out = append(out, BoardToolColumn{Name: s.Column, Action: s.Action, Agents: m.crewNames(s.AgentIDs)})
 	}
 	return out, nil
 }
@@ -266,7 +266,7 @@ func (m *Manager) BoardToolFlows(token string) ([]BoardToolFlow, error) {
 					stage.Action = spec.Action
 				}
 				if len(stage.Crew) == 0 {
-					stage.Crew = spec.Agents
+					stage.Crew = m.crewNames(spec.AgentIDs)
 				}
 			}
 			stage.Waiting = flow.WaitDescriptions(node.ID)

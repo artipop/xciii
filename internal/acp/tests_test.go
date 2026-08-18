@@ -175,7 +175,7 @@ func TestTestSessionNeedsABrowserServer(t *testing.T) {
 // saves registering one agent twice to give it a browser in one column.
 func TestTestSessionTakesTheBrowserFromTheColumn(t *testing.T) {
 	m, _, _, project := testManager(t, fakeClaudeHappy, func(c *Config) {
-		c.Agents = []AgentEntry{{Name: "bare", Kind: "claude"}}
+		c.Agents = []AgentEntry{{ID: newID(), Name: "bare", Kind: "claude"}}
 		c.Deploys = []DeployEntry{deployEntry("prod")}
 	})
 	// Attached to the board, because that is what makes a folder offered there

@@ -51,9 +51,12 @@ func (m *Manager) AddProxy(p ProxyEntry) (ProxyEntry, error) {
 	return p, m.persistConfigLocked()
 }
 
-// UpdateProxy replaces an existing entry (matched by name) and persists. Agents
-// referencing it are re-checked, so an edit cannot leave one unusable (e.g. a
-// SOCKS URL under an agent whose CLI has no SOCKS support).
+// UpdateProxy replaces an existing entry and persists. Agents referencing it are
+// re-checked, so an edit cannot leave one unusable (e.g. a SOCKS URL under an
+// agent whose CLI has no SOCKS support).
+//
+// Matched by id where the caller has one, so renaming a configuration is an
+// edit rather than a lookup that fails — the same trap UpdateDeploy had.
 func (m *Manager) UpdateProxy(p ProxyEntry) (ProxyEntry, error) {
 	p, err := validateProxy(p)
 	if err != nil {
@@ -62,16 +65,23 @@ func (m *Manager) UpdateProxy(p ProxyEntry) (ProxyEntry, error) {
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
 	for i, e := range m.cfg.Proxies {
-		if !strings.EqualFold(e.Name, p.Name) {
+		if !sameProxyEntry(e, p) {
 			continue
 		}
 		for _, a := range m.cfg.Agents {
-			if strings.EqualFold(a.ProxyName, p.Name) {
-				if _, err := p.NetworkSettings.Validate(a.Kind); err != nil {
-					return ProxyEntry{}, fmt.Errorf("агент %q (%s) не сможет использовать эту конфигурацию: %w", a.Name, a.Kind, err)
-				}
+			if !usesProxy(a, e) {
+				continue
+			}
+			if _, err := p.NetworkSettings.Validate(a.Kind); err != nil {
+				return ProxyEntry{}, fmt.Errorf("агент %q (%s) не сможет использовать эту конфигурацию: %w", a.Name, a.Kind, err)
 			}
 		}
+		if name := strings.TrimSpace(p.Name); !strings.EqualFold(e.Name, name) {
+			if _, taken := proxyByName(m.cfg.Proxies, name); taken {
+				return ProxyEntry{}, fmt.Errorf("конфигурация с именем %q уже существует", name)
+			}
+		}
+		p.ID = e.ID
 		m.cfg.Proxies[i] = p
 		return p, m.persistConfigLocked()
 	}
@@ -84,8 +94,9 @@ func (m *Manager) RemoveProxy(name string) error {
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
 	var used []string
+	target, known := proxyByName(m.cfg.Proxies, name)
 	for _, a := range m.cfg.Agents {
-		if strings.EqualFold(a.ProxyName, name) {
+		if known && usesProxy(a, target) {
 			used = append(used, a.Name)
 		}
 	}
@@ -114,16 +125,19 @@ func (m *Manager) resolveNetwork(a AgentEntry) (NetworkSettings, error) {
 // resolveNetworkIn is resolveNetwork against an explicit registry snapshot, so
 // callers already holding cfgMu can use it too.
 func resolveNetworkIn(proxies []ProxyEntry, a AgentEntry) (NetworkSettings, error) {
+	// The id is the selection; the name is only still read for an entry saved
+	// before ids, which bindAgentRefs folds away the first time it is loaded.
+	if p, ok := proxyByID(proxies, a.ProxyID); ok {
+		return p.NetworkSettings.Validate(a.Kind)
+	}
 	name := strings.TrimSpace(a.ProxyName)
-	if name == "" {
+	if name == "" && strings.TrimSpace(a.ProxyID) == "" {
 		return NetworkSettings{}, nil
 	}
-	for _, p := range proxies {
-		if strings.EqualFold(p.Name, name) {
-			return p.NetworkSettings.Validate(a.Kind)
-		}
+	if p, ok := proxyByName(proxies, name); ok {
+		return p.NetworkSettings.Validate(a.Kind)
 	}
-	return NetworkSettings{}, fmt.Errorf("прокси-конфигурация %q не найдена в реестре (%s)", name, proxyNames(proxies))
+	return NetworkSettings{}, fmt.Errorf("прокси-конфигурация агента %q не найдена в реестре (есть: %s)", a.Name, proxyNames(proxies))
 }
 
 func proxyNames(proxies []ProxyEntry) string {
@@ -135,4 +149,22 @@ func proxyNames(proxies []ProxyEntry) string {
 		names[i] = p.Name
 	}
 	return strings.Join(names, ", ")
+}
+
+// usesProxy reports whether this agent runs through this configuration — by id,
+// and by name only for an entry whose name has not been folded into one yet.
+func usesProxy(a AgentEntry, p ProxyEntry) bool {
+	if id := strings.TrimSpace(a.ProxyID); id != "" {
+		return id == p.ID
+	}
+	return strings.EqualFold(strings.TrimSpace(a.ProxyName), strings.TrimSpace(p.Name))
+}
+
+// sameProxyEntry is which row an edit is about: the id when the caller carries
+// one, else the name — a form filled in before ids still has to find its row.
+func sameProxyEntry(existing, edit ProxyEntry) bool {
+	if id := strings.TrimSpace(edit.ID); id != "" {
+		return existing.ID == id
+	}
+	return strings.EqualFold(existing.Name, strings.TrimSpace(edit.Name))
 }

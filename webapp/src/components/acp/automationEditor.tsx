@@ -60,7 +60,7 @@ type Identified = Named & {id?: string}
 // An agent as this editor needs to know it: its name, and whether it brings
 // tools of its own — which is half the answer to "does anything here have a
 // browser", the other half being the stage's own set.
-type Agent = Named & {mcpServers?: MCPServers}
+type Agent = Identified & {mcpServers?: MCPServers}
 
 type Props = {
     boardId: string
@@ -202,10 +202,15 @@ const AutomationEditor = (props: Props) => {
         return column ? specFor(specs(), column) : undefined
     }
 
+    // A crew is stored as registry ids; this is the only place that turns them
+    // back into the names a person reads.
+    const agentNamesOf = (ids: string[]): string[] =>
+        ids.map((id) => props.agents.find((a) => a.id === id)?.name).filter((n): n is string => Boolean(n))
+
     // What a stage does is the column's business unless the stage says
     // otherwise — the same order the engine resolves it in.
     const actionOf = (node: FlowNode) => node.action || specOf(node)?.action || 'none'
-    const crewOf = (node: FlowNode) => (node.agentNames?.length ? node.agentNames : specOf(node)?.agents) || []
+    const crewOf = (node: FlowNode) => (node.agentIds?.length ? node.agentIds : specOf(node)?.agentIds) || []
 
     const selectedNode = () => {
         const current = selected()
@@ -451,10 +456,11 @@ const AutomationEditor = (props: Props) => {
                     <label class='AutomationEditor__agent'>
                         <input
                             type='checkbox'
-                            checked={chosen().includes(a.name)}
+                            checked={chosen().includes(a.id || '')}
                             onChange={() => {
                                 const crew = chosen()
-                                write(crew.includes(a.name) ? crew.filter((n) => n !== a.name) : [...crew, a.name])
+                                const id = a.id || ''
+                                write(crew.includes(id) ? crew.filter((n) => n !== id) : [...crew, id])
                             }}
                         />
                         {a.name}
@@ -487,7 +493,7 @@ const AutomationEditor = (props: Props) => {
         if (props.agents.length === 0) {
             return ''
         }
-        const crew = specOf(node)?.agents || []
+        const crew = agentNamesOf(specOf(node)?.agentIds || [])
         if (crew.length === 0) {
             return intl.formatMessage({id: 'Automation.crew-column-none', defaultMessage: 'Nobody ticked, and the column names nobody either — whoever the board has will take it.'})
         }
@@ -513,7 +519,7 @@ const AutomationEditor = (props: Props) => {
             return false
         }
         const crew = crewOf(node)
-        const pool = crew.length > 0 ? props.agents.filter((a) => crew.includes(a.name)) : props.agents
+        const pool = crew.length > 0 ? props.agents.filter((a) => crew.includes(a.id || '')) : props.agents
         return !pool.some((a) => a.mcpServers && Object.keys(a.mcpServers).length > 0)
     }
 
@@ -846,7 +852,7 @@ const AutomationEditor = (props: Props) => {
                         triggers={props.triggers}
                         counts={props.counts?.[route()]}
                         actionOf={actionOf}
-                        crewOf={crewOf}
+                        crewOf={(node) => agentNamesOf(crewOf(node))}
                         selected={selected()}
                         onSelect={setSelected}
                         onChange={flow() ? onCanvasChange : undefined}
@@ -904,8 +910,8 @@ const AutomationEditor = (props: Props) => {
                                     <Show when={(specOf(node())?.action || 'none') !== 'none'}>
                                         {crewPicker(
                                             intl.formatMessage({id: 'Automation.crew', defaultMessage: 'Worked by'}),
-                                            () => specOf(node())?.agents || [],
-                                            (agents) => updateNodeSpec(node(), {agents}),
+                                            () => specOf(node())?.agentIds || [],
+                                            (agentIds) => updateNodeSpec(node(), {agentIds}),
                                         )}
 
                                         <label>
@@ -918,7 +924,7 @@ const AutomationEditor = (props: Props) => {
                                             />
                                         </label>
 
-                                        <Show when={props.worktrees === false && (specOf(node())?.agents || []).length > 1}>
+                                        <Show when={props.worktrees === false && (specOf(node())?.agentIds || []).length > 1}>
                                             <div class='AutomationEditor__warning'>
                                                 {intl.formatMessage({id: 'Automation.no-worktrees', defaultMessage: 'This board works on a branch in the folder itself, so two agents cannot work one repository at the same time: the crew will take cards one after another.'})}
                                             </div>
@@ -1021,10 +1027,10 @@ const AutomationEditor = (props: Props) => {
                                     <Show when={actionOf(node()) !== 'none'}>
                                         {crewPicker(
                                             intl.formatMessage({id: 'Automation.route-crew', defaultMessage: 'Worked here by'}),
-                                            () => node().agentNames || [],
-                                            (agentNames) => updateFlow(flow()!.name, (f) =>
-                                                withNode(f, node().id, {agentNames: agentNames.length > 0 ? agentNames : undefined})),
-                                            () => (node().agentNames?.length ? '' : columnCrewNote(node())),
+                                            () => node().agentIds || [],
+                                            (agentIds) => updateFlow(flow()!.name, (f) =>
+                                                withNode(f, node().id, {agentIds: agentIds.length > 0 ? agentIds : undefined})),
+                                            () => (node().agentIds?.length ? '' : columnCrewNote(node())),
                                         )}
 
                                         {/* Where the stage works. It matters for

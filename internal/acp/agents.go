@@ -175,19 +175,58 @@ func (m *Manager) AddAgent(a AgentEntry) (AgentEntry, error) {
 	// It does not hold up the registration if it fails — the registry is the
 	// answer to "which agents are there", and a board that is not ready yet
 	// must not turn adding one into an error.
-	m.ensureAgentAccount(a.Name)
+	m.recordAgentAccountsLocked(m.ensureAgentAccount(a.Name))
 	return a, nil
 }
 
-// ensureAgentAccount provisions one agent's board account, and says so in the
-// log rather than to the caller: see AddAgent.
-func (m *Manager) ensureAgentAccount(name string) {
+// ensureAgentAccount provisions one agent's board account and hands back what
+// the board made, for the caller to record. Failure is logged rather than
+// returned: see AddAgent.
+//
+// It does not record the account itself, because its two callers stand on
+// different sides of cfgMu — AddAgent is already inside it, and taking it again
+// would deadlock.
+func (m *Manager) ensureAgentAccount(name string) []AgentUser {
 	username := AgentUsername(name)
 	if m.users == nil || username == "" {
+		return nil
+	}
+	made, err := m.users.EnsureAgentAccounts(context.Background(), []AgentUser{{Name: name, Username: username}})
+	if err != nil {
+		m.log.Warn("acp: the agent has no board account yet", "agent", name, "err", err)
+		return nil
+	}
+	return made
+}
+
+// recordAgentAccounts writes which board account belongs to which agent, so an
+// assigned card finds its agent by key rather than by their names happening to
+// match — which is what renaming an agent used to break.
+func (m *Manager) recordAgentAccounts(accounts []AgentUser) {
+	if len(accounts) == 0 {
 		return
 	}
-	if _, err := m.users.EnsureAgentAccounts(context.Background(), []AgentUser{{Name: name, Username: username}}); err != nil {
-		m.log.Warn("acp: the agent has no board account yet", "agent", name, "err", err)
+	m.cfgMu.Lock()
+	defer m.cfgMu.Unlock()
+	m.recordAgentAccountsLocked(accounts)
+}
+
+func (m *Manager) recordAgentAccountsLocked(accounts []AgentUser) {
+	for _, acc := range accounts {
+		if acc.UserID == "" {
+			continue
+		}
+		for i := range m.cfg.Agents {
+			if !sameAgentName(m.cfg.Agents[i].Name, acc.Name) || m.cfg.Agents[i].UserID == acc.UserID {
+				continue
+			}
+			m.cfg.Agents[i].UserID = acc.UserID
+			if m.store != nil && m.cfg.Agents[i].ID != "" {
+				if err := m.store.SetAgentAccount(m.cfg.Agents[i].ID, acc.UserID); err != nil {
+					m.log.Warn("acp: cannot record the agent's board account", "agent", acc.Name, "err", err)
+				}
+			}
+		}
 	}
 }
 
@@ -222,12 +261,18 @@ func (m *Manager) ensureAgentAccounts() {
 	if m.users == nil || len(agents) == 0 {
 		return
 	}
-	if _, err := m.users.EnsureAgentAccounts(m.rootCtx, agents); err != nil {
+	made, err := m.users.EnsureAgentAccounts(m.rootCtx, agents)
+	if err != nil {
 		m.log.Warn("acp: some agents have no board account", "err", err)
 	}
+	m.recordAgentAccounts(made)
 }
 
-// UpdateAgent replaces an existing agent (matched by name) and persists.
+// UpdateAgent replaces an existing agent and persists.
+//
+// Matched by id where the caller has one, which is what makes renaming an agent
+// possible: matched by name, the lookup used the new name and answered "агент
+// не найден".
 func (m *Manager) UpdateAgent(a AgentEntry) (AgentEntry, error) {
 	a, err := validateAgent(a)
 	if err != nil {
@@ -236,10 +281,18 @@ func (m *Manager) UpdateAgent(a AgentEntry) (AgentEntry, error) {
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
 	for i, e := range m.cfg.Agents {
-		if strings.EqualFold(e.Name, a.Name) {
+		if sameAgentEntry(e, a) {
 			if _, err := resolveNetworkIn(m.cfg.Proxies, a); err != nil {
 				return AgentEntry{}, err
 			}
+			if name := strings.TrimSpace(a.Name); !strings.EqualFold(e.Name, name) {
+				if _, taken := agentByName(m.cfg.Agents, name); taken {
+					return AgentEntry{}, fmt.Errorf("агент с именем %q уже существует", name)
+				}
+			}
+			// The account outlives the rename: it is the agent's identity on the
+			// board, and every card assigned to it points at it by that id.
+			a.UserID = e.UserID
 			// The identity is the entry's, not the caller's. A caller that read
 			// the agent, did something else that saved, and then handed the copy
 			// back would otherwise replace a registered agent with one that has
@@ -417,6 +470,23 @@ func (m *Manager) resolveSessionAgent(ev CardMoved, roster []string) (AgentEntry
 	if err != nil {
 		return AgentEntry{}, false, err
 	}
+	// By the account the card actually stores, then by the username it shows.
+	// The id is the answer that survives a rename; the username still answers
+	// for a card assigned before the agent's account was recorded, and for a
+	// board carried here from a machine where the agent has an account of its
+	// own under the same name.
+	byAccount := func(userID string) (AgentEntry, bool) {
+		userID = strings.TrimSpace(userID)
+		if userID == "" {
+			return AgentEntry{}, false
+		}
+		for _, a := range crew {
+			if a.UserID == userID {
+				return a, true
+			}
+		}
+		return AgentEntry{}, false
+	}
 	find := func(name string) (AgentEntry, bool) {
 		for _, a := range crew {
 			if sameAgentName(name, a.Name) {
@@ -433,6 +503,11 @@ func (m *Manager) resolveSessionAgent(ev CardMoved, roster []string) (AgentEntry
 	// two nobody could see: a property nothing in this app creates, and any
 	// select option anywhere on the board that happened to be spelled like an
 	// agent.
+	for _, id := range ev.PersonIDs {
+		if a, ok := byAccount(id); ok {
+			return a, false, nil
+		}
+	}
 	for _, person := range ev.PersonNames {
 		if a, ok := find(person); ok {
 			return a, false, nil
@@ -481,17 +556,15 @@ func crewOf(roster []string, agents []AgentEntry) ([]AgentEntry, error) {
 		return agents, nil
 	}
 	crew := make([]AgentEntry, 0, len(roster))
-	for _, name := range roster {
-		for _, a := range agents {
-			if sameAgentName(name, a.Name) {
-				crew = append(crew, a)
-				break
-			}
+	for _, id := range roster {
+		if a, ok := agentByID(agents, id); ok {
+			crew = append(crew, a)
 		}
 	}
 	if len(crew) == 0 {
-		return nil, fmt.Errorf("состав колонки (%s) не найден в реестре агентов (%s)",
-			strings.Join(roster, ", "), agentNames(agents))
+		// The roster is ids, so there is nothing readable to name back: what
+		// the person can act on is which agents this machine does have.
+		return nil, fmt.Errorf("состав колонки не найден в реестре агентов (есть: %s)", agentNames(agents))
 	}
 	return crew, nil
 }
@@ -558,4 +631,13 @@ func humanAssignee(ev CardMoved, agents []AgentEntry) string {
 		}
 	}
 	return human
+}
+
+// sameAgentEntry is which registry row an edit is about: the id when the caller
+// carries one, else the name.
+func sameAgentEntry(existing, edit AgentEntry) bool {
+	if id := strings.TrimSpace(edit.ID); id != "" {
+		return existing.ID == id
+	}
+	return sameAgentName(existing.Name, edit.Name)
 }

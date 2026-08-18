@@ -32,9 +32,13 @@ type ColumnSpec struct {
 
 	Action string `json:"action"` // FlowAction*
 
-	// Agents is the roster: everyone who works this column. A card picks one of
-	// them when it does not name an agent itself. Empty leaves the choice to
-	// the card, exactly as before.
+	// AgentIDs is the roster: everyone who works this column, by registry id.
+	// A card picks one of them when it does not name an agent itself. Empty
+	// leaves the choice to the card, exactly as before.
+	AgentIDs []string `json:"agentIds,omitempty"`
+	// Agents is what the roster used to be written as — the names a person
+	// typed. Folded into AgentIDs once (bindrefs.go) and never written back:
+	// renaming an agent used to empty the crew of every column on every board.
 	Agents []string `json:"agents,omitempty"`
 
 	// Prompt is what working in this column means, said to the agent: the
@@ -187,6 +191,19 @@ func (m *Manager) learnColumnIDs(spec ColumnSpec, boardID string, c Column) Colu
 // validateColumn normalizes and checks one spec against the registries it may
 // reference.
 func validateColumn(c ColumnSpec, agents []AgentEntry, deploys []DeployEntry) (ColumnSpec, error) {
+	// Names are accepted at the door and folded here, so every writer — the
+	// editor, a template, the wizard — may speak the names a person typed while
+	// what gets stored is only ever ids. A name that folds into nothing is
+	// refused: at this door it is a typo, and at the board's door it is a
+	// column the machine cannot use, which adoptColumns hands back to be kept
+	// on the board verbatim.
+	bindColumnRefs(&c, agents, deploys)
+	if len(c.Agents) > 0 {
+		return ColumnSpec{}, fmt.Errorf("агент %q не найден в реестре (%s)", c.Agents[0], agentNames(agents))
+	}
+	if c.DeployName != "" {
+		return ColumnSpec{}, fmt.Errorf("цель деплоя %q не найдена в реестре (%s)", c.DeployName, deployNames(deploys))
+	}
 	c.Property = strings.TrimSpace(c.Property)
 	c.Column = strings.TrimSpace(c.Column)
 	if c.Column == "" {
@@ -205,23 +222,20 @@ func validateColumn(c ColumnSpec, agents []AgentEntry, deploys []DeployEntry) (C
 		return ColumnSpec{}, fmt.Errorf("неизвестное действие %q у колонки %q", c.Action, c.Column)
 	}
 
-	roster := make([]string, 0, len(c.Agents))
-	seen := make(map[string]bool, len(c.Agents))
-	for _, name := range c.Agents {
-		name = strings.TrimSpace(name)
-		if name == "" {
+	roster := make([]string, 0, len(c.AgentIDs))
+	seen := make(map[string]bool, len(c.AgentIDs))
+	for _, id := range c.AgentIDs {
+		id = strings.TrimSpace(id)
+		if id == "" || seen[id] {
 			continue
 		}
-		if !hasAgent(agents, name) {
-			return ColumnSpec{}, fmt.Errorf("агент %q не найден в реестре (%s)", name, agentNames(agents))
+		if _, ok := agentByID(agents, id); !ok {
+			return ColumnSpec{}, fmt.Errorf("колонка %q ссылается на агента, которого нет в реестре (есть: %s)", c.Column, agentNames(agents))
 		}
-		if seen[strings.ToLower(name)] {
-			continue
-		}
-		seen[strings.ToLower(name)] = true
-		roster = append(roster, name)
+		seen[id] = true
+		roster = append(roster, id)
 	}
-	c.Agents = roster
+	c.AgentIDs = roster
 
 	c.DeployID = strings.TrimSpace(c.DeployID)
 	if c.DeployID != "" {

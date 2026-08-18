@@ -164,13 +164,13 @@ func TestResolveSessionAgentPrefersTheStagesCrew(t *testing.T) {
 
 	assigned := CardMoved{PersonNames: []string{"claude-1"}}
 
-	agent, busy, err := m.resolveSessionAgent(assigned, []string{"deployer"})
+	agent, busy, err := m.resolveSessionAgent(assigned, crewIDs(t, m, "deployer"))
 	if err != nil || busy || agent.Name != "deployer" {
 		t.Fatalf("the crew should decide: %+v, %v, %v", agent, busy, err)
 	}
 
 	// On the crew, the card's own choice stands.
-	agent, _, err = m.resolveSessionAgent(assigned, []string{"claude-1", "deployer"})
+	agent, _, err = m.resolveSessionAgent(assigned, crewIDs(t, m, "claude-1", "deployer"))
 	if err != nil || agent.Name != "claude-1" {
 		t.Fatalf("card agent ignored: %+v, %v", agent, err)
 	}

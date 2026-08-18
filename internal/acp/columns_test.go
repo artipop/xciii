@@ -71,8 +71,10 @@ func TestSaveColumnValidatesAndReplaces(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(saved.Agents) != 1 {
-		t.Fatalf("the roster should be deduplicated: %+v", saved.Agents)
+	// Names go in and ids come out: the roster is stored by id, and the same
+	// agent named twice is one member of the crew.
+	if len(saved.AgentIDs) != 1 || len(saved.Agents) != 0 {
+		t.Fatalf("the roster should be one id and no names: %+v", saved)
 	}
 
 	// Saving the same column again replaces it rather than piling up.
@@ -111,7 +113,7 @@ func TestCrewTakesTheFreeAgent(t *testing.T) {
 		AgentEntry{Name: "dev-1", Kind: "claude"},
 		AgentEntry{Name: "dev-2", Kind: "claude"},
 		AgentEntry{Name: "dev-3", Kind: "claude"})
-	crew := []string{"dev-1", "dev-2", "dev-3"}
+	crew := crewIDs(t, m, "dev-1", "dev-2", "dev-3")
 
 	agent, busy, err := m.resolveSessionAgent(CardMoved{}, crew)
 	if err != nil || busy || agent.Name != "dev-1" {
@@ -381,7 +383,7 @@ func TestBoardFlowOverviewCountsWhereTheCardsAre(t *testing.T) {
 // moment it decided it was done.
 func TestCardAssignedToAPersonIsLeftAlone(t *testing.T) {
 	m, writer, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
-		c.Agents = []AgentEntry{{Name: "claude-1", Kind: "claude"}}
+		c.Agents = []AgentEntry{{ID: newID(), Name: "claude-1", Kind: "claude"}}
 	})
 
 	ev := moveEvent("cardMine", "opt-backlog", "opt-agent")
@@ -421,7 +423,7 @@ func TestCardAssignedToAPersonIsLeftAlone(t *testing.T) {
 // nothing is written twice.
 func TestCrewedColumnWritesItsWorkerIntoTheAssignee(t *testing.T) {
 	m, _, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
-		c.Agents = []AgentEntry{{Name: "клаус", Kind: "claude"}}
+		c.Agents = []AgentEntry{{ID: newID(), Name: "клаус", Kind: "claude"}}
 		c.Columns = []ColumnSpec{{
 			Property: c.TriggerProperty, Column: TemplateWorkColumn,
 			Action: FlowActionAgent, Agents: []string{"клаус"},

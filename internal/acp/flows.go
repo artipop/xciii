@@ -113,11 +113,12 @@ type FlowNode struct {
 	// "none" means the stage runs nothing and waits for an event.
 	Action string `json:"action,omitempty"`
 
-	// AgentNames is the crew for this stage alone, overriding the column's.
+	// AgentIDs is the crew for this stage alone, overriding the column's.
+	AgentIDs []string `json:"agentIds,omitempty"`
+	// AgentNames and AgentName are what the crew used to be written as. Read on
+	// load and folded into AgentIDs (bindrefs.go); never written back.
 	AgentNames []string `json:"agentNames,omitempty"`
-	// AgentName is what a single-agent stage used to be called. Read on load
-	// and folded into AgentNames; never written back.
-	AgentName string `json:"agentName,omitempty"`
+	AgentName  string   `json:"agentName,omitempty"`
 
 	// DeployID overrides the column's deploy target for this stage, by the
 	// registry entry's id rather than its name (contradiction 8).
@@ -200,16 +201,8 @@ func (n FlowNode) RunsIn(action string) string {
 	return RunInOwner
 }
 
-// Crew is the agents this stage may run on, if it names any.
-func (n FlowNode) Crew() []string {
-	if len(n.AgentNames) > 0 {
-		return n.AgentNames
-	}
-	if n.AgentName != "" {
-		return []string{n.AgentName}
-	}
-	return nil
-}
+// Crew is the agents this stage may run on, if it names any — registry ids.
+func (n FlowNode) Crew() []string { return n.AgentIDs }
 
 // asColumn is the stage's column in the shape the column registry matches.
 func (n FlowNode) asColumn(property string) Column {
@@ -435,6 +428,17 @@ func boardFlows(flows []FlowEntry, boardID string) []FlowEntry {
 // validateFlow normalizes and checks one route. folders/agents/deploys are the
 // registries its nodes may reference.
 func validateFlow(f FlowEntry, workdirs []WorkdirEntry, agents []AgentEntry, deploys []DeployEntry) (FlowEntry, error) {
+	// See validateColumn: names in, ids stored, and a name that folds into
+	// nothing is refused here so the board keeps its own copy untouched.
+	bindFlowRefs(&f, agents, deploys)
+	for _, n := range f.Nodes {
+		if len(n.AgentNames) > 0 {
+			return FlowEntry{}, fmt.Errorf("агент %q стадии %q не найден в реестре (%s)", n.AgentNames[0], n.ID, agentNames(agents))
+		}
+		if n.DeployName != "" {
+			return FlowEntry{}, fmt.Errorf("цель деплоя %q стадии %q не найдена в реестре (%s)", n.DeployName, n.ID, deployNames(deploys))
+		}
+	}
 	f.Name = strings.TrimSpace(f.Name)
 	if f.Name == "" {
 		return FlowEntry{}, fmt.Errorf("имя флоу не может быть пустым")
@@ -475,24 +479,19 @@ func validateFlow(f FlowEntry, workdirs []WorkdirEntry, agents []AgentEntry, dep
 			return FlowEntry{}, fmt.Errorf("неизвестное действие %q у стадии %q", n.Action, n.ID)
 		}
 
-		// A stage written before crews existed named one agent; fold it in and
-		// stop writing the old field.
-		crew := n.AgentNames
-		if name := strings.TrimSpace(n.AgentName); name != "" {
-			crew = append([]string{name}, crew...)
-		}
-		n.AgentName, n.AgentNames = "", nil
+		crew := n.AgentIDs
+		n.AgentIDs = nil
 		seenAgent := make(map[string]bool, len(crew))
-		for _, name := range crew {
-			name = strings.TrimSpace(name)
-			if name == "" || seenAgent[strings.ToLower(name)] {
+		for _, id := range crew {
+			id = strings.TrimSpace(id)
+			if id == "" || seenAgent[id] {
 				continue
 			}
-			if !hasAgent(agents, name) {
-				return FlowEntry{}, fmt.Errorf("агент %q стадии %q не найден в реестре (%s)", name, n.ID, agentNames(agents))
+			if _, ok := agentByID(agents, id); !ok {
+				return FlowEntry{}, fmt.Errorf("стадия %q ссылается на агента, которого нет в реестре (есть: %s)", n.ID, agentNames(agents))
 			}
-			seenAgent[strings.ToLower(name)] = true
-			n.AgentNames = append(n.AgentNames, name)
+			seenAgent[id] = true
+			n.AgentIDs = append(n.AgentIDs, id)
 		}
 		n.DeployID = strings.TrimSpace(n.DeployID)
 		if n.DeployID != "" {

@@ -35,9 +35,13 @@ type CardMoved struct {
 	Values      map[string]string
 	OptionNames []string // display names of every selected select/multiSelect option (tags included)
 	// PersonNames are the usernames behind every person/multiPerson value on the
-	// card — the "Assignee" route to an agent, which works because a registered
-	// agent is provisioned as a board user (see BoardUsers).
+	// card — what a person reads, and what a message about the card says.
 	PersonNames []string
+	// PersonIDs are the same values as the card actually stores them: board
+	// account ids. They are how an assigned card finds its agent, because the
+	// username is derived from the agent's name and renaming an agent would
+	// otherwise unassign every card it was working on.
+	PersonIDs []string
 	// SelectedOptions is every single-select value currently set on the card,
 	// with the property and option ids OptionNames drops. It is how a card read
 	// on demand (CardByID, which carries no columns because nothing moved)

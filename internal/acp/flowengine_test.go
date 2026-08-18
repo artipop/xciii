@@ -130,13 +130,16 @@ func TestFlowWithoutAnEdgeLeavesTheCardPut(t *testing.T) {
 // the column's crew. The stage's worker landing in the assignee is the
 // observable.
 func TestQueuedStageKeepsItsCrew(t *testing.T) {
+	// The crew is ids, so the fixture registers the agents under known ones
+	// rather than naming them: a name is no longer a way to point at an agent.
+	const stageAgent = "ag-stage"
 	flow := sampleFlow()
-	flow.Nodes[0].AgentNames = []string{"агент-стадии"}
+	flow.Nodes[0].AgentIDs = []string{stageAgent}
 	m, _, events, project := flowManager(t, fakeClaudeHang, flow)
 	m.cfgMu.Lock()
 	m.cfg.Agents = []AgentEntry{
-		{Name: "агент-стадии", Kind: "claude"},
-		{Name: "другой", Kind: "claude"},
+		{ID: stageAgent, Name: "агент-стадии", Kind: "claude"},
+		{ID: newID(), Name: "другой", Kind: "claude"},
 	}
 	// One at a time in the column, so the second card has to queue.
 	m.cfg.Columns = []ColumnSpec{{Property: "Status", Column: "To Agent", Action: FlowActionAgent, MaxRunning: 1}}

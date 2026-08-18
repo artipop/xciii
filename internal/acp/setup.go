@@ -208,7 +208,7 @@ func (m *Manager) SetupPlanFor(boardID string) SetupPlan {
 
 	plan.AgentColumn = columnOfAction(columns, FlowActionAgent)
 	plan.TestColumn = columnOfAction(columns, FlowActionTest)
-	plan.WorkAgents = crewOfAction(columns, FlowActionAgent)
+	plan.WorkAgents = m.crewNames(crewOfAction(columns, FlowActionAgent))
 	states := m.setupStates(boardID)
 	plan.Offered = states[setupWizardStep] != ""
 	for _, step := range steps {
@@ -391,10 +391,10 @@ func crewOfAction(columns []ColumnSpec, action string) []string {
 			continue
 		}
 		if first {
-			crew, first = c.Agents, false
+			crew, first = c.AgentIDs, false
 			continue
 		}
-		if !sameCrew(crew, c.Agents) {
+		if !sameCrew(crew, c.AgentIDs) {
 			return nil
 		}
 	}
@@ -449,11 +449,13 @@ func (m *Manager) BoardAgentNames(boardID string) []string {
 		}
 	}
 	for _, c := range columns {
-		add(c.Agents)
+		add(m.crewNames(c.AgentIDs))
+		add(c.Agents) // names this machine could not resolve, kept as written
 	}
 	for _, f := range flows {
 		for _, n := range f.Nodes {
-			add(n.Crew())
+			add(m.crewNames(n.Crew()))
+			add(n.AgentNames)
 		}
 	}
 	return names
@@ -506,7 +508,9 @@ func (m *Manager) setStageCrew(boardID string, names []string, action string, se
 			return fmt.Errorf("агент %q не найден в реестре", strings.TrimSpace(name))
 		}
 		entry = found
-		crew = append(crew, found.Name)
+		// The page speaks names, because that is what a person picks; the id is
+		// resolved once, here, and it is the id that is stored.
+		crew = append(crew, found.ID)
 	}
 
 	// Read the board first: the wizard runs before any card has been moved, so
@@ -525,7 +529,7 @@ func (m *Manager) setStageCrew(boardID string, names []string, action string, se
 		if spec.Action != action {
 			continue
 		}
-		spec.Agents = crewOrNone(crew)
+		spec.AgentIDs = crewOrNone(crew)
 		if len(servers) > 0 {
 			spec.MCPServers = servers
 		}
@@ -542,12 +546,12 @@ func (m *Manager) setStageCrew(boardID string, names []string, action string, se
 			if node.Action != action {
 				continue
 			}
-			flow.Nodes[i].AgentNames = crewOrNone(crew)
+			flow.Nodes[i].AgentIDs = crewOrNone(crew)
 
-			// The stage's older single-agent field, which Crew() still prefers
-			// when AgentNames is empty: left standing it would answer for a
-			// crew somebody has just taken off.
-			flow.Nodes[i].AgentName = ""
+			// The stage's older name fields, folded into ids on load: left
+			// standing they would be bound again and put back a crew somebody
+			// has just taken off.
+			flow.Nodes[i].AgentName, flow.Nodes[i].AgentNames = "", nil
 			if len(servers) > 0 {
 				flow.Nodes[i].MCPServers = servers
 			}
