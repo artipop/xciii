@@ -116,9 +116,19 @@ func SQLite() (string, error) {
 	return out.String(), nil
 }
 
-// OpenEnforcing is Open with the keys enforced, through the same DSN helper the
-// application uses — so a test of the constraints cannot pass on a rule the app
-// does not actually apply.
+// OpenEnforcing is Open with the foreign keys enforced.
+//
+// The DSN is spelled for the driver *this package* registers, which is
+// mattn/go-sqlite3 and is imported above with no build tag. sqlstore.SQLiteDSN
+// looks like the right thing to call and is not: it is tag-selected beside the
+// import that chooses the application's driver, so in a build without
+// `-tags sqlite3` it answers with modernc's `_pragma=foreign_keys(1)` while the
+// driver actually open here is still mattn, which ignores it. The keys were
+// then off, and three cascade tests failed for a reason that had nothing to do
+// with the constraints they were testing.
+//
+// The pragma is verified rather than assumed, because that mismatch was silent:
+// a DSN parameter a driver does not recognise is not an error, it is nothing.
 func OpenEnforcing(path string) (*sql.DB, error) {
 	db, err := Open(path)
 	if err != nil {
@@ -127,7 +137,32 @@ func OpenEnforcing(path string) (*sql.DB, error) {
 	if err := db.Close(); err != nil {
 		return nil, err
 	}
-	return sql.Open("sqlite3", sqlstore.SQLiteDSN(path))
+	enforcing, err := sql.Open("sqlite3", addParam(path, "_foreign_keys", "on"))
+	if err != nil {
+		return nil, err
+	}
+	var on int
+	if err := enforcing.QueryRow("PRAGMA foreign_keys").Scan(&on); err != nil {
+		_ = enforcing.Close()
+		return nil, fmt.Errorf("reading back the foreign key pragma: %w", err)
+	}
+	if on != 1 {
+		_ = enforcing.Close()
+		return nil, fmt.Errorf("the sqlite driver did not take the foreign key setting from the DSN")
+	}
+	return enforcing, nil
+}
+
+// addParam appends one DSN setting, minding whether there is a query already.
+func addParam(dsn, key, value string) string {
+	if strings.Contains(dsn, key) {
+		return dsn
+	}
+	sep := "?"
+	if strings.Contains(dsn, "?") {
+		sep = "&"
+	}
+	return dsn + sep + key + "=" + value
 }
 
 // AddCard puts a card on the board, which is all this side ever needs to know
