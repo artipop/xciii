@@ -85,13 +85,19 @@ in a browser and as a Mattermost plugin.
   the headless build, which has its own files. `./...` also walks
   `webapp/node_modules`, where an npm package happens to ship Go sources; that is
   cosmetic, and a nested `go.mod` would not fix it — `go:embed` cannot cross a
-  module boundary, and `webapp/pack` is what it embeds. One test fails every
-  time and is known: `TestPermissionsGetTeamTemplates` — on all three vendors
-  alike, which is now something that can be said. Two suites used to be
-  *flaky* on top of that — `server/integrationtests`, where which permission
-  tests failed changed between runs, and `internal/boardadapter` about one run
-  in four — and they are not any more: the cause was composite writes going
-  through without a transaction on SQLite, which is fixed (below).
+  module boundary, and `webapp/pack` is what it embeds. The suite is green. It
+  was not for a long time — `TestPermissionsGetTeamTemplates` failed on every
+  run against a hard-coded count of the shipped templates that the archive had
+  outgrown — on all three vendors alike — and it now asks the store instead.
+  Two suites used to be *flaky* on
+  top of that — `server/integrationtests`, where which permission tests failed
+  changed between runs, and `internal/boardadapter` about one run in four — and
+  they are not any more: the cause was composite writes going through without a
+  transaction on SQLite, which is fixed (below). What is left is rarer and not
+  understood: `TestPatchBoard` in `server/app` failed twice in a day of
+  full-tree runs and passes on its own every time, and
+  `TestASessionAsksTheCardForAToolOutsideThePolicy` failed once the same way.
+  Blame a change only after re-running the package alone.
 - **`wails3 task test:db DB=postgres`** (or `mysql`, `sqlite3`; `test:db:all`
   for all three) — the store and API suites against one vendor. The container is
   started by the tests themselves (`internal/dbtest`, testcontainers-go), so

@@ -349,12 +349,22 @@ func TestPermissionsSearchTeamBoards(t *testing.T) {
 }
 
 func TestPermissionsGetTeamTemplates(t *testing.T) {
+	// How many templates ship is not what this test is about — it is about who
+	// may read team 0's. The count was a literal 13 and the archive has held 14
+	// for long enough that this test failed on every run, which is worse than
+	// useless: a permission regression would have looked like the failure
+	// everybody had learned to ignore. Asking the store how many were imported
+	// keeps the assertion about permissions and cannot go stale again.
+	var builtInTemplateCount int
 	extraSetup := func(t *testing.T, th *TestHelper) {
 		err := th.Server.App().InitTemplates()
 		require.NoError(t, err, "InitTemplates should succeed")
-	}
 
-	builtInTemplateCount := 13
+		templates, err := th.Server.App().GetTemplateBoards(model.GlobalTeamID, "")
+		require.NoError(t, err, "the imported templates should be readable")
+		require.NotEmpty(t, templates, "InitTemplates should have imported something")
+		builtInTemplateCount = len(templates)
+	}
 
 	ttCases := []TestCase{
 		// Get Team Boards
@@ -384,6 +394,11 @@ func TestPermissionsGetTeamTemplates(t *testing.T) {
 		extraSetup(t, th)
 		ttCases[1].expectedStatusCode = http.StatusOK
 		ttCases[1].totalResults = 1
+		for i := range ttCases {
+			if ttCases[i].url == "/teams/0/templates" && ttCases[i].expectedStatusCode == http.StatusOK {
+				ttCases[i].totalResults = builtInTemplateCount
+			}
+		}
 		runTestCases(t, ttCases, testData, clients)
 	})
 }
