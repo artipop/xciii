@@ -115,10 +115,15 @@ regenerate_signup_token жёстко отказывают в этом режим
 Методы `octoClient` без живых вызовов и их серверные маршруты (один коммит на
 группу): `getUsersList` (bulk POST `/users`), `getBlocksWithParent` +
 `getBlocksWithType` (GET `/teams/{t}/blocks`), `patchBlocks` (PATCH
-`/teams/{t}/blocks`), `getTeamUsers` (GET без поиска), `getBlocksForBoard`
+`/teams/{t}/blocks`), ~~`getTeamUsers` (GET без поиска)~~ и ~~`search`~~ —
+**оставлены**: обе операции команды, обе на живом маршруте, а
+многокомандность чинят (решение 4). Страница сейчас ищет через `searchAll` и
+`searchTeamUsers`, но «список людей одной команды» и «поиск в одной команде» —
+ровно то, что понадобится, когда команд станет больше одной; тридцать строк не
+стоят того, чтобы их потом писать заново. `getBlocksForBoard`
 (GET `/teams/{t}/boards/{b}`), `createBoard` (всё создание идёт через
-`boards-and-blocks`), `search` + `searchLinkableBoards` (командный поиск;
-linkable и так отвечает 501), `getUserBlockSubscriptions` (GET
+`boards-and-blocks`), `searchLinkableBoards` (доски, привязываемые к каналу
+Mattermost, — режим закрыт решением 3), `getUserBlockSubscriptions` (GET
 `/subscriptions/{u}`; стор-экшен — заглушка), `searchUserChannels` +
 `getChannel` + `store/channels.ts` + канальная ветка `shareBoard.tsx`
 (недостижима: в список некому положить `Channel`), `getSiteStatistics`,
