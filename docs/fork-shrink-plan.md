@@ -43,7 +43,7 @@
 | --- | --- | --- |
 | `server/`, строк Go | 50 508 | 45 548 |
 | из них тесты | 14 802 | 14 311 |
-| `webapp/src`, строк | 83 299 | 80 582 |
+| `webapp/src`, строк | 83 299 | 80 325 |
 | файлы вне счёта | | −8,2 МБ (`server/swagger/`, лишний `templates.boardarchive`) |
 
 Сверх строк: `go.mod` потерял `rudderlabs/analytics-go`, `prometheus/

@@ -57,6 +57,7 @@
 | `setMattermostTheme` | `3a67ea0` | собственный комментарий говорил, что в репозитории её не зовёт никто и она для плагин-хоста |
 | `Utils.isDesktopApp`, `getDesktopVersion`, `isDesktop` | `3a67ea0` | нюхают юзер-агент Mattermost-Electron и **врут** в сборке Wails; вызывающих нет |
 | `SuiteWindow`, `frontendBaseURL`, `openPricingModal` в `types/index.d.ts` | `3a67ea0` | глобалы, которые ставил только плагин-хост |
+| `src/telemetry/` целиком: `TelemetryClient`, 33 вызова `trackEvent`, `setUser`, проп `telemetryTag` в одиннадцати шагах тура, `telemetryName` в `Constants.imports` | `8d4df04` | `trackEvent` — no-op, пока не позван `setTelemetryHandler`, а звала его только точка входа плагина |
 | маршрут `/team/:teamId/new/:channelId`, проп `channelId`, `getBoardPagePath` | `3a67ea0` | вход «создать доску для канала»; не просто мёртв — каждое создание доски из шаблона платило лишним `updateBoard` с пустым `channelId` |
 
 ## Слои 3 и 5 — не удаления, а починки
