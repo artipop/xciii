@@ -6,21 +6,21 @@ import (
 )
 
 const (
-	websocketActionAuth                     = "AUTH"
-	websocketActionSubscribeTeam            = "SUBSCRIBE_TEAM"
-	websocketActionUnsubscribeTeam          = "UNSUBSCRIBE_TEAM"
-	websocketActionSubscribeBlocks          = "SUBSCRIBE_BLOCKS"
-	websocketActionUnsubscribeBlocks        = "UNSUBSCRIBE_BLOCKS"
-	websocketActionUpdateBoard              = "UPDATE_BOARD"
-	websocketActionUpdateMember             = "UPDATE_MEMBER"
-	websocketActionDeleteMember             = "DELETE_MEMBER"
-	websocketActionUpdateBlock              = "UPDATE_BLOCK"
-	websocketActionUpdateConfig             = "UPDATE_CLIENT_CONFIG"
-	websocketActionUpdateCategory           = "UPDATE_CATEGORY"
-	websocketActionUpdateCategoryBoard      = "UPDATE_BOARD_CATEGORY"
-	websocketActionUpdateSubscription       = "UPDATE_SUBSCRIPTION"
-	websocketActionReorderCategories        = "REORDER_CATEGORIES"
-	websocketActionReorderCategoryBoards    = "REORDER_CATEGORY_BOARDS"
+	websocketActionAuth                  = "AUTH"
+	websocketActionSubscribeTeam         = "SUBSCRIBE_TEAM"
+	websocketActionUnsubscribeTeam       = "UNSUBSCRIBE_TEAM"
+	websocketActionSubscribeBlocks       = "SUBSCRIBE_BLOCKS"
+	websocketActionUnsubscribeBlocks     = "UNSUBSCRIBE_BLOCKS"
+	websocketActionUpdateBoard           = "UPDATE_BOARD"
+	websocketActionUpdateMember          = "UPDATE_MEMBER"
+	websocketActionDeleteMember          = "DELETE_MEMBER"
+	websocketActionUpdateBlock           = "UPDATE_BLOCK"
+	websocketActionUpdateConfig          = "UPDATE_CLIENT_CONFIG"
+	websocketActionUpdateCategory        = "UPDATE_CATEGORY"
+	websocketActionUpdateCategoryBoard   = "UPDATE_BOARD_CATEGORY"
+	websocketActionUpdateSubscription    = "UPDATE_SUBSCRIPTION"
+	websocketActionReorderCategories     = "REORDER_CATEGORIES"
+	websocketActionReorderCategoryBoards = "REORDER_CATEGORY_BOARDS"
 )
 
 type Store interface {

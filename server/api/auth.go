@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"net"
 	"net/http"
 	"strings"
 
@@ -369,18 +368,5 @@ func (a *API) attachSession(handler func(w http.ResponseWriter, r *http.Request)
 
 		ctx := context.WithValue(r.Context(), sessionContextKey, session)
 		handler(w, r.WithContext(ctx))
-	}
-}
-
-func (a *API) adminRequired(handler func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Currently, admin APIs require local unix connections
-		conn := GetContextConn(r)
-		if _, isUnix := conn.(*net.UnixConn); !isUnix {
-			a.errorResponse(w, r, model.NewErrUnauthorized("not a local unix connection"))
-			return
-		}
-
-		handler(w, r)
 	}
 }

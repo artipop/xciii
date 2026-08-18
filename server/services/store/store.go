@@ -3,7 +3,6 @@
 package store
 
 import (
-
 	"github.com/artipop/xciii/server/model"
 )
 
@@ -141,7 +140,6 @@ type Store interface {
 	GetSubscribersCountForBlock(blockID string) (int, error)
 	UpdateSubscribersNotifiedAt(blockID string, notifiedAt int64) error
 
-
 	RemoveDefaultTemplates(boards []*model.Board) error
 	GetTemplateBoards(teamID, userID string) ([]*model.Board, error)
 
@@ -154,7 +152,6 @@ type Store interface {
 	SendMessage(message, postType string, receipts []string) error
 
 	GetUserTimezone(userID string) (string, error)
-
 
 	// For unit testing only
 	DeleteBoardRecord(boardID, modifiedBy string) error

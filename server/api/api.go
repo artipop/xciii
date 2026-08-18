@@ -90,10 +90,6 @@ func (a *API) RegisterRoutes(r *web.Router) {
 	a.registerSystemRoutes(r)
 }
 
-func (a *API) RegisterAdminRoutes(r *web.Router) {
-	r.HandleFunc("POST /api/v2/admin/users/{username}/password", a.adminRequired(a.handleAdminSetPassword))
-}
-
 func getUserID(r *http.Request) string {
 	ctx := r.Context()
 	session, ok := ctx.Value(sessionContextKey).(*model.Session)

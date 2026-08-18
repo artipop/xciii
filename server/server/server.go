@@ -3,11 +3,7 @@ package server
 import (
 	"database/sql"
 	"fmt"
-	"net"
-	"net/http"
-	"os"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/pkg/errors"
@@ -49,10 +45,8 @@ type Server struct {
 	notificationService    *notify.Service
 	servicesStartStopMutex sync.Mutex
 
-	localRouter     *web.Router
-	localModeServer *http.Server
-	api             *api.API
-	app             *app.App
+	api *api.API
+	app *app.App
 }
 
 func New(params Params) (*Server, error) {
@@ -101,8 +95,6 @@ func New(params Params) (*Server, error) {
 	focalboardAPI := api.NewAPI(app, params.SingleUserToken, params.Cfg.AuthMode, params.PermissionsService, params.Logger)
 
 	// Local router for admin APIs
-	localRouter := web.NewRouter()
-	focalboardAPI.RegisterAdminRoutes(localRouter)
 
 	// Init team
 	if _, err := app.GetRootTeam(); err != nil {
@@ -126,7 +118,6 @@ func New(params Params) (*Server, error) {
 		filesBackend:        filesBackend,
 		notificationService: notificationService,
 		logger:              params.Logger,
-		localRouter:         localRouter,
 		api:                 focalboardAPI,
 		app:                 app,
 	}
@@ -211,12 +202,6 @@ func (s *Server) Start() error {
 	s.servicesStartStopMutex.Lock()
 	defer s.servicesStartStopMutex.Unlock()
 
-	if s.config.EnableLocalMode {
-		if err := s.startLocalModeServer(); err != nil {
-			return err
-		}
-	}
-
 	if s.config.AuthMode != MattermostAuthMod {
 		s.cleanUpSessionsTask = scheduler.CreateRecurringTask("cleanUpSessions", func() {
 			secondsAgo := minSessionExpiryTime
@@ -237,8 +222,6 @@ func (s *Server) Shutdown() error {
 	if err := s.webServer.Shutdown(); err != nil {
 		return err
 	}
-
-	s.stopLocalModeServer()
 
 	s.servicesStartStopMutex.Lock()
 	defer s.servicesStartStopMutex.Unlock()
@@ -276,49 +259,6 @@ func (s *Server) Store() store.Store {
 
 func (s *Server) UpdateAppConfig() {
 	s.app.SetConfig(s.config)
-}
-
-// Local server
-
-func (s *Server) startLocalModeServer() error {
-	s.localModeServer = &http.Server{ //nolint:gosec
-		Handler:     s.localRouter,
-		ConnContext: api.SetContextConn,
-	}
-
-	// TODO: Close and delete socket file on shutdown
-	// Delete existing socket if it exists
-	if _, err := os.Stat(s.config.LocalModeSocketLocation); err == nil {
-		if err := syscall.Unlink(s.config.LocalModeSocketLocation); err != nil {
-			s.logger.Error("Unable to unlink socket.", mlog.Err(err))
-		}
-	}
-
-	socket := s.config.LocalModeSocketLocation
-	unixListener, err := net.Listen("unix", socket)
-	if err != nil {
-		return err
-	}
-	if err = os.Chmod(socket, 0600); err != nil {
-		return err
-	}
-
-	go func() {
-		s.logger.Info("Starting unix socket server")
-		err = s.localModeServer.Serve(unixListener)
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			s.logger.Error("Error starting unix socket server", mlog.Err(err))
-		}
-	}()
-
-	return nil
-}
-
-func (s *Server) stopLocalModeServer() {
-	if s.localModeServer != nil {
-		_ = s.localModeServer.Close()
-		s.localModeServer = nil
-	}
 }
 
 func (s *Server) GetRootRouter() *web.Router {

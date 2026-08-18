@@ -161,8 +161,6 @@ func runServerWithLogger(logger mlog.LoggerIFace, port int, sessionToken string,
 		SessionExpireTime:       259200000000,
 		SessionRefreshTime:      18000,
 		LocalOnly:               false,
-		EnableLocalMode:         false,
-		LocalModeSocketLocation: "",
 		AuthMode:                "native",
 	}
 

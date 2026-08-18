@@ -3190,4 +3190,3 @@ func TestPermissionsMinimumRolesApplied(t *testing.T) {
 // product has no channels, the store answered "not implemented", and both
 // endpoints are gone. TestPermissionsGetStatistics went the same way with
 // GET /statistics, which counted boards and cards for a page that never asked.
-

@@ -44,8 +44,6 @@ type Configuration struct {
 	SessionExpireTime        int64             `json:"session_expire_time" mapstructure:"session_expire_time"`
 	SessionRefreshTime       int64             `json:"session_refresh_time" mapstructure:"session_refresh_time"`
 	LocalOnly                bool              `json:"localonly" mapstructure:"localonly"`
-	EnableLocalMode          bool              `json:"enableLocalMode" mapstructure:"enableLocalMode"`
-	LocalModeSocketLocation  string            `json:"localModeSocketLocation" mapstructure:"localModeSocketLocation"`
 	EnablePublicSharedBoards bool              `json:"enablePublicSharedBoards" mapstructure:"enablePublicSharedBoards"`
 	FeatureFlags             map[string]string `json:"featureFlags" mapstructure:"featureFlags"`
 	TeammateNameDisplay      string            `json:"teammate_name_display" mapstructure:"teammateNameDisplay"`
@@ -83,8 +81,6 @@ func ReadConfigFile(configFilePath string) (*Configuration, error) {
 	viper.SetDefault("SessionExpireTime", 60*60*24*30) // 30 days session lifetime
 	viper.SetDefault("SessionRefreshTime", 60*60*5)    // 5 minutes session refresh
 	viper.SetDefault("LocalOnly", false)
-	viper.SetDefault("EnableLocalMode", false)
-	viper.SetDefault("LocalModeSocketLocation", "/var/tmp/focalboard_local.socket")
 	viper.SetDefault("EnablePublicSharedBoards", false)
 	viper.SetDefault("AuthMode", "native")
 	viper.SetDefault("NotifyFreqCardSeconds", 120)    // 2 minutes after last card edit
