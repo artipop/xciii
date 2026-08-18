@@ -348,26 +348,6 @@ func TestPermissionsSearchTeamBoards(t *testing.T) {
 	})
 }
 
-func TestPermissionsSearchTeamLinkableBoards(t *testing.T) {
-	t.Run("local", func(t *testing.T) {
-		th := SetupTestHelperLocalMode(t)
-		defer th.TearDown()
-		clients := setupLocalClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			// Search boards
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userNoTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userViewer, http.StatusNotImplemented, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userCommenter, http.StatusNotImplemented, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userEditor, http.StatusNotImplemented, 0},
-			{"/teams/test-team/boards/search/linkable?q=b", methodGet, "", userAdmin, http.StatusNotImplemented, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
-}
-
 func TestPermissionsGetTeamTemplates(t *testing.T) {
 	extraSetup := func(t *testing.T, th *TestHelper) {
 		err := th.Server.App().InitTemplates()

@@ -13,12 +13,8 @@ beforeEach(() => {
     FetchMock.fn.mockReset()
 })
 
-test('OctoClient: get blocks', async () => {
+test('OctoClient: export an archive', async () => {
     const blocks = createBlocks()
-
-    FetchMock.fn.mockReturnValueOnce(FetchMock.jsonResponse(JSON.stringify(blocks)))
-    let boards = await octoClient.getBlocksWithType('card')
-    expect(boards.length).toBe(blocks.length)
 
     FetchMock.fn.mockReturnValueOnce(FetchMock.jsonResponse(JSON.stringify(blocks)))
     let response = await octoClient.exportBoardArchive('board')
@@ -27,15 +23,6 @@ test('OctoClient: get blocks', async () => {
     FetchMock.fn.mockReturnValueOnce(FetchMock.jsonResponse(JSON.stringify(blocks)))
     response = await octoClient.exportFullArchive('team')
     expect(response.status).toBe(200)
-
-    FetchMock.fn.mockReturnValueOnce(FetchMock.jsonResponse(JSON.stringify(blocks)))
-    const parentId = 'id1'
-    boards = await octoClient.getBlocksWithParent(parentId)
-    expect(boards.length).toBe(blocks.length)
-
-    FetchMock.fn.mockReturnValueOnce(FetchMock.jsonResponse(JSON.stringify(blocks)))
-    boards = await octoClient.getBlocksWithParent(parentId, 'card')
-    expect(boards.length).toBe(blocks.length)
 })
 
 test('OctoClient: insert blocks', async () => {

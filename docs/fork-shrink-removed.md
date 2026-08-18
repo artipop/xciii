@@ -1,0 +1,57 @@
+# Что вынесено из форка
+
+Журнал усушки: одна строка на удалённую подсистему, с коммитом, которым её
+возвращают. Ведётся, потому что «мертво» — суждение о сегодняшнем дне, а
+не о завтрашнем: решение о команд­ной работе уже один раз перевернуло план
+(`docs/fork-shrink-plan.md`, слой 0), и незачем гадать, какое перевернёт
+следующим.
+
+**Как вернуть.** Каждое удаление — отдельный коммит, ничего не размазано.
+`git revert <хеш>` поднимает подсистему целиком: код, интерфейс стора, моки,
+тесты и правку страницы, если она была парной. Если с тех пор менялся
+`Store`, после отката нужен `go generate ./server/services/store` — моки и
+`public_methods.go` собираются из интерфейса.
+
+**Чего здесь нет.** Тут только то, что удалено. То, что решили **не** трогать
+— логин, публичный шаринг, многокомандность, планировщик, `search` и
+`getTeamUsers`, — записано в плане, там же и почему.
+
+## Слой 1 — сервер. Страница ничего не замечала
+
+| Подсистема | Коммит | Почему было мертво |
+| --- | --- | --- |
+| telemetry (сервис, TelemetryID в `system_settings`, `Telemetry`/`TelemetryID` в конфиге и клиент-конфиге, `LvlFBTelemetry`, `rudderlabs/analytics-go`) | `e87126a` | ключи Rudder — литералы `placeholder_*`, `getRudderConfig` возвращает пустой конфиг, если нет `RUDDER_KEY`/`RUDDER_DATAPLANE_URL`, а их никто не ставит |
+| webhook (клиент, 8 вызовов в `app/`, `WebhookUpdate`) | `dfd1b5f` | `NotifyUpdate` выходит на первой строке при пустом списке, а список пуст по построению: конфиг собирается литералом, файл конфига не читается |
+| metrics (сервис, счётчики в 15 местах, `updateMetrics`, `prometheus/client_golang`, `oklog/run`) | `a29edf7` | реестр публикует `metricsServer`, который поднимается только при непустом `PrometheusAddress`, а он пуст всегда |
+| audit (сервис, 315 вызовов в 19 файлах `api/`, третий параметр `StampModificationMetadata`) | `c25dda1` | `NewAudit` пишет в `mlog.Discard()`, `Configure` получает два пустых поля конфига |
+| compliance (стор, SQL, типы, обёртки `app/`, storetests, три метода `client.go`) | `524c23b` | ни одного маршрута; методы клиента шли в `/admin/*`, то есть в выключенный сокет |
+| cloud card limits (`sqlstore/cloud.go`, три метода интерфейса, `CardLimitTimestampSystemKey`, `UPDATE_CARD_LIMIT_TIMESTAMP` в ws) | `39de4f0` | `Block.ShouldBeLimited`/`GetLimited` никто не зовёт, `limited` всегда false; вебсокет-действие не рассылается ниоткуда |
+| `GET /statistics` + `app/statistics.go` + `model.BoardsStatistics` + `PermissionGetAnalytics` | `39de4f0` | живой маршрут без единого вызывающего на странице |
+| data retention (`RunDataRetention`, SQL, `EnableDataRetention`, `DataRetentionDays`) | `21f8692` | единственный вызывающий — собственный стор-тест; поля конфига не читает никто |
+| notification hints (четыре метода, SQL, `model.NotificationHint`) | `21f8692` | бэкенд, который их читал, удалён раньше |
+| local mode (`EnableLocalMode`, unix-сокет, `localRouter`, `api/admin.go`, `adminRequired`, `admin-scripts/`, conn в `api/context.go`) | `6f901d7` | флаг выставлен в `false` в единственном месте, где собирается конфиг; на роутере висел один маршрут — сброс пароля через `/var/tmp/focalboard_local.socket` |
+| `server/swagger/` (2,1 МБ) | `6f901d7` | генерируется целью `make swagger` в дереве без Makefile; описывает эндпоинты, которых нет (последнее место, где упоминался insights) |
+| `server/app/templates.boardarchive` (6,1 МБ) | `6f901d7` | embed'ится `server/assets/templates.boardarchive`, это другой файл, и они различаются |
+| `ws/plugin_adapter_client.go`, `integrationtests/pluginteststore.go` | `6f901d7` | последние два файла половины-плагина, на них не ссылается ничто |
+| notifylogger | `f6681ca` | пишет на debug в логгер, который собран на info и не перенастраивается |
+
+## Слой 2 — мёртвые вызовы страницы и парные маршруты
+
+| Что | Коммит | Почему было мертво |
+| --- | --- | --- |
+| `octoClient`: `getUsersList`, `getBlocksWithParent`, `getBlocksWithType`, `patchBlocks`, `getBlocksForBoard`, `createBoard`, `getUserBlockSubscriptions` | `ac958a4` | ни одного вызова из живого кода; четыре из них вдобавок бьют в маршруты, которых на сервере уже нет (`/teams/{t}/blocks`, `/teams/{t}/boards/{b}`, `POST /teams/{t}/boards`) |
+| `octoClient.searchLinkableBoards` + `GET /teams/{teamID}/boards/search/linkable` + `TestPermissionsSearchTeamLinkableBoards` | `ac958a4` | доски, привязываемые к каналу Mattermost; обработчик и так отвечал «not permitted in standalone mode» |
+
+## Что осталось стоять рядом с удалённым
+
+- `POST /users`, `GET /subscriptions/{subscriberID}`, `POST /boards` — маршруты
+  живы: их зовёт `server/client/client.go` из интеграционных тестов, и один из
+  этих тестов (`TestGetUserListSingleUserWithRealAccounts`) написан уже под этот
+  форк, про аккаунты агентов. Со страницы ушли только клиентские методы.
+- `SearchBoardsForUserInTeam` — после ухода linkable у него не осталось
+  вызывающих в `api/`, но это поиск в пределах одной команды, и он остаётся по
+  тому же правилу, что `search` и `getTeamUsers`.
+- Таблицы `notification_hints` и `sharing` — правка схемы отдельная работа со
+  своим генератором и снапшот-тестом, в удаление кода не мешается.
+- Комментарии `swagger:operation` в обработчиках — они читаются как описание
+  маршрута независимо от того, генерирует ли из них кто-нибудь.

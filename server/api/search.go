@@ -12,7 +12,6 @@ import (
 
 func (a *API) registerSearchRoutes(r *web.Router) {
 	r.HandleFunc("GET /teams/{teamID}/boards/search", a.sessionRequired(a.handleSearchBoards))
-	r.HandleFunc("GET /teams/{teamID}/boards/search/linkable", a.sessionRequired(a.handleSearchLinkableBoards))
 	r.HandleFunc("GET /boards/search", a.sessionRequired(a.handleSearchAllBoards))
 }
 
@@ -101,89 +100,6 @@ func (a *API) handleSearchBoards(w http.ResponseWriter, r *http.Request) {
 	)
 
 	data, err := json.Marshal(boards)
-	if err != nil {
-		a.errorResponse(w, r, err)
-		return
-	}
-
-	// response
-	jsonBytesResponse(w, http.StatusOK, data)
-
-}
-
-func (a *API) handleSearchLinkableBoards(w http.ResponseWriter, r *http.Request) {
-	// swagger:operation GET /teams/{teamID}/boards/search/linkable searchLinkableBoards
-	//
-	// Returns the boards that match with a search term in the team and the
-	// user has permission to manage members
-	//
-	// ---
-	// produces:
-	// - application/json
-	// parameters:
-	// - name: teamID
-	//   in: path
-	//   description: Team ID
-	//   required: true
-	//   type: string
-	// - name: q
-	//   in: query
-	//   description: The search term. Must have at least one character
-	//   required: true
-	//   type: string
-	// security:
-	// - BearerAuth: []
-	// responses:
-	//   '200':
-	//     description: success
-	//     schema:
-	//       type: array
-	//       items:
-	//         "$ref": "#/definitions/Board"
-	//   default:
-	//     description: internal error
-	//     schema:
-	//       "$ref": "#/definitions/ErrorResponse"
-
-	if !a.MattermostAuth {
-		a.errorResponse(w, r, model.NewErrNotImplemented("not permitted in standalone mode"))
-		return
-	}
-
-	teamID := r.PathValue("teamID")
-	term := r.URL.Query().Get("q")
-	userID := getUserID(r)
-
-	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
-		a.errorResponse(w, r, model.NewErrPermission("access denied to team"))
-		return
-	}
-
-	if len(term) == 0 {
-		jsonStringResponse(w, http.StatusOK, "[]")
-		return
-	}
-
-	// retrieve boards list
-	boards, err := a.app.SearchBoardsForUserInTeam(teamID, term, userID)
-	if err != nil {
-		a.errorResponse(w, r, err)
-		return
-	}
-
-	linkableBoards := []*model.Board{}
-	for _, board := range boards {
-		if a.permissions.HasPermissionToBoard(userID, board.ID, model.PermissionManageBoardRoles) {
-			linkableBoards = append(linkableBoards, board)
-		}
-	}
-
-	a.logger.Debug("SearchLinkableBoards",
-		mlog.String("teamID", teamID),
-		mlog.Int("boardsCount", len(linkableBoards)),
-	)
-
-	data, err := json.Marshal(linkableBoards)
 	if err != nil {
 		a.errorResponse(w, r, err)
 		return
