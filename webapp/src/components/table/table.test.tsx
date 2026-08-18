@@ -27,7 +27,6 @@ beforeEach(() => {
 
 vi.mock('../../mutator')
 vi.mock('../../utils')
-vi.mock('../../telemetry/telemetryClient')
 const mockedMutator = vi.mocked(Mutator)
 
 describe('components/table/Table', () => {

@@ -151,7 +151,6 @@ type Props = {
     singleTip?: boolean
     showOptOut?: boolean
     placement?: Placement
-    telemetryTag?: string
     stopPropagation?: boolean
     preventDefault?: boolean
     tutorialCategory: string
@@ -179,7 +178,6 @@ const TutorialTourTip = (props: Props): JSX.Element => {
     const managerProps: TutorialTourTipManagerProps = {
         step: props.step,
         autoTour: props.autoTour,
-        telemetryTag: props.telemetryTag,
         tutorialCategory: props.tutorialCategory,
         onNextNavigateTo: props.onNextNavigateTo,
         onPrevNavigateTo: props.onPrevNavigateTo,

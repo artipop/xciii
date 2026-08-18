@@ -9,7 +9,6 @@ import {Board, IPropertyTemplate} from '../blocks/board'
 import {BoardView, createBoardView, IViewType} from '../blocks/boardView'
 import {Constants, Permission} from '../constants'
 import mutator from '../mutator'
-import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../telemetry/telemetryClient'
 import {Block} from '../blocks/block'
 import {IDType, Utils} from '../utils'
 import AddIcon from '../widgets/icons/add'
@@ -46,10 +45,9 @@ const ViewMenu = (props: Props) => {
     }
 
     const handleDuplicateView = () => {
-        const {board, activeView} = props
+        const {activeView} = props
         Utils.log('duplicateView')
 
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DuplicateBoardView, {board: board.id, view: activeView.id})
         const currentViewId = activeView.id
         const newView = createBoardView(activeView)
         newView.title = `${activeView.title} copy`
@@ -71,9 +69,8 @@ const ViewMenu = (props: Props) => {
     }
 
     const handleDeleteView = () => {
-        const {board, activeView, views} = props
+        const {activeView, views} = props
         Utils.log('deleteView')
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteBoardView, {board: board.id, view: activeView.id})
         const view = activeView
         const nextView = views.find((o) => o.id !== view.id)
         mutator.deleteBlock(view, 'delete view')
@@ -96,7 +93,6 @@ const ViewMenu = (props: Props) => {
         const {board, activeView} = props
         Utils.log('addview-board')
 
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateBoardView, {board: board.id, view: activeView.id})
         const view = createBoardView()
         view.title = intl.formatMessage({id: 'View.NewBoardTitle', defaultMessage: 'Board view'})
         view.fields.viewType = 'board'

@@ -20,7 +20,6 @@ import {Board, BoardMember} from '../../blocks/board'
 import {BoardView} from '../../blocks/boardView'
 import {Card} from '../../blocks/card'
 import {getCurrentBoardId} from '../../store/boards'
-import {getCurrentViewId} from '../../store/views'
 import ConfirmationDialog from '../../components/confirmationDialogBox'
 import {useAppSelector, useAppStore} from '../../store/hooks'
 import {
@@ -30,8 +29,6 @@ import {UserSettings} from '../../userSettings'
 
 import IconButton from '../../widgets/buttons/iconButton'
 import CloseIcon from '../../widgets/icons/close'
-
-import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
 
 import {Constants} from '../../constants'
 
@@ -53,7 +50,6 @@ type Props = {
 const BoardPage = (props: Props): JSX.Element => {
     const intl = useIntl()
     const activeBoardId = useAppSelector(getCurrentBoardId)
-    const activeViewId = useAppSelector(getCurrentViewId)
     const {actions} = useAppStore()
     const match = useRouteMatch()
     const [mobileWarningClosed, setMobileWarningClosed] = createSignal(UserSettings.mobileWarningClosed)
@@ -235,12 +231,6 @@ const BoardPage = (props: Props): JSX.Element => {
 
         if (hiddenBoardIDs().indexOf(boardId()!) >= 0) {
             handleUnhideBoard(boardId()!)
-        }
-    })
-
-    createEffect(() => {
-        if (props.readonly && activeBoardId() && activeViewId()) {
-            TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ViewSharedBoard, {board: activeBoardId(), view: activeViewId()})
         }
     })
 

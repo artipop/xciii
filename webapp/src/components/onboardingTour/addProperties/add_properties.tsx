@@ -97,7 +97,6 @@ const AddPropertiesTourStep = (): JSX.Element => {
             title={title}
             punchout={punchout()}
             classname='AddPropertiesTourStep'
-            telemetryTag='tourPoint2a'
             placement={'right-end'}
             imageURL={Utils.buildURL(addProperty, true)}
             hideBackdrop={true}

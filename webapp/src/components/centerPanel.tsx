@@ -17,7 +17,6 @@ import {UserSettings} from '../userSettings'
 import {personName} from '../userDisplay'
 import {getCurrentBoardCards, getCurrentCard} from '../store/cards'
 import {getVisibleAndHiddenGroups} from '../boardUtils'
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../telemetry/telemetryClient'
 
 import {getClientConfig} from '../store/clientConfig'
 
@@ -132,7 +131,6 @@ const CenterPanel = (props: Props) => {
     const clientConfig = useAppSelector<ClientConfig>(getClientConfig)
 
     onMount(() => {
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ViewBoard, {board: props.board.id, view: props.activeView.id, viewType: props.activeView.fields.viewType})
     })
 
     useHotkeys('esc', (e: KeyboardEvent) => {
@@ -241,8 +239,6 @@ const CenterPanel = (props: Props) => {
 
         const card = createCard()
 
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateCard, {board: board.id, view: activeView.id, card: card.id})
-
         card.parentId = board.id
         card.boardId = board.id
         card.fields.properties = {...card.fields.properties, ...properties, ...newCardProperties(groupByOptionId)}
@@ -336,7 +332,6 @@ const CenterPanel = (props: Props) => {
                 propertiesThatMeetFilters,
                 async (cardId) => {
                     actions.views.updateView({...activeView, fields: {...activeView.fields, cardOrder: [...activeView.fields.cardOrder, cardId]}})
-                    TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateCardViaTemplate, {board: props.board.id, view: props.activeView.id, card: cardId, cardTemplateId})
                     showCard(cardId)
                 },
                 async () => {
@@ -348,7 +343,7 @@ const CenterPanel = (props: Props) => {
     }
 
     const addCardTemplate = async () => {
-        const {board, activeView} = props
+        const {board} = props
 
         const cardTemplate = createCard()
         cardTemplate.fields.isTemplate = true
@@ -361,7 +356,6 @@ const CenterPanel = (props: Props) => {
             'add card template',
             async (newBlock: Block) => {
                 const newTemplate = createCard(newBlock)
-                TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateCardTemplate, {board: board.id, view: activeView.id, card: newTemplate.id})
                 actions.cards.addTemplate(newTemplate)
                 showCard(newTemplate.id)
             }, async () => {

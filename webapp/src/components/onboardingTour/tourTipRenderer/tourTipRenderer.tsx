@@ -22,7 +22,6 @@ type Props = {
     title: JSX.Element
     punchout: TutorialTourTipPunchout | null | undefined
     classname: string
-    telemetryTag: string
     placement: Placement | undefined
     hideBackdrop: boolean
     imageURL?: string
@@ -64,7 +63,6 @@ const TourTipRenderer = (props: Props): JSX.Element | null => {
                 placement={props.placement}
                 class={props.classname}
                 imageURL={props.imageURL}
-                telemetryTag={props.telemetryTag}
                 skipCategoryFromBackdrop={true}
                 autoTour={true}
                 hideBackdrop={props.hideBackdrop}

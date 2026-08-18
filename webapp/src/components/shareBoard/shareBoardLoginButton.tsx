@@ -3,7 +3,6 @@ import {useNavigate} from '@solidjs/router'
 import {FormattedMessage, useIntl} from '../../intl'
 
 import Button from '../../widgets/buttons/button'
-import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
 import {Utils} from '../../utils'
 import {useRouteMatch} from '../../hooks/routerMatch'
 
@@ -20,7 +19,6 @@ const ShareBoardLoginButton = () => {
     }
 
     const onLoginClick = () => {
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ShareBoardLogin)
         navigate(loginPath())
     }
 

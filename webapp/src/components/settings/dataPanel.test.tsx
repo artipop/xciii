@@ -6,12 +6,8 @@ import {mockAppStore, wrapIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 import {Archiver} from '../../archiver'
 import {Constants} from '../../constants'
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../../telemetry/telemetryClient'
 
 import DataPanel from './dataPanel'
-
-vi.mock('../../telemetry/telemetryClient')
-const mockedTelemetry = vi.mocked(TelemetryClient)
 
 describe('components/settings/dataPanel', () => {
     const store = mockAppStore({teams: {current: {id: 'team-id'}}})
@@ -59,7 +55,6 @@ describe('components/settings/dataPanel', () => {
         userEvent.click(screen.getByRole('button', {name: 'Trello'}))
 
         expect(window.open).toHaveBeenCalledWith(Constants.imports[0].href)
-        expect(mockedTelemetry.trackEvent).toHaveBeenCalledWith(TelemetryCategory, TelemetryActions.ImportTrello)
     })
 
     test('offers every service it has instructions for', () => {

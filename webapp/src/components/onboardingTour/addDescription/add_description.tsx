@@ -36,7 +36,6 @@ const AddDescriptionTourStep = (): JSX.Element | null => {
             title={title}
             punchout={punchout()}
             classname='AddDescriptionTourStep'
-            telemetryTag='tourPoint2c'
             placement={'top-start'}
             imageURL={Utils.buildURL(addDescription, true)}
             hideBackdrop={true}

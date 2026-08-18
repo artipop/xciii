@@ -40,7 +40,6 @@ const ShareBoardTourStep = (): JSX.Element | null => {
             title={title}
             punchout={punchout()}
             classname='ShareBoardTourStep'
-            telemetryTag='tourPoint2b'
             placement={'bottom-end'}
             imageURL={Utils.buildURL(shareBoard, true)}
             hideBackdrop={true}

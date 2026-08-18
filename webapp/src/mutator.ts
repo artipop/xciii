@@ -17,7 +17,6 @@ import octoClient from './octoClient'
 import undoManager from './undomanager'
 import {Utils, IDType} from './utils'
 import {UserSettings} from './userSettings'
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from './telemetry/telemetryClient'
 import {Category} from './store/sidebar'
 
 import {UserConfigPatch, UserPreference} from './user'
@@ -646,7 +645,6 @@ class Mutator {
             delete newCard.fields.properties[propertyId]
         }
         await this.updateBlock(boardId, newCard, card, description)
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.EditCardProperty, {board: card.boardId, card: card.id})
     }
 
     async changePropertyTypeAndName(board: Board, cards: Card[], propertyTemplate: IPropertyTemplate, newType: PropertyTypeEnum, newName: string) {
@@ -1199,7 +1197,6 @@ class Mutator {
             'add board',
             async (bab: BoardsAndBlocks) => {
                 const newBoard = bab.boards[0]
-                TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateBoard, {board: newBoard?.id})
                 afterRedo && await afterRedo(newBoard?.id || '')
             },
             beforeUndo,
@@ -1228,7 +1225,6 @@ class Mutator {
             'add board template',
             async (bab: BoardsAndBlocks) => {
                 const newBoard = bab.boards[0]
-                TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateBoardTemplate, {board: newBoard?.id})
                 afterRedo(newBoard?.id || '')
             },
             beforeUndo,

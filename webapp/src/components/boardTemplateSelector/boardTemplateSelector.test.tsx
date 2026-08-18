@@ -8,8 +8,6 @@ import {IUser} from '../../user'
 import {TestRouter, mockAppStore, mockDOM, wrapDNDIntl} from '../../testUtils'
 import {AppStoreProvider} from '../../store'
 
-import TelemetryClient from '../../telemetry/telemetryClient'
-
 import BoardTemplateSelector from './boardTemplateSelector'
 
 // The client is a default export, and a factory has to say so: babel's CJS
@@ -24,9 +22,6 @@ vi.mock('../../octoClient', () => {
 })
 vi.mock('../../utils')
 vi.mock('../../mutator')
-
-vi.mock('../../telemetry/telemetryClient')
-const mockedTelemetry = vi.mocked(TelemetryClient)
 
 describe('components/boardTemplateSelector/boardTemplateSelector', () => {
     const mockedMutator = vi.mocked(Mutator)
@@ -453,7 +448,6 @@ describe('components/boardTemplateSelector/boardTemplateSelector', () => {
             userEvent.click(useTemplateButton!)
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledTimes(1))
             await waitFor(() => expect(mockedMutator.addBoardFromTemplate).toHaveBeenCalledWith(team1.id, expect.anything(), expect.anything(), expect.anything(), 'global-1', team1.id))
-            await waitFor(() => expect(mockedTelemetry.trackEvent).toHaveBeenCalledWith('boards', 'createBoardViaTemplate', {boardTemplateId: 'template_id_global'}))
         })
     })
 })

@@ -36,7 +36,6 @@ import {getCurrentCard} from '../../store/cards'
 import {Utils} from '../../utils'
 
 import {TOUR_SIDEBAR, SidebarTourSteps, TOUR_BOARD, FINISHED} from '../../components/onboardingTour/index'
-import telemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
 
 import {getCurrentTeam} from '../../store/teams'
 
@@ -236,7 +235,6 @@ const SidebarCategory = (props: Props) => {
         if (!board) {
             return
         }
-        telemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteBoard, {board: board.id})
         mutator.deleteBoard(
             board,
             intl.formatMessage({id: 'Sidebar.delete-board', defaultMessage: 'Delete board'}),

@@ -13,7 +13,6 @@ import CompassIcon from '../../widgets/icons/compassIcon'
 import TrelloIcon from '../../widgets/icons/brands/trello'
 import NotionIcon from '../../widgets/icons/brands/notion'
 import TodoistIcon from '../../widgets/icons/brands/todoist'
-import TelemetryClient, {TelemetryCategory, TelemetryActions} from '../../telemetry/telemetryClient'
 
 import './dataPanel.scss'
 
@@ -63,7 +62,6 @@ const DataPanel = () => {
                             if (!team) {
                                 return
                             }
-                            TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ExportArchive)
                             Archiver.exportFullArchive(team.id)
                         }}
                     >
@@ -85,7 +83,6 @@ const DataPanel = () => {
                     </div>
                     <Button
                         onClick={async () => {
-                            TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ImportArchive)
                             Archiver.importFullArchive()
                         }}
                     >
@@ -111,7 +108,6 @@ const DataPanel = () => {
                                         type='button'
                                         class='DataPanel__brand'
                                         onClick={() => {
-                                            TelemetryClient.trackEvent(TelemetryCategory, entry.telemetryName)
                                             window.open(entry.href)
                                         }}
                                     >

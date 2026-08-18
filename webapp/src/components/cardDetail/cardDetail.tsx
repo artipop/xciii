@@ -18,7 +18,6 @@ import Button from '../../widgets/buttons/button'
 import {Focusable} from '../../widgets/editable'
 import EditableArea from '../../widgets/editableArea'
 import CompassIcon from '../../widgets/icons/compassIcon'
-import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../../telemetry/telemetryClient'
 
 import BlockIconSelector from '../blockIconSelector'
 
@@ -144,7 +143,6 @@ const CardDetail = (props: Props): JSX.Element => {
         if (!title()) {
             setTimeout(() => titleRef?.focus(), 300)
         }
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.ViewCard, {board: props.board.id, view: props.activeView.id, card: props.card.id})
     })
 
     createEffect(() => {

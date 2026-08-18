@@ -14,7 +14,6 @@ import {getCard} from '../store/cards'
 import {getCardComments} from '../store/comments'
 import {getCardContents} from '../store/contents'
 import {useAppSelector, useAppStore} from '../store/hooks'
-import TelemetryClient, {TelemetryActions, TelemetryCategory} from '../telemetry/telemetryClient'
 import {Utils} from '../utils'
 import CompassIcon from '../widgets/icons/compassIcon'
 import Menu from '../widgets/menu'
@@ -68,7 +67,6 @@ const CardDialog = (props: Props): JSX.Element => {
             return
         }
 
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.AddTemplateFromCard, {board: props.board.id, view: props.activeView.id, card: props.cardId})
         await mutator.duplicateCard(
             props.cardId,
             props.board.id,
@@ -90,7 +88,6 @@ const CardDialog = (props: Props): JSX.Element => {
             Utils.assertFailure()
             return
         }
-        TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.DeleteCard, {board: props.board.id, view: props.activeView.id, card: currentCard.id})
         await mutator.deleteBlock(currentCard, 'delete card')
         props.onClose()
     }

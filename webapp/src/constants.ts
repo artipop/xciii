@@ -1,4 +1,3 @@
-import {TelemetryActions} from './telemetry/telemetryClient'
 
 enum Permission {
     ManageBoardType = 'manage_board_type',
@@ -57,19 +56,16 @@ class Constants {
         {
             id: 'trello',
             displayName: 'Trello',
-            telemetryName: TelemetryActions.ImportTrello,
             href: Constants.archiveHelpPage,
         },
         {
             id: 'notion',
             displayName: 'Notion',
-            telemetryName: TelemetryActions.ImportNotion,
             href: Constants.archiveHelpPage,
         },
         {
             id: 'todoist',
             displayName: 'Todoist',
-            telemetryName: TelemetryActions.ImportTodoist,
             href: Constants.archiveHelpPage,
         },
     ]

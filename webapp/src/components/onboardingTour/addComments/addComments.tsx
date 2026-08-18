@@ -36,7 +36,6 @@ const AddCommentTourStep = (): JSX.Element | null => {
             title={title}
             punchout={punchout()}
             classname='AddCommentTourStep'
-            telemetryTag='tourPoint2b'
             placement={'right-end'}
             imageURL={Utils.buildURL(addComment, true)}
             hideBackdrop={true}

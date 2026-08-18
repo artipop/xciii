@@ -35,7 +35,6 @@ const SearchForBoardsTourStep = (): JSX.Element | null => {
             title={title}
             punchout={punchout()}
             classname='SearchForBoards'
-            telemetryTag='tourPoint4d'
             placement={'right'}
             hideBackdrop={false}
             showForce={true}

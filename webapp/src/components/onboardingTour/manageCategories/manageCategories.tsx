@@ -38,7 +38,6 @@ const ManageCategoriesTourStep = (): JSX.Element | null => {
             title={title}
             punchout={punchout()}
             classname='ManageCatergoies'
-            telemetryTag='tourPoint4b'
             placement={'right'}
             hideBackdrop={false}
             showForce={true}
