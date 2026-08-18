@@ -14,7 +14,6 @@ import (
 	appModel "github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/services/config"
 	"github.com/artipop/xciii/server/services/notify"
-	"github.com/artipop/xciii/server/services/notify/notifylogger"
 	"github.com/artipop/xciii/server/services/scheduler"
 	"github.com/artipop/xciii/server/services/store"
 	"github.com/artipop/xciii/server/services/store/sqlstore"
@@ -266,10 +265,6 @@ func (s *Server) GetRootRouter() *web.Router {
 }
 
 func initNotificationService(backends []notify.Backend, logger mlog.LoggerIFace) (*notify.Service, error) {
-	loggerBackend := notifylogger.New(logger, mlog.LvlDebug)
-
-	backends = append(backends, loggerBackend)
-
 	service, err := notify.New(logger, backends...)
 	return service, err
 }
