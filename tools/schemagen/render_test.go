@@ -392,3 +392,62 @@ func atoi(s string) int {
 	}
 	return n
 }
+
+// A table nobody drew is a table nobody reads about, and the diagram is the
+// page somebody opens to find out what the database holds. The groups are
+// hand-written — which tables belong together is a judgement, not something
+// the schema knows — so this is what catches a new table added to schema.go
+// and not to erdGroups.
+func TestEveryTableIsOnTheDiagram(t *testing.T) {
+	drawn := map[string]bool{}
+	for _, g := range erdGroups() {
+		for _, tbl := range g.tables {
+			if drawn[tbl.Name] {
+				t.Errorf("%s is drawn in more than one group", tbl.Name)
+			}
+			drawn[tbl.Name] = true
+		}
+	}
+	for _, tbl := range append(boardTables(), appTables()...) {
+		if !drawn[tbl.Name] {
+			t.Errorf("%s is in the schema but on no diagram — add it to erdGroups", tbl.Name)
+		}
+	}
+}
+
+// The generated page is checked in, so it is what a reader opens; this fails
+// when somebody changes the schema and does not run the generator, exactly as
+// the migration check does.
+func TestTheDiagramOnDiskIsTheOneTheSchemaDescribes(t *testing.T) {
+	root, err := moduleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := renderERDDoc()
+	got, err := os.ReadFile(filepath.Join(root, erdPath))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != want {
+		t.Errorf("%s is stale — run `go generate ./tools/schemagen`", erdPath)
+	}
+}
+
+// The HCL on disk is the same rendering, for the same reason as the diagram.
+func TestTheHCLOnDiskIsTheOneTheSchemaDescribes(t *testing.T) {
+	root, err := moduleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := renderHCL()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := os.ReadFile(filepath.Join(root, hclPath))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != want {
+		t.Errorf("%s is stale — run `go generate ./tools/schemagen`", hclPath)
+	}
+}

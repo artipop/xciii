@@ -1,10 +1,15 @@
-# ERD: одна база и файл настроек
+# Одна база и файл настроек
 
-Снято со схем 2026-08-17: `server/services/store/sqlstore/migrations/` — вся
-схема, бордовая и наша, одним шагом `000001_init` (лестницы из восьмидесяти
-одного файла больше нет). Наши таблицы
-описаны один раз, как Go-данные, в `tools/schemagen`; SQL для трёх диалектов
-рендерит atlas. Обзор словами — в `docs/db-schema-review.md`; здесь картинка.
+Что где лежит и почему. Схема — вся, бордовая и наша — описана один раз, как
+Go-данные, в `tools/schemagen`, и одним шагом `000001_init` создаётся в базе;
+лестницы из восьмидесяти одного файла больше нет.
+
+Три страницы про одно, и делятся они так:
+
+- **`docs/schema/erd.md`** — схема картинкой, по таблице и колонке. Генерируется
+  из `tools/schemagen`, так что устареть не может.
+- **эта** — что где лежит, что чем ключуется и почему так, а не иначе.
+- **`docs/db-schema-review.md`** — разбор решений, которые к этому привели.
 
 **Было три базы.** `acp.db` и `sources.db` лежали рядом с бордовой, и всё, что
 в них написано, — про карточку или доску, то есть про строку в **другом файле**,
@@ -23,20 +28,7 @@ DSN, потому что это настройка соединения). Уда
 
 ## Что осталось снаружи базы
 
-```mermaid
-erDiagram
-    XCIII_DB ||--o{ APP_TABLES : "внешний ключ на blocks/boards"
-    CONFIG_JSON ||..o{ APP_TABLES : "копия реестров, ещё одну версию"
-    XCIII_DB {
-        file xciii_db "доска: boards, blocks, users"
-    }
-    APP_TABLES {
-        file app_tables "в том же файле: реестры, разговоры, сессии, маршруты, checkout, входящие"
-    }
-    CONFIG_JSON {
-        file config_json "acp/config.json — пределы, таймауты, переключатели, тексты промптов"
-    }
-```
+> Картинка — `docs/schema/erd.md`, она генерируется из `tools/schemagen`.
 
 **Реестры больше не в файле.** Папки, агенты, прокси и деплой-цели — таблицы
 (`workspace`, `agent`, `proxy`, `deploy_target`), и правда живёт там; в
@@ -58,218 +50,18 @@ JSON) и `blocks` (всё содержимое: карточки, виды, ко
 (`xciiiColumns`, `xciiiFlows`, `xciiiPrompt`, `xciiiBranchProperty`, …) и в
 `blocks.fields` карточки — отдельных таблиц у неё нет.
 
-```mermaid
-erDiagram
-    boards ||--o{ blocks : "board_id"
-    blocks |o--o{ blocks : "parent_id (дерево)"
-    boards ||--o{ board_members : "board_id"
-    users ||--o{ board_members : "user_id"
-    users ||--o{ sessions : "user_id"
-    users ||--o{ categories : "user_id"
-    users ||--o{ preferences : "userid"
-    categories ||--o{ category_boards : "category_id"
-    boards ||--o{ category_boards : "board_id"
-    boards |o--|| sharing : "id (публичная ссылка)"
-    blocks ||--o{ subscriptions : "block_id"
-    blocks ||--o{ notification_hints : "block_id"
-    blocks ||--o{ file_info : "вложение (id в fields)"
-
-    boards {
-        varchar id PK
-        varchar team_id "всегда '0': single-user"
-        varchar created_by FK "users.id"
-        varchar type "O/P — open/private"
-        text title
-        text properties "JSON: xciiiColumns, xciiiFlows, xciiiPrompt, ..."
-        text card_properties "JSON: схема полей карточек"
-        bool is_template
-        bigint create_at "unix ms; и update/delete_at"
-    }
-    blocks {
-        varchar id PK
-        varchar board_id FK "boards.id"
-        varchar parent_id FK "blocks.id: карточка -> текст/комментарий"
-        text type "card | view | text | comment | attachment | ..."
-        text title
-        text fields "JSON: properties карточки, фильтры вида, ..."
-        varchar created_by FK "users.id"
-        bigint create_at "unix ms; и update/delete_at"
-    }
-    users {
-        varchar id PK
-        varchar username "агенты и источники — тоже строки здесь"
-        varchar email
-        text props
-    }
-    board_members {
-        varchar board_id PK
-        varchar user_id PK
-        bool scheme_admin "и editor/commenter/viewer"
-    }
-    sessions {
-        varchar id PK
-        varchar token "то, что раздаёт proxy.go"
-        varchar user_id FK
-    }
-    categories {
-        varchar id PK
-        varchar name "группа досок в сайдбаре"
-        varchar user_id FK
-    }
-    category_boards {
-        varchar id PK
-        varchar category_id FK
-        varchar board_id FK
-        int sort_order
-    }
-    sharing {
-        varchar id PK "= board id"
-        bool enabled
-        varchar token
-    }
-    subscriptions {
-        varchar block_id PK
-        varchar subscriber_id PK
-        bigint notified_at
-    }
-    notification_hints {
-        varchar block_id PK
-        bigint notify_at
-    }
-    file_info {
-        varchar id "первичного ключа нет — так оставила лестница"
-        text name
-        bigint size
-        text path
-    }
-    preferences {
-        varchar userid PK
-        varchar category PK
-        varchar name PK
-        text value
-    }
-    teams {
-        varchar id PK "рудимент апстрима"
-    }
-    system_settings {
-        varchar id PK
-        text value
-    }
-```
-
-Не нарисованы три **history-таблицы** — `blocks_history`, `boards_history`,
-`board_members_history`: та же форма плюс `insert_at` в первичном ключе, каждая
-правка дописывает строку. Это апстримный механизм undo/аудита, связей своих у
-них нет.
+Три **history-таблицы** — `blocks_history`, `boards_history`,
+`board_members_history` — это та же форма плюс `insert_at` в первичном ключе:
+каждая правка дописывает строку. Апстримный механизм undo/аудита, связей своих
+у них нет. `insert_at` приходит из Go (`utils.NextInsertAt`), а не из часов
+базы: внутри транзакции часы базы отдают всем строкам один момент, и ключ бы
+отказал — `docs/sql-plan.md`, пункт 1.
 
 ## Агенты (`internal/acp/store.go`, схема — `tools/schemagen`)
 
 Всё крутится вокруг карточки (`card_id` — сквозная ось, и теперь настоящий
 внешний ключ) и ноды — option id колонки, на которой карточка стоит: разговор,
 позиция на маршруте и очередь колонки ключуются ими.
-
-```mermaid
-erDiagram
-    agent_session ||--o{ session_event : "session_id CASCADE"
-    blocks ||--o{ agent_session : "card_id CASCADE"
-    blocks ||--o{ conversation : "card_id CASCADE (+ node_id)"
-    blocks ||--o| flow_state : "card_id CASCADE (позиция на маршруте)"
-    blocks ||--o{ flow_event : "card_id CASCADE (журнал переходов)"
-    blocks ||--o| card_stall : "card_id CASCADE (почему стоит)"
-    blocks ||--o| stage_queue : "card_id CASCADE (ждёт места в колонке)"
-    blocks ||--o{ checkout : "card_id CASCADE (git-состояние работы)"
-    workspace ||--o{ checkout : "workspace_id RESTRICT"
-
-    agent_session {
-        varchar id PK
-        varchar card_id FK "NULL — запуск не про карточку (именование ветки)"
-        varchar board_id FK
-        varchar agent_kind
-        varchar status "queued/running/done/failed/cancelled"
-        text cwd "и worktree_path, branch"
-        bigint started_at "unix ms; finished_at NULL = живая"
-        text error_text
-    }
-    session_event {
-        varchar id PK "UUIDv7 — сортируется по времени, seq не нужен"
-        varchar session_id FK "CASCADE"
-        varchar kind
-        text payload_json
-    }
-    conversation {
-        varchar id PK "было terminal_session"
-        varchar card_id FK "NULL у планирования"
-        varchar node_id "род разговора: option id колонки — работа; @none — работа над карточкой без колонки; @talk — «Обсуждение», разговор о карточке"
-        varchar column_name "имя колонки, заморожено на момент разговора"
-        varchar board_id FK
-        text title "имя разговора: человек или name_conversation"
-        text summary "строка от describe_conversation"
-        text workdir_path "папка (Go: WorkdirPath); было repo_path"
-        text cwd "и branch"
-        varchar agent "и kind"
-        bigint started_at "ended_at NULL = живой; exit_code"
-    }
-    flow_state {
-        varchar card_id PK "FK CASCADE"
-        varchar flow "имя маршрута"
-        varchar node_id "текущая нода"
-        varchar branch "какую ветку опрашивает VCS"
-        text workdir_path
-        bigint entered_at
-    }
-    flow_event {
-        varchar id PK "UUIDv7"
-        varchar card_id FK "CASCADE"
-        varchar from_node "и to_node"
-        varchar on_kind "success/failure/branch.merged/..."
-        text detail
-        text said "слова агента на переходе — бриф возврата"
-    }
-    card_stall {
-        varchar card_id PK "FK CASCADE"
-        varchar node_id "стадия, к которой причина относится"
-        varchar kind "conversation — единственная, у которой есть куда пойти"
-        text reason "одна текущая причина, не журнал"
-    }
-    stage_queue {
-        varchar card_id PK "FK CASCADE"
-        varchar board_id FK
-        varchar column_key "board|option — очередь колонки"
-        varchar flow "и node_id"
-        bigint queued_at
-    }
-    checkout {
-        varchar id PK "суррогат: в естественном ключе была бы NULL-колонка"
-        varchar workspace_id FK "RESTRICT — папку в работе не удалить"
-        varchar card_id FK "CASCADE; ровно одна из двух заполнена"
-        varchar board_id FK "CASCADE — «черновики доски»"
-        varchar mode "worktree | branch | plain"
-        varchar branch "ветка карточки; NULL у обычной папки"
-        text path "где копия"
-        varchar base "от чего отрезана — FROM main на штампе"
-        bigint created_at "released_at NULL = живой checkout"
-    }
-    workspace {
-        varchar id PK "он же id опции поля «Папка» на доске"
-        varchar name "подпись, а не ключ"
-        text path "у папки на диске; у другого рода места — своё"
-        varchar kind "git — репозиторий обещали; и base_branch, branch_prefix"
-    }
-    idempotency {
-        varchar token PK "flow|card|node|событие; было key — слово MySQL"
-        varchar session_id
-        bigint created_at "окно дедупликации"
-    }
-    vcs_seen {
-        varchar workspace_id PK "FK CASCADE; и branch, kind в PK"
-        varchar marker "base:branch tip — событие уже отработано"
-    }
-    board_setup {
-        varchar board_id PK "FK CASCADE; и step в PK"
-        varchar status "шаги мастера настройки"
-        bigint changed_at "было at — ключевое слово в Postgres"
-    }
-```
 
 `idempotency`, `vcs_seen` и `board_setup` стоят отдельно — это защёлки («это
 событие уже обработано», «этот шаг уже пройден»), а не сущности со связями.
@@ -284,30 +76,6 @@ id, а суррогатный `id` появился потому, что в ес
 
 Две таблицы: дедуп и журнал. Сам реестр источников — не здесь, а в
 `config.json`.
-
-```mermaid
-erDiagram
-    source_item ||..o{ source_event : "source + external_id (логически)"
-    blocks ||--o| source_item : "card_id SET NULL — что из этого вышло"
-    blocks ||--o{ source_event : "card_id SET NULL"
-
-    source_item {
-        varchar source PK "имя источника"
-        varchar external_id PK "id записи в самом сервисе"
-        varchar version "updated/etag — повтор не создаёт карточку"
-        varchar card_id FK "SET NULL"
-        bigint created_at "и updated_at"
-    }
-    source_event {
-        varchar id PK "UUIDv7"
-        varchar source
-        varchar external_id
-        varchar rule "какое правило сработало"
-        varchar outcome "created/commented/skipped/dropped"
-        varchar card_id FK "SET NULL — решение источника переживает карточку"
-        text detail
-    }
-```
 
 ## Что здесь видно про устройство
 

@@ -688,12 +688,14 @@ type Config struct {
 
 	TriggerProperty string `json:"triggerProperty"`
 
-	// Workdirs is the registry of named local folders. A card is mapped to
-	// a folder when one of its select/multiSelect option names (e.g. a tag)
-	// matches a registry entry name. Registered paths are implicitly allowed.
+	// Workdirs is the registry of named local folders. A card names one by the
+	// entry's id: the board's «Папка» field carries an option created under
+	// that id, so a card holds an ordinary select value that is a reference.
+	// Matching by name is gone — it let a label spelled like a repository
+	// decide where an agent worked.
 	//
-	// A folder is a git repository; the product stopped calling it one because
-	// a board that runs agents is not only for software.
+	// A folder is not necessarily a git repository; the product stopped calling
+	// it one because a board that runs agents is not only for software.
 	Workdirs []WorkdirEntry `json:"projects"`
 
 	// Agents is the registry of named coding agents (claude/codex, with their

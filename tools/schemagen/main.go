@@ -31,7 +31,13 @@ func main() {
 	collapsed := flag.Bool("collapsed-sqlite", false,
 		"print the whole schema — the fork's tables and ours — as plain SQLite DDL, "+
 			"for diffing against a database the migrations built")
+	erd := flag.Bool("erd", false, "print the schema as a mermaid ER diagram")
 	flag.Parse()
+
+	if *erd {
+		fmt.Print(renderERDDoc())
+		return
+	}
 
 	if *collapsed {
 		sql, err := renderUp(dialects()[0], append(boardTables(), appTables()...))
@@ -67,7 +73,30 @@ func main() {
 			os.Exit(1)
 		}
 	}
+	// The diagram and the HCL are generated beside the SQL rather than by a
+	// second command, because a picture nobody remembers to regenerate is a
+	// wrong picture.
+	if err := os.WriteFile(filepath.Join(root, erdPath), []byte(renderERDDoc()), 0o644); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	hcl, err := renderHCL()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	if err := os.WriteFile(filepath.Join(root, hclPath), []byte(hcl), 0o644); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
+
+const (
+	// erdPath is the schema drawn, and hclPath the same schema as Atlas HCL,
+	// both relative to the module root.
+	erdPath = "docs/schema/erd.md"
+	hclPath = "docs/schema/app.hcl"
+)
 
 // moduleRoot walks up from the working directory to the go.mod, so the
 // generator writes to the same place whether it was run by `go generate` from

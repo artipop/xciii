@@ -1718,13 +1718,19 @@ shopping lists look like it was missing one.
   the Russian a person reads. The one deliberate exception is
   `NormalizeVerdict`, which meets an agent's free text halfway in both languages
   and maps it onto `pass`/`fail`/`blocked`.
-- **Where the model is written down.** `docs/db-erd.md` is what is stored where,
+- **Where the model is written down.** `docs/schema/erd.md` is the schema drawn
+  — every table and column, as a mermaid ER diagram — and `docs/schema/app.hcl`
+  is the same schema as Atlas HCL, for pointing Atlas's own tooling at. **Both
+  are generated** by `go generate ./tools/schemagen` out of the Go data the
+  migration comes from, and a test fails when either is stale: a picture of a
+  schema maintained by hand is a second description of it, and the second one
+  goes wrong. Which tables are drawn together is the one hand-written part
+  (`erdGroups`), because that is a judgement rather than something the schema
+  knows. `docs/db-erd.md` is what is stored where in words,
   `docs/model-graph.md` is how one thing finds another — and what is still found
-  by name rather than by id — and `docs/store-plan.md` is the work that follows
-  from it: registries out of `config.json` and into tables, one base instead of
-  three files and a JSON. `docs/schema/app.hcl` (Atlas HCL) is the shape that
-  work ends at, a snapshot for reading rather than a source; `docs/schema/ent.md`
-  is why ent was weighed and turned down. The rule they are kept to: **a
+  by name rather than by id — `docs/db-schema-review.md` is the decisions
+  behind it, and `docs/store-plan.md` is the work that followed. `docs/schema/
+  ent.md` is why ent was weighed and turned down. The rule they are kept to: **a
   reference is a foreign key** — everything referable lives in one database and
   has an id, the settings file holds only what nothing points at, and nothing at
   all is found by name.
