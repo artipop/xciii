@@ -320,7 +320,7 @@ func flowNamed(flows []FlowEntry, name string) (FlowEntry, bool) {
 // What used to stand here: a test that LoadConfig seeded the template routes
 // into the machine's settings for an install that predated routes, and that an
 // emptied list survived a restart. Both went with the seeding
-// (docs/store-plan.md, step 3): a board carries its own routes.
+// (docs/model-graph.md, contradiction 9): a board carries its own routes.
 
 func TestFlowEntryJSONRoundTrip(t *testing.T) {
 	b, err := json.Marshal(sampleFlow())

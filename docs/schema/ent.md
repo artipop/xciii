@@ -133,7 +133,7 @@ func (Board) Fields() []ent.Field {
         field.JSON("properties", map[string]any{}).Optional(),
 
         // Схема полей карточки. Разложить её по строкам — это переписать
-        // webapp, см. docs/store-plan.md.
+        // webapp, см. docs/deferred.md («Одна база: хвосты плана»).
         field.JSON("card_properties", []any{}).Optional(),
 
         field.String("minimum_role").MaxLen(36).Default(""),

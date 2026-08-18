@@ -128,15 +128,15 @@ func New(params Params) (*Server, error) {
 
 // NewStore opens the database and hands back both the board's store and the
 // handle under it. The handle is returned rather than kept private because the
-// application's own tables live in this same database now (docs/store-plan.md):
+// application's own tables live in this same database now (docs/model-graph.md):
 // one file, one connection, one transaction — and on SQLite the pool below is
 // capped at one connection, so a second handle would be a second writer.
 func NewStore(config *config.Configuration, isSingleUser bool, logger mlog.LoggerIFace) (store.Store, *sql.DB, error) {
 	dsn := config.DBConfigString
 	if config.DBType == appModel.SqliteDBType {
 		// Foreign keys are a connection setting on SQLite, off by default, and
-		// the whole point of our tables having moved into this database
-		// (docs/store-plan.md, step 4): without this a deleted card goes on
+		// the whole point of our tables having moved into this database:
+		// without this a deleted card goes on
 		// leaving its conversations, its place on a route and its stall behind
 		// for ever, exactly as it did when they were separate files.
 		//

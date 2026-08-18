@@ -1581,10 +1581,14 @@ handles only `notify.Update` — so a deleted card left its conversations, its
 place on a route, its stall and its queue slot behind for ever. A foreign key
 onto `blocks(id)` is the fix, and it cannot be added later: SQLite's
 `ALTER TABLE` has no `ADD CONSTRAINT`, so a key is written in `CREATE TABLE` or
-never. The keys are written; **turning the check on is a separate step**
-(`docs/store-plan.md`, step 4), because every remaining empty string that means
-"nothing" has to become NULL first, and because `PRAGMA foreign_keys` is a DSN
-parameter whose name depends on which SQLite driver the build tag chose.
+never. The keys are written **and enforced**: `foreign_keys` travels in the DSN
+rather than as a `PRAGMA`, being a per-connection setting — a pragma run once
+is silently off on the next connection — and the parameter's spelling depends
+on which SQLite driver the build tag chose (`sqlite_dsn_cgo.go` /
+`sqlite_dsn_pure.go`, and `internal/appschema` spells it for the driver it
+itself imports). What SQLite does not do is check rows that were already
+hanging when the setting went on; the one-time sweep for those is still owed
+(`docs/deferred.md`, «Одна база: хвосты плана»).
 
 **The schema is Go data, and the SQL is generated.** `tools/schemagen` holds
 every table once with dialect-neutral types, and `ariga.io/atlas` renders
@@ -1695,19 +1699,18 @@ outlives every process that drew it** — it is resumed, `claude --continue`, an
 the row is the conversation while the pty under it has changed three times —
 where a session is one run and one verdict. `docs/deferred.md` records the rest.
 
-**The registry's own name is decided but not yet applied.** `workdir` says
-directory, and the whole point of the entry having an id is that tomorrow it need
-not be one. At step 2, where these columns are rewritten anyway, it becomes
-**`workspace`** — the named place, carrying the git *settings*: `kind`,
-`base_branch`, `branch_prefix`, the per-board mode. What it hands one owner
-becomes **`checkout`** — dir, branch, base, mode, the git *state* — in a table of
-that name instead of `workdir_claim`. That reads as what it already is, because a
-plain folder records no row at all: `ClaimWorkspace` creates and writes nothing
-for `WorkModePlain`, so the table only ever held git copies. Not `project`,
-though every stored key still says so (`projects`, `xciiiProjectProperty`,
-`project_path`): that word was removed for a product reason which has not changed
-— a folder of household notes is not a project, and it made every board of
-shopping lists look like it was missing one.
+**The registry's name is applied in the schema, and not yet in the code.** The
+tables say it: **`workspace`** is the named place, carrying the git *settings* —
+`kind`, `base_branch`, `branch_prefix`, the per-board mode — and **`checkout`**
+is what it hands one owner — dir, branch, base, mode, the git *state* — in a
+table of that name instead of `workdir_claim`. That reads as what it already is,
+because a plain folder records no row at all: `ClaimWorkspace` creates and
+writes nothing for `WorkModePlain`, so the table only ever held git copies. The
+Go side still says `WorkdirEntry`, and the stored keys still say `project`
+(`projects`, `xciiiProjectProperty`, `project_path`) — they are other people's
+saved data. Not `project` in anything new: that word was removed for a product
+reason which has not changed — a folder of household notes is not a project,
+and it made every board of shopping lists look like it was missing one.
 
 ## Conventions
 
@@ -1781,7 +1784,7 @@ shopping lists look like it was missing one.
   nothing in the Go build calls it. `docs/db-erd.md` is what is stored where in words,
   `docs/model-graph.md` is how one thing finds another — and what is still found
   by name rather than by id — `docs/db-schema-review.md` is the decisions
-  behind it, `docs/store-plan.md` is the work that followed, and
+  behind it, and
   `docs/sql-dialects.md` is the inventory of what is still written per vendor —
   fifteen branches in the queries, ten of them the same upsert, two of them
   functions only a test calls. `docs/sql-plan.md` is that half's plan and its

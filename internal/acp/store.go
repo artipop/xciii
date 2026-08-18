@@ -17,7 +17,8 @@ import (
 // for a foreign key to point: deleting a card is a real DELETE FROM blocks, and
 // this side never heard about it, so a deleted card left its conversations, its
 // stall and its place in the queue behind for ever. The keys are in the schema
-// now (tools/schemagen); enforcing them is docs/store-plan.md's step 4.
+// now (tools/schemagen) and enforced: `foreign_keys` travels in the SQLite
+// DSN the board opens the handle with (server.NewStore).
 //
 // It does not own the handle. The board opened it, the board closes it, and on
 // SQLite it is one connection for the whole application — which is what makes a

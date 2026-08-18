@@ -977,7 +977,7 @@ func LoadConfig(path, dataDir string) (Config, error) {
 	// predated something. The trigger column was rewritten off an abandoned
 	// default; columns were built from the five column-name keys this file used
 	// to carry; routes were built from those columns. All three are gone with
-	// the keys (docs/store-plan.md, step 3, contradiction 9): a board carries
+	// the keys (docs/model-graph.md, contradiction 9): a board carries
 	// its own columns and routes, and the machine's settings no longer name the
 	// columns of anybody's board.
 	return cfg, nil
@@ -990,8 +990,7 @@ func LoadConfig(path, dataDir string) (Config, error) {
 // GithubSecretKey is where the pull-request token is kept: internal/secrets,
 // which is the keychain where there is one and a 0600 file where there is not.
 // It was `githubToken` in config.json — a credential in a settings file
-// somebody edits by hand and pastes into an issue, next to the timeouts
-// (docs/store-plan.md, step 3).
+// somebody edits by hand and pastes into an issue, next to the timeouts.
 const GithubSecretKey = "github.token"
 
 // githubToken is what authorizes pull-request polling: the stored one, else

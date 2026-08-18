@@ -45,13 +45,14 @@ const (
 	KindText
 	// KindJSON is a JSON document. Rendered as text in all three for now: the
 	// writers still put '' in these columns where they mean "nothing", and ''
-	// is not a JSON document. Retyping them is docs/store-plan.md's step 0,
-	// which is also where the writers are made to say 'null'.
+	// is not a JSON document. Retyping them is deferred work — docs/deferred.md,
+	// «Одна база: хвосты плана» — which is also where the writers are made to
+	// say 'null'.
 	KindJSON
 	// KindMillis is a moment in time as unix milliseconds. A real timestamp is
-	// what this should be, and step 0 of docs/store-plan.md is where it becomes
-	// one — for the board's thirty columns and ours together, because the
-	// conversion lives on one border or on none.
+	// what this should be, and the move is deferred (docs/deferred.md, «Одна
+	// база: хвосты плана») — for the board's thirty columns and ours together,
+	// because the conversion lives on one border or on none.
 	KindMillis
 	// KindInt is a whole number: an exit code, a sort order.
 	KindInt
@@ -137,7 +138,7 @@ type Action string
 
 const (
 	// Cascade takes the row with it. What our tables know about a card is only
-	// true while the card is: this is the leak docs/store-plan.md is about.
+	// true while the card is: this is the leak docs/model-graph.md is about.
 	Cascade Action = "CASCADE"
 	// SetNull keeps the row and forgets the reference. A conversation
 	// outlives the agent that held it: it happened.

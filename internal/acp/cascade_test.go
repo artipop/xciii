@@ -30,7 +30,7 @@ func enforcingStore(t *testing.T) (*Store, func(cardID string)) {
 }
 
 // Deleting a card takes everything this application knew about it. This is the
-// whole reason the tables moved into the board's database (docs/store-plan.md):
+// whole reason the tables moved into the board's database (docs/model-graph.md):
 // deleting a card is a real DELETE FROM blocks, this side never heard about it —
 // BlockChanged handles only notify.Update — so every deleted card left its
 // conversations, its place on a route, its stall and its queue slot behind for

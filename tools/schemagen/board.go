@@ -1,8 +1,7 @@
 package main
 
 // boardTables are the fork's own tables — the ones eighty-one migrations built
-// up to, described once so the whole schema can be made in a single step
-// (docs/store-plan.md, step 0).
+// up to, described once so the whole schema can be made in a single step.
 //
 // **This is a reproduction, not an improvement.** Every width, every nullable
 // column and every default is what the migrations actually leave behind, warts

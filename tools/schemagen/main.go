@@ -16,7 +16,7 @@ import (
 const migrationsDir = "server/services/store/sqlstore/migrations"
 
 // migrationName is the whole schema, in one step. It was rung 41 on a ladder of
-// eighty-one files; the ladder is gone (docs/store-plan.md, step 0), because
+// eighty-one files; the ladder is gone, because
 // every step of it led to this same schema and none of them means anything to a
 // database being created now.
 //

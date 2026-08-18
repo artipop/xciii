@@ -131,7 +131,7 @@ func newServerLogger() mlog.LoggerIFace {
 
 // board is the running board server and the database under it. The handle and
 // the prefix travel with it because this application's own tables live in that
-// same database (docs/store-plan.md): one file to back up, one connection, and
+// same database (docs/model-graph.md): one file to back up, one connection, and
 // a composite write that can be one transaction.
 type board struct {
 	srv *server.Server

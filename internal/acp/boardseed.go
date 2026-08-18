@@ -597,7 +597,7 @@ func (m *Manager) BoardAutomation(boardID string) BoardAutomation {
 // A board that cannot be written to is not a lost edit: the entries stay in the
 // registry for this run, and the next edit tries again. They are not in
 // config.json any more, so the run is as long as they last — which is the
-// trade the move onto the board bought (docs/store-plan.md, step 3).
+// trade the move onto the board bought (docs/model-graph.md, contradiction 9).
 func (m *Manager) persistBoardLocked(boardID string) {
 	if boardID == "" || m.meta == nil {
 		return

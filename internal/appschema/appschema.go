@@ -6,7 +6,7 @@
 // schema is a rung on the board's migration ladder. A test that wants a store
 // needs that rung, and the one thing it must not do is carry a second copy of
 // the DDL — a copy is a schema that drifts, and drift here is exactly the class
-// of bug docs/store-plan.md is about.
+// of bug docs/model-graph.md is about.
 //
 // So it renders the migration itself. The SQL is the file the application runs,
 // read out of the same embedded filesystem, through the same template.
@@ -29,7 +29,7 @@ import (
 )
 
 // migration is the one that creates the schema — the whole of it, the fork's
-// tables and ours, since the ladder was collapsed (docs/store-plan.md, step 0).
+// tables and ours, since the ladder was collapsed into it.
 // Named rather than searched for, so that renaming it fails loudly here instead
 // of quietly matching nothing.
 const migration = "migrations/000001_init.up.sql"

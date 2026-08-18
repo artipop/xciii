@@ -1,7 +1,7 @@
 package main
 
 // appTables are the tables this application owns, moving into the board's own
-// database (docs/store-plan.md, step 1). They were two SQLite files beside it —
+// database. They were two SQLite files beside it —
 // `acp.db` and `sources.db` — and everything they know is about a card or a
 // board, which lives in a third file where no foreign key could reach it.
 //
