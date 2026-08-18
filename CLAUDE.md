@@ -97,11 +97,11 @@ in a browser.
   was not for a long time — `TestPermissionsGetTeamTemplates` failed on every
   run against a hard-coded count of the shipped templates that the archive had
   outgrown — on all three vendors alike — and it now asks the store instead.
-  Two suites used to be *flaky* on
-  top of that — `server/integrationtests`, where which permission tests failed
-  changed between runs, and `internal/boardadapter` about one run in four — and
-  they are not any more: the cause was composite writes going through without a
-  transaction on SQLite, which is fixed (below). What is left is rarer and not
+  Two suites used to be *flaky* on top of that — `server/integrationtests`,
+  where which permission tests failed changed between runs, and
+  `internal/boardadapter` about one run in four — and they are not any more:
+  the cause was composite writes going through without a transaction on
+  SQLite, which is fixed (below). What is left is rarer and not
   understood: `TestPatchBoard` in `server/app` failed twice in a day of
   full-tree runs and passes on its own every time, and
   `TestASessionAsksTheCardForAToolOutsideThePolicy` failed once the same way.
