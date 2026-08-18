@@ -47,6 +47,18 @@
 | `components/globalHeader/` | `9a19cdd` | не импортируется ничем; удалён вместе со скрытыми карточками, потому что был последней ссылкой на снятый `prepareOnboarding` |
 | onboarding: `prepareOnboarding`, `POST /teams/{teamID}/onboard`, `app.PrepareOnboardingTour`, `pages/welcome/`, `src/onboardingTour/index.ts`, `TestPermissionsOnboard` | `d49322a` | оба вызывающих недостижимы — у `welcomePage` нет маршрута, `globalHeader` не монтируется. **Сам тур жив**: `components/onboardingTour/` — другое, прогресс хранится через `patchUserConfig` |
 
+## Слой 4 — хвосты Mattermost на странице
+
+| Что | Коммит | Почему было мертво |
+| --- | --- | --- |
+| плагин-режим в `wsclient.ts`: `MMWebSocketClient`, `initPlugin`, поля `client`/`pluginId`/`pluginVersion`/`clientPrefix`, ветка `open()` на чужом сокете, форки в `sendCommand`/`hasConn`/`authenticate`, `pluginStatusesChangedHandler`; пропсы `manifest`/`webSocketClient` в `withWebSockets` | `3a67ea0` | точки входа в режим нет с тех пор, как `index.html` ведёт в `main.tsx`; решение 3 закрыло режим официально |
+| `newVersionBanner` | `3a67ea0` | поднимался только `pluginStatusesChangedHandler`, которого никто не зовёт; у приложения свой апдейтер |
+| `components/messages/versionMessage` | `3a67ea0` | показывался при `me().id !== 'single-user'`, что здесь никогда не так, а «Learn more» вело на mattermost.com |
+| `setMattermostTheme` | `3a67ea0` | собственный комментарий говорил, что в репозитории её не зовёт никто и она для плагин-хоста |
+| `Utils.isDesktopApp`, `getDesktopVersion`, `isDesktop` | `3a67ea0` | нюхают юзер-агент Mattermost-Electron и **врут** в сборке Wails; вызывающих нет |
+| `SuiteWindow`, `frontendBaseURL`, `openPricingModal` в `types/index.d.ts` | `3a67ea0` | глобалы, которые ставил только плагин-хост |
+| маршрут `/team/:teamId/new/:channelId`, проп `channelId`, `getBoardPagePath` | `3a67ea0` | вход «создать доску для канала»; не просто мёртв — каждое создание доски из шаблона платило лишним `updateBoard` с пустым `channelId` |
+
 ## Что осталось стоять рядом с удалённым
 
 - `POST /users`, `GET /subscriptions/{subscriberID}`, `POST /boards` — маршруты
@@ -58,5 +70,13 @@
   тому же правилу, что `search` и `getTeamUsers`.
 - Таблицы `notification_hints` и `sharing` — правка схемы отдельная работа со
   своим генератором и снапшот-тестом, в удаление кода не мешается.
+- `getFrontendBaseURL` и `getBoardPagePath` не удалены, а схлопнуты: первая
+  отличалась от `getBaseURL` только чтением `window.frontendBaseURL`, вторая без
+  канального маршрута была тождественной функцией. Вызывающие переписаны на то,
+  что осталось.
+- Ссылки «Trello / Notion / Todoist» не удалены, а **исправлены**: вели на
+  `docs.mattermost.com` с якорями, которые придумало это меню, теперь ведут на
+  свой `docs/guide/transfer`. Отправлять человека в документацию чужого продукта
+  хуже, чем не отправлять никуда.
 - Комментарии `swagger:operation` в обработчиках — они читаются как описание
   маршрута независимо от того, генерирует ли из них кто-нибудь.
