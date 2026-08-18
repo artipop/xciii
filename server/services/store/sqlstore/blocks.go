@@ -56,7 +56,7 @@ func (s *SQLStore) blockFields(tableAlias string) []string {
 func (s *SQLStore) getBlocks(db sq.BaseRunner, opts model.QueryBlocksOptions) ([]*model.Block, error) {
 	query := s.getQueryBuilder(db).
 		Select(s.blockFields("")...).
-		From(s.tablePrefix + "blocks")
+		From("blocks")
 
 	if opts.BoardID != "" {
 		query = query.Where(sq.Eq{"board_id": opts.BoardID})
@@ -109,7 +109,7 @@ func (s *SQLStore) getBlocksWithParent(db sq.BaseRunner, boardID, parentID strin
 func (s *SQLStore) getBlocksByIDs(db sq.BaseRunner, ids []string) ([]*model.Block, error) {
 	query := s.getQueryBuilder(db).
 		Select(s.blockFields("")...).
-		From(s.tablePrefix + "blocks").
+		From("blocks").
 		Where(sq.Eq{"id": ids})
 
 	rows, err := query.Query()
@@ -144,7 +144,7 @@ func (s *SQLStore) getBlocksWithType(db sq.BaseRunner, boardID, blockType string
 func (s *SQLStore) getSubTree2(db sq.BaseRunner, boardID string, blockID string, opts model.QuerySubtreeOptions) ([]*model.Block, error) {
 	query := s.getQueryBuilder(db).
 		Select(s.blockFields("")...).
-		From(s.tablePrefix + "blocks").
+		From("blocks").
 		Where(sq.Or{sq.Eq{"id": blockID}, sq.Eq{"parent_id": blockID}}).
 		Where(sq.Eq{"board_id": boardID}).
 		OrderBy("insert_at, update_at")
@@ -281,7 +281,7 @@ func (s *SQLStore) insertBlock(db sq.BaseRunner, block *model.Block, userID stri
 
 	if existingBlock != nil {
 		// block with ID exists, so this is an update operation
-		query := s.getQueryBuilder(db).Update(s.tablePrefix+"blocks").
+		query := s.getQueryBuilder(db).Update("blocks").
 			Where(sq.Eq{"id": block.ID}).
 			Where(sq.Eq{"board_id": block.BoardID}).
 			Set("parent_id", block.ParentID).
@@ -300,14 +300,14 @@ func (s *SQLStore) insertBlock(db sq.BaseRunner, block *model.Block, userID stri
 		}
 	} else {
 		block.CreatedBy = userID
-		query := insertQuery.SetMap(insertQueryValues).Into(s.tablePrefix + "blocks")
+		query := insertQuery.SetMap(insertQueryValues).Into("blocks")
 		if _, err := query.Exec(); err != nil {
 			return err
 		}
 	}
 
 	// writing block history
-	query := insertQuery.SetMap(insertQueryValues).Into(s.tablePrefix + "blocks_history")
+	query := insertQuery.SetMap(insertQueryValues).Into("blocks_history")
 	if _, err := query.Exec(); err != nil {
 		return err
 	}
@@ -335,7 +335,7 @@ func (s *SQLStore) moveBlocksToBoard(db sq.BaseRunner, blockIDs []string, boardI
 
 	now := utils.GetMillis()
 	query := s.getQueryBuilder(db).
-		Update(s.tablePrefix+"blocks").
+		Update("blocks").
 		Set("board_id", boardID).
 		Set("modified_by", userID).
 		Set("update_at", now).
@@ -353,7 +353,7 @@ func (s *SQLStore) moveBlocksToBoard(db sq.BaseRunner, blockIDs []string, boardI
 		if err != nil {
 			return err
 		}
-		insert := s.getQueryBuilder(db).Insert(s.tablePrefix+"blocks_history").
+		insert := s.getQueryBuilder(db).Insert("blocks_history").
 			Columns("board_id", "id", "parent_id", s.escapeField("schema"), "type", "title",
 				"fields", "modified_by", "create_at", "update_at", "delete_at", "created_by",
 				"insert_at").
@@ -430,7 +430,7 @@ func (s *SQLStore) deleteBlockAndChildren(db sq.BaseRunner, blockID string, modi
 	}
 
 	now := utils.GetMillis()
-	insertQuery := s.getQueryBuilder(db).Insert(s.tablePrefix+"blocks_history").
+	insertQuery := s.getQueryBuilder(db).Insert("blocks_history").
 		Columns(
 			"board_id",
 			"id",
@@ -491,7 +491,7 @@ func (s *SQLStore) deleteBlockAndChildren(db sq.BaseRunner, blockID string, modi
 	}
 
 	deleteQuery := s.getQueryBuilder(db).
-		Delete(s.tablePrefix + "blocks").
+		Delete("blocks").
 		Where(sq.Eq{"id": blockID})
 
 	if _, err := deleteQuery.Exec(); err != nil {
@@ -561,10 +561,10 @@ func (s *SQLStore) undeleteBlock(db sq.BaseRunner, blockID string, modifiedBy st
 		block.CreatedBy,
 		utils.NextInsertAt(),
 	}
-	insertHistoryQuery := s.getQueryBuilder(db).Insert(s.tablePrefix + "blocks_history").
+	insertHistoryQuery := s.getQueryBuilder(db).Insert("blocks_history").
 		Columns(columns...).
 		Values(values...)
-	insertQuery := s.getQueryBuilder(db).Insert(s.tablePrefix + "blocks").
+	insertQuery := s.getQueryBuilder(db).Insert("blocks").
 		Columns(columns...).
 		Values(values...)
 
@@ -585,7 +585,7 @@ func (s *SQLStore) getBlockCountsByType(db sq.BaseRunner) (map[string]int64, err
 			"type",
 			"COUNT(*) AS count",
 		).
-		From(s.tablePrefix + "blocks").
+		From("blocks").
 		GroupBy("type")
 
 	rows, err := query.Query()
@@ -615,7 +615,7 @@ func (s *SQLStore) getBlockCountsByType(db sq.BaseRunner) (map[string]int64, err
 func (s *SQLStore) getBoardCount(db sq.BaseRunner) (int64, error) {
 	query := s.getQueryBuilder(db).
 		Select("COUNT(*) AS count").
-		From(s.tablePrefix + "boards").
+		From("boards").
 		Where(sq.Eq{"delete_at": 0}).
 		Where(sq.Eq{"is_template": false})
 
@@ -633,7 +633,7 @@ func (s *SQLStore) getBoardCount(db sq.BaseRunner) (int64, error) {
 func (s *SQLStore) getBlock(db sq.BaseRunner, blockID string) (*model.Block, error) {
 	query := s.getQueryBuilder(db).
 		Select(s.blockFields("")...).
-		From(s.tablePrefix + "blocks").
+		From("blocks").
 		Where(sq.Eq{"id": blockID})
 
 	rows, err := query.Query()
@@ -663,7 +663,7 @@ func (s *SQLStore) getBlockHistory(db sq.BaseRunner, blockID string, opts model.
 
 	query := s.getQueryBuilder(db).
 		Select(s.blockFields("")...).
-		From(s.tablePrefix + "blocks_history").
+		From("blocks_history").
 		Where(sq.Eq{"id": blockID}).
 		OrderBy("insert_at " + order + ", update_at" + order)
 
@@ -697,7 +697,7 @@ func (s *SQLStore) getBlockHistoryDescendants(db sq.BaseRunner, boardID string, 
 
 	query := s.getQueryBuilder(db).
 		Select(s.blockFields("")...).
-		From(s.tablePrefix + "blocks_history").
+		From("blocks_history").
 		Where(sq.Eq{"board_id": boardID}).
 		OrderBy("insert_at " + order + ", update_at" + order)
 
@@ -733,7 +733,7 @@ func (s *SQLStore) getBlockHistoryNewestChildren(db sq.BaseRunner, parentID stri
 
 	sub := builder.
 		Select("bh2.id", "MAX(bh2.insert_at) AS max_insert_at").
-		From(s.tablePrefix + "blocks_history AS bh2").
+		From("blocks_history AS bh2").
 		Where(sq.Eq{"bh2.parent_id": parentID}).
 		GroupBy("bh2.id")
 
@@ -752,7 +752,7 @@ func (s *SQLStore) getBlockHistoryNewestChildren(db sq.BaseRunner, parentID stri
 
 	query := s.getQueryBuilder(db).
 		Select(s.blockFields("bh")...).
-		From(s.tablePrefix+"blocks_history AS bh").
+		From("blocks_history AS bh").
 		InnerJoin("("+subQuery+") AS sub ON bh.id=sub.id AND bh.insert_at=sub.max_insert_at", subArgs...)
 
 	if opts.Page != 0 {
@@ -861,11 +861,11 @@ func (s *SQLStore) getBoardAndCard(db sq.BaseRunner, block *model.Block) (board 
 
 func (s *SQLStore) replaceBlockID(db sq.BaseRunner, currentID, newID, workspaceID string) error {
 	runUpdateForBlocksAndHistory := func(query sq.UpdateBuilder) error {
-		if _, err := query.Table(s.tablePrefix + "blocks").Exec(); err != nil {
+		if _, err := query.Table("blocks").Exec(); err != nil {
 			return err
 		}
 
-		if _, err := query.Table(s.tablePrefix + "blocks_history").Exec(); err != nil {
+		if _, err := query.Table("blocks_history").Exec(); err != nil {
 			return err
 		}
 
@@ -986,7 +986,7 @@ func (s *SQLStore) deleteBlockChildren(db sq.BaseRunner, boardID string, parentI
 			// max(insert_at) get two rows back for it.
 			"'"+utils.NextInsertAt()+"' AS insert_at",
 		).
-		From(s.tablePrefix + "blocks").
+		From("blocks").
 		Where(sq.Eq{"board_id": boardID})
 
 	if parentID != "" {
@@ -994,7 +994,7 @@ func (s *SQLStore) deleteBlockChildren(db sq.BaseRunner, boardID string, parentI
 	}
 
 	insertQuery := s.getQueryBuilder(db).
-		Insert(s.tablePrefix+"blocks_history").
+		Insert("blocks_history").
 		Columns(
 			"board_id",
 			"id",
@@ -1017,7 +1017,7 @@ func (s *SQLStore) deleteBlockChildren(db sq.BaseRunner, boardID string, parentI
 
 	fileDeleteQuery := s.getQueryBuilder(db).
 		Select(s.blockFields("")...).
-		From(s.tablePrefix + "blocks").
+		From("blocks").
 		Where(sq.Eq{"board_id": boardID})
 
 	if parentID != "" {
@@ -1058,7 +1058,7 @@ func (s *SQLStore) deleteBlockChildren(db sq.BaseRunner, boardID string, parentI
 	}
 
 	deleteQuery := s.getQueryBuilder(db).
-		Delete(s.tablePrefix + "blocks").
+		Delete("blocks").
 		Where(sq.Eq{"board_id": boardID})
 
 	if parentID != "" {
@@ -1104,9 +1104,9 @@ func (s *SQLStore) undeleteBlockChildren(db sq.BaseRunner, boardID string, paren
 			"'"+utils.NextInsertAt()+"' AS insert_at",
 		).
 		From(fmt.Sprintf(`
-				%sblocks_history AS bh,
-				(SELECT id, max(insert_at) AS max_insert_at FROM %sblocks_history WHERE %s GROUP BY id) AS sub`,
-			s.tablePrefix, s.tablePrefix, where)).
+				blocks_history AS bh,
+				(SELECT id, max(insert_at) AS max_insert_at FROM blocks_history WHERE %s GROUP BY id) AS sub`,
+			where)).
 		Where("bh.id=sub.id").
 		Where("bh.insert_at=sub.max_insert_at").
 		Where(sq.NotEq{"bh.delete_at": 0})
@@ -1128,11 +1128,11 @@ func (s *SQLStore) undeleteBlockChildren(db sq.BaseRunner, boardID string, paren
 		"insert_at",
 	}
 
-	insertQuery := s.getQueryBuilder(db).Insert(s.tablePrefix + "blocks").
+	insertQuery := s.getQueryBuilder(db).Insert("blocks").
 		Columns(columns...).
 		Select(selectQuery)
 
-	insertHistoryQuery := s.getQueryBuilder(db).Insert(s.tablePrefix + "blocks_history").
+	insertHistoryQuery := s.getQueryBuilder(db).Insert("blocks_history").
 		Columns(columns...).
 		Select(selectQuery)
 

@@ -39,7 +39,7 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		fmt.Print(strings.ReplaceAll(sql, "{{.prefix}}", ""))
+		fmt.Print(sql)
 		return
 	}
 

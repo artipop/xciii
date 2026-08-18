@@ -18,8 +18,8 @@ var ErrInvalidCardLimitValue = errors.New("card limit value is invalid")
 func (s *SQLStore) activeCardsQuery(builder sq.StatementBuilderType, selectStr string, cardLimit int) sq.SelectBuilder {
 	query := builder.
 		Select(selectStr).
-		From(s.tablePrefix + "blocks b").
-		Join(s.tablePrefix + "boards bd on b.board_id=bd.id").
+		From("blocks b").
+		Join("boards bd on b.board_id=bd.id").
 		Where(sq.Eq{
 			"b.delete_at":    0,
 			"b.type":         model.TypeCard,
@@ -54,7 +54,7 @@ func (s *SQLStore) getUsedCardsCount(db sq.BaseRunner) (int, error) {
 func (s *SQLStore) getCardLimitTimestamp(db sq.BaseRunner) (int64, error) {
 	scanner := s.getQueryBuilder(db).
 		Select("value").
-		From(s.tablePrefix + "system_settings").
+		From("system_settings").
 		Where(sq.Eq{"id": store.CardLimitTimestampSystemKey}).
 		QueryRow()
 
@@ -81,7 +81,7 @@ func (s *SQLStore) getCardLimitTimestamp(db sq.BaseRunner) (int64, error) {
 // is zero, the timestamp will be set to zero.
 func (s *SQLStore) updateCardLimitTimestamp(db sq.BaseRunner, cardLimit int) (int64, error) {
 	query := s.getQueryBuilder(db).
-		Insert(s.tablePrefix+"system_settings").
+		Insert("system_settings").
 		Columns("id", "value")
 
 	var value interface{} = 0

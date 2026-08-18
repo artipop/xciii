@@ -30,7 +30,7 @@ func (unf UserNotFoundError) Error() string {
 func (s *SQLStore) getRegisteredUserCount(db sq.BaseRunner) (int, error) {
 	query := s.getQueryBuilder(db).
 		Select("count(*)").
-		From(s.tablePrefix + "users").
+		From("users").
 		Where(sq.Eq{"delete_at": 0})
 	row := query.QueryRow()
 
@@ -70,7 +70,7 @@ func (s *SQLStore) getUsersByCondition(db sq.BaseRunner, condition interface{}, 
 			"update_at",
 			"delete_at",
 		).
-		From(s.tablePrefix + "users").
+		From("users").
 		Where(sq.Eq{"delete_at": 0}).
 		Where(condition)
 
@@ -128,7 +128,7 @@ func (s *SQLStore) createUser(db sq.BaseRunner, user *model.User) (*model.User, 
 	user.UpdateAt = now
 	user.DeleteAt = 0
 
-	query := s.getQueryBuilder(db).Insert(s.tablePrefix+"users").
+	query := s.getQueryBuilder(db).Insert("users").
 		Columns("id", "username", "email", "password", "mfa_secret", "auth_service", "auth_data", "create_at", "update_at", "delete_at").
 		Values(user.ID, user.Username, user.Email, user.Password, user.MfaSecret, user.AuthService, user.AuthData, user.CreateAt, user.UpdateAt, user.DeleteAt)
 
@@ -140,7 +140,7 @@ func (s *SQLStore) updateUser(db sq.BaseRunner, user *model.User) (*model.User, 
 	now := utils.GetMillis()
 	user.UpdateAt = now
 
-	query := s.getQueryBuilder(db).Update(s.tablePrefix+"users").
+	query := s.getQueryBuilder(db).Update("users").
 		Set("username", user.Username).
 		Set("email", user.Email).
 		Set("update_at", user.UpdateAt).
@@ -166,7 +166,7 @@ func (s *SQLStore) updateUser(db sq.BaseRunner, user *model.User) (*model.User, 
 func (s *SQLStore) updateUserPassword(db sq.BaseRunner, username, password string) error {
 	now := utils.GetMillis()
 
-	query := s.getQueryBuilder(db).Update(s.tablePrefix+"users").
+	query := s.getQueryBuilder(db).Update("users").
 		Set("password", password).
 		Set("update_at", now).
 		Where(sq.Eq{"username": username})
@@ -191,7 +191,7 @@ func (s *SQLStore) updateUserPassword(db sq.BaseRunner, username, password strin
 func (s *SQLStore) updateUserPasswordByID(db sq.BaseRunner, userID, password string) error {
 	now := utils.GetMillis()
 
-	query := s.getQueryBuilder(db).Update(s.tablePrefix+"users").
+	query := s.getQueryBuilder(db).Update("users").
 		Set("password", password).
 		Set("update_at", now).
 		Where(sq.Eq{"id": userID})
@@ -316,7 +316,7 @@ func (s *SQLStore) patchUserPreferences(db sq.BaseRunner, userID string, patch m
 
 func (s *SQLStore) updateUserPreference(db sq.BaseRunner, preference mmModel.Preference) error {
 	query := s.getQueryBuilder(db).
-		Insert(s.tablePrefix+"preferences").
+		Insert("preferences").
 		Columns("UserId", "Category", "Name", "Value").
 		Values(preference.UserId, preference.Category, preference.Name, preference.Value)
 
@@ -340,7 +340,7 @@ func (s *SQLStore) updateUserPreference(db sq.BaseRunner, preference mmModel.Pre
 
 func (s *SQLStore) deleteUserPreference(db sq.BaseRunner, preference mmModel.Preference) error {
 	query := s.getQueryBuilder(db).
-		Delete(s.tablePrefix + "preferences").
+		Delete("preferences").
 		Where(sq.Eq{"UserId": preference.UserId}).
 		Where(sq.Eq{"Category": preference.Category}).
 		Where(sq.Eq{"Name": preference.Name})
@@ -371,7 +371,7 @@ func (s *SQLStore) getUserTimezone(_ sq.BaseRunner, _ string) (string, error) {
 func (s *SQLStore) getUserPreferences(db sq.BaseRunner, userID string) (mmModel.Preferences, error) {
 	query := s.getQueryBuilder(db).
 		Select("userid", "category", "name", "value").
-		From(s.tablePrefix + "preferences").
+		From("preferences").
 		Where(sq.Eq{
 			"userid":   userID,
 			"category": model.PreferencesCategoryFocalboard,

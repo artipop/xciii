@@ -115,7 +115,7 @@ func (s *SQLStore) getFocalBoardTableNames() ([]string, error) {
 	query := s.getQueryBuilder(s.db).
 		Select("table_name").
 		From("information_schema.tables").
-		Where(sq.Like{"table_name": s.tablePrefix + "%"}).
+		Where(sq.Like{"table_name": "%"}).
 		Where("table_schema=(SELECT DATABASE())")
 
 	rows, err := query.Query()

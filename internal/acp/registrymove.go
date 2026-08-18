@@ -199,7 +199,7 @@ func (m *Manager) registrable(kind, name string, taken map[string]bool) bool {
 func (m *Manager) registryIDs() (map[string]map[string]string, error) {
 	out := map[string]map[string]string{}
 	for _, table := range []string{"proxy", "agent", "deploy_target", "workspace"} {
-		rows, err := m.store.query(`SELECT name, id FROM {` + table + `}`)
+		rows, err := m.store.query(`SELECT name, id FROM ` + table)
 		if err != nil {
 			return nil, fmt.Errorf("read the %s registry: %w", table, err)
 		}
@@ -232,7 +232,7 @@ func (m *Manager) pruneRegistry(table string, keep map[string]string, remove fun
 	for _, id := range keep {
 		live[id] = true
 	}
-	rows, err := m.store.query(`SELECT id FROM {` + table + `}`)
+	rows, err := m.store.query(`SELECT id FROM ` + table)
 	if err != nil {
 		return err
 	}

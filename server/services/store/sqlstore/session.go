@@ -12,7 +12,7 @@ import (
 func (s *SQLStore) getActiveUserCount(db sq.BaseRunner, updatedSecondsAgo int64) (int, error) {
 	query := s.getQueryBuilder(db).
 		Select("count(distinct user_id)").
-		From(s.tablePrefix + "sessions").
+		From("sessions").
 		Where(sq.Gt{"update_at": utils.GetMillis() - utils.SecondsToMillis(updatedSecondsAgo)})
 
 	row := query.QueryRow()
@@ -29,7 +29,7 @@ func (s *SQLStore) getActiveUserCount(db sq.BaseRunner, updatedSecondsAgo int64)
 func (s *SQLStore) getSession(db sq.BaseRunner, token string, expireTimeSeconds int64) (*model.Session, error) {
 	query := s.getQueryBuilder(db).
 		Select("id", "token", "user_id", "auth_service", "props").
-		From(s.tablePrefix + "sessions").
+		From("sessions").
 		Where(sq.Eq{"token": token}).
 		Where(sq.Gt{"update_at": utils.GetMillis() - utils.SecondsToMillis(expireTimeSeconds)})
 
@@ -58,7 +58,7 @@ func (s *SQLStore) createSession(db sq.BaseRunner, session *model.Session) error
 		return err
 	}
 
-	query := s.getQueryBuilder(db).Insert(s.tablePrefix+"sessions").
+	query := s.getQueryBuilder(db).Insert("sessions").
 		Columns("id", "token", "user_id", "auth_service", "props", "create_at", "update_at").
 		Values(session.ID, session.Token, session.UserID, session.AuthService, propsBytes, now, now)
 
@@ -69,7 +69,7 @@ func (s *SQLStore) createSession(db sq.BaseRunner, session *model.Session) error
 func (s *SQLStore) refreshSession(db sq.BaseRunner, session *model.Session) error {
 	now := utils.GetMillis()
 
-	query := s.getQueryBuilder(db).Update(s.tablePrefix+"sessions").
+	query := s.getQueryBuilder(db).Update("sessions").
 		Where(sq.Eq{"token": session.Token}).
 		Set("update_at", now)
 
@@ -85,7 +85,7 @@ func (s *SQLStore) updateSession(db sq.BaseRunner, session *model.Session) error
 		return err
 	}
 
-	query := s.getQueryBuilder(db).Update(s.tablePrefix+"sessions").
+	query := s.getQueryBuilder(db).Update("sessions").
 		Where(sq.Eq{"token": session.Token}).
 		Set("update_at", now).
 		Set("props", propsBytes)
@@ -95,7 +95,7 @@ func (s *SQLStore) updateSession(db sq.BaseRunner, session *model.Session) error
 }
 
 func (s *SQLStore) deleteSession(db sq.BaseRunner, sessionID string) error {
-	query := s.getQueryBuilder(db).Delete(s.tablePrefix + "sessions").
+	query := s.getQueryBuilder(db).Delete("sessions").
 		Where(sq.Eq{"id": sessionID})
 
 	_, err := query.Exec()
@@ -103,7 +103,7 @@ func (s *SQLStore) deleteSession(db sq.BaseRunner, sessionID string) error {
 }
 
 func (s *SQLStore) cleanUpSessions(db sq.BaseRunner, expireTimeSeconds int64) error {
-	query := s.getQueryBuilder(db).Delete(s.tablePrefix + "sessions").
+	query := s.getQueryBuilder(db).Delete("sessions").
 		Where(sq.Lt{"update_at": utils.GetMillis() - utils.SecondsToMillis(expireTimeSeconds)})
 
 	_, err := query.Exec()

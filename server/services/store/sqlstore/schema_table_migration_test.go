@@ -13,8 +13,6 @@ import (
 	"github.com/artipop/xciii/server/model"
 )
 
-const migrationTestPrefix = "test_"
-
 // openMigratedStore opens a store on a database of its own and runs the
 // migrations, then hands back the connection and a way to open the same
 // database again — which is what an upgrade is.
@@ -36,7 +34,6 @@ func openMigratedStore(t *testing.T) (*sql.DB, func(t *testing.T) *SQLStore, fun
 			DBType:           dbType,
 			ConnectionString: connectionString,
 			DBPingAttempts:   5,
-			TablePrefix:      migrationTestPrefix,
 			Logger:           logger,
 			DB:               db,
 		})
@@ -60,7 +57,7 @@ func openMigratedStore(t *testing.T) (*sql.DB, func(t *testing.T) *SQLStore, fun
 
 func schemaVersion(t *testing.T, db *sql.DB) (version int, dirty bool) {
 	t.Helper()
-	row := db.QueryRow(fmt.Sprintf("SELECT version, dirty FROM %sschema_migrations", migrationTestPrefix))
+	row := db.QueryRow("SELECT version, dirty FROM schema_migrations")
 	require.NoError(t, row.Scan(&version, &dirty))
 	return version, dirty
 }
@@ -72,10 +69,10 @@ func schemaVersion(t *testing.T, db *sql.DB) (version int, dirty bool) {
 //
 // Both names the previous engine could have used are covered, because which one
 // an install has depends on its dialect: it was configured to keep the record in
-// <prefix>schema_migrations, and got its own default, db_migrations, wherever
-// SQLite made it drop that configuration — which is every install of this app.
+// schema_migrations, and got its own default, db_migrations, wherever SQLite
+// made it drop that configuration — which is every install of this app.
 func TestAnInstallThatRecordedItsMigrationsTheOldWayKeepsItsPlace(t *testing.T) {
-	for _, legacyTable := range []string{"db_migrations", migrationTestPrefix + "schema_migrations"} {
+	for _, legacyTable := range []string{"db_migrations", "schema_migrations"} {
 		t.Run("recorded in "+legacyTable, func(t *testing.T) {
 			db, open, cleanup := openMigratedStore(t)
 			defer cleanup()
@@ -86,7 +83,7 @@ func TestAnInstallThatRecordedItsMigrationsTheOldWayKeepsItsPlace(t *testing.T) 
 			// Put the database back the way the previous engine kept it: a row
 			// per applied migration, carrying the migration's name, and no
 			// dirty flag.
-			_, err := db.Exec(fmt.Sprintf("DROP TABLE %sschema_migrations", migrationTestPrefix))
+			_, err := db.Exec("DROP TABLE schema_migrations")
 			require.NoError(t, err)
 			_, err = db.Exec(fmt.Sprintf(
 				"CREATE TABLE %s (version bigint NOT NULL, name varchar(64) NOT NULL, PRIMARY KEY (version))",
@@ -108,12 +105,11 @@ func TestAnInstallThatRecordedItsMigrationsTheOldWayKeepsItsPlace(t *testing.T) 
 			// The old table is not left lying beside the new one — under its own
 			// name, where it differs, nor under the one it is retired to.
 			var scanned int
-			if legacyTable != migrationTestPrefix+"schema_migrations" {
+			if legacyTable != "schema_migrations" {
 				err = db.QueryRow(fmt.Sprintf("SELECT version FROM %s", legacyTable)).Scan(&scanned)
 				require.Error(t, err, "the previous engine's table should be gone")
 			}
-			err = db.QueryRow(fmt.Sprintf("SELECT version FROM %sschema_migrations_old_temp",
-				migrationTestPrefix)).Scan(&scanned)
+			err = db.QueryRow("SELECT version FROM schema_migrations_old_temp").Scan(&scanned)
 			require.Error(t, err, "the retired schema table should have been dropped")
 		})
 	}
@@ -159,7 +155,7 @@ func TestAnInterruptedMigrationIsRunAgainRatherThanRefused(t *testing.T) {
 	// ladder took away.
 	rollBackLastMigration(t, db, open(t), version)
 
-	_, err := db.Exec(fmt.Sprintf("UPDATE %sschema_migrations SET dirty = true", migrationTestPrefix))
+	_, err := db.Exec("UPDATE schema_migrations SET dirty = true")
 	require.NoError(t, err)
 
 	store := open(t)

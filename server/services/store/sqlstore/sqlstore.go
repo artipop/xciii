@@ -19,7 +19,6 @@ import (
 type SQLStore struct {
 	db               *sql.DB
 	dbType           string
-	tablePrefix      string
 	connectionString string
 	dbPingAttempts   int
 	isSingleUser     bool
@@ -38,7 +37,6 @@ func New(params Params) (*SQLStore, error) {
 		db:               params.DB,
 		dbType:           params.DBType,
 		dbPingAttempts:   params.DBPingAttempts,
-		tablePrefix:      params.TablePrefix,
 		connectionString: params.ConnectionString,
 		logger:           params.Logger,
 		isSingleUser:     params.IsSingleUser,

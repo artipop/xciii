@@ -53,11 +53,11 @@ INSERT INTO source_event (source, external_id, rule, outcome, card_id, detail, c
 		t.Fatal(err)
 	}
 
-	if n, err := ImportLegacyStore(db, "", legacy); err != nil || n != 4 {
+	if n, err := ImportLegacyStore(db, legacy); err != nil || n != 4 {
 		t.Fatalf("carried %d rows: %v", n, err)
 	}
 
-	st := NewStore(db, "")
+	st := NewStore(db)
 	if state, cardID, err := st.StateOf("почта", "msg-1", "v2"); err != nil || state != ItemSeen || cardID != "card-1" {
 		t.Errorf("a letter already brought looks new: %v %q %v", state, cardID, err)
 	}
@@ -116,13 +116,13 @@ INSERT INTO source_event (source, external_id, rule, outcome, card_id, detail, c
 	}
 	t.Cleanup(func() { _ = db.Close() })
 
-	if _, err := ImportLegacyStore(db, "", legacy); err != nil {
+	if _, err := ImportLegacyStore(db, legacy); err != nil {
 		t.Fatal(err)
 	}
 
 	// The dedup is the half that matters: the letter is still known, so it does
 	// not arrive again as a new card.
-	if state, cardID, err := NewStore(db, "").StateOf("почта", "msg-9", "v1"); err != nil || state != ItemSeen || cardID != "" {
+	if state, cardID, err := NewStore(db).StateOf("почта", "msg-9", "v1"); err != nil || state != ItemSeen || cardID != "" {
 		t.Errorf("dedup lost or a deleted card carried in: %v %q %v", state, cardID, err)
 	}
 	var count int

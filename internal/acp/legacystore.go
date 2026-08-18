@@ -22,15 +22,15 @@ import (
 // The file is renamed rather than deleted. What it holds is a person's work —
 // which branch a card was on, what an agent said when it finished — and the
 // judgement that it arrived safely is theirs to make, not this function's.
-func ImportLegacyStore(db *sql.DB, tablePrefix, path string) (rows int, err error) {
+func ImportLegacyStore(db *sql.DB, path string) (rows int, err error) {
 	old, err := openLegacy(path)
 	if old == nil || err != nil {
 		return 0, err
 	}
 	defer old.Close()
 
-	s := &Store{db: db, prefix: tablePrefix}
-	s.board = &presence{db: db, prefix: tablePrefix, seen: map[string]bool{}}
+	s := &Store{db: db}
+	s.board = &presence{db: db, seen: map[string]bool{}}
 	for _, carry := range []func(*Store, *sql.DB) (int, error){
 		carrySessions,
 		carrySessionEvents,
@@ -91,9 +91,8 @@ func openLegacy(path string) (*sql.DB, error) {
 // Answers are remembered because a file names the same handful of cards over
 // and over.
 type presence struct {
-	db     *sql.DB
-	prefix string
-	seen   map[string]bool
+	db   *sql.DB
+	seen map[string]bool
 }
 
 func (p *presence) has(table, id string) bool {
@@ -105,7 +104,7 @@ func (p *presence) has(table, id string) bool {
 		return known
 	}
 	var one int
-	err := p.db.QueryRow(`SELECT 1 FROM `+p.prefix+table+` WHERE id=?`, id).Scan(&one)
+	err := p.db.QueryRow(`SELECT 1 FROM `+table+` WHERE id=?`, id).Scan(&one)
 	known := err == nil
 	p.seen[key] = known
 	return known
@@ -163,7 +162,7 @@ func carrySessions(s *Store, old *sql.DB) (int, error) {
 			boardID = ""
 		}
 		carried[id] = true
-		if _, err := s.exec(`INSERT INTO {agent_session}
+		if _, err := s.exec(`INSERT INTO agent_session
 			(id, card_id, board_id, agent_kind, acp_session_id, status, cwd, worktree_path, branch, started_at, finished_at, error_text)
 			VALUES (?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING`,
 			id, nullable(cardID), nullable(boardID), kind, nullable(acpID), status,
@@ -198,7 +197,7 @@ func carrySessionEvents(s *Store, old *sql.DB) (int, error) {
 		if !s.carriedSessions[sessionID] {
 			continue
 		}
-		if _, err := s.exec(`INSERT INTO {session_event} (id, session_id, kind, payload_json, created_at)
+		if _, err := s.exec(`INSERT INTO session_event (id, session_id, kind, payload_json, created_at)
 			VALUES (?,?,?,?,?)`, newID(), sessionID, kind, nullable(payload), created); err != nil {
 			return n, err
 		}
@@ -235,7 +234,7 @@ func carryConversations(s *Store, old *sql.DB) (int, error) {
 		if boardID != "" && !s.hasBoard(boardID) {
 			continue
 		}
-		if _, err := s.exec(`INSERT INTO {conversation}
+		if _, err := s.exec(`INSERT INTO conversation
 			(id, card_id, node_id, column_name, board_id, title, workdir_path, cwd, branch, agent, kind, summary, started_at, ended_at, exit_code)
 			VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING`,
 			id, nullable(cardID), nodeID, nullable(columnName), nullable(boardID), nullable(title),
@@ -267,7 +266,7 @@ func carryFlowState(s *Store, old *sql.DB) (int, error) {
 		if boardID != "" && !s.hasBoard(boardID) {
 			boardID = ""
 		}
-		if _, err := s.exec(`INSERT INTO {flow_state} (card_id, board_id, flow, node_id, branch, workdir_path, entered_at)
+		if _, err := s.exec(`INSERT INTO flow_state (card_id, board_id, flow, node_id, branch, workdir_path, entered_at)
 			VALUES (?,?,?,?,?,?,?) ON CONFLICT(card_id) DO NOTHING`,
 			cardID, nullable(boardID), flow, nodeID, nullable(branch), nullable(workdir), entered); err != nil {
 			return n, err
@@ -294,7 +293,7 @@ func carryFlowEvents(s *Store, old *sql.DB) (int, error) {
 		if !s.hasCard(cardID) {
 			continue
 		}
-		if _, err := s.exec(`INSERT INTO {flow_event} (id, card_id, flow, from_node, to_node, on_kind, detail, said, created_at)
+		if _, err := s.exec(`INSERT INTO flow_event (id, card_id, flow, from_node, to_node, on_kind, detail, said, created_at)
 			VALUES (?,?,?,?,?,?,?,?,?)`,
 			newID(), cardID, flow, nullable(from), to, on, nullable(detail), nullable(said), created); err != nil {
 			return n, err
@@ -320,7 +319,7 @@ func carryStalls(s *Store, old *sql.DB) (int, error) {
 		if !s.hasCard(cardID) {
 			continue
 		}
-		if _, err := s.exec(`INSERT INTO {card_stall} (card_id, node_id, kind, reason, created_at)
+		if _, err := s.exec(`INSERT INTO card_stall (card_id, node_id, kind, reason, created_at)
 			VALUES (?,?,?,?,?) ON CONFLICT(card_id) DO NOTHING`,
 			cardID, nullable(nodeID), nullable(kind), reason, created); err != nil {
 			return n, err
@@ -349,7 +348,7 @@ func carryQueue(s *Store, old *sql.DB) (int, error) {
 		if boardID != "" && !s.hasBoard(boardID) {
 			boardID = ""
 		}
-		if _, err := s.exec(`INSERT INTO {stage_queue} (card_id, board_id, column_key, flow, node_id, queued_at)
+		if _, err := s.exec(`INSERT INTO stage_queue (card_id, board_id, column_key, flow, node_id, queued_at)
 			VALUES (?,?,?,?,?,?) ON CONFLICT(card_id) DO NOTHING`,
 			cardID, nullable(boardID), columnKey, nullable(flow), nullable(nodeID), queued); err != nil {
 			return n, err
@@ -375,7 +374,7 @@ func carrySetup(s *Store, old *sql.DB) (int, error) {
 		if !s.hasBoard(boardID) {
 			continue
 		}
-		if _, err := s.exec(`INSERT INTO {board_setup} (board_id, step, status, changed_at)
+		if _, err := s.exec(`INSERT INTO board_setup (board_id, step, status, changed_at)
 			VALUES (?,?,?,?) ON CONFLICT(board_id, step) DO NOTHING`, boardID, step, status, at); err != nil {
 			return n, err
 		}

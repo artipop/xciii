@@ -1543,9 +1543,9 @@ are rows in the board's database. So our tables are in it too — `conversation`
 `agent_session`, `flow_state`, `card_stall`, `stage_queue`, `workdir_claim`,
 `source_item` and the rest — rather than in files beside it, which is where they
 began (`acp.db`, `sources.db`). `internal/acp` and `internal/sources` take a
-`*sql.DB` (`NewStore(db, prefix)`) and create nothing; `server.NewStore` hands
+`*sql.DB` (`NewStore(db)`) and create nothing; `server.NewStore` hands
 back both the store and the handle under it, and `runServerWithLogger` carries
-the pair as `board{srv, db, tablePrefix}`.
+the pair as `board{srv, db}`.
 
 **The reason is a leak rather than tidiness.** Deleting a card is a real
 `DELETE FROM blocks`, and this side never heard about it — `BlockChanged`
@@ -1607,12 +1607,22 @@ run. A database built by the old ladder is refused with a message saying to
 delete it: there is no release, so the only ones that exist belong to whoever is
 working on this.
 
-Three consequences worth knowing before touching a query. Table names are
-written `{in braces}` and resolved by `Store.sql`, cached — braces are not SQL,
-so a query that forgot one fails at the database rather than quietly reading a
-table that is not there. **Absence is NULL** wherever a key looks: a planning
-conversation has no card, and `''` is a card id that does not exist; the reads
-say `COALESCE(...,'')` because in Go absence here is the zero value. And **no
+**No table carries a prefix.** `{{.prefix}}` in the migration, `s.tablePrefix`
+at a hundred and thirty query sites, `DBTablePrefix` in the config and the
+`{in braces}` our own queries were written with all named the same thing: the
+namespace Focalboard's tables needed when they lived inside a Mattermost
+database as a plugin. This application never set it — the default was `""` and
+nothing overrode it — and the two places that did were tests, which get a
+database of their own anyway. It went, and the migration's template actions went
+with it except the three `{{if .sqlite}}` that pick a dialect. So did the
+helpers those migrations were rendered with: `addColumnIfNeeded`,
+`doesColumnExist`, `renameTableIfNeeded` and six more, four hundred lines of
+per-dialect SQL string building that the collapsed ladder calls from nowhere.
+
+Two consequences worth knowing before touching a query. **Absence is NULL**
+wherever a key looks: a planning conversation has no card, and `''` is a card
+id that does not exist; the reads say `COALESCE(...,'')` because in Go absence
+here is the zero value. And **no
 journal has an autoincrement** any more — `session_event`, `flow_event` and
 `source_event` take UUIDv7, which sorts by the moment it was made, so
 `ORDER BY id` still means "as it happened" and three spellings of

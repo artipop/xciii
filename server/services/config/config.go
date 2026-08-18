@@ -33,7 +33,6 @@ type Configuration struct {
 	DBType                   string            `json:"dbtype" mapstructure:"dbtype"`
 	DBConfigString           string            `json:"dbconfig" mapstructure:"dbconfig"`
 	DBPingAttempts           int               `json:"dbpingattempts" mapstructure:"dbpingattempts"`
-	DBTablePrefix            string            `json:"dbtableprefix" mapstructure:"dbtableprefix"`
 	UseSSL                   bool              `json:"useSSL" mapstructure:"useSSL"`
 	SecureCookie             bool              `json:"secureCookie" mapstructure:"secureCookie"`
 	WebPath                  string            `json:"webpath" mapstructure:"webpath"`
@@ -86,7 +85,6 @@ func ReadConfigFile(configFilePath string) (*Configuration, error) {
 	viper.SetDefault("Port", DefaultPort)
 	viper.SetDefault("DBType", "sqlite3")
 	viper.SetDefault("DBConfigString", "./focalboard.db")
-	viper.SetDefault("DBTablePrefix", "")
 	viper.SetDefault("SecureCookie", false)
 	viper.SetDefault("WebPath", "./pack")
 	viper.SetDefault("FilesPath", "./files")

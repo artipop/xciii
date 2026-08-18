@@ -69,14 +69,14 @@ func (s *SQLStore) runDataRetention(db sq.BaseRunner, globalRetentionDate int64,
 
 	subBuilder := s.getQueryBuilder(db).
 		Select("board_id, MAX(update_at) AS maxDate").
-		From(s.tablePrefix + "blocks").
+		From("blocks").
 		GroupBy("board_id")
 
 	subQuery, _, _ := subBuilder.ToSql()
 
 	builder := s.getQueryBuilder(db).
 		Select("id").
-		From(s.tablePrefix + "boards").
+		From("boards").
 		LeftJoin("( " + subQuery + " ) As subquery ON (subquery.board_id = id)").
 		Where(sq.Lt{"maxDate": globalRetentionDate}).
 		Where(sq.NotEq{"team_id": "0"}).
@@ -134,7 +134,7 @@ func (s *SQLStore) genericRetentionPoliciesDeletion(
 ) (int64, error) {
 	whereClause := info.BoardIDColumn + " IN ('" + strings.Join(deleteIds, "','") + "')"
 	deleteQuery := s.getQueryBuilder(db).
-		Delete(s.tablePrefix + info.Table).
+		Delete(info.Table).
 		Where(whereClause)
 
 	if batchSize > 0 {
@@ -143,14 +143,14 @@ func (s *SQLStore) genericRetentionPoliciesDeletion(
 		if s.dbType != model.MysqlDBType {
 			selectQuery := s.getQueryBuilder(db).
 				Select(primaryKeysStr).
-				From(s.tablePrefix + info.Table).
+				From(info.Table).
 				Where(whereClause).
 				Limit(uint64(batchSize))
 
 			selectString, _, _ := selectQuery.ToSql()
 
 			deleteQuery = s.getQueryBuilder(db).
-				Delete(s.tablePrefix + info.Table).
+				Delete(info.Table).
 				Where(primaryKeysStr + " IN (" + selectString + ")")
 		}
 	}

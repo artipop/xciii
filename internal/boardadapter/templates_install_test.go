@@ -52,7 +52,6 @@ func newTestAppWith(t *testing.T, backends ...notify.Backend) *app.App {
 	cfg := &config.Configuration{
 		DBType:            "sqlite3",
 		DBConfigString:    dsn,
-		DBTablePrefix:     "focalboard_",
 		FilesDriver:       "local",
 		FilesPath:         filepath.Join(dir, "files"),
 		WebPath:           dir,

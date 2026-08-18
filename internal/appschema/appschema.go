@@ -52,7 +52,7 @@ const migration = "migrations/000001_init.up.sql"
 // What the constraint itself does is tested where it belongs, on a database
 // opened with OpenEnforcing.
 func Open(path string) (*sql.DB, error) {
-	ddl, err := SQLite("")
+	ddl, err := SQLite()
 	if err != nil {
 		return nil, err
 	}
@@ -91,10 +91,9 @@ func alreadyMade(db *sql.DB) (bool, error) {
 	return true, nil
 }
 
-// SQLite renders the migration for SQLite and the given table prefix — the
-// same rendering the board's own migration source performs, minus the engine
-// that runs it.
-func SQLite(tablePrefix string) (string, error) {
+// SQLite renders the migration for SQLite — the same rendering the board's own
+// migration source performs, minus the engine that runs it.
+func SQLite() (string, error) {
 	asset, err := fs.ReadFile(sqlstore.Assets, migration)
 	if err != nil {
 		return "", fmt.Errorf("reading %s: %w", migration, err)
@@ -105,7 +104,6 @@ func SQLite(tablePrefix string) (string, error) {
 	}
 	var out bytes.Buffer
 	if err := tmpl.Execute(&out, map[string]any{
-		"prefix":   tablePrefix,
 		"sqlite":   true,
 		"mysql":    false,
 		"postgres": false,

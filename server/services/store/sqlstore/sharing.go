@@ -11,7 +11,7 @@ func (s *SQLStore) upsertSharing(db sq.BaseRunner, sharing model.Sharing) error 
 	now := utils.GetMillis()
 
 	query := s.getQueryBuilder(db).
-		Insert(s.tablePrefix+"sharing").
+		Insert("sharing").
 		Columns(
 			"id",
 			"enabled",
@@ -49,7 +49,7 @@ func (s *SQLStore) getSharing(db sq.BaseRunner, boardID string) (*model.Sharing,
 			"modified_by",
 			"update_at",
 		).
-		From(s.tablePrefix + "sharing").
+		From("sharing").
 		Where(sq.Eq{"id": boardID})
 	row := query.QueryRow()
 	sharing := model.Sharing{}

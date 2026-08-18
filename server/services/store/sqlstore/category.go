@@ -31,7 +31,7 @@ func (s *SQLStore) categoryFields() []string {
 func (s *SQLStore) getCategory(db sq.BaseRunner, id string) (*model.Category, error) {
 	query := s.getQueryBuilder(db).
 		Select(s.categoryFields()...).
-		From(s.tablePrefix + "categories").
+		From("categories").
 		Where(sq.Eq{"id": id})
 
 	rows, err := query.Query()
@@ -60,7 +60,7 @@ func (s *SQLStore) createCategory(db sq.BaseRunner, category model.Category) err
 
 	// creating provided category
 	query := s.getQueryBuilder(db).
-		Insert(s.tablePrefix+"categories").
+		Insert("categories").
 		Columns(
 			"id",
 			"name",
@@ -94,7 +94,7 @@ func (s *SQLStore) createCategory(db sq.BaseRunner, category model.Category) err
 
 	// bumping up order of existing categories
 	updateQuery := s.getQueryBuilder(db).
-		Update(s.tablePrefix+"categories").
+		Update("categories").
 		Set("sort_order", sq.Expr(fmt.Sprintf("sort_order + %d", categorySortOrderGap))).
 		Where(
 			sq.Eq{
@@ -120,7 +120,7 @@ func (s *SQLStore) createCategory(db sq.BaseRunner, category model.Category) err
 
 func (s *SQLStore) updateCategory(db sq.BaseRunner, category model.Category) error {
 	query := s.getQueryBuilder(db).
-		Update(s.tablePrefix+"categories").
+		Update("categories").
 		Set("name", category.Name).
 		Set("update_at", category.UpdateAt).
 		Set("collapsed", category.Collapsed).
@@ -139,7 +139,7 @@ func (s *SQLStore) updateCategory(db sq.BaseRunner, category model.Category) err
 
 func (s *SQLStore) deleteCategory(db sq.BaseRunner, categoryID, userID, teamID string) error {
 	query := s.getQueryBuilder(db).
-		Update(s.tablePrefix+"categories").
+		Update("categories").
 		Set("delete_at", utils.GetMillis()).
 		Where(sq.Eq{
 			"id":        categoryID,
@@ -165,7 +165,7 @@ func (s *SQLStore) deleteCategory(db sq.BaseRunner, categoryID, userID, teamID s
 func (s *SQLStore) getUserCategories(db sq.BaseRunner, userID, teamID string) ([]model.Category, error) {
 	query := s.getQueryBuilder(db).
 		Select(s.categoryFields()...).
-		From(s.tablePrefix+"categories").
+		From("categories").
 		Where(sq.Eq{
 			"user_id":   userID,
 			"team_id":   teamID,
@@ -223,7 +223,7 @@ func (s *SQLStore) reorderCategories(db sq.BaseRunner, userID, teamID string, ne
 	updateCase = updateCase.Else("sort_order")
 
 	query := s.getQueryBuilder(db).
-		Update(s.tablePrefix+"categories").
+		Update("categories").
 		Set("sort_order", updateCase).
 		Where(sq.Eq{
 			"user_id": userID,

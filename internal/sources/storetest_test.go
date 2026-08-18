@@ -16,5 +16,5 @@ func newTestStore(t testing.TB, path string) (*Store, error) {
 		return nil, err
 	}
 	t.Cleanup(func() { _ = db.Close() })
-	return NewStore(db, ""), nil
+	return NewStore(db), nil
 }

@@ -12,7 +12,7 @@ import (
 func (s *SQLStore) getBoardsForCompliance(db sq.BaseRunner, opts model.QueryBoardsForComplianceOptions) ([]*model.Board, bool, error) {
 	query := s.getQueryBuilder(db).
 		Select(boardFields("b.")...).
-		From(s.tablePrefix + "boards as b")
+		From("boards as b")
 
 	if opts.TeamID != "" {
 		query = query.Where(sq.Eq{"b.team_id": opts.TeamID})
@@ -50,7 +50,7 @@ func (s *SQLStore) getBoardsForCompliance(db sq.BaseRunner, opts model.QueryBoar
 func (s *SQLStore) getBoardsComplianceHistory(db sq.BaseRunner, opts model.QueryBoardsComplianceHistoryOptions) ([]*model.BoardHistory, bool, error) {
 	queryDescendentLastUpdate := s.getQueryBuilder(db).
 		Select("MAX(blk1.update_at)").
-		From(s.tablePrefix + "blocks_history as blk1").
+		From("blocks_history as blk1").
 		Where("blk1.board_id=bh.id")
 
 	if !opts.IncludeDeleted {
@@ -61,7 +61,7 @@ func (s *SQLStore) getBoardsComplianceHistory(db sq.BaseRunner, opts model.Query
 
 	queryDescendentFirstUpdate := s.getQueryBuilder(db).
 		Select("MIN(blk2.update_at)").
-		From(s.tablePrefix + "blocks_history as blk2").
+		From("blocks_history as blk2").
 		Where("blk2.board_id=bh.id")
 
 	if !opts.IncludeDeleted {
@@ -80,12 +80,12 @@ func (s *SQLStore) getBoardsComplianceHistory(db sq.BaseRunner, opts model.Query
 			"bh.created_by",
 			"bh.modified_by",
 		).
-		From(s.tablePrefix + "boards_history as bh")
+		From("boards_history as bh")
 
 	if !opts.IncludeDeleted {
 		// filtering out deleted boards; join with boards table to ensure no history
 		// for deleted boards are returned. Deleted boards won't exist in boards table.
-		query = query.Join(s.tablePrefix + "boards as b ON b.id=bh.id")
+		query = query.Join("boards as b ON b.id=bh.id")
 	}
 
 	query = query.Where(sq.Gt{"bh.update_at": opts.ModifiedSince}).
@@ -138,13 +138,13 @@ func (s *SQLStore) getBlocksComplianceHistory(db sq.BaseRunner, opts model.Query
 			"bh.created_by",
 			"bh.modified_by",
 		).
-		From(s.tablePrefix + "blocks_history as bh").
-		Join(s.tablePrefix + "boards_history as brd on brd.id=bh.board_id")
+		From("blocks_history as bh").
+		Join("boards_history as brd on brd.id=bh.board_id")
 
 	if !opts.IncludeDeleted {
 		// filtering out deleted blocks; join with blocks table to ensure no history
 		// for deleted blocks are returned. Deleted blocks won't exist in blocks table.
-		query = query.Join(s.tablePrefix + "blocks as b ON b.id=bh.id")
+		query = query.Join("blocks as b ON b.id=bh.id")
 	}
 
 	query = query.Where(sq.Gt{"bh.update_at": opts.ModifiedSince}).

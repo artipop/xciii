@@ -41,7 +41,7 @@ func ingestRoutes(t *testing.T) (*sourceRoutes, *recordingBoard) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
-	store := sources.NewStore(db, "")
+	store := sources.NewStore(db)
 
 	board := &recordingBoard{}
 	cfg := sources.Config{Sources: []sources.SourceEntry{{

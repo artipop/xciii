@@ -136,24 +136,6 @@ func defaultOf(d dialect, c Column) schema.Expr {
 // separately.
 const idLen = 36
 
-// prefixed puts the table prefix in front of a name as a template action. The
-// migration is rendered by text/template before any database parses it, so the
-// action can sit inside a quoted identifier: `{{.prefix}}conversation` comes
-// out as `focalboard_conversation` or as `conversation`, and either is a legal
-// identifier in all three dialects.
-func prefixed(name string) string { return "{{.prefix}}" + name }
-
-// indexName puts the prefix where the board's own migrations put it — after the
-// idx_ — so `idx_focalboard_conversation_card` reads the same way as the eighty
-// index names already in this database. A name that is not an idx_ one keeps its
-// own shape: the fork has a `unique_user_category_board`.
-func indexName(name string) string {
-	if rest, ok := strings.CutPrefix(name, "idx_"); ok {
-		return "idx_" + prefixed(rest)
-	}
-	return prefixed(name)
-}
-
 // build turns the dialect-neutral tables into an atlas schema. The schema is
 // unnamed on purpose: a named one makes atlas qualify every identifier
 // (`main`.`blocks`), and the migration runs in whatever schema the connection
@@ -169,7 +151,7 @@ func build(d dialect, tables []Table) (*schema.Schema, error) {
 		if t, ok := refs[name]; ok {
 			return t
 		}
-		t := schema.NewTable(prefixed(name)).
+		t := schema.NewTable(name).
 			AddColumns(schema.NewColumn("id").SetType(d.column(ID())))
 		t.SetPrimaryKey(schema.NewPrimaryKey(t.Columns[0]))
 		refs[name] = t
@@ -178,7 +160,7 @@ func build(d dialect, tables []Table) (*schema.Schema, error) {
 
 	built := map[string]*schema.Table{}
 	for _, tbl := range tables {
-		at := schema.NewTable(prefixed(tbl.Name))
+		at := schema.NewTable(tbl.Name)
 		at.AddAttrs(d.attrs...)
 		for _, c := range tbl.Columns {
 			col := schema.NewColumn(c.Name).SetType(d.column(c.Type)).SetNull(c.Null)
@@ -234,7 +216,7 @@ func build(d dialect, tables []Table) (*schema.Schema, error) {
 			at.AddForeignKeys(k)
 		}
 		for _, idx := range tbl.Indexes {
-			i := schema.NewIndex(indexName(idx.Name)).SetUnique(idx.Unique)
+			i := schema.NewIndex(idx.Name).SetUnique(idx.Unique)
 			for _, name := range idx.Columns {
 				col, ok := at.Column(name)
 				if !ok {
@@ -269,7 +251,7 @@ func renderUp(d dialect, tables []Table) (string, error) {
 	var b strings.Builder
 	tableAt := map[string]Table{}
 	for _, t := range tables {
-		tableAt[prefixed(t.Name)] = t
+		tableAt[t.Name] = t
 	}
 	for _, c := range plan.Changes {
 		if add, ok := c.Source.(*schema.AddTable); ok {

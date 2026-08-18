@@ -26,7 +26,7 @@ func (s *SQLStore) upsertTeamSignupToken(db sq.BaseRunner, team model.Team) erro
 	now := utils.GetMillis()
 
 	query := s.getQueryBuilder(db).
-		Insert(s.tablePrefix+"teams").
+		Insert("teams").
 		Columns(
 			"id",
 			"signup_token",
@@ -63,7 +63,7 @@ func (s *SQLStore) upsertTeamSettings(db sq.BaseRunner, team model.Team) error {
 	}
 
 	query := s.getQueryBuilder(db).
-		Insert(s.tablePrefix+"teams").
+		Insert("teams").
 		Columns(
 			"id",
 			"signup_token",
@@ -102,7 +102,7 @@ func (s *SQLStore) getTeam(db sq.BaseRunner, id string) (*model.Team, error) {
 			"modified_by",
 			"update_at",
 		).
-		From(s.tablePrefix + "teams").
+		From("teams").
 		Where(sq.Eq{"id": id})
 	row := query.QueryRow()
 	team := model.Team{}
@@ -136,7 +136,7 @@ func (s *SQLStore) getTeamCount(db sq.BaseRunner) (int64, error) {
 		Select(
 			"COUNT(*) AS count",
 		).
-		From(s.tablePrefix + "teams")
+		From("teams")
 
 	rows, err := query.Query()
 	if err != nil {
@@ -188,7 +188,7 @@ func (s *SQLStore) teamsFromRows(rows *sql.Rows) ([]*model.Team, error) {
 func (s *SQLStore) getAllTeams(db sq.BaseRunner) ([]*model.Team, error) {
 	query := s.getQueryBuilder(db).
 		Select(teamFields...).
-		From(s.tablePrefix + "teams")
+		From("teams")
 	rows, err := query.Query()
 	if err != nil {
 		s.logger.Error("ERROR GetAllTeams", mlog.Err(err))

@@ -23,7 +23,7 @@ func (s *SQLStore) removeDefaultTemplates(db sq.BaseRunner, boards []*model.Boar
 		}
 		// default template deletion does not need to go to blocks_history
 		deleteQuery := s.getQueryBuilder(db).
-			Delete(s.tablePrefix + "boards").
+			Delete("boards").
 			Where(sq.Eq{"id": board.ID}).
 			Where(sq.Eq{"is_template": true})
 
@@ -32,7 +32,7 @@ func (s *SQLStore) removeDefaultTemplates(db sq.BaseRunner, boards []*model.Boar
 		}
 
 		deleteQuery = s.getQueryBuilder(db).
-			Delete(s.tablePrefix + "blocks").
+			Delete("blocks").
 			Where(sq.Or{
 				sq.Eq{"parent_id": board.ID},
 				sq.Eq{"root_id": board.ID},
@@ -58,8 +58,8 @@ func (s *SQLStore) removeDefaultTemplates(db sq.BaseRunner, boards []*model.Boar
 func (s *SQLStore) getTemplateBoards(db sq.BaseRunner, teamID, userID string) ([]*model.Board, error) {
 	query := s.getQueryBuilder(db).
 		Select(boardFields("")...).
-		From(s.tablePrefix+"boards as b").
-		LeftJoin(s.tablePrefix+"board_members as bm on b.id = bm.board_id and bm.user_id = ?", userID).
+		From("boards as b").
+		LeftJoin("board_members as bm on b.id = bm.board_id and bm.user_id = ?", userID).
 		Where(sq.Eq{"is_template": true}).
 		Where(sq.Eq{"b.team_id": teamID}).
 		Where(sq.Or{

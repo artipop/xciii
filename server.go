@@ -136,9 +136,6 @@ func newServerLogger() mlog.LoggerIFace {
 type board struct {
 	srv *server.Server
 	db  *sql.DB
-	// tablePrefix is what every table in this database carries, the board's own
-	// and ours alike.
-	tablePrefix string
 }
 
 // runServerWithLogger starts the board server in-process (single-user
@@ -196,5 +193,5 @@ func runServerWithLogger(logger mlog.LoggerIFace, port int, sessionToken string,
 	if err := srv.Start(); err != nil {
 		return board{}, fmt.Errorf("starting server: %w", err)
 	}
-	return board{srv: srv, db: handle, tablePrefix: cfg.DBTablePrefix}, nil
+	return board{srv: srv, db: handle}, nil
 }

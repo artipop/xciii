@@ -14,7 +14,7 @@ import (
 
 func (s *SQLStore) saveFileInfo(db sq.BaseRunner, fileInfo *mmModel.FileInfo) error {
 	query := s.getQueryBuilder(db).
-		Insert(s.tablePrefix+"file_info").
+		Insert("file_info").
 		Columns(
 			"id",
 			"create_at",
@@ -61,7 +61,7 @@ func (s *SQLStore) getFileInfo(db sq.BaseRunner, id string) (*mmModel.FileInfo, 
 			"archived",
 			"path",
 		).
-		From(s.tablePrefix + "file_info").
+		From("file_info").
 		Where(sq.Eq{"Id": id})
 
 	row := query.QueryRow()

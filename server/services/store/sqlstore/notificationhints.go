@@ -62,7 +62,7 @@ func (s *SQLStore) upsertNotificationHint(db sq.BaseRunner, hint *model.Notifica
 	notifyAt := utils.GetMillisForTime(time.Now().Add(notifyFreq))
 	hint.NotifyAt = notifyAt
 
-	query := s.getQueryBuilder(db).Insert(s.tablePrefix + "notification_hints").
+	query := s.getQueryBuilder(db).Insert("notification_hints").
 		Columns(notificationHintFields...).
 		Values(valuesForNotificationHint(hint)...)
 
@@ -85,7 +85,7 @@ func (s *SQLStore) upsertNotificationHint(db sq.BaseRunner, hint *model.Notifica
 // deleteNotificationHint deletes the notification hint for the specified block.
 func (s *SQLStore) deleteNotificationHint(db sq.BaseRunner, blockID string) error {
 	query := s.getQueryBuilder(db).
-		Delete(s.tablePrefix + "notification_hints").
+		Delete("notification_hints").
 		Where(sq.Eq{"block_id": blockID})
 
 	result, err := query.Exec()
@@ -109,7 +109,7 @@ func (s *SQLStore) deleteNotificationHint(db sq.BaseRunner, blockID string) erro
 func (s *SQLStore) getNotificationHint(db sq.BaseRunner, blockID string) (*model.NotificationHint, error) {
 	query := s.getQueryBuilder(db).
 		Select(notificationHintFields...).
-		From(s.tablePrefix + "notification_hints").
+		From("notification_hints").
 		Where(sq.Eq{"block_id": blockID})
 
 	rows, err := query.Query()
@@ -141,7 +141,7 @@ func (s *SQLStore) getNotificationHint(db sq.BaseRunner, blockID string) (*model
 func (s *SQLStore) getNextNotificationHint(db sq.BaseRunner, remove bool) (*model.NotificationHint, error) {
 	selectQuery := s.getQueryBuilder(db).
 		Select(notificationHintFields...).
-		From(s.tablePrefix + "notification_hints").
+		From("notification_hints").
 		OrderBy("notify_at").
 		Limit(1)
 
@@ -169,7 +169,7 @@ func (s *SQLStore) getNextNotificationHint(db sq.BaseRunner, remove bool) (*mode
 
 	if remove {
 		deleteQuery := s.getQueryBuilder(db).
-			Delete(s.tablePrefix + "notification_hints").
+			Delete("notification_hints").
 			Where(sq.Eq{"block_id": hint.BlockID})
 
 		result, err := deleteQuery.Exec()

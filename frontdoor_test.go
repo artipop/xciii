@@ -31,14 +31,14 @@ func TestFrontDoorSendsWailsToWailsAndTheRestToTheBoard(t *testing.T) {
 	door := newFrontDoor(named("wails"), named("acp"), named("ingest"), named("board"), "127.0.0.1:9000")
 
 	for path, want := range map[string]string{
-		"/wails/runtime.js":    "wails",
-		"/wails/runtime":       "wails",
-		"/acp/terminal/abc/ws": "acp",
-		"/acp/events/ws":       "acp",
+		"/wails/runtime.js":     "wails",
+		"/wails/runtime":        "wails",
+		"/acp/terminal/abc/ws":  "acp",
+		"/acp/events/ws":        "acp",
 		"/sources/ingest/phone": "ingest",
-		"/":                    "board",
-		"/ws":                  "board",
-		"/api/v2/teams":        "board",
+		"/":                     "board",
+		"/ws":                   "board",
+		"/api/v2/teams":         "board",
 	} {
 		if got := request(t, door, path, nil).Body.String(); got != want {
 			t.Errorf("%s went to %q, want %q", path, got, want)

@@ -26,7 +26,7 @@ func enforcingStore(t *testing.T) (*Store, func(cardID string)) {
 			t.Fatal(err)
 		}
 	}
-	return NewStore(db, ""), remove
+	return NewStore(db), remove
 }
 
 // Deleting a card takes everything this application knew about it. This is the
@@ -118,7 +118,7 @@ func TestAWorkspaceInUseCannotBeDeleted(t *testing.T) {
 	if err := appschema.AddCard(db, "board-1", "card-1"); err != nil {
 		t.Fatal(err)
 	}
-	st := NewStore(db, "")
+	st := NewStore(db)
 	if err := st.SaveWorkspace(WorkdirEntry{ID: "ws-1", Name: "код", Path: "/repo", BoardID: "board-1"}); err != nil {
 		t.Fatal(err)
 	}

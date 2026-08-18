@@ -85,7 +85,7 @@ func (s *SQLStore) getLegacyBlock(db sq.BaseRunner, workspaceID string, blockID 
 			"delete_at",
 			"COALESCE(workspace_id, '0')",
 		).
-		From(s.tablePrefix + "blocks").
+		From("blocks").
 		Where(sq.Eq{"id": blockID}).
 		Where(sq.Eq{"coalesce(workspace_id, '0')": workspaceID})
 
@@ -164,7 +164,7 @@ func (s *SQLStore) insertLegacyBlock(db sq.BaseRunner, workspaceID string, block
 
 	if existingBlock != nil {
 		// block with ID exists, so this is an update operation
-		query := s.getQueryBuilder(db).Update(s.tablePrefix+"blocks").
+		query := s.getQueryBuilder(db).Update("blocks").
 			Where(sq.Eq{"id": block.ID}).
 			Where(sq.Eq{"COALESCE(workspace_id, '0')": workspaceID}).
 			Set("parent_id", block.ParentID).
@@ -190,14 +190,14 @@ func (s *SQLStore) insertLegacyBlock(db sq.BaseRunner, workspaceID string, block
 		insertQueryValues["update_at"] = block.UpdateAt
 		insertQueryValues["modified_by"] = block.ModifiedBy
 
-		query := insertQuery.SetMap(insertQueryValues).Into(s.tablePrefix + "blocks")
+		query := insertQuery.SetMap(insertQueryValues).Into("blocks")
 		if _, err := query.Exec(); err != nil {
 			return err
 		}
 	}
 
 	// writing block history
-	query := insertQuery.SetMap(insertQueryValues).Into(s.tablePrefix + "blocks_history")
+	query := insertQuery.SetMap(insertQueryValues).Into("blocks_history")
 	if _, err := query.Exec(); err != nil {
 		return err
 	}

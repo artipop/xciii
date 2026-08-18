@@ -15,14 +15,14 @@ import (
 //
 // It reads the old schema — `source_event.id` an autoincrement, empty strings
 // where absence was meant — because that is the only schema the file can have.
-func ImportLegacyStore(db *sql.DB, tablePrefix, path string) (rows int, err error) {
+func ImportLegacyStore(db *sql.DB, path string) (rows int, err error) {
 	old, err := openLegacy(path)
 	if old == nil || err != nil {
 		return 0, err
 	}
 	defer old.Close()
 
-	s := &Store{db: db, prefix: tablePrefix}
+	s := &Store{db: db}
 	// What a source decided outlives the card it produced — the keys onto blocks
 	// here are SET NULL, not CASCADE — but a card id the board no longer has is
 	// a dangling reference all the same, and the import must not write one. The
@@ -37,7 +37,7 @@ func ImportLegacyStore(db *sql.DB, tablePrefix, path string) (rows int, err erro
 			return seen
 		}
 		var one int
-		seen := db.QueryRow(`SELECT 1 FROM `+tablePrefix+`blocks WHERE id=?`, id).Scan(&one) == nil
+		seen := db.QueryRow(`SELECT 1 FROM blocks WHERE id=?`, id).Scan(&one) == nil
 		known[id] = seen
 		return seen
 	}
@@ -57,7 +57,7 @@ func ImportLegacyStore(db *sql.DB, tablePrefix, path string) (rows int, err erro
 			if !hasCard(cardID) {
 				cardID = ""
 			}
-			if _, err := s.exec(`INSERT INTO {source_item} (source, external_id, version, card_id, created_at, updated_at)
+			if _, err := s.exec(`INSERT INTO source_item (source, external_id, version, card_id, created_at, updated_at)
 				VALUES (?,?,?,?,?,?) ON CONFLICT(source, external_id) DO NOTHING`,
 				source, externalID, nullable(version), nullable(cardID), created, updated); err != nil {
 				items.Close()
@@ -91,7 +91,7 @@ func ImportLegacyStore(db *sql.DB, tablePrefix, path string) (rows int, err erro
 			if !hasCard(cardID) {
 				cardID = ""
 			}
-			if _, err := s.exec(`INSERT INTO {source_event} (id, source, external_id, rule, outcome, card_id, detail, created_at)
+			if _, err := s.exec(`INSERT INTO source_event (id, source, external_id, rule, outcome, card_id, detail, created_at)
 				VALUES (?,?,?,?,?,?,?,?)`,
 				newID(), source, nullable(externalID), nullable(rule), outcome,
 				nullable(cardID), nullable(detail), created); err != nil {

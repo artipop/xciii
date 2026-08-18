@@ -8,7 +8,7 @@ import (
 func (s *SQLStore) getSystemSetting(db sq.BaseRunner, key string) (string, error) {
 	scanner := s.getQueryBuilder(db).
 		Select("value").
-		From(s.tablePrefix + "system_settings").
+		From("system_settings").
 		Where(sq.Eq{"id": key}).
 		QueryRow()
 
@@ -22,7 +22,7 @@ func (s *SQLStore) getSystemSetting(db sq.BaseRunner, key string) (string, error
 }
 
 func (s *SQLStore) getSystemSettings(db sq.BaseRunner) (map[string]string, error) {
-	query := s.getQueryBuilder(db).Select("*").From(s.tablePrefix + "system_settings")
+	query := s.getQueryBuilder(db).Select("*").From("system_settings")
 
 	rows, err := query.Query()
 	if err != nil {
@@ -48,7 +48,7 @@ func (s *SQLStore) getSystemSettings(db sq.BaseRunner) (map[string]string, error
 }
 
 func (s *SQLStore) setSystemSetting(db sq.BaseRunner, id, value string) error {
-	query := s.getQueryBuilder(db).Insert(s.tablePrefix+"system_settings").Columns("id", "value").Values(id, value)
+	query := s.getQueryBuilder(db).Insert("system_settings").Columns("id", "value").Values(id, value)
 
 	if s.dbType == model.MysqlDBType {
 		query = query.Suffix("ON DUPLICATE KEY UPDATE value = ?", value)

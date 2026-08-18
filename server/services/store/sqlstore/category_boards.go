@@ -38,7 +38,7 @@ func (s *SQLStore) getUserCategoryBoards(db sq.BaseRunner, userID, teamID string
 func (s *SQLStore) getCategoryBoardAttributes(db sq.BaseRunner, categoryID string) ([]model.CategoryBoardMetadata, error) {
 	query := s.getQueryBuilder(db).
 		Select("board_id, COALESCE(hidden, false)").
-		From(s.tablePrefix + "category_boards").
+		From("category_boards").
 		Where(sq.Eq{
 			"category_id": categoryID,
 		}).
@@ -68,7 +68,7 @@ func (s *SQLStore) addUpdateCategoryBoard(db sq.BaseRunner, userID, categoryID s
 	}
 
 	query := s.getQueryBuilder(db).
-		Insert(s.tablePrefix+"category_boards").
+		Insert("category_boards").
 		Columns(
 			"id",
 			"user_id",
@@ -146,7 +146,7 @@ func (s *SQLStore) reorderCategoryBoards(db sq.BaseRunner, categoryID string, ne
 	updateCase.Else("sort_order")
 
 	query := s.getQueryBuilder(db).
-		Update(s.tablePrefix+"category_boards").
+		Update("category_boards").
 		Set("sort_order", updateCase).
 		Where(sq.Eq{
 			"category_id": categoryID,
@@ -167,7 +167,7 @@ func (s *SQLStore) reorderCategoryBoards(db sq.BaseRunner, categoryID string, ne
 
 func (s *SQLStore) setBoardVisibility(db sq.BaseRunner, userID, categoryID, boardID string, visible bool) error {
 	query := s.getQueryBuilder(db).
-		Update(s.tablePrefix+"category_boards").
+		Update("category_boards").
 		Set("hidden", !visible).
 		Where(sq.Eq{
 			"user_id":     userID,

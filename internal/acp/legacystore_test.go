@@ -102,7 +102,7 @@ func TestAnAcpDatabaseFromBeforeTheMoveIsCarriedOver(t *testing.T) {
 		}
 	}
 
-	n, err := ImportLegacyStore(db, "", legacy)
+	n, err := ImportLegacyStore(db, legacy)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +110,7 @@ func TestAnAcpDatabaseFromBeforeTheMoveIsCarriedOver(t *testing.T) {
 		t.Fatal("nothing was carried over")
 	}
 
-	st := NewStore(db, "")
+	st := NewStore(db)
 
 	sessions, events, err := st.SessionsForCard("card-1")
 	if err != nil {
@@ -203,7 +203,7 @@ func TestAnAcpDatabaseFromBeforeTheMoveIsCarriedOver(t *testing.T) {
 
 // Every install made after the move has no such file, and that is not an error.
 func TestNoLegacyDatabaseIsNothingToDo(t *testing.T) {
-	n, err := ImportLegacyStore(nil, "", filepath.Join(t.TempDir(), "acp.db"))
+	n, err := ImportLegacyStore(nil, filepath.Join(t.TempDir(), "acp.db"))
 	if err != nil || n != 0 {
 		t.Fatalf("a missing file should be silent: %d %v", n, err)
 	}

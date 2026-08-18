@@ -51,7 +51,7 @@ func TestEveryDialectCreatesEveryTable(t *testing.T) {
 			t.Fatalf("%s: %v", d.name, err)
 		}
 		for _, tbl := range tables {
-			if !strings.Contains(sql, "CREATE TABLE") || !strings.Contains(sql, prefixed(tbl.Name)) {
+			if !strings.Contains(sql, "CREATE TABLE") || !strings.Contains(sql, tbl.Name) {
 				t.Errorf("%s does not create %s", d.name, tbl.Name)
 			}
 		}
@@ -160,7 +160,7 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	gotShape := shapeOf(t, strings.ReplaceAll(got, "{{.prefix}}", ""))
+	gotShape := shapeOf(t, got)
 	wantShape := shapeOf(t, string(want))
 
 	// The tables this schema deliberately differs from the ladder on, and why.

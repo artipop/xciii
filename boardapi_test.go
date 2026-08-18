@@ -120,7 +120,7 @@ func toolsBoard(t *testing.T) (*acp.Manager, *recordingWriter, string) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
-	store := acp.NewStore(db, "")
+	store := acp.NewStore(db)
 
 	writer := &recordingWriter{}
 	cfg := acp.DefaultConfig(t.TempDir())

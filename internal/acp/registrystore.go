@@ -27,7 +27,7 @@ func (s *Store) SaveWorkspace(e WorkdirEntry) error {
 	if e.ID == "" {
 		e.ID = newID()
 	}
-	_, err := s.exec(`INSERT INTO {workspace}
+	_, err := s.exec(`INSERT INTO workspace
 		(id, name, path, board_id, global, kind, base_branch, branch_prefix, created_at)
 		VALUES (?,?,?,?,?,?,?,?,?)
 		ON CONFLICT(id) DO UPDATE SET
@@ -47,14 +47,14 @@ func (s *Store) SaveWorkspace(e WorkdirEntry) error {
 // rather than merged: the entry that arrives is the whole entry, and a mode
 // somebody removed has to disappear.
 func (s *Store) saveWorkspaceModes(e WorkdirEntry) error {
-	if _, err := s.exec(`DELETE FROM {workspace_board} WHERE workspace_id=?`, e.ID); err != nil {
+	if _, err := s.exec(`DELETE FROM workspace_board WHERE workspace_id=?`, e.ID); err != nil {
 		return err
 	}
 	for boardID, mode := range e.Modes {
 		if boardID == "" {
 			continue
 		}
-		if _, err := s.exec(`INSERT INTO {workspace_board} (workspace_id, board_id, mode)
+		if _, err := s.exec(`INSERT INTO workspace_board (workspace_id, board_id, mode)
 			VALUES (?,?,?) ON CONFLICT(workspace_id, board_id) DO UPDATE SET mode=excluded.mode`,
 			e.ID, boardID, nullable(mode)); err != nil {
 			return err
@@ -68,7 +68,7 @@ func (s *Store) saveWorkspaceModes(e WorkdirEntry) error {
 func (s *Store) Workspaces() ([]WorkdirEntry, error) {
 	rows, err := s.query(`SELECT id, name, COALESCE(path,''), COALESCE(board_id,''), global,
 		COALESCE(kind,''), COALESCE(base_branch,''), COALESCE(branch_prefix,'')
-		FROM {workspace} ORDER BY created_at, id`)
+		FROM workspace ORDER BY created_at, id`)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (s *Store) Workspaces() ([]WorkdirEntry, error) {
 	// The modes in one query rather than one per folder: this is read at
 	// startup and on every folders dialog, and a registry has as many entries
 	// as somebody has folders.
-	modes, err := s.query(`SELECT workspace_id, board_id, COALESCE(mode,'') FROM {workspace_board}`)
+	modes, err := s.query(`SELECT workspace_id, board_id, COALESCE(mode,'') FROM workspace_board`)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (s *Store) Workspaces() ([]WorkdirEntry, error) {
 // is refused by the foreign key from checkout once those are enforced; until
 // then the caller checks, as it always has.
 func (s *Store) DeleteWorkspace(id string) error {
-	_, err := s.exec(`DELETE FROM {workspace} WHERE id=?`, id)
+	_, err := s.exec(`DELETE FROM workspace WHERE id=?`, id)
 	return err
 }
 
@@ -127,7 +127,7 @@ func (s *Store) SaveProxy(e ProxyEntry) (ProxyEntry, error) {
 	if e.ID == "" {
 		e.ID = newID()
 	}
-	_, err := s.exec(`INSERT INTO {proxy} (id, name, url, no_proxy, ca_cert, username, password, created_at)
+	_, err := s.exec(`INSERT INTO proxy (id, name, url, no_proxy, ca_cert, username, password, created_at)
 		VALUES (?,?,?,?,?,?,?,?)
 		ON CONFLICT(id) DO UPDATE SET
 			name=excluded.name, url=excluded.url, no_proxy=excluded.no_proxy,
@@ -141,7 +141,7 @@ func (s *Store) SaveProxy(e ProxyEntry) (ProxyEntry, error) {
 func (s *Store) Proxies() ([]ProxyEntry, error) {
 	rows, err := s.query(`SELECT id, name, COALESCE(url,''), COALESCE(no_proxy,''),
 		COALESCE(ca_cert,''), COALESCE(username,''), COALESCE(password,'')
-		FROM {proxy} ORDER BY created_at, id`)
+		FROM proxy ORDER BY created_at, id`)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (s *Store) Proxies() ([]ProxyEntry, error) {
 // key, which is the right answer: the agent still works, over the app's own
 // network.
 func (s *Store) DeleteProxy(id string) error {
-	_, err := s.exec(`DELETE FROM {proxy} WHERE id=?`, id)
+	_, err := s.exec(`DELETE FROM proxy WHERE id=?`, id)
 	return err
 }
 
@@ -200,7 +200,7 @@ func (s *Store) SaveAgent(e AgentEntry, proxyID, userID string) (AgentEntry, err
 	if err != nil {
 		return e, err
 	}
-	_, err = s.exec(`INSERT INTO {agent}
+	_, err = s.exec(`INSERT INTO agent
 		(id, name, kind, user_id, proxy_id, bin_path, model, prompt, settings, created_at)
 		VALUES (?,?,?,?,?,?,?,?,?,?)
 		ON CONFLICT(id) DO UPDATE SET
@@ -217,7 +217,7 @@ func (s *Store) SaveAgent(e AgentEntry, proxyID, userID string) (AgentEntry, err
 func (s *Store) Agents() ([]AgentEntry, error) {
 	rows, err := s.query(`SELECT id, name, kind, COALESCE(bin_path,''), COALESCE(model,''),
 		COALESCE(prompt,''), COALESCE(settings,'')
-		FROM {agent} ORDER BY created_at, id`)
+		FROM agent ORDER BY created_at, id`)
 	if err != nil {
 		return nil, err
 	}
@@ -246,14 +246,14 @@ func (s *Store) Agents() ([]AgentEntry, error) {
 // DeleteAgent removes one. A conversation it held keeps its own record: the
 // conversation happened, and the key that points at the agent is SET NULL.
 func (s *Store) DeleteAgent(id string) error {
-	_, err := s.exec(`DELETE FROM {agent} WHERE id=?`, id)
+	_, err := s.exec(`DELETE FROM agent WHERE id=?`, id)
 	return err
 }
 
 // SetAgentAccount records which board account is this agent's, by key rather
 // than by their names happening to match.
 func (s *Store) SetAgentAccount(agentID, userID string) error {
-	_, err := s.exec(`UPDATE {agent} SET user_id=? WHERE id=?`, nullable(userID), agentID)
+	_, err := s.exec(`UPDATE agent SET user_id=? WHERE id=?`, nullable(userID), agentID)
 	return err
 }
 
@@ -262,7 +262,7 @@ func (s *Store) SaveDeployTarget(e DeployEntry) (DeployEntry, error) {
 	if e.ID == "" {
 		e.ID = newID()
 	}
-	_, err := s.exec(`INSERT INTO {deploy_target}
+	_, err := s.exec(`INSERT INTO deploy_target
 		(id, name, ssh_host, ssh_user, ssh_port, ssh_key, base_app, base_domain, created_at)
 		VALUES (?,?,?,?,?,?,?,?,?)
 		ON CONFLICT(id) DO UPDATE SET
@@ -279,7 +279,7 @@ func (s *Store) SaveDeployTarget(e DeployEntry) (DeployEntry, error) {
 func (s *Store) DeployTargets() ([]DeployEntry, error) {
 	rows, err := s.query(`SELECT id, name, ssh_host, COALESCE(ssh_user,''), COALESCE(ssh_port,0),
 		COALESCE(ssh_key,''), COALESCE(base_app,''), COALESCE(base_domain,'')
-		FROM {deploy_target} ORDER BY created_at, id`)
+		FROM deploy_target ORDER BY created_at, id`)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +298,7 @@ func (s *Store) DeployTargets() ([]DeployEntry, error) {
 
 // DeleteDeployTarget removes one.
 func (s *Store) DeleteDeployTarget(id string) error {
-	_, err := s.exec(`DELETE FROM {deploy_target} WHERE id=?`, id)
+	_, err := s.exec(`DELETE FROM deploy_target WHERE id=?`, id)
 	return err
 }
 
