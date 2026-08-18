@@ -148,8 +148,6 @@ describe('src/components/shareBoard/shareBoard', () => {
         searchText: {},
         clientConfig: {
             value: {
-                telemetry: true,
-                telemetryid: 'telemetry',
                 enablePublicSharedBoards: true,
                 teammateNameDisplay: 'username',
             },

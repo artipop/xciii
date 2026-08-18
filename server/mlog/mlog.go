@@ -31,8 +31,8 @@ import (
 type Field = slog.Attr
 
 // Level is a severity. It is a struct rather than a number because the audit
-// service defines levels of its own (`auth`, `mod`, `read`) and the telemetry
-// service another, and they are named in the output rather than ranked.
+// service defines levels of its own (`auth`, `mod`, `read`), and they are named
+// in the output rather than ranked.
 type Level struct {
 	ID         int
 	Name       string
@@ -42,8 +42,8 @@ type Level struct {
 // String makes a Level printable, which is how a custom level reaches the line.
 func (l Level) String() string { return l.Name }
 
-// The levels the server logs at. The IDs match Mattermost's, since audit and
-// telemetry pick numbers well above them to stay clear.
+// The levels the server logs at. The IDs match Mattermost's, since the audit
+// service picks numbers well above them to stay clear.
 var (
 	LvlPanic = Level{ID: 0, Name: "panic"}
 	LvlFatal = Level{ID: 1, Name: "fatal"}
@@ -55,8 +55,8 @@ var (
 )
 
 // slogLevel ranks a level for slog. A level this package does not know — one the
-// audit or telemetry service made up — is a record somebody asked to be kept, so
-// it is logged at info rather than dropped.
+// audit service made up — is a record somebody asked to be kept, so it is logged
+// at info rather than dropped.
 func (l Level) slogLevel() slog.Level {
 	switch l.ID {
 	case LvlPanic.ID, LvlFatal.ID, LvlError.ID:
@@ -175,8 +175,8 @@ func (l *Logger) write(level Level, msg string, fields ...Field) {
 	}
 	args := make([]any, 0, len(fields)+1)
 	if level.ID >= LvlTrace.ID+1 {
-		// A level of the audit or telemetry service's own: name it, since slog
-		// has nowhere else to put it.
+		// A level of the audit service's own: name it, since slog has nowhere
+		// else to put it.
 		args = append(args, slog.String("level", level.Name))
 	}
 	for _, f := range fields {

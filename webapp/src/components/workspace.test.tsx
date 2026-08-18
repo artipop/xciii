@@ -147,8 +147,6 @@ describe('src/components/workspace', () => {
         searchText: {},
         clientConfig: {
             value: {
-                telemetry: true,
-                telemetryid: 'telemetry',
                 enablePublicSharedBoards: true,
                 teammateNameDisplay: 'username',
             },
@@ -268,8 +266,6 @@ describe('src/components/workspace', () => {
             searchText: {},
             clientConfig: {
                 value: {
-                    telemetry: true,
-                    telemetryid: 'telemetry',
                     enablePublicSharedBoards: true,
                     teammateNameDisplay: 'username',
                 },
@@ -363,8 +359,6 @@ describe('src/components/workspace', () => {
             searchText: {},
             clientConfig: {
                 value: {
-                    telemetry: true,
-                    telemetryid: 'telemetry',
                     enablePublicSharedBoards: true,
                     teammateNameDisplay: 'username',
                 },

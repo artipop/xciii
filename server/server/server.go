@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"runtime"
 	"sync"
 	"syscall"
 	"time"
@@ -25,7 +24,6 @@ import (
 	"github.com/artipop/xciii/server/services/scheduler"
 	"github.com/artipop/xciii/server/services/store"
 	"github.com/artipop/xciii/server/services/store/sqlstore"
-	"github.com/artipop/xciii/server/services/telemetry"
 	"github.com/artipop/xciii/server/services/webhook"
 	"github.com/artipop/xciii/server/utils"
 	"github.com/artipop/xciii/server/web"
@@ -51,7 +49,6 @@ type Server struct {
 	webServer              *web.Server
 	store                  store.Store
 	filesBackend           filestore.FileBackend
-	telemetry              *telemetry.Service
 	logger                 mlog.LoggerIFace
 	cleanUpSessionsTask    *scheduler.ScheduledTask
 	metricsServer          *metrics.Service
@@ -152,36 +149,12 @@ func New(params Params) (*Server, error) {
 	}
 	webServer.AddRoutes(focalboardAPI)
 
-	settings, err := params.DBStore.GetSystemSettings()
-	if err != nil {
-		return nil, err
-	}
-
-	// Init telemetry
-	telemetryID := settings["TelemetryID"]
-	if len(telemetryID) == 0 {
-		telemetryID = utils.NewID(utils.IDTypeNone)
-		if err = params.DBStore.SetSystemSetting("TelemetryID", telemetryID); err != nil {
-			return nil, err
-		}
-	}
-	telemetryOpts := telemetryOptions{
-		app:         app,
-		cfg:         params.Cfg,
-		telemetryID: telemetryID,
-		serverID:    params.ServerID,
-		logger:      params.Logger,
-		singleUser:  len(params.SingleUserToken) > 0,
-	}
-	telemetryService := initTelemetry(telemetryOpts)
-
 	server := Server{
 		config:              params.Cfg,
 		wsAdapter:           wsAdapter,
 		webServer:           webServer,
 		store:               params.DBStore,
 		filesBackend:        filesBackend,
-		telemetry:           telemetryService,
 		metricsServer:       metrics.NewMetricsServer(params.Cfg.PrometheusAddress, metricsService, params.Logger),
 		metricsService:      metricsService,
 		auditService:        auditService,
@@ -319,11 +292,6 @@ func (s *Server) Start() error {
 	// metricsUpdater()   Calling this immediately causes integration unit tests to fail.
 	s.metricsUpdaterTask = scheduler.CreateRecurringTask("updateMetrics", metricsUpdater, updateMetricsTaskFrequency)
 
-	if s.config.Telemetry {
-		firstRun := utils.GetMillis()
-		s.telemetry.RunTelemetryJob(firstRun)
-	}
-
 	var group run.Group
 	if s.config.PrometheusAddress != "" {
 		group.Add(func() error {
@@ -358,10 +326,6 @@ func (s *Server) Shutdown() error {
 
 	if s.metricsUpdaterTask != nil {
 		s.metricsUpdaterTask.Cancel()
-	}
-
-	if err := s.telemetry.Shutdown(); err != nil {
-		s.logger.Warn("Error occurred when shutting down telemetry", mlog.Err(err))
 	}
 
 	if err := s.auditService.Shutdown(); err != nil {
@@ -444,97 +408,6 @@ func (s *Server) stopLocalModeServer() {
 
 func (s *Server) GetRootRouter() *web.Router {
 	return s.webServer.Router()
-}
-
-type telemetryOptions struct {
-	app         *app.App
-	cfg         *config.Configuration
-	telemetryID string
-	serverID    string
-	logger      mlog.LoggerIFace
-	singleUser  bool
-}
-
-func initTelemetry(opts telemetryOptions) *telemetry.Service {
-	telemetryService := telemetry.New(opts.telemetryID, opts.logger)
-
-	telemetryService.RegisterTracker("server", func() (telemetry.Tracker, error) {
-		return map[string]interface{}{
-			"version":          appModel.CurrentVersion,
-			"build_number":     appModel.BuildNumber,
-			"build_hash":       appModel.BuildHash,
-			"edition":          appModel.Edition,
-			"operating_system": runtime.GOOS,
-			"server_id":        opts.serverID,
-		}, nil
-	})
-	telemetryService.RegisterTracker("config", func() (telemetry.Tracker, error) {
-		return map[string]interface{}{
-			"serverRoot":                 opts.cfg.ServerRoot == config.DefaultServerRoot,
-			"port":                       opts.cfg.Port == config.DefaultPort,
-			"useSSL":                     opts.cfg.UseSSL,
-			"dbType":                     opts.cfg.DBType,
-			"single_user":                opts.singleUser,
-			"allow_public_shared_boards": opts.cfg.EnablePublicSharedBoards,
-		}, nil
-	})
-	telemetryService.RegisterTracker("activity", func() (telemetry.Tracker, error) {
-		m := make(map[string]interface{})
-		var count int
-		var err error
-		if count, err = opts.app.GetRegisteredUserCount(); err != nil {
-			return nil, err
-		}
-		m["registered_users"] = count
-
-		if count, err = opts.app.GetDailyActiveUsers(); err != nil {
-			return nil, err
-		}
-		m["daily_active_users"] = count
-
-		if count, err = opts.app.GetWeeklyActiveUsers(); err != nil {
-			return nil, err
-		}
-		m["weekly_active_users"] = count
-
-		if count, err = opts.app.GetMonthlyActiveUsers(); err != nil {
-			return nil, err
-		}
-		m["monthly_active_users"] = count
-		return m, nil
-	})
-	telemetryService.RegisterTracker("blocks", func() (telemetry.Tracker, error) {
-		blockCounts, err := opts.app.GetBlockCountsByType()
-		if err != nil {
-			return nil, err
-		}
-		m := make(map[string]interface{})
-		for k, v := range blockCounts {
-			m[k] = v
-		}
-		return m, nil
-	})
-	telemetryService.RegisterTracker("boards", func() (telemetry.Tracker, error) {
-		boardCount, err := opts.app.GetBoardCount()
-		if err != nil {
-			return nil, err
-		}
-		m := map[string]interface{}{
-			"boards": boardCount,
-		}
-		return m, nil
-	})
-	telemetryService.RegisterTracker("teams", func() (telemetry.Tracker, error) {
-		count, err := opts.app.GetTeamCount()
-		if err != nil {
-			return nil, err
-		}
-		m := map[string]interface{}{
-			"teams": count,
-		}
-		return m, nil
-	})
-	return telemetryService
 }
 
 func initNotificationService(backends []notify.Backend, logger mlog.LoggerIFace) (*notify.Service, error) {

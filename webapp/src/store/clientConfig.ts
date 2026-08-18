@@ -8,7 +8,7 @@ import type {RootState} from './index'
 
 export type ClientConfigState = {value: ClientConfig}
 
-const defaultClientConfig = (): ClientConfig => ({telemetry: false, telemetryid: '', enablePublicSharedBoards: false, teammateNameDisplay: ShowUsername, featureFlags: {}, maxFileSize: 0})
+const defaultClientConfig = (): ClientConfig => ({enablePublicSharedBoards: false, teammateNameDisplay: ShowUsername, featureFlags: {}, maxFileSize: 0})
 
 export const initialClientConfigState = (): ClientConfigState => ({value: defaultClientConfig()})
 
