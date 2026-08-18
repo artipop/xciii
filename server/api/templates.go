@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 
 	"github.com/artipop/xciii/server/mlog"
@@ -61,10 +60,6 @@ func (a *API) handleGetTemplates(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "getTemplates", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("teamID", teamID)
-
 	// retrieve boards list
 	boards, err := a.app.GetTemplateBoards(teamID, userID)
 	if err != nil {
@@ -95,6 +90,4 @@ func (a *API) handleGetTemplates(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.AddMeta("templatesCount", len(results))
-	auditRec.Success()
 }

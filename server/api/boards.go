@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 
 	"github.com/artipop/xciii/server/mlog"
@@ -58,10 +57,6 @@ func (a *API) handleGetBoards(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "getBoards", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("teamID", teamID)
-
 	isGuest, err := a.userIsGuest(userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -89,8 +84,6 @@ func (a *API) handleGetBoards(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.AddMeta("boardsCount", len(boards))
-	auditRec.Success()
 }
 
 func (a *API) handleCreateBoard(w http.ResponseWriter, r *http.Request) {
@@ -161,11 +154,6 @@ func (a *API) handleCreateBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "createBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("teamID", newBoard.TeamID)
-	auditRec.AddMeta("boardType", newBoard.Type)
-
 	// create board
 	board, err := a.app.CreateBoard(newBoard, userID, true)
 	if err != nil {
@@ -189,7 +177,6 @@ func (a *API) handleCreateBoard(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handleGetBoard(w http.ResponseWriter, r *http.Request) {
@@ -262,10 +249,6 @@ func (a *API) handleGetBoard(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := a.makeAuditRecord(r, "getBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-
 	a.logger.Debug("GetBoard",
 		mlog.String("boardID", boardID),
 	)
@@ -279,7 +262,6 @@ func (a *API) handleGetBoard(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handlePatchBoard(w http.ResponseWriter, r *http.Request) {
@@ -359,11 +341,6 @@ func (a *API) handlePatchBoard(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	auditRec := a.makeAuditRecord(r, "patchBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("userID", userID)
-
 	// patch board
 	updatedBoard, err := a.app.PatchBoard(patch, boardID, userID)
 	if err != nil {
@@ -385,7 +362,6 @@ func (a *API) handlePatchBoard(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handleDeleteBoard(w http.ResponseWriter, r *http.Request) {
@@ -428,10 +404,6 @@ func (a *API) handleDeleteBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "deleteBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-
 	if err := a.app.DeleteBoard(boardID, userID); err != nil {
 		a.errorResponse(w, r, err)
 		return
@@ -440,7 +412,6 @@ func (a *API) handleDeleteBoard(w http.ResponseWriter, r *http.Request) {
 	a.logger.Debug("DELETE Board", mlog.String("boardID", boardID))
 	jsonStringResponse(w, http.StatusOK, "{}")
 
-	auditRec.Success()
 }
 
 func (a *API) handleDuplicateBoard(w http.ResponseWriter, r *http.Request) {
@@ -524,10 +495,6 @@ func (a *API) handleDuplicateBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "duplicateBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-
 	a.logger.Debug("DuplicateBoard",
 		mlog.String("boardID", boardID),
 	)
@@ -547,7 +514,6 @@ func (a *API) handleDuplicateBoard(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handleUndeleteBoard(w http.ResponseWriter, r *http.Request) {
@@ -580,10 +546,6 @@ func (a *API) handleUndeleteBoard(w http.ResponseWriter, r *http.Request) {
 
 	boardID := r.PathValue("boardID")
 
-	auditRec := a.makeAuditRecord(r, "undeleteBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-
 	if !a.permissions.HasPermissionToBoard(userID, boardID, model.PermissionDeleteBoard) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to undelete board"))
 		return
@@ -598,5 +560,4 @@ func (a *API) handleUndeleteBoard(w http.ResponseWriter, r *http.Request) {
 	a.logger.Debug("UNDELETE Board", mlog.String("boardID", boardID))
 	jsonStringResponse(w, http.StatusOK, "{}")
 
-	auditRec.Success()
 }

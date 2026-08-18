@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 
 	"github.com/artipop/xciii/server/mlog"
 )
@@ -32,10 +31,6 @@ func (a *API) handleAdminSetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "adminSetPassword", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelAuth, auditRec)
-	auditRec.AddMeta("username", username)
-
 	if !strings.Contains(requestData.Password, "") {
 		a.errorResponse(w, r, model.NewErrBadRequest("password is required"))
 		return
@@ -50,5 +45,4 @@ func (a *API) handleAdminSetPassword(w http.ResponseWriter, r *http.Request) {
 	a.logger.Debug("AdminSetPassword, username: %s", mlog.String("username", username))
 
 	jsonStringResponse(w, http.StatusOK, "{}")
-	auditRec.Success()
 }

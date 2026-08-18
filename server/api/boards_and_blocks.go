@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 
 	"github.com/artipop/xciii/server/mlog"
@@ -137,13 +136,6 @@ func (a *API) handleCreateBoardsAndBlocks(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "createBoardsAndBlocks", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("teamID", teamID)
-	auditRec.AddMeta("userID", userID)
-	auditRec.AddMeta("boardsCount", len(newBab.Boards))
-	auditRec.AddMeta("blocksCount", len(newBab.Blocks))
-
 	// create boards and blocks
 	bab, err := a.app.CreateBoardsAndBlocks(newBab, userID, true)
 	if err != nil {
@@ -167,7 +159,6 @@ func (a *API) handleCreateBoardsAndBlocks(w http.ResponseWriter, r *http.Request
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handlePatchBoardsAndBlocks(w http.ResponseWriter, r *http.Request) {
@@ -272,11 +263,6 @@ func (a *API) handlePatchBoardsAndBlocks(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	auditRec := a.makeAuditRecord(r, "patchBoardsAndBlocks", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardsCount", len(pbab.BoardIDs))
-	auditRec.AddMeta("blocksCount", len(pbab.BlockIDs))
-
 	bab, err := a.app.PatchBoardsAndBlocks(pbab, userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -297,7 +283,6 @@ func (a *API) handlePatchBoardsAndBlocks(w http.ResponseWriter, r *http.Request)
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handleDeleteBoardsAndBlocks(w http.ResponseWriter, r *http.Request) {
@@ -389,11 +374,6 @@ func (a *API) handleDeleteBoardsAndBlocks(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "deleteBoardsAndBlocks", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardsCount", len(dbab.Boards))
-	auditRec.AddMeta("blocksCount", len(dbab.Blocks))
-
 	if err := a.app.DeleteBoardsAndBlocks(dbab, userID); err != nil {
 		a.errorResponse(w, r, err)
 		return
@@ -406,5 +386,4 @@ func (a *API) handleDeleteBoardsAndBlocks(w http.ResponseWriter, r *http.Request
 
 	// response
 	jsonStringResponse(w, http.StatusOK, "{}")
-	auditRec.Success()
 }

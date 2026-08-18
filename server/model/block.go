@@ -4,10 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"strconv"
 	"unicode/utf8"
-
-	"github.com/artipop/xciii/server/services/audit"
 )
 
 const (
@@ -240,7 +237,7 @@ type QueryBlockHistoryChildOptions struct {
 	PerPage        int   // number of blocks per page (default=-1, meaning unlimited)
 }
 
-func StampModificationMetadata(userID string, blocks []*Block, auditRec *audit.Record) {
+func StampModificationMetadata(userID string, blocks []*Block) {
 	if userID == SingleUser {
 		userID = ""
 	}
@@ -249,10 +246,6 @@ func StampModificationMetadata(userID string, blocks []*Block, auditRec *audit.R
 	for i := range blocks {
 		blocks[i].ModifiedBy = userID
 		blocks[i].UpdateAt = now
-
-		if auditRec != nil {
-			auditRec.AddMeta("block_"+strconv.FormatInt(int64(i), 10), blocks[i])
-		}
 	}
 }
 

@@ -15,8 +15,6 @@ import (
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/web"
 
-	"github.com/artipop/xciii/server/services/audit"
-
 	"github.com/artipop/xciii/server/mlog"
 )
 
@@ -135,12 +133,6 @@ func (a *API) handleServeFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "getFile", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("teamID", board.TeamID)
-	auditRec.AddMeta("filename", filename)
-
 	fileInfo, fileReader, err := a.app.GetFile(board.TeamID, boardID, filename)
 	if err != nil && !model.IsErrNotFound(err) {
 		a.errorResponse(w, r, err)
@@ -177,7 +169,6 @@ func (a *API) handleServeFile(w http.ResponseWriter, r *http.Request) {
 		fileSize = fileInfo.Size
 	}
 	writeFileResponse(filename, mimeType, fileSize, time.Now(), "", fileReader, false, w, r)
-	auditRec.Success()
 }
 
 func writeFileResponse(filename string, contentType string, contentSize int64,
@@ -275,7 +266,6 @@ func (a *API) getFileInfo(w http.ResponseWriter, r *http.Request) {
 	//       "$ref": "#/definitions/ErrorResponse"
 
 	boardID := r.PathValue("boardID")
-	teamID := r.PathValue("teamID")
 	filename := r.PathValue("filename")
 	userID := getUserID(r)
 
@@ -289,12 +279,6 @@ func (a *API) getFileInfo(w http.ResponseWriter, r *http.Request) {
 		a.errorResponse(w, r, model.NewErrPermission("access denied to board"))
 		return
 	}
-
-	auditRec := a.makeAuditRecord(r, "getFile", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("teamID", teamID)
-	auditRec.AddMeta("filename", filename)
 
 	fileInfo, err := a.app.GetFileInfo(filename)
 	if err != nil && !model.IsErrNotFound(err) {
@@ -379,12 +363,6 @@ func (a *API) handleUploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	auditRec := a.makeAuditRecord(r, "uploadFile", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("teamID", board.TeamID)
-	auditRec.AddMeta("filename", handle.Filename)
-
 	fileID, err := a.app.SaveFile(file, board.TeamID, boardID, handle.Filename, board.IsTemplate)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -403,6 +381,4 @@ func (a *API) handleUploadFile(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.AddMeta("fileID", fileID)
-	auditRec.Success()
 }

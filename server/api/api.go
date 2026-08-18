@@ -9,7 +9,6 @@ import (
 
 	"github.com/artipop/xciii/server/app"
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/services/permissions"
 	"github.com/artipop/xciii/server/web"
 
@@ -40,7 +39,6 @@ type API struct {
 	singleUserToken string
 	MattermostAuth  bool
 	logger          mlog.LoggerIFace
-	audit           *audit.Audit
 }
 
 func NewAPI(
@@ -49,7 +47,6 @@ func NewAPI(
 	authService string,
 	permissions permissions.PermissionsService,
 	logger mlog.LoggerIFace,
-	audit *audit.Audit,
 ) *API {
 	return &API{
 		app:             app,
@@ -57,7 +54,6 @@ func NewAPI(
 		authService:     authService,
 		permissions:     permissions,
 		logger:          logger,
-		audit:           audit,
 	}
 }
 

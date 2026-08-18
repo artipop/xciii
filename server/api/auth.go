@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/services/auth"
 	"github.com/artipop/xciii/server/utils"
 	"github.com/artipop/xciii/server/web"
@@ -78,11 +77,6 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "login", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelAuth, auditRec)
-	auditRec.AddMeta("username", loginData.Username)
-	auditRec.AddMeta("type", loginData.Type)
-
 	if loginData.Type == "normal" {
 		token, err := a.app.Login(loginData.Username, loginData.Email, loginData.Password, loginData.MfaToken)
 		if err != nil {
@@ -96,7 +90,6 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 		}
 
 		jsonBytesResponse(w, http.StatusOK, json)
-		auditRec.Success()
 		return
 	}
 
@@ -135,19 +128,12 @@ func (a *API) handleLogout(w http.ResponseWriter, r *http.Request) {
 
 	session := ctx.Value(sessionContextKey).(*model.Session)
 
-	auditRec := a.makeAuditRecord(r, "logout", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelAuth, auditRec)
-	auditRec.AddMeta("userID", session.UserID)
-
 	if err := a.app.Logout(session.ID); err != nil {
 		a.errorResponse(w, r, model.NewErrUnauthorized("incorrect logout"))
 		return
 	}
 
-	auditRec.AddMeta("sessionID", session.ID)
-
 	jsonStringResponse(w, http.StatusOK, "{}")
-	auditRec.Success()
 }
 
 func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
@@ -230,10 +216,6 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "register", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelAuth, auditRec)
-	auditRec.AddMeta("username", registerData.Username)
-
 	err = a.app.RegisterUser(registerData.Username, registerData.Email, registerData.Password)
 	if err != nil {
 		a.errorResponse(w, r, model.NewErrBadRequest(err.Error()))
@@ -241,7 +223,6 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonStringResponse(w, http.StatusOK, "{}")
-	auditRec.Success()
 }
 
 func (a *API) handleChangePassword(w http.ResponseWriter, r *http.Request) {
@@ -307,16 +288,12 @@ func (a *API) handleChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "changePassword", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelAuth, auditRec)
-
 	if err = a.app.ChangePassword(userID, requestData.OldPassword, requestData.NewPassword); err != nil {
 		a.errorResponse(w, r, model.NewErrBadRequest(err.Error()))
 		return
 	}
 
 	jsonStringResponse(w, http.StatusOK, "{}")
-	auditRec.Success()
 }
 
 func (a *API) sessionRequired(handler func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {

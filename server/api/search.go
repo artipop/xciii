@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 
 	"github.com/artipop/xciii/server/mlog"
@@ -83,10 +82,6 @@ func (a *API) handleSearchBoards(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "searchBoards", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("teamID", teamID)
-
 	isGuest, err := a.userIsGuest(userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -114,8 +109,6 @@ func (a *API) handleSearchBoards(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.AddMeta("boardsCount", len(boards))
-	auditRec.Success()
 }
 
 func (a *API) handleSearchLinkableBoards(w http.ResponseWriter, r *http.Request) {
@@ -171,10 +164,6 @@ func (a *API) handleSearchLinkableBoards(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "searchLinkableBoards", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("teamID", teamID)
-
 	// retrieve boards list
 	boards, err := a.app.SearchBoardsForUserInTeam(teamID, term, userID)
 	if err != nil {
@@ -203,8 +192,6 @@ func (a *API) handleSearchLinkableBoards(w http.ResponseWriter, r *http.Request)
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.AddMeta("boardsCount", len(linkableBoards))
-	auditRec.Success()
 }
 
 func (a *API) handleSearchAllBoards(w http.ResponseWriter, r *http.Request) {
@@ -243,9 +230,6 @@ func (a *API) handleSearchAllBoards(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "searchAllBoards", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-
 	isGuest, err := a.userIsGuest(userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -272,6 +256,4 @@ func (a *API) handleSearchAllBoards(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.AddMeta("boardsCount", len(boards))
-	auditRec.Success()
 }

@@ -16,7 +16,6 @@ import (
 	"github.com/artipop/xciii/server/app"
 	"github.com/artipop/xciii/server/auth"
 	appModel "github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/services/config"
 	"github.com/artipop/xciii/server/services/notify"
 	"github.com/artipop/xciii/server/services/notify/notifylogger"
@@ -47,7 +46,6 @@ type Server struct {
 	filesBackend           filestore.FileBackend
 	logger                 mlog.LoggerIFace
 	cleanUpSessionsTask    *scheduler.ScheduledTask
-	auditService           *audit.Audit
 	notificationService    *notify.Service
 	servicesStartStopMutex sync.Mutex
 
@@ -83,15 +81,6 @@ func New(params Params) (*Server, error) {
 		return nil, errors.New("unable to initialize the files storage")
 	}
 
-	// Init audit
-	auditService, errAudit := audit.NewAudit()
-	if errAudit != nil {
-		return nil, fmt.Errorf("unable to create the audit service: %w", errAudit)
-	}
-	if err := auditService.Configure(params.Cfg.AuditCfgFile, params.Cfg.AuditCfgJSON); err != nil {
-		return nil, fmt.Errorf("unable to initialize the audit service: %w", err)
-	}
-
 	// Init notification services
 	notificationService, errNotify := initNotificationService(params.NotifyBackends, params.Logger)
 	if errNotify != nil {
@@ -109,7 +98,7 @@ func New(params Params) (*Server, error) {
 	}
 	app := app.New(params.Cfg, wsAdapter, appServices)
 
-	focalboardAPI := api.NewAPI(app, params.SingleUserToken, params.Cfg.AuthMode, params.PermissionsService, params.Logger, auditService)
+	focalboardAPI := api.NewAPI(app, params.SingleUserToken, params.Cfg.AuthMode, params.PermissionsService, params.Logger)
 
 	// Local router for admin APIs
 	localRouter := web.NewRouter()
@@ -135,7 +124,6 @@ func New(params Params) (*Server, error) {
 		webServer:           webServer,
 		store:               params.DBStore,
 		filesBackend:        filesBackend,
-		auditService:        auditService,
 		notificationService: notificationService,
 		logger:              params.Logger,
 		localRouter:         localRouter,
@@ -257,10 +245,6 @@ func (s *Server) Shutdown() error {
 
 	if s.cleanUpSessionsTask != nil {
 		s.cleanUpSessionsTask.Cancel()
-	}
-
-	if err := s.auditService.Shutdown(); err != nil {
-		s.logger.Warn("Error occurred when shutting down audit service", mlog.Err(err))
 	}
 
 	if err := s.notificationService.Shutdown(); err != nil {

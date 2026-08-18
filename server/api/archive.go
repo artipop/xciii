@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 
 	"github.com/artipop/xciii/server/mlog"
@@ -63,10 +62,6 @@ func (a *API) handleArchiveExportBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "archiveExportBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("BoardID", boardID)
-
 	board, err := a.app.GetBoard(boardID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -87,7 +82,6 @@ func (a *API) handleArchiveExportBoard(w http.ResponseWriter, r *http.Request) {
 		a.errorResponse(w, r, err)
 	}
 
-	auditRec.Success()
 }
 
 func (a *API) handleArchiveImport(w http.ResponseWriter, r *http.Request) {
@@ -142,17 +136,12 @@ func (a *API) handleArchiveImport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, handle, err := r.FormFile(UploadFormFileKey)
+	file, _, err := r.FormFile(UploadFormFileKey)
 	if err != nil {
 		fmt.Fprintf(w, "%v", err)
 		return
 	}
 	defer file.Close()
-
-	auditRec := a.makeAuditRecord(r, "import", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("filename", handle.Filename)
-	auditRec.AddMeta("size", handle.Size)
 
 	opt := model.ImportArchiveOptions{
 		TeamID:     teamID,
@@ -169,7 +158,6 @@ func (a *API) handleArchiveImport(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonStringResponse(w, http.StatusOK, "{}")
-	auditRec.Success()
 }
 
 func (a *API) handleArchiveExportTeam(w http.ResponseWriter, r *http.Request) {
@@ -210,10 +198,6 @@ func (a *API) handleArchiveExportTeam(w http.ResponseWriter, r *http.Request) {
 	session, _ := ctx.Value(sessionContextKey).(*model.Session)
 	userID := session.UserID
 
-	auditRec := a.makeAuditRecord(r, "archiveExportTeam", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("TeamID", teamID)
-
 	isGuest, err := a.userIsGuest(userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -244,5 +228,4 @@ func (a *API) handleArchiveExportTeam(w http.ResponseWriter, r *http.Request) {
 		a.errorResponse(w, r, err)
 	}
 
-	auditRec.Success()
 }

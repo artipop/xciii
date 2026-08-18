@@ -7,7 +7,6 @@ import (
 
 	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 )
 
@@ -57,10 +56,6 @@ func (a *API) handleGetMembersForBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "getMembersForBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-
 	members, err := a.app.GetMembersForBoard(boardID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -81,7 +76,6 @@ func (a *API) handleGetMembersForBoard(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handleAddMember(w http.ResponseWriter, r *http.Request) {
@@ -164,11 +158,6 @@ func (a *API) handleAddMember(w http.ResponseWriter, r *http.Request) {
 		SchemeCommenter: reqBoardMember.SchemeCommenter,
 	}
 
-	auditRec := a.makeAuditRecord(r, "addMember", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("addedUserID", reqBoardMember.UserID)
-
 	member, err := a.app.AddMemberToBoard(newBoardMember)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -189,7 +178,6 @@ func (a *API) handleAddMember(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handleJoinBoard(w http.ResponseWriter, r *http.Request) {
@@ -276,11 +264,6 @@ func (a *API) handleJoinBoard(w http.ResponseWriter, r *http.Request) {
 		SchemeViewer:    board.MinimumRole == model.BoardRoleViewer,
 	}
 
-	auditRec := a.makeAuditRecord(r, "joinBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("addedUserID", userID)
-
 	member, err := a.app.AddMemberToBoard(newBoardMember)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -301,7 +284,6 @@ func (a *API) handleJoinBoard(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handleLeaveBoard(w http.ResponseWriter, r *http.Request) {
@@ -351,11 +333,6 @@ func (a *API) handleLeaveBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "leaveBoard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("addedUserID", userID)
-
 	err = a.app.DeleteBoardMember(boardID, userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -369,7 +346,6 @@ func (a *API) handleLeaveBoard(w http.ResponseWriter, r *http.Request) {
 
 	jsonStringResponse(w, http.StatusOK, "{}")
 
-	auditRec.Success()
 }
 
 func (a *API) handleUpdateMember(w http.ResponseWriter, r *http.Request) {
@@ -449,11 +425,6 @@ func (a *API) handleUpdateMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "patchMember", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("patchedUserID", paramsUserID)
-
 	member, err := a.app.UpdateBoardMember(newBoardMember)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -474,7 +445,6 @@ func (a *API) handleUpdateMember(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handleDeleteMember(w http.ResponseWriter, r *http.Request) {
@@ -522,11 +492,6 @@ func (a *API) handleDeleteMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "deleteMember", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("addedUserID", paramsUserID)
-
 	deleteErr := a.app.DeleteBoardMember(boardID, paramsUserID)
 	if deleteErr != nil {
 		a.errorResponse(w, r, deleteErr)
@@ -541,5 +506,4 @@ func (a *API) handleDeleteMember(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonStringResponse(w, http.StatusOK, "{}")
 
-	auditRec.Success()
 }

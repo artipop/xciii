@@ -59,9 +59,6 @@ type Configuration struct {
 	LoggingCfgFile string `json:"logging_cfg_file" mapstructure:"logging_cfg_file"`
 	LoggingCfgJSON string `json:"logging_cfg_json" mapstructure:"logging_cfg_json"`
 
-	AuditCfgFile string `json:"audit_cfg_file" mapstructure:"audit_cfg_file"`
-	AuditCfgJSON string `json:"audit_cfg_json" mapstructure:"audit_cfg_json"`
-
 	NotifyFreqCardSeconds  int `json:"notify_freq_card_seconds" mapstructure:"notify_freq_card_seconds"`
 	NotifyFreqBoardSeconds int `json:"notify_freq_board_seconds" mapstructure:"notify_freq_board_seconds"`
 }

@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/web"
 
 	"github.com/artipop/xciii/server/mlog"
@@ -99,10 +98,6 @@ func (a *API) handleCreateCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "createCard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-
 	// create card
 	card, err := a.app.CreateCard(newCard, boardID, userID, disableNotify)
 	if err != nil {
@@ -125,7 +120,6 @@ func (a *API) handleCreateCard(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handleGetCards(w http.ResponseWriter, r *http.Request) {
@@ -196,12 +190,6 @@ func (a *API) handleGetCards(w http.ResponseWriter, r *http.Request) {
 		a.errorResponse(w, r, model.NewErrBadRequest(message))
 	}
 
-	auditRec := a.makeAuditRecord(r, "getCards", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("boardID", boardID)
-	auditRec.AddMeta("page", page)
-	auditRec.AddMeta("per_page", perPage)
-
 	cards, err := a.app.GetCardsForBoard(boardID, page, perPage)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -225,7 +213,6 @@ func (a *API) handleGetCards(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handlePatchCard(w http.ResponseWriter, r *http.Request) {
@@ -295,11 +282,6 @@ func (a *API) handlePatchCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "patchCard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("boardID", card.BoardID)
-	auditRec.AddMeta("cardID", card.ID)
-
 	// patch card
 	cardPatched, err := a.app.PatchCard(patch, card.ID, userID, disableNotify)
 	if err != nil {
@@ -322,7 +304,6 @@ func (a *API) handlePatchCard(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 // moveCardRequest names the board a card is being carried to. A body rather
@@ -405,12 +386,6 @@ func (a *API) handleMoveCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "moveCard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelModify, auditRec)
-	auditRec.AddMeta("cardID", card.ID)
-	auditRec.AddMeta("boardID", card.BoardID)
-	auditRec.AddMeta("toBoardID", req.ToBoardID)
-
 	moved, err := a.app.MoveCardToBoard(card.ID, req.ToBoardID, userID)
 	if err != nil {
 		a.errorResponse(w, r, err)
@@ -431,7 +406,6 @@ func (a *API) handleMoveCard(w http.ResponseWriter, r *http.Request) {
 
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
 
 func (a *API) handleGetCard(w http.ResponseWriter, r *http.Request) {
@@ -475,11 +449,6 @@ func (a *API) handleGetCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := a.makeAuditRecord(r, "getCard", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("boardID", card.BoardID)
-	auditRec.AddMeta("cardID", card.ID)
-
 	a.logger.Debug("GetCard",
 		mlog.String("boardID", card.BoardID),
 		mlog.String("cardID", card.ID),
@@ -495,5 +464,4 @@ func (a *API) handleGetCard(w http.ResponseWriter, r *http.Request) {
 	// response
 	jsonBytesResponse(w, http.StatusOK, data)
 
-	auditRec.Success()
 }
