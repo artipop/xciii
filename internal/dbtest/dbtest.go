@@ -32,9 +32,11 @@ const (
 	EnvPort   = "FOCALBOARD_STORE_TEST_DOCKER_PORT"
 )
 
-// The credentials the fork's fixture hard-codes. A container has to be started
-// with these or the fixture cannot connect: it opens as the root user to create
-// a database per run, then hands the tests a DSN for mmuser.
+// The credentials the fork's fixture hard-codes (PrepareNewTestDatabase). A
+// container has to be started with exactly these or the fixture cannot connect:
+// on MySQL it opens as root to create a database per run and to grant on it,
+// then hands the tests a DSN for mmuser; on Postgres mmuser does both, being the
+// superuser there.
 const (
 	rootPassword = "mostest"
 	appUser      = "mmuser"

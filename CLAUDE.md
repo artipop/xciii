@@ -1764,11 +1764,16 @@ shopping lists look like it was missing one.
   schema maintained by hand is a second description of it, and the second one
   goes wrong. Which tables are drawn together is the one hand-written part
   (`erdGroups`), because that is a judgement rather than something the schema
-  knows. `docs/db-erd.md` is what is stored where in words,
+  knows. `python3 tools/schemapage.py` dresses the same markdown as
+  `docs/schema/erd.html` — a page to open in a browser, presentation only, and
+  nothing in the Go build calls it. `docs/db-erd.md` is what is stored where in words,
   `docs/model-graph.md` is how one thing finds another — and what is still found
   by name rather than by id — `docs/db-schema-review.md` is the decisions
-  behind it, and `docs/store-plan.md` is the work that followed. `docs/schema/
-  ent.md` is why ent was weighed and turned down. The rule they are kept to: **a
+  behind it, `docs/store-plan.md` is the work that followed, and
+  `docs/sql-dialects.md` is the inventory of what is still written per vendor —
+  fifteen branches in the queries, ten of them the same upsert, two of them
+  functions only a test calls. `docs/sql-plan.md` is that half's plan and its
+  history. `docs/schema/ent.md` is why ent was weighed and turned down. The rule they are kept to: **a
   reference is a foreign key** — everything referable lives in one database and
   has an id, the settings file holds only what nothing points at, and nothing at
   all is found by name.

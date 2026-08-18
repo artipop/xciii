@@ -1,0 +1,766 @@
+<title>Схема базы XCIII</title>
+<style>
+  :root {
+    --ground:  #f4f6f8;
+    --surface: #ffffff;
+    --ink:     #14171d;
+    --muted:   #5b6472;
+    --faint:   #8c94a1;
+    --line:    #dfe4ea;
+    --line-2:  #eef1f5;
+    --accent:  #a2540b;
+    --accent-soft: #fdf3e3;
+    --plate:   #fcfcfd;
+    --plate-line: #dfe4ea;
+    --shadow: 0 1px 2px rgba(20, 23, 29, .05), 0 8px 24px -16px rgba(20, 23, 29, .3);
+
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:  #0f1217;
+      --surface: #161a21;
+      --ink:     #e6e9ee;
+      --muted:   #949daa;
+      --faint:   #6e7784;
+      --line:    #252b34;
+      --line-2:  #1d222a;
+      --accent:  #efa945;
+      --accent-soft: #2a2113;
+      --plate:   #e8ebef;
+      --plate-line: #2b313b;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -18px rgba(0, 0, 0, .9);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:  #0f1217;
+    --surface: #161a21;
+    --ink:     #e6e9ee;
+    --muted:   #949daa;
+    --faint:   #6e7784;
+    --line:    #252b34;
+    --line-2:  #1d222a;
+    --accent:  #efa945;
+    --accent-soft: #2a2113;
+    --plate:   #e8ebef;
+    --plate-line: #2b313b;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -18px rgba(0, 0, 0, .9);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: .88em;
+    background: var(--line-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: .05em .32em;
+    white-space: nowrap;
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  /* ---- masthead ---- */
+  .masthead {
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .masthead-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 40px 28px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0;
+  }
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(28px, 4.4vw, 42px);
+    font-weight: 600;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h1 .dot { color: var(--accent); }
+  .standfirst {
+    max-width: 62ch;
+    margin: 0;
+    color: var(--muted);
+    font-size: 16.5px;
+  }
+  .standfirst code { background: transparent; border-color: transparent; padding: 0; color: var(--ink); }
+
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    align-self: flex-start;
+  }
+  .stat {
+    padding: 12px 22px 11px;
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .stat:last-child { border-right: 0; }
+  .stat b {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .stat span {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  /* ---- shell ---- */
+  .shell {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 28px 96px;
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+  }
+
+  nav {
+    position: sticky;
+    top: 0;
+    padding: 40px 0;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  nav p {
+    margin: 0 0 12px;
+    font-size: 10.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  nav a {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    padding: 6px 0;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line-2);
+  }
+  nav a:hover { color: var(--ink); }
+  nav a:hover .nav-count { color: var(--accent); }
+  .nav-count { font-variant-numeric: tabular-nums; color: var(--faint); font-size: 12px; }
+
+  main { padding: 40px 0 0; min-width: 0; }
+
+  .preamble {
+    border-left: 2px solid var(--accent);
+    padding: 2px 0 2px 20px;
+    margin: 0 0 56px;
+    max-width: 66ch;
+  }
+  .preamble p { margin: 0 0 .85em; color: var(--muted); }
+  .preamble p:last-child { margin-bottom: 0; }
+
+  .group { margin: 0 0 68px; scroll-margin-top: 24px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  h2 {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    margin: 0 0 14px;
+  }
+  .prose { max-width: 66ch; }
+  .prose p { margin: 0 0 .9em; }
+  .prose p:last-child { margin-bottom: 0; }
+
+  /* Diagrams are printed plates: a paper surface in both themes. The diagram
+     spells out its own palette (MERMAID_THEME) instead of inheriting one —
+     inheriting is what made them dark-on-dark and unreadable. */
+  .plate {
+    margin: 24px 0 0;
+    padding: 20px;
+    background: var(--plate);
+    border: 1px solid var(--plate-line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+  }
+  .plate .mermaid { margin: 0; }
+  .plate svg { max-width: none; height: auto; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 28px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  footer ul { margin: 10px 0 0; padding-left: 18px; }
+  footer li { margin-bottom: 4px; }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    nav { position: static; padding: 32px 0 0; }
+    nav ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0 20px; }
+    main { padding-top: 32px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="kicker">xciii · один файл, 35 таблиц</p>
+    <h1>Схема базы<span class="dot">.</span></h1>
+    <p class="standfirst">Всё, что знает приложение, — про карточку или доску, а карточка это строка
+      в <code>blocks</code>. Поэтому база одна: доска (форк Focalboard) и наши таблицы рядом, с настоящими
+      внешними ключами между ними.</p>
+    <div class="stats">
+      <div class="stat"><b>35</b><span>таблиц</span></div>
+      <div class="stat"><b>23</b><span>внешних ключей</span></div>
+      <div class="stat"><b>18</b><span>из них CASCADE</span></div>
+      <div class="stat"><b>1</b><span>шаг миграции</span></div>
+      <div class="stat"><b>3</b><span>диалекта</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav>
+    <p>Группы</p>
+    <ul>
+      <li><a href="#g0"><span class="nav-name">Доска</span><span class="nav-count">14</span></a></li>
+      <li><a href="#g1"><span class="nav-name">История доски</span><span class="nav-count">3</span></a></li>
+      <li><a href="#g2"><span class="nav-name">Реестры</span><span class="nav-count">5</span></a></li>
+      <li><a href="#g3"><span class="nav-name">Разговоры и сессии</span><span class="nav-count">3</span></a></li>
+      <li><a href="#g4"><span class="nav-name">Маршруты</span><span class="nav-count">4</span></a></li>
+      <li><a href="#g5"><span class="nav-name">Работа в папке</span><span class="nav-count">2</span></a></li>
+      <li><a href="#g6"><span class="nav-name">Входящие</span><span class="nav-count">2</span></a></li>
+      <li><a href="#g7"><span class="nav-name">Защёлки</span><span class="nav-count">2</span></a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="preamble"><p>Одна база — <code>xciii.db</code> — и в ней всё: таблицы доски (форк Focalboard) и таблицы этого приложения. Схему держит <code>tools/schemagen</code> как Go-данные; оттуда же и миграция для трёх диалектов, и эта страница, так что разойтись им негде.</p>
+<p>Типы на схеме — не типы SQL, а то, что в колонке: <code>id</code>, <code>millis</code> (момент в unix-миллисекундах), <code>name_36</code> (короткая техническая строка), <code>json</code>, <code>text</code>. Как это ложится на SQLite, MySQL и Postgres — в <code>tools/schemagen/types.go</code>.</p>
+<p>Подписи у колонок английские, потому что это цитата: они взяты из <code>tools/schemagen</code> слово в слово, а перевод был бы вторым описанием — ровно тем, что эта страница и заводится, чтобы не заводить.</p>
+<p>Где у колонки закрытый набор значений, он написан вместо подписи: это <code>CHECK</code> в схеме, а не соглашение. Ставится он только там, где набор закрыт <strong>моделью</strong> (три способа работать с папкой, жизненный цикл сессии), и не ставится там, где это список, который растёт, — вид агента, имя события.</p>
+<p>На стрелках написано, что происходит со строкой, когда исчезает то, на что она смотрит. Ради этого таблицы и съехались в одну базу: пока их было три файла, удаление карточки не могло убрать за собой ничего.</p></div>
+
+      <section class="group" id="g0">
+        <p class="eyebrow">14 таблиц</p>
+        <h2>Доска</h2>
+        <div class="prose"><p>Форк Focalboard. Всё содержимое доски — строки <code>blocks</code>: карточка, вид, комментарий, вложение; дерево внутри доски — через <code>parent_id</code>. Наша автоматика лежит в <code>boards.properties</code> (<code>xciiiColumns</code>, <code>xciiiFlows</code>, <code>xciiiPrompt</code>, …) и в <code>blocks.fields</code> карточки, своих таблиц у неё нет — потому и едет с доской при экспорте и переезде.</p>
+<p>Внешних ключей здесь нет, и намеренно: у форка наследный soft-delete, так что настоящий ключ сработал бы ровно на тех путях, где удаление настоящее.</p></div>
+        <figure class="plate">
+          <pre class="mermaid">%%{init: {&#x27;theme&#x27;:&#x27;base&#x27;,&#x27;themeVariables&#x27;:{&#x27;fontFamily&#x27;:&#x27;ui-monospace, SFMono-Regular, Menlo, Consolas, monospace&#x27;,&#x27;fontSize&#x27;:&#x27;13px&#x27;,&#x27;primaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;primaryTextColor&#x27;:&#x27;#14171d&#x27;,&#x27;primaryBorderColor&#x27;:&#x27;#aab3bf&#x27;,&#x27;secondaryColor&#x27;:&#x27;#f4f6f8&#x27;,&#x27;tertiaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;lineColor&#x27;:&#x27;#7c8493&#x27;,&#x27;textColor&#x27;:&#x27;#14171d&#x27;,&#x27;nodeBorder&#x27;:&#x27;#aab3bf&#x27;,&#x27;mainBkg&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorOdd&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorEven&#x27;:&#x27;#f4f6f8&#x27;}}}%%
+erDiagram
+
+    boards {
+        name_36 id PK
+        timestamp insert_at
+        name_36 team_id
+        name_36 channel_id &quot;A remnant of the Mattermost plugin. Nothing writes it.&quot;
+        name_36 created_by &quot;nullable&quot;
+        name_36 modified_by &quot;nullable&quot;
+        name_1 type &quot;O — open, P — private.&quot;
+        text title
+        text description &quot;nullable&quot;
+        name_256 icon &quot;nullable&quot;
+        bool show_description &quot;nullable&quot;
+        bool is_template &quot;nullable&quot;
+        int32 template_version &quot;nullable&quot;
+        text properties &quot;The board&#x27;s own automation lives here — xciiiColumns, xciiiFlows, xciiiPrompt and the records of which…&quot;
+        text card_properties &quot;The schema of a card&#x27;s fields. The product&#x27;s main denormalisation, and deliberately left alone: the whole…&quot;
+        millis create_at &quot;nullable&quot;
+        millis update_at &quot;nullable&quot;
+        millis delete_at &quot;nullable&quot;
+        name_36 minimum_role
+    }
+    blocks {
+        name_36 id PK &quot;Nullable, which a primary key makes impossible in practice — but this is what the migrations leave, and…&quot;
+        timestamp insert_at
+        name_36 parent_id &quot;The tree inside a board: a comment or a text block hangs off a card.&quot;
+        millis schema &quot;A version number for the row&#x27;s own shape. Backticked by the fork&#x27;s queries on MySQL, where `schema` is…&quot;
+        text type &quot;nullable&quot;
+        text title &quot;nullable&quot;
+        text fields &quot;The card&#x27;s field values, {property_id: value}.&quot;
+        millis create_at &quot;nullable&quot;
+        millis update_at &quot;nullable&quot;
+        millis delete_at &quot;nullable&quot;
+        name_36 modified_by &quot;nullable&quot;
+        name_36 channel_id &quot;nullable&quot;
+        name_36 created_by &quot;nullable&quot;
+        name_36 board_id &quot;nullable&quot;
+    }
+    board_members {
+        name_36 board_id PK
+        name_36 user_id PK
+        name_64 roles &quot;nullable&quot;
+        bool scheme_admin &quot;nullable&quot;
+        bool scheme_editor &quot;nullable&quot;
+        bool scheme_commenter &quot;nullable&quot;
+        bool scheme_viewer &quot;nullable&quot;
+    }
+    users {
+        name_100 id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_100 username &quot;nullable&quot;
+        name_255 email &quot;nullable&quot;
+        name_100 password &quot;nullable&quot;
+        name_100 mfa_secret &quot;nullable&quot;
+        name_20 auth_service &quot;nullable&quot;
+        name_255 auth_data &quot;nullable&quot;
+        text props &quot;nullable&quot;
+        millis create_at &quot;nullable&quot;
+        millis update_at &quot;nullable&quot;
+        millis delete_at &quot;nullable&quot;
+    }
+    sessions {
+        name_100 id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_100 token &quot;nullable&quot;
+        name_100 user_id &quot;nullable&quot;
+        text props &quot;nullable&quot;
+        millis create_at &quot;nullable&quot;
+        millis update_at &quot;nullable&quot;
+        name_20 auth_service &quot;nullable&quot;
+    }
+    categories {
+        name_36 id PK
+        name_100 name
+        name_36 user_id
+        name_36 team_id
+        name_36 channel_id &quot;nullable&quot;
+        millis create_at &quot;nullable&quot;
+        millis update_at &quot;nullable&quot;
+        millis delete_at &quot;nullable&quot;
+        bool collapsed &quot;nullable&quot;
+        name_64 type &quot;nullable&quot;
+        millis sort_order &quot;nullable&quot;
+    }
+    category_boards {
+        name_36 id PK
+        name_36 user_id
+        name_36 category_id
+        name_36 board_id
+        millis create_at &quot;nullable&quot;
+        millis update_at &quot;nullable&quot;
+        millis sort_order &quot;nullable&quot;
+        bool hidden &quot;nullable&quot;
+    }
+    sharing {
+        name_36 id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        bool enabled &quot;nullable&quot;
+        name_100 token &quot;nullable&quot;
+        name_36 modified_by &quot;nullable&quot;
+        millis update_at &quot;nullable&quot;
+    }
+    subscriptions {
+        name_10 block_type &quot;nullable&quot;
+        name_36 block_id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_10 subscriber_type &quot;nullable&quot;
+        name_36 subscriber_id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        millis notified_at &quot;nullable&quot;
+        millis create_at &quot;nullable&quot;
+        millis delete_at &quot;nullable&quot;
+    }
+    notification_hints {
+        name_10 block_type &quot;nullable&quot;
+        name_36 block_id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_36 modified_by_id &quot;nullable&quot;
+        millis create_at &quot;nullable&quot;
+        millis notify_at &quot;nullable&quot;
+    }
+    file_info {
+        name_36 id &quot;Widened from the 26 the ladder declared, and the one place this schema deliberately differs from it. It was…&quot;
+        millis create_at
+        millis delete_at &quot;nullable&quot;
+        text name
+        name_50 extension
+        millis size
+        bool archived &quot;nullable&quot;
+        name_512 path &quot;nullable&quot;
+    }
+    preferences {
+        name_36 userid PK
+        name_32 category PK
+        name_32 name PK
+        text value &quot;nullable&quot;
+    }
+    teams {
+        name_36 id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_100 signup_token
+        text settings &quot;nullable&quot;
+        name_36 modified_by &quot;nullable&quot;
+        millis update_at &quot;nullable&quot;
+    }
+    system_settings {
+        name_100 id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        text value &quot;nullable&quot;
+    }</pre>
+        </figure>
+      </section>
+      <section class="group" id="g1">
+        <p class="eyebrow">3 таблиц</p>
+        <h2>История доски</h2>
+        <div class="prose"><p>Каждая правка дописывает строку. Механизм апстрима: undo этого продукта живёт на странице (<code>webapp/src/undomanager.ts</code>), экрана истории нет. <code>insert_at</code> — часть первичного ключа, и приходит он из Go (<code>utils.NextInsertAt</code>), а не из часов базы: внутри транзакции часы базы отдают всем строкам один и тот же момент.</p></div>
+        <figure class="plate">
+          <pre class="mermaid">%%{init: {&#x27;theme&#x27;:&#x27;base&#x27;,&#x27;themeVariables&#x27;:{&#x27;fontFamily&#x27;:&#x27;ui-monospace, SFMono-Regular, Menlo, Consolas, monospace&#x27;,&#x27;fontSize&#x27;:&#x27;13px&#x27;,&#x27;primaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;primaryTextColor&#x27;:&#x27;#14171d&#x27;,&#x27;primaryBorderColor&#x27;:&#x27;#aab3bf&#x27;,&#x27;secondaryColor&#x27;:&#x27;#f4f6f8&#x27;,&#x27;tertiaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;lineColor&#x27;:&#x27;#7c8493&#x27;,&#x27;textColor&#x27;:&#x27;#14171d&#x27;,&#x27;nodeBorder&#x27;:&#x27;#aab3bf&#x27;,&#x27;mainBkg&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorOdd&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorEven&#x27;:&#x27;#f4f6f8&#x27;}}}%%
+erDiagram
+
+    boards_history {
+        name_36 id PK
+        timestamp insert_at PK
+        name_36 team_id
+        name_36 channel_id &quot;A remnant of the Mattermost plugin. Nothing writes it.&quot;
+        name_36 created_by &quot;nullable&quot;
+        name_36 modified_by &quot;nullable&quot;
+        name_1 type &quot;O — open, P — private.&quot;
+        text title
+        text description &quot;nullable&quot;
+        name_256 icon &quot;nullable&quot;
+        bool show_description &quot;nullable&quot;
+        bool is_template &quot;nullable&quot;
+        int32 template_version &quot;nullable&quot;
+        text properties &quot;The board&#x27;s own automation lives here — xciiiColumns, xciiiFlows, xciiiPrompt and the records of which…&quot;
+        text card_properties &quot;The schema of a card&#x27;s fields. The product&#x27;s main denormalisation, and deliberately left alone: the whole…&quot;
+        millis create_at &quot;nullable&quot;
+        millis update_at &quot;nullable&quot;
+        millis delete_at &quot;nullable&quot;
+        name_36 minimum_role
+    }
+    blocks_history {
+        name_36 id PK &quot;Nullable, which a primary key makes impossible in practice — but this is what the migrations leave, and…&quot;
+        timestamp insert_at PK
+        name_36 parent_id &quot;The tree inside a board: a comment or a text block hangs off a card.&quot;
+        millis schema &quot;A version number for the row&#x27;s own shape. Backticked by the fork&#x27;s queries on MySQL, where `schema` is…&quot;
+        text type &quot;nullable&quot;
+        text title &quot;nullable&quot;
+        text fields &quot;The card&#x27;s field values, {property_id: value}.&quot;
+        millis create_at &quot;nullable&quot;
+        millis update_at &quot;nullable&quot;
+        millis delete_at &quot;nullable&quot;
+        name_36 modified_by &quot;nullable&quot;
+        name_36 channel_id &quot;nullable&quot;
+        name_36 created_by &quot;nullable&quot;
+        name_36 board_id &quot;nullable&quot;
+    }
+    board_members_history {
+        name_36 board_id PK
+        name_36 user_id PK
+        name_10 action &quot;nullable&quot;
+        timestamp insert_at PK
+    }</pre>
+        </figure>
+      </section>
+      <section class="group" id="g2">
+        <p class="eyebrow">5 таблиц · 5 ключей</p>
+        <h2>Реестры</h2>
+        <div class="prose"><p>Что знает эта машина: где работать, кем и куда публиковать. Были массивами в <code>config.json</code>, где у записи не было id и ссылаться на неё можно было только по имени — то есть нельзя было переименовать.</p></div>
+        <figure class="plate">
+          <pre class="mermaid">%%{init: {&#x27;theme&#x27;:&#x27;base&#x27;,&#x27;themeVariables&#x27;:{&#x27;fontFamily&#x27;:&#x27;ui-monospace, SFMono-Regular, Menlo, Consolas, monospace&#x27;,&#x27;fontSize&#x27;:&#x27;13px&#x27;,&#x27;primaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;primaryTextColor&#x27;:&#x27;#14171d&#x27;,&#x27;primaryBorderColor&#x27;:&#x27;#aab3bf&#x27;,&#x27;secondaryColor&#x27;:&#x27;#f4f6f8&#x27;,&#x27;tertiaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;lineColor&#x27;:&#x27;#7c8493&#x27;,&#x27;textColor&#x27;:&#x27;#14171d&#x27;,&#x27;nodeBorder&#x27;:&#x27;#aab3bf&#x27;,&#x27;mainBkg&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorOdd&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorEven&#x27;:&#x27;#f4f6f8&#x27;}}}%%
+erDiagram
+    boards ||--o{ workspace : &quot;board_id SET NULL&quot;
+    boards ||--o{ workspace_board : &quot;board_id CASCADE&quot;
+    proxy ||--o{ agent : &quot;proxy_id SET NULL&quot;
+    users ||--o{ agent : &quot;user_id SET NULL&quot;
+    workspace ||--o{ workspace_board : &quot;workspace_id CASCADE&quot;
+
+    workspace {
+        id id PK
+        name_200 name &quot;A caption, not a key. Renaming it breaks nothing, which is the whole reason the id exists.&quot;
+        text path &quot;nullable&quot;
+        id board_id FK &quot;The board that offers this folder, and the only one that does. NULL means no board has claimed it — a state…&quot;
+        bool global &quot;«На всех досках»: one entry seen from several boards, which is what makes the mode belong to…&quot;
+        name_16 kind &quot;What somebody was promised, not what the folder happens to be: &#x27;git&#x27; means a repository was demanded and one…&quot;
+        name_200 base_branch &quot;nullable&quot;
+        name_64 branch_prefix &quot;nullable&quot;
+        millis created_at
+    }
+    workspace_board {
+        id workspace_id PK, FK
+        id board_id PK, FK
+        name_16 mode &quot;worktree | branch — NULL means nobody answered, and the machine&#x27;s own default stands in.&quot;
+    }
+    agent {
+        id id PK
+        name_100 name &quot;On screen and in the account&#x27;s username. No longer a reference.&quot;
+        name_32 kind
+        id user_id FK &quot;The board account. NULL until one is made, and NULL again if it is deleted: the registry entry is the…&quot;
+        id proxy_id FK &quot;nullable&quot;
+        text bin_path &quot;nullable&quot;
+        name_100 model &quot;nullable&quot;
+        text prompt &quot;nullable&quot;
+        json settings &quot;env, args, cliArgs, options, autoAllowTools, command, terminalCommand, mcpServers. JSON on purpose: this is…&quot;
+        millis created_at
+    }
+    proxy {
+        id id PK
+        name_100 name
+        text url &quot;nullable&quot;
+        text no_proxy &quot;nullable&quot;
+        text ca_cert &quot;nullable&quot;
+        name_100 username &quot;nullable&quot;
+        text password &quot;Kept apart from the URL so it is entered raw and masked on screen. Still stored in the clear here, exactly as…&quot;
+        millis created_at
+    }
+    deploy_target {
+        id id PK
+        name_100 name
+        name_255 ssh_host
+        name_64 ssh_user &quot;nullable&quot;
+        int ssh_port &quot;nullable&quot;
+        text ssh_key &quot;nullable&quot;
+        name_100 base_app &quot;nullable&quot;
+        name_255 base_domain &quot;nullable&quot;
+        millis created_at
+    }</pre>
+        </figure>
+      </section>
+      <section class="group" id="g3">
+        <p class="eyebrow">3 таблиц · 5 ключей</p>
+        <h2>Разговоры и сессии</h2>
+        <div class="prose"><p>Ось — карточка (<code>blocks.id</code>) и нода: id опции колонки, на которой карточка стоит. Разговор переживает процесс, который его рисовал (<code>claude --continue</code>), сессия — это один запуск и один вердикт; поэтому таблицы две.</p></div>
+        <figure class="plate">
+          <pre class="mermaid">%%{init: {&#x27;theme&#x27;:&#x27;base&#x27;,&#x27;themeVariables&#x27;:{&#x27;fontFamily&#x27;:&#x27;ui-monospace, SFMono-Regular, Menlo, Consolas, monospace&#x27;,&#x27;fontSize&#x27;:&#x27;13px&#x27;,&#x27;primaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;primaryTextColor&#x27;:&#x27;#14171d&#x27;,&#x27;primaryBorderColor&#x27;:&#x27;#aab3bf&#x27;,&#x27;secondaryColor&#x27;:&#x27;#f4f6f8&#x27;,&#x27;tertiaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;lineColor&#x27;:&#x27;#7c8493&#x27;,&#x27;textColor&#x27;:&#x27;#14171d&#x27;,&#x27;nodeBorder&#x27;:&#x27;#aab3bf&#x27;,&#x27;mainBkg&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorOdd&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorEven&#x27;:&#x27;#f4f6f8&#x27;}}}%%
+erDiagram
+    agent_session ||--o{ session_event : &quot;session_id CASCADE&quot;
+    blocks ||--o{ agent_session : &quot;card_id CASCADE&quot;
+    blocks ||--o{ conversation : &quot;card_id CASCADE&quot;
+    boards ||--o{ agent_session : &quot;board_id CASCADE&quot;
+    boards ||--o{ conversation : &quot;board_id CASCADE&quot;
+
+    conversation {
+        id id PK
+        id card_id FK &quot;NULL for a planning conversation: it is about no card.&quot;
+        id board_id FK &quot;nullable&quot;
+        name_64 node_id &quot;The column&#x27;s option id — work; &#x27;@talk&#x27; — discussion; &#x27;@none&#x27; — a card with no column at all.&quot;
+        name_200 column_name &quot;What the column was called at the time, frozen: the option may be gone, and the row still has to read the…&quot;
+        text title &quot;nullable&quot;
+        text summary &quot;The agent&#x27;s own line about what this conversation is doing.&quot;
+        name_100 agent &quot;nullable&quot;
+        name_32 kind &quot;nullable&quot;
+        text workdir_path &quot;Was repo_path. Becomes workspace_id in the second half of step 2, together with the code that resolves a…&quot;
+        text cwd &quot;nullable&quot;
+        name_255 branch &quot;nullable&quot;
+        millis started_at
+        millis ended_at &quot;nullable&quot;
+        int exit_code &quot;nullable&quot;
+    }
+    agent_session {
+        id id PK
+        id card_id FK &quot;NULL for a run that is about no card — naming a branch is one.&quot;
+        id board_id FK &quot;nullable&quot;
+        name_32 agent_kind
+        name_100 acp_session_id &quot;nullable&quot;
+        name_24 status &quot;queued | running | idle | waiting_permission | done | failed | cancelled&quot;
+        text cwd &quot;nullable&quot;
+        text worktree_path &quot;nullable&quot;
+        name_255 branch &quot;nullable&quot;
+        millis started_at
+        millis finished_at &quot;NULL means the session is still live.&quot;
+        text error_text &quot;nullable&quot;
+    }
+    session_event {
+        id id PK
+        id session_id FK
+        name_32 kind
+        json payload_json &quot;nullable&quot;
+        millis created_at
+    }</pre>
+        </figure>
+      </section>
+      <section class="group" id="g4">
+        <p class="eyebrow">4 таблиц · 6 ключей</p>
+        <h2>Маршруты</h2>
+        <div class="prose"><p>Где карточка на маршруте, как она туда попала и почему стоит. <code>card_stall</code> — одна текущая причина, а не журнал: «в колонке нет места» верно только пока верно, и комментарий пережил бы её шумом.</p></div>
+        <figure class="plate">
+          <pre class="mermaid">%%{init: {&#x27;theme&#x27;:&#x27;base&#x27;,&#x27;themeVariables&#x27;:{&#x27;fontFamily&#x27;:&#x27;ui-monospace, SFMono-Regular, Menlo, Consolas, monospace&#x27;,&#x27;fontSize&#x27;:&#x27;13px&#x27;,&#x27;primaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;primaryTextColor&#x27;:&#x27;#14171d&#x27;,&#x27;primaryBorderColor&#x27;:&#x27;#aab3bf&#x27;,&#x27;secondaryColor&#x27;:&#x27;#f4f6f8&#x27;,&#x27;tertiaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;lineColor&#x27;:&#x27;#7c8493&#x27;,&#x27;textColor&#x27;:&#x27;#14171d&#x27;,&#x27;nodeBorder&#x27;:&#x27;#aab3bf&#x27;,&#x27;mainBkg&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorOdd&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorEven&#x27;:&#x27;#f4f6f8&#x27;}}}%%
+erDiagram
+    blocks ||--o{ card_stall : &quot;card_id CASCADE&quot;
+    blocks ||--o{ flow_event : &quot;card_id CASCADE&quot;
+    blocks ||--o{ flow_state : &quot;card_id CASCADE&quot;
+    blocks ||--o{ stage_queue : &quot;card_id CASCADE&quot;
+    boards ||--o{ flow_state : &quot;board_id CASCADE&quot;
+    boards ||--o{ stage_queue : &quot;board_id CASCADE&quot;
+
+    flow_state {
+        id card_id PK, FK
+        id board_id FK &quot;nullable&quot;
+        name_200 flow &quot;The route&#x27;s name. It has no id of its own yet — contradiction 4 of docs/model-graph.md, which lives inside…&quot;
+        name_64 node_id
+        name_255 branch &quot;nullable&quot;
+        text workdir_path &quot;nullable&quot;
+        millis entered_at
+    }
+    flow_event {
+        id id PK
+        id card_id FK
+        name_200 flow
+        name_64 from_node &quot;nullable&quot;
+        name_64 to_node
+        name_32 on_kind
+        text detail &quot;nullable&quot;
+        text said &quot;The agent&#x27;s closing words: what a conversation is told instead of its task when the card comes back to it.&quot;
+        millis created_at
+    }
+    card_stall {
+        id card_id PK, FK
+        name_64 node_id &quot;nullable&quot;
+        name_32 kind &quot;&#x27;conversation&#x27; is the one kind with somewhere to go: open the terminal. The rest have no button, which is why…&quot;
+        text reason
+        millis created_at
+    }
+    stage_queue {
+        id card_id PK, FK
+        id board_id FK &quot;nullable&quot;
+        name_128 column_key &quot;board|option — the queue belongs to one column of one board.&quot;
+        name_200 flow &quot;nullable&quot;
+        name_64 node_id &quot;nullable&quot;
+        millis queued_at
+    }</pre>
+        </figure>
+      </section>
+      <section class="group" id="g5">
+        <p class="eyebrow">2 таблиц · 4 ключа</p>
+        <h2>Работа в папке</h2>
+        <div class="prose"><p><code>checkout</code> — git-состояние: где копия, какая ветка, от чего отрезана. Владелец — карточка либо доска («черновики доски»), ровно одна из двух колонок заполнена; обычная папка не пишет строки вовсе.</p></div>
+        <figure class="plate">
+          <pre class="mermaid">%%{init: {&#x27;theme&#x27;:&#x27;base&#x27;,&#x27;themeVariables&#x27;:{&#x27;fontFamily&#x27;:&#x27;ui-monospace, SFMono-Regular, Menlo, Consolas, monospace&#x27;,&#x27;fontSize&#x27;:&#x27;13px&#x27;,&#x27;primaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;primaryTextColor&#x27;:&#x27;#14171d&#x27;,&#x27;primaryBorderColor&#x27;:&#x27;#aab3bf&#x27;,&#x27;secondaryColor&#x27;:&#x27;#f4f6f8&#x27;,&#x27;tertiaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;lineColor&#x27;:&#x27;#7c8493&#x27;,&#x27;textColor&#x27;:&#x27;#14171d&#x27;,&#x27;nodeBorder&#x27;:&#x27;#aab3bf&#x27;,&#x27;mainBkg&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorOdd&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorEven&#x27;:&#x27;#f4f6f8&#x27;}}}%%
+erDiagram
+    blocks ||--o{ checkout : &quot;card_id CASCADE&quot;
+    boards ||--o{ checkout : &quot;board_id CASCADE&quot;
+    workspace ||--o{ checkout : &quot;workspace_id RESTRICT&quot;
+    workspace ||--o{ vcs_seen : &quot;workspace_id CASCADE&quot;
+
+    checkout {
+        id id PK &quot;A surrogate, and the one place in this schema where that is right: the natural key would have to include a…&quot;
+        id workspace_id FK
+        id card_id FK &quot;nullable&quot;
+        id board_id FK &quot;Set for «черновики доски»: a conversation with no card still works somewhere, and that…&quot;
+        name_16 mode &quot;worktree | branch | plain&quot;
+        name_255 branch &quot;nullable&quot;
+        text path &quot;Where the copy is. Not the workspace&#x27;s own path — that is on the workspace, and this is the worktree cut…&quot;
+        name_255 base &quot;What the branch was cut from, and therefore what «merged» means.&quot;
+        millis created_at
+        millis released_at &quot;NULL means the checkout is live.&quot;
+    }
+    vcs_seen {
+        id workspace_id PK, FK
+        name_255 branch PK
+        name_32 kind PK
+        name_64 marker &quot;The commit the event refers to: the same state seen twice fires once.&quot;
+        millis created_at
+    }</pre>
+        </figure>
+      </section>
+      <section class="group" id="g6">
+        <p class="eyebrow">2 таблиц · 2 ключа</p>
+        <h2>Входящие</h2>
+        <div class="prose"><p>Дедуп и журнал. <code>card_id</code> здесь <code>SET NULL</code>, а не <code>CASCADE</code>: решение источника переживает карточку, которая из него вышла.</p></div>
+        <figure class="plate">
+          <pre class="mermaid">%%{init: {&#x27;theme&#x27;:&#x27;base&#x27;,&#x27;themeVariables&#x27;:{&#x27;fontFamily&#x27;:&#x27;ui-monospace, SFMono-Regular, Menlo, Consolas, monospace&#x27;,&#x27;fontSize&#x27;:&#x27;13px&#x27;,&#x27;primaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;primaryTextColor&#x27;:&#x27;#14171d&#x27;,&#x27;primaryBorderColor&#x27;:&#x27;#aab3bf&#x27;,&#x27;secondaryColor&#x27;:&#x27;#f4f6f8&#x27;,&#x27;tertiaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;lineColor&#x27;:&#x27;#7c8493&#x27;,&#x27;textColor&#x27;:&#x27;#14171d&#x27;,&#x27;nodeBorder&#x27;:&#x27;#aab3bf&#x27;,&#x27;mainBkg&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorOdd&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorEven&#x27;:&#x27;#f4f6f8&#x27;}}}%%
+erDiagram
+    blocks ||--o{ source_event : &quot;card_id SET NULL&quot;
+    blocks ||--o{ source_item : &quot;card_id SET NULL&quot;
+
+    source_item {
+        name_100 source PK
+        name_255 external_id PK
+        name_255 version &quot;The service&#x27;s own updated/etag: changed means there is something to add.&quot;
+        id card_id FK &quot;nullable&quot;
+        millis created_at
+        millis updated_at
+    }
+    source_event {
+        id id PK
+        name_100 source
+        name_255 external_id &quot;nullable&quot;
+        name_100 rule &quot;nullable&quot;
+        name_16 outcome &quot;created | commented | inbox | dropped | failed | skipped&quot;
+        id card_id FK &quot;nullable&quot;
+        text detail &quot;nullable&quot;
+        millis created_at
+    }</pre>
+        </figure>
+      </section>
+      <section class="group" id="g7">
+        <p class="eyebrow">2 таблиц · 1 ключ</p>
+        <h2>Защёлки</h2>
+        <div class="prose"><p>Не сущности, а ответы «это уже сделано»: событие обработано, шаг мастера пройден. Связей между собой у них нет.</p></div>
+        <figure class="plate">
+          <pre class="mermaid">%%{init: {&#x27;theme&#x27;:&#x27;base&#x27;,&#x27;themeVariables&#x27;:{&#x27;fontFamily&#x27;:&#x27;ui-monospace, SFMono-Regular, Menlo, Consolas, monospace&#x27;,&#x27;fontSize&#x27;:&#x27;13px&#x27;,&#x27;primaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;primaryTextColor&#x27;:&#x27;#14171d&#x27;,&#x27;primaryBorderColor&#x27;:&#x27;#aab3bf&#x27;,&#x27;secondaryColor&#x27;:&#x27;#f4f6f8&#x27;,&#x27;tertiaryColor&#x27;:&#x27;#ffffff&#x27;,&#x27;lineColor&#x27;:&#x27;#7c8493&#x27;,&#x27;textColor&#x27;:&#x27;#14171d&#x27;,&#x27;nodeBorder&#x27;:&#x27;#aab3bf&#x27;,&#x27;mainBkg&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorOdd&#x27;:&#x27;#ffffff&#x27;,&#x27;attributeBackgroundColorEven&#x27;:&#x27;#f4f6f8&#x27;}}}%%
+erDiagram
+    boards ||--o{ board_setup : &quot;board_id CASCADE&quot;
+
+    idempotency {
+        name_255 token PK
+        id session_id &quot;nullable&quot;
+        millis created_at
+    }
+    board_setup {
+        id board_id PK, FK
+        name_32 step PK
+        name_16 status &quot;pending | done | skipped | offered&quot;
+        millis changed_at &quot;Was `at`. AT is a keyword in Postgres and a name not worth having.&quot;
+    }</pre>
+        </figure>
+      </section>
+  </main>
+</div>
+
+<footer>
+  Страница собрана из <code>docs/schema/erd.md</code>, который пишет
+  <code>go generate ./tools/schemagen</code> из той же Go-схемы, что и миграцию, — устареть ей негде.
+  Остальное про модель:
+  <ul>
+    <li><code>docs/db-erd.md</code> — что где лежит и почему так ключуется.</li>
+    <li><code>docs/model-graph.md</code> — как одно находит другое.</li>
+    <li><code>docs/db-schema-review.md</code> — разбор решений.</li>
+    <li><code>docs/schema/app.hcl</code> — та же схема как Atlas HCL.</li>
+  </ul>
+</footer>

@@ -26,8 +26,7 @@ const (
 //
 // The credentials are not ours to choose: sqlstore.PrepareNewTestDatabase
 // hard-codes them, connecting as root to make a database per run and handing
-// the tests a DSN for mmuser. The MySQL module derives MYSQL_ROOT_PASSWORD from
-// MYSQL_PASSWORD, so one value covers both.
+// the tests a DSN for mmuser.
 func start(ctx context.Context, kind Kind) (port string, terminate func(), err error) {
 	switch kind {
 	case MySQL:
@@ -42,8 +41,13 @@ func start(ctx context.Context, kind Kind) (port string, terminate func(), err e
 			// about.
 			testcontainers.WithCmd("--max-connections=1000"),
 			testcontainers.WithEnv(map[string]string{
-				"MYSQL_USER":     appUser,
-				"MYSQL_PASSWORD": appPassword,
+				// Spelled out rather than left to the module, which copies
+				// MYSQL_PASSWORD into MYSQL_ROOT_PASSWORD for us: the fixture
+				// connects as root to create the per-run database, so that is a
+				// credential this package depends on and should say so.
+				"MYSQL_ROOT_PASSWORD": rootPassword,
+				"MYSQL_USER":          appUser,
+				"MYSQL_PASSWORD":      appPassword,
 				// A database for mmuser to land in. The tests never use it —
 				// the fixture makes one of its own per run — but the image
 				// wants MYSQL_DATABASE when MYSQL_USER is set.
