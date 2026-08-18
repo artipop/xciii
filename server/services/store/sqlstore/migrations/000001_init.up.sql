@@ -64,8 +64,7 @@ CREATE TABLE `boards_history` (`id` varchar NOT NULL, `insert_at` datetime NOT N
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
---   root_id: Always equal to board_id. A remnant.
-CREATE TABLE `blocks` (`id` varchar NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `parent_id` varchar NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `root_id` varchar NULL, `modified_by` varchar NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `board_id` varchar NULL, PRIMARY KEY (`id`));
+CREATE TABLE `blocks` (`id` varchar NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `parent_id` varchar NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `board_id` varchar NULL, PRIMARY KEY (`id`));
 
 CREATE INDEX `idx_blocks_board_id_parent_id` ON `blocks` (`board_id`, `parent_id`);
 
@@ -76,8 +75,7 @@ CREATE INDEX `idx_blocks_board_id_parent_id` ON `blocks` (`board_id`, `parent_id
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
---   root_id: Always equal to board_id. A remnant.
-CREATE TABLE `blocks_history` (`id` varchar NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `parent_id` varchar NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `root_id` varchar NULL, `modified_by` varchar NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `board_id` varchar NULL, PRIMARY KEY (`id`, `insert_at`));
+CREATE TABLE `blocks_history` (`id` varchar NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `parent_id` varchar NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `board_id` varchar NULL, PRIMARY KEY (`id`, `insert_at`));
 
 -- Who is on a board, and what they may do there.
 CREATE TABLE `board_members` (`board_id` varchar NOT NULL, `user_id` varchar NOT NULL, `roles` varchar NULL, `scheme_admin` boolean NULL, `scheme_editor` boolean NULL, `scheme_commenter` boolean NULL, `scheme_viewer` boolean NULL, PRIMARY KEY (`board_id`, `user_id`));
@@ -104,8 +102,7 @@ CREATE UNIQUE INDEX `unique_user_category_board` ON `category_boards` (`user_id`
 
 -- A board's public link. The id is the board's, so this is one-to-one.
 --   id: Nullable, which the migrations leave and this reproduces.
---   workspace_id: An older remnant than channel_id: workspaces predated teams.
-CREATE TABLE `sharing` (`id` varchar NULL, `enabled` boolean NULL, `token` varchar NULL, `modified_by` varchar NULL, `update_at` bigint NULL, `workspace_id` varchar NULL, PRIMARY KEY (`id`));
+CREATE TABLE `sharing` (`id` varchar NULL, `enabled` boolean NULL, `token` varchar NULL, `modified_by` varchar NULL, `update_at` bigint NULL, PRIMARY KEY (`id`));
 
 -- An attachment. It has no primary key, which is what the migrations
 -- leave: 000041 was where one would have been added, and this is a
@@ -129,13 +126,13 @@ CREATE INDEX `idx_preferences_name` ON `preferences` (`name`);
 -- Who is watching a block, for the notification service.
 --   block_id: Nullable, which the migrations leave and this reproduces.
 --   subscriber_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `subscriptions` (`block_type` varchar NULL, `block_id` varchar NULL, `workspace_id` varchar NULL, `subscriber_type` varchar NULL, `subscriber_id` varchar NULL, `notified_at` bigint NULL, `create_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`block_id`, `subscriber_id`));
+CREATE TABLE `subscriptions` (`block_type` varchar NULL, `block_id` varchar NULL, `subscriber_type` varchar NULL, `subscriber_id` varchar NULL, `notified_at` bigint NULL, `create_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`block_id`, `subscriber_id`));
 
 CREATE INDEX `idx_subscriptions_subscriber_id` ON `subscriptions` (`subscriber_id`);
 
 -- A block that has changed and whose watchers have not been told yet.
 --   block_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `notification_hints` (`block_type` varchar NULL, `block_id` varchar NULL, `workspace_id` varchar NULL, `modified_by_id` varchar NULL, `create_at` bigint NULL, `notify_at` bigint NULL, PRIMARY KEY (`block_id`));
+CREATE TABLE `notification_hints` (`block_type` varchar NULL, `block_id` varchar NULL, `modified_by_id` varchar NULL, `create_at` bigint NULL, `notify_at` bigint NULL, PRIMARY KEY (`block_id`));
 
 -- Network settings several agents share, so they are edited in one
 -- place. Was the `proxies` array in config.json.
@@ -319,7 +316,7 @@ CREATE INDEX `idx_source_event_source` ON `source_event` (`source`, `id`);
 {{if .mysql}}
 -- A block that has changed and whose watchers have not been told yet.
 --   block_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `notification_hints` (`block_type` varchar(10) NULL, `block_id` varchar(36) NULL, `workspace_id` varchar(36) NULL, `modified_by_id` varchar(36) NULL, `create_at` bigint NULL, `notify_at` bigint NULL, PRIMARY KEY (`block_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `notification_hints` (`block_type` varchar(10) NULL, `block_id` varchar(36) NULL, `modified_by_id` varchar(36) NULL, `create_at` bigint NULL, `notify_at` bigint NULL, PRIMARY KEY (`block_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- One route event, handled once. `key` was the column's name and is a
 -- reserved word in MySQL, so it is `token` — cheaper than backticks in
@@ -366,8 +363,7 @@ CREATE TABLE `deploy_target` (`id` varchar(36) NOT NULL, `name` varchar(100) NOT
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
---   root_id: Always equal to board_id. A remnant.
-CREATE TABLE `blocks_history` (`id` varchar(36) NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `parent_id` varchar(36) NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `root_id` varchar(36) NULL, `modified_by` varchar(36) NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `board_id` varchar(36) NULL, PRIMARY KEY (`id`, `insert_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `blocks_history` (`id` varchar(36) NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `parent_id` varchar(36) NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar(36) NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `board_id` varchar(36) NULL, PRIMARY KEY (`id`, `insert_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Who is on a board, and what they may do there.
 CREATE TABLE `board_members` (`board_id` varchar(36) NOT NULL, `user_id` varchar(36) NOT NULL, `roles` varchar(64) NULL, `scheme_admin` bool NULL, `scheme_editor` bool NULL, `scheme_commenter` bool NULL, `scheme_viewer` bool NULL, PRIMARY KEY (`board_id`, `user_id`), INDEX `idx_board_members_user_id` (`user_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -384,8 +380,7 @@ CREATE TABLE `category_boards` (`id` varchar(36) NOT NULL, `user_id` varchar(36)
 
 -- A board's public link. The id is the board's, so this is one-to-one.
 --   id: Nullable, which the migrations leave and this reproduces.
---   workspace_id: An older remnant than channel_id: workspaces predated teams.
-CREATE TABLE `sharing` (`id` varchar(36) NULL, `enabled` bool NULL, `token` varchar(100) NULL, `modified_by` varchar(36) NULL, `update_at` bigint NULL, `workspace_id` varchar(36) NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `sharing` (`id` varchar(36) NULL, `enabled` bool NULL, `token` varchar(100) NULL, `modified_by` varchar(36) NULL, `update_at` bigint NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- An attachment. It has no primary key, which is what the migrations
 -- leave: 000041 was where one would have been added, and this is a
@@ -405,7 +400,7 @@ CREATE TABLE `preferences` (`userid` varchar(36) NOT NULL, `category` varchar(32
 -- Who is watching a block, for the notification service.
 --   block_id: Nullable, which the migrations leave and this reproduces.
 --   subscriber_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `subscriptions` (`block_type` varchar(10) NULL, `block_id` varchar(36) NULL, `workspace_id` varchar(36) NULL, `subscriber_type` varchar(10) NULL, `subscriber_id` varchar(36) NULL, `notified_at` bigint NULL, `create_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`block_id`, `subscriber_id`), INDEX `idx_subscriptions_subscriber_id` (`subscriber_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `subscriptions` (`block_type` varchar(10) NULL, `block_id` varchar(36) NULL, `subscriber_type` varchar(10) NULL, `subscriber_id` varchar(36) NULL, `notified_at` bigint NULL, `create_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`block_id`, `subscriber_id`), INDEX `idx_subscriptions_subscriber_id` (`subscriber_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- The team a board belongs to. In this product there is exactly one and
 -- its id is '0' — but the column is in two hundred queries of the fork,
@@ -441,8 +436,7 @@ CREATE TABLE `agent` (`id` varchar(36) NOT NULL, `name` varchar(100) NOT NULL, `
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
---   root_id: Always equal to board_id. A remnant.
-CREATE TABLE `blocks` (`id` varchar(36) NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `parent_id` varchar(36) NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `root_id` varchar(36) NULL, `modified_by` varchar(36) NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `board_id` varchar(36) NULL, PRIMARY KEY (`id`), INDEX `idx_blocks_board_id_parent_id` (`board_id`, `parent_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `blocks` (`id` varchar(36) NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `parent_id` varchar(36) NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar(36) NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `board_id` varchar(36) NULL, PRIMARY KEY (`id`), INDEX `idx_blocks_board_id_parent_id` (`board_id`, `parent_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- A board.
 --   channel_id: A remnant of the Mattermost plugin. Nothing writes it.
@@ -576,7 +570,7 @@ CREATE TABLE `workspace_board` (`workspace_id` varchar(36) NOT NULL, `board_id` 
 {{if .postgres}}
 -- A block that has changed and whose watchers have not been told yet.
 --   block_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE "notification_hints" ("block_type" character varying(10) NULL, "block_id" character varying(36) NULL, "workspace_id" character varying(36) NULL, "modified_by_id" character varying(36) NULL, "create_at" bigint NULL, "notify_at" bigint NULL, PRIMARY KEY ("block_id"));
+CREATE TABLE "notification_hints" ("block_type" character varying(10) NULL, "block_id" character varying(36) NULL, "modified_by_id" character varying(36) NULL, "create_at" bigint NULL, "notify_at" bigint NULL, PRIMARY KEY ("block_id"));
 
 -- One route event, handled once. `key` was the column's name and is a
 -- reserved word in MySQL, so it is `token` — cheaper than backticks in
@@ -632,8 +626,7 @@ CREATE UNIQUE INDEX "idx_deploy_target_name" ON "deploy_target" ("name");
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
---   root_id: Always equal to board_id. A remnant.
-CREATE TABLE "blocks_history" ("id" character varying(36) NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "parent_id" character varying(36) NULL, "schema" bigint NULL, "type" text NULL, "title" text NULL, "fields" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "root_id" character varying(36) NULL, "modified_by" character varying(36) NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "board_id" character varying(36) NULL, PRIMARY KEY ("id", "insert_at"));
+CREATE TABLE "blocks_history" ("id" character varying(36) NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "parent_id" character varying(36) NULL, "schema" bigint NULL, "type" text NULL, "title" text NULL, "fields" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "modified_by" character varying(36) NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "board_id" character varying(36) NULL, PRIMARY KEY ("id", "insert_at"));
 
 -- Who is on a board, and what they may do there.
 CREATE TABLE "board_members" ("board_id" character varying(36) NOT NULL, "user_id" character varying(36) NOT NULL, "roles" character varying(64) NULL, "scheme_admin" boolean NULL, "scheme_editor" boolean NULL, "scheme_commenter" boolean NULL, "scheme_viewer" boolean NULL, PRIMARY KEY ("board_id", "user_id"));
@@ -666,8 +659,7 @@ CREATE UNIQUE INDEX "unique_user_category_board" ON "category_boards" ("user_id"
 
 -- A board's public link. The id is the board's, so this is one-to-one.
 --   id: Nullable, which the migrations leave and this reproduces.
---   workspace_id: An older remnant than channel_id: workspaces predated teams.
-CREATE TABLE "sharing" ("id" character varying(36) NULL, "enabled" boolean NULL, "token" character varying(100) NULL, "modified_by" character varying(36) NULL, "update_at" bigint NULL, "workspace_id" character varying(36) NULL, PRIMARY KEY ("id"));
+CREATE TABLE "sharing" ("id" character varying(36) NULL, "enabled" boolean NULL, "token" character varying(100) NULL, "modified_by" character varying(36) NULL, "update_at" bigint NULL, PRIMARY KEY ("id"));
 
 -- An attachment. It has no primary key, which is what the migrations
 -- leave: 000041 was where one would have been added, and this is a
@@ -697,7 +689,7 @@ CREATE INDEX "idx_preferences_name" ON "preferences" ("name");
 -- Who is watching a block, for the notification service.
 --   block_id: Nullable, which the migrations leave and this reproduces.
 --   subscriber_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE "subscriptions" ("block_type" character varying(10) NULL, "block_id" character varying(36) NULL, "workspace_id" character varying(36) NULL, "subscriber_type" character varying(10) NULL, "subscriber_id" character varying(36) NULL, "notified_at" bigint NULL, "create_at" bigint NULL, "delete_at" bigint NULL, PRIMARY KEY ("block_id", "subscriber_id"));
+CREATE TABLE "subscriptions" ("block_type" character varying(10) NULL, "block_id" character varying(36) NULL, "subscriber_type" character varying(10) NULL, "subscriber_id" character varying(36) NULL, "notified_at" bigint NULL, "create_at" bigint NULL, "delete_at" bigint NULL, PRIMARY KEY ("block_id", "subscriber_id"));
 
 -- Who is watching a block, for the notification service.
 --   block_id: Nullable, which the migrations leave and this reproduces.
@@ -757,8 +749,7 @@ CREATE UNIQUE INDEX "idx_agent_name" ON "agent" ("name");
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
---   root_id: Always equal to board_id. A remnant.
-CREATE TABLE "blocks" ("id" character varying(36) NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "parent_id" character varying(36) NULL, "schema" bigint NULL, "type" text NULL, "title" text NULL, "fields" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "root_id" character varying(36) NULL, "modified_by" character varying(36) NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "board_id" character varying(36) NULL, PRIMARY KEY ("id"));
+CREATE TABLE "blocks" ("id" character varying(36) NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "parent_id" character varying(36) NULL, "schema" bigint NULL, "type" text NULL, "title" text NULL, "fields" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "modified_by" character varying(36) NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "board_id" character varying(36) NULL, PRIMARY KEY ("id"));
 
 -- Everything on a board: cards, views, comments, text, attachments. A
 -- card is a row here with type='card', and it is what every table this
@@ -769,7 +760,6 @@ CREATE TABLE "blocks" ("id" character varying(36) NULL, "insert_at" timestamptz 
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
---   root_id: Always equal to board_id. A remnant.
 CREATE INDEX "idx_blocks_board_id_parent_id" ON "blocks" ("board_id", "parent_id");
 
 -- A board.

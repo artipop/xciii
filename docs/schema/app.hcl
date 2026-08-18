@@ -345,10 +345,6 @@ table "blocks" {
     null = true
     type = bigint
   }
-  column "root_id" {
-    null = true
-    type = varchar(36)
-  }
   column "modified_by" {
     null = true
     type = varchar(36)
@@ -413,10 +409,6 @@ table "blocks_history" {
   column "delete_at" {
     null = true
     type = bigint
-  }
-  column "root_id" {
-    null = true
-    type = varchar(36)
   }
   column "modified_by" {
     null = true
@@ -617,10 +609,6 @@ table "sharing" {
     null = true
     type = bigint
   }
-  column "workspace_id" {
-    null = true
-    type = varchar(36)
-  }
   primary_key {
     columns = [column.id]
   }
@@ -695,10 +683,6 @@ table "subscriptions" {
     null = true
     type = varchar(36)
   }
-  column "workspace_id" {
-    null = true
-    type = varchar(36)
-  }
   column "subscriber_type" {
     null = true
     type = varchar(10)
@@ -732,10 +716,6 @@ table "notification_hints" {
     type = varchar(10)
   }
   column "block_id" {
-    null = true
-    type = varchar(36)
-  }
-  column "workspace_id" {
     null = true
     type = varchar(36)
   }

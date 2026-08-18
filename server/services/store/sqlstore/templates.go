@@ -35,7 +35,6 @@ func (s *SQLStore) removeDefaultTemplates(db sq.BaseRunner, boards []*model.Boar
 			Delete("blocks").
 			Where(sq.Or{
 				sq.Eq{"parent_id": board.ID},
-				sq.Eq{"root_id": board.ID},
 				sq.Eq{"board_id": board.ID},
 			})
 

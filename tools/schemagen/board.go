@@ -7,12 +7,19 @@ package main
 // **This is a reproduction, not an improvement.** Every width, every nullable
 // column and every default is what the migrations actually leave behind, warts
 // included: `blocks.id` is nullable, `file_info` has no primary key,
-// `channel_id` and `workspace_id` are Mattermost-plugin remnants, `root_id` is
-// always equal to `board_id`. Changing any of that is a change to the fork's
-// queries, and the value of collapsing is precisely that it can be checked —
-// the schema a fresh database gets must be the schema an existing one has, and
-// a diff is what says so. Improvements go in afterwards, one at a time, where
-// each can be reviewed on its own.
+// `blocks.channel_id` is a Mattermost-plugin remnant. Changing any of that is a
+// change to the fork's queries, and the value of collapsing is precisely that
+// it can be checked — the schema a fresh database gets must be the schema an
+// existing one has, and a diff is what says so. Improvements go in afterwards,
+// one at a time, where each can be reviewed on its own.
+//
+// Four columns have since gone that way, each with the code that fed it:
+// `root_id` on blocks and blocks_history (always equal to board_id, written
+// only by the legacy block store, which nothing called), and `workspace_id` on
+// sharing, subscriptions and notification_hints (older than channel_id —
+// workspaces predated teams — and named by no query for years).
+// `blocks.channel_id` stays: the board-to-channel link still has app-layer code
+// and an API field the page can see.
 //
 // Two things are therefore deliberately absent. There are **no foreign keys
 // between these tables**: the fork deletes softly (a `delete_at`), so a real
@@ -226,8 +233,6 @@ func blockColumns() []Column {
 		{Name: "create_at", Type: Millis(), Null: true},
 		{Name: "update_at", Type: Millis(), Null: true},
 		{Name: "delete_at", Type: Millis(), Null: true},
-		{Name: "root_id", Type: Name(36), Null: true,
-			Why: "Always equal to board_id. A remnant."},
 		{Name: "modified_by", Type: Name(36), Null: true},
 		{Name: "channel_id", Type: Name(36), Null: true},
 		{Name: "created_by", Type: Name(36), Null: true},
@@ -360,8 +365,6 @@ func sharingTable() Table {
 			{Name: "token", Type: Name(100), Null: true},
 			{Name: "modified_by", Type: Name(36), Null: true},
 			{Name: "update_at", Type: Millis(), Null: true},
-			{Name: "workspace_id", Type: Name(36), Null: true,
-				Why: "An older remnant than channel_id: workspaces predated teams."},
 		},
 		PK: []string{"id"},
 	}
@@ -418,7 +421,6 @@ func subscriptions() Table {
 		Columns: []Column{
 			{Name: "block_type", Type: Name(10), Null: true},
 			{Name: "block_id", Type: Name(36), Null: true, Why: nullablePK},
-			{Name: "workspace_id", Type: Name(36), Null: true},
 			{Name: "subscriber_type", Type: Name(10), Null: true},
 			{Name: "subscriber_id", Type: Name(36), Null: true, Why: nullablePK},
 			{Name: "notified_at", Type: Millis(), Null: true},
@@ -439,7 +441,6 @@ func notificationHints() Table {
 		Columns: []Column{
 			{Name: "block_type", Type: Name(10), Null: true},
 			{Name: "block_id", Type: Name(36), Null: true, Why: nullablePK},
-			{Name: "workspace_id", Type: Name(36), Null: true},
 			{Name: "modified_by_id", Type: Name(36), Null: true},
 			{Name: "create_at", Type: Millis(), Null: true},
 			{Name: "notify_at", Type: Millis(), Null: true},

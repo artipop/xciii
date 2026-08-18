@@ -72,7 +72,6 @@ erDiagram
         millis create_at "nullable"
         millis update_at "nullable"
         millis delete_at "nullable"
-        name_36 root_id "Always equal to board_id. A remnant."
         name_36 modified_by "nullable"
         name_36 channel_id "nullable"
         name_36 created_by "nullable"
@@ -138,12 +137,10 @@ erDiagram
         name_100 token "nullable"
         name_36 modified_by "nullable"
         millis update_at "nullable"
-        name_36 workspace_id "An older remnant than channel_id: workspaces predated teams."
     }
     subscriptions {
         name_10 block_type "nullable"
         name_36 block_id PK "Nullable, which the migrations leave and this reproduces."
-        name_36 workspace_id "nullable"
         name_10 subscriber_type "nullable"
         name_36 subscriber_id PK "Nullable, which the migrations leave and this reproduces."
         millis notified_at "nullable"
@@ -153,7 +150,6 @@ erDiagram
     notification_hints {
         name_10 block_type "nullable"
         name_36 block_id PK "Nullable, which the migrations leave and this reproduces."
-        name_36 workspace_id "nullable"
         name_36 modified_by_id "nullable"
         millis create_at "nullable"
         millis notify_at "nullable"
@@ -230,7 +226,6 @@ erDiagram
         millis create_at "nullable"
         millis update_at "nullable"
         millis delete_at "nullable"
-        name_36 root_id "Always equal to board_id. A remnant."
         name_36 modified_by "nullable"
         name_36 channel_id "nullable"
         name_36 created_by "nullable"

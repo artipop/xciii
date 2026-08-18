@@ -69,10 +69,6 @@ type Block struct {
 	// required: false
 	DeleteAt int64 `json:"deleteAt"`
 
-	// Deprecated. The workspace id that the block belongs to
-	// required: false
-	WorkspaceID string `json:"-"`
-
 	// The board id that the block belongs to
 	// required: true
 	BoardID string `json:"boardId"`
@@ -269,17 +265,16 @@ func (b *Block) ShouldBeLimited(cardLimitTimestamp int64) bool {
 // contents of the block, only its IDs and type.
 func (b *Block) GetLimited() *Block {
 	newBlock := &Block{
-		Title:       b.Title,
-		ID:          b.ID,
-		ParentID:    b.ParentID,
-		BoardID:     b.BoardID,
-		Schema:      b.Schema,
-		Type:        b.Type,
-		CreateAt:    b.CreateAt,
-		UpdateAt:    b.UpdateAt,
-		DeleteAt:    b.DeleteAt,
-		WorkspaceID: b.WorkspaceID,
-		Limited:     true,
+		Title:    b.Title,
+		ID:       b.ID,
+		ParentID: b.ParentID,
+		BoardID:  b.BoardID,
+		Schema:   b.Schema,
+		Type:     b.Type,
+		CreateAt: b.CreateAt,
+		UpdateAt: b.UpdateAt,
+		DeleteAt: b.DeleteAt,
+		Limited:  true,
 	}
 
 	if iconField, ok := b.Fields["icon"]; ok {

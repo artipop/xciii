@@ -170,6 +170,13 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 		// Widened: utils.NewID was already overflowing varchar(26) by one
 		// character, and UUIDv7 needs 36.
 		"table file_info": "id widened to hold the ids actually written to it",
+		// Four dead columns dropped, each with the code that fed it. See the
+		// note at the top of board.go.
+		"table blocks":             deadColumns,
+		"table blocks_history":     deadColumns,
+		"table sharing":            deadColumns,
+		"table subscriptions":      deadColumns,
+		"table notification_hints": deadColumns,
 	}
 
 	for name, w := range wantShape {
@@ -192,6 +199,11 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 		}
 	}
 }
+
+// deadColumns is why five tables are narrower than the ladder left them.
+const deadColumns = "a remnant column dropped: root_id (always equal to " +
+	"board_id, written only by the legacy block store nothing called) or " +
+	"workspace_id (older than channel_id, named by no query for years)"
 
 // shapeOf is what a table is, as SQLite itself reports it after the DDL has been
 // applied — which normalises away everything that is spelling rather than
