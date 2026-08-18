@@ -21,6 +21,11 @@
 `tools/schemagen` слово в слово, а перевод был бы вторым описанием —
 ровно тем, что эта страница и заводится, чтобы не заводить.
 
+Где у колонки закрытый набор значений, он написан вместо подписи: это `CHECK` в
+схеме, а не соглашение. Ставится он только там, где набор закрыт **моделью**
+(три способа работать с папкой, жизненный цикл сессии), и не ставится там, где
+это список, который растёт, — вид агента, имя события.
+
 На стрелках написано, что происходит со строкой, когда исчезает то, на что она
 смотрит. Ради этого таблицы и съехались в одну базу: пока их было три файла,
 удаление карточки не могло убрать за собой ничего.
@@ -267,7 +272,7 @@ erDiagram
     workspace_board {
         id workspace_id PK, FK
         id board_id PK, FK
-        name_16 mode "worktree | branch. NULL means nobody answered, and the machine's own default stands in."
+        name_16 mode "worktree | branch — NULL means nobody answered, and the machine's own default stands in."
     }
     agent {
         id id PK
@@ -342,7 +347,7 @@ erDiagram
         id board_id FK "nullable"
         name_32 agent_kind
         name_100 acp_session_id "nullable"
-        name_24 status
+        name_24 status "queued | running | idle | waiting_permission | done | failed | cancelled"
         text cwd "nullable"
         text worktree_path "nullable"
         name_255 branch "nullable"
@@ -429,7 +434,7 @@ erDiagram
         id workspace_id FK
         id card_id FK "nullable"
         id board_id FK "Set for «черновики доски»: a conversation with no card still works somewhere, and that…"
-        name_16 mode
+        name_16 mode "worktree | branch | plain"
         name_255 branch "nullable"
         text path "Where the copy is. Not the workspace's own path — that is on the workspace, and this is the worktree cut…"
         name_255 base "What the branch was cut from, and therefore what «merged» means."
@@ -468,7 +473,7 @@ erDiagram
         name_100 source
         name_255 external_id "nullable"
         name_100 rule "nullable"
-        name_16 outcome
+        name_16 outcome "created | commented | inbox | dropped | failed | skipped"
         id card_id FK "nullable"
         text detail "nullable"
         millis created_at
@@ -492,7 +497,7 @@ erDiagram
     board_setup {
         id board_id PK, FK
         name_32 step PK
-        name_16 status
+        name_16 status "pending | done | skipped | offered"
         millis changed_at "Was `at`. AT is a keyword in Postgres and a name not worth having."
     }
 ```

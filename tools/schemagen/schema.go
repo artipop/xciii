@@ -107,8 +107,7 @@ func workspaceBoard() Table {
 			{Name: "workspace_id", Type: ID()},
 			{Name: "board_id", Type: ID()},
 			{Name: "mode", Type: Name(16), Null: true,
-				Why: "worktree | branch. NULL means nobody answered, and the machine's\n" +
-					"own default stands in."},
+				Why: "NULL means nobody answered, and the machine's own default stands in."},
 		},
 		PK: []string{"workspace_id", "board_id"},
 		Checks: []Check{{

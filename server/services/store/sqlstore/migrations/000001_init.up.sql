@@ -167,8 +167,7 @@ CREATE UNIQUE INDEX `idx_workspace_name` ON `workspace` (`name`);
 -- «на всех досках» is one entry with a different answer per board: a copy
 -- per card where three people work it, a branch in place where one does.
 -- Was WorkdirEntry.Modes, a map keyed by board id.
---   mode: worktree | branch. NULL means nobody answered, and the machine's
---     own default stands in.
+--   mode: NULL means nobody answered, and the machine's own default stands in.
 CREATE TABLE `workspace_board` (`workspace_id` varchar NOT NULL, `board_id` varchar NOT NULL, `mode` varchar NULL, PRIMARY KEY (`workspace_id`, `board_id`), CONSTRAINT `workspace_board_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspace` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_mode` CHECK (`mode` IS NULL OR `mode` IN ('worktree', 'branch')));
 
 -- A registered agent. Its board account is a row in users, and the two
@@ -562,8 +561,7 @@ CREATE TABLE `vcs_seen` (`workspace_id` varchar(36) NOT NULL, `branch` varchar(2
 -- «на всех досках» is one entry with a different answer per board: a copy
 -- per card where three people work it, a branch in place where one does.
 -- Was WorkdirEntry.Modes, a map keyed by board id.
---   mode: worktree | branch. NULL means nobody answered, and the machine's
---     own default stands in.
+--   mode: NULL means nobody answered, and the machine's own default stands in.
 CREATE TABLE `workspace_board` (`workspace_id` varchar(36) NOT NULL, `board_id` varchar(36) NOT NULL, `mode` varchar(16) NULL, PRIMARY KEY (`workspace_id`, `board_id`), CONSTRAINT `workspace_board_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspace` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_mode` CHECK (`mode` IS NULL OR `mode` IN ('worktree', 'branch'))) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 {{end}}
 
@@ -1038,7 +1036,6 @@ CREATE TABLE "vcs_seen" ("workspace_id" character varying(36) NOT NULL, "branch"
 -- «на всех досках» is one entry with a different answer per board: a copy
 -- per card where three people work it, a branch in place where one does.
 -- Was WorkdirEntry.Modes, a map keyed by board id.
---   mode: worktree | branch. NULL means nobody answered, and the machine's
---     own default stands in.
+--   mode: NULL means nobody answered, and the machine's own default stands in.
 CREATE TABLE "workspace_board" ("workspace_id" character varying(36) NOT NULL, "board_id" character varying(36) NOT NULL, "mode" character varying(16) NULL, PRIMARY KEY ("workspace_id", "board_id"), CONSTRAINT "workspace_board_workspace" FOREIGN KEY ("workspace_id") REFERENCES "workspace" ("id") ON DELETE CASCADE, CONSTRAINT "workspace_board_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE, CONSTRAINT "workspace_board_mode" CHECK ("mode" IS NULL OR "mode" IN ('worktree', 'branch')));
 {{end}}
