@@ -104,7 +104,3 @@ func NewTestProfessionalStore(store store.Store) *TestStore {
 
 	return testStore
 }
-
-func (s *TestStore) GetLicense() *mmModel.License {
-	return s.license
-}

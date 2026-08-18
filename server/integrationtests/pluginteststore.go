@@ -2,8 +2,6 @@ package integrationtests
 
 import (
 	"errors"
-	"os"
-	"strconv"
 	"strings"
 
 	"github.com/artipop/xciii/server/model"
@@ -248,42 +246,6 @@ func (s *PluginTestStore) CanSeeUser(seerID string, seenID string) (bool, error)
 	return false, nil
 }
 
-func (s *PluginTestStore) SearchUserChannels(teamID, userID, query string) ([]*mmModel.Channel, error) {
-	return []*mmModel.Channel{
-		{
-			TeamId:      teamID,
-			Id:          "valid-channel-id",
-			DisplayName: "Valid Channel",
-			Name:        "valid-channel",
-		},
-		{
-			TeamId:      teamID,
-			Id:          "valid-channel-id-2",
-			DisplayName: "Valid Channel 2",
-			Name:        "valid-channel-2",
-		},
-	}, nil
-}
-
-func (s *PluginTestStore) GetChannel(teamID, channel string) (*mmModel.Channel, error) {
-	if channel == "valid-channel-id" {
-		return &mmModel.Channel{
-			TeamId:      teamID,
-			Id:          "valid-channel-id",
-			DisplayName: "Valid Channel",
-			Name:        "valid-channel",
-		}, nil
-	} else if channel == "valid-channel-id-2" {
-		return &mmModel.Channel{
-			TeamId:      teamID,
-			Id:          "valid-channel-id-2",
-			DisplayName: "Valid Channel 2",
-			Name:        "valid-channel-2",
-		}, nil
-	}
-	return nil, errTestStore
-}
-
 func (s *PluginTestStore) SearchBoardsForUser(term string, field model.BoardSearchField, userID string, includePublicBoards bool) ([]*model.Board, error) {
 	boards, err := s.Store.SearchBoardsForUser(term, field, userID, includePublicBoards)
 	if err != nil {
@@ -305,28 +267,4 @@ func (s *PluginTestStore) SearchBoardsForUser(term string, field model.BoardSear
 		}
 	}
 	return resultBoards, nil
-}
-
-func (s *PluginTestStore) GetLicense() *mmModel.License {
-	license := s.Store.GetLicense()
-
-	if license == nil {
-		license = &mmModel.License{
-			Id:        mmModel.NewId(),
-			StartsAt:  mmModel.GetMillis() - 2629746000, // 1 month
-			ExpiresAt: mmModel.GetMillis() + 2629746000, //
-			IssuedAt:  mmModel.GetMillis() - 2629746000,
-			Features:  &mmModel.Features{},
-		}
-		license.Features.SetDefaults()
-	}
-
-	complianceLicense := os.Getenv("FOCALBOARD_UNIT_TESTING_COMPLIANCE")
-	if complianceLicense != "" {
-		if val, err := strconv.ParseBool(complianceLicense); err == nil {
-			license.Features.Compliance = mmModel.NewBool(val)
-		}
-	}
-
-	return license
 }

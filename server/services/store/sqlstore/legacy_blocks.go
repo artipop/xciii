@@ -146,6 +146,7 @@ func (s *SQLStore) insertLegacyBlock(db sq.BaseRunner, workspaceID string, block
 		)
 
 	insertQueryValues := map[string]interface{}{
+		"insert_at":             utils.NextInsertAt(),
 		"workspace_id":          workspaceID,
 		"id":                    block.ID,
 		"parent_id":             block.ParentID,

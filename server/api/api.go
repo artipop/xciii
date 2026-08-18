@@ -82,13 +82,11 @@ func (a *API) RegisterRoutes(r *web.Router) {
 	a.registerSearchRoutes(apiv2)
 	a.registerConfigRoutes(apiv2)
 	a.registerBoardsAndBlocksRoutes(apiv2)
-	a.registerChannelsRoutes(apiv2)
 	a.registerTemplatesRoutes(apiv2)
 	a.registerBoardsRoutes(apiv2)
 	a.registerBlocksRoutes(apiv2)
 	a.registerContentBlocksRoutes(apiv2)
 	a.registerStatisticsRoutes(apiv2)
-	a.registerComplianceRoutes(apiv2)
 
 	// V3 routes
 	a.registerCardsRoutes(apiv2)

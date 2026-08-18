@@ -263,6 +263,7 @@ func (s *SQLStore) insertBlock(db sq.BaseRunner, block *model.Block, userID stri
 		)
 
 	insertQueryValues := map[string]interface{}{
+		"insert_at":             utils.NextInsertAt(),
 		"channel_id":            "",
 		"id":                    block.ID,
 		"parent_id":             block.ParentID,
@@ -354,9 +355,11 @@ func (s *SQLStore) moveBlocksToBoard(db sq.BaseRunner, blockIDs []string, boardI
 		}
 		insert := s.getQueryBuilder(db).Insert(s.tablePrefix+"blocks_history").
 			Columns("board_id", "id", "parent_id", s.escapeField("schema"), "type", "title",
-				"fields", "modified_by", "create_at", "update_at", "delete_at", "created_by").
+				"fields", "modified_by", "create_at", "update_at", "delete_at", "created_by",
+				"insert_at").
 			Values(boardID, block.ID, block.ParentID, block.Schema, block.Type, block.Title,
-				fieldsJSON, userID, block.CreateAt, now, block.DeleteAt, block.CreatedBy)
+				fieldsJSON, userID, block.CreateAt, now, block.DeleteAt, block.CreatedBy,
+				utils.NextInsertAt())
 		if _, err := insert.Exec(); err != nil {
 			return err
 		}
@@ -441,6 +444,7 @@ func (s *SQLStore) deleteBlockAndChildren(db sq.BaseRunner, blockID string, modi
 			"update_at",
 			"delete_at",
 			"created_by",
+			"insert_at",
 		).
 		Values(
 			block.BoardID,
@@ -455,6 +459,7 @@ func (s *SQLStore) deleteBlockAndChildren(db sq.BaseRunner, blockID string, modi
 			now,
 			now,
 			block.CreatedBy,
+			utils.NextInsertAt(),
 		)
 
 	if _, err := insertQuery.Exec(); err != nil {
@@ -537,6 +542,7 @@ func (s *SQLStore) undeleteBlock(db sq.BaseRunner, blockID string, modifiedBy st
 		"update_at",
 		"delete_at",
 		"created_by",
+		"insert_at",
 	}
 
 	values := []interface{}{
@@ -553,6 +559,7 @@ func (s *SQLStore) undeleteBlock(db sq.BaseRunner, blockID string, modifiedBy st
 		now,
 		0,
 		block.CreatedBy,
+		utils.NextInsertAt(),
 	}
 	insertHistoryQuery := s.getQueryBuilder(db).Insert(s.tablePrefix + "blocks_history").
 		Columns(columns...).
@@ -972,6 +979,12 @@ func (s *SQLStore) deleteBlockChildren(db sq.BaseRunner, boardID string, parentI
 			s.castInt(now, "update_at"),
 			s.castInt(now, "delete_at"),
 			"created_by",
+			// Stamped here rather than left to the column's default: the default
+			// is the database's own clock, and inside a transaction it hands
+			// every row the same millisecond — which two history rows for one
+			// block may not share, or the readers that pick the latest one by
+			// max(insert_at) get two rows back for it.
+			"'"+utils.NextInsertAt()+"' AS insert_at",
 		).
 		From(s.tablePrefix + "blocks").
 		Where(sq.Eq{"board_id": boardID})
@@ -995,6 +1008,7 @@ func (s *SQLStore) deleteBlockChildren(db sq.BaseRunner, boardID string, parentI
 			"update_at",
 			"delete_at",
 			"created_by",
+			"insert_at",
 		).Select(selectQuery)
 
 	if _, err := insertQuery.Exec(); err != nil {
@@ -1083,6 +1097,11 @@ func (s *SQLStore) undeleteBlockChildren(db sq.BaseRunner, boardID string, paren
 			s.castInt(utils.GetMillis(), "update_at"),
 			s.castInt(0, "delete_at"),
 			"bh.created_by",
+			// The row being resurrected gets its own stamp rather than the
+			// history row's: this is a new row in blocks, and the join below
+			// only ever picks one history row per block because the stamps
+			// written by utils.NextInsertAt are distinct.
+			"'"+utils.NextInsertAt()+"' AS insert_at",
 		).
 		From(fmt.Sprintf(`
 				%sblocks_history AS bh,
@@ -1106,6 +1125,7 @@ func (s *SQLStore) undeleteBlockChildren(db sq.BaseRunner, boardID string, paren
 		"update_at",
 		"delete_at",
 		"created_by",
+		"insert_at",
 	}
 
 	insertQuery := s.getQueryBuilder(db).Insert(s.tablePrefix + "blocks").

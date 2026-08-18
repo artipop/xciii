@@ -337,6 +337,7 @@ func (s *SQLStore) insertBoard(db sq.BaseRunner, board *model.Board, userID stri
 	board.UpdateAt = now
 
 	insertQueryValues := map[string]interface{}{
+		"insert_at":        utils.NextInsertAt(),
 		"id":               board.ID,
 		"team_id":          board.TeamID,
 		"channel_id":       board.ChannelID,
@@ -433,6 +434,7 @@ func (s *SQLStore) deleteBoardAndChildren(db sq.BaseRunner, boardID, userID stri
 	}
 
 	insertQueryValues := map[string]interface{}{
+		"insert_at":        utils.NextInsertAt(),
 		"id":               board.ID,
 		"team_id":          board.TeamID,
 		"channel_id":       board.ChannelID,
@@ -538,8 +540,8 @@ func (s *SQLStore) saveMember(db sq.BaseRunner, bm *model.BoardMember) (*model.B
 	if oldMember == nil {
 		addToMembersHistory := s.getQueryBuilder(db).
 			Insert(s.tablePrefix+"board_members_history").
-			Columns("board_id", "user_id", "action").
-			Values(bm.BoardID, bm.UserID, "created")
+			Columns("board_id", "user_id", "action", "insert_at").
+			Values(bm.BoardID, bm.UserID, "created", utils.NextInsertAt())
 
 		if _, err := addToMembersHistory.Exec(); err != nil {
 			return nil, err
@@ -568,8 +570,8 @@ func (s *SQLStore) deleteMember(db sq.BaseRunner, boardID, userID string) error 
 	if rowsAffected > 0 {
 		addToMembersHistory := s.getQueryBuilder(db).
 			Insert(s.tablePrefix+"board_members_history").
-			Columns("board_id", "user_id", "action").
-			Values(boardID, userID, "deleted")
+			Columns("board_id", "user_id", "action", "insert_at").
+			Values(boardID, userID, "deleted", utils.NextInsertAt())
 
 		if _, err := addToMembersHistory.Exec(); err != nil {
 			return err
@@ -833,6 +835,7 @@ func (s *SQLStore) undeleteBoard(db sq.BaseRunner, boardID string, modifiedBy st
 		"create_at",
 		"update_at",
 		"delete_at",
+		"insert_at",
 	}
 
 	values := []interface{}{
@@ -854,6 +857,7 @@ func (s *SQLStore) undeleteBoard(db sq.BaseRunner, boardID string, modifiedBy st
 		board.CreateAt,
 		now,
 		0,
+		utils.NextInsertAt(),
 	}
 	insertHistoryQuery := s.getQueryBuilder(db).Insert(s.tablePrefix + "boards_history").
 		Columns(columns...).

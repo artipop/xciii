@@ -3185,43 +3185,10 @@ func TestPermissionsMinimumRolesApplied(t *testing.T) {
 	})
 }
 
-func TestPermissionsChannels(t *testing.T) {
-	t.Run("local", func(t *testing.T) {
-		th := SetupTestHelperLocalMode(t)
-		defer th.TearDown()
-		clients := setupLocalClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/teams/test-team/channels", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/channels", methodGet, "", userNoTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels", methodGet, "", userTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels", methodGet, "", userViewer, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels", methodGet, "", userCommenter, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels", methodGet, "", userEditor, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels", methodGet, "", userAdmin, http.StatusNotImplemented, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
-}
-
-func TestPermissionsChannel(t *testing.T) {
-	t.Run("local", func(t *testing.T) {
-		th := SetupTestHelperLocalMode(t)
-		defer th.TearDown()
-		clients := setupLocalClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userNoTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userTeamMember, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userViewer, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userCommenter, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userEditor, http.StatusNotImplemented, 0},
-			{"/teams/test-team/channels/valid-channel-id", methodGet, "", userAdmin, http.StatusNotImplemented, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
-}
+// What used to stand here: TestPermissionsChannels and TestPermissionsChannel,
+// the permission tests for two endpoints that listed Mattermost channels. This
+// product has no channels, the store answered "not implemented", and both
+// endpoints are gone.
 
 func TestPermissionsGetStatistics(t *testing.T) {
 	t.Run("local", func(t *testing.T) {

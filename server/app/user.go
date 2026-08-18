@@ -69,24 +69,10 @@ func (a *App) CanSeeUser(seerUser string, seenUser string) (bool, error) {
 	return true, nil
 }
 
-func (a *App) SearchUserChannels(teamID string, userID string, query string) ([]*mmModel.Channel, error) {
-	channels, err := a.store.SearchUserChannels(teamID, userID, query)
-	if err != nil {
-		return nil, err
-	}
-
-	var writeableChannels []*mmModel.Channel
-	for _, channel := range channels {
-		if a.permissions.HasPermissionToChannel(userID, channel.Id, model.PermissionCreatePost) {
-			writeableChannels = append(writeableChannels, channel)
-		}
-	}
-	return writeableChannels, nil
-}
-
-func (a *App) GetChannel(teamID string, channelID string) (*mmModel.Channel, error) {
-	return a.store.GetChannel(teamID, channelID)
-}
+// What used to stand here: SearchUserChannels and GetChannel, which asked the
+// Mattermost host which channels somebody could see. This product has no
+// channels; the store answered "not implemented" and the search endpoint
+// returned an empty list.
 
 func (a *App) SanitizeProfile(user *model.User, isAdmin bool) {
 	options := map[string]bool{}

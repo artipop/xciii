@@ -54,15 +54,13 @@ func (a *API) handleArchiveExportBoard(w http.ResponseWriter, r *http.Request) {
 	boardID := r.PathValue("boardID")
 	userID := getUserID(r)
 
-	// check user has permission to board
+	// Somebody who cannot see the board cannot export it. Upstream let a system
+	// administrator through here if the licence carried the compliance feature;
+	// this product has no licence, so that arm was unreachable and is gone with
+	// the rest of the licensed surface.
 	if !a.permissions.HasPermissionToBoard(userID, boardID, model.PermissionViewBoard) {
-		// if this user has `manage_system` permission and there is a license with the compliance
-		// feature enabled, then we will allow the export.
-		license := a.app.GetLicense()
-		if !a.permissions.HasPermissionTo(userID, model.PermissionManageSystem) || license == nil || !(*license.Features.Compliance) {
-			a.errorResponse(w, r, model.NewErrPermission("access denied to board"))
-			return
-		}
+		a.errorResponse(w, r, model.NewErrPermission("access denied to board"))
+		return
 	}
 
 	auditRec := a.makeAuditRecord(r, "archiveExportBoard", audit.Fail)

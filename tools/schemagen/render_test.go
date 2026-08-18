@@ -167,9 +167,6 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 	// Declared here rather than by editing the snapshot: the snapshot is what
 	// the ladder built and it stays true, so every deviation stays visible.
 	intendedTables := map[string]string{
-		"table boards_history":        historyKeyReason,
-		"table blocks_history":        historyKeyReason,
-		"table board_members_history": historyKeyReason,
 		// Widened: utils.NewID was already overflowing varchar(26) by one
 		// character, and UUIDv7 needs 36.
 		"table file_info": "id widened to hold the ids actually written to it",
@@ -195,12 +192,6 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 		}
 	}
 }
-
-// historyKeyReason is why the three history tables lost their primary key.
-const historyKeyReason = "an append-only journal needs no unique key, and the " +
-	"(id, insert_at) one it had refused a second row written in the same " +
-	"millisecond — which is a 500 on undelete and the reason transactions are " +
-	"off on SQLite (docs/sql-plan.md, point 1)"
 
 // shapeOf is what a table is, as SQLite itself reports it after the DDL has been
 // applied — which normalises away everything that is spelling rather than

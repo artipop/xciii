@@ -53,9 +53,7 @@ CREATE INDEX `idx_{{.prefix}}boards_channel_id` ON `{{.prefix}}boards` (`channel
 --     it travels with the board, into an export and into a template.
 --   card_properties: The schema of a card's fields. The product's main denormalisation, and
 --     deliberately left alone: the whole webapp filters and groups on it.
-CREATE TABLE `{{.prefix}}boards_history` (`id` varchar NOT NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `team_id` varchar NOT NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `modified_by` varchar NULL, `type` varchar NOT NULL, `title` text NOT NULL, `description` text NULL, `icon` varchar NULL, `show_description` boolean NULL, `is_template` boolean NULL, `template_version` int NULL DEFAULT (0), `properties` text NULL, `card_properties` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `minimum_role` varchar NOT NULL DEFAULT (''));
-
-CREATE INDEX `idx_{{.prefix}}boards_history_id` ON `{{.prefix}}boards_history` (`id`, `insert_at`);
+CREATE TABLE `{{.prefix}}boards_history` (`id` varchar NOT NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `team_id` varchar NOT NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `modified_by` varchar NULL, `type` varchar NOT NULL, `title` text NOT NULL, `description` text NULL, `icon` varchar NULL, `show_description` boolean NULL, `is_template` boolean NULL, `template_version` int NULL DEFAULT (0), `properties` text NULL, `card_properties` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `minimum_role` varchar NOT NULL DEFAULT (''), PRIMARY KEY (`id`, `insert_at`));
 
 -- Everything on a board: cards, views, comments, text, attachments. A
 -- card is a row here with type='card', and it is what every table this
@@ -79,9 +77,7 @@ CREATE INDEX `idx_{{.prefix}}blocks_board_id_parent_id` ON `{{.prefix}}blocks` (
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
 --   root_id: Always equal to board_id. A remnant.
-CREATE TABLE `{{.prefix}}blocks_history` (`id` varchar NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `parent_id` varchar NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `root_id` varchar NULL, `modified_by` varchar NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `board_id` varchar NULL);
-
-CREATE INDEX `idx_{{.prefix}}blocks_history_id` ON `{{.prefix}}blocks_history` (`id`, `insert_at`);
+CREATE TABLE `{{.prefix}}blocks_history` (`id` varchar NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `parent_id` varchar NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `root_id` varchar NULL, `modified_by` varchar NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `board_id` varchar NULL, PRIMARY KEY (`id`, `insert_at`));
 
 -- Who is on a board, and what they may do there.
 CREATE TABLE `{{.prefix}}board_members` (`board_id` varchar NOT NULL, `user_id` varchar NOT NULL, `roles` varchar NULL, `scheme_admin` boolean NULL, `scheme_editor` boolean NULL, `scheme_commenter` boolean NULL, `scheme_viewer` boolean NULL, PRIMARY KEY (`board_id`, `user_id`));
@@ -89,9 +85,7 @@ CREATE TABLE `{{.prefix}}board_members` (`board_id` varchar NOT NULL, `user_id` 
 CREATE INDEX `idx_{{.prefix}}board_members_user_id` ON `{{.prefix}}board_members` (`user_id`);
 
 -- Who joined or left a board, and when.
-CREATE TABLE `{{.prefix}}board_members_history` (`board_id` varchar NOT NULL, `user_id` varchar NOT NULL, `action` varchar NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')));
-
-CREATE INDEX `idx_{{.prefix}}board_members_history_board_id_user_id_insert_at` ON `{{.prefix}}board_members_history` (`board_id`, `user_id`, `insert_at`);
+CREATE TABLE `{{.prefix}}board_members_history` (`board_id` varchar NOT NULL, `user_id` varchar NOT NULL, `action` varchar NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), PRIMARY KEY (`board_id`, `user_id`, `insert_at`));
 
 CREATE INDEX `idx_{{.prefix}}board_members_history_user_id` ON `{{.prefix}}board_members_history` (`user_id`);
 
@@ -359,7 +353,7 @@ CREATE TABLE `{{.prefix}}users` (`id` varchar(100) NULL, `username` varchar(100)
 --     it travels with the board, into an export and into a template.
 --   card_properties: The schema of a card's fields. The product's main denormalisation, and
 --     deliberately left alone: the whole webapp filters and groups on it.
-CREATE TABLE `{{.prefix}}boards_history` (`id` varchar(36) NOT NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `team_id` varchar(36) NOT NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `modified_by` varchar(36) NULL, `type` varchar(1) NOT NULL, `title` text NOT NULL, `description` text NULL, `icon` varchar(256) NULL, `show_description` bool NULL, `is_template` bool NULL, `template_version` int NULL DEFAULT 0, `properties` text NULL, `card_properties` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `minimum_role` varchar(36) NOT NULL DEFAULT '', INDEX `idx_{{.prefix}}boards_history_id` (`id`, `insert_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `{{.prefix}}boards_history` (`id` varchar(36) NOT NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `team_id` varchar(36) NOT NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `modified_by` varchar(36) NULL, `type` varchar(1) NOT NULL, `title` text NOT NULL, `description` text NULL, `icon` varchar(256) NULL, `show_description` bool NULL, `is_template` bool NULL, `template_version` int NULL DEFAULT 0, `properties` text NULL, `card_properties` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `minimum_role` varchar(36) NOT NULL DEFAULT '', PRIMARY KEY (`id`, `insert_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Where a card's branch is published. Was the `deploys` array in
 -- config.json, and a route's stage named it by name.
@@ -373,13 +367,13 @@ CREATE TABLE `{{.prefix}}deploy_target` (`id` varchar(36) NOT NULL, `name` varch
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
 --   root_id: Always equal to board_id. A remnant.
-CREATE TABLE `{{.prefix}}blocks_history` (`id` varchar(36) NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `parent_id` varchar(36) NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `root_id` varchar(36) NULL, `modified_by` varchar(36) NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `board_id` varchar(36) NULL, INDEX `idx_{{.prefix}}blocks_history_id` (`id`, `insert_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `{{.prefix}}blocks_history` (`id` varchar(36) NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `parent_id` varchar(36) NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `root_id` varchar(36) NULL, `modified_by` varchar(36) NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `board_id` varchar(36) NULL, PRIMARY KEY (`id`, `insert_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Who is on a board, and what they may do there.
 CREATE TABLE `{{.prefix}}board_members` (`board_id` varchar(36) NOT NULL, `user_id` varchar(36) NOT NULL, `roles` varchar(64) NULL, `scheme_admin` bool NULL, `scheme_editor` bool NULL, `scheme_commenter` bool NULL, `scheme_viewer` bool NULL, PRIMARY KEY (`board_id`, `user_id`), INDEX `idx_{{.prefix}}board_members_user_id` (`user_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Who joined or left a board, and when.
-CREATE TABLE `{{.prefix}}board_members_history` (`board_id` varchar(36) NOT NULL, `user_id` varchar(36) NOT NULL, `action` varchar(10) NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", INDEX `idx_{{.prefix}}board_members_history_board_id_user_id_insert_at` (`board_id`, `user_id`, `insert_at`), INDEX `idx_{{.prefix}}board_members_history_user_id` (`user_id`), INDEX `idx_{{.prefix}}board_members_history_board_id_user_id` (`board_id`, `user_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `{{.prefix}}board_members_history` (`board_id` varchar(36) NOT NULL, `user_id` varchar(36) NOT NULL, `action` varchar(10) NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", PRIMARY KEY (`board_id`, `user_id`, `insert_at`), INDEX `idx_{{.prefix}}board_members_history_user_id` (`user_id`), INDEX `idx_{{.prefix}}board_members_history_board_id_user_id` (`board_id`, `user_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- A group of boards in the sidebar.
 CREATE TABLE `{{.prefix}}categories` (`id` varchar(36) NOT NULL, `name` varchar(100) NOT NULL, `user_id` varchar(36) NOT NULL, `team_id` varchar(36) NOT NULL, `channel_id` varchar(36) NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `collapsed` bool NULL DEFAULT false, `type` varchar(64) NULL, `sort_order` bigint NULL, PRIMARY KEY (`id`), INDEX `idx_{{.prefix}}categories_user_id_team_id` (`user_id`, `team_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -621,21 +615,7 @@ CREATE TABLE "{{.prefix}}users" ("id" character varying(100) NULL, "username" ch
 --     it travels with the board, into an export and into a template.
 --   card_properties: The schema of a card's fields. The product's main denormalisation, and
 --     deliberately left alone: the whole webapp filters and groups on it.
-CREATE TABLE "{{.prefix}}boards_history" ("id" character varying(36) NOT NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "team_id" character varying(36) NOT NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "modified_by" character varying(36) NULL, "type" character varying(1) NOT NULL, "title" text NOT NULL, "description" text NULL, "icon" character varying(256) NULL, "show_description" boolean NULL, "is_template" boolean NULL, "template_version" integer NULL DEFAULT 0, "properties" text NULL, "card_properties" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "minimum_role" character varying(36) NOT NULL DEFAULT '');
-
--- Every version of every board, one row per edit, never pruned. The
--- upstream's audit and undo mechanism; this product's undo is in the page
--- (webapp/src/undomanager.ts) and there is no history screen, so whether
--- to keep these three tables at all is a decision worth taking on its
--- own rather than inside a collapse.
---   channel_id: A remnant of the Mattermost plugin. Nothing writes it.
---   type: O — open, P — private.
---   properties: The board's own automation lives here — xciiiColumns, xciiiFlows,
---     xciiiPrompt and the records of which field is which. JSON on purpose:
---     it travels with the board, into an export and into a template.
---   card_properties: The schema of a card's fields. The product's main denormalisation, and
---     deliberately left alone: the whole webapp filters and groups on it.
-CREATE INDEX "idx_{{.prefix}}boards_history_id" ON "{{.prefix}}boards_history" ("id", "insert_at");
+CREATE TABLE "{{.prefix}}boards_history" ("id" character varying(36) NOT NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "team_id" character varying(36) NOT NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "modified_by" character varying(36) NULL, "type" character varying(1) NOT NULL, "title" text NOT NULL, "description" text NULL, "icon" character varying(256) NULL, "show_description" boolean NULL, "is_template" boolean NULL, "template_version" integer NULL DEFAULT 0, "properties" text NULL, "card_properties" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "minimum_role" character varying(36) NOT NULL DEFAULT '', PRIMARY KEY ("id", "insert_at"));
 
 -- Where a card's branch is published. Was the `deploys` array in
 -- config.json, and a route's stage named it by name.
@@ -653,17 +633,7 @@ CREATE UNIQUE INDEX "idx_{{.prefix}}deploy_target_name" ON "{{.prefix}}deploy_ta
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
 --   root_id: Always equal to board_id. A remnant.
-CREATE TABLE "{{.prefix}}blocks_history" ("id" character varying(36) NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "parent_id" character varying(36) NULL, "schema" bigint NULL, "type" text NULL, "title" text NULL, "fields" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "root_id" character varying(36) NULL, "modified_by" character varying(36) NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "board_id" character varying(36) NULL);
-
--- Every version of every block. See boards_history.
---   id: Nullable, which a primary key makes impossible in practice — but this
---     is what the migrations leave, and reproducing it is the point.
---   parent_id: The tree inside a board: a comment or a text block hangs off a card.
---   schema: A version number for the row's own shape. Backticked by the fork's
---     queries on MySQL, where `schema` is reserved.
---   fields: The card's field values, {property_id: value}.
---   root_id: Always equal to board_id. A remnant.
-CREATE INDEX "idx_{{.prefix}}blocks_history_id" ON "{{.prefix}}blocks_history" ("id", "insert_at");
+CREATE TABLE "{{.prefix}}blocks_history" ("id" character varying(36) NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "parent_id" character varying(36) NULL, "schema" bigint NULL, "type" text NULL, "title" text NULL, "fields" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "root_id" character varying(36) NULL, "modified_by" character varying(36) NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "board_id" character varying(36) NULL, PRIMARY KEY ("id", "insert_at"));
 
 -- Who is on a board, and what they may do there.
 CREATE TABLE "{{.prefix}}board_members" ("board_id" character varying(36) NOT NULL, "user_id" character varying(36) NOT NULL, "roles" character varying(64) NULL, "scheme_admin" boolean NULL, "scheme_editor" boolean NULL, "scheme_commenter" boolean NULL, "scheme_viewer" boolean NULL, PRIMARY KEY ("board_id", "user_id"));
@@ -672,10 +642,7 @@ CREATE TABLE "{{.prefix}}board_members" ("board_id" character varying(36) NOT NU
 CREATE INDEX "idx_{{.prefix}}board_members_user_id" ON "{{.prefix}}board_members" ("user_id");
 
 -- Who joined or left a board, and when.
-CREATE TABLE "{{.prefix}}board_members_history" ("board_id" character varying(36) NOT NULL, "user_id" character varying(36) NOT NULL, "action" character varying(10) NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW());
-
--- Who joined or left a board, and when.
-CREATE INDEX "idx_{{.prefix}}board_members_history_board_id_user_id_insert_at" ON "{{.prefix}}board_members_history" ("board_id", "user_id", "insert_at");
+CREATE TABLE "{{.prefix}}board_members_history" ("board_id" character varying(36) NOT NULL, "user_id" character varying(36) NOT NULL, "action" character varying(10) NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), PRIMARY KEY ("board_id", "user_id", "insert_at"));
 
 -- Who joined or left a board, and when.
 CREATE INDEX "idx_{{.prefix}}board_members_history_user_id" ON "{{.prefix}}board_members_history" ("user_id");

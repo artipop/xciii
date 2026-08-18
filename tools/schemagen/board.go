@@ -198,9 +198,11 @@ func boardsHistory() Table {
 			"to keep these three tables at all is a decision worth taking on its\n" +
 			"own rather than inside a collapse.",
 		Columns: boardColumns(),
-		Indexes: []Index{
-			{Name: "idx_boards_history_id", Columns: []string{"id", "insert_at"}},
-		},
+		// The stamp is written by Go (utils.NextInsertAt) rather than by the
+		// column's default, which is why this key holds: the default is the
+		// database's clock at millisecond resolution, and inside a transaction
+		// it hands every row of one statement the same instant.
+		PK: []string{"id", "insert_at"},
 	}
 }
 
@@ -252,9 +254,11 @@ func blocksHistory() Table {
 		Name:    "blocks_history",
 		Why:     "Every version of every block. See boards_history.",
 		Columns: blockColumns(),
-		Indexes: []Index{
-			{Name: "idx_blocks_history_id", Columns: []string{"id", "insert_at"}},
-		},
+		// The stamp is written by Go (utils.NextInsertAt) rather than by the
+		// column's default, which is why this key holds: the default is the
+		// database's clock at millisecond resolution, and inside a transaction
+		// it hands every row of one statement the same instant.
+		PK: []string{"id", "insert_at"},
 	}
 }
 
@@ -288,9 +292,12 @@ func boardMembersHistory() Table {
 			{Name: "action", Type: Name(10), Null: true},
 			insertAt(),
 		},
+		// The stamp is written by Go (utils.NextInsertAt) rather than by the
+		// column's default, which is why this key holds: the default is the
+		// database's clock at millisecond resolution, and inside a transaction
+		// it hands every row of one statement the same instant.
+		PK: []string{"board_id", "user_id", "insert_at"},
 		Indexes: []Index{
-			{Name: "idx_board_members_history_board_id_user_id_insert_at",
-				Columns: []string{"board_id", "user_id", "insert_at"}},
 			{Name: "idx_board_members_history_user_id", Columns: []string{"user_id"}},
 			{Name: "idx_board_members_history_board_id_user_id", Columns: []string{"board_id", "user_id"}},
 		},

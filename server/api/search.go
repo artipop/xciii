@@ -12,88 +12,14 @@ import (
 )
 
 func (a *API) registerSearchRoutes(r *web.Router) {
-	r.HandleFunc("GET /teams/{teamID}/channels", a.sessionRequired(a.handleSearchMyChannels))
 	r.HandleFunc("GET /teams/{teamID}/boards/search", a.sessionRequired(a.handleSearchBoards))
 	r.HandleFunc("GET /teams/{teamID}/boards/search/linkable", a.sessionRequired(a.handleSearchLinkableBoards))
 	r.HandleFunc("GET /boards/search", a.sessionRequired(a.handleSearchAllBoards))
 }
 
-func (a *API) handleSearchMyChannels(w http.ResponseWriter, r *http.Request) {
-	// swagger:operation GET /teams/{teamID}/channels searchMyChannels
-	//
-	// Returns the user available channels
-	//
-	// ---
-	// produces:
-	// - application/json
-	// parameters:
-	// - name: teamID
-	//   in: path
-	//   description: Team ID
-	//   required: true
-	//   type: string
-	// - name: search
-	//   in: query
-	//   description: string to filter channels list
-	//   required: false
-	//   type: string
-	// security:
-	// - BearerAuth: []
-	// responses:
-	//   '200':
-	//     description: success
-	//     schema:
-	//       type: array
-	//       items:
-	//         "$ref": "#/definitions/Channel"
-	//   default:
-	//     description: internal error
-	//     schema:
-	//       "$ref": "#/definitions/ErrorResponse"
-
-	if !a.MattermostAuth {
-		a.errorResponse(w, r, model.NewErrNotImplemented("not permitted in standalone mode"))
-		return
-	}
-
-	query := r.URL.Query()
-	searchQuery := query.Get("search")
-
-	teamID := r.PathValue("teamID")
-	userID := getUserID(r)
-
-	if !a.permissions.HasPermissionToTeam(userID, teamID, model.PermissionViewTeam) {
-		a.errorResponse(w, r, model.NewErrPermission("access denied to team"))
-		return
-	}
-
-	auditRec := a.makeAuditRecord(r, "searchMyChannels", audit.Fail)
-	defer a.audit.LogRecord(audit.LevelRead, auditRec)
-	auditRec.AddMeta("teamID", teamID)
-
-	channels, err := a.app.SearchUserChannels(teamID, userID, searchQuery)
-	if err != nil {
-		a.errorResponse(w, r, err)
-		return
-	}
-
-	a.logger.Debug("GetUserChannels",
-		mlog.String("teamID", teamID),
-		mlog.Int("channelsCount", len(channels)),
-	)
-
-	data, err := json.Marshal(channels)
-	if err != nil {
-		a.errorResponse(w, r, err)
-		return
-	}
-
-	// response
-	jsonBytesResponse(w, http.StatusOK, data)
-
-	auditRec.AddMeta("channelsCount", len(channels))
-	auditRec.Success()
-}
+// What used to stand here: handleSearchMyChannels, which listed the Mattermost
+// channels somebody could see. This product has no channels, the store answered
+// "not implemented", and the page never asked.
 
 func (a *API) handleSearchBoards(w http.ResponseWriter, r *http.Request) {
 	// swagger:operation GET /teams/{teamID}/boards/search searchBoards

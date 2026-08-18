@@ -164,9 +164,6 @@ type Store interface {
 	DBType() string
 	DBVersion() string
 
-	GetLicense() *mmModel.License
-	SearchUserChannels(teamID, userID, query string) ([]*mmModel.Channel, error)
-	GetChannel(teamID, channelID string) (*mmModel.Channel, error)
 	PostMessage(message, postType, channelID string) error
 	SendMessage(message, postType string, receipts []string) error
 

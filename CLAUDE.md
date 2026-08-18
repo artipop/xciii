@@ -1575,10 +1575,17 @@ instant. So the fork's composite operations — insert a block, write its histor
 touch the board — ran as separate statements on the database everyone actually
 uses, and a failure halfway left the database half-changed. That is what made
 two test suites flaky, and it is why deleting a board and undeleting it at once
-returned a 500 about a third of the time. Collapsing the migrations is what made
-it fixable: the history tables have no primary key now (an append-only journal
-needs none), the collision cannot happen, and the SQLite branch is gone from
-`generators/transactional_store.go.tmpl`.
+returned a 500 about a third of the time. The fix is that **`insert_at` comes
+from Go** — `utils.NextInsertAt`, a per-process clock that never returns a
+millisecond it has already given out — written at each of the eleven places a
+history row is made, two of which are `INSERT … SELECT` and carry the stamp as a
+literal in the projection. The keys stay, and one reader depends on them:
+`undeleteBlockChildren` picks each block's latest history row by
+`max(insert_at)`, so two rows sharing an instant hand it the same block twice and
+it violates `blocks.id` on the way back in. The SQLite branch is gone from
+`generators/transactional_store.go.tmpl`. What monotonicity does not cover is two
+processes on one database; nothing here does that, and the honest answer when
+something does is a key of the row's own rather than a clock.
 
 **golang-migrate still runs it**: this is a generator, not a migration engine,
 and the engine already knows about versions, dirty marks and the record the
