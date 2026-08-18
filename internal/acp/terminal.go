@@ -595,7 +595,7 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 	if st, ok, _ := m.flowState(ev.CardID); ok {
 		if flow, found := m.FlowByName(st.Flow); found {
 			property = flow.PropertyOr(property)
-			if node, has := flow.Node(st.NodeID); has && columnMatchesCard(ev, node, property) {
+			if node, has := flow.Node(st.NodeID); has && columnMatchesCard(ev, node, property, m.boardProperty(ev.BoardID, BoardPropColumnProperty)) {
 				place := cardPlace{node: st.NodeID, column: node.Column, crew: node.Crew(), runIn: node.RunIn}
 				spec, _ := m.columnOf(node, property)
 				if len(place.crew) == 0 {
@@ -648,12 +648,13 @@ func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 // English, matched nothing — so every conversation on it read as belonging to a
 // column the card had already left.
 //
-// The names still answer the *negative*: "this card is not here any more" needs
-// to know which of the card's options is the column, and neither the stage nor
-// the route records the property's id — only its name. So a rename can still
-// cost a card the answer "you have left", which is the harmless direction: the
-// route's own record stands instead.
-func columnMatchesCard(ev CardMoved, node FlowNode, property string) bool {
+// Saying "this card has *left*" needs the other half: which of the card's
+// options is the column at all. That is what the board records as
+// `xciiiColumnProperty` — an id, beside the ones it already keeps for the folder
+// and the branch field — and `propertyID` is that record. A board that has not
+// got one yet falls back to comparing the property's name, which is what the
+// whole of this used to do.
+func columnMatchesCard(ev CardMoved, node FlowNode, property, propertyID string) bool {
 	if len(ev.SelectedOptions) == 0 {
 		return true
 	}
@@ -663,6 +664,17 @@ func columnMatchesCard(ev CardMoved, node FlowNode, property string) bool {
 				return true
 			}
 		}
+	}
+	if propertyID != "" {
+		for _, opt := range ev.SelectedOptions {
+			if opt.PropertyID == propertyID {
+				// The card says which column it is in, and it is not this one.
+				return node.OptionID == "" && strings.EqualFold(opt.Name, node.Column)
+			}
+		}
+		// The card carries options, none of them on the column property: it says
+		// nothing about where it stands, so the route's record stands.
+		return true
 	}
 	for _, opt := range ev.SelectedOptions {
 		if strings.EqualFold(opt.PropertyName, property) {

@@ -73,6 +73,19 @@ const (
 	// read off the card rather than *recognised* among everything the card has
 	// selected (resolveWorkdir).
 	BoardPropProject = "xciiiProjectProperty"
+	// BoardPropColumnProperty is the id of the select property this board's
+	// columns live on — the field a card's column is a value of.
+	//
+	// It is the last of the three "which field is which" records, and the one
+	// that took longest to arrive: which property held the columns was a *name*
+	// in the machine's settings, matched against every board this machine ever
+	// saw (contradiction 1 of docs/model-graph.md). A board in English, or one
+	// where somebody renamed «Статус», matched nothing.
+	//
+	// Written here rather than by the page, unlike the folder and branch
+	// records: the columns already carry the property they were bound to, so
+	// the board can be told what it is the first time its automation is saved.
+	BoardPropColumnProperty = "xciiiColumnProperty"
 )
 
 // The names these keys had before, still read because every board made until
@@ -608,6 +621,12 @@ func (m *Manager) persistBoardLocked(boardID string) {
 		BoardPropFlows:   flows,
 		BoardPropPrompt:  m.cfg.BoardPrompts[boardID],
 	}
+	// Which field the columns are on, taken from the columns themselves. Only
+	// written when they say — a board whose columns predate option ids has
+	// nothing to record, and an absent value must not overwrite a good one.
+	if propertyID := columnPropertyOf(columns); propertyID != "" {
+		props[BoardPropColumnProperty] = propertyID
+	}
 
 	parent := m.rootCtx
 	if parent == nil {
@@ -745,4 +764,22 @@ func (m *Manager) configToStore() Config {
 type BoardAutomation struct {
 	Columns []ColumnSpec `json:"acpColumns,omitempty"`
 	Flows   []FlowEntry  `json:"acpFlows,omitempty"`
+}
+
+// columnPropertyOf is the property this board's columns are values of, read off
+// the columns themselves. Empty when they disagree or when none of them says,
+// because a board with columns on two different fields is a board this record
+// cannot describe — and a wrong answer here is worse than none.
+func columnPropertyOf(columns []ColumnSpec) string {
+	found := ""
+	for _, c := range columns {
+		if c.PropertyID == "" {
+			continue
+		}
+		if found != "" && found != c.PropertyID {
+			return ""
+		}
+		found = c.PropertyID
+	}
+	return found
 }
