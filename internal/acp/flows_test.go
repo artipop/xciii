@@ -124,12 +124,11 @@ func TestAddUpdateRemoveFlowPersists(t *testing.T) {
 		t.Error("update of an unknown flow accepted")
 	}
 
-	loaded, err := LoadConfig(cfgPath, t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(loaded.Flows) != 1 || loaded.Flows[0].Nodes[1].Column != "Ревью" {
-		t.Fatalf("config did not persist the update: %+v", loaded.Flows)
+	// A route is the board's, not the machine's, so what has to hold it is the
+	// registry this run reads. Where it is written through to is
+	// boardstore_test.go; a flow with no board — this one — has nowhere to go.
+	if flows := m.Flows(); len(flows) != 1 || flows[0].Nodes[1].Column != "Ревью" {
+		t.Fatalf("the update did not reach the registry: %+v", flows)
 	}
 
 	if err := m.RemoveFlow("", "FEATURE"); err != nil {

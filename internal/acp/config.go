@@ -696,38 +696,54 @@ type Config struct {
 	//
 	// A folder is not necessarily a git repository; the product stopped calling
 	// it one because a board that runs agents is not only for software.
-	Workdirs []WorkdirEntry `json:"projects"`
+	//
+	// Not in the file: the folders are the `workspace` table. This is the
+	// working copy, read at startup (loadRegistriesLocked) and written back on
+	// every edit — the registry is read on every card move, and the whole of it
+	// is four handfuls of rows.
+	Workdirs []WorkdirEntry `json:"-"`
 
 	// Agents is the registry of named coding agents (claude/codex, with their
 	// own prompt, model and env). A card is mapped to an agent by its assignee,
 	// each agent being a member of the board under its own name. When empty,
 	// AgentMode below drives the (single) built-in agent for backward compat.
-	Agents []AgentEntry `json:"agents"`
+	// Not in the file: the `agent` table. See Workdirs.
+	Agents []AgentEntry `json:"-"`
 
 	// Proxies is the registry of named network configurations. Agents pick one
 	// by name (AgentEntry.ProxyName), so a proxy is described once and shared.
-	Proxies []ProxyEntry `json:"proxies"`
+	// Not in the file: the `proxy` table. See Workdirs.
+	Proxies []ProxyEntry `json:"-"`
 
 	// Deploys is the registry of named Dokku destinations used by the deploy
 	// column. The matching target is handed to the session's dokku MCP server.
-	Deploys []DeployEntry `json:"deploys"`
+	// Not in the file: the `deploy_target` table. See Workdirs.
+	Deploys []DeployEntry `json:"-"`
 
 	// Columns is what happens in each column of a board: the action a card
 	// entering it starts, who works it, how many at once. It is the single
 	// answer to "what does this column do". See columns.go.
-	Columns []ColumnSpec `json:"columns"`
+	//
+	// Not in the file: a board's automation lives on the board, in its own
+	// properties (`xciiiColumns`), so it travels with the board into an export,
+	// a template and another machine. This is the working copy the engine reads
+	// on every card move; every edit is written through by persistBoardLocked.
+	Columns []ColumnSpec `json:"-"`
 
 	// Flows is the registry of named routes across the board: which column
 	// follows which, and on what event. A card without a matching flow still
 	// gets whatever its column does — a flow adds the transitions, not the
 	// behaviour. See flows.go.
-	Flows []FlowEntry `json:"flows"`
+	// Not in the file: `xciiiFlows` on the board. See Columns.
+	Flows []FlowEntry `json:"-"`
 
 	// BoardPrompts is that instruction, per board: the text prepended to every
 	// prompt a session of that board is given, before the agent's own system
 	// prompt and the card task. Keyed by board id, empty for a board that
 	// never set one.
-	BoardPrompts map[string]string `json:"boardPrompts,omitempty"`
+	//
+	// Not in the file: `xciiiPrompt` on the board. See Columns.
+	BoardPrompts map[string]string `json:"-"`
 
 	// DeployPrompt is what a deploy session is told to do; the concrete facts
 	// (folder, branch, target, expected URL) are appended to it.
@@ -756,10 +772,6 @@ type Config struct {
 	VCSPollSeconds int `json:"vcsPollSeconds"`
 	// GitRemote is the remote consulted for those events.
 	GitRemote string `json:"gitRemote"`
-	// GithubToken authorizes the pull-request triggers. Empty falls back to
-	// GITHUB_TOKEN in the environment; without either, only public folders
-	// answer, and slowly (60 requests an hour).
-	GithubToken string `json:"githubToken,omitempty"`
 
 	// WorktreeMode controls where sessions run: "always" (default) — a
 	// dedicated git worktree per session, which is what gives a card its own
@@ -975,11 +987,21 @@ func LoadConfig(path, dataDir string) (Config, error) {
 // — the three functions that carried an older config forward. Removed with the
 // keys they read, since none of the installs they were for exist.
 
-// GithubTokenValue is the token to authorize pull-request polling with: the
-// configured one, else whatever the environment already holds.
-func (c Config) GithubTokenValue() string {
-	if t := strings.TrimSpace(c.GithubToken); t != "" {
-		return t
+// GithubSecretKey is where the pull-request token is kept: internal/secrets,
+// which is the keychain where there is one and a 0600 file where there is not.
+// It was `githubToken` in config.json — a credential in a settings file
+// somebody edits by hand and pastes into an issue, next to the timeouts
+// (docs/store-plan.md, step 3).
+const GithubSecretKey = "github.token"
+
+// githubToken is what authorizes pull-request polling: the stored one, else
+// whatever the environment already holds. Absent is the ordinary case — public
+// folders answer without a token, at a rate limit the watcher paces itself to.
+func (m *Manager) githubToken() string {
+	if m.vault != nil {
+		if t, err := m.vault.Get(GithubSecretKey); err == nil && strings.TrimSpace(t) != "" {
+			return strings.TrimSpace(t)
+		}
 	}
 	return strings.TrimSpace(os.Getenv("GITHUB_TOKEN"))
 }

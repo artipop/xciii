@@ -595,8 +595,9 @@ func (m *Manager) BoardAutomation(boardID string) BoardAutomation {
 // drift apart, so the write happens inside the same lock as the change.
 //
 // A board that cannot be written to is not a lost edit: the entries stay in the
-// registry for this run, and stay in config.json (configToStore) until a write
-// gets through, which is also how an install that predates this moves over.
+// registry for this run, and the next edit tries again. They are not in
+// config.json any more, so the run is as long as they last — which is the
+// trade the move onto the board bought (docs/store-plan.md, step 3).
 func (m *Manager) persistBoardLocked(boardID string) {
 	if boardID == "" || m.meta == nil {
 		return
@@ -637,13 +638,7 @@ func (m *Manager) persistBoardLocked(boardID string) {
 	remove := legacyNamesOf(BoardPropColumns, BoardPropFlows, BoardPropPrompt)
 	if err := m.meta.SetBoardProperties(ctx, boardID, props, remove); err != nil {
 		m.log.Warn("acp: cannot save the board's automation on the board", "board", boardID, "err", err)
-		delete(m.boardStored, boardID)
-		return
 	}
-	if m.boardStored == nil {
-		m.boardStored = make(map[string]bool)
-	}
-	m.boardStored[boardID] = true
 }
 
 // saveBoardsLocked writes the change through to every board it touched and
@@ -677,85 +672,6 @@ func boardOwn(cfg Config, boardID string) ([]ColumnSpec, []FlowEntry) {
 		}
 	}
 	return columns, flows
-}
-
-// moveAutomationToBoards is the one-shot move of what config.json still carries
-// onto the boards it belongs to. It runs at startup, before anything can edit
-// either side, and it is a no-op on the second launch: what has reached its
-// board is no longer written to the file.
-//
-// A board that has gone away keeps its entries in the file rather than losing
-// them silently — a failed write here is indistinguishable from a board store
-// that is not ready yet, and a route somebody drew is not ours to drop.
-func (m *Manager) moveAutomationToBoards() {
-	if m.meta == nil || m.cfgPath == "" {
-		return
-	}
-	m.cfgMu.Lock()
-	defer m.cfgMu.Unlock()
-
-	boards := make([]string, 0, 4)
-	seen := make(map[string]bool)
-	for _, c := range m.cfg.Columns {
-		if c.BoardID != "" && !seen[c.BoardID] {
-			seen[c.BoardID] = true
-			boards = append(boards, c.BoardID)
-		}
-	}
-	for _, f := range m.cfg.Flows {
-		if f.BoardID != "" && !seen[f.BoardID] {
-			seen[f.BoardID] = true
-			boards = append(boards, f.BoardID)
-		}
-	}
-	for boardID := range m.cfg.BoardPrompts {
-		if boardID != "" && !seen[boardID] {
-			seen[boardID] = true
-			boards = append(boards, boardID)
-		}
-	}
-	if len(boards) == 0 {
-		return
-	}
-	for _, boardID := range boards {
-		m.persistBoardLocked(boardID)
-	}
-	if err := m.persistConfigLocked(); err != nil {
-		m.log.Warn("acp: cannot rewrite the config after moving the automation onto the boards", "err", err)
-	}
-}
-
-// configToStore is the registry as it goes into the file: everything the
-// machine owns, and none of what a board owns and has taken. Board-scoped
-// entries whose board has not accepted them stay, so nothing is dropped on the
-// way over.
-func (m *Manager) configToStore() Config {
-	cfg := m.cfg
-	if len(m.boardStored) == 0 {
-		return cfg
-	}
-	columns := make([]ColumnSpec, 0, len(cfg.Columns))
-	for _, c := range cfg.Columns {
-		if !m.boardStored[c.BoardID] {
-			columns = append(columns, c)
-		}
-	}
-	flows := make([]FlowEntry, 0, len(cfg.Flows))
-	for _, f := range cfg.Flows {
-		if !m.boardStored[f.BoardID] {
-			flows = append(flows, f)
-		}
-	}
-	cfg.Columns, cfg.Flows = columns, flows
-
-	// The prompts are not written at all. Every board holds its own as
-	// `xciiiPrompt` and it is read back from there (adoptPrompt), so the copy in
-	// the settings file was the machine naming something that belongs to a
-	// board — the same shape as the column keys, and gone for the same reason
-	// (docs/store-plan.md, step 3). The map stays in memory, where the engine
-	// reads it on every session.
-	cfg.BoardPrompts = nil
-	return cfg
 }
 
 // BoardAutomation is what a board carries: the columns it runs and the routes

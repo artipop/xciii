@@ -306,7 +306,7 @@ func (m *Manager) persistConfigLocked() error {
 	if m.cfgPath == "" {
 		return nil // tests / ephemeral configs
 	}
-	if err := SaveConfig(m.cfgPath, m.configToStore()); err != nil {
+	if err := SaveConfig(m.cfgPath, m.cfg); err != nil {
 		m.log.Error("acp: failed to persist config", "err", err)
 		return fmt.Errorf("не удалось сохранить конфиг: %w", err)
 	}

@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/artipop/xciii/internal/dokku"
+	"github.com/artipop/xciii/internal/secrets"
 	"github.com/artipop/xciii/internal/vcs"
 )
 
@@ -28,10 +29,14 @@ type Manager struct {
 	registryProbes map[string]func() bool
 	cfgPath        string // where registry edits are persisted; empty in tests
 	store          *Store
-	writer         BoardWriter
-	reader         BoardReader // optional; enables opening a console on a card
-	users          BoardUsers  // optional; enables assigning cards to an agent
-	meta           BoardMeta   // optional; lets a board bring its own columns and routes
+	// vault is where a credential this app presents to somebody else is kept —
+	// today the GitHub token for pull-request polling. Nil until SetSecrets,
+	// and nil for good on a build with no store; both read as "no token".
+	vault  secrets.Store
+	writer BoardWriter
+	reader BoardReader // optional; enables opening a console on a card
+	users  BoardUsers  // optional; enables assigning cards to an agent
+	meta   BoardMeta   // optional; lets a board bring its own columns and routes
 	// cards is where a card's own route position is kept — on the card, so it
 	// travels with it. Optional; without it the position lives in this
 	// machine's store alone and stays behind when the board moves.
@@ -74,16 +79,11 @@ type Manager struct {
 	seededMu sync.Mutex
 	seeded   map[string]bool // boards whose own settings have been imported
 
-	// boardStored are the boards that now hold their own columns and routes
-	// (boardseed.go). Guarded by cfgMu, because it is exactly what decides
-	// which of them still go into config.json.
-	boardStored map[string]bool
-
 	// boardUnadopted is what a board carries that this machine cannot use — a
 	// column naming an agent nobody registered here, which is every column of
 	// a board that has just been imported. Kept verbatim and written back
 	// beside the registry's own, so that reading a board can never shrink it.
-	// Guarded by cfgMu, like boardStored.
+	// Guarded by cfgMu.
 	boardUnadopted map[string]unadopted
 
 	// questions are what agents are waiting to hear back on: one entry per open
@@ -157,18 +157,36 @@ func NewManager(cfg Config, cfgPath string, st *Store, w BoardWriter, ui UIEmitt
 	if tr.Enabled() {
 		ui = &tracingEmitter{inner: ui, tr: tr}
 	}
-	return &Manager{
-		cfg:      cfg,
-		cfgPath:  cfgPath,
-		store:    st,
-		writer:   w,
-		ui:       ui,
-		log:      log,
-		tr:       tr,
-		watchers: defaultWatchers(cfg),
-		active:   make(map[string]*Session),
-		byCard:   make(map[string]*Session),
-		sem:      make(chan struct{}, maxConc),
+	m := &Manager{
+		cfg:     cfg,
+		cfgPath: cfgPath,
+		store:   st,
+		writer:  w,
+		ui:      ui,
+		log:     log,
+		tr:      tr,
+		active:  make(map[string]*Session),
+		byCard:  make(map[string]*Session),
+		sem:     make(chan struct{}, maxConc),
+	}
+	// After the struct, because the GitHub watcher asks for a token and the
+	// token comes off the manager's own secret store (SetSecrets, which the
+	// caller may not have called yet — an absent token is the ordinary case).
+	m.watchers = m.defaultWatchers()
+	return m
+}
+
+// SetSecrets supplies the credential store. Optional: without one, a token can
+// still arrive through the environment, and most folders need none at all.
+func (m *Manager) SetSecrets(v secrets.Store) {
+	m.vault = v
+	// The GitHub watcher took its token when it was built, which was before
+	// this. Rebuild the default set so the token is the one just supplied —
+	// unless a test has replaced the watchers, in which case they are theirs.
+	if len(m.watchers) == 2 {
+		if _, ok := m.watchers[1].(*vcs.GitHub); ok {
+			m.watchers = m.defaultWatchers()
+		}
 	}
 }
 
@@ -207,7 +225,6 @@ func (m *Manager) Start(ctx context.Context, events BoardEvents) error {
 
 	// Before anything can edit either side: whatever automation the file still
 	// carries goes onto the boards that own it (boardseed.go).
-	m.moveAutomationToBoards()
 
 	// The accounts the registry is named by. Registering an agent makes its
 	// own from now on, so this is only ever the catch-up for a registry that

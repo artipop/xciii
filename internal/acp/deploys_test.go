@@ -54,10 +54,7 @@ func TestAddUpdateRemoveDeployPersists(t *testing.T) {
 		t.Error("update of an unknown target accepted")
 	}
 
-	loaded, err := LoadConfig(cfgPath, t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
+	loaded := reloaded(t, m)
 	if len(loaded.Deploys) != 1 || loaded.Deploys[0].SSHUser != "deployer" {
 		t.Fatalf("config did not persist the update: %+v", loaded.Deploys)
 	}

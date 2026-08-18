@@ -11,9 +11,15 @@ import (
 
 func registryManager(t *testing.T, cfgPath string, projects ...WorkdirEntry) *Manager {
 	t.Helper()
-	cfg := DefaultConfig(t.TempDir())
+	dir := t.TempDir()
+	cfg := DefaultConfig(dir)
 	cfg.Workdirs = projects
-	return NewManager(cfg, cfgPath, nil, newFakeWriter(), &fakeEmitter{}, nil)
+	// A store, because that is where the folder registry lives now.
+	store, err := newTestStore(t, filepath.Join(dir, "xciii.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return NewManager(cfg, cfgPath, store, newFakeWriter(), &fakeEmitter{}, nil)
 }
 
 func TestAddRemoveProjectPersists(t *testing.T) {
@@ -55,10 +61,7 @@ func TestAddRemoveProjectPersists(t *testing.T) {
 	}
 
 	// Persisted and reloadable.
-	loaded, err := LoadConfig(cfgPath, t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
+	loaded := reloaded(t, m)
 	if len(loaded.Workdirs) != 2 || loaded.Workdirs[0].Path != project {
 		t.Fatalf("registry not persisted: %+v", loaded.Workdirs)
 	}
@@ -69,7 +72,7 @@ func TestAddRemoveProjectPersists(t *testing.T) {
 	if err := m.RemoveWorkdir(entry.Name); err == nil {
 		t.Error("removing missing entry should fail")
 	}
-	loaded, _ = LoadConfig(cfgPath, t.TempDir())
+	loaded = reloaded(t, m)
 	if len(loaded.Workdirs) != 1 {
 		t.Fatalf("removal not persisted: %+v", loaded.Workdirs)
 	}

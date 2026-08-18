@@ -13,9 +13,30 @@ import (
 
 func agentManager(t *testing.T, cfgPath string, agents ...AgentEntry) *Manager {
 	t.Helper()
-	cfg := DefaultConfig(t.TempDir())
+	dir := t.TempDir()
+	cfg := DefaultConfig(dir)
 	cfg.Agents = agents
-	return NewManager(cfg, cfgPath, nil, newFakeWriter(), &fakeEmitter{}, nil)
+	// A store, because the registries live in it. They used to be written into
+	// config.json, and a manager with no store persisted nothing at all.
+	store, err := newTestStore(t, filepath.Join(dir, "xciii.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return NewManager(cfg, cfgPath, store, newFakeWriter(), &fakeEmitter{}, nil)
+}
+
+// reloaded is the registry as the next launch reads it: a second manager over
+// the same database. It stands where the tests used to read config.json back,
+// which is no longer where a registry is kept.
+func reloaded(t *testing.T, m *Manager) Config {
+	t.Helper()
+	next := NewManager(DefaultConfig(t.TempDir()), "", m.store, newFakeWriter(), &fakeEmitter{}, nil)
+	next.cfgMu.Lock()
+	defer next.cfgMu.Unlock()
+	if err := next.loadRegistriesLocked(); err != nil {
+		t.Fatalf("read the registries back: %v", err)
+	}
+	return next.cfg
 }
 
 func TestAddUpdateRemoveAgentPersists(t *testing.T) {
@@ -39,10 +60,7 @@ func TestAddUpdateRemoveAgentPersists(t *testing.T) {
 	}
 
 	// Persisted and reloadable.
-	loaded, err := LoadConfig(cfgPath, t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
+	loaded := reloaded(t, m)
 	if len(loaded.Agents) != 1 || loaded.Agents[0].Env["CODEX_HOME"] != "/tmp/a" {
 		t.Fatalf("agent not persisted: %+v", loaded.Agents)
 	}
@@ -54,7 +72,7 @@ func TestAddUpdateRemoveAgentPersists(t *testing.T) {
 	if _, err := m.UpdateAgent(AgentEntry{Name: "missing", Kind: "codex"}); err == nil {
 		t.Error("updating missing agent should fail")
 	}
-	loaded, _ = LoadConfig(cfgPath, t.TempDir())
+	loaded = reloaded(t, m)
 	if loaded.Agents[0].Model != "gpt-5" {
 		t.Fatalf("update not persisted: %+v", loaded.Agents)
 	}
@@ -65,7 +83,7 @@ func TestAddUpdateRemoveAgentPersists(t *testing.T) {
 	if err := m.RemoveAgent("codex-a"); err == nil {
 		t.Error("removing missing agent should fail")
 	}
-	loaded, _ = LoadConfig(cfgPath, t.TempDir())
+	loaded = reloaded(t, m)
 	if len(loaded.Agents) != 0 {
 		t.Fatalf("removal not persisted: %+v", loaded.Agents)
 	}

@@ -215,6 +215,20 @@ func main() {
 		log.Fatalf("failed to open the front door: %v", err)
 	}
 
+	// Where a credential the app has to *present* is kept — an MCP server's API
+	// token, an OAuth access token, the GitHub token that authorizes
+	// pull-request polling. The environment comes first so a token given from
+	// outside wins over a stored one without anybody having to delete anything,
+	// then the platform's own keychain, and the file only where there is no
+	// keychain to have: it keeps values in plain text at 0600 and says so.
+	// The keychain service is this install's name, not the product's: a token
+	// stored by a development build must not be handed to the app, and a real
+	// token must not be reachable from whatever is being tried out at the time.
+	//
+	// Built here rather than inside the sources block below, because the agent
+	// integration reads it too and neither half implies the other.
+	vault := openVault()
+
 	// Sources are wired independently of the agent integration, and on purpose:
 	// cards from a phone are useful on a board that runs no agents at all.
 	// Anything that goes wrong here costs the sources and nothing else.
@@ -259,23 +273,7 @@ func main() {
 		if len(manifests) > 0 {
 			log.Printf("sources: %d манифест(ов) из %s", len(manifests), filepath.Join(dir, sources.ManifestsDir))
 		}
-		// Where a credential the app has to *present* is kept — an MCP server's
-		// API token, an OAuth access token. The environment comes first so a
-		// token given from outside wins over a stored one without anybody
-		// having to delete anything, then the platform's own keychain, and the
-		// file only where there is no keychain to have: it keeps values in
-		// plain text at 0600 and says so.
-		// The keychain service is this install's name, not the product's: a
-		// token stored by a development build must not be handed to the app,
-		// and a real token must not be reachable from whatever is being tried
-		// out at the time.
-		store := secrets.Chain{secrets.Env{Prefix: "XCIII_SECRET_"}}
-		if keychain, ok := secrets.OpenKeychain(appDirName); ok {
-			store = append(store, keychain)
-		} else {
-			store = append(store, secrets.NewFileStore(filepath.Join(dir, "secrets.json")))
-		}
-		sourceMgr.SetSecrets(store)
+		sourceMgr.SetSecrets(vault)
 		// Plugins come up here and go down in shutdown below. A source fed over
 		// ingest needs none of this; a source with a plugin is a process, and
 		// this is where it starts.
@@ -301,6 +299,10 @@ func main() {
 			mgr = acp.NewManager(acpCfg, filepath.Join(dir, "config.json"), store, writer, emitter, nil)
 			// Lets the UI open a console on a card without moving it.
 			mgr.SetBoardReader(events)
+			// Where the GitHub token for pull-request polling comes from. It
+			// was `githubToken` in config.json, which is a credential in a
+			// settings file people edit by hand and paste into issues.
+			mgr.SetSecrets(vault)
 			mgr.SetBoardMeta(events)
 			// Keeps a card's place on its route on the card, so it travels
 			// with the board rather than staying on this machine.
@@ -457,4 +459,21 @@ func (r inboxAgentRunner) RunForSource(ctx context.Context, run sources.AgentRun
 		Prompt:  run.Prompt,
 		Servers: servers,
 	})
+}
+
+// openVault is the credential store, built the same way whether or not this
+// install has sources or agents. The file fallback lives beside the sources
+// registry for history's sake: it was written there first, and moving it would
+// take somebody's stored tokens with it for no gain.
+func openVault() secrets.Store {
+	store := secrets.Chain{secrets.Env{Prefix: "XCIII_SECRET_"}}
+	if keychain, ok := secrets.OpenKeychain(appDirName); ok {
+		return append(store, keychain)
+	}
+	dir, err := sourcesDataDir()
+	if err != nil {
+		log.Printf("secrets: no data dir, only the environment is read: %v", err)
+		return store
+	}
+	return append(store, secrets.NewFileStore(filepath.Join(dir, "secrets.json")))
 }

@@ -617,10 +617,11 @@ board's own properties, in the board database, which is why a live board and a
 template are the same two keys and why a template can carry automation at all.
 `internal/acp` keeps the registry in memory because the engine reads it on every
 card move, but every edit is written through to the board it belongs to
-(`persistBoardLocked` in `boardseed.go`), and `config.json` keeps only what the
-machine owns. An install that predates this moves over once, at startup
-(`moveAutomationToBoards`); a board that refuses the write keeps its entries in
-the file until one gets through, which is what makes the move safe to retry.
+(`persistBoardLocked` in `boardseed.go`), and `config.json` does not carry it at
+all: `Columns`, `Flows` and `BoardPrompts` are `json:"-"`, working copies fed
+from the boards themselves. A board that refuses the write keeps its entries in
+the registry for the run and the next edit tries again — the file is not a
+fallback any more, which is the trade the move onto the board bought.
 
 **A setting lives where its owner does**, and that is the rule the whole
 settings surface is sorted by. The registries are the machine's — agents,
@@ -629,7 +630,7 @@ agent waiting may interrupt, and the archive that carries every board in and
 out — so they are `settings/appSettingsDialog.tsx`, one dialog of panels
 opened from `sidebarSettingsButton.tsx`, reachable with no board open. Deploy
 targets are the one registry whose *door* is elsewhere: the list is still the
-machine's (`config.json`, shared by every board that deploys), but a Dokku
+machine's (the `deploy_target` table, shared by every board that deploys), but a Dokku
 host only means anything to a board whose automation has a deploy stage, so
 the panel is a fold of that board's `automationDialog.tsx` (`usesDeploys`) and
 no other surface offers it — a settings section put a Dokku form one click

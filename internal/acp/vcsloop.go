@@ -22,10 +22,10 @@ func (m *Manager) SetWatchers(w ...vcs.Watcher) { m.watchers = w }
 // always, and GitHub — which only spends a request when a route actually waits
 // for a pull request. Its token is optional: public folders answer without
 // one, at a rate limit low enough that the watcher paces itself.
-func defaultWatchers(cfg Config) []vcs.Watcher {
+func (m *Manager) defaultWatchers() []vcs.Watcher {
 	return []vcs.Watcher{
-		&vcs.Git{Remote: cfg.GitRemote},
-		&vcs.GitHub{Remote: cfg.GitRemote, Token: cfg.GithubTokenValue()},
+		&vcs.Git{Remote: m.cfg.GitRemote},
+		&vcs.GitHub{Remote: m.cfg.GitRemote, Token: m.githubToken()},
 	}
 }
 

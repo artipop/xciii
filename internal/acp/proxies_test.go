@@ -37,10 +37,7 @@ func TestAddUpdateRemoveProxyPersists(t *testing.T) {
 		t.Error("a proxy without a scheme should be rejected")
 	}
 
-	loaded, err := LoadConfig(cfgPath, t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
+	loaded := reloaded(t, m)
 	if len(loaded.Proxies) != 1 || loaded.Proxies[0].Name != "office" {
 		t.Fatalf("proxy not persisted: %+v", loaded.Proxies)
 	}
@@ -54,7 +51,7 @@ func TestAddUpdateRemoveProxyPersists(t *testing.T) {
 	if _, err := m.UpdateProxy(proxyEntry("missing", "http://x:1")); err == nil {
 		t.Error("updating a missing entry should fail")
 	}
-	loaded, _ = LoadConfig(cfgPath, t.TempDir())
+	loaded = reloaded(t, m)
 	if loaded.Proxies[0].NoProxy != "localhost,.internal" || loaded.Proxies[0].CACert != "/etc/ssl/my-ca.pem" {
 		t.Fatalf("update not persisted: %+v", loaded.Proxies)
 	}
@@ -65,7 +62,7 @@ func TestAddUpdateRemoveProxyPersists(t *testing.T) {
 	if err := m.RemoveProxy("office"); err == nil {
 		t.Error("removing a missing entry should fail")
 	}
-	loaded, _ = LoadConfig(cfgPath, t.TempDir())
+	loaded = reloaded(t, m)
 	if len(loaded.Proxies) != 0 {
 		t.Fatalf("removal not persisted: %+v", loaded.Proxies)
 	}
