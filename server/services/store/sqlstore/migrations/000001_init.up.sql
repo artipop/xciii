@@ -172,7 +172,7 @@ CREATE UNIQUE INDEX `idx_workspace_name` ON `workspace` (`name`);
 -- Was WorkdirEntry.Modes, a map keyed by board id.
 --   mode: worktree | branch. NULL means nobody answered, and the machine's
 --     own default stands in.
-CREATE TABLE `workspace_board` (`workspace_id` varchar NOT NULL, `board_id` varchar NOT NULL, `mode` varchar NULL, PRIMARY KEY (`workspace_id`, `board_id`), CONSTRAINT `workspace_board_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspace` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE);
+CREATE TABLE `workspace_board` (`workspace_id` varchar NOT NULL, `board_id` varchar NOT NULL, `mode` varchar NULL, PRIMARY KEY (`workspace_id`, `board_id`), CONSTRAINT `workspace_board_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspace` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_mode` CHECK (`mode` IS NULL OR `mode` IN ('worktree', 'branch')));
 
 -- A registered agent. Its board account is a row in users, and the two
 -- are joined by a key rather than by their names happening to match —
@@ -199,7 +199,7 @@ CREATE UNIQUE INDEX `idx_deploy_target_name` ON `deploy_target` (`name`);
 -- separate tables and not one row with a transport column.
 --   card_id: NULL for a run that is about no card — naming a branch is one.
 --   finished_at: NULL means the session is still live.
-CREATE TABLE `agent_session` (`id` varchar NOT NULL, `card_id` varchar NULL, `board_id` varchar NULL, `agent_kind` varchar NOT NULL, `acp_session_id` varchar NULL, `status` varchar NOT NULL, `cwd` text NULL, `worktree_path` text NULL, `branch` varchar NULL, `started_at` bigint NOT NULL, `finished_at` bigint NULL, `error_text` text NULL, PRIMARY KEY (`id`), CONSTRAINT `agent_session_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `agent_session_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE);
+CREATE TABLE `agent_session` (`id` varchar NOT NULL, `card_id` varchar NULL, `board_id` varchar NULL, `agent_kind` varchar NOT NULL, `acp_session_id` varchar NULL, `status` varchar NOT NULL, `cwd` text NULL, `worktree_path` text NULL, `branch` varchar NULL, `started_at` bigint NOT NULL, `finished_at` bigint NULL, `error_text` text NULL, PRIMARY KEY (`id`), CONSTRAINT `agent_session_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `agent_session_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE, CONSTRAINT `agent_session_status` CHECK (`status` IN ('queued', 'running', 'idle', 'waiting_permission', 'done', 'failed', 'cancelled')));
 
 CREATE INDEX `idx_agent_session_card` ON `agent_session` (`card_id`, `started_at`);
 
@@ -268,7 +268,7 @@ CREATE INDEX `idx_stage_queue_column` ON `stage_queue` (`column_key`, `queued_at
 -- — the answers are folders and hosts here — so it cannot live in the
 -- browser's storage, which the desktop window forgets on every launch.
 --   changed_at: Was `at`. AT is a keyword in Postgres and a name not worth having.
-CREATE TABLE `board_setup` (`board_id` varchar NOT NULL, `step` varchar NOT NULL, `status` varchar NOT NULL, `changed_at` bigint NOT NULL, PRIMARY KEY (`board_id`, `step`), CONSTRAINT `board_setup_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE);
+CREATE TABLE `board_setup` (`board_id` varchar NOT NULL, `step` varchar NOT NULL, `status` varchar NOT NULL, `changed_at` bigint NOT NULL, PRIMARY KEY (`board_id`, `step`), CONSTRAINT `board_setup_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE, CONSTRAINT `board_setup_status` CHECK (`status` IN ('pending', 'done', 'skipped', 'offered')));
 
 -- This branch event has already been acted on. Keyed by the workspace
 -- rather than by its path: a folder somebody moved used to keep its
@@ -292,7 +292,7 @@ CREATE TABLE `vcs_seen` (`workspace_id` varchar NOT NULL, `branch` varchar NOT N
 --     workspace, and this is the worktree cut from it.
 --   base: What the branch was cut from, and therefore what «merged» means.
 --   released_at: NULL means the checkout is live.
-CREATE TABLE `checkout` (`id` varchar NOT NULL, `workspace_id` varchar NOT NULL, `card_id` varchar NULL, `board_id` varchar NULL, `mode` varchar NOT NULL, `branch` varchar NULL, `path` text NULL, `base` varchar NULL, `created_at` bigint NOT NULL, `released_at` bigint NULL, PRIMARY KEY (`id`), CONSTRAINT `checkout_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspace` (`id`) ON DELETE RESTRICT, CONSTRAINT `checkout_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `checkout_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE);
+CREATE TABLE `checkout` (`id` varchar NOT NULL, `workspace_id` varchar NOT NULL, `card_id` varchar NULL, `board_id` varchar NULL, `mode` varchar NOT NULL, `branch` varchar NULL, `path` text NULL, `base` varchar NULL, `created_at` bigint NOT NULL, `released_at` bigint NULL, PRIMARY KEY (`id`), CONSTRAINT `checkout_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspace` (`id`) ON DELETE RESTRICT, CONSTRAINT `checkout_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `checkout_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE, CONSTRAINT `checkout_mode` CHECK (`mode` IN ('worktree', 'branch', 'plain')));
 
 CREATE UNIQUE INDEX `idx_checkout_card` ON `checkout` (`workspace_id`, `card_id`);
 
@@ -311,7 +311,7 @@ CREATE INDEX `idx_source_item_card` ON `source_item` (`card_id`);
 -- Why nothing happened — the only question anybody asks of a source.
 -- Deleting the card it produced does not delete the line: what a source
 -- decided is a fact about the source.
-CREATE TABLE `source_event` (`id` varchar NOT NULL, `source` varchar NOT NULL, `external_id` varchar NULL, `rule` varchar NULL, `outcome` varchar NOT NULL, `card_id` varchar NULL, `detail` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), CONSTRAINT `source_event_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE SET NULL);
+CREATE TABLE `source_event` (`id` varchar NOT NULL, `source` varchar NOT NULL, `external_id` varchar NULL, `rule` varchar NULL, `outcome` varchar NOT NULL, `card_id` varchar NULL, `detail` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), CONSTRAINT `source_event_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE SET NULL, CONSTRAINT `source_event_outcome` CHECK (`outcome` IN ('created', 'commented', 'inbox', 'dropped', 'failed', 'skipped')));
 
 CREATE INDEX `idx_source_event_source` ON `source_event` (`source`, `id`);
 {{end}}
@@ -459,13 +459,13 @@ CREATE TABLE `boards` (`id` varchar(36) NOT NULL, `insert_at` datetime(6) NOT NU
 -- separate tables and not one row with a transport column.
 --   card_id: NULL for a run that is about no card — naming a branch is one.
 --   finished_at: NULL means the session is still live.
-CREATE TABLE `agent_session` (`id` varchar(36) NOT NULL, `card_id` varchar(36) NULL, `board_id` varchar(36) NULL, `agent_kind` varchar(32) NOT NULL, `acp_session_id` varchar(100) NULL, `status` varchar(24) NOT NULL, `cwd` text NULL, `worktree_path` text NULL, `branch` varchar(255) NULL, `started_at` bigint NOT NULL, `finished_at` bigint NULL, `error_text` text NULL, PRIMARY KEY (`id`), INDEX `idx_agent_session_card` (`card_id`, `started_at`), CONSTRAINT `agent_session_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `agent_session_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `agent_session` (`id` varchar(36) NOT NULL, `card_id` varchar(36) NULL, `board_id` varchar(36) NULL, `agent_kind` varchar(32) NOT NULL, `acp_session_id` varchar(100) NULL, `status` varchar(24) NOT NULL, `cwd` text NULL, `worktree_path` text NULL, `branch` varchar(255) NULL, `started_at` bigint NOT NULL, `finished_at` bigint NULL, `error_text` text NULL, PRIMARY KEY (`id`), INDEX `idx_agent_session_card` (`card_id`, `started_at`), CONSTRAINT `agent_session_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `agent_session_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE, CONSTRAINT `agent_session_status` CHECK (`status` IN ('queued', 'running', 'idle', 'waiting_permission', 'done', 'failed', 'cancelled'))) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Which setup questions a board has been asked. It is about this machine
 -- — the answers are folders and hosts here — so it cannot live in the
 -- browser's storage, which the desktop window forgets on every launch.
 --   changed_at: Was `at`. AT is a keyword in Postgres and a name not worth having.
-CREATE TABLE `board_setup` (`board_id` varchar(36) NOT NULL, `step` varchar(32) NOT NULL, `status` varchar(16) NOT NULL, `changed_at` bigint NOT NULL, PRIMARY KEY (`board_id`, `step`), CONSTRAINT `board_setup_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `board_setup` (`board_id` varchar(36) NOT NULL, `step` varchar(32) NOT NULL, `status` varchar(16) NOT NULL, `changed_at` bigint NOT NULL, PRIMARY KEY (`board_id`, `step`), CONSTRAINT `board_setup_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE, CONSTRAINT `board_setup_status` CHECK (`status` IN ('pending', 'done', 'skipped', 'offered'))) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- One current reason a card is not moving — not a journal. The reason is
 -- true only until somebody fixes what it is about, and a comment would
@@ -508,7 +508,7 @@ CREATE TABLE `workspace` (`id` varchar(36) NOT NULL, `name` varchar(200) NOT NUL
 --     workspace, and this is the worktree cut from it.
 --   base: What the branch was cut from, and therefore what «merged» means.
 --   released_at: NULL means the checkout is live.
-CREATE TABLE `checkout` (`id` varchar(36) NOT NULL, `workspace_id` varchar(36) NOT NULL, `card_id` varchar(36) NULL, `board_id` varchar(36) NULL, `mode` varchar(16) NOT NULL, `branch` varchar(255) NULL, `path` text NULL, `base` varchar(255) NULL, `created_at` bigint NOT NULL, `released_at` bigint NULL, PRIMARY KEY (`id`), UNIQUE INDEX `idx_checkout_card` (`workspace_id`, `card_id`), UNIQUE INDEX `idx_checkout_board` (`workspace_id`, `board_id`), INDEX `idx_checkout_live` (`workspace_id`, `released_at`), CONSTRAINT `checkout_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspace` (`id`) ON DELETE RESTRICT, CONSTRAINT `checkout_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `checkout_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `checkout` (`id` varchar(36) NOT NULL, `workspace_id` varchar(36) NOT NULL, `card_id` varchar(36) NULL, `board_id` varchar(36) NULL, `mode` varchar(16) NOT NULL, `branch` varchar(255) NULL, `path` text NULL, `base` varchar(255) NULL, `created_at` bigint NOT NULL, `released_at` bigint NULL, PRIMARY KEY (`id`), UNIQUE INDEX `idx_checkout_card` (`workspace_id`, `card_id`), UNIQUE INDEX `idx_checkout_board` (`workspace_id`, `board_id`), INDEX `idx_checkout_live` (`workspace_id`, `released_at`), CONSTRAINT `checkout_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspace` (`id`) ON DELETE RESTRICT, CONSTRAINT `checkout_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `checkout_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE, CONSTRAINT `checkout_mode` CHECK (`mode` IN ('worktree', 'branch', 'plain'))) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- A conversation with an agent: its CLI in a pty, keyed (card, node).
 -- The row outlives every process that ever drew it — that is what makes
@@ -545,7 +545,7 @@ CREATE TABLE `session_event` (`id` varchar(36) NOT NULL, `session_id` varchar(36
 -- Why nothing happened — the only question anybody asks of a source.
 -- Deleting the card it produced does not delete the line: what a source
 -- decided is a fact about the source.
-CREATE TABLE `source_event` (`id` varchar(36) NOT NULL, `source` varchar(100) NOT NULL, `external_id` varchar(255) NULL, `rule` varchar(100) NULL, `outcome` varchar(16) NOT NULL, `card_id` varchar(36) NULL, `detail` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), INDEX `idx_source_event_source` (`source`, `id`), CONSTRAINT `source_event_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE SET NULL) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `source_event` (`id` varchar(36) NOT NULL, `source` varchar(100) NOT NULL, `external_id` varchar(255) NULL, `rule` varchar(100) NULL, `outcome` varchar(16) NOT NULL, `card_id` varchar(36) NULL, `detail` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), INDEX `idx_source_event_source` (`source`, `id`), CONSTRAINT `source_event_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE SET NULL, CONSTRAINT `source_event_outcome` CHECK (`outcome` IN ('created', 'commented', 'inbox', 'dropped', 'failed', 'skipped'))) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- What a source has already brought. The same letter arriving twice adds
 -- to the card it made rather than making a second one.
@@ -570,7 +570,7 @@ CREATE TABLE `vcs_seen` (`workspace_id` varchar(36) NOT NULL, `branch` varchar(2
 -- Was WorkdirEntry.Modes, a map keyed by board id.
 --   mode: worktree | branch. NULL means nobody answered, and the machine's
 --     own default stands in.
-CREATE TABLE `workspace_board` (`workspace_id` varchar(36) NOT NULL, `board_id` varchar(36) NOT NULL, `mode` varchar(16) NULL, PRIMARY KEY (`workspace_id`, `board_id`), CONSTRAINT `workspace_board_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspace` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `workspace_board` (`workspace_id` varchar(36) NOT NULL, `board_id` varchar(36) NOT NULL, `mode` varchar(16) NULL, PRIMARY KEY (`workspace_id`, `board_id`), CONSTRAINT `workspace_board_workspace` FOREIGN KEY (`workspace_id`) REFERENCES `workspace` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE, CONSTRAINT `workspace_board_mode` CHECK (`mode` IS NULL OR `mode` IN ('worktree', 'branch'))) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 {{end}}
 
 {{if .postgres}}
@@ -807,7 +807,7 @@ CREATE INDEX "idx_boards_channel_id" ON "boards" ("channel_id");
 -- separate tables and not one row with a transport column.
 --   card_id: NULL for a run that is about no card — naming a branch is one.
 --   finished_at: NULL means the session is still live.
-CREATE TABLE "agent_session" ("id" character varying(36) NOT NULL, "card_id" character varying(36) NULL, "board_id" character varying(36) NULL, "agent_kind" character varying(32) NOT NULL, "acp_session_id" character varying(100) NULL, "status" character varying(24) NOT NULL, "cwd" text NULL, "worktree_path" text NULL, "branch" character varying(255) NULL, "started_at" bigint NOT NULL, "finished_at" bigint NULL, "error_text" text NULL, PRIMARY KEY ("id"), CONSTRAINT "agent_session_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE CASCADE, CONSTRAINT "agent_session_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE);
+CREATE TABLE "agent_session" ("id" character varying(36) NOT NULL, "card_id" character varying(36) NULL, "board_id" character varying(36) NULL, "agent_kind" character varying(32) NOT NULL, "acp_session_id" character varying(100) NULL, "status" character varying(24) NOT NULL, "cwd" text NULL, "worktree_path" text NULL, "branch" character varying(255) NULL, "started_at" bigint NOT NULL, "finished_at" bigint NULL, "error_text" text NULL, PRIMARY KEY ("id"), CONSTRAINT "agent_session_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE CASCADE, CONSTRAINT "agent_session_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE, CONSTRAINT "agent_session_status" CHECK ("status" IN ('queued', 'running', 'idle', 'waiting_permission', 'done', 'failed', 'cancelled')));
 
 -- A run of an agent over ACP. One process, one verdict: unlike a
 -- conversation, it is never resumed, which is why the two are
@@ -820,7 +820,7 @@ CREATE INDEX "idx_agent_session_card" ON "agent_session" ("card_id", "started_at
 -- — the answers are folders and hosts here — so it cannot live in the
 -- browser's storage, which the desktop window forgets on every launch.
 --   changed_at: Was `at`. AT is a keyword in Postgres and a name not worth having.
-CREATE TABLE "board_setup" ("board_id" character varying(36) NOT NULL, "step" character varying(32) NOT NULL, "status" character varying(16) NOT NULL, "changed_at" bigint NOT NULL, PRIMARY KEY ("board_id", "step"), CONSTRAINT "board_setup_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE);
+CREATE TABLE "board_setup" ("board_id" character varying(36) NOT NULL, "step" character varying(32) NOT NULL, "status" character varying(16) NOT NULL, "changed_at" bigint NOT NULL, PRIMARY KEY ("board_id", "step"), CONSTRAINT "board_setup_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE, CONSTRAINT "board_setup_status" CHECK ("status" IN ('pending', 'done', 'skipped', 'offered')));
 
 -- One current reason a card is not moving — not a journal. The reason is
 -- true only until somebody fixes what it is about, and a comment would
@@ -880,7 +880,7 @@ CREATE UNIQUE INDEX "idx_workspace_name" ON "workspace" ("name");
 --     workspace, and this is the worktree cut from it.
 --   base: What the branch was cut from, and therefore what «merged» means.
 --   released_at: NULL means the checkout is live.
-CREATE TABLE "checkout" ("id" character varying(36) NOT NULL, "workspace_id" character varying(36) NOT NULL, "card_id" character varying(36) NULL, "board_id" character varying(36) NULL, "mode" character varying(16) NOT NULL, "branch" character varying(255) NULL, "path" text NULL, "base" character varying(255) NULL, "created_at" bigint NOT NULL, "released_at" bigint NULL, PRIMARY KEY ("id"), CONSTRAINT "checkout_workspace" FOREIGN KEY ("workspace_id") REFERENCES "workspace" ("id") ON DELETE RESTRICT, CONSTRAINT "checkout_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE CASCADE, CONSTRAINT "checkout_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE);
+CREATE TABLE "checkout" ("id" character varying(36) NOT NULL, "workspace_id" character varying(36) NOT NULL, "card_id" character varying(36) NULL, "board_id" character varying(36) NULL, "mode" character varying(16) NOT NULL, "branch" character varying(255) NULL, "path" text NULL, "base" character varying(255) NULL, "created_at" bigint NOT NULL, "released_at" bigint NULL, PRIMARY KEY ("id"), CONSTRAINT "checkout_workspace" FOREIGN KEY ("workspace_id") REFERENCES "workspace" ("id") ON DELETE RESTRICT, CONSTRAINT "checkout_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE CASCADE, CONSTRAINT "checkout_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE, CONSTRAINT "checkout_mode" CHECK ("mode" IN ('worktree', 'branch', 'plain')));
 
 -- The directory and the branch one owner holds in one workspace. The
 -- owner is a card, or a board for a conversation with no card — two
@@ -1010,7 +1010,7 @@ CREATE INDEX "idx_session_event_session" ON "session_event" ("session_id", "id")
 -- Why nothing happened — the only question anybody asks of a source.
 -- Deleting the card it produced does not delete the line: what a source
 -- decided is a fact about the source.
-CREATE TABLE "source_event" ("id" character varying(36) NOT NULL, "source" character varying(100) NOT NULL, "external_id" character varying(255) NULL, "rule" character varying(100) NULL, "outcome" character varying(16) NOT NULL, "card_id" character varying(36) NULL, "detail" text NULL, "created_at" bigint NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "source_event_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE SET NULL);
+CREATE TABLE "source_event" ("id" character varying(36) NOT NULL, "source" character varying(100) NOT NULL, "external_id" character varying(255) NULL, "rule" character varying(100) NULL, "outcome" character varying(16) NOT NULL, "card_id" character varying(36) NULL, "detail" text NULL, "created_at" bigint NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "source_event_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE SET NULL, CONSTRAINT "source_event_outcome" CHECK ("outcome" IN ('created', 'commented', 'inbox', 'dropped', 'failed', 'skipped')));
 
 -- Why nothing happened — the only question anybody asks of a source.
 -- Deleting the card it produced does not delete the line: what a source
@@ -1050,5 +1050,5 @@ CREATE TABLE "vcs_seen" ("workspace_id" character varying(36) NOT NULL, "branch"
 -- Was WorkdirEntry.Modes, a map keyed by board id.
 --   mode: worktree | branch. NULL means nobody answered, and the machine's
 --     own default stands in.
-CREATE TABLE "workspace_board" ("workspace_id" character varying(36) NOT NULL, "board_id" character varying(36) NOT NULL, "mode" character varying(16) NULL, PRIMARY KEY ("workspace_id", "board_id"), CONSTRAINT "workspace_board_workspace" FOREIGN KEY ("workspace_id") REFERENCES "workspace" ("id") ON DELETE CASCADE, CONSTRAINT "workspace_board_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE);
+CREATE TABLE "workspace_board" ("workspace_id" character varying(36) NOT NULL, "board_id" character varying(36) NOT NULL, "mode" character varying(16) NULL, PRIMARY KEY ("workspace_id", "board_id"), CONSTRAINT "workspace_board_workspace" FOREIGN KEY ("workspace_id") REFERENCES "workspace" ("id") ON DELETE CASCADE, CONSTRAINT "workspace_board_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE, CONSTRAINT "workspace_board_mode" CHECK ("mode" IS NULL OR "mode" IN ('worktree', 'branch')));
 {{end}}

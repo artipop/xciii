@@ -27,6 +27,10 @@ type dialect struct {
 	attrs []schema.Attr
 	// now is this dialect's "the database's own clock", for DefaultNow.
 	now string
+	// quote wraps an identifier the way this dialect writes one. Only a check
+	// expression needs it: atlas quotes everything else itself, but a check is
+	// SQL text we hand it.
+	quote func(string) string
 }
 
 func dialects() []dialect {
@@ -52,7 +56,8 @@ func dialects() []dialect {
 					return &schema.IntegerType{T: "bigint"}
 				}
 			},
-			now: "STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')",
+			now:   "STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')",
+			quote: func(id string) string { return "`" + id + "`" },
 		},
 		{
 			name: "mysql",
@@ -81,7 +86,8 @@ func dialects() []dialect {
 				&schema.Charset{V: "utf8mb4"},
 				&schema.Collation{V: "utf8mb4_general_ci"},
 			},
-			now: "NOW(6)",
+			now:   "NOW(6)",
+			quote: func(id string) string { return "`" + id + "`" },
 		},
 		{
 			name: "postgres",
@@ -104,7 +110,8 @@ func dialects() []dialect {
 					return &schema.IntegerType{T: "bigint"}
 				}
 			},
-			now: "NOW()",
+			now:   "NOW()",
+			quote: func(id string) string { return `"` + id + `"` },
 		},
 	}
 }
@@ -135,6 +142,23 @@ func defaultOf(d dialect, c Column) schema.Expr {
 // at, and that is exactly why our ids and the board's cannot become UUIDv7
 // separately.
 const idLen = 36
+
+// checkExpr writes `col IN (...)`, plus an IS NULL arm for a nullable column:
+// a check is *false* for NULL rather than skipped, so without it every row that
+// leaves the column out is refused. Identifiers are quoted the dialect's way,
+// which is the one thing about a check expression that is not portable.
+func checkExpr(d dialect, c Check, nullable bool) string {
+	values := make([]string, 0, len(c.Values))
+	for _, v := range c.Values {
+		values = append(values, "'"+v+"'")
+	}
+	col := d.quote(c.Column)
+	expr := col + " IN (" + strings.Join(values, ", ") + ")"
+	if nullable {
+		expr = col + " IS NULL OR " + expr
+	}
+	return expr
+}
 
 // build turns the dialect-neutral tables into an atlas schema. The schema is
 // unnamed on purpose: a named one makes atlas qualify every identifier
@@ -182,6 +206,14 @@ func build(d dialect, tables []Table) (*schema.Schema, error) {
 				pk = append(pk, col)
 			}
 			at.SetPrimaryKey(schema.NewPrimaryKey(pk...))
+		}
+		for _, c := range tbl.Checks {
+			col, ok := at.Column(c.Column)
+			if !ok {
+				return nil, fmt.Errorf("%s: check %s names a column that is not there: %s",
+					tbl.Name, c.Name, c.Column)
+			}
+			at.AddChecks(schema.NewCheck().SetName(c.Name).SetExpr(checkExpr(d, c, col.Type.Null)))
 		}
 		built[tbl.Name] = at
 		s.AddTables(at)

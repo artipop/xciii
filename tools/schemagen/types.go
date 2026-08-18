@@ -163,6 +163,25 @@ type Index struct {
 	Unique  bool
 }
 
+// Check is a value constraint: the closed set a column may hold.
+//
+// Written only where the set is closed *by the model* — the three ways to work
+// a folder, a session's lifecycle, what a rule did with an item. Not where it
+// is a list that grows: an agent kind is a vendor CLI, a session_event kind is
+// an event name, and a workspace kind is meant to grow past 'git' to a drive
+// or a machine over ssh. SQLite cannot ALTER a check in, so one written on a
+// growing set buys a table rebuild every time somebody adds a value — which is
+// a worse trade than the typo it catches.
+type Check struct {
+	Name string
+	// Column and Values render as `column IN (...)`, plus `OR column IS NULL`
+	// when the column is nullable — a check is false for NULL, not unknown-but-
+	// allowed, so a nullable column without that clause rejects every row that
+	// leaves it out.
+	Column string
+	Values []string
+}
+
 // Table is one table.
 type Table struct {
 	Name string
@@ -173,4 +192,5 @@ type Table struct {
 	PK      []string
 	FKs     []FK
 	Indexes []Index
+	Checks  []Check
 }

@@ -1595,6 +1595,17 @@ it violates `blocks.id` on the way back in. The SQLite branch is gone from
 processes on one database; nothing here does that, and the honest answer when
 something does is a key of the row's own rather than a clock.
 
+**A closed set is a `CHECK`, a growing one is not.** `checkout.mode`,
+`workspace_board.mode`, `agent_session.status`, `board_setup.status` and
+`source_event.outcome` are constrained in the schema, because what they may
+hold is closed by the model — there is no fourth way to work a folder. An agent
+kind is a vendor CLI, a `session_event` kind is an event name, and a
+`workspace` kind is meant to grow past `git` to a drive or a machine over ssh:
+those have no check, because SQLite cannot `ALTER` one in, so a check on a
+growing set buys a table rebuild every time somebody adds a value.
+`TestAValueOutsideAClosedSetIsRefused` is the guard, and it covers the case
+worth naming: a difference in *case* is refused too.
+
 **golang-migrate still runs it**: this is a generator, not a migration engine,
 and the engine already knows about versions, dirty marks and the record the
 previous one kept. `go generate ./tools/schemagen` after any schema change.

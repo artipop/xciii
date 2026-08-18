@@ -140,3 +140,66 @@ func TestAWorkspaceInUseCannotBeDeleted(t *testing.T) {
 		t.Errorf("nothing holds the folder now, and it still would not go: %v", err)
 	}
 }
+
+// A typo in a column whose set is closed has to be refused by the database, not
+// stored and read back later as a state nothing handles. Which columns get a
+// check is a judgement stated in tools/schemagen/types.go — the sets closed by
+// the model, never the ones that grow with a new vendor CLI or a new event.
+func TestAValueOutsideAClosedSetIsRefused(t *testing.T) {
+	db, err := appschema.OpenEnforcing(filepath.Join(t.TempDir(), "xciii.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	if err := appschema.AddCard(db, "board-1", "card-1"); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, c := range []struct {
+		what  string
+		query string
+		args  []any
+	}{
+		{
+			"a session status nothing can mean",
+			`INSERT INTO agent_session (id, card_id, agent_kind, status, started_at)
+			 VALUES ('s1', 'card-1', 'claude', ?, 1)`,
+			[]any{"runnnig"},
+		},
+		{
+			"a way of working a folder that does not exist",
+			`INSERT INTO checkout (id, workspace_id, card_id, mode, created_at)
+			 VALUES ('c1', 'w1', 'card-1', ?, 1)`,
+			[]any{"worktee"},
+		},
+		{
+			"a setup step in a state the wizard never writes",
+			`INSERT INTO board_setup (board_id, step, status, changed_at)
+			 VALUES ('board-1', 'workdir', ?, 1)`,
+			[]any{"answered"},
+		},
+		{
+			"an outcome no rule produces",
+			`INSERT INTO source_event (id, source, outcome, created_at)
+			 VALUES ('e1', 'mail', ?, 1)`,
+			[]any{"maybe"},
+		},
+	} {
+		t.Run(c.what, func(t *testing.T) {
+			if _, err := db.Exec(c.query, c.args...); err == nil {
+				t.Errorf("the database accepted %v", c.args[0])
+			}
+		})
+	}
+
+	// And the values the code actually writes go in. A check that refuses
+	// everything would pass the loop above and break the product.
+	if _, err := db.Exec(`INSERT INTO agent_session (id, card_id, agent_kind, status, started_at)
+		VALUES ('s2', 'card-1', 'claude', 'running', 1)`); err != nil {
+		t.Errorf("a status the code writes was refused: %v", err)
+	}
+	if _, err := db.Exec(`INSERT INTO board_setup (board_id, step, status, changed_at)
+		VALUES ('board-1', 'workdir', 'skipped', 1)`); err != nil {
+		t.Errorf("a setup status the code writes was refused: %v", err)
+	}
+}

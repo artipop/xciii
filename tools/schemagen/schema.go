@@ -111,6 +111,12 @@ func workspaceBoard() Table {
 					"own default stands in."},
 		},
 		PK: []string{"workspace_id", "board_id"},
+		Checks: []Check{{
+			Name: "workspace_board_mode", Column: "mode",
+			// Not 'plain': that is what an ordinary folder does, and a folder
+			// nobody was asked about takes the machine's default (NULL).
+			Values: []string{"worktree", "branch"},
+		}},
 		FKs: []FK{
 			{Name: "workspace_board_workspace", Columns: []string{"workspace_id"},
 				RefTable: "workspace", RefCols: []string{"id"}, OnDelete: Cascade},
@@ -265,7 +271,15 @@ func agentSession() Table {
 				Why: "NULL means the session is still live."},
 			{Name: "error_text", Type: Text(), Null: true},
 		},
-		PK:  []string{"id"},
+		PK: []string{"id"},
+		Checks: []Check{{
+			Name: "agent_session_status", Column: "status",
+			// idle and waiting_permission are no longer reached — a session
+			// runs its task and ends — but rows written before that say so,
+			// and a status read back has to mean something (acp.SessionStatus).
+			Values: []string{"queued", "running", "idle", "waiting_permission",
+				"done", "failed", "cancelled"},
+		}},
 		FKs: []FK{cardFK("agent_session"), boardFK("agent_session")},
 		Indexes: []Index{
 			{Name: "idx_agent_session_card", Columns: []string{"card_id", "started_at"}},
@@ -469,7 +483,13 @@ func boardSetup() Table {
 			{Name: "changed_at", Type: Millis(),
 				Why: "Was `at`. AT is a keyword in Postgres and a name not worth having."},
 		},
-		PK:  []string{"board_id", "step"},
+		PK: []string{"board_id", "step"},
+		Checks: []Check{{
+			Name: "board_setup_status", Column: "status",
+			// 'offered' is the wizard's own row rather than a step's answer:
+			// it records that a board was shown the wizard at all.
+			Values: []string{"pending", "done", "skipped", "offered"},
+		}},
 		FKs: []FK{boardFK("board_setup")},
 	}
 }
@@ -538,6 +558,11 @@ func checkout() Table {
 				Why: "NULL means the checkout is live."},
 		},
 		PK: []string{"id"},
+		Checks: []Check{{
+			Name:   "checkout_mode",
+			Column: "mode",
+			Values: []string{"worktree", "branch", "plain"},
+		}},
 		FKs: []FK{
 			// A workspace a card is still working in cannot be deleted: there
 			// is a copy on disk and it has to be folded away first.
@@ -603,6 +628,11 @@ func sourceEvent() Table {
 			{Name: "created_at", Type: Millis()},
 		},
 		PK: []string{"id"},
+		Checks: []Check{{
+			Name:   "source_event_outcome",
+			Column: "outcome",
+			Values: []string{"created", "commented", "inbox", "dropped", "failed", "skipped"},
+		}},
 		FKs: []FK{{
 			Name: "source_event_card", Columns: []string{"card_id"},
 			RefTable: tableBlocks, RefCols: []string{"id"}, OnDelete: SetNull,

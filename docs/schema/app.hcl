@@ -872,6 +872,9 @@ table "workspace_board" {
     ref_columns = [table.boards.column.id]
     on_delete   = CASCADE
   }
+  check "workspace_board_mode" {
+    expr = "`mode` IS NULL OR `mode` IN ('worktree', 'branch')"
+  }
 }
 table "agent" {
   column "id" {
@@ -1041,6 +1044,9 @@ table "agent_session" {
   }
   index "idx_agent_session_card" {
     columns = [column.card_id, column.started_at]
+  }
+  check "agent_session_status" {
+    expr = "`status` IN ('queued', 'running', 'idle', 'waiting_permission', 'done', 'failed', 'cancelled')"
   }
 }
 table "session_event" {
@@ -1366,6 +1372,9 @@ table "board_setup" {
     ref_columns = [table.boards.column.id]
     on_delete   = CASCADE
   }
+  check "board_setup_status" {
+    expr = "`status` IN ('pending', 'done', 'skipped', 'offered')"
+  }
 }
 table "vcs_seen" {
   column "workspace_id" {
@@ -1467,6 +1476,9 @@ table "checkout" {
   index "idx_checkout_live" {
     columns = [column.workspace_id, column.released_at]
   }
+  check "checkout_mode" {
+    expr = "`mode` IN ('worktree', 'branch', 'plain')"
+  }
 }
 table "source_item" {
   column "source" {
@@ -1548,6 +1560,9 @@ table "source_event" {
   }
   index "idx_source_event_source" {
     columns = [column.source, column.id]
+  }
+  check "source_event_outcome" {
+    expr = "`outcome` IN ('created', 'commented', 'inbox', 'dropped', 'failed', 'skipped')"
   }
 }
 schema {
