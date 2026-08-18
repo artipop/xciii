@@ -12,7 +12,6 @@ import octoClient from '../octoClient'
 import type {StoreContext, StoreDeps} from './context'
 import {UsersState, initialUsersState, createUsersActions} from './users'
 import {TeamsState, initialTeamsState, createTeamsActions} from './teams'
-import {ChannelsState, initialChannelsState, createChannelsActions} from './channels'
 import {LanguageState, initialLanguageState, createLanguageActions} from './language'
 import {GlobalTemplatesState, initialGlobalTemplatesState, createGlobalTemplatesActions} from './globalTemplates'
 import {BoardsState, initialBoardsState, createBoardsActions} from './boards'
@@ -30,7 +29,6 @@ import {createInitialLoadActions} from './initialLoad'
 export type RootState = {
     users: UsersState
     teams: TeamsState
-    channels: ChannelsState
     language: LanguageState
     globalTemplates: GlobalTemplatesState
     boards: BoardsState
@@ -48,7 +46,6 @@ export type RootState = {
 export const initialRootState = (): RootState => ({
     users: initialUsersState(),
     teams: initialTeamsState(),
-    channels: initialChannelsState(),
     language: initialLanguageState(),
     globalTemplates: initialGlobalTemplatesState(),
     boards: initialBoardsState(),
@@ -75,7 +72,6 @@ const createActions = (ctx: StoreContext) => {
     return {
         users,
         teams: createTeamsActions(ctx),
-        channels: createChannelsActions(ctx),
         language: createLanguageActions(ctx),
         globalTemplates: createGlobalTemplatesActions(ctx),
 

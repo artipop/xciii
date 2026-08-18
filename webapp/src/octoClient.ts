@@ -7,13 +7,9 @@ import {Utils} from './utils'
 import {ClientConfig} from './config/clientConfig'
 import {UserSettings} from './userSettings'
 import {Category, CategoryBoards} from './store/sidebar'
-import {Channel} from './store/channels'
 import {Team} from './store/teams'
 import {Subscription} from './wsclient'
-import {PrepareOnboardingResponse} from './onboardingTour'
 import {Constants} from './constants'
-
-import {TopBoardResponse} from './insights'
 
 //
 // OctoClient is the client interface to the server APIs
@@ -889,73 +885,12 @@ class OctoClient {
         return (await this.getJson(response, [])) as Board[]
     }
 
-    async searchUserChannels(teamId: string, searchQuery: string): Promise<Channel[] | undefined> {
-        const path = `/api/v2/teams/${teamId}/channels?search=${searchQuery}`
-        const response = await fetch(this.getBaseURL() + path, {
-            headers: this.headers(),
-            method: 'GET',
-        })
-        if (response.status !== 200) {
-            return undefined
-        }
-
-        return (await this.getJson(response, [])) as Channel[]
-    }
-
-    async getChannel(teamId: string, channelId: string): Promise<Channel | undefined> {
-        const path = `/api/v2/teams/${teamId}/channels/${channelId}`
-        const response = await fetch(this.getBaseURL() + path, {
-            headers: this.headers(),
-            method: 'GET',
-        })
-        if (response.status !== 200) {
-            return undefined
-        }
-
-        return (await this.getJson(response, {})) as Channel
-    }
-
-    // onboarding
-    async prepareOnboarding(teamId: string): Promise<PrepareOnboardingResponse | undefined> {
-        const path = `/api/v2/teams/${teamId}/onboard`
-        const response = await fetch(this.getBaseURL() + path, {
-            headers: this.headers(),
-            method: 'POST',
-        })
-        if (response.status !== 200) {
-            return undefined
-        }
-
-        return (await this.getJson(response, {})) as PrepareOnboardingResponse
-    }
-
     async notifyAdminUpgrade(): Promise<void> {
         const path = `${this.teamPath()}/notifyadminupgrade`
         await fetch(this.getBaseURL() + path, {
             headers: this.headers(),
             method: 'POST',
         })
-    }
-
-    // insights
-    async getMyTopBoards(timeRange: string, page: number, perPage: number, teamId: string): Promise<TopBoardResponse | undefined> {
-        const path = `/api/v2/users/me/boards/insights?time_range=${timeRange}&page=${page}&per_page=${perPage}&team_id=${teamId}`
-        const response = await fetch(this.getBaseURL() + path, {headers: this.headers()})
-        if (response.status !== 200) {
-            return undefined
-        }
-
-        return (await this.getJson(response, {})) as TopBoardResponse
-    }
-
-    async getTeamTopBoards(timeRange: string, page: number, perPage: number, teamId: string): Promise<TopBoardResponse | undefined> {
-        const path = `/api/v2/teams/${teamId}/boards/insights?time_range=${timeRange}&page=${page}&per_page=${perPage}`
-        const response = await fetch(this.getBaseURL() + path, {headers: this.headers()})
-        if (response.status !== 200) {
-            return undefined
-        }
-
-        return (await this.getJson(response, {})) as TopBoardResponse
     }
 
     async moveBlockTo(blockId: string, where: 'before'|'after', dstBlockId: string): Promise<Response> {

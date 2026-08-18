@@ -72,7 +72,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Copy
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-2"
@@ -272,7 +272,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Copy
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-2"
@@ -472,7 +472,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Rege
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-3"
@@ -707,7 +707,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Sele
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-7"
@@ -893,7 +893,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Sele
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-7"
@@ -1092,7 +1092,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Sele
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-8"
@@ -1278,7 +1278,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard and click Sele
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-8"
@@ -1758,7 +1758,7 @@ exports[`src/components/shareBoard/shareBoard > return shareBoard, and click swi
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-4"
@@ -1981,7 +1981,7 @@ exports[`src/components/shareBoard/shareBoard > should match snapshot 1`] = `
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-0"
@@ -2181,7 +2181,7 @@ exports[`src/components/shareBoard/shareBoard > should match snapshot with shari
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-1"
@@ -2381,7 +2381,7 @@ exports[`src/components/shareBoard/shareBoard > should match snapshot with shari
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-6"
@@ -2581,7 +2581,7 @@ exports[`src/components/shareBoard/shareBoard > should match snapshot with shari
                   <div
                     class="userSearchInput__placeholder"
                   >
-                    Search for people and channels
+                    Search for people
                   </div>
                   <input
                     aria-controls="cl-5"
