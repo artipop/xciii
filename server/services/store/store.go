@@ -3,7 +3,6 @@
 package store
 
 import (
-	"time"
 
 	"github.com/artipop/xciii/server/model"
 )
@@ -142,16 +141,11 @@ type Store interface {
 	GetSubscribersCountForBlock(blockID string) (int, error)
 	UpdateSubscribersNotifiedAt(blockID string, notifiedAt int64) error
 
-	UpsertNotificationHint(hint *model.NotificationHint, notificationFreq time.Duration) (*model.NotificationHint, error)
-	DeleteNotificationHint(blockID string) error
-	GetNotificationHint(blockID string) (*model.NotificationHint, error)
-	GetNextNotificationHint(remove bool) (*model.NotificationHint, error)
 
 	RemoveDefaultTemplates(boards []*model.Board) error
 	GetTemplateBoards(teamID, userID string) ([]*model.Board, error)
 
 	// @withTransaction
-	RunDataRetention(globalRetentionDate int64, batchSize int64) (int64, error)
 
 	DBType() string
 	DBVersion() string

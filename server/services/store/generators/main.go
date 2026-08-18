@@ -52,12 +52,62 @@ func buildTransactionalStore() error {
 	if err != nil {
 		return err
 	}
-	formatedCode, err := format.Source(code)
+	pruned, err := dropUnusedImports(code)
+	if err != nil {
+		return err
+	}
+	formatedCode, err := format.Source(pruned)
 	if err != nil {
 		return err
 	}
 
 	return os.WriteFile(path.Join("sqlstore/public_methods.go"), formatedCode, 0644) //nolint:gosec
+}
+
+// dropUnusedImports removes an import the generated body never mentions. The
+// template's import block is fixed while the method list is not, so an import
+// is only right for some shapes of the Store interface: "time" is there for a
+// method that takes a duration, and when the last such method was deleted the
+// generated file stopped compiling. Pruning here rather than adding a condition
+// per import to the template, because the same trap already caught an import of
+// Mattermost's model package that nothing had needed for a release.
+func dropUnusedImports(code []byte) ([]byte, error) {
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, "public_methods.go", code, parser.ParseComments)
+	if err != nil {
+		return nil, err
+	}
+
+	used := map[string]bool{}
+	ast.Inspect(file, func(n ast.Node) bool {
+		sel, ok := n.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+		if ident, ok := sel.X.(*ast.Ident); ok {
+			used[ident.Name] = true
+		}
+		return true
+	})
+
+	var keep []string
+	for _, imp := range file.Imports {
+		p := strings.Trim(imp.Path.Value, `"`)
+		name := p[strings.LastIndex(p, "/")+1:]
+		if imp.Name != nil {
+			name = imp.Name.Name
+		}
+		if !used[name] {
+			keep = append(keep, imp.Path.Value)
+		}
+	}
+	out := code
+	for _, path := range keep {
+		for _, line := range []string{"\t" + path + "\n", "\tmmModel " + path + "\n"} {
+			out = bytes.ReplaceAll(out, []byte(line), nil)
+		}
+	}
+	return out, nil
 }
 
 type methodParam struct {

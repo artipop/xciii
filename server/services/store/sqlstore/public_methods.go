@@ -11,7 +11,6 @@ package sqlstore
 
 import (
 	"context"
-	"time"
 
 	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/model"
@@ -209,11 +208,6 @@ func (s *SQLStore) DeleteMember(boardID string, userID string) error {
 
 }
 
-func (s *SQLStore) DeleteNotificationHint(blockID string) error {
-	return s.deleteNotificationHint(s.db, blockID)
-
-}
-
 func (s *SQLStore) DeleteSession(sessionID string) error {
 	return s.deleteSession(s.db, sessionID)
 
@@ -393,16 +387,6 @@ func (s *SQLStore) GetMembersForBoard(boardID string) ([]*model.BoardMember, err
 
 func (s *SQLStore) GetMembersForUser(userID string) ([]*model.BoardMember, error) {
 	return s.getMembersForUser(s.db, userID)
-
-}
-
-func (s *SQLStore) GetNextNotificationHint(remove bool) (*model.NotificationHint, error) {
-	return s.getNextNotificationHint(s.db, remove)
-
-}
-
-func (s *SQLStore) GetNotificationHint(blockID string) (*model.NotificationHint, error) {
-	return s.getNotificationHint(s.db, blockID)
 
 }
 
@@ -724,27 +708,6 @@ func (s *SQLStore) ReorderCategoryBoards(categoryID string, newBoardsOrder []str
 
 }
 
-func (s *SQLStore) RunDataRetention(globalRetentionDate int64, batchSize int64) (int64, error) {
-	tx, txErr := s.db.BeginTx(context.Background(), nil)
-	if txErr != nil {
-		return 0, txErr
-	}
-	result, err := s.runDataRetention(tx, globalRetentionDate, batchSize)
-	if err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			s.logger.Error("transaction rollback error", mlog.Err(rollbackErr), mlog.String("methodName", "RunDataRetention"))
-		}
-		return 0, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return 0, err
-	}
-
-	return result, nil
-
-}
-
 func (s *SQLStore) SaveFileInfo(fileInfo *model.FileInfo) error {
 	return s.saveFileInfo(s.db, fileInfo)
 
@@ -854,11 +817,6 @@ func (s *SQLStore) UpdateUserPassword(username string, password string) error {
 
 func (s *SQLStore) UpdateUserPasswordByID(userID string, password string) error {
 	return s.updateUserPasswordByID(s.db, userID, password)
-
-}
-
-func (s *SQLStore) UpsertNotificationHint(hint *model.NotificationHint, notificationFreq time.Duration) (*model.NotificationHint, error) {
-	return s.upsertNotificationHint(s.db, hint, notificationFreq)
 
 }
 

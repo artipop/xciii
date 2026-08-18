@@ -6,7 +6,6 @@ package mockstore
 
 import (
 	reflect "reflect"
-	time "time"
 
 	model "github.com/artipop/xciii/server/model"
 	gomock "github.com/golang/mock/gomock"
@@ -291,20 +290,6 @@ func (m *MockStore) DeleteMember(arg0, arg1 string) error {
 func (mr *MockStoreMockRecorder) DeleteMember(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMember", reflect.TypeOf((*MockStore)(nil).DeleteMember), arg0, arg1)
-}
-
-// DeleteNotificationHint mocks base method.
-func (m *MockStore) DeleteNotificationHint(arg0 string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteNotificationHint", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteNotificationHint indicates an expected call of DeleteNotificationHint.
-func (mr *MockStoreMockRecorder) DeleteNotificationHint(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteNotificationHint", reflect.TypeOf((*MockStore)(nil).DeleteNotificationHint), arg0)
 }
 
 // DeleteSession mocks base method.
@@ -757,36 +742,6 @@ func (m *MockStore) GetMembersForUser(arg0 string) ([]*model.BoardMember, error)
 func (mr *MockStoreMockRecorder) GetMembersForUser(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMembersForUser", reflect.TypeOf((*MockStore)(nil).GetMembersForUser), arg0)
-}
-
-// GetNextNotificationHint mocks base method.
-func (m *MockStore) GetNextNotificationHint(arg0 bool) (*model.NotificationHint, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetNextNotificationHint", arg0)
-	ret0, _ := ret[0].(*model.NotificationHint)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetNextNotificationHint indicates an expected call of GetNextNotificationHint.
-func (mr *MockStoreMockRecorder) GetNextNotificationHint(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNextNotificationHint", reflect.TypeOf((*MockStore)(nil).GetNextNotificationHint), arg0)
-}
-
-// GetNotificationHint mocks base method.
-func (m *MockStore) GetNotificationHint(arg0 string) (*model.NotificationHint, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetNotificationHint", arg0)
-	ret0, _ := ret[0].(*model.NotificationHint)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetNotificationHint indicates an expected call of GetNotificationHint.
-func (mr *MockStoreMockRecorder) GetNotificationHint(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNotificationHint", reflect.TypeOf((*MockStore)(nil).GetNotificationHint), arg0)
 }
 
 // GetRegisteredUserCount mocks base method.
@@ -1352,21 +1307,6 @@ func (mr *MockStoreMockRecorder) ReorderCategoryBoards(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReorderCategoryBoards", reflect.TypeOf((*MockStore)(nil).ReorderCategoryBoards), arg0, arg1)
 }
 
-// RunDataRetention mocks base method.
-func (m *MockStore) RunDataRetention(arg0, arg1 int64) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RunDataRetention", arg0, arg1)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RunDataRetention indicates an expected call of RunDataRetention.
-func (mr *MockStoreMockRecorder) RunDataRetention(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunDataRetention", reflect.TypeOf((*MockStore)(nil).RunDataRetention), arg0, arg1)
-}
-
 // SaveFileInfo mocks base method.
 func (m *MockStore) SaveFileInfo(arg0 *model.FileInfo) error {
 	m.ctrl.T.Helper()
@@ -1608,21 +1548,6 @@ func (m *MockStore) UpdateUserPasswordByID(arg0, arg1 string) error {
 func (mr *MockStoreMockRecorder) UpdateUserPasswordByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserPasswordByID", reflect.TypeOf((*MockStore)(nil).UpdateUserPasswordByID), arg0, arg1)
-}
-
-// UpsertNotificationHint mocks base method.
-func (m *MockStore) UpsertNotificationHint(arg0 *model.NotificationHint, arg1 time.Duration) (*model.NotificationHint, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpsertNotificationHint", arg0, arg1)
-	ret0, _ := ret[0].(*model.NotificationHint)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpsertNotificationHint indicates an expected call of UpsertNotificationHint.
-func (mr *MockStoreMockRecorder) UpsertNotificationHint(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertNotificationHint", reflect.TypeOf((*MockStore)(nil).UpsertNotificationHint), arg0, arg1)
 }
 
 // UpsertSharing mocks base method.
