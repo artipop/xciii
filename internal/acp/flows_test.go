@@ -12,10 +12,12 @@ func sampleFlow() FlowEntry {
 	return FlowEntry{
 		Name:     "feature",
 		Property: "Status",
+		// With the option ids flowEvent sends: a stage is its option, and the
+		// column's name decides nothing (contradiction 5).
 		Nodes: []FlowNode{
-			{ID: "work", Column: "To Agent", Action: FlowActionAgent},
-			{ID: "review", Column: "Review", Action: FlowActionNone},
-			{ID: "blocked", Column: "Blocked", Action: FlowActionNone},
+			{ID: "work", Column: "To Agent", OptionID: "opt-to agent", Action: FlowActionAgent},
+			{ID: "review", Column: "Review", OptionID: "opt-review", Action: FlowActionNone},
+			{ID: "blocked", Column: "Blocked", OptionID: "opt-blocked", Action: FlowActionNone},
 		},
 		Edges: []FlowEdge{
 			{From: "work", To: "review", On: TriggerSuccess},

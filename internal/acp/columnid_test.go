@@ -79,13 +79,14 @@ func TestACardThatMovedIsSeenToHaveMovedWhateverTheFieldIsCalled(t *testing.T) {
 	}
 }
 
-// A stage that predates option ids still finds its column by name, and a stage
-// that has one finds it however the column has been renamed since.
-func TestAStageFindsItsColumnByIdAndFallsBackToTheName(t *testing.T) {
+// A stage finds its column by the option and by nothing else, so the column can
+// be renamed — and so a stage cannot be captured by a column that happens to be
+// spelled the way it once was.
+func TestAStageFindsItsColumnByItsOption(t *testing.T) {
 	m := &Manager{}
 	m.cfg.Columns = []ColumnSpec{
 		{Property: "Статус", Column: "В работе", OptionID: "opt-work", Action: FlowActionAgent},
-		{Property: "Статус", Column: "Ревью", Action: FlowActionAgent},
+		{Property: "Статус", Column: "Ревью", OptionID: "opt-review", Action: FlowActionAgent},
 	}
 
 	// Renamed on the board; the stage still carries the id it was bound to.
@@ -94,13 +95,13 @@ func TestAStageFindsItsColumnByIdAndFallsBackToTheName(t *testing.T) {
 		t.Errorf("the stage lost its column: %+v %v", spec, ok)
 	}
 
-	// A route written before stages recorded an option: names are all there is.
-	byName := FlowNode{ID: "n2", Column: "Ревью"}
-	if spec, ok := m.columnOf(byName, "Статус"); !ok || spec.Column != "Ревью" {
-		t.Errorf("a stage with no option id lost its column: %+v %v", spec, ok)
+	// A stage the board could not bind stands on nothing rather than on
+	// whichever column shares its name (bindToBoardOptions).
+	if _, ok := m.columnOf(FlowNode{ID: "n2", Column: "Ревью"}, "Статус"); ok {
+		t.Error("a stage with no option id was matched by the column's name")
 	}
 
-	if _, ok := m.columnOf(FlowNode{ID: "n3", Column: "Нет такой"}, "Статус"); ok {
+	if _, ok := m.columnOf(FlowNode{ID: "n3", OptionID: "opt-nope"}, "Статус"); ok {
 		t.Error("a stage standing on no configured column found one anyway")
 	}
 }

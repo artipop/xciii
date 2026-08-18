@@ -535,3 +535,57 @@ func (b *EventsBackend) cardBody(boardID string, card *model.Block) string {
 	}
 	return strings.Join(parts, "\n\n")
 }
+
+// BoardColumnOptions is the board's column property and its options, for
+// acp.BoardMeta. The property is the one the board recorded for itself, and
+// failing that the one a person reads as the columns — what a view groups by.
+func (b *EventsBackend) BoardColumnOptions(_ context.Context, boardID string) ([]acp.Column, error) {
+	b.mu.Lock()
+	a := b.app
+	b.mu.Unlock()
+	if a == nil {
+		return nil, fmt.Errorf("board app is not ready")
+	}
+	board, err := a.GetBoard(boardID)
+	if err != nil {
+		return nil, fmt.Errorf("get board %s: %w", boardID, err)
+	}
+	if board == nil {
+		return nil, nil
+	}
+	schema, err := model.ParsePropertySchema(board)
+	if err != nil {
+		return nil, err
+	}
+
+	propID, _ := board.Properties[acp.BoardPropColumnProperty].(string)
+	if _, ok := schema[propID]; !ok {
+		views, err := a.GetBlocks(boardID, "", model.TypeView)
+		if err != nil {
+			return nil, fmt.Errorf("get views of board %s: %w", boardID, err)
+		}
+		name, found := columnPropertyName(board, schema, views)
+		if !found {
+			return nil, nil
+		}
+		propID = ""
+		for id, def := range schema {
+			if def.Type == "select" && strings.EqualFold(def.Name, name) {
+				propID = id
+				break
+			}
+		}
+	}
+	def, ok := schema[propID]
+	if !ok {
+		return nil, nil
+	}
+	out := make([]acp.Column, 0, len(def.Options))
+	for id, opt := range def.Options {
+		out = append(out, acp.Column{
+			PropertyID: propID, PropertyName: def.Name,
+			OptionID: id, Name: opt.Value,
+		})
+	}
+	return out, nil
+}

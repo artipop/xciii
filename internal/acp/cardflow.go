@@ -129,14 +129,15 @@ func (m *Manager) cardIsQueued(cardID string) bool {
 	return err == nil && ok && q.CardID == cardID
 }
 
-// columnOf finds the configured column a route's stage stands on.
+// columnOf finds the configured column a route's stage stands on, by the
+// stage's option id and by nothing else. Matching one by the column's name is
+// what let renaming a column silently rearrange a route; a stage with no option
+// id is one the board could not bind (bindToBoardOptions), and no card can
+// stand on it.
 //
-// By the stage's option id where it has one, which is what makes renaming a
-// column — or the property it lives on — cost nothing (contradiction 1 of
-// docs/model-graph.md). The names are the fallback for a route written before
-// stages recorded an option, and `matchColumn` backfills those the first time a
-// card moves through, so the fallback empties itself.
-func (m *Manager) columnOf(node FlowNode, property string) (ColumnSpec, bool) {
+// The property argument is what the callers already had in hand and is no
+// longer consulted.
+func (m *Manager) columnOf(node FlowNode, _ string) (ColumnSpec, bool) {
 	m.cfgMu.RLock()
 	defer m.cfgMu.RUnlock()
 	if node.OptionID != "" {
@@ -144,12 +145,6 @@ func (m *Manager) columnOf(node FlowNode, property string) (ColumnSpec, bool) {
 			if c.OptionID != "" && c.OptionID == node.OptionID {
 				return c, true
 			}
-		}
-	}
-	for _, c := range m.cfg.Columns {
-		if strings.EqualFold(c.Column, node.Column) &&
-			(property == "" || c.Property == "" || strings.EqualFold(c.Property, property)) {
-			return c, true
 		}
 	}
 	return ColumnSpec{}, false

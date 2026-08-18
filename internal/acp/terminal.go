@@ -665,22 +665,22 @@ func columnMatchesCard(ev CardMoved, node FlowNode, property, propertyID string)
 			}
 		}
 	}
-	if propertyID != "" {
-		for _, opt := range ev.SelectedOptions {
-			if opt.PropertyID == propertyID {
-				// The card says which column it is in, and it is not this one.
-				return node.OptionID == "" && strings.EqualFold(opt.Name, node.Column)
-			}
-		}
-		// The card carries options, none of them on the column property: it says
-		// nothing about where it stands, so the route's record stands.
-		return true
-	}
+	// The negative answer — "the card has left this stage" — needs to know which
+	// of the card's options is its column, and that is the property, by the id
+	// the board recorded for itself. A stage with no option id is one the board
+	// could not bind (bindToBoardOptions), so no card can be standing on it and
+	// the route's own record is all there is to go on.
 	for _, opt := range ev.SelectedOptions {
-		if strings.EqualFold(opt.PropertyName, property) {
-			return strings.EqualFold(opt.Name, node.Column)
+		onColumn := propertyID != "" && opt.PropertyID == propertyID
+		if propertyID == "" {
+			onColumn = strings.EqualFold(opt.PropertyName, property)
+		}
+		if onColumn {
+			return node.OptionID == ""
 		}
 	}
+	// The card carries options, none of them on the column property: it says
+	// nothing about where it stands, so the route's record stands.
 	return true
 }
 

@@ -18,15 +18,15 @@ import (
 
 // ColumnSpec is one configured column.
 type ColumnSpec struct {
-	// The board it belongs to and the option that is the column itself.
-	// Written by the editor, which knows them; a spec migrated from the old
-	// column-name config keys has them empty until an event fills them in.
+	// The board it belongs to and the option that is the column itself. This is
+	// the whole of how a column is identified; a spec that arrived with only a
+	// name is bound to its option when the board is read (bindToBoardOptions).
 	BoardID    string `json:"boardId,omitempty"`
 	PropertyID string `json:"propertyId,omitempty"`
 	OptionID   string `json:"optionId,omitempty"`
 
-	// Property and Column are the names — what the user reads, and what a spec
-	// without ids is matched by.
+	// Property and Column are what a person reads. They are labels and nothing
+	// else: renaming either used to move a card's settings to another column.
 	Property string `json:"property"`
 	Column   string `json:"column"`
 
@@ -82,20 +82,10 @@ type ColumnSpec struct {
 
 // Key identifies the column for the queue and for counting what is running in
 // it. Ids are used where known, since names change and ids do not.
-func (c ColumnSpec) Key() string {
-	if c.OptionID != "" {
-		return c.BoardID + "|" + c.OptionID
-	}
-	return strings.ToLower(c.Property + "|" + c.Column)
-}
+func (c ColumnSpec) Key() string { return c.BoardID + "|" + c.OptionID }
 
 // columnKey is Key for a column as it arrives in an event.
-func columnKey(boardID string, c Column) string {
-	if c.OptionID != "" {
-		return boardID + "|" + c.OptionID
-	}
-	return strings.ToLower(c.PropertyName + "|" + c.Name)
-}
+func columnKey(boardID string, c Column) string { return boardID + "|" + c.OptionID }
 
 // Columns returns a snapshot of the registry.
 func (m *Manager) Columns() []ColumnSpec {
@@ -105,8 +95,7 @@ func (m *Manager) Columns() []ColumnSpec {
 }
 
 // BoardColumns returns the columns configured for one board — the specs the
-// editor shows. A spec that has never seen an event carries no board id yet, so
-// it is offered to every board: it came from the config's own column names.
+// editor shows, plus any that name no board at all.
 func (m *Manager) BoardColumns(boardID string) []ColumnSpec {
 	m.cfgMu.RLock()
 	defer m.cfgMu.RUnlock()
@@ -119,32 +108,24 @@ func (m *Manager) BoardColumns(boardID string) []ColumnSpec {
 	return out
 }
 
-// matchColumn finds the spec for a column of an event, most precise first:
-// the board's own option id, then the board's property/column names, then a
-// spec that names no board at all (a migrated one).
+// matchColumn finds the spec for a column of an event, by the option the column
+// is. Nothing is matched by name any more (contradiction 5): a spec that knows
+// only a name is bound to its option when the board is read
+// (bindToBoardOptions), and one that could not be bound describes a column the
+// board has not got.
 func matchColumn(specs []ColumnSpec, boardID string, c Column) (ColumnSpec, int, bool) {
-	byName := func(s ColumnSpec) bool {
-		// An unnamed column is not a column: matching one by name would make it
-		// the answer for every column nobody named, on every board.
-		if strings.TrimSpace(s.Column) == "" {
-			return false
-		}
-		return strings.EqualFold(s.Property, c.PropertyName) && strings.EqualFold(s.Column, c.Name)
+	if c.OptionID == "" {
+		return ColumnSpec{}, -1, false
 	}
-	if c.OptionID != "" {
-		for i, s := range specs {
-			if s.OptionID == c.OptionID && (s.BoardID == "" || s.BoardID == boardID) {
-				return s, i, true
-			}
-		}
-	}
+	// The board's own answer first, then one that names no board — an entry
+	// that predates boards being told apart, and is offered to all of them.
 	for i, s := range specs {
-		if s.BoardID == boardID && s.OptionID == "" && byName(s) {
+		if s.OptionID == c.OptionID && s.BoardID == boardID {
 			return s, i, true
 		}
 	}
 	for i, s := range specs {
-		if s.BoardID == "" && byName(s) {
+		if s.OptionID == c.OptionID && s.BoardID == "" {
 			return s, i, true
 		}
 	}
@@ -152,40 +133,12 @@ func matchColumn(specs []ColumnSpec, boardID string, c Column) (ColumnSpec, int,
 }
 
 // columnFor is what the trigger loop asks: does anything happen when a card
-// lands here? It also backfills the ids of a spec matched by name, so the very
-// first move teaches the config which option the column actually is — after
-// that, renaming the column on the board changes nothing.
+// lands here?
 func (m *Manager) columnFor(boardID string, c Column) (ColumnSpec, bool) {
 	m.cfgMu.RLock()
-	specs := append([]ColumnSpec(nil), m.cfg.Columns...)
-	m.cfgMu.RUnlock()
-
-	spec, _, ok := matchColumn(specs, boardID, c)
-	if !ok {
-		return ColumnSpec{}, false
-	}
-	if spec.OptionID == "" && c.OptionID != "" {
-		spec = m.learnColumnIDs(spec, boardID, c)
-	}
-	return spec, true
-}
-
-// learnColumnIDs records which option a name-matched spec turned out to be.
-func (m *Manager) learnColumnIDs(spec ColumnSpec, boardID string, c Column) ColumnSpec {
-	m.cfgMu.Lock()
-	defer m.cfgMu.Unlock()
-	_, i, ok := matchColumn(m.cfg.Columns, boardID, c)
-	if !ok || m.cfg.Columns[i].OptionID != "" {
-		return spec // somebody else got there first
-	}
-	m.cfg.Columns[i].BoardID = boardID
-	m.cfg.Columns[i].PropertyID = c.PropertyID
-	m.cfg.Columns[i].OptionID = c.OptionID
-	if err := m.persistConfigLocked(); err != nil {
-		m.log.Warn("acp: cannot persist column ids", "column", c.Name, "err", err)
-	}
-	m.log.Info("acp: column bound to its option", "column", c.Name, "board", boardID, "option", c.OptionID)
-	return m.cfg.Columns[i]
+	defer m.cfgMu.RUnlock()
+	spec, _, ok := matchColumn(m.cfg.Columns, boardID, c)
+	return spec, ok
 }
 
 // validateColumn normalizes and checks one spec against the registries it may

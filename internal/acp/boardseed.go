@@ -149,6 +149,11 @@ type BoardMeta interface {
 	// is patched. remove is how a key that has been renamed stops existing —
 	// writing the new name without it would leave two answers on the board.
 	SetBoardProperties(ctx context.Context, boardID string, props map[string]any, remove []string) error
+	// BoardColumnOptions is the board's own columns: the property they live on
+	// and every option of it. It is what binds a stage written before stages
+	// recorded an option id to the option it always meant, once, so nothing has
+	// to go on matching a column by its name (contradiction 5).
+	BoardColumnOptions(ctx context.Context, boardID string) ([]Column, error)
 	// IsBoardTemplate says this board is one to copy rather than to work in.
 	// Nothing runs in a template — no card moves in it, no session starts from
 	// it — so nothing about this machine is asked for on its behalf.
@@ -228,6 +233,11 @@ func (m *Manager) seedFromBoard(boardID string) {
 		m.log.Warn("acp: the board's own settings are unreadable", "board", boardID, "err", err)
 		return
 	}
+	// Bind whatever still knows only a column's name to the option it means,
+	// before anything reads it. Asked of the board rather than inferred, and
+	// only where something needs binding: a board whose automation already
+	// carries ids costs nothing (contradiction 5).
+	m.bindToBoardOptions(boardID, columns, flows)
 	added, unusableColumns := m.adoptColumns(boardID, columns)
 	if added > 0 {
 		m.log.Info("acp: columns taken from the board itself", "board", boardID, "count", added)
@@ -715,4 +725,41 @@ func columnPropertyOf(columns []ColumnSpec) string {
 		found = c.PropertyID
 	}
 	return found
+}
+
+// bindToBoardOptions resolves the columns and stages that carry a name and no
+// option id. What it cannot resolve is left alone: a stage naming a column the
+// board has not got is a stage nothing will ever stand on, and saying so is the
+// editor's business rather than a silent rewrite here.
+func (m *Manager) bindToBoardOptions(boardID string, columns []ColumnSpec, flows []FlowEntry) {
+	needs := false
+	for _, c := range columns {
+		needs = needs || c.OptionID == ""
+	}
+	for _, f := range flows {
+		for _, n := range f.Nodes {
+			needs = needs || n.OptionID == ""
+		}
+	}
+	if !needs || m.meta == nil {
+		return
+	}
+
+	parent := m.rootCtx
+	if parent == nil {
+		parent = context.Background()
+	}
+	ctx, cancel := context.WithTimeout(parent, 10*time.Second)
+	options, err := m.meta.BoardColumnOptions(ctx, boardID)
+	cancel()
+	if err != nil {
+		m.log.Warn("acp: cannot read the board's columns", "board", boardID, "err", err)
+		return
+	}
+	for i := range columns {
+		bindColumnOption(&columns[i], boardID, options)
+	}
+	for i := range flows {
+		bindStageOptions(&flows[i], options)
+	}
 }

@@ -9,31 +9,55 @@ import (
 	"time"
 )
 
-// The point of binding a column by its option id: renaming the column on the
-// board must not stop anything working. The name is only how a spec is found
-// the first time.
-func TestColumnMatchedByIDSurvivesARename(t *testing.T) {
+// A column is its option, so renaming it on the board — or renaming the
+// property it lives on — changes nothing about what happens there.
+func TestColumnIsItsOptionAndSurvivesARename(t *testing.T) {
 	m := agentManager(t, "")
-	m.cfg.Columns = []ColumnSpec{{Property: "Status", Column: "To Test", Action: FlowActionTest}}
+	m.cfg.Columns = []ColumnSpec{{
+		BoardID: "board1", PropertyID: "prop-status", OptionID: "opt-totest",
+		Property: "Status", Column: "To Test", Action: FlowActionTest,
+	}}
 
-	moved := Column{PropertyID: "prop-status", PropertyName: "Status", OptionID: "opt-totest", Name: "To Test"}
-	spec, ok := m.columnFor("board1", moved)
-	if !ok || spec.Action != FlowActionTest {
-		t.Fatalf("column not matched by name: %+v, %v", spec, ok)
-	}
-	// The first match teaches the registry which option this was.
-	if got := m.cfg.Columns[0]; got.OptionID != "opt-totest" || got.BoardID != "board1" || got.PropertyID != "prop-status" {
-		t.Fatalf("ids not learned: %+v", got)
-	}
-
-	renamed := Column{PropertyID: "prop-status", PropertyName: "Status", OptionID: "opt-totest", Name: "На проверку"}
+	renamed := Column{PropertyID: "prop-status", PropertyName: "Этап", OptionID: "opt-totest", Name: "На проверку"}
 	if spec, ok := m.columnFor("board1", renamed); !ok || spec.Action != FlowActionTest {
 		t.Fatalf("a renamed column lost its settings: %+v, %v", spec, ok)
 	}
-	// And a different column that happens to carry the old name is not it.
+
+	// A different option carrying the old name is a different column, which is
+	// the half name matching got wrong.
 	other := Column{PropertyID: "prop-status", PropertyName: "Status", OptionID: "opt-other", Name: "To Test"}
 	if _, ok := m.columnFor("board1", other); ok {
 		t.Fatal("a foreign option matched by a stale name")
+	}
+
+	// A card that does not say which option it is in matches nothing: there is
+	// no name left to guess from.
+	if _, ok := m.columnFor("board1", Column{PropertyName: "Status", Name: "To Test"}); ok {
+		t.Fatal("a column with no option id was matched anyway")
+	}
+}
+
+// A board written before columns carried ids says only a column's name. It is
+// bound to the option that name means when the board is read, once, and after
+// that the name decides nothing.
+func TestAColumnKnownOnlyByNameIsBoundToItsOption(t *testing.T) {
+	spec := ColumnSpec{Property: "Статус", Column: "На проверку", Action: FlowActionTest}
+	options := []Column{
+		{PropertyID: "p", PropertyName: "Статус", OptionID: "opt-work", Name: "В работе"},
+		{PropertyID: "p", PropertyName: "Статус", OptionID: "opt-test", Name: "на проверку"},
+	}
+
+	if !bindColumnOption(&spec, "board1", options) {
+		t.Fatal("a column known only by its name was not bound")
+	}
+	if spec.OptionID != "opt-test" || spec.PropertyID != "p" || spec.BoardID != "board1" {
+		t.Fatalf("bound to %+v", spec)
+	}
+
+	// A column the board has not got stays unbound rather than being guessed at.
+	missing := ColumnSpec{Property: "Статус", Column: "Которой нет"}
+	if bindColumnOption(&missing, "board1", options) {
+		t.Error("a column the board does not have was bound to something")
 	}
 }
 
@@ -42,7 +66,7 @@ func TestColumnMatchedByIDSurvivesARename(t *testing.T) {
 func TestColumnPrefersTheBoardsOwnSpec(t *testing.T) {
 	m := agentManager(t, "")
 	m.cfg.Columns = []ColumnSpec{
-		{Property: "Status", Column: "Deploy", Action: FlowActionDeploy},
+		{PropertyID: "p", OptionID: "opt-deploy", Property: "Status", Column: "Deploy", Action: FlowActionDeploy},
 		{BoardID: "board2", PropertyID: "p", OptionID: "opt-deploy", Property: "Status", Column: "Deploy", Action: FlowActionNone},
 	}
 	moved := Column{PropertyID: "p", PropertyName: "Status", OptionID: "opt-deploy", Name: "Deploy"}
@@ -50,7 +74,7 @@ func TestColumnPrefersTheBoardsOwnSpec(t *testing.T) {
 	if spec, _ := m.columnFor("board2", moved); spec.Action != FlowActionNone {
 		t.Fatalf("board2 should use its own spec: %+v", spec)
 	}
-	if spec, _ := m.columnFor("board9", Column{PropertyName: "Status", Name: "Deploy"}); spec.Action != FlowActionDeploy {
+	if spec, _ := m.columnFor("board9", moved); spec.Action != FlowActionDeploy {
 		t.Fatalf("another board should fall back to the shared spec: %+v", spec)
 	}
 }
@@ -142,10 +166,9 @@ func TestCrewTakesTheFreeAgent(t *testing.T) {
 // place and says so, and starts by itself when somebody finishes.
 func TestColumnLimitQueuesTheCard(t *testing.T) {
 	m, writer, events, _ := testManager(t, fakeClaudeHang, func(c *Config) {
-		c.Columns = []ColumnSpec{{
-			Property: c.TriggerProperty, Column: TemplateWorkColumn,
-			Action: FlowActionAgent, MaxRunning: 1,
-		}}
+		spec := workColumn(c.TriggerProperty, FlowActionAgent)
+		spec.MaxRunning = 1
+		c.Columns = []ColumnSpec{spec}
 	})
 
 	events.ch <- moveEvent("cardOne", "opt-backlog", "opt-agent")
@@ -231,6 +254,9 @@ func TestCardFlowDescribesWhereTheCardStands(t *testing.T) {
 type fakeBoardMeta struct {
 	props    map[string]any
 	template bool
+	// options is what the board's column property offers, for binding a stage
+	// that knows only a column's name to the option it means.
+	options []Column
 
 	// written is what each board was told to keep, by board id — the board
 	// database stands in for itself here.
@@ -240,6 +266,10 @@ type fakeBoardMeta struct {
 
 func (f *fakeBoardMeta) BoardProperties(context.Context, string) (map[string]any, error) {
 	return f.props, nil
+}
+
+func (f *fakeBoardMeta) BoardColumnOptions(context.Context, string) ([]Column, error) {
+	return f.options, nil
 }
 
 func (f *fakeBoardMeta) SetBoardProperties(_ context.Context, boardID string, props map[string]any, remove []string) error {
@@ -424,10 +454,9 @@ func TestCardAssignedToAPersonIsLeftAlone(t *testing.T) {
 func TestCrewedColumnWritesItsWorkerIntoTheAssignee(t *testing.T) {
 	m, _, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{ID: newID(), Name: "клаус", Kind: "claude"}}
-		c.Columns = []ColumnSpec{{
-			Property: c.TriggerProperty, Column: TemplateWorkColumn,
-			Action: FlowActionAgent, Agents: []string{"клаус"},
-		}}
+		spec := workColumn(c.TriggerProperty, FlowActionAgent)
+		spec.Agents = []string{"клаус"}
+		c.Columns = []ColumnSpec{spec}
 	})
 	users := &fakeBoardUsers{}
 	m.SetBoardUsers(users)
@@ -460,10 +489,9 @@ func TestCrewedTestColumnWritesItsTesterIntoTheAssignee(t *testing.T) {
 			Name: "тестер", Kind: "claude",
 			MCPServers: MCPServerSet{"playwright": {Command: "npx"}},
 		}}
-		c.Columns = []ColumnSpec{{
-			Property: c.TriggerProperty, Column: TemplateWorkColumn,
-			Action: FlowActionTest, Agents: []string{"тестер"},
-		}}
+		spec := workColumn(c.TriggerProperty, FlowActionTest)
+		spec.Agents = []string{"тестер"}
+		c.Columns = []ColumnSpec{spec}
 	})
 	users := &fakeBoardUsers{}
 	m.SetBoardUsers(users)

@@ -231,6 +231,51 @@ func bindConfigRefs(cfg *Config) {
 	}
 }
 
+// bindColumnOption gives a spec the option id it always meant. A spec written
+// before columns carried ids knows the column's name and nothing else, and that
+// name is what three separate places were still matching on (contradiction 5).
+func bindColumnOption(c *ColumnSpec, boardID string, options []Column) bool {
+	if c.OptionID != "" || len(options) == 0 {
+		return false
+	}
+	opt, ok := optionNamed(options, c.Column)
+	if !ok {
+		return false
+	}
+	c.BoardID, c.PropertyID, c.OptionID = boardID, opt.PropertyID, opt.OptionID
+	return true
+}
+
+// bindStageOptions is the same for every stage of a route.
+func bindStageOptions(f *FlowEntry, options []Column) bool {
+	changed := false
+	for i := range f.Nodes {
+		if f.Nodes[i].OptionID != "" {
+			continue
+		}
+		if opt, ok := optionNamed(options, f.Nodes[i].Column); ok {
+			f.Nodes[i].OptionID = opt.OptionID
+			changed = true
+		}
+	}
+	return changed
+}
+
+// optionNamed is the last place a column is found by its name, and it exists
+// only to stop finding one that way: what it resolves is written back as an id.
+func optionNamed(options []Column, name string) (Column, bool) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return Column{}, false
+	}
+	for _, o := range options {
+		if strings.EqualFold(strings.TrimSpace(o.Name), name) {
+			return o, true
+		}
+	}
+	return Column{}, false
+}
+
 // mintRegistryIDs gives an id to every registry entry that arrived without one.
 func mintRegistryIDs(cfg *Config) {
 	for i := range cfg.Agents {

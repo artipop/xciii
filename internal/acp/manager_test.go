@@ -250,10 +250,15 @@ func testManagerWithEmitter(t *testing.T, scenario string, mutate func(*Config))
 	// The columns a fixture works with: the registry is a board's own answer
 	// now, so a config built in code has to say so itself — and before the
 	// test's own mutate, which is entitled to replace them.
+	// With their option ids, because a column is its option and nothing is
+	// matched by name any more (docs/model-graph.md, contradiction 5). The ids
+	// are the ones moveEvent sends.
 	cfg.Columns = []ColumnSpec{
-		{Property: cfg.TriggerProperty, Column: TemplateWorkColumn, Action: FlowActionAgent},
-		{Property: cfg.TriggerProperty, Column: TemplateDeployColumn, Action: FlowActionDeploy},
-		{Property: cfg.TriggerProperty, Column: TemplateTestColumn, Action: FlowActionTest},
+		workColumn(cfg.TriggerProperty, FlowActionAgent),
+		{BoardID: "board1", PropertyID: "p1", OptionID: "opt-deploy",
+			Property: cfg.TriggerProperty, Column: TemplateDeployColumn, Action: FlowActionDeploy},
+		{BoardID: "board1", PropertyID: "p1", OptionID: "opt-test",
+			Property: cfg.TriggerProperty, Column: TemplateTestColumn, Action: FlowActionTest},
 	}
 	if mutate != nil {
 		mutate(&cfg)
@@ -305,6 +310,16 @@ func testWorkdir(path string) WorkdirEntry {
 	return WorkdirEntry{
 		ID: newWorkdirID(), Name: testWorkdirName, Path: path,
 		BoardID: "board1", Kind: WorkdirGit,
+	}
+}
+
+// workColumn is the column the fixtures move a card into, bound to the option
+// moveEvent sends. Tests that replace the registry rebuild it from here rather
+// than spelling the ids again.
+func workColumn(property, action string) ColumnSpec {
+	return ColumnSpec{
+		BoardID: "board1", PropertyID: "p1", OptionID: "opt-agent",
+		Property: property, Column: TemplateWorkColumn, Action: action,
 	}
 }
 

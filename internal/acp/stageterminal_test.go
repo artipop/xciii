@@ -548,11 +548,10 @@ func TestDeclaredReadsOpenTheBrief(t *testing.T) {
 // in two columns.
 func TestAStageRunsWithTheColumnsOwnTools(t *testing.T) {
 	m, _, events, _, _ := stageManager(t, "sleep 30", func(cfg *Config) {
-		cfg.Columns = []ColumnSpec{{
-			Property: cfg.TriggerProperty, Column: TemplateWorkColumn,
-			Action: FlowActionAgent, Agents: []string{"clauuus"},
-			MCPServers: MCPServerSet{"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest"}}},
-		}}
+		spec := workColumn(cfg.TriggerProperty, FlowActionAgent)
+		spec.Agents = []string{"clauuus"}
+		spec.MCPServers = MCPServerSet{"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest"}}}
+		cfg.Columns = []ColumnSpec{spec}
 	})
 
 	events.ch <- moveEvent("cardTools", "opt-backlog", "opt-agent")

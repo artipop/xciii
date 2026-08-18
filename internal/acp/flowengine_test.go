@@ -142,7 +142,10 @@ func TestQueuedStageKeepsItsCrew(t *testing.T) {
 		{ID: newID(), Name: "другой", Kind: "claude"},
 	}
 	// One at a time in the column, so the second card has to queue.
-	m.cfg.Columns = []ColumnSpec{{Property: "Status", Column: "To Agent", Action: FlowActionAgent, MaxRunning: 1}}
+	m.cfg.Columns = []ColumnSpec{{
+		BoardID: "board1", PropertyID: "p1", OptionID: "opt-to agent",
+		Property: "Status", Column: "To Agent", Action: FlowActionAgent, MaxRunning: 1,
+	}}
 	m.cfgMu.Unlock()
 	users := &fakeBoardUsers{}
 	m.SetBoardUsers(users)

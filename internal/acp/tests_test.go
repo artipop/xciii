@@ -208,18 +208,20 @@ func TestTestSessionTakesTheBrowserFromTheColumn(t *testing.T) {
 func TestTestColumnRouting(t *testing.T) {
 	m := agentManager(t, "")
 	m.cfg.Columns = []ColumnSpec{
-		{Property: m.cfg.TriggerProperty, Column: TemplateTestColumn, Action: FlowActionTest},
+		{BoardID: "board1", PropertyID: "p", OptionID: "opt-test",
+			Property: m.cfg.TriggerProperty, Column: TemplateTestColumn, Action: FlowActionTest},
 	}
 
-	col := func(name string) Column {
-		return Column{PropertyName: strings.ToLower(m.cfg.TriggerProperty), Name: name}
+	col := func(optionID string) Column {
+		return Column{PropertyID: "p", PropertyName: m.cfg.TriggerProperty, OptionID: optionID, Name: TemplateTestColumn}
 	}
-	spec, ok := m.columnFor("board1", col(strings.ToLower(TemplateTestColumn)))
+	spec, ok := m.columnFor("board1", col("opt-test"))
 	if !ok || spec.Action != FlowActionTest {
-		t.Fatalf("the test column should match case-insensitively: %+v, %v", spec, ok)
+		t.Fatalf("the test column was not matched by its option: %+v, %v", spec, ok)
 	}
-	if _, ok := m.columnFor("board1", Column{PropertyName: "Other", Name: TemplateTestColumn}); ok {
-		t.Fatal("only the configured property may match")
+	// Another option is another column, whatever it happens to be called.
+	if _, ok := m.columnFor("board1", col("opt-other")); ok {
+		t.Fatal("only the configured option may match")
 	}
 
 	// An empty name is not a column: it must not match every unnamed one.

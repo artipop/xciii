@@ -79,8 +79,8 @@ func boardWithCards(t *testing.T) (*Manager, *fakeWriter) {
 	m, writer, _, _ := testManager(t, "idle", func(cfg *Config) {
 		cfg.TriggerProperty = "Статус"
 		cfg.Columns = append(cfg.Columns,
-			ColumnSpec{BoardID: "board-1", Property: "Статус", Column: "К агенту", Action: "session"},
-			ColumnSpec{BoardID: "board-1", Property: "Статус", Column: "Ревью"},
+			ColumnSpec{BoardID: "board-1", PropertyID: "p", OptionID: "opt-toagent", Property: "Статус", Column: "К агенту", Action: "session"},
+			ColumnSpec{BoardID: "board-1", PropertyID: "p", OptionID: "opt-review", Property: "Статус", Column: "Ревью"},
 		)
 	})
 	m.SetBoardReader(&fakeReader{cards: []CardMoved{
@@ -221,8 +221,8 @@ func TestBoardToolsDescribeTheBoardsRoutes(t *testing.T) {
 		Name:    "Обычный",
 		BoardID: "board-1",
 		Nodes: []FlowNode{
-			{ID: "n1", Column: "К агенту"},
-			{ID: "n2", Column: "Ревью"},
+			{ID: "n1", Column: "К агенту", OptionID: "opt-toagent"},
+			{ID: "n2", Column: "Ревью", OptionID: "opt-review"},
 		},
 		Edges: []FlowEdge{{From: "n1", To: "n2", On: TriggerSuccess}, {From: "n2", To: "n1", On: TriggerBranchMerged}},
 	}); err != nil {
