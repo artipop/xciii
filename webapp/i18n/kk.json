@@ -7,7 +7,6 @@
   "BoardComponent.no-property": "{property} жоқ",
   "BoardComponent.no-property-title": "Бос {property} сипаты бар Item'дер осында болады. Бұл бағанды жою мүмкін емес.",
   "BoardComponent.show": "Көрсету",
-  "BoardPage.newVersion": "Boards'тың жаңа нұсқасы қолжетімді, қайта жүктеу үшін осы жерді басыңыз.",
   "BoardPage.syncFailed": "Тақта жойылуы немесе кіруге тыйым салынуы мүмкін.",
   "BoardsUnfurl.Remainder": "+{remainder} көбірек",
   "BoardsUnfurl.Updated": "Жүктелді {time}",

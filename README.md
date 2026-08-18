@@ -172,8 +172,7 @@ There is deliberately **no `window.webSocketBaseURL`** here, unlike v2:
 `frontdoor.go` owns the origin, so `/ws` opens from the page's own origin.
 
 **Every one of them is feature-detected at the call site**, because the same
-bundle also runs in a browser and as a Mattermost plugin, where none of them
-exist. That guard is what keeps the desktop-only UI inert elsewhere, and it is
+bundle also runs in a browser, where none of them exist. That guard is what keeps the desktop-only UI inert elsewhere, and it is
 the one thing a rewrite must not quietly drop.
 
 ## Prerequisites

@@ -8,8 +8,6 @@ import type {StoreContext} from './context'
 
 import type {RootState} from './index'
 
-export const versionProperty = 'version72MessageCanceled'
-
 export type UsersState = {
     me: IUser|null
     boardUsers: {[key: string]: IUser}
@@ -128,17 +126,5 @@ export const getOnboardingTourStep = (state: RootState): string => {
 export const getOnboardingTourCategory = (state: RootState): string => {
     const myConfig = getMyConfig(state)
     return myConfig.tourCategory ? myConfig.tourCategory.value : ''
-}
-
-export const getVersionMessageCanceled = (state: RootState): boolean => {
-    const me = getMe(state)
-    const myConfig = getMyConfig(state)
-    if (versionProperty && me) {
-        if (me.id === 'single-user') {
-            return true
-        }
-        return Boolean(myConfig[versionProperty]?.value)
-    }
-    return true
 }
 

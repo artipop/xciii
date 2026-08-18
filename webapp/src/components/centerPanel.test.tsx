@@ -309,7 +309,7 @@ describe('components/centerPanel', () => {
                             showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -341,7 +341,7 @@ describe('components/centerPanel', () => {
                             showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -365,7 +365,7 @@ describe('components/centerPanel', () => {
                             showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -393,7 +393,7 @@ describe('components/centerPanel', () => {
                             showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -428,7 +428,7 @@ describe('components/centerPanel', () => {
                             showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -455,7 +455,7 @@ describe('components/centerPanel', () => {
                             showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -483,7 +483,7 @@ describe('components/centerPanel', () => {
                             showCard={mockedShowCard}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -509,7 +509,7 @@ describe('components/centerPanel', () => {
                             showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -555,7 +555,7 @@ describe('components/centerPanel', () => {
                             readonly={false}
                             showCard={vi.fn()}
                             groupByProperty={author}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -598,7 +598,7 @@ describe('components/centerPanel', () => {
                             activeView={view}
                             readonly={false}
                             showCard={vi.fn()}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -640,7 +640,7 @@ describe('components/centerPanel', () => {
                             showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -667,7 +667,7 @@ describe('components/centerPanel', () => {
                             showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))
@@ -695,7 +695,7 @@ describe('components/centerPanel', () => {
                             showCard={vi.fn()}
                             groupByProperty={groupProperty}
                             shownCardId={card1.id}
-                            />
+                        />
                     </TestRouter>
                 </AppStoreProvider>,
             ))

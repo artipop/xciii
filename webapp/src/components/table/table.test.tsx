@@ -190,7 +190,6 @@ describe('components/table/Table', () => {
         const {container} = render(component)
         expect(container).toMatchSnapshot()
     })
-
 })
 
 describe('components/table/Table extended', () => {

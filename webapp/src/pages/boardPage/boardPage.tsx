@@ -6,7 +6,6 @@ import {useNavigate} from '@solidjs/router'
 import {FormattedMessage, useIntl} from '../../intl'
 
 import Workspace from '../../components/workspace'
-import VersionMessage from '../../components/messages/versionMessage'
 import octoClient from '../../octoClient'
 import {Subscription, WSClient} from '../../wsclient'
 import {Utils} from '../../utils'
@@ -276,7 +275,6 @@ const BoardPage = (props: Props): JSX.Element => {
                 <SetWindowTitleAndIcon/>
                 <UndoRedoHotKeys/>
                 <WebsocketConnection/>
-                <VersionMessage/>
 
                 <Show when={!mobileWarningClosed()}>
                     <div class='mobileWarning'>

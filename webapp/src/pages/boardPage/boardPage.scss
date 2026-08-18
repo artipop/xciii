@@ -1,13 +1,6 @@
 .BoardPage {
     position: relative;
 
-    .VersionMessage:not(:first-child) {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-    }
-
     > .error {
         background-color: var(--prop-red);
         text-align: center;

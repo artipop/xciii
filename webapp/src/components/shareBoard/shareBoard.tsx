@@ -230,7 +230,7 @@ export default function ShareBoardDialog(props: Props): JSX.Element {
                 viewId: params.viewId,
                 teamId: params.teamId,
             })
-            boardUrl.pathname = Utils.getFrontendBaseURL() + boardPath
+            boardUrl.pathname = Utils.getBaseURL() + boardPath
         } else {
             const newPath = Utils.generatePath('/shared/:boardId/:viewId', {
                 boardId: params.boardId,

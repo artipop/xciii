@@ -97,5 +97,4 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         userEvent.click(buttonShow)
         expect(mockedMutator.unhideViewColumn).toHaveBeenCalledWith(activeView.boardId, activeView, option.id)
     })
-
 })

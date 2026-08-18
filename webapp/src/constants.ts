@@ -48,25 +48,29 @@ class Constants {
     static readonly feedbackEmail = 'hello@deffun.com'
     static readonly feedbackUrl = `mailto:${Constants.feedbackEmail}`
 
-    static readonly archiveHelpPage = 'https://docs.mattermost.com/boards/migrate-to-boards.html'
+    // The three import cards point at our own guide, not at the service being
+    // imported from and not — as they did until the fork shrink — at
+    // docs.mattermost.com's "migrate to Boards" page, which is a different
+    // product's documentation with anchors this app's menu invented.
+    static readonly archiveHelpPage = `${Constants.guideUrl}transfer`
     static readonly imports = [
         {
             id: 'trello',
             displayName: 'Trello',
             telemetryName: TelemetryActions.ImportTrello,
-            href: Constants.archiveHelpPage + '#import-from-trello',
+            href: Constants.archiveHelpPage,
         },
         {
             id: 'notion',
             displayName: 'Notion',
             telemetryName: TelemetryActions.ImportNotion,
-            href: Constants.archiveHelpPage + '#import-from-notion',
+            href: Constants.archiveHelpPage,
         },
         {
             id: 'todoist',
             displayName: 'Todoist',
             telemetryName: TelemetryActions.ImportTodoist,
-            href: Constants.archiveHelpPage + '#import-from-todoist',
+            href: Constants.archiveHelpPage,
         },
     ]
 

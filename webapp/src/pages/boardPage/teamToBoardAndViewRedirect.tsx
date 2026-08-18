@@ -48,7 +48,7 @@ const TeamToBoardAndViewRedirect = (): null => {
             }
 
             if (boardID) {
-                const newPath = Utils.generatePath(Utils.getBoardPagePath(currentMatch.path), {...currentMatch.params, boardId: boardID, viewID: undefined})
+                const newPath = Utils.generatePath(currentMatch.path, {...currentMatch.params, boardId: boardID, viewID: undefined})
                 navigate(newPath, {replace: true})
 
                 // return from here because the loadBoardData() call
@@ -80,7 +80,7 @@ const TeamToBoardAndViewRedirect = (): null => {
             }
 
             if (viewID) {
-                const newPath = Utils.generatePath(Utils.getBoardPagePath(currentMatch.path), {...currentMatch.params, viewId: viewID})
+                const newPath = Utils.generatePath(currentMatch.path, {...currentMatch.params, viewId: viewID})
                 navigate(newPath, {replace: true})
             }
         }

@@ -22,7 +22,6 @@
   "BoardMember.schemeEditor": "Editor",
   "BoardMember.schemeNone": "Nenhum",
   "BoardMember.unlinkChannel": "Desvincular",
-  "BoardPage.newVersion": "Está disponível uma nova versão do Boards, clique aqui para recarregar.",
   "BoardPage.syncFailed": "O Board pode ter sido apagado ou o acesso revogado.",
   "BoardTemplateSelector.add-template": "Criar novo modelo",
   "BoardTemplateSelector.create-empty-board": "Criar um board vazio",

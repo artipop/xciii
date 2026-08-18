@@ -592,18 +592,6 @@ class Utils {
         return baseURL
     }
 
-    static getFrontendBaseURL(absolute?: boolean): string {
-        let frontendBaseURL = window.frontendBaseURL || Utils.getBaseURL()
-        frontendBaseURL = frontendBaseURL.replace(/\/+$/, '')
-        if (frontendBaseURL.indexOf('/') === 0) {
-            frontendBaseURL = frontendBaseURL.slice(1)
-        }
-        if (absolute) {
-            return window.location.origin + '/' + frontendBaseURL
-        }
-        return frontendBaseURL
-    }
-
     static buildURL(path: string, absolute?: boolean): string {
         const baseURL = Utils.getBaseURL()
         let finalPath = baseURL + path
@@ -661,17 +649,6 @@ class Utils {
         return window.navigator.userAgent
     }
 
-    static isDesktopApp(): boolean {
-        return Utils.userAgent().indexOf('Mattermost') !== -1 && Utils.userAgent().indexOf('Electron') !== -1
-    }
-
-    static getDesktopVersion(): string {
-        // use if the value window.desktop.version is not set yet
-        const regex = /Mattermost\/(\d+\.\d+\.\d+)/gm
-        const match = regex.exec(window.navigator.appVersion)?.[1] || ''
-        return match
-    }
-
     /**
      * Function to check how a version compares to another
      *
@@ -702,10 +679,6 @@ class Utils {
 
         // If all components are equal, then return true
         return 0
-    }
-
-    static isDesktop(): boolean {
-        return Utils.isDesktopApp() && (Utils.compareVersions(Utils.getDesktopVersion(), '5.0.0') <= 0)
     }
 
     static getReadToken(): string {
@@ -797,13 +770,6 @@ class Utils {
         return segments.filter((seg) => seg !== null).join('/') || '/'
     }
 
-    static getBoardPagePath(currentPath: string) {
-        if (currentPath === '/team/:teamId/new/:channelId') {
-            return '/team/:teamId/:boardId?/:viewId?/:cardId?'
-        }
-        return currentPath
-    }
-
     static showBoard(
         boardId: string,
         match: RouterMatch,
@@ -816,7 +782,7 @@ class Utils {
             params.viewId = undefined
             params.cardId = undefined
         }
-        const newPath = Utils.generatePath(Utils.getBoardPagePath(match.path), params)
+        const newPath = Utils.generatePath(match.path, params)
         navigate(newPath)
     }
 

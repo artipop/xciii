@@ -40,7 +40,6 @@ type Props = {
     title?: JSX.Element
     description?: JSX.Element
     onClose?: () => void
-    channelId?: string
 }
 
 // Of the templates that come with the install, only these are offered: the rest
@@ -216,12 +215,10 @@ const BoardTemplateSelector = (props: Props) => {
     const handleUseTemplate = async () => {
         const template = activeTemplate()
         if (template.teamId === '0') {
-            TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateBoardViaTemplate, {boardTemplateId: template.properties.trackingTemplateId as string, channelID: props.channelId})
+            TelemetryClient.trackEvent(TelemetryCategory, TelemetryActions.CreateBoardViaTemplate, {boardTemplateId: template.properties.trackingTemplateId as string})
         }
 
         const boardsAndBlocks = await mutator.addBoardFromTemplate(currentTeam()?.id || Constants.globalTeamId, intl, showBoard, () => showBoard(currentBoardId()), template.id, currentTeam()?.id)
-        const board = boardsAndBlocks.boards[0]
-        await mutator.updateBoard({...board, channelId: props.channelId || ''}, board, 'linked channel')
         if (template.title === OnboardingBoardTitle) {
             resetTour()
         }
@@ -306,9 +303,7 @@ const BoardTemplateSelector = (props: Props) => {
                                     size={'medium'}
                                     icon={<CompassIcon icon='kanban'/>}
                                     onClick={async () => {
-                                        const boardsAndBlocks = await mutator.addEmptyBoard(currentTeam()?.id || '', intl, showBoard, () => showBoard(currentBoardId()))
-                                        const board = boardsAndBlocks.boards[0]
-                                        await mutator.updateBoard({...board, channelId: props.channelId || ''}, board, 'linked channel')
+                                        await mutator.addEmptyBoard(currentTeam()?.id || '', intl, showBoard, () => showBoard(currentBoardId()))
                                     }}
                                 >
                                     <FormattedMessage

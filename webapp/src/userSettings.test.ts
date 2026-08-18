@@ -71,7 +71,7 @@ describe('userSettings and the install’s own memory', () => {
         expect(set).not.toHaveBeenCalled()
     })
 
-    // The same bundle runs in a plain browser and as a Mattermost plugin,
+    // The same bundle runs in a plain browser,
     // where there is no Go side at all: localStorage stays the whole memory.
     test('without bindings, localStorage is the whole memory', async () => {
         await hydrateUserSettings()

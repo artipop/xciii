@@ -572,5 +572,4 @@ describe('components/cardDetail/CardDetail', () => {
             },
         )
     })
-
 })

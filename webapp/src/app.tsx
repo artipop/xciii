@@ -8,7 +8,6 @@ import {SortableProvider} from './hooks/sortable'
 import {FlashMessages} from './components/flashMessages'
 import MoveCardToBoard from './components/moveCardToBoard'
 import AttentionNotifications from './components/acp/attentionNotifications'
-import NewVersionBanner from './components/newVersionBanner'
 import {getMe} from './store/users'
 import {getLanguage} from './store/language'
 import {useAppSelector, useAppStore} from './store/hooks'
@@ -52,7 +51,6 @@ const App: Component = () => {
                 <MoveCardToBoard/>
                 <div id='frame'>
                     <div id='main'>
-                        <NewVersionBanner/>
                         <AppRouter/>
                     </div>
                 </div>

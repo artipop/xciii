@@ -22,7 +22,6 @@
   "BoardMember.schemeEditor": "Editor",
   "BoardMember.schemeNone": "Cap",
   "BoardMember.schemeViewer": "Visualitzador",
-  "BoardPage.newVersion": "Una nova versió de Boards és disponible, clica aquí per recarregar.",
   "BoardPage.syncFailed": "El tauler podria ser eliminat o revocat l'accés.",
   "BoardTemplateSelector.add-template": "Crea una nova plantilla",
   "BoardTemplateSelector.create-empty-board": "Crea un taulell buit",

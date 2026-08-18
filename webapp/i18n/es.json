@@ -21,7 +21,6 @@
   "BoardMember.schemeEditor": "Editor",
   "BoardMember.schemeNone": "Ninguno",
   "BoardMember.schemeViewer": "Visualizador",
-  "BoardPage.newVersion": "Una nueva versión de Boards está disponible, haz clic aquí para recargar.",
   "BoardPage.syncFailed": "El tablero puede haber sido eliminado o el acceso revocado.",
   "BoardTemplateSelector.add-template": "Crear nueva plantilla",
   "BoardTemplateSelector.create-empty-board": "Crear un tablero vacío",

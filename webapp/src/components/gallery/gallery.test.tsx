@@ -164,5 +164,4 @@ describe('src/components/gallery/Gallery', () => {
         fireEvent.drop(drop)
         expect(mockedMutator.performAsUndoGroup).toHaveBeenCalledTimes(1)
     })
-
 })

@@ -7,6 +7,5 @@
   "BoardComponent.no-property": "Ni {property}",
   "BoardComponent.no-property-title": "Elementi s prazno lastnostjo {property} bodo šli sem. Tega stolpca ni mogoče odstraniti.",
   "BoardComponent.show": "Pokaži",
-  "BoardPage.newVersion": "Na voljo je nova različica Boards, kliknite tukaj za ponovno nalaganje.",
   "BoardPage.syncFailed": "Plošča se lahko izbriše ali dostop prekliče."
 }

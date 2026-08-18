@@ -49,7 +49,7 @@ describe('components/settings/updatesPanel', () => {
         delete anyWindow.go
     })
 
-    // The same bundle is served in a plain browser and as a Mattermost plugin,
+    // The same bundle is served in a plain browser,
     // where there is nothing to update and nothing to ask. The settings dialog
     // leaves the whole section out on this answer.
     it('is inert without desktop bindings', () => {

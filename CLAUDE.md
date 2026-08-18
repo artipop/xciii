@@ -40,7 +40,7 @@ patches small enough to explain, because there is nobody upstream to merge them.
 What the page needs from the Go side is described in README.md, "What this app
 requires of the frontend": the output layout `go:embed` expects, and three
 globals the page consumes, each feature-detected because the same bundle also runs
-in a browser and as a Mattermost plugin.
+in a browser.
 
 ## Build & run
 
@@ -654,9 +654,8 @@ localStorage forgot everything on every launch. `main.tsx` hydrates
 localStorage from it before the first render — the theme and the language
 have to be right on the first paint — and `UserSettings.set` writes through;
 `installKept` in `userSettings.ts` names the keys that travel, and the
-session token deliberately is not one of them. In a plain browser or as a
-Mattermost plugin there is no Go side, and localStorage stays the whole
-memory there. **The theme and the language are settings like the rest of them**,
+session token deliberately is not one of them. In a plain browser there is no Go side, and
+localStorage stays the whole memory there. **The theme and the language are settings like the rest of them**,
 and are `settings/appPanel.tsx` with the link to the manual: they spent a while
 in the corner of the board on the grounds that they are changed while looking at
 it, and what that cost was two icon menus and a question mark standing in for

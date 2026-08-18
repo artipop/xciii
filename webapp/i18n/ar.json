@@ -24,7 +24,6 @@
   "BoardMember.schemeNone": "لا شيء",
   "BoardMember.schemeViewer": "مشاهد",
   "BoardMember.unlinkChannel": "إلغاء الربط",
-  "BoardPage.newVersion": "يتوفر نسخة جديدة من الألواح. اضغط هنا للتحميل.",
   "BoardPage.syncFailed": "تعذر الوصول إلي اللوح , ربما يكون محذوفا .",
   "BoardTemplateSelector.add-template": "قالب جديد",
   "BoardTemplateSelector.create-empty-board": "أنشيء لوح فارغ",

@@ -1,14 +1,9 @@
 import {ParentComponent, createEffect, onMount} from 'solid-js'
 
-import wsClient, {MMWebSocketClient} from '../wsclient'
+import wsClient from '../wsclient'
 
 type Props = {
     userId?: string
-    manifest?: {
-        id: string
-        version: string
-    }
-    webSocketClient?: MMWebSocketClient
 }
 
 // WithWebSockets component initialises the websocket connection if

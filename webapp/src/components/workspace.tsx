@@ -66,7 +66,7 @@ function CenterContent(props: Props) {
     const showCard = (cardId?: string) => {
         const currentMatch = match()
         const params = {...currentMatch.params, cardId}
-        let newPath = Utils.generatePath(Utils.getBoardPagePath(currentMatch.path), params)
+        let newPath = Utils.generatePath(currentMatch.path, params)
         if (props.readonly) {
             newPath += `?r=${Utils.getReadToken()}`
         }
@@ -99,7 +99,6 @@ function CenterContent(props: Props) {
                     defaultMessage='Add a board to the sidebar using any of the templates defined below or start from scratch.'
                 />
             }
-            channelId={match().params.channelId}
         />
     )
 
@@ -121,14 +120,6 @@ function CenterContent(props: Props) {
 
     return (
         <Switch>
-            <Match when={match().params.channelId}>
-                <Show
-                    when={!me()?.is_guest}
-                    fallback={<GuestNoBoards/>}
-                >
-                    {templateSelector()}
-                </Show>
-            </Match>
             <Match when={board() && !isBoardHidden() && activeView()}>
                 <CenterPanel
                     clientConfig={clientConfig()}

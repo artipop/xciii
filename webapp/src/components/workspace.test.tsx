@@ -169,7 +169,6 @@ describe('src/components/workspace', () => {
         // Navigation builds a real path even under the Utils auto-mock:
         // navigate(undefined) would crash inside the router instead.
         mockedUtils.generatePath = actualUtils.generatePath
-        mockedUtils.getBoardPagePath = actualUtils.getBoardPagePath
     })
     test('should match snapshot', async () => {
         const result = render(() => wrapDNDIntl(() =>
