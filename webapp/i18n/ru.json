@@ -279,6 +279,7 @@
   "CardDetail.add-property": "+ Добавить свойство",
   "CardDetail.addCardText": "добавить текст карточки",
   "CardDetail.folder-locked": "Карточка уже работает в папке «{folder}» — там её ветка. Для другой папки заведите новую карточку.",
+  "CardDetail.folder-locked-elsewhere": "Работа по этой карточке начата на другой машине, в папке «{folder}», ветка «{branch}». Чтобы продолжить здесь, эта папка с этой веткой должна быть на этой машине.",
   "CardDetail.moveContent": "переместить содержимое карты",
   "CardDetail.new-comment-placeholder": "Добавить комментарий...",
   "CardDetail.worktree-property": "Ворктри",

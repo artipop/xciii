@@ -279,6 +279,7 @@
   "CardDetail.add-property": "+ Add a property",
   "CardDetail.addCardText": "add card text",
   "CardDetail.folder-locked": "The card is already working in “{folder}”, where its branch is. For another folder, make a new card.",
+  "CardDetail.folder-locked-elsewhere": "Work on this card has started on another machine, in “{folder}”, branch “{branch}”. To carry on here, that folder with that branch has to be on this machine.",
   "CardDetail.moveContent": "Move card content",
   "CardDetail.new-comment-placeholder": "Add a comment...",
   "CardDetail.worktree-property": "Worktree",

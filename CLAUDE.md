@@ -1782,8 +1782,9 @@ and it made every board of shopping lists look like it was missing one.
   knows. `python3 tools/schemapage.py` dresses the same markdown as
   `docs/schema/erd.html` — a page to open in a browser, presentation only, and
   nothing in the Go build calls it. `docs/db-erd.md` is what is stored where in words,
-  `docs/model-graph.md` is how one thing finds another — and what is still found
-  by name rather than by id — `docs/db-schema-review.md` is the decisions
+  `docs/model-graph.md` is how one thing finds another — every reference by id
+  now, with the nine that were not written up where a new one can be checked
+  against them — `docs/db-schema-review.md` is the decisions
   behind it, and
   `docs/sql-dialects.md` is the inventory of what is still written per vendor —
   fifteen branches in the queries, ten of them the same upsert, two of them

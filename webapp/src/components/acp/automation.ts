@@ -78,12 +78,14 @@ export type EdgeCond = {
 }
 
 export type Flow = {
+
     // The route's own id, given by Go. It is what an edit is matched on, so a
     // route read from the board must be sent back with it — renaming one used
     // to lose the place of every card standing on it.
     id?: string
     name: string
     boardId?: string
+
     // The folder this route is tied to, by registry id.
     workspaceId?: string
     property?: string

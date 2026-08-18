@@ -71,6 +71,10 @@ const CardDetailProperties = (props: Props) => {
     // folder and whose branch is in another is a state nobody can read back.
     const workdirProperty = () => findWorkdirProperty(props.board, props.board.cardProperties)
     const workdirLocked = () => Boolean(agentState().work?.started)
+
+    // Started somewhere, and not on this machine: a card travels and the
+    // workspace does not.
+    const workElsewhere = () => Boolean(agentState().work?.started && !agentState().work?.here)
     const isWorkdirProperty = (t: IPropertyTemplate) => t.id !== '' && t.id === workdirProperty()?.id
     const lockedFolderName = () => {
         const property = workdirProperty()
@@ -217,10 +221,24 @@ const CardDetailProperties = (props: Props) => {
                         cannot be changed is a sentence. */}
                         <Show when={isWorkdirProperty(propertyTemplate) && workdirLocked()}>
                             <div class='octo-propertyhint'>
-                                {intl.formatMessage({
-                                    id: 'CardDetail.folder-locked',
-                                    defaultMessage: 'The card is already working in “{folder}”, where its branch is. For another folder, make a new card.',
-                                }, {folder: lockedFolderName()})}
+                                <Show
+                                    when={workElsewhere()}
+                                    fallback={intl.formatMessage({
+                                        id: 'CardDetail.folder-locked',
+                                        defaultMessage: 'The card is already working in “{folder}”, where its branch is. For another folder, make a new card.',
+                                    }, {folder: lockedFolderName()})}
+                                >
+                                    {/* Work exists and this machine does not
+                                    hold it. Nothing here can continue it — the
+                                    same folder has to be on this machine — so
+                                    the honest thing is to say where it is and
+                                    on what branch, and let the person get
+                                    there themselves (docs/deferred.md). */}
+                                    {intl.formatMessage({
+                                        id: 'CardDetail.folder-locked-elsewhere',
+                                        defaultMessage: 'Work on this card has started on another machine, in “{folder}”, branch “{branch}”. To carry on here, that folder with that branch has to be on this machine.',
+                                    }, {folder: lockedFolderName(), branch: agentState().work?.branch || '—'})}
+                                </Show>
                             </div>
                         </Show>
                     </>
