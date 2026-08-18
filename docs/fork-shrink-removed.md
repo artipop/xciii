@@ -39,8 +39,8 @@
 
 | Что | Коммит | Почему было мертво |
 | --- | --- | --- |
-| `octoClient`: `getUsersList`, `getBlocksWithParent`, `getBlocksWithType`, `patchBlocks`, `getBlocksForBoard`, `createBoard`, `getUserBlockSubscriptions` | `ac958a4` | ни одного вызова из живого кода; четыре из них вдобавок бьют в маршруты, которых на сервере уже нет (`/teams/{t}/blocks`, `/teams/{t}/boards/{b}`, `POST /teams/{t}/boards`) |
-| `octoClient.searchLinkableBoards` + `GET /teams/{teamID}/boards/search/linkable` + `TestPermissionsSearchTeamLinkableBoards` | `ac958a4` | доски, привязываемые к каналу Mattermost; обработчик и так отвечал «not permitted in standalone mode» |
+| `octoClient`: `getUsersList`, `getBlocksWithParent`, `getBlocksWithType`, `patchBlocks`, `getBlocksForBoard`, `createBoard`, `getUserBlockSubscriptions` | `1565b30` | ни одного вызова из живого кода; четыре из них вдобавок бьют в маршруты, которых на сервере уже нет (`/teams/{t}/blocks`, `/teams/{t}/boards/{b}`, `POST /teams/{t}/boards`) |
+| `octoClient.searchLinkableBoards` + `GET /teams/{teamID}/boards/search/linkable` + `TestPermissionsSearchTeamLinkableBoards` | `1565b30` | доски, привязываемые к каналу Mattermost; обработчик и так отвечал «not permitted in standalone mode» |
 
 ## Что осталось стоять рядом с удалённым
 
