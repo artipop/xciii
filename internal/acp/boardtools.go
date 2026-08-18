@@ -57,9 +57,19 @@ func (m *Manager) GrantBoardTools(boardID, cardID, terminalID string) string {
 	}
 	token := hex.EncodeToString(buf)
 
-	m.cfgMu.RLock()
-	property := m.cfg.TriggerProperty
-	m.cfgMu.RUnlock()
+	// Which property the columns live on is the board's answer, not the
+	// machine's: cfg.TriggerProperty is one name for every board this install
+	// ever sees, and its default is the Russian «Статус», so a board in another
+	// language — or one where somebody renamed the field — handed the agent a
+	// property that does not exist there. The board records the id itself
+	// (BoardPropColumnProperty), and the name in the settings is the fallback
+	// for a board that predates that record.
+	property := m.boardProperty(boardID, BoardPropColumnProperty)
+	if property == "" {
+		m.cfgMu.RLock()
+		property = m.cfg.TriggerProperty
+		m.cfgMu.RUnlock()
+	}
 
 	m.grantsMu.Lock()
 	defer m.grantsMu.Unlock()
@@ -522,10 +532,19 @@ func (m *Manager) toolCard(g BoardGrant, ev CardMoved) BoardToolCard {
 		Mine:  g.CardID != "" && ev.CardID == g.CardID,
 	}
 	if g.Property != "" {
-		// Props is what the board renders a property as, and it upper-cases a
-		// select value on the way out. The agent is told the option's own name,
-		// because that is the name it has to send back.
-		card.Column = ev.Props[strings.ToLower(g.Property)]
+		// The grant names the column property the way the board records it — by
+		// id — so Values is where to look; Props is keyed by lowercased *name*
+		// and answers for a grant that fell back to the config's name. Both are
+		// consulted because a board that predates BoardPropColumnProperty has
+		// only the second.
+		//
+		// Either way the board upper-cases a select value on the way out, so the
+		// agent is told the option's own name — that is the name it has to send
+		// back.
+		card.Column = ev.Values[g.Property]
+		if card.Column == "" {
+			card.Column = ev.Props[strings.ToLower(g.Property)]
+		}
 		for _, name := range ev.OptionNames {
 			if strings.EqualFold(name, card.Column) {
 				card.Column = name
