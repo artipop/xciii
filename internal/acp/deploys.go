@@ -57,10 +57,19 @@ func (m *Manager) AddDeploy(d DeployEntry) (DeployEntry, error) {
 		}
 	}
 	m.cfg.Deploys = append(m.cfg.Deploys, d)
-	return d, m.persistConfigLocked()
+	// The id is minted by the store, so the entry is read back out of the
+	// registry rather than returned as it went in: a caller that pins this
+	// target — a column, a route stage — needs the id, and the copy made before
+	// the write has none.
+	err = m.persistConfigLocked()
+	return m.cfg.Deploys[len(m.cfg.Deploys)-1], err
 }
 
-// UpdateDeploy replaces an existing entry (matched by name) and persists.
+// UpdateDeploy replaces an existing entry and persists.
+//
+// Matched by id, which is what makes renaming a target possible at all: matched
+// by name, the lookup used the *new* name and found nothing, so the one edit
+// somebody actually wants to make was the one that could not be made.
 func (m *Manager) UpdateDeploy(d DeployEntry) (DeployEntry, error) {
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
@@ -69,12 +78,29 @@ func (m *Manager) UpdateDeploy(d DeployEntry) (DeployEntry, error) {
 		return DeployEntry{}, err
 	}
 	for i, e := range m.cfg.Deploys {
-		if strings.EqualFold(e.Name, d.Name) {
-			m.cfg.Deploys[i] = d
-			return d, m.persistConfigLocked()
+		if !sameDeployEntry(e, d) {
+			continue
 		}
+		if name := strings.TrimSpace(d.Name); !strings.EqualFold(e.Name, name) {
+			if _, taken := deployByName(m.cfg.Deploys, name); taken {
+				return DeployEntry{}, fmt.Errorf("цель с именем %q уже существует", name)
+			}
+		}
+		d.ID = e.ID
+		m.cfg.Deploys[i] = d
+		return d, m.persistConfigLocked()
 	}
 	return DeployEntry{}, fmt.Errorf("цель %q не найдена", d.Name)
+}
+
+// sameDeployEntry is which registry row an edit is about: the id when the
+// caller carries one, and otherwise the name — a form filled in before ids
+// existed still has to find its row.
+func sameDeployEntry(existing, edit DeployEntry) bool {
+	if id := strings.TrimSpace(edit.ID); id != "" {
+		return existing.ID == id
+	}
+	return strings.EqualFold(existing.Name, strings.TrimSpace(edit.Name))
 }
 
 // RemoveDeploy deletes an entry by name and persists the config. Apps already
@@ -118,9 +144,9 @@ func (m *Manager) resolveDeployTarget(ev CardMoved) (DeployEntry, error) {
 
 // resolveDeploy gathers what a deploy session needs: the target and the branch
 // to publish. For an ordinary session it returns nothing and no error, so the
-// launch path can call it unconditionally. override names the target a flow
-// node pinned, which wins over the card's own resolution.
-func (m *Manager) resolveDeploy(ev CardMoved, workdirPath string, deploy bool, override string) (*DeployEntry, string, error) {
+// launch path can call it unconditionally. pinned is the id of the target a
+// column or a flow node fixed, which wins over the card's own resolution.
+func (m *Manager) resolveDeploy(ev CardMoved, workdirPath string, deploy bool, pinned string) (*DeployEntry, string, error) {
 	if !deploy {
 		return nil, "", nil
 	}
@@ -130,7 +156,7 @@ func (m *Manager) resolveDeploy(ev CardMoved, workdirPath string, deploy bool, o
 	if !IsGitWorkdir(m.rootCtx, workdirPath) {
 		return nil, "", fmt.Errorf("папка %s не под git — публиковать нечего: деплой работает с веткой", workdirPath)
 	}
-	target, err := m.resolveDeployTargetNamed(ev, override)
+	target, err := m.resolveDeployTargetPinned(ev, pinned)
 	if err != nil {
 		return nil, "", err
 	}
@@ -154,22 +180,26 @@ func (m *Manager) resolveDeploy(ev CardMoved, workdirPath string, deploy bool, o
 	return &target, branch, nil
 }
 
-// resolveDeployTargetNamed is resolveDeployTarget with an explicit name taking
-// precedence — how a flow node pins the destination for its stage alone.
-func (m *Manager) resolveDeployTargetNamed(ev CardMoved, name string) (DeployEntry, error) {
-	name = strings.TrimSpace(name)
-	if name == "" {
+// resolveDeployTargetPinned is resolveDeployTarget with a pinned target taking
+// precedence — how a column or a flow node fixes the destination for its stage
+// alone. The pin is the registry entry's id: a target somebody renamed is the
+// same target, and used to stop being one (contradiction 8).
+func (m *Manager) resolveDeployTargetPinned(ev CardMoved, id string) (DeployEntry, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
 		return m.resolveDeployTarget(ev)
 	}
 	m.cfgMu.RLock()
 	deploys := append([]DeployEntry(nil), m.cfg.Deploys...)
 	m.cfgMu.RUnlock()
-	for _, d := range deploys {
-		if strings.EqualFold(d.Name, name) {
-			return d, nil
-		}
+	if d, ok := deployByID(deploys, id); ok {
+		return d, nil
 	}
-	return DeployEntry{}, fmt.Errorf("цель деплоя %q не найдена в реестре (%s)", name, deployNames(deploys))
+	// The id is the board's and the registry is the machine's, so a board
+	// carried here from another machine points at a target nobody registered.
+	// Saying which id it is helps nobody; saying what this machine has is the
+	// half a person can act on.
+	return DeployEntry{}, fmt.Errorf("цель деплоя, назначенная этой стадии, не найдена в реестре машины (есть: %s)", deployNames(deploys))
 }
 
 // deployAppName is what a target without an explicit base app names its apps

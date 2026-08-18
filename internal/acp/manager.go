@@ -290,7 +290,8 @@ type startOptions struct {
 	// it, so its outcome can move the card on.
 	flowName, flowNodeID string
 	// agentCrew/deployOverride let a flow node name the agents or the deploy
-	// target for its stage only, overriding the column's own.
+	// target for its stage only, overriding the column's own. The target is an
+	// id, because a name is what somebody renames (contradiction 8).
 	agentCrew      []string
 	deployOverride string
 	// column is the column the card landed in: who works it, how many at once,
@@ -388,11 +389,11 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 	if err != nil {
 		return nil, err
 	}
-	deployName := opts.deployOverride
-	if deployName == "" {
-		deployName = opts.column.DeployName
+	deployID := opts.deployOverride
+	if deployID == "" {
+		deployID = opts.column.DeployID
 	}
-	deploy, deployBranch, err := m.resolveDeploy(ev, workdirPath, opts.deploy, deployName)
+	deploy, deployBranch, err := m.resolveDeploy(ev, workdirPath, opts.deploy, deployID)
 	if err != nil {
 		return nil, err
 	}

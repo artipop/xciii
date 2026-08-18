@@ -49,7 +49,7 @@ func TestValidateFlow(t *testing.T) {
 		},
 		"неизвестный проект": func(f *FlowEntry) { f.WorkdirName = "nosuchproject" },
 		"неизвестный агент":  func(f *FlowEntry) { f.Nodes[0].AgentName = "nosuchagent" },
-		"неизвестная цель":   func(f *FlowEntry) { f.Nodes[0].DeployName = "nosuchtarget" },
+		"неизвестная цель":   func(f *FlowEntry) { f.Nodes[0].DeployID = "nosuchtarget" },
 		"пустое условие":     func(f *FlowEntry) { f.Edges[0].If = &EdgeCond{} },
 		"условие про оба сразу": func(f *FlowEntry) {
 			f.Edges[0].If = &EdgeCond{Property: "Приоритет", Value: "Высокий", CommentContains: "готово"}

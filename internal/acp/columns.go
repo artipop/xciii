@@ -63,7 +63,12 @@ type ColumnSpec struct {
 	// (FlowNode.MCPServers).
 	MCPServers MCPServerSet `json:"mcpServers,omitempty"`
 
-	// DeployName pins the deploy target for an "deploy" column.
+	// DeployID pins the deploy target for a "deploy" column, by the registry
+	// entry's own id: renaming a target must not silently unpin every column
+	// that sends work to it (docs/model-graph.md, contradiction 8).
+	DeployID string `json:"deployId,omitempty"`
+	// DeployName is what pinning used to be written as. Read once and folded
+	// into DeployID (bindrefs.go); never written back.
 	DeployName string `json:"deployName,omitempty"`
 
 	// MaxRunning bounds how many sessions this column runs at once. Zero means
@@ -218,9 +223,11 @@ func validateColumn(c ColumnSpec, agents []AgentEntry, deploys []DeployEntry) (C
 	}
 	c.Agents = roster
 
-	c.DeployName = strings.TrimSpace(c.DeployName)
-	if c.DeployName != "" && !hasDeploy(deploys, c.DeployName) {
-		return ColumnSpec{}, fmt.Errorf("цель деплоя %q не найдена в реестре (%s)", c.DeployName, deployNames(deploys))
+	c.DeployID = strings.TrimSpace(c.DeployID)
+	if c.DeployID != "" {
+		if _, ok := deployByID(deploys, c.DeployID); !ok {
+			return ColumnSpec{}, fmt.Errorf("колонка %q ссылается на цель деплоя, которой нет в реестре (есть: %s)", c.Column, deployNames(deploys))
+		}
 	}
 	if c.MaxRunning < 0 {
 		return ColumnSpec{}, fmt.Errorf("лимит одновременных сессий не может быть отрицательным")

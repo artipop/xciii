@@ -24,7 +24,11 @@ export type FlowNode = {
     // nothing and waits for an event.
     action: string
     agentNames?: string[]
-    deployName?: string
+
+    // The deploy target this stage publishes to, by the registry entry's id.
+    // It used to be the entry's name, and renaming a target then unpinned every
+    // stage that sent work to it (docs/model-graph.md, contradiction 8).
+    deployId?: string
 
     // The stage's own instructions, said to whoever works it here — overriding
     // the column's (ColumnSpec.prompt). Empty inherits.
@@ -97,7 +101,7 @@ export type ColumnSpec = {
     column: string
     action: string
     agents?: string[]
-    deployName?: string
+    deployId?: string
     maxRunning?: number
 
     // What working in this column means, said to the agent: the reviewer's

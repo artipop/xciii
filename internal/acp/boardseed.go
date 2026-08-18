@@ -363,6 +363,13 @@ func (m *Manager) adoptColumns(boardID string, columns []ColumnSpec) (int, []Col
 	var unusable []ColumnSpec
 	for _, c := range columns {
 		c.BoardID = boardID
+		// A board carries what it was written with, and until now that included
+		// names of registry entries. Fold them into ids before validating, or a
+		// column pinned to a deploy target by name would be refused for naming
+		// nothing the registry answers to (bindrefs.go). Not counted as an
+		// addition: nothing new was registered, and seedFromBoard writes the
+		// board back either way.
+		bindColumnRefs(&c, m.cfg.Deploys)
 		valid, err := validateColumn(c, m.cfg.Agents, m.cfg.Deploys)
 		if err != nil {
 			m.log.Warn("acp: the board offers a column that cannot be used", "board", boardID, "column", c.Column, "err", err)
@@ -383,6 +390,12 @@ func (m *Manager) adoptColumns(boardID string, columns []ColumnSpec) (int, []Col
 				m.cfg.Columns[i].BoardID = valid.BoardID
 				m.cfg.Columns[i].PropertyID = valid.PropertyID
 				m.cfg.Columns[i].OptionID = valid.OptionID
+				added++
+			}
+			// The registry's own copy is bound too. Leaving it out is what
+			// would make the fold look done and not be: the board would be
+			// rewritten from a registry entry still carrying the name.
+			if bindColumnRefs(&m.cfg.Columns[i], m.cfg.Deploys) {
 				added++
 			}
 			break
@@ -415,6 +428,7 @@ func (m *Manager) adoptFlows(boardID string, flows []FlowEntry) (int, []FlowEntr
 	var unusable []FlowEntry
 	for _, f := range flows {
 		f.BoardID = boardID
+		bindFlowRefs(&f, m.cfg.Deploys)
 		valid, err := validateFlow(f, m.cfg.Workdirs, m.cfg.Agents, m.cfg.Deploys)
 		if err != nil {
 			m.log.Warn("acp: the board offers a route that cannot be used", "board", boardID, "flow", f.Name, "err", err)
@@ -422,9 +436,12 @@ func (m *Manager) adoptFlows(boardID string, flows []FlowEntry) (int, []FlowEntr
 			continue
 		}
 		known := false
-		for _, existing := range m.cfg.Flows {
+		for i, existing := range m.cfg.Flows {
 			if sameFlow(existing, valid) {
 				known = true
+				if bindFlowRefs(&m.cfg.Flows[i], m.cfg.Deploys) {
+					added++
+				}
 				break
 			}
 		}

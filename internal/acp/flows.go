@@ -119,7 +119,11 @@ type FlowNode struct {
 	// and folded into AgentNames; never written back.
 	AgentName string `json:"agentName,omitempty"`
 
-	// DeployName overrides the column's deploy target for this stage.
+	// DeployID overrides the column's deploy target for this stage, by the
+	// registry entry's id rather than its name (contradiction 8).
+	DeployID string `json:"deployId,omitempty"`
+	// DeployName is what the override used to be written as. Read on load and
+	// folded into DeployID (bindrefs.go); never written back.
 	DeployName string `json:"deployName,omitempty"`
 
 	// Prompt overrides the column's instructions for this stage alone
@@ -490,9 +494,11 @@ func validateFlow(f FlowEntry, workdirs []WorkdirEntry, agents []AgentEntry, dep
 			seenAgent[strings.ToLower(name)] = true
 			n.AgentNames = append(n.AgentNames, name)
 		}
-		n.DeployName = strings.TrimSpace(n.DeployName)
-		if n.DeployName != "" && !hasDeploy(deploys, n.DeployName) {
-			return FlowEntry{}, fmt.Errorf("цель деплоя %q стадии %q не найдена в реестре (%s)", n.DeployName, n.ID, deployNames(deploys))
+		n.DeployID = strings.TrimSpace(n.DeployID)
+		if n.DeployID != "" {
+			if _, ok := deployByID(deploys, n.DeployID); !ok {
+				return FlowEntry{}, fmt.Errorf("стадия %q ссылается на цель деплоя, которой нет в реестре (есть: %s)", n.ID, deployNames(deploys))
+			}
 		}
 		servers, err := validateStageMCP(n.MCPServers)
 		if err != nil {
@@ -710,11 +716,3 @@ func hasAgent(agents []AgentEntry, name string) bool {
 	return false
 }
 
-func hasDeploy(deploys []DeployEntry, name string) bool {
-	for _, d := range deploys {
-		if strings.EqualFold(d.Name, name) {
-			return true
-		}
-	}
-	return false
-}

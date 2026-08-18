@@ -53,6 +53,10 @@ import './automationEditor.scss'
 
 type Named = {name: string}
 
+// A registry entry a column or a stage points at. The id is the reference; the
+// name is only what the picker shows.
+type Identified = Named & {id?: string}
+
 // An agent as this editor needs to know it: its name, and whether it brings
 // tools of its own — which is half the answer to "does anything here have a
 // browser", the other half being the stage's own set.
@@ -76,7 +80,7 @@ type Props = {
     automation: Automation
     triggers: FlowTrigger[]
     agents: Agent[]
-    deploys: Named[]
+    deploys: Identified[]
 
     // counts is where the board's cards actually stand, per route. Only a live
     // board has any; a template is a drawing.
@@ -674,7 +678,7 @@ const AutomationEditor = (props: Props) => {
                     value={value()}
                     options={[
                         {value: '', label: blank},
-                        ...props.deploys.map((d) => ({value: d.name, label: d.name})),
+                        ...props.deploys.map((d) => ({value: d.id || '', label: d.name})),
                     ]}
                     onChange={write}
                     label={intl.formatMessage({id: 'Automation.deploy', defaultMessage: 'Deploy target'})}
@@ -923,8 +927,8 @@ const AutomationEditor = (props: Props) => {
 
                                     <Show when={specOf(node())?.action === 'deploy'}>
                                         {deployPicker(
-                                            () => specOf(node())?.deployName || '',
-                                            (deployName) => updateNodeSpec(node(), {deployName}),
+                                            () => specOf(node())?.deployId || '',
+                                            (deployId) => updateNodeSpec(node(), {deployId}),
                                             intl.formatMessage({id: 'Automation.deploy-default', defaultMessage: '— the card’s own —'}),
                                         )}
                                     </Show>
@@ -1046,8 +1050,8 @@ const AutomationEditor = (props: Props) => {
 
                                     <Show when={actionOf(node()) === 'deploy'}>
                                         {deployPicker(
-                                            () => node().deployName || '',
-                                            (deployName) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {deployName})),
+                                            () => node().deployId || '',
+                                            (deployId) => updateFlow(flow()!.name, (f) => withNode(f, node().id, {deployId})),
                                             intl.formatMessage({id: 'Automation.deploy-as-column', defaultMessage: '— as the column —'}),
                                         )}
                                     </Show>
