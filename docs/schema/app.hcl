@@ -11,7 +11,7 @@
 
 table "users" {
   column "id" {
-    null = true
+    null = false
     type = varchar(100)
   }
   column "username" {
@@ -60,7 +60,7 @@ table "users" {
 }
 table "teams" {
   column "id" {
-    null = true
+    null = false
     type = varchar(36)
   }
   column "signup_token" {
@@ -85,7 +85,7 @@ table "teams" {
 }
 table "sessions" {
   column "id" {
-    null = true
+    null = false
     type = varchar(100)
   }
   column "token" {
@@ -118,7 +118,7 @@ table "sessions" {
 }
 table "system_settings" {
   column "id" {
-    null = true
+    null = false
     type = varchar(100)
   }
   column "value" {
@@ -305,7 +305,7 @@ table "boards_history" {
 }
 table "blocks" {
   column "id" {
-    null = true
+    null = false
     type = varchar(36)
   }
   column "insert_at" {
@@ -370,7 +370,7 @@ table "blocks" {
 }
 table "blocks_history" {
   column "id" {
-    null = true
+    null = false
     type = varchar(36)
   }
   column "insert_at" {
@@ -590,7 +590,7 @@ table "category_boards" {
 }
 table "sharing" {
   column "id" {
-    null = true
+    null = false
     type = varchar(36)
   }
   column "enabled" {
@@ -680,7 +680,7 @@ table "subscriptions" {
     type = varchar(10)
   }
   column "block_id" {
-    null = true
+    null = false
     type = varchar(36)
   }
   column "subscriber_type" {
@@ -688,7 +688,7 @@ table "subscriptions" {
     type = varchar(10)
   }
   column "subscriber_id" {
-    null = true
+    null = false
     type = varchar(36)
   }
   column "notified_at" {
@@ -716,7 +716,7 @@ table "notification_hints" {
     type = varchar(10)
   }
   column "block_id" {
-    null = true
+    null = false
     type = varchar(36)
   }
   column "modified_by_id" {

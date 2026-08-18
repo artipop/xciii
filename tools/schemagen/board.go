@@ -70,12 +70,16 @@ func boardTables() []Table {
 // journal does not need one: nothing upserts into these tables, nothing joins
 // to them by key, and the only thing anybody asks is "the versions of this row,
 // newest first" — which is an index, and is what they have.
-// nullablePK is the note on a key column the migrations leave nullable. SQLite
-// allows it for a table-level PRIMARY KEY on a non-integer column, and the
-// fork's older CREATEs simply never said NOT NULL. Reproduced rather than
-// tightened: adding NOT NULL is a schema change, and this file's job is to make
-// the same schema, so that the diff which proves it can be clean.
-const nullablePK = "Nullable, which the migrations leave and this reproduces."
+// nullablePK is the note on a key column the fork's SQLite migrations left
+// nullable — SQLite allows it for a table-level PRIMARY KEY on a non-integer
+// column, and the older CREATEs simply never said NOT NULL.
+//
+// It is a note about where the column came from, not what it is: build() forces
+// NOT NULL on every key column, because MySQL refuses a nullable one outright
+// ("Error 1171") and the whole migration died on its first table. The ladder
+// got away with the difference by writing each dialect by hand; one description
+// cannot say both, and NOT NULL is the true one.
+const nullablePK = "The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL."
 
 func insertAt() Column {
 	return Column{Name: "insert_at", Type: Timestamp(), Default: DefaultNow}

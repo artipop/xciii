@@ -86,7 +86,12 @@ func dialects() []dialect {
 				&schema.Charset{V: "utf8mb4"},
 				&schema.Collation{V: "utf8mb4_general_ci"},
 			},
-			now:   "NOW(6)",
+			// CURRENT_TIMESTAMP rather than the identical NOW(): atlas quotes a
+			// raw expression on a time column unless it starts with
+			// current_timestamp, so NOW(6) came out as the *string*
+			// `DEFAULT "NOW(6)"` and MySQL answered "Invalid default value for
+			// 'insert_at'" — the migration died on its first table.
+			now:   "CURRENT_TIMESTAMP(6)",
 			quote: func(id string) string { return "`" + id + "`" },
 		},
 		{
@@ -186,8 +191,26 @@ func build(d dialect, tables []Table) (*schema.Schema, error) {
 	for _, tbl := range tables {
 		at := schema.NewTable(tbl.Name)
 		at.AddAttrs(d.attrs...)
+
+		// A key column is NOT NULL whatever the table said. SQLite allows a
+		// nullable column in a table-level PRIMARY KEY and the fork's older
+		// CREATEs simply never wrote NOT NULL, so reproducing the ladder
+		// reproduced that — and MySQL refuses it outright: "Error 1171: All
+		// parts of a PRIMARY KEY must be NOT NULL". The whole migration failed
+		// on its first statement, which is why nothing after it ran either.
+		//
+		// The ladder got away with it by writing each dialect by hand, so its
+		// MySQL file said NOT NULL where its SQLite file did not. One
+		// description of the schema cannot say both, and NOT NULL is the true
+		// one: a row with no primary key is not a row anybody wants.
+		inKey := make(map[string]bool, len(tbl.PK))
+		for _, name := range tbl.PK {
+			inKey[name] = true
+		}
+
 		for _, c := range tbl.Columns {
-			col := schema.NewColumn(c.Name).SetType(d.column(c.Type)).SetNull(c.Null)
+			null := c.Null && !inKey[c.Name]
+			col := schema.NewColumn(c.Name).SetType(d.column(c.Type)).SetNull(null)
 			if def := defaultOf(d, c); def != nil {
 				col.SetDefault(def)
 			}

@@ -92,7 +92,7 @@ erDiagram
         bool scheme_viewer "nullable"
     }
     users {
-        name_100 id PK "Nullable, which the migrations leave and this reproduces."
+        name_100 id PK "The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL."
         name_100 username "nullable"
         name_255 email "nullable"
         name_100 password "nullable"
@@ -105,7 +105,7 @@ erDiagram
         millis delete_at "nullable"
     }
     sessions {
-        name_100 id PK "Nullable, which the migrations leave and this reproduces."
+        name_100 id PK "The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL."
         name_100 token "nullable"
         name_100 user_id "nullable"
         text props "nullable"
@@ -137,7 +137,7 @@ erDiagram
         bool hidden "nullable"
     }
     sharing {
-        name_36 id PK "Nullable, which the migrations leave and this reproduces."
+        name_36 id PK "The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL."
         bool enabled "nullable"
         name_100 token "nullable"
         name_36 modified_by "nullable"
@@ -145,16 +145,16 @@ erDiagram
     }
     subscriptions {
         name_10 block_type "nullable"
-        name_36 block_id PK "Nullable, which the migrations leave and this reproduces."
+        name_36 block_id PK "The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL."
         name_10 subscriber_type "nullable"
-        name_36 subscriber_id PK "Nullable, which the migrations leave and this reproduces."
+        name_36 subscriber_id PK "The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL."
         millis notified_at "nullable"
         millis create_at "nullable"
         millis delete_at "nullable"
     }
     notification_hints {
         name_10 block_type "nullable"
-        name_36 block_id PK "Nullable, which the migrations leave and this reproduces."
+        name_36 block_id PK "The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL."
         name_36 modified_by_id "nullable"
         millis create_at "nullable"
         millis notify_at "nullable"
@@ -176,14 +176,14 @@ erDiagram
         text value "nullable"
     }
     teams {
-        name_36 id PK "Nullable, which the migrations leave and this reproduces."
+        name_36 id PK "The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL."
         name_100 signup_token
         text settings "nullable"
         name_36 modified_by "nullable"
         millis update_at "nullable"
     }
     system_settings {
-        name_100 id PK "Nullable, which the migrations leave and this reproduces."
+        name_100 id PK "The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL."
         text value "nullable"
     }
 ```

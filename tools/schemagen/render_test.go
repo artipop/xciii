@@ -166,17 +166,22 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 	// The tables this schema deliberately differs from the ladder on, and why.
 	// Declared here rather than by editing the snapshot: the snapshot is what
 	// the ladder built and it stays true, so every deviation stays visible.
-	intendedTables := map[string]string{
+	intendedTables := map[string][]string{
 		// Widened: utils.NewID was already overflowing varchar(26) by one
 		// character, and UUIDv7 needs 36.
-		"table file_info": "id widened to hold the ids actually written to it",
+		"table file_info": {"id widened to hold the ids actually written to it"},
 		// Four dead columns dropped, each with the code that fed it. See the
 		// note at the top of board.go.
-		"table blocks":             deadColumns,
-		"table blocks_history":     deadColumns,
-		"table sharing":            deadColumns,
-		"table subscriptions":      deadColumns,
-		"table notification_hints": deadColumns,
+		"table blocks":             {deadColumns, tightenedKey},
+		"table blocks_history":     {deadColumns},
+		"table sharing":            {deadColumns, tightenedKey},
+		"table subscriptions":      {deadColumns, tightenedKey},
+		"table notification_hints": {deadColumns, tightenedKey},
+		// Key columns the ladder left nullable on SQLite alone.
+		"table users":           {tightenedKey},
+		"table sessions":        {tightenedKey},
+		"table teams":           {tightenedKey},
+		"table system_settings": {tightenedKey},
 	}
 
 	for name, w := range wantShape {
@@ -187,7 +192,7 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 		}
 		if g != w {
 			if why, ok := intendedTables[name]; ok {
-				t.Logf("%s differs on purpose — %s", name, why)
+				t.Logf("%s differs on purpose — %s", name, strings.Join(why, "; "))
 				continue
 			}
 			t.Errorf("%s differs\n  ladder:    %s\n  collapsed: %s", name, w, g)
@@ -204,6 +209,12 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 const deadColumns = "a remnant column dropped: root_id (always equal to " +
 	"board_id, written only by the legacy block store nothing called) or " +
 	"workspace_id (older than channel_id, named by no query for years)"
+
+// tightenedKey is why some tables' key columns are NOT NULL where the ladder
+// left them nullable. It is the one departure that is not a choice: MySQL
+// refuses a nullable column in a PRIMARY KEY outright, so the ladder's SQLite
+// shape is not a schema MySQL can be given at all. See build() in render.go.
+const tightenedKey = "a primary key column tightened to NOT NULL, which MySQL requires"
 
 // shapeOf is what a table is, as SQLite itself reports it after the DDL has been
 // applied — which normalises away everything that is spelling rather than

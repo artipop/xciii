@@ -675,7 +675,18 @@ func (s *SQLStore) searchBoardsForUser(db sq.BaseRunner, term string, searchFiel
 		if searchField == model.BoardSearchFieldPropertyName {
 			switch s.dbType {
 			case model.PostgresDBType:
-				where := "b.properties->? is not null"
+				// The cast is not decoration: `properties` is a text column in
+				// all three dialects (tools/schemagen, KindJSON), and Postgres
+				// has no `->` for text — this branch answered
+				// "operator does not exist: text -> unknown" for every search
+				// by property name. Nobody saw it because nothing ever ran the
+				// store against a Postgres. NULLIF because a board that has
+				// never had properties holds '', which is not a JSON document
+				// and would make the cast throw rather than match nothing.
+				//
+				// The column wanting to *be* json is a separate change: the
+				// writers have to stop putting '' there first (step 0).
+				where := "NULLIF(b.properties, '')::json->? is not null"
 				query = query.Where(where, term)
 			case model.MysqlDBType, model.SqliteDBType:
 				where := "JSON_EXTRACT(b.properties, ?) IS NOT NULL"

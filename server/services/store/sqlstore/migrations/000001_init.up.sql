@@ -10,22 +10,22 @@
 -- with no column to tell them apart — the agents and the sources.
 -- password, mfa_secret, auth_service and auth_data are unused: this
 -- application creates every account itself and has no passwords.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `users` (`id` varchar NULL, `username` varchar NULL, `email` varchar NULL, `password` varchar NULL, `mfa_secret` varchar NULL, `auth_service` varchar NULL, `auth_data` varchar NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`id`));
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `users` (`id` varchar NOT NULL, `username` varchar NULL, `email` varchar NULL, `password` varchar NULL, `mfa_secret` varchar NULL, `auth_service` varchar NULL, `auth_data` varchar NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`id`));
 
 -- The team a board belongs to. In this product there is exactly one and
 -- its id is '0' — but the column is in two hundred queries of the fork,
 -- and working with teams stays as it is.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `teams` (`id` varchar NULL, `signup_token` varchar NOT NULL, `settings` text NULL, `modified_by` varchar NULL, `update_at` bigint NULL, PRIMARY KEY (`id`));
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `teams` (`id` varchar NOT NULL, `signup_token` varchar NOT NULL, `settings` text NULL, `modified_by` varchar NULL, `update_at` bigint NULL, PRIMARY KEY (`id`));
 
 -- A logged-in session. Its token is what proxy.go hands the page.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `sessions` (`id` varchar NULL, `token` varchar NULL, `user_id` varchar NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `auth_service` varchar NULL, PRIMARY KEY (`id`));
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `sessions` (`id` varchar NOT NULL, `token` varchar NULL, `user_id` varchar NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `auth_service` varchar NULL, PRIMARY KEY (`id`));
 
 -- Key and value, for the handful of things the server records about itself.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `system_settings` (`id` varchar NULL, `value` text NULL, PRIMARY KEY (`id`));
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `system_settings` (`id` varchar NOT NULL, `value` text NULL, PRIMARY KEY (`id`));
 
 -- A board.
 --   channel_id: A remnant of the Mattermost plugin. Nothing writes it.
@@ -64,7 +64,7 @@ CREATE TABLE `boards_history` (`id` varchar NOT NULL, `insert_at` datetime NOT N
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
-CREATE TABLE `blocks` (`id` varchar NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `parent_id` varchar NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `board_id` varchar NULL, PRIMARY KEY (`id`));
+CREATE TABLE `blocks` (`id` varchar NOT NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `parent_id` varchar NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `board_id` varchar NULL, PRIMARY KEY (`id`));
 
 CREATE INDEX `idx_blocks_board_id_parent_id` ON `blocks` (`board_id`, `parent_id`);
 
@@ -75,7 +75,7 @@ CREATE INDEX `idx_blocks_board_id_parent_id` ON `blocks` (`board_id`, `parent_id
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
-CREATE TABLE `blocks_history` (`id` varchar NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `parent_id` varchar NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `board_id` varchar NULL, PRIMARY KEY (`id`, `insert_at`));
+CREATE TABLE `blocks_history` (`id` varchar NOT NULL, `insert_at` datetime NOT NULL DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), `parent_id` varchar NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar NULL, `channel_id` varchar NULL, `created_by` varchar NULL, `board_id` varchar NULL, PRIMARY KEY (`id`, `insert_at`));
 
 -- Who is on a board, and what they may do there.
 CREATE TABLE `board_members` (`board_id` varchar NOT NULL, `user_id` varchar NOT NULL, `roles` varchar NULL, `scheme_admin` boolean NULL, `scheme_editor` boolean NULL, `scheme_commenter` boolean NULL, `scheme_viewer` boolean NULL, PRIMARY KEY (`board_id`, `user_id`));
@@ -101,8 +101,8 @@ CREATE TABLE `category_boards` (`id` varchar NOT NULL, `user_id` varchar NOT NUL
 CREATE UNIQUE INDEX `unique_user_category_board` ON `category_boards` (`user_id`, `board_id`);
 
 -- A board's public link. The id is the board's, so this is one-to-one.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `sharing` (`id` varchar NULL, `enabled` boolean NULL, `token` varchar NULL, `modified_by` varchar NULL, `update_at` bigint NULL, PRIMARY KEY (`id`));
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `sharing` (`id` varchar NOT NULL, `enabled` boolean NULL, `token` varchar NULL, `modified_by` varchar NULL, `update_at` bigint NULL, PRIMARY KEY (`id`));
 
 -- An attachment. It has no primary key, which is what the migrations
 -- leave: 000041 was where one would have been added, and this is a
@@ -124,15 +124,15 @@ CREATE INDEX `idx_preferences_category` ON `preferences` (`category`);
 CREATE INDEX `idx_preferences_name` ON `preferences` (`name`);
 
 -- Who is watching a block, for the notification service.
---   block_id: Nullable, which the migrations leave and this reproduces.
---   subscriber_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `subscriptions` (`block_type` varchar NULL, `block_id` varchar NULL, `subscriber_type` varchar NULL, `subscriber_id` varchar NULL, `notified_at` bigint NULL, `create_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`block_id`, `subscriber_id`));
+--   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+--   subscriber_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `subscriptions` (`block_type` varchar NULL, `block_id` varchar NOT NULL, `subscriber_type` varchar NULL, `subscriber_id` varchar NOT NULL, `notified_at` bigint NULL, `create_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`block_id`, `subscriber_id`));
 
 CREATE INDEX `idx_subscriptions_subscriber_id` ON `subscriptions` (`subscriber_id`);
 
 -- A block that has changed and whose watchers have not been told yet.
---   block_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `notification_hints` (`block_type` varchar NULL, `block_id` varchar NULL, `modified_by_id` varchar NULL, `create_at` bigint NULL, `notify_at` bigint NULL, PRIMARY KEY (`block_id`));
+--   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `notification_hints` (`block_type` varchar NULL, `block_id` varchar NOT NULL, `modified_by_id` varchar NULL, `create_at` bigint NULL, `notify_at` bigint NULL, PRIMARY KEY (`block_id`));
 
 -- Network settings several agents share, so they are edited in one
 -- place. Was the `proxies` array in config.json.
@@ -314,8 +314,8 @@ CREATE INDEX `idx_source_event_source` ON `source_event` (`source`, `id`);
 
 {{if .mysql}}
 -- A block that has changed and whose watchers have not been told yet.
---   block_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `notification_hints` (`block_type` varchar(10) NULL, `block_id` varchar(36) NULL, `modified_by_id` varchar(36) NULL, `create_at` bigint NULL, `notify_at` bigint NULL, PRIMARY KEY (`block_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+--   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `notification_hints` (`block_type` varchar(10) NULL, `block_id` varchar(36) NOT NULL, `modified_by_id` varchar(36) NULL, `create_at` bigint NULL, `notify_at` bigint NULL, PRIMARY KEY (`block_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- One route event, handled once. `key` was the column's name and is a
 -- reserved word in MySQL, so it is `token` — cheaper than backticks in
@@ -323,19 +323,19 @@ CREATE TABLE `notification_hints` (`block_type` varchar(10) NULL, `block_id` var
 CREATE TABLE `idempotency` (`token` varchar(255) NOT NULL, `session_id` varchar(36) NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`token`), INDEX `idx_idempotency_created` (`created_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- A logged-in session. Its token is what proxy.go hands the page.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `sessions` (`id` varchar(100) NULL, `token` varchar(100) NULL, `user_id` varchar(100) NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `auth_service` varchar(20) NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `sessions` (`id` varchar(100) NOT NULL, `token` varchar(100) NULL, `user_id` varchar(100) NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `auth_service` varchar(20) NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Key and value, for the handful of things the server records about itself.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `system_settings` (`id` varchar(100) NULL, `value` text NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `system_settings` (`id` varchar(100) NOT NULL, `value` text NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Everybody the board knows: people, and — under their own names and
 -- with no column to tell them apart — the agents and the sources.
 -- password, mfa_secret, auth_service and auth_data are unused: this
 -- application creates every account itself and has no passwords.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `users` (`id` varchar(100) NULL, `username` varchar(100) NULL, `email` varchar(255) NULL, `password` varchar(100) NULL, `mfa_secret` varchar(100) NULL, `auth_service` varchar(20) NULL, `auth_data` varchar(255) NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `users` (`id` varchar(100) NOT NULL, `username` varchar(100) NULL, `email` varchar(255) NULL, `password` varchar(100) NULL, `mfa_secret` varchar(100) NULL, `auth_service` varchar(20) NULL, `auth_data` varchar(255) NULL, `props` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Every version of every board, one row per edit, never pruned. The
 -- upstream's audit and undo mechanism; this product's undo is in the page
@@ -349,7 +349,7 @@ CREATE TABLE `users` (`id` varchar(100) NULL, `username` varchar(100) NULL, `ema
 --     it travels with the board, into an export and into a template.
 --   card_properties: The schema of a card's fields. The product's main denormalisation, and
 --     deliberately left alone: the whole webapp filters and groups on it.
-CREATE TABLE `boards_history` (`id` varchar(36) NOT NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `team_id` varchar(36) NOT NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `modified_by` varchar(36) NULL, `type` varchar(1) NOT NULL, `title` text NOT NULL, `description` text NULL, `icon` varchar(256) NULL, `show_description` bool NULL, `is_template` bool NULL, `template_version` int NULL DEFAULT 0, `properties` text NULL, `card_properties` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `minimum_role` varchar(36) NOT NULL DEFAULT '', PRIMARY KEY (`id`, `insert_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `boards_history` (`id` varchar(36) NOT NULL, `insert_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), `team_id` varchar(36) NOT NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `modified_by` varchar(36) NULL, `type` varchar(1) NOT NULL, `title` text NOT NULL, `description` text NULL, `icon` varchar(256) NULL, `show_description` bool NULL, `is_template` bool NULL, `template_version` int NULL DEFAULT 0, `properties` text NULL, `card_properties` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `minimum_role` varchar(36) NOT NULL DEFAULT '', PRIMARY KEY (`id`, `insert_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Where a card's branch is published. Was the `deploys` array in
 -- config.json, and a route's stage named it by name.
@@ -362,13 +362,13 @@ CREATE TABLE `deploy_target` (`id` varchar(36) NOT NULL, `name` varchar(100) NOT
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
-CREATE TABLE `blocks_history` (`id` varchar(36) NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `parent_id` varchar(36) NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar(36) NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `board_id` varchar(36) NULL, PRIMARY KEY (`id`, `insert_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `blocks_history` (`id` varchar(36) NOT NULL, `insert_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), `parent_id` varchar(36) NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar(36) NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `board_id` varchar(36) NULL, PRIMARY KEY (`id`, `insert_at`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Who is on a board, and what they may do there.
 CREATE TABLE `board_members` (`board_id` varchar(36) NOT NULL, `user_id` varchar(36) NOT NULL, `roles` varchar(64) NULL, `scheme_admin` bool NULL, `scheme_editor` bool NULL, `scheme_commenter` bool NULL, `scheme_viewer` bool NULL, PRIMARY KEY (`board_id`, `user_id`), INDEX `idx_board_members_user_id` (`user_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Who joined or left a board, and when.
-CREATE TABLE `board_members_history` (`board_id` varchar(36) NOT NULL, `user_id` varchar(36) NOT NULL, `action` varchar(10) NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", PRIMARY KEY (`board_id`, `user_id`, `insert_at`), INDEX `idx_board_members_history_user_id` (`user_id`), INDEX `idx_board_members_history_board_id_user_id` (`board_id`, `user_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `board_members_history` (`board_id` varchar(36) NOT NULL, `user_id` varchar(36) NOT NULL, `action` varchar(10) NULL, `insert_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), PRIMARY KEY (`board_id`, `user_id`, `insert_at`), INDEX `idx_board_members_history_user_id` (`user_id`), INDEX `idx_board_members_history_board_id_user_id` (`board_id`, `user_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- A group of boards in the sidebar.
 CREATE TABLE `categories` (`id` varchar(36) NOT NULL, `name` varchar(100) NOT NULL, `user_id` varchar(36) NOT NULL, `team_id` varchar(36) NOT NULL, `channel_id` varchar(36) NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `collapsed` bool NULL DEFAULT false, `type` varchar(64) NULL, `sort_order` bigint NULL, PRIMARY KEY (`id`), INDEX `idx_categories_user_id_team_id` (`user_id`, `team_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -378,8 +378,8 @@ CREATE TABLE `categories` (`id` varchar(36) NOT NULL, `name` varchar(100) NOT NU
 CREATE TABLE `category_boards` (`id` varchar(36) NOT NULL, `user_id` varchar(36) NOT NULL, `category_id` varchar(36) NOT NULL, `board_id` varchar(36) NOT NULL, `create_at` bigint NULL, `update_at` bigint NULL, `sort_order` bigint NULL, `hidden` bool NULL, PRIMARY KEY (`id`), UNIQUE INDEX `unique_user_category_board` (`user_id`, `board_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- A board's public link. The id is the board's, so this is one-to-one.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `sharing` (`id` varchar(36) NULL, `enabled` bool NULL, `token` varchar(100) NULL, `modified_by` varchar(36) NULL, `update_at` bigint NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `sharing` (`id` varchar(36) NOT NULL, `enabled` bool NULL, `token` varchar(100) NULL, `modified_by` varchar(36) NULL, `update_at` bigint NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- An attachment. It has no primary key, which is what the migrations
 -- leave: 000041 was where one would have been added, and this is a
@@ -397,15 +397,15 @@ CREATE TABLE `file_info` (`id` varchar(36) NOT NULL, `create_at` bigint NOT NULL
 CREATE TABLE `preferences` (`userid` varchar(36) NOT NULL, `category` varchar(32) NOT NULL, `name` varchar(32) NOT NULL, `value` text NULL, PRIMARY KEY (`userid`, `category`, `name`), INDEX `idx_preferences_category` (`category`), INDEX `idx_preferences_name` (`name`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Who is watching a block, for the notification service.
---   block_id: Nullable, which the migrations leave and this reproduces.
---   subscriber_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `subscriptions` (`block_type` varchar(10) NULL, `block_id` varchar(36) NULL, `subscriber_type` varchar(10) NULL, `subscriber_id` varchar(36) NULL, `notified_at` bigint NULL, `create_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`block_id`, `subscriber_id`), INDEX `idx_subscriptions_subscriber_id` (`subscriber_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+--   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+--   subscriber_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `subscriptions` (`block_type` varchar(10) NULL, `block_id` varchar(36) NOT NULL, `subscriber_type` varchar(10) NULL, `subscriber_id` varchar(36) NOT NULL, `notified_at` bigint NULL, `create_at` bigint NULL, `delete_at` bigint NULL, PRIMARY KEY (`block_id`, `subscriber_id`), INDEX `idx_subscriptions_subscriber_id` (`subscriber_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- The team a board belongs to. In this product there is exactly one and
 -- its id is '0' — but the column is in two hundred queries of the fork,
 -- and working with teams stays as it is.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE `teams` (`id` varchar(36) NULL, `signup_token` varchar(100) NOT NULL, `settings` text NULL, `modified_by` varchar(36) NULL, `update_at` bigint NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE `teams` (`id` varchar(36) NOT NULL, `signup_token` varchar(100) NOT NULL, `settings` text NULL, `modified_by` varchar(36) NULL, `update_at` bigint NULL, PRIMARY KEY (`id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- Network settings several agents share, so they are edited in one
 -- place. Was the `proxies` array in config.json.
@@ -435,7 +435,7 @@ CREATE TABLE `agent` (`id` varchar(36) NOT NULL, `name` varchar(100) NOT NULL, `
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
-CREATE TABLE `blocks` (`id` varchar(36) NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `parent_id` varchar(36) NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar(36) NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `board_id` varchar(36) NULL, PRIMARY KEY (`id`), INDEX `idx_blocks_board_id_parent_id` (`board_id`, `parent_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `blocks` (`id` varchar(36) NOT NULL, `insert_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), `parent_id` varchar(36) NULL, `schema` bigint NULL, `type` text NULL, `title` text NULL, `fields` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `modified_by` varchar(36) NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `board_id` varchar(36) NULL, PRIMARY KEY (`id`), INDEX `idx_blocks_board_id_parent_id` (`board_id`, `parent_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- A board.
 --   channel_id: A remnant of the Mattermost plugin. Nothing writes it.
@@ -445,7 +445,7 @@ CREATE TABLE `blocks` (`id` varchar(36) NULL, `insert_at` datetime(6) NOT NULL D
 --     it travels with the board, into an export and into a template.
 --   card_properties: The schema of a card's fields. The product's main denormalisation, and
 --     deliberately left alone: the whole webapp filters and groups on it.
-CREATE TABLE `boards` (`id` varchar(36) NOT NULL, `insert_at` datetime(6) NOT NULL DEFAULT "NOW(6)", `team_id` varchar(36) NOT NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `modified_by` varchar(36) NULL, `type` varchar(1) NOT NULL, `title` text NOT NULL, `description` text NULL, `icon` varchar(256) NULL, `show_description` bool NULL, `is_template` bool NULL, `template_version` int NULL DEFAULT 0, `properties` text NULL, `card_properties` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `minimum_role` varchar(36) NOT NULL DEFAULT '', PRIMARY KEY (`id`), INDEX `idx_boards_team_id_is_template` (`team_id`, `is_template`), INDEX `idx_boards_channel_id` (`channel_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `boards` (`id` varchar(36) NOT NULL, `insert_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), `team_id` varchar(36) NOT NULL, `channel_id` varchar(36) NULL, `created_by` varchar(36) NULL, `modified_by` varchar(36) NULL, `type` varchar(1) NOT NULL, `title` text NOT NULL, `description` text NULL, `icon` varchar(256) NULL, `show_description` bool NULL, `is_template` bool NULL, `template_version` int NULL DEFAULT 0, `properties` text NULL, `card_properties` text NULL, `create_at` bigint NULL, `update_at` bigint NULL, `delete_at` bigint NULL, `minimum_role` varchar(36) NOT NULL DEFAULT '', PRIMARY KEY (`id`), INDEX `idx_boards_team_id_is_template` (`team_id`, `is_template`), INDEX `idx_boards_channel_id` (`channel_id`)) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- A run of an agent over ACP. One process, one verdict: unlike a
 -- conversation, it is never resumed, which is why the two are
@@ -567,8 +567,8 @@ CREATE TABLE `workspace_board` (`workspace_id` varchar(36) NOT NULL, `board_id` 
 
 {{if .postgres}}
 -- A block that has changed and whose watchers have not been told yet.
---   block_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE "notification_hints" ("block_type" character varying(10) NULL, "block_id" character varying(36) NULL, "modified_by_id" character varying(36) NULL, "create_at" bigint NULL, "notify_at" bigint NULL, PRIMARY KEY ("block_id"));
+--   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE "notification_hints" ("block_type" character varying(10) NULL, "block_id" character varying(36) NOT NULL, "modified_by_id" character varying(36) NULL, "create_at" bigint NULL, "notify_at" bigint NULL, PRIMARY KEY ("block_id"));
 
 -- One route event, handled once. `key` was the column's name and is a
 -- reserved word in MySQL, so it is `token` — cheaper than backticks in
@@ -581,19 +581,19 @@ CREATE TABLE "idempotency" ("token" character varying(255) NOT NULL, "session_id
 CREATE INDEX "idx_idempotency_created" ON "idempotency" ("created_at");
 
 -- A logged-in session. Its token is what proxy.go hands the page.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE "sessions" ("id" character varying(100) NULL, "token" character varying(100) NULL, "user_id" character varying(100) NULL, "props" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "auth_service" character varying(20) NULL, PRIMARY KEY ("id"));
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE "sessions" ("id" character varying(100) NOT NULL, "token" character varying(100) NULL, "user_id" character varying(100) NULL, "props" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "auth_service" character varying(20) NULL, PRIMARY KEY ("id"));
 
 -- Key and value, for the handful of things the server records about itself.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE "system_settings" ("id" character varying(100) NULL, "value" text NULL, PRIMARY KEY ("id"));
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE "system_settings" ("id" character varying(100) NOT NULL, "value" text NULL, PRIMARY KEY ("id"));
 
 -- Everybody the board knows: people, and — under their own names and
 -- with no column to tell them apart — the agents and the sources.
 -- password, mfa_secret, auth_service and auth_data are unused: this
 -- application creates every account itself and has no passwords.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE "users" ("id" character varying(100) NULL, "username" character varying(100) NULL, "email" character varying(255) NULL, "password" character varying(100) NULL, "mfa_secret" character varying(100) NULL, "auth_service" character varying(20) NULL, "auth_data" character varying(255) NULL, "props" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, PRIMARY KEY ("id"));
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE "users" ("id" character varying(100) NOT NULL, "username" character varying(100) NULL, "email" character varying(255) NULL, "password" character varying(100) NULL, "mfa_secret" character varying(100) NULL, "auth_service" character varying(20) NULL, "auth_data" character varying(255) NULL, "props" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, PRIMARY KEY ("id"));
 
 -- Every version of every board, one row per edit, never pruned. The
 -- upstream's audit and undo mechanism; this product's undo is in the page
@@ -624,7 +624,7 @@ CREATE UNIQUE INDEX "idx_deploy_target_name" ON "deploy_target" ("name");
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
-CREATE TABLE "blocks_history" ("id" character varying(36) NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "parent_id" character varying(36) NULL, "schema" bigint NULL, "type" text NULL, "title" text NULL, "fields" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "modified_by" character varying(36) NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "board_id" character varying(36) NULL, PRIMARY KEY ("id", "insert_at"));
+CREATE TABLE "blocks_history" ("id" character varying(36) NOT NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "parent_id" character varying(36) NULL, "schema" bigint NULL, "type" text NULL, "title" text NULL, "fields" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "modified_by" character varying(36) NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "board_id" character varying(36) NULL, PRIMARY KEY ("id", "insert_at"));
 
 -- Who is on a board, and what they may do there.
 CREATE TABLE "board_members" ("board_id" character varying(36) NOT NULL, "user_id" character varying(36) NOT NULL, "roles" character varying(64) NULL, "scheme_admin" boolean NULL, "scheme_editor" boolean NULL, "scheme_commenter" boolean NULL, "scheme_viewer" boolean NULL, PRIMARY KEY ("board_id", "user_id"));
@@ -656,8 +656,8 @@ CREATE TABLE "category_boards" ("id" character varying(36) NOT NULL, "user_id" c
 CREATE UNIQUE INDEX "unique_user_category_board" ON "category_boards" ("user_id", "board_id");
 
 -- A board's public link. The id is the board's, so this is one-to-one.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE "sharing" ("id" character varying(36) NULL, "enabled" boolean NULL, "token" character varying(100) NULL, "modified_by" character varying(36) NULL, "update_at" bigint NULL, PRIMARY KEY ("id"));
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE "sharing" ("id" character varying(36) NOT NULL, "enabled" boolean NULL, "token" character varying(100) NULL, "modified_by" character varying(36) NULL, "update_at" bigint NULL, PRIMARY KEY ("id"));
 
 -- An attachment. It has no primary key, which is what the migrations
 -- leave: 000041 was where one would have been added, and this is a
@@ -685,20 +685,20 @@ CREATE INDEX "idx_preferences_category" ON "preferences" ("category");
 CREATE INDEX "idx_preferences_name" ON "preferences" ("name");
 
 -- Who is watching a block, for the notification service.
---   block_id: Nullable, which the migrations leave and this reproduces.
---   subscriber_id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE "subscriptions" ("block_type" character varying(10) NULL, "block_id" character varying(36) NULL, "subscriber_type" character varying(10) NULL, "subscriber_id" character varying(36) NULL, "notified_at" bigint NULL, "create_at" bigint NULL, "delete_at" bigint NULL, PRIMARY KEY ("block_id", "subscriber_id"));
+--   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+--   subscriber_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE "subscriptions" ("block_type" character varying(10) NULL, "block_id" character varying(36) NOT NULL, "subscriber_type" character varying(10) NULL, "subscriber_id" character varying(36) NOT NULL, "notified_at" bigint NULL, "create_at" bigint NULL, "delete_at" bigint NULL, PRIMARY KEY ("block_id", "subscriber_id"));
 
 -- Who is watching a block, for the notification service.
---   block_id: Nullable, which the migrations leave and this reproduces.
---   subscriber_id: Nullable, which the migrations leave and this reproduces.
+--   block_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+--   subscriber_id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
 CREATE INDEX "idx_subscriptions_subscriber_id" ON "subscriptions" ("subscriber_id");
 
 -- The team a board belongs to. In this product there is exactly one and
 -- its id is '0' — but the column is in two hundred queries of the fork,
 -- and working with teams stays as it is.
---   id: Nullable, which the migrations leave and this reproduces.
-CREATE TABLE "teams" ("id" character varying(36) NULL, "signup_token" character varying(100) NOT NULL, "settings" text NULL, "modified_by" character varying(36) NULL, "update_at" bigint NULL, PRIMARY KEY ("id"));
+--   id: The fork's SQLite CREATE left this nullable; build() makes key columns NOT NULL.
+CREATE TABLE "teams" ("id" character varying(36) NOT NULL, "signup_token" character varying(100) NOT NULL, "settings" text NULL, "modified_by" character varying(36) NULL, "update_at" bigint NULL, PRIMARY KEY ("id"));
 
 -- Network settings several agents share, so they are edited in one
 -- place. Was the `proxies` array in config.json.
@@ -747,7 +747,7 @@ CREATE UNIQUE INDEX "idx_agent_name" ON "agent" ("name");
 --   schema: A version number for the row's own shape. Backticked by the fork's
 --     queries on MySQL, where `schema` is reserved.
 --   fields: The card's field values, {property_id: value}.
-CREATE TABLE "blocks" ("id" character varying(36) NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "parent_id" character varying(36) NULL, "schema" bigint NULL, "type" text NULL, "title" text NULL, "fields" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "modified_by" character varying(36) NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "board_id" character varying(36) NULL, PRIMARY KEY ("id"));
+CREATE TABLE "blocks" ("id" character varying(36) NOT NULL, "insert_at" timestamptz NOT NULL DEFAULT NOW(), "parent_id" character varying(36) NULL, "schema" bigint NULL, "type" text NULL, "title" text NULL, "fields" text NULL, "create_at" bigint NULL, "update_at" bigint NULL, "delete_at" bigint NULL, "modified_by" character varying(36) NULL, "channel_id" character varying(36) NULL, "created_by" character varying(36) NULL, "board_id" character varying(36) NULL, PRIMARY KEY ("id"));
 
 -- Everything on a board: cards, views, comments, text, attachments. A
 -- card is a row here with type='card', and it is what every table this

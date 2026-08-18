@@ -274,13 +274,14 @@ func (s *SQLStore) runMigrationSequence(engine *migrate.Migrate) error {
 		return err
 	}
 
-	// Still always run, and still only doing anything on MySQL: an install made
-	// before the charset was spelled out in the CREATE has tables in the
-	// server's default collation, and comparing a Russian title against one of
-	// those is a comparison nobody can predict.
-	if mErr := s.RunFixCollationsAndCharsetsMigration(); mErr != nil {
-		return fmt.Errorf("error running fix collations and charsets migration: %w", mErr)
-	}
+	// What used to run here: RunFixCollationsAndCharsetsMigration, the last of
+	// the data migrations. It read the collation of a table called `Channels`
+	// and applied it to ours — that is, it aligned Focalboard's tables with the
+	// Mattermost database they lived inside as a plugin. There is no Mattermost
+	// here and no Channels table, so on a real MySQL it failed with
+	// "no rows in result set" and took the whole open with it; it only ever
+	// looked harmless because nothing had run this store against a MySQL. The
+	// generated CREATEs spell the charset out on every table anyway.
 	return nil
 }
 

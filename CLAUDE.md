@@ -87,11 +87,19 @@ in a browser and as a Mattermost plugin.
   `webapp/node_modules`, where an npm package happens to ship Go sources; that is
   cosmetic, and a nested `go.mod` would not fix it — `go:embed` cannot cross a
   module boundary, and `webapp/pack` is what it embeds. One test fails every
-  time and is known: `TestPermissionsGetTeamTemplates`. Two suites used to be
+  time and is known: `TestPermissionsGetTeamTemplates` — on all three vendors
+  alike, which is now something that can be said. Two suites used to be
   *flaky* on top of that — `server/integrationtests`, where which permission
   tests failed changed between runs, and `internal/boardadapter` about one run
   in four — and they are not any more: the cause was composite writes going
   through without a transaction on SQLite, which is fixed (below).
+- **`wails3 task test:db DB=postgres`** (or `mysql`, `sqlite3`; `test:db:all`
+  for all three) — the store and API suites against one vendor. The container is
+  started by the tests themselves (`internal/dbtest`, testcontainers-go), so
+  this is one environment variable and a Docker daemon: there is no compose file
+  to keep in step and nothing to stop afterwards. `FOCALBOARD_STORE_TEST_DB_TYPE`
+  is the whole contract, and setting `FOCALBOARD_STORE_TEST_DOCKER_PORT` still
+  points the tests at a database of your own instead.
 - `go generate ./tools/schemagen` — after any change to the application's own
   tables. It rewrites the migration for all three dialects; `go test
   ./tools/schemagen` is what fails when somebody forgets.
@@ -1605,6 +1613,24 @@ those have no check, because SQLite cannot `ALTER` one in, so a check on a
 growing set buys a table rebuild every time somebody adds a value.
 `TestAValueOutsideAClosedSetIsRefused` is the guard, and it covers the case
 worth naming: a difference in *case* is refused too.
+
+**The three dialects are checked, not assumed** (`internal/dbtest`,
+`.github/workflows/test.yml`). The fork's fixture could always be handed a MySQL
+or a Postgres on a port, and nothing ever handed it one — no compose file, no CI
+job — so every run took the SQLite branch and went green, which is the worst
+kind of green. `FOCALBOARD_STORE_TEST_DB_TYPE=postgres go test …` now starts the
+container it needs (testcontainers-go, from the tests themselves, so there is no
+second description of the containers to drift), and `wails3 task test:db:all`
+runs the three in turn. What the first real run found, in order: **the MySQL DDL
+would not execute at all** — a key column declared NULL, which SQLite permits
+and MySQL refuses outright, so `build()` now forces NOT NULL on every key column
+and the golden test carries that as a declared departure; `DEFAULT "NOW(6)"`
+written as a *string* because atlas quotes any raw expression on a time column
+that does not begin with `current_timestamp`; **board search by property name
+had never worked on Postgres**, since `properties` is a text column and `->` has
+no text overload; and the last data migration read the collation of a table
+called `Channels` — Mattermost's — and took the whole open down with it. Every
+one of those is a thing that only exists on the vendor nobody ran.
 
 **golang-migrate still runs it**: this is a generator, not a migration engine,
 and the engine already knows about versions, dirty marks and the record the

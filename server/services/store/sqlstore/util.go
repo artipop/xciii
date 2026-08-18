@@ -84,7 +84,14 @@ func PrepareNewTestDatabase() (dbType string, connectionString string, err error
 			return "", "", fmt.Errorf("cannot ping %s database: %w", dbType, err)
 		}
 
-		dbName = "testdb_" + utils.NewID(utils.IDTypeNone)[:8]
+		// From the *end* of the id, not the start. utils.NewID is UUIDv7, whose
+		// leading bits are a millisecond clock, so the first eight characters
+		// are the same for every id made in the same ~49 days — every test in
+		// the run then asked for one database called testdb_01a014ec and the
+		// second one got "database already exists". Invisible on SQLite, which
+		// names nothing: found the first time this suite met a real Postgres.
+		id := strings.ReplaceAll(utils.NewID(utils.IDTypeNone), "-", "")
+		dbName = "testdb_" + id[len(id)-12:]
 		_, err = sqlDB.Exec(fmt.Sprintf("CREATE DATABASE %s;", dbName))
 		if err != nil {
 			return "", "", fmt.Errorf("cannot create %s database %s: %w", dbType, dbName, err)
