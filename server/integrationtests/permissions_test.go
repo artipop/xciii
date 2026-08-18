@@ -3188,24 +3188,6 @@ func TestPermissionsMinimumRolesApplied(t *testing.T) {
 // What used to stand here: TestPermissionsChannels and TestPermissionsChannel,
 // the permission tests for two endpoints that listed Mattermost channels. This
 // product has no channels, the store answered "not implemented", and both
-// endpoints are gone.
+// endpoints are gone. TestPermissionsGetStatistics went the same way with
+// GET /statistics, which counted boards and cards for a page that never asked.
 
-func TestPermissionsGetStatistics(t *testing.T) {
-	t.Run("local", func(t *testing.T) {
-		th := SetupTestHelperLocalMode(t)
-		defer th.TearDown()
-		clients := setupLocalClients(th)
-		testData := setupData(t, th)
-		ttCases := []TestCase{
-			{"/statistics", methodGet, "", userAnon, http.StatusUnauthorized, 0},
-			{"/statistics", methodGet, "", userNoTeamMember, http.StatusNotImplemented, 0},
-			{"/statistics", methodGet, "", userTeamMember, http.StatusNotImplemented, 0},
-			{"/statistics", methodGet, "", userViewer, http.StatusNotImplemented, 0},
-			{"/statistics", methodGet, "", userCommenter, http.StatusNotImplemented, 0},
-			{"/statistics", methodGet, "", userEditor, http.StatusNotImplemented, 0},
-			{"/statistics", methodGet, "", userAdmin, http.StatusNotImplemented, 1},
-			{"/statistics", methodGet, "", userGuest, http.StatusForbidden, 0},
-		}
-		runTestCases(t, ttCases, testData, clients)
-	})
-}

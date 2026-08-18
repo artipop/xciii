@@ -19,7 +19,6 @@ const (
 	websocketActionUpdateCategory           = "UPDATE_CATEGORY"
 	websocketActionUpdateCategoryBoard      = "UPDATE_BOARD_CATEGORY"
 	websocketActionUpdateSubscription       = "UPDATE_SUBSCRIPTION"
-	websocketActionUpdateCardLimitTimestamp = "UPDATE_CARD_LIMIT_TIMESTAMP"
 	websocketActionReorderCategories        = "REORDER_CATEGORIES"
 	websocketActionReorderCategoryBoards    = "REORDER_CATEGORY_BOARDS"
 )

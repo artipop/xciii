@@ -11,7 +11,6 @@ import {cardsFromBlocks} from './cards'
 import {contentsFromBlocks} from './contents'
 import {commentsFromBlocks} from './comments'
 import {attachmentsFromBlocks} from './attachments'
-import {defaultLimits} from './limits'
 
 import type {StoreContext} from './context'
 
@@ -39,7 +38,7 @@ export const createInitialLoadActions = (ctx: StoreContext) => {
     return {
         async initialLoad() {
             try {
-                const [me, myConfig, team, teams, boards, boardsMemberships, boardTemplates, limits] = await Promise.all([
+                const [me, myConfig, team, teams, boards, boardsMemberships, boardTemplates] = await Promise.all([
                     deps.client.getMe(),
                     deps.client.getMyConfig(),
                     deps.client.getTeam(),
@@ -47,7 +46,6 @@ export const createInitialLoadActions = (ctx: StoreContext) => {
                     deps.client.getBoards(),
                     deps.client.getMyBoardMemberships(),
                     deps.client.getTeamTemplates(),
-                    deps.client.getBoardsCloudLimits(),
                 ])
 
                 // if no me, normally user not logged in
@@ -77,14 +75,12 @@ export const createInitialLoadActions = (ctx: StoreContext) => {
                         return acc
                     }, {}))
 
-                    setState('cards', 'limitTimestamp', limits?.card_limit_timestamp || 0)
-                    setState('limits', 'limits', limits || defaultLimits)
                     if (myConfig) {
                         setState('users', 'myConfig', parseUserProps(myConfig))
                     }
                 })
 
-                return {team, teams, boards, boardsMemberships, boardTemplates, limits, myConfig}
+                return {team, teams, boards, boardsMemberships, boardTemplates, myConfig}
             } catch (e) {
                 setState('globalError', 'value', (e as Error).message || '')
                 throw e

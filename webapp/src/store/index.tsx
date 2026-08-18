@@ -24,7 +24,6 @@ import {SearchTextState, initialSearchTextState, createSearchTextActions} from '
 import {GlobalErrorState, initialGlobalErrorState, createGlobalErrorActions} from './globalError'
 import {ClientConfigState, initialClientConfigState, createClientConfigActions} from './clientConfig'
 import {SidebarState, initialSidebarState, createSidebarActions} from './sidebar'
-import {LimitsState, initialLimitsState, createLimitsActions} from './limits'
 import {AttachmentsState, initialAttachmentsState, createAttachmentsActions} from './attachments'
 import {createInitialLoadActions} from './initialLoad'
 
@@ -43,7 +42,6 @@ export type RootState = {
     globalError: GlobalErrorState
     clientConfig: ClientConfigState
     sidebar: SidebarState
-    limits: LimitsState
     attachments: AttachmentsState
 }
 
@@ -62,7 +60,6 @@ export const initialRootState = (): RootState => ({
     globalError: initialGlobalErrorState(),
     clientConfig: initialClientConfigState(),
     sidebar: initialSidebarState(),
-    limits: initialLimitsState(),
     attachments: initialAttachmentsState(),
 })
 
@@ -99,7 +96,6 @@ const createActions = (ctx: StoreContext) => {
         globalError: createGlobalErrorActions(ctx),
         clientConfig: createClientConfigActions(ctx),
         sidebar: createSidebarActions(ctx),
-        limits: createLimitsActions(ctx),
         attachments: createAttachmentsActions(ctx),
         load: createInitialLoadActions(ctx),
     }

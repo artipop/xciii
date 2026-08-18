@@ -51,11 +51,6 @@ describe('components/viewHeader/viewHeader', () => {
             },
             current: 'boardView',
         },
-        limits: {
-            limits: {
-                views: 0,
-            },
-        },
     }
     const store = mockAppStore(state)
     test('return viewHeader', () => {

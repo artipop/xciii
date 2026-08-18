@@ -38,7 +38,6 @@ var (
 
 	// Asked for by the statistics endpoint, which reports how much is on the
 	// boards. Upstream's id, for the same reason as the eight above.
-	PermissionGetAnalytics = &Permission{Id: "get_analytics"}
 
 	// About a board, and these are the ones that decide anything here.
 	PermissionManageBoardType       = &Permission{Id: "manage_board_type"}

@@ -90,14 +90,6 @@ describe('components/centerPanel', () => {
                 [board.id]: {userId: 'user_id_1', schemeAdmin: true},
             },
         },
-        limits: {
-            limits: {
-                cards: 0,
-                used_cards: 0,
-                card_limit_timestamp: 0,
-                views: 0,
-            },
-        },
         cards: {
             templates: {
                 [card1.id]: card1,
@@ -830,11 +822,6 @@ describe('components/centerPanel', () => {
         contents: {},
         comments: {
             comments: [comment1, comment2],
-        },
-        limits: {
-            limits: {
-                views: 0,
-            },
         },
     }
     const store = mockAppStore(state)

@@ -49,7 +49,6 @@ const fakeClient = (overrides: Partial<OctoClient> = {}): OctoClient => ({
     getBoards: vi.fn(async () => [board('board-1', 'Alpha')]),
     getMyBoardMemberships: vi.fn(async () => [{boardId: 'board-1', userId: 'user-1', schemeAdmin: true}]),
     getTeamTemplates: vi.fn(async () => []),
-    getBoardsCloudLimits: vi.fn(async () => ({cards: 0, used_cards: 0, card_limit_timestamp: 0, views: 0})),
     ...overrides,
 } as unknown as OctoClient)
 
