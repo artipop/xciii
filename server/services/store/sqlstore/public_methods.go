@@ -15,8 +15,6 @@ import (
 
 	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/model"
-
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
 func (s *SQLStore) AddUpdateCategoryBoard(userID string, categoryID string, boardIDs []string) error {
@@ -398,18 +396,8 @@ func (s *SQLStore) GetCategory(id string) (*model.Category, error) {
 
 }
 
-func (s *SQLStore) GetChannel(teamID string, channelID string) (*mmModel.Channel, error) {
-	return s.getChannel(s.db, teamID, channelID)
-
-}
-
-func (s *SQLStore) GetFileInfo(id string) (*mmModel.FileInfo, error) {
+func (s *SQLStore) GetFileInfo(id string) (*model.FileInfo, error) {
 	return s.getFileInfo(s.db, id)
-
-}
-
-func (s *SQLStore) GetLicense() *mmModel.License {
-	return s.getLicense(s.db)
 
 }
 
@@ -538,7 +526,7 @@ func (s *SQLStore) GetUserCategoryBoards(userID string, teamID string) ([]model.
 
 }
 
-func (s *SQLStore) GetUserPreferences(userID string) (mmModel.Preferences, error) {
+func (s *SQLStore) GetUserPreferences(userID string) (model.Preferences, error) {
 	return s.getUserPreferences(s.db, userID)
 
 }
@@ -731,7 +719,7 @@ func (s *SQLStore) PatchBoardsAndBlocks(pbab *model.PatchBoardsAndBlocks, userID
 
 }
 
-func (s *SQLStore) PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (mmModel.Preferences, error) {
+func (s *SQLStore) PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (model.Preferences, error) {
 	return s.patchUserPreferences(s.db, userID, patch)
 
 }
@@ -782,7 +770,7 @@ func (s *SQLStore) RunDataRetention(globalRetentionDate int64, batchSize int64) 
 
 }
 
-func (s *SQLStore) SaveFileInfo(fileInfo *mmModel.FileInfo) error {
+func (s *SQLStore) SaveFileInfo(fileInfo *model.FileInfo) error {
 	return s.saveFileInfo(s.db, fileInfo)
 
 }
@@ -799,11 +787,6 @@ func (s *SQLStore) SearchBoardsForUser(term string, searchField model.BoardSearc
 
 func (s *SQLStore) SearchBoardsForUserInTeam(teamID string, term string, userID string) ([]*model.Board, error) {
 	return s.searchBoardsForUserInTeam(s.db, teamID, term, userID)
-
-}
-
-func (s *SQLStore) SearchUserChannels(teamID string, userID string, query string) ([]*mmModel.Channel, error) {
-	return s.searchUserChannels(s.db, teamID, userID, query)
 
 }
 

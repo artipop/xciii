@@ -2,7 +2,6 @@ package app
 
 import (
 	"github.com/artipop/xciii/server/model"
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
 func (a *App) GetTeamUsers(teamID string, asGuestID string) ([]*model.User, error) {
@@ -26,7 +25,7 @@ func (a *App) SearchTeamUsers(teamID string, searchQuery string, asGuestID strin
 	return users, nil
 }
 
-func (a *App) UpdateUserConfig(userID string, patch model.UserPreferencesPatch) ([]mmModel.Preference, error) {
+func (a *App) UpdateUserConfig(userID string, patch model.UserPreferencesPatch) ([]model.Preference, error) {
 	updatedPreferences, err := a.store.PatchUserPreferences(userID, patch)
 	if err != nil {
 		return nil, err
@@ -35,7 +34,7 @@ func (a *App) UpdateUserConfig(userID string, patch model.UserPreferencesPatch) 
 	return updatedPreferences, nil
 }
 
-func (a *App) GetUserPreferences(userID string) ([]mmModel.Preference, error) {
+func (a *App) GetUserPreferences(userID string) ([]model.Preference, error) {
 	return a.store.GetUserPreferences(userID)
 }
 

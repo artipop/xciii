@@ -6,8 +6,6 @@ import (
 
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/services/store"
-
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
 var errTestStore = errors.New("plugin test store error")
@@ -154,9 +152,9 @@ func (s *PluginTestStore) GetUserByUsername(username string) (*model.User, error
 	return nil, errTestStore
 }
 
-func (s *PluginTestStore) GetUserPreferences(userID string) (mmModel.Preferences, error) {
+func (s *PluginTestStore) GetUserPreferences(userID string) (model.Preferences, error) {
 	if userID == userTeamMember {
-		return mmModel.Preferences{{
+		return model.Preferences{{
 			UserId:   userTeamMember,
 			Category: "focalboard",
 			Name:     "test",

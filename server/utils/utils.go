@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
 type IDType byte
@@ -52,17 +50,17 @@ func NewID(idType IDType) string {
 
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
-	return mmModel.GetMillis()
+	return GetMillisForTime(time.Now())
 }
 
 // GetMillisForTime is a convenience method to get milliseconds since epoch for provided Time.
 func GetMillisForTime(thisTime time.Time) int64 {
-	return mmModel.GetMillisForTime(thisTime)
+	return thisTime.UnixNano() / int64(time.Millisecond)
 }
 
 // GetTimeForMillis is a convenience method to get time.Time for milliseconds since epoch.
 func GetTimeForMillis(millis int64) time.Time {
-	return mmModel.GetTimeForMillis(millis)
+	return time.Unix(0, millis*int64(time.Millisecond))
 }
 
 // SecondsToMillis is a convenience method to convert seconds to milliseconds.
@@ -114,13 +112,6 @@ func Intersection(x ...[]interface{}) []interface{} {
 	}
 
 	return result
-}
-
-func IsCloudLicense(license *mmModel.License) bool {
-	return license != nil &&
-		license.Features != nil &&
-		license.Features.Cloud != nil &&
-		*license.Features.Cloud
 }
 
 func DedupeStringArr(arr []string) []string {

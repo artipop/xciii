@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/artipop/xciii/server/model"
-
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
 const CardLimitTimestampSystemKey = "card_limit_timestamp"
@@ -68,8 +66,8 @@ type Store interface {
 	UpdateUserPasswordByID(userID, password string) error
 	GetUsersByTeam(teamID string, asGuestID string, showEmail, showName bool) ([]*model.User, error)
 	SearchUsersByTeam(teamID string, searchQuery string, asGuestID string, excludeBots bool, showEmail, showName bool) ([]*model.User, error)
-	PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (mmModel.Preferences, error)
-	GetUserPreferences(userID string) (mmModel.Preferences, error)
+	PatchUserPreferences(userID string, patch model.UserPreferencesPatch) (model.Preferences, error)
+	GetUserPreferences(userID string) (model.Preferences, error)
 
 	GetActiveUserCount(updatedSecondsAgo int64) (int, error)
 	GetSession(token string, expireTime int64) (*model.Session, error)
@@ -130,8 +128,8 @@ type Store interface {
 
 	GetUserCategoryBoards(userID, teamID string) ([]model.CategoryBoards, error)
 
-	GetFileInfo(id string) (*mmModel.FileInfo, error)
-	SaveFileInfo(fileInfo *mmModel.FileInfo) error
+	GetFileInfo(id string) (*model.FileInfo, error)
+	SaveFileInfo(fileInfo *model.FileInfo) error
 
 	// @withTransaction
 	AddUpdateCategoryBoard(userID, categoryID string, boardIDs []string) error

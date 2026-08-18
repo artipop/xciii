@@ -13,8 +13,15 @@ and the same code builds a headless server (`-tags server`) that serves the boar
 a browser instead of a webview.
 
 The board server and the webapp are both forks of Mattermost's Focalboard, and
-the product no longer carries that name anywhere — not on screen, and since the
-rename, not in an import path either.
+the product no longer carries that name anywhere — not on screen, not in an
+import path, and since the store work, not in a dependency either: nothing here
+imports `mattermost/mattermost/server/public`. What that module was still
+supplying was a handful of types (`FileInfo`, `Preference`, `License`,
+`Channel`, `AppError`), three time helpers, and `ServicesAPI` — the plugin
+surface a Focalboard hosted inside Mattermost talked to its host through, an
+interface of fifty methods that nothing in this tree ever implemented or set.
+The types that survive are ours and hold the columns the tables actually have;
+the rest went with the interface. It cost 273 lines of `go.mod`/`go.sum`.
 
 Both halves are here. `webapp/` is its own npm project built with Vite, since
 rewritten from React to **SolidJS**, so upstream and this repository's early

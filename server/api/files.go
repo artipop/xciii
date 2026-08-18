@@ -17,8 +17,6 @@ import (
 
 	"github.com/artipop/xciii/server/services/audit"
 
-	mmModel "github.com/mattermost/mattermost/server/public/model"
-
 	"github.com/artipop/xciii/server/mlog"
 )
 
@@ -61,8 +59,8 @@ func FileUploadResponseFromJSON(data io.Reader) (*FileUploadResponse, error) {
 	return &fileUploadResponse, nil
 }
 
-func FileInfoResponseFromJSON(data io.Reader) (*mmModel.FileInfo, error) {
-	var fileInfo mmModel.FileInfo
+func FileInfoResponseFromJSON(data io.Reader) (*model.FileInfo, error) {
+	var fileInfo model.FileInfo
 
 	if err := json.NewDecoder(data).Decode(&fileInfo); err != nil {
 		return nil, err

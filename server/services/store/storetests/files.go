@@ -6,7 +6,6 @@ import (
 	"github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/services/store"
 	"github.com/artipop/xciii/server/utils"
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +15,7 @@ func StoreTestFileStore(t *testing.T, setup func(t *testing.T) (store.Store, fun
 	defer tearDown()
 
 	t.Run("should save and retrieve fileinfo", func(t *testing.T) {
-		fileInfo := &mmModel.FileInfo{
+		fileInfo := &model.FileInfo{
 			Id:        "file_info_1",
 			CreateAt:  utils.GetMillis(),
 			Name:      "Dunder Mifflin Sales Report 2022",

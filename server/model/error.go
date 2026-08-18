@@ -4,10 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
-
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
 var (
@@ -283,14 +280,6 @@ func IsErrNotFound(err error) bool {
 	// check if this is a sql.ErrNotFound
 	if errors.Is(err, sql.ErrNoRows) {
 		return true
-	}
-
-	// check if this is a Mattermost AppError with a Not Found status
-	var appErr *mmModel.AppError
-	if errors.As(err, &appErr) {
-		if appErr.StatusCode == http.StatusNotFound {
-			return true
-		}
 	}
 
 	// check if this is a model.ErrCategoryDeleted

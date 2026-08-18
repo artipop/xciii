@@ -9,10 +9,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/artipop/xciii/server/model"
-	"github.com/artipop/xciii/server/services/store"
 
 	"github.com/artipop/xciii/server/mlog"
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
 // SQLStore is a SQL database.
@@ -23,10 +21,8 @@ type SQLStore struct {
 	dbPingAttempts   int
 	isSingleUser     bool
 	logger           mlog.LoggerIFace
-	servicesAPI      servicesAPI
 	isBinaryParam    bool
 	schemaName       string
-	configFn         func() *mmModel.Config
 }
 
 // New creates a new SQL implementation of the store.
@@ -40,8 +36,6 @@ func New(params Params) (*SQLStore, error) {
 		connectionString: params.ConnectionString,
 		logger:           params.Logger,
 		isSingleUser:     params.IsSingleUser,
-		servicesAPI:      params.ServicesAPI,
-		configFn:         params.ConfigFn,
 	}
 
 	var err error
@@ -154,18 +148,6 @@ func (s *SQLStore) elementInColumn(column string) string {
 		return fmt.Sprintf("position(? in %s) > 0", column)
 	}
 	return ""
-}
-
-func (s *SQLStore) getLicense(db sq.BaseRunner) *mmModel.License {
-	return nil
-}
-
-func (s *SQLStore) searchUserChannels(db sq.BaseRunner, teamID, userID, query string) ([]*mmModel.Channel, error) {
-	return nil, store.NewNotSupportedError("search user channels not supported on standalone mode")
-}
-
-func (s *SQLStore) getChannel(db sq.BaseRunner, teamID, channel string) (*mmModel.Channel, error) {
-	return nil, store.NewNotSupportedError("get channel not supported on standalone mode")
 }
 
 func (s *SQLStore) DBVersion() string {

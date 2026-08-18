@@ -9,10 +9,9 @@ import (
 	"github.com/artipop/xciii/server/model"
 
 	"github.com/artipop/xciii/server/mlog"
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
-func (s *SQLStore) saveFileInfo(db sq.BaseRunner, fileInfo *mmModel.FileInfo) error {
+func (s *SQLStore) saveFileInfo(db sq.BaseRunner, fileInfo *model.FileInfo) error {
 	query := s.getQueryBuilder(db).
 		Insert("file_info").
 		Columns(
@@ -49,7 +48,7 @@ func (s *SQLStore) saveFileInfo(db sq.BaseRunner, fileInfo *mmModel.FileInfo) er
 	return nil
 }
 
-func (s *SQLStore) getFileInfo(db sq.BaseRunner, id string) (*mmModel.FileInfo, error) {
+func (s *SQLStore) getFileInfo(db sq.BaseRunner, id string) (*model.FileInfo, error) {
 	query := s.getQueryBuilder(db).
 		Select(
 			"id",
@@ -66,7 +65,7 @@ func (s *SQLStore) getFileInfo(db sq.BaseRunner, id string) (*mmModel.FileInfo, 
 
 	row := query.QueryRow()
 
-	fileInfo := mmModel.FileInfo{}
+	fileInfo := model.FileInfo{}
 
 	err := row.Scan(
 		&fileInfo.Id,
@@ -88,5 +87,8 @@ func (s *SQLStore) getFileInfo(db sq.BaseRunner, id string) (*mmModel.FileInfo, 
 		return nil, err
 	}
 
+	// The type is derived rather than stored, so a row and a fresh upload
+	// describe the same file the same way.
+	fileInfo.SetMimeType()
 	return &fileInfo, nil
 }

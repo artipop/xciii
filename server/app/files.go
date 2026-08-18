@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/artipop/xciii/server/model"
-	mm_model "github.com/mattermost/mattermost/server/public/model"
 
 	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/services/filestore"
@@ -52,7 +51,7 @@ func (a *App) SaveFile(reader io.Reader, teamID, boardID, filename string, asTem
 	return newFileName, nil
 }
 
-func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
+func (a *App) GetFileInfo(filename string) (*model.FileInfo, error) {
 	if len(filename) == 0 {
 		return nil, errEmptyFilename
 	}
@@ -70,7 +69,7 @@ func (a *App) GetFileInfo(filename string) (*mm_model.FileInfo, error) {
 	return fileInfo, nil
 }
 
-func (a *App) GetFile(teamID, rootID, fileName string) (*mm_model.FileInfo, filestore.ReadCloseSeeker, error) {
+func (a *App) GetFile(teamID, rootID, fileName string) (*model.FileInfo, filestore.ReadCloseSeeker, error) {
 	fileInfo, filePath, err := a.GetFilePath(teamID, rootID, fileName)
 	if err != nil {
 		a.logger.Error("GetFile: Failed to GetFilePath.", mlog.String("Team", teamID), mlog.String("board", rootID), mlog.String("filename", fileName), mlog.Err(err))
@@ -96,7 +95,7 @@ func (a *App) GetFile(teamID, rootID, fileName string) (*mm_model.FileInfo, file
 	return fileInfo, reader, nil
 }
 
-func (a *App) GetFilePath(teamID, rootID, fileName string) (*mm_model.FileInfo, string, error) {
+func (a *App) GetFilePath(teamID, rootID, fileName string) (*model.FileInfo, string, error) {
 	fileInfo, err := a.GetFileInfo(fileName)
 	if err != nil && !model.IsErrNotFound(err) {
 		return nil, "", err

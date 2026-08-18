@@ -11,8 +11,6 @@ import (
 
 	"github.com/artipop/xciii/server/api"
 	"github.com/artipop/xciii/server/model"
-
-	mmModel "github.com/mattermost/mattermost/server/public/model"
 )
 
 const (
@@ -854,7 +852,7 @@ func (c *Client) TeamUploadFile(teamID, boardID string, data io.Reader) (*api.Fi
 	return fileUploadResponse, BuildResponse(r)
 }
 
-func (c *Client) TeamUploadFileInfo(teamID, boardID string, fileName string) (*mmModel.FileInfo, *Response) {
+func (c *Client) TeamUploadFileInfo(teamID, boardID string, fileName string) (*model.FileInfo, *Response) {
 	r, err := c.DoAPIGet(fmt.Sprintf("/files/teams/%s/%s/%s/info", teamID, boardID, fileName), "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)

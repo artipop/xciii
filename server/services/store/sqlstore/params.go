@@ -4,16 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	mmModel "github.com/mattermost/mattermost/server/public/model"
-
 	"github.com/artipop/xciii/server/mlog"
 )
-
-// servicesAPI is the interface required my the Params to interact with the mattermost-server.
-// You can use plugin-api or product-api adapter implementations.
-type servicesAPI interface {
-	GetChannelByID(string) (*mmModel.Channel, error)
-}
 
 type Params struct {
 	DBType           string
@@ -22,9 +14,7 @@ type Params struct {
 	Logger           mlog.LoggerIFace
 	DB               *sql.DB
 	IsSingleUser     bool
-	ServicesAPI      servicesAPI
 	SkipMigrations   bool
-	ConfigFn         func() *mmModel.Config
 }
 
 type ErrStoreParam struct {

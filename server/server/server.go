@@ -128,7 +128,6 @@ func New(params Params) (*Server, error) {
 		Notifications:    notificationService,
 		Logger:           params.Logger,
 		Permissions:      params.PermissionsService,
-		ServicesAPI:      params.ServicesAPI,
 		SkipTemplateInit: utils.IsRunningUnitTests(),
 	}
 	app := app.New(params.Cfg, wsAdapter, appServices)
