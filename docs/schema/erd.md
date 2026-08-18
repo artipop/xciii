@@ -382,7 +382,7 @@ erDiagram
     flow_state {
         id card_id PK, FK
         id board_id FK "nullable"
-        name_200 flow "The route's name. It has no id of its own yet — contradiction 4 of docs/model-graph.md, which lives inside…"
+        id flow_id "The route the card is on. An id rather than the route's name, so renaming a route does not lose the place of…"
         name_64 node_id
         name_255 branch "nullable"
         text workdir_path "nullable"
@@ -391,7 +391,7 @@ erDiagram
     flow_event {
         id id PK
         id card_id FK
-        name_200 flow
+        id flow_id "nullable"
         name_64 from_node "nullable"
         name_64 to_node
         name_32 on_kind
@@ -410,7 +410,7 @@ erDiagram
         id card_id PK, FK
         id board_id FK "nullable"
         name_128 column_key "board|option — the queue belongs to one column of one board."
-        name_200 flow "nullable"
+        id flow_id "nullable"
         name_64 node_id "nullable"
         millis queued_at
     }

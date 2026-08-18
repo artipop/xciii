@@ -83,7 +83,7 @@ const AutomationDialog = (props: Props) => {
     // one thing the editor warns about. It follows the folders themselves — a
     // repository worked on a branch in the folder itself takes one card at a
     // time — and changing it is done on their own screen, «Папки…».
-    const [workdirs, setWorkdirs] = createSignal<Array<{git?: boolean, mode?: string}>>([])
+    const [workdirs, setWorkdirs] = createSignal<Array<{id?: string, name?: string, git?: boolean, mode?: string}>>([])
     const worktrees = () => !workdirs().some((w) => w.git && w.mode === 'branch')
 
     // Which of the board's select properties the columns are options of. Read
@@ -253,7 +253,7 @@ const AutomationDialog = (props: Props) => {
             await attempt(() => bindings.UpdateFlow!(JSON.stringify({...flow, boardId: props.board.id})))
         }
         for (const flow of changes.removedFlows) {
-            await attempt(() => bindings.RemoveFlow!(props.board.id, flow.name))
+            await attempt(() => bindings.RemoveFlow!(props.board.id, flow.id || ''))
         }
         /* eslint-enable no-await-in-loop */
 
@@ -300,6 +300,7 @@ const AutomationDialog = (props: Props) => {
                     agents={agents()}
                     deploys={deploys()}
                     counts={counts()}
+                    workspaces={workdirs().filter((w) => w.id && w.name).map((w) => ({id: w.id!, name: w.name!}))}
                     worktrees={worktrees()}
                     focusColumnId={props.focusColumnId}
                     onChange={change}

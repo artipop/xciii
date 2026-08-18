@@ -154,6 +154,42 @@ func (m *Manager) crewNames(ids []string) []string {
 	return out
 }
 
+// bindFlowWorkspace folds a route's legacy folder name into the registry id.
+func bindFlowWorkspace(f *FlowEntry, workdirs []WorkdirEntry) bool {
+	if strings.TrimSpace(f.WorkspaceID) != "" || strings.TrimSpace(f.WorkdirName) == "" {
+		return false
+	}
+	w, ok := workdirNamed(workdirs, f.WorkdirName)
+	if !ok {
+		return false
+	}
+	f.WorkspaceID, f.WorkdirName = w.ID, ""
+	return true
+}
+
+func workdirNamed(workdirs []WorkdirEntry, name string) (WorkdirEntry, bool) {
+	name = strings.TrimSpace(name)
+	for _, w := range workdirs {
+		if strings.EqualFold(strings.TrimSpace(w.Name), name) {
+			return w, true
+		}
+	}
+	return WorkdirEntry{}, false
+}
+
+func workdirByID(workdirs []WorkdirEntry, id string) (WorkdirEntry, bool) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return WorkdirEntry{}, false
+	}
+	for _, w := range workdirs {
+		if w.ID == id {
+			return w, true
+		}
+	}
+	return WorkdirEntry{}, false
+}
+
 func proxyByName(proxies []ProxyEntry, name string) (ProxyEntry, bool) {
 	name = strings.TrimSpace(name)
 	for _, p := range proxies {
@@ -224,7 +260,13 @@ func bindConfigRefs(cfg *Config) {
 		bindColumnRefs(&cfg.Columns[i], cfg.Agents, cfg.Deploys)
 	}
 	for i := range cfg.Flows {
+		// A route needs an id before anything can stand on it, and a config
+		// handed straight to the manager has not been through validateFlow.
+		if cfg.Flows[i].ID == "" {
+			cfg.Flows[i].ID = newID()
+		}
 		bindFlowRefs(&cfg.Flows[i], cfg.Agents, cfg.Deploys)
+		bindFlowWorkspace(&cfg.Flows[i], cfg.Workdirs)
 	}
 	for i := range cfg.Agents {
 		bindAgentRefs(&cfg.Agents[i], cfg.Proxies)
@@ -298,4 +340,17 @@ func mintRegistryIDs(cfg *Config) {
 			cfg.Workdirs[i].ID = newID()
 		}
 	}
+}
+
+// workdirForPath is the registry entry that lives at this path.
+func workdirForPath(workdirs []WorkdirEntry, path string) (WorkdirEntry, bool) {
+	if strings.TrimSpace(path) == "" {
+		return WorkdirEntry{}, false
+	}
+	for _, w := range workdirs {
+		if w.Path == path {
+			return w, true
+		}
+	}
+	return WorkdirEntry{}, false
 }

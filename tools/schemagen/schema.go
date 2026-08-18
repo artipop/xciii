@@ -385,9 +385,12 @@ func flowState() Table {
 		Columns: []Column{
 			{Name: "card_id", Type: ID()},
 			{Name: "board_id", Type: ID(), Null: true},
-			{Name: "flow", Type: Name(200),
-				Why: "The route's name. It has no id of its own yet — contradiction 4 of\n" +
-					"docs/model-graph.md, which lives inside the board's JSON."},
+			{Name: "flow_id", Type: ID(), Null: true,
+				Why: "The route the card is on. An id rather than the route's name, so\n" +
+					"renaming a route does not lose the place of every card on it. No\n" +
+					"foreign key: routes live in the board's JSON, not in a table.\n" +
+					"Nullable because a row carried over from before routes had ids\n" +
+					"knows only a name; the card's own record supplies the id."},
 			{Name: "node_id", Type: Name(64)},
 			{Name: "branch", Type: Name(255), Null: true},
 			{Name: "workdir_path", Type: Text(), Null: true},
@@ -406,7 +409,7 @@ func flowEvent() Table {
 		Columns: []Column{
 			{Name: "id", Type: ID()},
 			{Name: "card_id", Type: ID()},
-			{Name: "flow", Type: Name(200)},
+			{Name: "flow_id", Type: ID(), Null: true},
 			{Name: "from_node", Type: Name(64), Null: true},
 			{Name: "to_node", Type: Name(64)},
 			{Name: "on_kind", Type: Name(32)},
@@ -456,7 +459,7 @@ func stageQueue() Table {
 			{Name: "board_id", Type: ID(), Null: true},
 			{Name: "column_key", Type: Name(128),
 				Why: "board|option — the queue belongs to one column of one board."},
-			{Name: "flow", Type: Name(200), Null: true},
+			{Name: "flow_id", Type: ID(), Null: true},
 			{Name: "node_id", Type: Name(64), Null: true},
 			{Name: "queued_at", Type: Millis()},
 		},

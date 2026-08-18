@@ -82,7 +82,12 @@ var FlowTriggers = []FlowTrigger{
 
 // FlowEntry is one named route in the registry.
 type FlowEntry struct {
-	Name string `json:"name"` // registry key; matches the card "Flow" option
+	// ID is what a card's place on its route points at. The name used to be the
+	// key, so renaming a route lost the position of every card standing on it
+	// (docs/model-graph.md, contradiction 4). Minted when a route without one is
+	// first validated.
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name"` // shown on screen; matches the card "Flow" option
 
 	// BoardID is the board the route belongs to. A route that came from a
 	// board's own settings carries it, so two boards can hold routes of the
@@ -90,8 +95,12 @@ type FlowEntry struct {
 	// what a route configured before boards were told apart means.
 	BoardID string `json:"boardId,omitempty"`
 
-	// WorkdirName ties the flow to an entry of the folder registry, so a card that
-	// only names its folder still finds its route.
+	// WorkspaceID ties the route to an entry of the folder registry, so a card
+	// that only names its folder still finds its route. By id, like everything
+	// else that points at a registry entry.
+	WorkspaceID string `json:"workspaceId,omitempty"`
+	// WorkdirName is what that used to be written as. Folded into WorkspaceID
+	// once (bindrefs.go); never written back.
 	WorkdirName string `json:"projectName,omitempty"`
 	// Property is the select property whose options are the flow's columns.
 	// Empty means Config.TriggerProperty.
@@ -431,6 +440,7 @@ func validateFlow(f FlowEntry, workdirs []WorkdirEntry, agents []AgentEntry, dep
 	// See validateColumn: names in, ids stored, and a name that folds into
 	// nothing is refused here so the board keeps its own copy untouched.
 	bindFlowRefs(&f, agents, deploys)
+	bindFlowWorkspace(&f, workdirs)
 	for _, n := range f.Nodes {
 		if len(n.AgentNames) > 0 {
 			return FlowEntry{}, fmt.Errorf("агент %q стадии %q не найден в реестре (%s)", n.AgentNames[0], n.ID, agentNames(agents))
@@ -443,8 +453,17 @@ func validateFlow(f FlowEntry, workdirs []WorkdirEntry, agents []AgentEntry, dep
 	if f.Name == "" {
 		return FlowEntry{}, fmt.Errorf("имя флоу не может быть пустым")
 	}
-	f.WorkdirName = strings.TrimSpace(f.WorkdirName)
-	if f.WorkdirName != "" && !hasWorkdir(workdirs, f.WorkdirName) {
+	// A route with no id gets one here, which is the moment it becomes a thing
+	// a card can point at.
+	if strings.TrimSpace(f.ID) == "" {
+		f.ID = newID()
+	}
+	if f.WorkspaceID != "" {
+		if _, ok := workdirByID(workdirs, f.WorkspaceID); !ok {
+			return FlowEntry{}, fmt.Errorf("маршрут %q ссылается на папку, которой нет в реестре (%s)", f.Name, workdirNames(workdirs))
+		}
+	}
+	if f.WorkdirName != "" {
 		return FlowEntry{}, fmt.Errorf("папка %q не найдена в реестре (%s)", f.WorkdirName, workdirNames(workdirs))
 	}
 	f.Property = strings.TrimSpace(f.Property)
@@ -573,11 +592,14 @@ func validateEdgeCond(c EdgeCond, trigger FlowTrigger) (EdgeCond, error) {
 }
 
 // sameFlow reports whether two entries are one route of the registry: the same
-// name on the same board. A route tied to no board runs on every board, so it
-// collides with a board's own route of that name — the card would have two.
+// id, or — for an entry that has none yet — the same name on the same board.
 // This is the predicate every edit is keyed on, which is what lets two boards
-// each have their own «Фича».
+// each have their own «Фича», and what makes renaming one an edit rather than a
+// lookup that fails (contradiction 4).
 func sameFlow(a, b FlowEntry) bool {
+	if a.ID != "" && b.ID != "" {
+		return a.ID == b.ID
+	}
 	return strings.EqualFold(strings.TrimSpace(a.Name), strings.TrimSpace(b.Name)) &&
 		(a.BoardID == b.BoardID || a.BoardID == "" || b.BoardID == "")
 }
@@ -591,8 +613,11 @@ func (m *Manager) AddFlow(f FlowEntry) (FlowEntry, error) {
 	if err != nil {
 		return FlowEntry{}, err
 	}
+	// By id, and by name as well: validateFlow has just minted an id for a new
+	// route, so an id comparison alone would never see the collision the name
+	// check is here for.
 	for _, e := range m.cfg.Flows {
-		if sameFlow(e, f) {
+		if sameFlow(e, f) || flowNameTaken(e, f) {
 			return FlowEntry{}, fmt.Errorf("флоу с именем %q уже существует", e.Name)
 		}
 	}
@@ -611,31 +636,43 @@ func (m *Manager) UpdateFlow(f FlowEntry) (FlowEntry, error) {
 		return FlowEntry{}, err
 	}
 	for i, e := range m.cfg.Flows {
-		if sameFlow(e, f) {
-			// The board it belongs to is the editor's to state: a route the
-			// registry held for every board becomes this board's own the moment
-			// this board edits it, and the other boards keep what they had.
-			m.cfg.Flows[i] = f
-			return f, m.saveBoardsLocked(e.BoardID, f.BoardID)
+		if !sameFlow(e, f) {
+			continue
 		}
+		if !strings.EqualFold(e.Name, f.Name) {
+			for _, other := range m.cfg.Flows {
+				if !sameFlow(other, f) && flowNameTaken(other, f) {
+					return FlowEntry{}, fmt.Errorf("флоу с именем %q уже существует", other.Name)
+				}
+			}
+		}
+		// The board it belongs to is the editor's to state: a route the
+		// registry held for every board becomes this board's own the moment
+		// this board edits it, and the other boards keep what they had.
+		f.ID = e.ID
+		m.cfg.Flows[i] = f
+		return f, m.saveBoardsLocked(e.BoardID, f.BoardID)
 	}
 	return FlowEntry{}, fmt.Errorf("флоу %q не найден", f.Name)
 }
 
 // RemoveFlow deletes a board's route by name and persists. Cards currently on
 // it stop moving by themselves; nothing else happens to them.
-func (m *Manager) RemoveFlow(boardID, name string) error {
+func (m *Manager) RemoveFlow(boardID, flowID string) error {
 	m.listenBeforeSpeaking(boardID)
 	m.cfgMu.Lock()
 	defer m.cfgMu.Unlock()
-	target := FlowEntry{BoardID: boardID, Name: name}
+	// By id: a route being deleted is one somebody is looking at, and looking
+	// at it is how they got the id. A name would find whichever route currently
+	// answers to it, which is not necessarily the one on screen.
+	target := FlowEntry{BoardID: boardID, ID: strings.TrimSpace(flowID)}
 	for i, e := range m.cfg.Flows {
 		if sameFlow(e, target) {
 			m.cfg.Flows = append(m.cfg.Flows[:i], m.cfg.Flows[i+1:]...)
 			return m.saveBoardsLocked(e.BoardID, boardID)
 		}
 	}
-	return fmt.Errorf("флоу %q не найден", name)
+	return fmt.Errorf("маршрут не найден")
 }
 
 // resolveFlow maps a card to its route. Priority mirrors every other registry:
@@ -672,9 +709,10 @@ func (m *Manager) resolveFlow(ev CardMoved, workdirPath string) *FlowEntry {
 			return f
 		}
 	}
-	if workdirName := workdirNameForPath(workdirs, workdirPath); workdirName != "" {
+	// The folder the card resolved to, by the id the route records for it.
+	if w, ok := workdirForPath(workdirs, workdirPath); ok {
 		for i := range flows {
-			if strings.EqualFold(flows[i].WorkdirName, workdirName) {
+			if flows[i].WorkspaceID != "" && flows[i].WorkspaceID == w.ID {
 				return &flows[i]
 			}
 		}
@@ -685,7 +723,26 @@ func (m *Manager) resolveFlow(ev CardMoved, workdirPath string) *FlowEntry {
 	return nil
 }
 
-// FlowByName returns a registered route.
+// FlowByID returns a registered route. Cards point at a route by id, so this is
+// what every reader asks; the name answers nothing any more.
+func (m *Manager) FlowByID(id string) (FlowEntry, bool) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return FlowEntry{}, false
+	}
+	m.cfgMu.RLock()
+	defer m.cfgMu.RUnlock()
+	for _, f := range m.cfg.Flows {
+		if f.ID == id {
+			return f, true
+		}
+	}
+	return FlowEntry{}, false
+}
+
+// FlowByName is how a person's own words reach a route — a card naming its
+// route with an option, and the editor. It is not how a card's position is
+// resolved: that is FlowByID.
 func (m *Manager) FlowByName(name string) (FlowEntry, bool) {
 	m.cfgMu.RLock()
 	defer m.cfgMu.RUnlock()
@@ -715,3 +772,12 @@ func hasAgent(agents []AgentEntry, name string) bool {
 	return false
 }
 
+
+// flowNameTaken reports whether an existing route already goes by this name on
+// a board that would see it. Names stay unique because a card names its route
+// with an option a person picks, and two routes called one thing is a question
+// nobody can answer.
+func flowNameTaken(existing, edit FlowEntry) bool {
+	return strings.EqualFold(strings.TrimSpace(existing.Name), strings.TrimSpace(edit.Name)) &&
+		(existing.BoardID == edit.BoardID || existing.BoardID == "" || edit.BoardID == "")
+}

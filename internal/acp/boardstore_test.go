@@ -82,7 +82,7 @@ func TestDeletingARouteReachesTheBoard(t *testing.T) {
 	if _, err := m.AddFlow(FlowEntry{BoardID: "board1", Name: "Фича", Nodes: []FlowNode{{ID: "a", Column: "В работе"}}}); err != nil {
 		t.Fatal(err)
 	}
-	if err := m.RemoveFlow("board1", "Фича"); err != nil {
+	if err := m.RemoveFlow("board1", m.Flows()[0].ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -267,7 +267,7 @@ func TestParkedCardsOfANewBoardAreIndexedFromIt(t *testing.T) {
 	m.rootCtx = context.Background()
 	m.SetBoardMeta(&fakeBoardMeta{props: map[string]any{BoardPropPrompt: "Отвечай по-русски."}})
 	m.SetBoardCardState(&fakeCardState{
-		state: map[string]FlowState{"cardOne": {CardID: "cardOne", Flow: "Фича", NodeID: "review", Branch: "feat/x", WorkdirPath: "/tmp/p"}},
+		state: map[string]FlowState{"cardOne": {CardID: "cardOne", FlowID: "flow-feature", NodeID: "review", Branch: "feat/x", WorkdirPath: "/tmp/p"}},
 		board: map[string]string{"cardOne": "board1"},
 	})
 

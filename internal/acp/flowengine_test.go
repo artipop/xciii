@@ -68,13 +68,13 @@ func TestFlowAdvancesOnSessionSuccess(t *testing.T) {
 	if err != nil || len(history) == 0 {
 		t.Fatalf("flow events: %v, %v", history, err)
 	}
-	if last := history[len(history)-1]; last.Flow != "feature" || last.ToNode != "review" {
+	if last := history[len(history)-1]; last.FlowID == "" || last.ToNode != "review" {
 		t.Fatalf("the transition was not recorded: %+v", last)
 	}
 
 	// And the card's position is remembered, so the next event knows where it is.
 	st, ok, err := m.store.FlowStateForCard("card1")
-	if err != nil || !ok || st.NodeID != "review" || st.Flow != "feature" {
+	if err != nil || !ok || st.NodeID != "review" || st.FlowID == "" {
 		t.Fatalf("flow state: %+v, %v, %v", st, ok, err)
 	}
 	if st.Branch != "feat/x" || st.WorkdirPath != project {

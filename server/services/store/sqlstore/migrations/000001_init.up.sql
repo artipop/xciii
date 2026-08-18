@@ -235,14 +235,17 @@ CREATE INDEX `idx_idempotency_created` ON `idempotency` (`created_at`);
 -- This machine's index of where each card is on its route. The truth is
 -- on the card itself, so it travels with the board; this is what the VCS
 -- watcher asks "which cards are parked and on what branch" in one query.
---   flow: The route's name. It has no id of its own yet — contradiction 4 of
---     docs/model-graph.md, which lives inside the board's JSON.
-CREATE TABLE `flow_state` (`card_id` varchar NOT NULL, `board_id` varchar NULL, `flow` varchar NOT NULL, `node_id` varchar NOT NULL, `branch` varchar NULL, `workdir_path` text NULL, `entered_at` bigint NOT NULL, PRIMARY KEY (`card_id`), CONSTRAINT `flow_state_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `flow_state_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE);
+--   flow_id: The route the card is on. An id rather than the route's name, so
+--     renaming a route does not lose the place of every card on it. No
+--     foreign key: routes live in the board's JSON, not in a table.
+--     Nullable because a row carried over from before routes had ids
+--     knows only a name; the card's own record supplies the id.
+CREATE TABLE `flow_state` (`card_id` varchar NOT NULL, `board_id` varchar NULL, `flow_id` varchar NULL, `node_id` varchar NOT NULL, `branch` varchar NULL, `workdir_path` text NULL, `entered_at` bigint NOT NULL, PRIMARY KEY (`card_id`), CONSTRAINT `flow_state_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `flow_state_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE);
 
 -- Every transition a card made, and what the agent said on it.
 --   said: The agent's closing words: what a conversation is told instead of
 --     its task when the card comes back to it.
-CREATE TABLE `flow_event` (`id` varchar NOT NULL, `card_id` varchar NOT NULL, `flow` varchar NOT NULL, `from_node` varchar NULL, `to_node` varchar NOT NULL, `on_kind` varchar NOT NULL, `detail` text NULL, `said` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), CONSTRAINT `flow_event_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE);
+CREATE TABLE `flow_event` (`id` varchar NOT NULL, `card_id` varchar NOT NULL, `flow_id` varchar NULL, `from_node` varchar NULL, `to_node` varchar NOT NULL, `on_kind` varchar NOT NULL, `detail` text NULL, `said` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), CONSTRAINT `flow_event_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE);
 
 CREATE INDEX `idx_flow_event_card` ON `flow_event` (`card_id`, `id`);
 
@@ -256,7 +259,7 @@ CREATE TABLE `card_stall` (`card_id` varchar NOT NULL, `node_id` varchar NULL, `
 
 -- A card waiting for its column to free up a place.
 --   column_key: board|option — the queue belongs to one column of one board.
-CREATE TABLE `stage_queue` (`card_id` varchar NOT NULL, `board_id` varchar NULL, `column_key` varchar NOT NULL, `flow` varchar NULL, `node_id` varchar NULL, `queued_at` bigint NOT NULL, PRIMARY KEY (`card_id`), CONSTRAINT `stage_queue_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `stage_queue_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE);
+CREATE TABLE `stage_queue` (`card_id` varchar NOT NULL, `board_id` varchar NULL, `column_key` varchar NOT NULL, `flow_id` varchar NULL, `node_id` varchar NULL, `queued_at` bigint NOT NULL, PRIMARY KEY (`card_id`), CONSTRAINT `stage_queue_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `stage_queue_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE);
 
 CREATE INDEX `idx_stage_queue_column` ON `stage_queue` (`column_key`, `queued_at`);
 
@@ -520,14 +523,17 @@ CREATE TABLE `conversation` (`id` varchar(36) NOT NULL, `card_id` varchar(36) NU
 -- Every transition a card made, and what the agent said on it.
 --   said: The agent's closing words: what a conversation is told instead of
 --     its task when the card comes back to it.
-CREATE TABLE `flow_event` (`id` varchar(36) NOT NULL, `card_id` varchar(36) NOT NULL, `flow` varchar(200) NOT NULL, `from_node` varchar(64) NULL, `to_node` varchar(64) NOT NULL, `on_kind` varchar(32) NOT NULL, `detail` text NULL, `said` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), INDEX `idx_flow_event_card` (`card_id`, `id`), CONSTRAINT `flow_event_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `flow_event` (`id` varchar(36) NOT NULL, `card_id` varchar(36) NOT NULL, `flow_id` varchar(36) NULL, `from_node` varchar(64) NULL, `to_node` varchar(64) NOT NULL, `on_kind` varchar(32) NOT NULL, `detail` text NULL, `said` text NULL, `created_at` bigint NOT NULL, PRIMARY KEY (`id`), INDEX `idx_flow_event_card` (`card_id`, `id`), CONSTRAINT `flow_event_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- This machine's index of where each card is on its route. The truth is
 -- on the card itself, so it travels with the board; this is what the VCS
 -- watcher asks "which cards are parked and on what branch" in one query.
---   flow: The route's name. It has no id of its own yet — contradiction 4 of
---     docs/model-graph.md, which lives inside the board's JSON.
-CREATE TABLE `flow_state` (`card_id` varchar(36) NOT NULL, `board_id` varchar(36) NULL, `flow` varchar(200) NOT NULL, `node_id` varchar(64) NOT NULL, `branch` varchar(255) NULL, `workdir_path` text NULL, `entered_at` bigint NOT NULL, PRIMARY KEY (`card_id`), CONSTRAINT `flow_state_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `flow_state_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+--   flow_id: The route the card is on. An id rather than the route's name, so
+--     renaming a route does not lose the place of every card on it. No
+--     foreign key: routes live in the board's JSON, not in a table.
+--     Nullable because a row carried over from before routes had ids
+--     knows only a name; the card's own record supplies the id.
+CREATE TABLE `flow_state` (`card_id` varchar(36) NOT NULL, `board_id` varchar(36) NULL, `flow_id` varchar(36) NULL, `node_id` varchar(64) NOT NULL, `branch` varchar(255) NULL, `workdir_path` text NULL, `entered_at` bigint NOT NULL, PRIMARY KEY (`card_id`), CONSTRAINT `flow_state_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `flow_state_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- What happened during a session, in order. The id is a UUIDv7 rather
 -- than an autoincrement: v7 sorts by time, so ORDER BY id still means
@@ -548,7 +554,7 @@ CREATE TABLE `source_item` (`source` varchar(100) NOT NULL, `external_id` varcha
 
 -- A card waiting for its column to free up a place.
 --   column_key: board|option — the queue belongs to one column of one board.
-CREATE TABLE `stage_queue` (`card_id` varchar(36) NOT NULL, `board_id` varchar(36) NULL, `column_key` varchar(128) NOT NULL, `flow` varchar(200) NULL, `node_id` varchar(64) NULL, `queued_at` bigint NOT NULL, PRIMARY KEY (`card_id`), INDEX `idx_stage_queue_column` (`column_key`, `queued_at`), CONSTRAINT `stage_queue_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `stage_queue_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE `stage_queue` (`card_id` varchar(36) NOT NULL, `board_id` varchar(36) NULL, `column_key` varchar(128) NOT NULL, `flow_id` varchar(36) NULL, `node_id` varchar(64) NULL, `queued_at` bigint NOT NULL, PRIMARY KEY (`card_id`), INDEX `idx_stage_queue_column` (`column_key`, `queued_at`), CONSTRAINT `stage_queue_card` FOREIGN KEY (`card_id`) REFERENCES `blocks` (`id`) ON DELETE CASCADE, CONSTRAINT `stage_queue_board` FOREIGN KEY (`board_id`) REFERENCES `boards` (`id`) ON DELETE CASCADE) CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- This branch event has already been acted on. Keyed by the workspace
 -- rather than by its path: a folder somebody moved used to keep its
@@ -969,7 +975,7 @@ CREATE INDEX "idx_conversation_card_node" ON "conversation" ("card_id", "node_id
 -- Every transition a card made, and what the agent said on it.
 --   said: The agent's closing words: what a conversation is told instead of
 --     its task when the card comes back to it.
-CREATE TABLE "flow_event" ("id" character varying(36) NOT NULL, "card_id" character varying(36) NOT NULL, "flow" character varying(200) NOT NULL, "from_node" character varying(64) NULL, "to_node" character varying(64) NOT NULL, "on_kind" character varying(32) NOT NULL, "detail" text NULL, "said" text NULL, "created_at" bigint NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "flow_event_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE CASCADE);
+CREATE TABLE "flow_event" ("id" character varying(36) NOT NULL, "card_id" character varying(36) NOT NULL, "flow_id" character varying(36) NULL, "from_node" character varying(64) NULL, "to_node" character varying(64) NOT NULL, "on_kind" character varying(32) NOT NULL, "detail" text NULL, "said" text NULL, "created_at" bigint NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "flow_event_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE CASCADE);
 
 -- Every transition a card made, and what the agent said on it.
 --   said: The agent's closing words: what a conversation is told instead of
@@ -979,9 +985,12 @@ CREATE INDEX "idx_flow_event_card" ON "flow_event" ("card_id", "id");
 -- This machine's index of where each card is on its route. The truth is
 -- on the card itself, so it travels with the board; this is what the VCS
 -- watcher asks "which cards are parked and on what branch" in one query.
---   flow: The route's name. It has no id of its own yet — contradiction 4 of
---     docs/model-graph.md, which lives inside the board's JSON.
-CREATE TABLE "flow_state" ("card_id" character varying(36) NOT NULL, "board_id" character varying(36) NULL, "flow" character varying(200) NOT NULL, "node_id" character varying(64) NOT NULL, "branch" character varying(255) NULL, "workdir_path" text NULL, "entered_at" bigint NOT NULL, PRIMARY KEY ("card_id"), CONSTRAINT "flow_state_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE CASCADE, CONSTRAINT "flow_state_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE);
+--   flow_id: The route the card is on. An id rather than the route's name, so
+--     renaming a route does not lose the place of every card on it. No
+--     foreign key: routes live in the board's JSON, not in a table.
+--     Nullable because a row carried over from before routes had ids
+--     knows only a name; the card's own record supplies the id.
+CREATE TABLE "flow_state" ("card_id" character varying(36) NOT NULL, "board_id" character varying(36) NULL, "flow_id" character varying(36) NULL, "node_id" character varying(64) NOT NULL, "branch" character varying(255) NULL, "workdir_path" text NULL, "entered_at" bigint NOT NULL, PRIMARY KEY ("card_id"), CONSTRAINT "flow_state_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE CASCADE, CONSTRAINT "flow_state_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE);
 
 -- What happened during a session, in order. The id is a UUIDv7 rather
 -- than an autoincrement: v7 sorts by time, so ORDER BY id still means
@@ -1019,7 +1028,7 @@ CREATE INDEX "idx_source_item_card" ON "source_item" ("card_id");
 
 -- A card waiting for its column to free up a place.
 --   column_key: board|option — the queue belongs to one column of one board.
-CREATE TABLE "stage_queue" ("card_id" character varying(36) NOT NULL, "board_id" character varying(36) NULL, "column_key" character varying(128) NOT NULL, "flow" character varying(200) NULL, "node_id" character varying(64) NULL, "queued_at" bigint NOT NULL, PRIMARY KEY ("card_id"), CONSTRAINT "stage_queue_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE CASCADE, CONSTRAINT "stage_queue_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE);
+CREATE TABLE "stage_queue" ("card_id" character varying(36) NOT NULL, "board_id" character varying(36) NULL, "column_key" character varying(128) NOT NULL, "flow_id" character varying(36) NULL, "node_id" character varying(64) NULL, "queued_at" bigint NOT NULL, PRIMARY KEY ("card_id"), CONSTRAINT "stage_queue_card" FOREIGN KEY ("card_id") REFERENCES "blocks" ("id") ON DELETE CASCADE, CONSTRAINT "stage_queue_board" FOREIGN KEY ("board_id") REFERENCES "boards" ("id") ON DELETE CASCADE);
 
 -- A card waiting for its column to free up a place.
 --   column_key: board|option — the queue belongs to one column of one board.

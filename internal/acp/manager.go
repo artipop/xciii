@@ -293,9 +293,9 @@ type startOptions struct {
 	// folderName picks a folder explicitly, for a console opened on a card
 	// that does not say which one it is about.
 	folderName string
-	// flowName/flowNodeID tie the session to the stage of a route that started
+	// flowID/flowNodeID tie the session to the stage of a route that started
 	// it, so its outcome can move the card on.
-	flowName, flowNodeID string
+	flowID, flowNodeID string
 	// agentCrew/deployOverride let a flow node name the agents or the deploy
 	// target for its stage only, overriding the column's own. The target is an
 	// id, because a name is what somebody renames (contradiction 8).
@@ -528,7 +528,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		ColumnName:   opts.column.Column,
 		Test:         test,
 		Artifacts:    artifacts,
-		FlowName:     opts.flowName,
+		FlowID:     opts.flowID,
 		FlowNodeID:   opts.flowNodeID,
 		NodeID:       firstNonEmpty(opts.flowNodeID, ev.ToColumn.OptionID, opts.column.OptionID, nodeNone),
 		Writes:       opts.declaredWrites(),

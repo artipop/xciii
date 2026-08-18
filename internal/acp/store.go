@@ -160,9 +160,15 @@ func (s *Store) ClaimVCSEvent(workspaceID, branch, kind, marker string) (bool, e
 // cards at once. The card is the truth — it is what an export carries and an
 // import renumbers — and the table is refilled from it.
 type FlowState struct {
-	CardID      string    `json:"cardId"`
-	BoardID     string    `json:"boardId"`
-	Flow        string    `json:"flow"`
+	CardID  string `json:"cardId"`
+	BoardID string `json:"boardId"`
+	// FlowID is the route, by its id: the name is what somebody renames, and
+	// renaming a route used to lose the place of every card on it.
+	FlowID string `json:"flowId"`
+	// Flow is what the route used to be recorded as, on the card and in this
+	// machine's index. Read once and folded into FlowID (flowStateFlowID);
+	// never written back.
+	Flow        string    `json:"flow,omitempty"`
 	NodeID      string    `json:"nodeId"`
 	Branch      string    `json:"branch"`
 	WorkdirPath string    `json:"workdirPath"`
@@ -179,7 +185,7 @@ type FlowState struct {
 type FlowEventRecord struct {
 	ID       string `json:"id"`
 	CardID   string `json:"cardId"`
-	Flow     string `json:"flow"`
+	FlowID   string `json:"flowId"`
 	FromNode string `json:"fromNode"`
 	ToNode   string `json:"toNode"`
 	On       string `json:"on"`
@@ -196,18 +202,18 @@ func (s *Store) SaveFlowState(st FlowState) error {
 	if st.EnteredAt.IsZero() {
 		st.EnteredAt = time.Now()
 	}
-	_, err := s.exec(`INSERT INTO flow_state (card_id, board_id, flow, node_id, branch, workdir_path, entered_at)
+	_, err := s.exec(`INSERT INTO flow_state (card_id, board_id, flow_id, node_id, branch, workdir_path, entered_at)
 		VALUES (?,?,?,?,?,?,?)
 		ON CONFLICT(card_id) DO UPDATE SET
-			board_id=excluded.board_id, flow=excluded.flow, node_id=excluded.node_id,
+			board_id=excluded.board_id, flow_id=excluded.flow_id, node_id=excluded.node_id,
 			branch=excluded.branch, workdir_path=excluded.workdir_path, entered_at=excluded.entered_at`,
-		st.CardID, nullable(st.BoardID), st.Flow, st.NodeID, st.Branch, st.WorkdirPath, st.EnteredAt.UnixMilli())
+		st.CardID, nullable(st.BoardID), st.FlowID, st.NodeID, st.Branch, st.WorkdirPath, st.EnteredAt.UnixMilli())
 	return err
 }
 
 // FlowStateForCard returns the card's position, if it is on a route at all.
 func (s *Store) FlowStateForCard(cardID string) (FlowState, bool, error) {
-	row := s.queryRow(`SELECT card_id, COALESCE(board_id,''), flow, node_id, COALESCE(branch,''), COALESCE(workdir_path,''), entered_at
+	row := s.queryRow(`SELECT card_id, COALESCE(board_id,''), COALESCE(flow_id,''), node_id, COALESCE(branch,''), COALESCE(workdir_path,''), entered_at
 		FROM flow_state WHERE card_id=?`, cardID)
 	st, err := scanFlowState(row)
 	if err == sql.ErrNoRows {
@@ -222,7 +228,7 @@ func (s *Store) FlowStateForCard(cardID string) (FlowState, bool, error) {
 // FlowStates returns every card currently on a route — the input the VCS
 // watcher builds its poll targets from.
 func (s *Store) FlowStates() ([]FlowState, error) {
-	rows, err := s.query(`SELECT card_id, COALESCE(board_id,''), flow, node_id, COALESCE(branch,''), COALESCE(workdir_path,''), entered_at FROM flow_state`)
+	rows, err := s.query(`SELECT card_id, COALESCE(board_id,''), COALESCE(flow_id,''), node_id, COALESCE(branch,''), COALESCE(workdir_path,''), entered_at FROM flow_state`)
 	if err != nil {
 		return nil, err
 	}
@@ -246,15 +252,15 @@ func (s *Store) ClearFlowState(cardID string) error {
 
 // AppendFlowEvent records one transition.
 func (s *Store) AppendFlowEvent(r FlowEventRecord) error {
-	_, err := s.exec(`INSERT INTO flow_event (id, card_id, flow, from_node, to_node, on_kind, detail, said, created_at)
+	_, err := s.exec(`INSERT INTO flow_event (id, card_id, flow_id, from_node, to_node, on_kind, detail, said, created_at)
 		VALUES (?,?,?,?,?,?,?,?,?)`,
-		newID(), r.CardID, r.Flow, r.FromNode, r.ToNode, r.On, r.Detail, r.Said, time.Now().UnixMilli())
+		newID(), r.CardID, r.FlowID, r.FromNode, r.ToNode, r.On, r.Detail, r.Said, time.Now().UnixMilli())
 	return err
 }
 
 // FlowEvents returns a card's route history, oldest first.
 func (s *Store) FlowEvents(cardID string) ([]FlowEventRecord, error) {
-	rows, err := s.query(`SELECT id, card_id, flow, COALESCE(from_node,''), to_node, on_kind, COALESCE(detail,''), COALESCE(said,''), created_at
+	rows, err := s.query(`SELECT id, card_id, COALESCE(flow_id,''), COALESCE(from_node,''), to_node, on_kind, COALESCE(detail,''), COALESCE(said,''), created_at
 		FROM flow_event WHERE card_id=? ORDER BY id`, cardID)
 	if err != nil {
 		return nil, err
@@ -264,7 +270,7 @@ func (s *Store) FlowEvents(cardID string) ([]FlowEventRecord, error) {
 	for rows.Next() {
 		var r FlowEventRecord
 		var created int64
-		if err := rows.Scan(&r.ID, &r.CardID, &r.Flow, &r.FromNode, &r.ToNode, &r.On, &r.Detail, &r.Said, &created); err != nil {
+		if err := rows.Scan(&r.ID, &r.CardID, &r.FlowID, &r.FromNode, &r.ToNode, &r.On, &r.Detail, &r.Said, &created); err != nil {
 			return nil, err
 		}
 		r.CreatedAt = time.UnixMilli(created)
@@ -359,7 +365,7 @@ type scanner interface{ Scan(dest ...any) error }
 func scanFlowState(row scanner) (FlowState, error) {
 	var st FlowState
 	var entered int64
-	if err := row.Scan(&st.CardID, &st.BoardID, &st.Flow, &st.NodeID, &st.Branch, &st.WorkdirPath, &entered); err != nil {
+	if err := row.Scan(&st.CardID, &st.BoardID, &st.FlowID, &st.NodeID, &st.Branch, &st.WorkdirPath, &entered); err != nil {
 		return FlowState{}, err
 	}
 	st.EnteredAt = time.UnixMilli(entered)
@@ -522,7 +528,7 @@ type QueuedStage struct {
 	CardID    string    `json:"cardId"`
 	BoardID   string    `json:"boardId"`
 	ColumnKey string    `json:"columnKey"`
-	Flow      string    `json:"flow,omitempty"`
+	FlowID    string    `json:"flowId,omitempty"`
 	NodeID    string    `json:"nodeId,omitempty"`
 	QueuedAt  time.Time `json:"queuedAt"`
 }
@@ -531,9 +537,9 @@ type QueuedStage struct {
 // Queueing the same card again keeps its original position: waiting longer must
 // not cost it its turn.
 func (s *Store) EnqueueStage(q QueuedStage) (bool, error) {
-	res, err := s.exec(`INSERT INTO stage_queue (card_id, board_id, column_key, flow, node_id, queued_at)
+	res, err := s.exec(`INSERT INTO stage_queue (card_id, board_id, column_key, flow_id, node_id, queued_at)
 		VALUES (?,?,?,?,?,?) ON CONFLICT(card_id) DO NOTHING`,
-		q.CardID, nullable(q.BoardID), q.ColumnKey, q.Flow, q.NodeID, time.Now().UnixMilli())
+		q.CardID, nullable(q.BoardID), q.ColumnKey, q.FlowID, q.NodeID, time.Now().UnixMilli())
 	if err != nil {
 		return false, err
 	}
@@ -543,11 +549,11 @@ func (s *Store) EnqueueStage(q QueuedStage) (bool, error) {
 
 // NextQueuedStage is the card that has waited longest for this column.
 func (s *Store) NextQueuedStage(columnKey string) (QueuedStage, bool, error) {
-	row := s.queryRow(`SELECT card_id, COALESCE(board_id,''), column_key, COALESCE(flow,''), COALESCE(node_id,''), queued_at
+	row := s.queryRow(`SELECT card_id, COALESCE(board_id,''), column_key, COALESCE(flow_id,''), COALESCE(node_id,''), queued_at
 		FROM stage_queue WHERE column_key=? ORDER BY queued_at LIMIT 1`, columnKey)
 	var q QueuedStage
 	var at int64
-	err := row.Scan(&q.CardID, &q.BoardID, &q.ColumnKey, &q.Flow, &q.NodeID, &at)
+	err := row.Scan(&q.CardID, &q.BoardID, &q.ColumnKey, &q.FlowID, &q.NodeID, &at)
 	if err == sql.ErrNoRows {
 		return QueuedStage{}, false, nil
 	}

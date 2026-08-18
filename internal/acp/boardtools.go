@@ -336,8 +336,8 @@ func (m *Manager) BoardToolCards(ctx context.Context, token, column string) ([]B
 			continue
 		}
 		if st, on := states[ev.CardID]; on {
-			card.Flow = st.Flow
-			if flow, found := m.FlowByName(st.Flow); found {
+			card.Flow = st.FlowID
+			if flow, found := m.FlowByID(st.FlowID); found {
 				if node, has := flow.Node(st.NodeID); has {
 					card.Stage = node.Column
 				}

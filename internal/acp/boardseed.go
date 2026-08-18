@@ -447,7 +447,10 @@ func (m *Manager) adoptFlows(boardID string, flows []FlowEntry) (int, []FlowEntr
 		}
 		known := false
 		for i, existing := range m.cfg.Flows {
-			if sameFlow(existing, valid) {
+			// By name as well as by id: a board that predates route ids carries
+			// none, so validateFlow has just minted a fresh one and an id
+			// comparison would import the same route again on every read.
+			if sameFlow(existing, valid) || flowNameTaken(existing, valid) {
 				known = true
 				if bindFlowRefs(&m.cfg.Flows[i], m.cfg.Agents, m.cfg.Deploys) {
 					added++
@@ -525,7 +528,7 @@ func (m *Manager) indexBoardCardFlows(boardID string) {
 	indexed := 0
 	for _, st := range states {
 		known, ok, err := m.store.FlowStateForCard(st.CardID)
-		if err == nil && ok && known.NodeID == st.NodeID && known.Flow == st.Flow {
+		if err == nil && ok && known.NodeID == st.NodeID && known.FlowID == st.FlowID {
 			continue
 		}
 		if err := m.store.SaveFlowState(st); err != nil {

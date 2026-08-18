@@ -1,9 +1,6 @@
 package acp
 
-import (
-	"strings"
-	"time"
-)
+import "time"
 
 // What a card can say about itself: which route it is on, where along it it
 // stands, and what it is waiting for. The card shows this instead of making
@@ -43,7 +40,7 @@ func (m *Manager) CardFlowFor(cardID string) (*CardFlow, error) {
 	if err != nil || !ok {
 		return nil, err
 	}
-	flow, found := m.FlowByName(st.Flow)
+	flow, found := m.FlowByID(st.FlowID)
 	if !found {
 		return nil, nil
 	}
@@ -113,7 +110,7 @@ func (m *Manager) cardIsQueued(cardID string) bool {
 	if err != nil || !ok {
 		return false
 	}
-	flow, found := m.FlowByName(st.Flow)
+	flow, found := m.FlowByID(st.FlowID)
 	if !found {
 		return false
 	}
@@ -195,7 +192,7 @@ func (m *Manager) BoardFlowOverview(boardID string) ([]FlowOverview, error) {
 			counts[n.ID] = &FlowStageCount{NodeID: n.ID}
 		}
 		for _, st := range states {
-			if !strings.EqualFold(st.Flow, flow.Name) {
+			if st.FlowID != flow.ID {
 				continue
 			}
 			if boardID != "" && st.BoardID != "" && st.BoardID != boardID {

@@ -82,6 +82,9 @@ type Props = {
     agents: Agent[]
     deploys: Identified[]
 
+    // The board's folders, for the route that runs only on one of them.
+    workspaces?: Identified[]
+
     // counts is where the board's cards actually stand, per route. Only a live
     // board has any; a template is a drawing.
     counts?: Record<string, StageCount[]>
@@ -1253,10 +1256,14 @@ const AutomationEditor = (props: Props) => {
                                 </For>
                                 <label>
                                     {intl.formatMessage({id: 'Automation.route-project', defaultMessage: 'Folder (optional)'})}
-                                    <input
-                                        value={current().projectName || ''}
-                                        placeholder={intl.formatMessage({id: 'Automation.route-project-placeholder', defaultMessage: 'Cards of this folder take this route'})}
-                                        onChange={(e) => updateFlow(current().name, (f) => ({...f, projectName: e.currentTarget.value.trim()}))}
+                                    <Select
+                                        value={current().workspaceId || ''}
+                                        options={[
+                                            {value: '', label: intl.formatMessage({id: 'Automation.route-project-any', defaultMessage: '— any folder —'})},
+                                            ...(props.workspaces || []).map((w) => ({value: w.id || '', label: w.name})),
+                                        ]}
+                                        onChange={(workspaceId) => updateFlow(current().name, (f) => ({...f, workspaceId}))}
+                                        label={intl.formatMessage({id: 'Automation.route-project', defaultMessage: 'Folder (optional)'})}
                                     />
                                 </label>
                                 <div class='AutomationEditor__hint'>

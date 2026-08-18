@@ -1172,9 +1172,9 @@ table "flow_state" {
     null = true
     type = varchar(36)
   }
-  column "flow" {
-    null = false
-    type = varchar(200)
+  column "flow_id" {
+    null = true
+    type = varchar(36)
   }
   column "node_id" {
     null = false
@@ -1215,9 +1215,9 @@ table "flow_event" {
     null = false
     type = varchar(36)
   }
-  column "flow" {
-    null = false
-    type = varchar(200)
+  column "flow_id" {
+    null = true
+    type = varchar(36)
   }
   column "from_node" {
     null = true
@@ -1298,9 +1298,9 @@ table "stage_queue" {
     null = false
     type = varchar(128)
   }
-  column "flow" {
+  column "flow_id" {
     null = true
-    type = varchar(200)
+    type = varchar(36)
   }
   column "node_id" {
     null = true

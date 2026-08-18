@@ -45,7 +45,7 @@ func TestADeletedCardTakesWhatWeKnewAboutIt(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := st.SaveFlowState(FlowState{
-		CardID: "card-1", BoardID: "board-1", Flow: "feature", NodeID: "opt-work",
+		CardID: "card-1", BoardID: "board-1", FlowID: "flow-feature", NodeID: "opt-work",
 	}); err != nil {
 		t.Fatal(err)
 	}

@@ -329,16 +329,16 @@ func TestTheStagePromptLandsInTheBrief(t *testing.T) {
 // it, and a repeated brief reads as a fresh instruction.
 func TestAReturnedCardBriefsTheResumedConversationWithTheDelta(t *testing.T) {
 	m, _, _, _ := testManager(t, "idle", nil)
-	m.cfg.Flows = []FlowEntry{{Name: "Разработка", Nodes: []FlowNode{
+	m.cfg.Flows = []FlowEntry{{ID: "flow-dev", Name: "Разработка", Nodes: []FlowNode{
 		{ID: "opt-work", Column: "В работе"},
 		{ID: "opt-review", Column: "Ревью"},
 	}, Edges: []FlowEdge{{From: "opt-work", To: "opt-review", On: TriggerSuccess}}}}
 
 	// The card went В работе → Ревью → В работе, and the reviewer said why.
 	for _, r := range []FlowEventRecord{
-		{CardID: "card-b", Flow: "Разработка", FromNode: "", ToNode: "opt-work", On: "manual"},
-		{CardID: "card-b", Flow: "Разработка", FromNode: "opt-work", ToNode: "opt-review", On: TriggerSuccess},
-		{CardID: "card-b", Flow: "Разработка", FromNode: "opt-review", ToNode: "opt-work", On: TriggerFailure,
+		{CardID: "card-b", FlowID: "flow-dev", FromNode: "", ToNode: "opt-work", On: "manual"},
+		{CardID: "card-b", FlowID: "flow-dev", FromNode: "opt-work", ToNode: "opt-review", On: TriggerSuccess},
+		{CardID: "card-b", FlowID: "flow-dev", FromNode: "opt-review", ToNode: "opt-work", On: TriggerFailure,
 			Detail: "работа не принята", Said: "Кнопка входа всё ещё падает на пустом пароле — почини валидацию."},
 	} {
 		if err := m.store.AppendFlowEvent(r); err != nil {

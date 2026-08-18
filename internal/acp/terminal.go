@@ -593,7 +593,7 @@ type cardPlace struct {
 func (m *Manager) cardPlace(ev CardMoved) cardPlace {
 	property := m.triggerProperty()
 	if st, ok, _ := m.flowState(ev.CardID); ok {
-		if flow, found := m.FlowByName(st.Flow); found {
+		if flow, found := m.FlowByID(st.FlowID); found {
 			property = flow.PropertyOr(property)
 			if node, has := flow.Node(st.NodeID); has && columnMatchesCard(ev, node, property, m.boardProperty(ev.BoardID, BoardPropColumnProperty)) {
 				place := cardPlace{node: st.NodeID, column: node.Column, crew: node.Crew(), runIn: node.RunIn}
@@ -1916,7 +1916,7 @@ func (m *Manager) stageColumns(cardID string) map[string]string {
 	if err != nil || !ok {
 		return nil
 	}
-	flow, found := m.FlowByName(st.Flow)
+	flow, found := m.FlowByID(st.FlowID)
 	if !found {
 		return nil
 	}

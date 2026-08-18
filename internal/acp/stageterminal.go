@@ -272,7 +272,7 @@ func (m *Manager) returnBrief(cardID, nodeID string) string {
 		return ""
 	}
 	from := arrival.FromNode
-	if flow, ok := m.FlowByName(arrival.Flow); ok {
+	if flow, ok := m.FlowByID(arrival.FlowID); ok {
 		if node, has := flow.Node(from); has {
 			from = node.Column
 		}

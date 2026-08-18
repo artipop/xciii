@@ -44,12 +44,12 @@ func (m *Manager) columnByKey(key string) (ColumnSpec, bool) {
 // full. Nothing is said on the card: the route strip already reports «ждёт
 // места в колонке» for a queued card, which is this state told live rather
 // than as a comment that outlives it.
-func (m *Manager) enqueueStage(ev CardMoved, spec ColumnSpec, flowName, nodeID string) {
+func (m *Manager) enqueueStage(ev CardMoved, spec ColumnSpec, flowID, nodeID string) {
 	fresh, err := m.store.EnqueueStage(QueuedStage{
 		CardID:    ev.CardID,
 		BoardID:   ev.BoardID,
 		ColumnKey: spec.Key(),
-		Flow:      flowName,
+		FlowID:    flowID,
 		NodeID:    nodeID,
 	})
 	if err != nil {
@@ -101,10 +101,10 @@ func (m *Manager) drainColumn(key string) {
 		return
 	}
 
-	opts := startOptions{column: spec, flowName: q.Flow, flowNodeID: q.NodeID}
+	opts := startOptions{column: spec, flowID: q.FlowID, flowNodeID: q.NodeID}
 	action := spec.Action
-	if q.Flow != "" {
-		if flow, found := m.FlowByName(q.Flow); found {
+	if q.FlowID != "" {
+		if flow, found := m.FlowByID(q.FlowID); found {
 			if node, found := flow.Node(q.NodeID); found {
 				opts.deployOverride = node.DeployID
 				// Crew(), not AgentName: validateFlow folds the legacy
@@ -145,7 +145,7 @@ func (m *Manager) drainColumn(key string) {
 	if err != nil {
 		m.log.Warn("acp: queued stage not started", "card", q.CardID, "column", spec.Column, "err", err)
 		m.stallCard(q.CardID, q.NodeID, fmt.Sprintf("стадия «%s» не запустилась: %v", spec.Column, err))
-		if q.Flow != "" {
+		if q.FlowID != "" {
 			m.advanceFlow(q.CardID, TriggerFailure, "шаг не удалось запустить")
 		}
 		return

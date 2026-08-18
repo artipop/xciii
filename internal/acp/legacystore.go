@@ -266,9 +266,13 @@ func carryFlowState(s *Store, old *sql.DB) (int, error) {
 		if boardID != "" && !s.hasBoard(boardID) {
 			boardID = ""
 		}
-		if _, err := s.exec(`INSERT INTO flow_state (card_id, board_id, flow, node_id, branch, workdir_path, entered_at)
-			VALUES (?,?,?,?,?,?,?) ON CONFLICT(card_id) DO NOTHING`,
-			cardID, nullable(boardID), flow, nodeID, nullable(branch), nullable(workdir), entered); err != nil {
+		// The route arrives as a name, and a name is not an id. The reference is
+		// left empty rather than filled with the wrong kind of value: the card's
+		// own record carries the name too, and that is where it is folded into
+		// an id (boundFlowState).
+		if _, err := s.exec(`INSERT INTO flow_state (card_id, board_id, node_id, branch, workdir_path, entered_at)
+			VALUES (?,?,?,?,?,?) ON CONFLICT(card_id) DO NOTHING`,
+			cardID, nullable(boardID), nodeID, nullable(branch), nullable(workdir), entered); err != nil {
 			return n, err
 		}
 		n++
@@ -293,9 +297,9 @@ func carryFlowEvents(s *Store, old *sql.DB) (int, error) {
 		if !s.hasCard(cardID) {
 			continue
 		}
-		if _, err := s.exec(`INSERT INTO flow_event (id, card_id, flow, from_node, to_node, on_kind, detail, said, created_at)
-			VALUES (?,?,?,?,?,?,?,?,?)`,
-			newID(), cardID, flow, nullable(from), to, on, nullable(detail), nullable(said), created); err != nil {
+		if _, err := s.exec(`INSERT INTO flow_event (id, card_id, from_node, to_node, on_kind, detail, said, created_at)
+			VALUES (?,?,?,?,?,?,?,?)`,
+			newID(), cardID, nullable(from), to, on, nullable(detail), nullable(said), created); err != nil {
 			return n, err
 		}
 		n++
@@ -348,9 +352,9 @@ func carryQueue(s *Store, old *sql.DB) (int, error) {
 		if boardID != "" && !s.hasBoard(boardID) {
 			boardID = ""
 		}
-		if _, err := s.exec(`INSERT INTO stage_queue (card_id, board_id, column_key, flow, node_id, queued_at)
-			VALUES (?,?,?,?,?,?) ON CONFLICT(card_id) DO NOTHING`,
-			cardID, nullable(boardID), columnKey, nullable(flow), nullable(nodeID), queued); err != nil {
+		if _, err := s.exec(`INSERT INTO stage_queue (card_id, board_id, column_key, node_id, queued_at)
+			VALUES (?,?,?,?,?) ON CONFLICT(card_id) DO NOTHING`,
+			cardID, nullable(boardID), columnKey, nullable(nodeID), queued); err != nil {
 			return n, err
 		}
 		n++

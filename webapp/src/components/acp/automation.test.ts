@@ -115,7 +115,7 @@ describe('components/acp/automation', () => {
         }
         const after: Automation = {
             columns: [{optionId: 'opt-review', property: 'Статус', column: 'На ревью', action: 'none'}],
-            flows: [{name: 'Фича', nodes: [], edges: [], projectName: 'webapp'}, {name: 'Быстрый', nodes: [], edges: []}],
+            flows: [{name: 'Фича', nodes: [], edges: [], workspaceId: 'ws-1'}, {name: 'Быстрый', nodes: [], edges: []}],
         }
         const changes = automationChanges(before, after)
         expect(changes.savedColumns.map((c) => c.column)).toEqual(['На ревью'])

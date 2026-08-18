@@ -7,6 +7,14 @@ import (
 	"testing"
 )
 
+// sampleFlowOn is sampleFlow claimed by a board, for the cases about two boards
+// holding routes of the same name.
+func sampleFlowOn(boardID string) FlowEntry {
+	f := sampleFlow()
+	f.BoardID = boardID
+	return f
+}
+
 // sampleFlow is the route the engine tests walk: agent → review → deploy.
 func sampleFlow() FlowEntry {
 	return FlowEntry{
@@ -118,7 +126,9 @@ func TestAddUpdateRemoveFlowPersists(t *testing.T) {
 		t.Error("duplicate name accepted")
 	}
 
-	updated := sampleFlow()
+	// Read back rather than rebuilt: an edit finds its route by the id the
+	// registry gave it, and a copy built from scratch has none.
+	updated := m.Flows()[0]
 	updated.Nodes[1].Column = "Ревью"
 	if _, err := m.UpdateFlow(updated); err != nil {
 		t.Fatal(err)
@@ -134,7 +144,7 @@ func TestAddUpdateRemoveFlowPersists(t *testing.T) {
 		t.Fatalf("the update did not reach the registry: %+v", flows)
 	}
 
-	if err := m.RemoveFlow("", "FEATURE"); err != nil {
+	if err := m.RemoveFlow("", m.Flows()[0].ID); err != nil {
 		t.Fatal(err)
 	}
 	if len(m.Flows()) != 0 {
@@ -156,10 +166,11 @@ func TestFlowsAreScopedToTheirBoard(t *testing.T) {
 	second := sampleFlow()
 	second.BoardID = "board-2"
 	second.Nodes[1].Column = "Ревью"
-	if _, err := m.AddFlow(second); err != nil {
+	second, err := m.AddFlow(second)
+	if err != nil {
 		t.Fatalf("another board cannot have a route of the same name: %v", err)
 	}
-	if _, err := m.AddFlow(second); err == nil {
+	if _, err := m.AddFlow(sampleFlowOn("board-2")); err == nil {
 		t.Error("the same board took the same name twice")
 	}
 
@@ -169,7 +180,7 @@ func TestFlowsAreScopedToTheirBoard(t *testing.T) {
 	if _, err := m.UpdateFlow(edited); err != nil {
 		t.Fatal(err)
 	}
-	if err := m.RemoveFlow("board-2", edited.Name); err != nil {
+	if err := m.RemoveFlow("board-2", edited.ID); err != nil {
 		t.Fatal(err)
 	}
 	left := m.Flows()
@@ -202,11 +213,14 @@ func TestBoardAutomationIsExportedWithoutTheBoard(t *testing.T) {
 
 func TestResolveFlow(t *testing.T) {
 	m := agentManager(t, "")
-	m.cfg.Workdirs = []WorkdirEntry{{Name: "webapp", Path: "/projects/webapp"}}
+	m.cfg.Workdirs = []WorkdirEntry{{ID: "ws-webapp", Name: "webapp", Path: "/projects/webapp"}}
 	feature := sampleFlow()
+	feature.ID = "flow-feature"
 	hotfix := sampleFlow()
+	hotfix.ID = "flow-hotfix"
 	hotfix.Name = "hotfix"
-	hotfix.WorkdirName = "webapp"
+	// The route names its folder by the registry's id, not by the folder's name.
+	hotfix.WorkspaceID = "ws-webapp"
 	m.cfg.Flows = []FlowEntry{feature, hotfix}
 
 	// 1. A card option naming a flow wins.
