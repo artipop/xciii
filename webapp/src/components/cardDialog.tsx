@@ -247,7 +247,7 @@ const CardDialog = (props: Props): JSX.Element => {
     // A card already worked keeps its terminal button whatever the registry
     // says today — the worktree is still there to go back to. Everything else
     // waits for there to be an agent to run at all.
-    const offersTerminal = () => isCardTerminalAvailable() && Boolean(card()) && !props.readonly && !card()?.limited &&
+    const offersTerminal = () => isCardTerminalAvailable() && Boolean(card()) && !props.readonly &&
         Boolean(agentState().running || agentState().resume?.available || (registeredAgents() || 0) > 0)
 
     const terminalBtn = (): JSX.Element => (
@@ -270,7 +270,7 @@ const CardDialog = (props: Props): JSX.Element => {
                 title={<div/>}
                 class='cardDialog'
                 onClose={props.onClose}
-                toolsMenu={!props.readonly && !card()?.limited && menu()}
+                toolsMenu={!props.readonly && menu()}
                 toolbar={<>{terminalBtn()}{attachBtn()}</>}
             >
                 <Show when={isTemplate()}>

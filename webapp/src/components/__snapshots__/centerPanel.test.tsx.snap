@@ -1,740 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/centerPanel > Clicking on the Hidden card count should open a dailog 1`] = `
-<div>
-  <div
-    class="BoardComponent"
-  >
-    
-    
-    <div
-      class="top-head"
-    >
-      <div
-        class="mid-head"
-      >
-        <div
-          class="ViewTitle"
-        >
-          <div
-            class="add-buttons add-visible"
-          >
-            
-            <button
-              class="Button emphasis--default size--xsmall"
-              type="button"
-            >
-              <i
-                class="CompassIcon icon-eye-off-outline"
-              />
-              <span>
-                Hide description
-              </span>
-              
-            </button>
-            
-          </div>
-          <div
-            class="title"
-          >
-            <div
-              class="IconSelector"
-            >
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <div
-                  class="octo-icon size-m"
-                >
-                  <span>
-                    i
-                  </span>
-                </div>
-                
-              </div>
-            </div>
-            <input
-              class="Editable title"
-              placeholder="Untitled board"
-              spellcheck="true"
-              title="board title"
-            />
-          </div>
-          <div
-            class="description"
-          >
-            <div
-              class="MarkdownEditor octo-editor  "
-            >
-              <div
-                class="octo-editor-preview"
-                data-testid="preview-element"
-              />
-            </div>
-          </div>
-        </div>
-        <div
-          class="shareButtonWrapper"
-        >
-          <div
-            class="ShareBoardButton"
-          >
-            <button
-              class="Button emphasis--primary size--medium"
-              title="Share board"
-              type="button"
-            >
-              <i
-                class="CompassIcon icon-lock-outline LockOutlineIcon"
-              />
-              <span>
-                Share
-              </span>
-              
-            </button>
-            
-          </div>
-          
-          
-        </div>
-      </div>
-      <div
-        class="ViewHeader"
-      >
-        <div
-          class="viewSelector"
-        >
-          <input
-            class="Editable "
-            placeholder="Untitled View"
-            spellcheck="true"
-            title="view title"
-          />
-          <div>
-            <div
-              aria-label="View menu"
-              class="MenuWrapper"
-              role="button"
-            >
-              <button
-                class="IconButton"
-                type="button"
-              >
-                <i
-                  class="CompassIcon icon-chevron-down DropdownIcon"
-                />
-              </button>
-              
-            </div>
-            
-          </div>
-        </div>
-        <div
-          class="octo-spacer"
-        />
-        <div
-          aria-label="Properties menu"
-          class="MenuWrapper"
-          role="button"
-        >
-          <button
-            class="Button"
-            type="button"
-          >
-            
-            <span>
-              Properties
-            </span>
-            
-          </button>
-          
-        </div>
-        <div
-          aria-label="menuwrapper"
-          class="MenuWrapper"
-          role="button"
-        >
-          <button
-            class="Button"
-            type="button"
-          >
-            
-            <span>
-              Group by: 
-              <span
-                id="groupByLabel"
-                style="color:rgb(var(--center-channel-color-rgb))"
-              >
-                name
-              </span>
-            </span>
-            
-          </button>
-          
-        </div>
-        <div
-          class="ModalWrapper"
-        >
-          <button
-            class="Button active"
-            type="button"
-          >
-            
-            <span>
-              Filter
-            </span>
-            
-          </button>
-        </div>
-        <div
-          aria-label="menuwrapper"
-          class="MenuWrapper"
-          role="button"
-        >
-          <button
-            class="Button active"
-            type="button"
-          >
-            
-            <span>
-              Sort
-            </span>
-            
-          </button>
-          
-        </div>
-        <div
-          class="board-search-field"
-        >
-          <i
-            class="CompassIcon icon-magnify board-search-icon"
-          />
-          <input
-            class="Editable "
-            placeholder="Search cards"
-            title=""
-          />
-        </div>
-        <div
-          class="ModalWrapper"
-        >
-          <div
-            aria-label="View header menu"
-            class="MenuWrapper"
-            role="button"
-          >
-            <button
-              class="IconButton"
-              type="button"
-            >
-              <i
-                class="CompassIcon icon-dots-horizontal OptionsIcon"
-              />
-            </button>
-            
-          </div>
-        </div>
-        <div
-          class="ButtonWithMenu"
-        >
-          <div
-            class="button-text"
-          >
-            New
-          </div>
-          <div
-            aria-label="menuwrapper"
-            class="MenuWrapper"
-            role="button"
-          >
-            <div
-              class="button-dropdown"
-            >
-              <i
-                class="CompassIcon icon-chevron-down DropdownIcon"
-              />
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="Table"
-    >
-      <div
-        class="octo-table-body"
-      >
-        <div
-          class="octo-table-header TableHeaders"
-          id="mainBoardHeader"
-        >
-          <div
-            class="octo-table-cell header-cell"
-            style="overflow: unset; opacity: 1; width: 100px;"
-          >
-            <div
-              aria-label="menuwrapper"
-              class="MenuWrapper"
-              role="button"
-            >
-              <span
-                class="Label empty "
-              >
-                Name
-              </span>
-              
-            </div>
-            <div
-              class="octo-spacer"
-            />
-            <div
-              class="HorizontalGrip"
-            />
-          </div>
-          
-        </div>
-        <div
-          class="table-row-container"
-        >
-          <div
-            class="octo-table-group"
-          >
-            <div
-              class="octo-group-header-cell expanded"
-              style="opacity: 1;"
-            >
-              <div
-                class="octo-table-cell"
-                style="width: 100px;"
-              >
-                <button
-                  class="IconButton octo-table-cell__expand "
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-menu-right"
-                  />
-                </button>
-                <span
-                  class="Label empty "
-                  title="Items with an empty name property will go here. This column cannot be removed."
-                >
-                  No name
-                </span>
-                
-                
-              </div>
-              <button
-                class="Button"
-                type="button"
-              >
-                
-                <span>
-                  0
-                </span>
-                
-              </button>
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  class="IconButton"
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-dots-horizontal OptionsIcon"
-                  />
-                </button>
-                
-              </div>
-              <button
-                class="IconButton"
-                type="button"
-              >
-                <i
-                  class="CompassIcon icon-plus AddIcon"
-                />
-              </button>
-            </div>
-            
-          </div>
-          <div
-            class="octo-table-group"
-          >
-            <div
-              class="octo-group-header-cell expanded"
-              style="opacity: 1;"
-            >
-              <div
-                class="octo-table-cell"
-                style="width: 100px;"
-              >
-                <button
-                  class="IconButton octo-table-cell__expand "
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-menu-right"
-                  />
-                </button>
-                
-                
-                <span
-                  class="Label propColorOrange "
-                >
-                  <input
-                    class="Editable "
-                    placeholder="New Select"
-                    spellcheck="true"
-                    title="Q1"
-                  />
-                </span>
-              </div>
-              <button
-                class="Button"
-                type="button"
-              >
-                
-                <span>
-                  2
-                </span>
-                
-              </button>
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  class="IconButton"
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-dots-horizontal OptionsIcon"
-                  />
-                </button>
-                
-              </div>
-              <button
-                class="IconButton"
-                type="button"
-              >
-                <i
-                  class="CompassIcon icon-plus AddIcon"
-                />
-              </button>
-            </div>
-            <div
-              class="TableRow octo-table-row"
-              style="opacity: 1;"
-            >
-              <div
-                class="action-cell octo-table-cell-btn"
-              >
-                <button
-                  class="IconButton"
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-drag-vertical"
-                  />
-                </button>
-              </div>
-              <div
-                class="octo-table-cell title-cell"
-                id="mainBoardHeader"
-                style="width: 100px;"
-              >
-                <div
-                  class="octo-icontitle"
-                >
-                  <div
-                    class="octo-icon"
-                  >
-                    i
-                  </div>
-                  <input
-                    class="Editable "
-                    placeholder="Untitled"
-                    spellcheck="true"
-                    title="card1"
-                  />
-                </div>
-                <div
-                  aria-label="menuwrapper"
-                  class="MenuWrapper optionsMenu ml-2 mr-2"
-                  role="button"
-                >
-                  <div
-                    class="octo-tooltip"
-                  >
-                    <button
-                      aria-label="MenuBtn"
-                      class="IconButton"
-                      title="MenuBtn"
-                      type="button"
-                    >
-                      <i
-                        class="CompassIcon icon-dots-horizontal OptionsIcon"
-                      />
-                    </button>
-                    
-                  </div>
-                  
-                </div>
-                <div
-                  class="open-button"
-                >
-                  <button
-                    class="Button"
-                    type="button"
-                  >
-                    
-                    <span>
-                      Open
-                    </span>
-                    
-                  </button>
-                </div>
-              </div>
-              
-              
-            </div>
-            <div
-              class="TableRow octo-table-row"
-              style="opacity: 1;"
-            >
-              <div
-                class="action-cell octo-table-cell-btn"
-              >
-                <button
-                  class="IconButton"
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-drag-vertical"
-                  />
-                </button>
-              </div>
-              <div
-                class="octo-table-cell title-cell"
-                id="mainBoardHeader"
-                style="width: 100px;"
-              >
-                <div
-                  class="octo-icontitle"
-                >
-                  <div
-                    class="octo-icon"
-                  >
-                    i
-                  </div>
-                  <input
-                    class="Editable "
-                    placeholder="Untitled"
-                    spellcheck="true"
-                    title="card2"
-                  />
-                </div>
-                <div
-                  aria-label="menuwrapper"
-                  class="MenuWrapper optionsMenu ml-2 mr-2"
-                  role="button"
-                >
-                  <div
-                    class="octo-tooltip"
-                  >
-                    <button
-                      aria-label="MenuBtn"
-                      class="IconButton"
-                      title="MenuBtn"
-                      type="button"
-                    >
-                      <i
-                        class="CompassIcon icon-dots-horizontal OptionsIcon"
-                      />
-                    </button>
-                    
-                  </div>
-                  
-                </div>
-                <div
-                  class="open-button"
-                >
-                  <button
-                    class="Button"
-                    type="button"
-                  >
-                    
-                    <span>
-                      Open
-                    </span>
-                    
-                  </button>
-                </div>
-              </div>
-              
-              
-            </div>
-          </div>
-          <div
-            class="octo-table-group"
-          >
-            <div
-              class="octo-group-header-cell expanded"
-              style="opacity: 1;"
-            >
-              <div
-                class="octo-table-cell"
-                style="width: 100px;"
-              >
-                <button
-                  class="IconButton octo-table-cell__expand "
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-menu-right"
-                  />
-                </button>
-                
-                
-                <span
-                  class="Label propColorBlue "
-                >
-                  <input
-                    class="Editable "
-                    placeholder="New Select"
-                    spellcheck="true"
-                    title="Q2"
-                  />
-                </span>
-              </div>
-              <button
-                class="Button"
-                type="button"
-              >
-                
-                <span>
-                  0
-                </span>
-                
-              </button>
-              <div
-                aria-label="menuwrapper"
-                class="MenuWrapper"
-                role="button"
-              >
-                <button
-                  class="IconButton"
-                  type="button"
-                >
-                  <i
-                    class="CompassIcon icon-dots-horizontal OptionsIcon"
-                  />
-                </button>
-                
-              </div>
-              <button
-                class="IconButton"
-                type="button"
-              >
-                <i
-                  class="CompassIcon icon-plus AddIcon"
-                />
-              </button>
-            </div>
-            
-          </div>
-          
-        </div>
-        <div
-          class="octo-table-footer"
-        />
-        <div
-          class="CalculationRow octo-table-row"
-        >
-          <div
-            class="Calculation count octo-table-cell   "
-            style="width: 100px;"
-            tabindex="0"
-          >
-            
-            <span
-              class="calculationLabel"
-            >
-              Count
-            </span>
-            
-            <span
-              class="calculationValue"
-            >
-              2
-            </span>
-          </div>
-        </div>
-      </div>
-      <div
-        class="HiddenCardCount"
-      >
-        <div
-          class="hidden-card-title"
-        >
-          Cards hidden
-        </div>
-        <button
-          class="Button"
-          title="hidden-card-count"
-          type="button"
-        >
-          
-          <span>
-            2
-          </span>
-          
-        </button>
-      </div>
-    </div>
-    <div
-      class="NotificationBox"
-    >
-      <div
-        class="NotificationBox__icon"
-      >
-        <i
-          class="CompassIcon icon-alert-outline AlertIcon"
-        />
-      </div>
-      <div
-        class="content"
-      >
-        <p
-          class="title"
-        >
-          2 cards hidden from board
-        </p>
-        Card limit reached, to view older cards, 
-        <a>
-          Upgrade to a paid plan
-        </a>
-      </div>
-      <button
-        class="IconButton"
-        type="button"
-      >
-        <i
-          class="CompassIcon icon-close CloseIcon"
-        />
-      </button>
-    </div>
-  </div>
-</div>
-`;
-
 exports[`components/centerPanel > return centerPanel and > click on card to show card 1`] = `
 <div>
   <div
@@ -1321,7 +586,6 @@ exports[`components/centerPanel > return centerPanel and > click on card to show
       </div>
       
     </div>
-    
   </div>
 </div>
 `;
@@ -2004,9 +1268,7 @@ exports[`components/centerPanel > return centerPanel and > click on new card to 
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -2418,9 +1680,7 @@ exports[`components/centerPanel > return centerPanel and > press touch 1 with re
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -3103,9 +2363,7 @@ exports[`components/centerPanel > return centerPanel and > press touch ctrl+d fo
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -3788,9 +3046,7 @@ exports[`components/centerPanel > return centerPanel and > press touch del for o
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -4473,9 +3729,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -5158,9 +4412,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for o
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -5843,9 +5095,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -6528,9 +5778,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -7213,9 +6461,7 @@ exports[`components/centerPanel > return centerPanel and > press touch esc for t
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -7898,9 +7144,7 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -8583,9 +7827,7 @@ exports[`components/centerPanel > return centerPanel and > select one card and c
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -8862,9 +8104,7 @@ exports[`components/centerPanel > should match snapshot for Gallery 1`] = `
       >
         + New
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;
@@ -9417,7 +8657,6 @@ exports[`components/centerPanel > should match snapshot for Kanban 1`] = `
       </div>
       
     </div>
-    
   </div>
 </div>
 `;
@@ -9970,7 +9209,6 @@ exports[`components/centerPanel > should match snapshot for Kanban, not shared 1
       </div>
       
     </div>
-    
   </div>
 </div>
 `;
@@ -10577,9 +9815,7 @@ exports[`components/centerPanel > should match snapshot for Table 1`] = `
           </div>
         </div>
       </div>
-      
     </div>
-    
   </div>
 </div>
 `;

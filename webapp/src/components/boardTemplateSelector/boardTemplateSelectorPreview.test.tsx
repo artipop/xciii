@@ -68,7 +68,6 @@ vi.mock('../../octoClient', () => {
                         'group-prop-id': 'test',
                     },
                 },
-                limited: false,
             },
         ])),
     }

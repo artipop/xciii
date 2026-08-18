@@ -30,7 +30,6 @@ const defaultBlock: TextBlock = {
     createAt: 0,
     updateAt: 0,
     deleteAt: 0,
-    limited: false,
 }
 describe('components/content/TextElement', () => {
     beforeAll(() => {

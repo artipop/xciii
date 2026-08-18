@@ -98,23 +98,4 @@ describe('src/components/kanban/kanbanHiddenColumnItem', () => {
         expect(mockedMutator.unhideViewColumn).toHaveBeenCalledWith(activeView.boardId, activeView, option.id)
     })
 
-    test('limited card check', () => {
-        card.limited = true
-        card2.limited = true
-        option.id = 'hidden-card-group-id'
-        const {container, getByTitle} = render(() => wrapDNDIntl(() =>
-            <KanbanHiddenColumnItem
-                activeView={activeView}
-                group={{
-                    option,
-                    cards: [card, card2],
-                }}
-                readonly={false}
-                onDrop={vi.fn()}
-                intl={intl}
-            />,
-        ))
-        expect(getByTitle('hidden-card-count')).toHaveTextContent('2')
-        expect(container).toMatchSnapshot()
-    })
 })

@@ -142,26 +142,3 @@ export const getVersionMessageCanceled = (state: RootState): boolean => {
     return true
 }
 
-export const getCardLimitSnoozeUntil = (state: RootState): number => {
-    const myConfig = getMyConfig(state)
-    if (!myConfig) {
-        return 0
-    }
-    try {
-        return parseInt(myConfig.cardLimitSnoozeUntil?.value || '0', 10)
-    } catch (_) {
-        return 0
-    }
-}
-
-export const getCardHiddenWarningSnoozeUntil = (state: RootState): number => {
-    const myConfig = getMyConfig(state)
-    if (!myConfig) {
-        return 0
-    }
-    try {
-        return parseInt(myConfig.cardHiddenWarningSnoozeUntil?.value || 0, 10)
-    } catch (_) {
-        return 0
-    }
-}

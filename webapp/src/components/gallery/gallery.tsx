@@ -4,7 +4,6 @@ import type {JSX} from 'solid-js'
 import {FormattedMessage} from '../../intl'
 
 import {Constants, Permission} from '../../constants'
-import HiddenCardCount from '../../components/hiddenCardCount/hiddenCardCount'
 
 import {Card} from '../../blocks/card'
 import {Board, IPropertyTemplate} from '../../blocks/board'
@@ -25,8 +24,6 @@ type Props = {
     addCard: (show: boolean) => Promise<void>
     selectedCardIds: string[]
     onCardClicked: (e: MouseEvent, card: Card) => void
-    hiddenCardsCount: number
-    showHiddenCardCountNotification: (show: boolean) => void
 }
 
 const Gallery = (props: Props): JSX.Element => {
@@ -99,14 +96,6 @@ const Gallery = (props: Props): JSX.Element => {
                         />
                     </div>
                 </BoardPermissionGate>
-            </Show>
-            <Show when={props.hiddenCardsCount > 0}>
-                <div class='gallery-hidden-cards'>
-                    <HiddenCardCount
-                        hiddenCardsCount={props.hiddenCardsCount}
-                        showHiddenCardNotification={props.showHiddenCardCountNotification}
-                    />
-                </div>
             </Show>
         </div>
     )

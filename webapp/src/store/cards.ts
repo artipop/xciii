@@ -23,37 +23,15 @@ import type {RootState} from './index'
 
 export type CardsState = {
     current: string
-    limitTimestamp: number
     cards: {[key: string]: Card}
     templates: {[key: string]: Card}
-    cardHiddenWarning: boolean
 }
 
 export const initialCardsState = (): CardsState => ({
     current: '',
-    limitTimestamp: 0,
     cards: {},
     templates: {},
-    cardHiddenWarning: false,
 })
-
-const limitCard = (isBoardTemplate: boolean, limitTimestamp: number, card: Card): Card => {
-    if (isBoardTemplate) {
-        return card
-    }
-    if (card.updateAt >= limitTimestamp) {
-        return card
-    }
-    return {
-        ...card,
-        fields: {
-            icon: card.fields.icon,
-            properties: {},
-            contentOrder: [],
-        },
-        limited: true,
-    }
-}
 
 // The cards and card templates a fresh board load carries: every full
 // (re)load rebuilds both maps from the block list.
@@ -69,23 +47,12 @@ export const cardsFromBlocks = (blocks: Block[]): {cards: {[key: string]: Card},
     return next
 }
 
-export const createCardsActions = ({state, setState, deps}: StoreContext) => ({
+export const createCardsActions = ({setState}: StoreContext) => ({
     setCurrent(cardId: string) {
         setState('cards', 'current', cardId)
     },
-    setLimitTimestamp(payload: {timestamp: number, templates: {[key: string]: Board}}) {
-        setState('cards', produce((s) => {
-            s.limitTimestamp = payload.timestamp
-            for (const card of Object.values(s.cards)) {
-                s.cards[card.id] = limitCard(Boolean(payload.templates[card.id]), s.limitTimestamp, card)
-            }
-        }))
-    },
     addCard(card: Card) {
         setState('cards', 'cards', card.id, card)
-    },
-    showCardHiddenWarning(show: boolean) {
-        setState('cards', 'cardHiddenWarning', show)
     },
     addTemplate(template: Card) {
         setState('cards', 'templates', template.id, template)
@@ -109,24 +76,6 @@ export const createCardsActions = ({state, setState, deps}: StoreContext) => ({
             setState('cards', 'cards', cards)
             setState('cards', 'templates', templates)
         })
-    },
-    async refreshCards(cardLimitTimestamp: number): Promise<void> {
-        const cards = state.cards.cards
-        const blocksPromises = []
-
-        for (const card of Object.values(cards)) {
-            if (card.limited && card.updateAt >= cardLimitTimestamp) {
-                blocksPromises.push(deps.client.getBlocksWithBlockID(card.id, card.boardId).then((blocks) => blocks.find((b) => b?.type === 'card')))
-            }
-        }
-        const blocks = await Promise.all(blocksPromises)
-        const refreshed = blocks.filter((b: Block|undefined): boolean => Boolean(b)) as Block[]
-
-        setState('cards', 'cards', produce((s) => {
-            for (const block of refreshed) {
-                s[block.id] = block as Card
-            }
-        }))
     },
 })
 
@@ -340,7 +289,7 @@ function searchFilterCards(cards: Card[], board: Board, searchTextRaw: string): 
     })
 }
 
-export const getCurrentViewCardsSortedFilteredAndGroupedWithoutLimit = (state: RootState): Card[] => {
+export const getCurrentViewCardsSortedFilteredAndGrouped = (state: RootState): Card[] => {
     const cards = getCurrentBoardCards(state)
     const lastCommentByCard = getLastCommentByCard(state)
     const board = getCurrentBoard(state)
@@ -351,7 +300,7 @@ export const getCurrentViewCardsSortedFilteredAndGroupedWithoutLimit = (state: R
     if (!view || !board || !users || !cards) {
         return []
     }
-    let result = cards.filter((c) => !c.limited)
+    let result = cards
     if (view.fields.filter) {
         result = CardFilter.applyFilterGroup(view.fields.filter, board.cardProperties, result)
     }
@@ -363,13 +312,5 @@ export const getCurrentViewCardsSortedFilteredAndGroupedWithoutLimit = (state: R
     return result
 }
 
-export const getCurrentViewCardsSortedFilteredAndGrouped = (state: RootState): Card[] =>
-    getCurrentViewCardsSortedFilteredAndGroupedWithoutLimit(state).filter((c) => !c.limited)
-
-export const getCurrentBoardHiddenCardsCount = (state: RootState): number =>
-    Object.values(getCurrentBoardCards(state)).filter((c) => c.limited).length
-
 export const getCurrentCard = (state: RootState): Card|undefined => getCards(state)[state.cards.current]
 
-export const getCardLimitTimestamp = (state: RootState): number => state.cards.limitTimestamp
-export const getCardHiddenWarning = (state: RootState): boolean => state.cards.cardHiddenWarning

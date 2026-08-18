@@ -42,7 +42,6 @@ export const ACTION_UPDATE_CLIENT_CONFIG = 'UPDATE_CLIENT_CONFIG'
 export const ACTION_UPDATE_CATEGORY = 'UPDATE_CATEGORY'
 export const ACTION_UPDATE_BOARD_CATEGORY = 'UPDATE_BOARD_CATEGORY'
 export const ACTION_UPDATE_SUBSCRIPTION = 'UPDATE_SUBSCRIPTION'
-export const ACTION_UPDATE_CARD_LIMIT_TIMESTAMP = 'UPDATE_CARD_LIMIT_TIMESTAMP'
 export const ACTION_REORDER_CATEGORIES = 'REORDER_CATEGORIES'
 
 type WSSubscriptionMsg = {
@@ -76,7 +75,6 @@ type OnReconnectHandler = (client: WSClient) => void
 type OnStateChangeHandler = (client: WSClient, state: 'init' | 'open' | 'close') => void
 type OnErrorHandler = (client: WSClient, e: Event) => void
 type OnConfigChangeHandler = (client: WSClient, clientConfig: ClientConfig) => void
-type OnCardLimitTimestampChangeHandler = (client: WSClient, timestamp: number) => void
 type FollowChangeHandler = (client: WSClient, subscription: Subscription) => void
 
 export type ChangeHandlerType = 'block' | 'category' | 'blockCategories' | 'board' | 'boardMembers' | 'categoryOrder'
@@ -120,7 +118,6 @@ class WSClient {
     onChange: ChangeHandlers = {Block: [], Category: [], BoardCategory: [], Board: [], BoardMember: [], CategoryReorder: []}
     onError: OnErrorHandler[] = []
     onConfigChange: OnConfigChangeHandler[] = []
-    onCardLimitTimestampChange: OnCardLimitTimestampChangeHandler[] = []
     onFollowBlock: FollowChangeHandler = () => {}
     onUnfollowBlock: FollowChangeHandler = () => {}
     private notificationDelay = 100
@@ -319,17 +316,6 @@ class WSClient {
         const index = this.onConfigChange.indexOf(handler)
         if (index !== -1) {
             this.onConfigChange.splice(index, 1)
-        }
-    }
-
-    addOnCardLimitTimestampChange(handler: OnCardLimitTimestampChangeHandler): void {
-        this.onCardLimitTimestampChange.push(handler)
-    }
-
-    removeOnCardLimitTimestampChange(handler: OnCardLimitTimestampChangeHandler): void {
-        const index = this.onCardLimitTimestampChange.indexOf(handler)
-        if (index !== -1) {
-            this.onCardLimitTimestampChange.splice(index, 1)
         }
     }
 
@@ -533,12 +519,6 @@ class WSClient {
     updateClientConfigHandler(config: ClientConfig): void {
         for (const handler of this.onConfigChange) {
             handler(this, config)
-        }
-    }
-
-    updateCardLimitTimestampHandler(action: {action: string, timestamp: number}): void {
-        for (const handler of this.onCardLimitTimestampChange) {
-            handler(this, action.timestamp)
         }
     }
 
