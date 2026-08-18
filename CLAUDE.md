@@ -34,8 +34,16 @@ turned out to mean the project built on exactly one machine, then a second modul
 carrying upstream's import path, and now neither. Nothing outside this repository
 is required to build it.
 
-`server/` is a fork carried, not a library consumed: patch it here, and keep
-patches small enough to explain, because there is nobody upstream to merge them.
+`server/` is **ours**, not a fork kept recognisable. The reason to stay close to
+upstream was to take its fixes, and that reason died twice over: Focalboard is
+archived, and the store work removed the last Mattermost dependency. So cutting
+it is the ordinary way to carry it — `docs/fork-shrink-removed.md` is the ledger
+of what has gone and the commit that brings each subsystem back, because "dead"
+is a judgement about today and the product's own answers have overturned it
+before. Two things it is not licence for: a removal is still one commit with its
+tests, mocks and page edit together, and nothing goes that a decision has said
+is being kept or repaired — login, public sharing and multi-team are in the
+tree on purpose.
 
 What the page needs from the Go side is described in README.md, "What this app
 requires of the frontend": the output layout `go:embed` expects, and three
