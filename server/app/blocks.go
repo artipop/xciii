@@ -86,9 +86,6 @@ func (a *App) PatchBlockAndNotify(blockID string, blockPatch *model.BlockPatch, 
 		// broadcast on websocket
 		a.wsAdapter.BroadcastBlockChange(board.TeamID, block)
 
-		// broadcast on webhooks
-		a.webhook.NotifyUpdate(block)
-
 		// send notifications
 		if !disableNotify {
 			a.notifyBlockChanged(notify.Update, block, oldBlock, modifiedByID)
@@ -120,7 +117,6 @@ func (a *App) PatchBlocksAndNotify(teamID string, blockPatches *model.BlockPatch
 				return err
 			}
 			a.wsAdapter.BroadcastBlockChange(teamID, newBlock)
-			a.webhook.NotifyUpdate(newBlock)
 			if !disableNotify {
 				a.notifyBlockChanged(notify.Update, newBlock, oldBlocks[i], modifiedByID)
 			}
@@ -145,7 +141,6 @@ func (a *App) InsertBlockAndNotify(block *model.Block, modifiedByID string, disa
 		a.blockChangeNotifier.Enqueue(func() error {
 			a.wsAdapter.BroadcastBlockChange(board.TeamID, block)
 			a.metrics.IncrementBlocksInserted(1)
-			a.webhook.NotifyUpdate(block)
 			if !disableNotify {
 				a.notifyBlockChanged(notify.Add, block, nil, modifiedByID)
 			}
@@ -193,7 +188,6 @@ func (a *App) InsertBlocksAndNotify(blocks []*model.Block, modifiedByID string, 
 	a.blockChangeNotifier.Enqueue(func() error {
 		for _, b := range needsNotify {
 			block := b
-			a.webhook.NotifyUpdate(block)
 			if !disableNotify {
 				a.notifyBlockChanged(notify.Add, block, nil, modifiedByID)
 			}
@@ -289,7 +283,6 @@ func (a *App) UndeleteBlock(blockID string, modifiedBy string) (*model.Block, er
 	a.blockChangeNotifier.Enqueue(func() error {
 		a.wsAdapter.BroadcastBlockChange(board.TeamID, block)
 		a.metrics.IncrementBlocksInserted(1)
-		a.webhook.NotifyUpdate(block)
 		a.notifyBlockChanged(notify.Add, block, nil, modifiedBy)
 
 		return nil

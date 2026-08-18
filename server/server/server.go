@@ -24,7 +24,6 @@ import (
 	"github.com/artipop/xciii/server/services/scheduler"
 	"github.com/artipop/xciii/server/services/store"
 	"github.com/artipop/xciii/server/services/store/sqlstore"
-	"github.com/artipop/xciii/server/services/webhook"
 	"github.com/artipop/xciii/server/utils"
 	"github.com/artipop/xciii/server/web"
 	"github.com/artipop/xciii/server/ws"
@@ -90,7 +89,6 @@ func New(params Params) (*Server, error) {
 		return nil, errors.New("unable to initialize the files storage")
 	}
 
-	webhookClient := webhook.NewClient(params.Cfg, params.Logger)
 
 	// Init metrics
 	instanceInfo := metrics.InstanceInfo{
@@ -120,7 +118,6 @@ func New(params Params) (*Server, error) {
 		Auth:             authenticator,
 		Store:            params.DBStore,
 		FilesBackend:     filesBackend,
-		Webhook:          webhookClient,
 		Metrics:          metricsService,
 		Notifications:    notificationService,
 		Logger:           params.Logger,

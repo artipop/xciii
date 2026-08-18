@@ -34,7 +34,6 @@ func (a *App) CreateBoardsAndBlocks(bab *model.BoardsAndBlocks, userID string, a
 		b := block
 		a.wsAdapter.BroadcastBlockChange(teamID, b)
 		a.metrics.IncrementBlocksInserted(1)
-		a.webhook.NotifyUpdate(b)
 		a.notifyBlockChanged(notify.Add, b, nil, userID)
 	}
 
@@ -84,7 +83,6 @@ func (a *App) PatchBoardsAndBlocks(pbab *model.PatchBoardsAndBlocks, userID stri
 			b := block
 			a.metrics.IncrementBlocksPatched(1)
 			a.wsAdapter.BroadcastBlockChange(teamID, b)
-			a.webhook.NotifyUpdate(b)
 			a.notifyBlockChanged(notify.Update, b, oldBlock, userID)
 		}
 

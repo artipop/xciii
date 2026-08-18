@@ -41,7 +41,6 @@ type Configuration struct {
 	FilesPath                string            `json:"filespath" mapstructure:"filespath"`
 	MaxFileSize              int64             `json:"maxfilesize" mapstructure:"maxfilesize"`
 	PrometheusAddress        string            `json:"prometheusaddress" mapstructure:"prometheusaddress"`
-	WebhookUpdate            []string          `json:"webhook_update" mapstructure:"webhook_update"`
 	Secret                   string            `json:"secret" mapstructure:"secret"`
 	SessionExpireTime        int64             `json:"session_expire_time" mapstructure:"session_expire_time"`
 	SessionRefreshTime       int64             `json:"session_refresh_time" mapstructure:"session_refresh_time"`
@@ -87,7 +86,6 @@ func ReadConfigFile(configFilePath string) (*Configuration, error) {
 	viper.SetDefault("WebPath", "./pack")
 	viper.SetDefault("FilesPath", "./files")
 	viper.SetDefault("FilesDriver", "local")
-	viper.SetDefault("WebhookUpdate", nil)
 	viper.SetDefault("SessionExpireTime", 60*60*24*30) // 30 days session lifetime
 	viper.SetDefault("SessionRefreshTime", 60*60*5)    // 5 minutes session refresh
 	viper.SetDefault("LocalOnly", false)

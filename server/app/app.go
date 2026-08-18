@@ -11,7 +11,6 @@ import (
 	"github.com/artipop/xciii/server/services/notify"
 	"github.com/artipop/xciii/server/services/permissions"
 	"github.com/artipop/xciii/server/services/store"
-	"github.com/artipop/xciii/server/services/webhook"
 	"github.com/artipop/xciii/server/utils"
 	"github.com/artipop/xciii/server/ws"
 
@@ -40,7 +39,6 @@ type Services struct {
 	Auth             *auth.Auth
 	Store            store.Store
 	FilesBackend     fileBackend
-	Webhook          *webhook.Client
 	Metrics          *metrics.Metrics
 	Notifications    *notify.Service
 	Logger           mlog.LoggerIFace
@@ -54,7 +52,6 @@ type App struct {
 	auth                *auth.Auth
 	wsAdapter           ws.Adapter
 	filesBackend        fileBackend
-	webhook             *webhook.Client
 	metrics             *metrics.Metrics
 	notifications       *notify.Service
 	logger              mlog.LoggerIFace
@@ -80,7 +77,6 @@ func New(config *config.Configuration, wsAdapter ws.Adapter, services Services) 
 		auth:                services.Auth,
 		wsAdapter:           wsAdapter,
 		filesBackend:        services.FilesBackend,
-		webhook:             services.Webhook,
 		metrics:             services.Metrics,
 		notifications:       services.Notifications,
 		logger:              services.Logger,
