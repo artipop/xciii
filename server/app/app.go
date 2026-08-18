@@ -7,7 +7,6 @@ import (
 
 	"github.com/artipop/xciii/server/auth"
 	"github.com/artipop/xciii/server/services/config"
-	"github.com/artipop/xciii/server/services/metrics"
 	"github.com/artipop/xciii/server/services/notify"
 	"github.com/artipop/xciii/server/services/permissions"
 	"github.com/artipop/xciii/server/services/store"
@@ -39,7 +38,6 @@ type Services struct {
 	Auth             *auth.Auth
 	Store            store.Store
 	FilesBackend     fileBackend
-	Metrics          *metrics.Metrics
 	Notifications    *notify.Service
 	Logger           mlog.LoggerIFace
 	Permissions      permissions.PermissionsService
@@ -52,7 +50,6 @@ type App struct {
 	auth                *auth.Auth
 	wsAdapter           ws.Adapter
 	filesBackend        fileBackend
-	metrics             *metrics.Metrics
 	notifications       *notify.Service
 	logger              mlog.LoggerIFace
 	permissions         permissions.PermissionsService
@@ -77,7 +74,6 @@ func New(config *config.Configuration, wsAdapter ws.Adapter, services Services) 
 		auth:                services.Auth,
 		wsAdapter:           wsAdapter,
 		filesBackend:        services.FilesBackend,
-		metrics:             services.Metrics,
 		notifications:       services.Notifications,
 		logger:              services.Logger,
 		permissions:         services.Permissions,

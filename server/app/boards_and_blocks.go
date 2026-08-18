@@ -33,7 +33,6 @@ func (a *App) CreateBoardsAndBlocks(bab *model.BoardsAndBlocks, userID string, a
 	for _, block := range newBab.Blocks {
 		b := block
 		a.wsAdapter.BroadcastBlockChange(teamID, b)
-		a.metrics.IncrementBlocksInserted(1)
 		a.notifyBlockChanged(notify.Add, b, nil, userID)
 	}
 
@@ -81,7 +80,6 @@ func (a *App) PatchBoardsAndBlocks(pbab *model.PatchBoardsAndBlocks, userID stri
 			}
 
 			b := block
-			a.metrics.IncrementBlocksPatched(1)
 			a.wsAdapter.BroadcastBlockChange(teamID, b)
 			a.notifyBlockChanged(notify.Update, b, oldBlock, userID)
 		}
@@ -119,7 +117,6 @@ func (a *App) DeleteBoardsAndBlocks(dbab *model.DeleteBoardsAndBlocks, userID st
 	a.blockChangeNotifier.Enqueue(func() error {
 		for _, block := range blocks {
 			a.wsAdapter.BroadcastBlockDelete(firstBoard.TeamID, block.ID, block.BoardID)
-			a.metrics.IncrementBlocksDeleted(1)
 			a.notifyBlockChanged(notify.Update, block, block, userID)
 		}
 

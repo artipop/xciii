@@ -59,9 +59,8 @@ in a browser and as a Mattermost plugin.
   `mattn/go-sqlite3` swaps itself for `static_mock.go`, which registers the
   `sqlite3` driver name and answers every `Open` with "Binary was compiled with
   'CGO_ENABLED=0' […] This is a stub". Nothing is wrong with the binary until it
-  touches the database. Only two other packages in the tree use cgo at all —
-  `prometheus/client_golang` for a Darwin memory collector and
-  `tailscale/certstore` — and both fall back to pure Go, so SQLite and Wails are
+  touches the database. One other package in the tree uses cgo at all —
+  `tailscale/certstore` — and it falls back to pure Go, so SQLite and Wails are
   the whole of the requirement.
 - **A packaged app is not a child of a shell**, and that is the other difference
   `wails3 dev` hides. launchd hands the `.app` `PATH=/usr/bin:/bin:/usr/sbin:/sbin`

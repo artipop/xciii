@@ -18,7 +18,6 @@ import (
 	appModel "github.com/artipop/xciii/server/model"
 	"github.com/artipop/xciii/server/services/audit"
 	"github.com/artipop/xciii/server/services/config"
-	"github.com/artipop/xciii/server/services/metrics"
 	"github.com/artipop/xciii/server/services/notify"
 	"github.com/artipop/xciii/server/services/notify/notifylogger"
 	"github.com/artipop/xciii/server/services/scheduler"
@@ -27,7 +26,6 @@ import (
 	"github.com/artipop/xciii/server/utils"
 	"github.com/artipop/xciii/server/web"
 	"github.com/artipop/xciii/server/ws"
-	"github.com/oklog/run"
 
 	"github.com/artipop/xciii/server/mlog"
 	"github.com/artipop/xciii/server/services/filestore"
@@ -35,7 +33,6 @@ import (
 
 const (
 	cleanupSessionTaskFrequency = 10 * time.Minute
-	updateMetricsTaskFrequency  = 15 * time.Minute
 
 	minSessionExpiryTime = int64(60 * 60 * 24 * 31) // 31 days
 
@@ -50,9 +47,6 @@ type Server struct {
 	filesBackend           filestore.FileBackend
 	logger                 mlog.LoggerIFace
 	cleanUpSessionsTask    *scheduler.ScheduledTask
-	metricsServer          *metrics.Service
-	metricsService         *metrics.Metrics
-	metricsUpdaterTask     *scheduler.ScheduledTask
 	auditService           *audit.Audit
 	notificationService    *notify.Service
 	servicesStartStopMutex sync.Mutex
@@ -89,16 +83,6 @@ func New(params Params) (*Server, error) {
 		return nil, errors.New("unable to initialize the files storage")
 	}
 
-
-	// Init metrics
-	instanceInfo := metrics.InstanceInfo{
-		Version:        appModel.CurrentVersion,
-		BuildNum:       appModel.BuildNumber,
-		Edition:        appModel.Edition,
-		InstallationID: os.Getenv("MM_CLOUD_INSTALLATION_ID"),
-	}
-	metricsService := metrics.NewMetrics(instanceInfo)
-
 	// Init audit
 	auditService, errAudit := audit.NewAudit()
 	if errAudit != nil {
@@ -118,7 +102,6 @@ func New(params Params) (*Server, error) {
 		Auth:             authenticator,
 		Store:            params.DBStore,
 		FilesBackend:     filesBackend,
-		Metrics:          metricsService,
 		Notifications:    notificationService,
 		Logger:           params.Logger,
 		Permissions:      params.PermissionsService,
@@ -152,8 +135,6 @@ func New(params Params) (*Server, error) {
 		webServer:           webServer,
 		store:               params.DBStore,
 		filesBackend:        filesBackend,
-		metricsServer:       metrics.NewMetricsServer(params.Cfg.PrometheusAddress, metricsService, params.Logger),
-		metricsService:      metricsService,
 		auditService:        auditService,
 		notificationService: notificationService,
 		logger:              params.Logger,
@@ -261,49 +242,6 @@ func (s *Server) Start() error {
 		}, cleanupSessionTaskFrequency)
 	}
 
-	metricsUpdater := func() {
-		blockCounts, err := s.store.GetBlockCountsByType()
-		if err != nil {
-			s.logger.Error("Error updating metrics", mlog.String("group", "blocks"), mlog.Err(err))
-			return
-		}
-		s.logger.Debug("Block metrics collected", mlog.Map("block_counts", blockCounts))
-		for blockType, count := range blockCounts {
-			s.metricsService.ObserveBlockCount(blockType, count)
-		}
-		boardCount, err := s.store.GetBoardCount()
-		if err != nil {
-			s.logger.Error("Error updating metrics", mlog.String("group", "boards"), mlog.Err(err))
-			return
-		}
-		s.logger.Debug("Board metrics collected", mlog.Int("board_count", boardCount))
-		s.metricsService.ObserveBoardCount(boardCount)
-		teamCount, err := s.store.GetTeamCount()
-		if err != nil {
-			s.logger.Error("Error updating metrics", mlog.String("group", "teams"), mlog.Err(err))
-			return
-		}
-		s.logger.Debug("Team metrics collected", mlog.Int("team_count", teamCount))
-		s.metricsService.ObserveTeamCount(teamCount)
-	}
-	// metricsUpdater()   Calling this immediately causes integration unit tests to fail.
-	s.metricsUpdaterTask = scheduler.CreateRecurringTask("updateMetrics", metricsUpdater, updateMetricsTaskFrequency)
-
-	var group run.Group
-	if s.config.PrometheusAddress != "" {
-		group.Add(func() error {
-			if err := s.metricsServer.Run(); err != nil {
-				return errors.Wrap(err, "PromServer Run")
-			}
-			return nil
-		}, func(error) {
-			_ = s.metricsServer.Shutdown()
-		})
-
-		if err := group.Run(); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
@@ -319,10 +257,6 @@ func (s *Server) Shutdown() error {
 
 	if s.cleanUpSessionsTask != nil {
 		s.cleanUpSessionsTask.Cancel()
-	}
-
-	if s.metricsUpdaterTask != nil {
-		s.metricsUpdaterTask.Cancel()
 	}
 
 	if err := s.auditService.Shutdown(); err != nil {

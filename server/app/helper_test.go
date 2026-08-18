@@ -7,7 +7,6 @@ import (
 
 	"github.com/artipop/xciii/server/auth"
 	"github.com/artipop/xciii/server/services/config"
-	"github.com/artipop/xciii/server/services/metrics"
 	permissionsMocks "github.com/artipop/xciii/server/services/permissions/mocks"
 	"github.com/artipop/xciii/server/services/store/mockstore"
 	"github.com/artipop/xciii/server/ws"
@@ -37,7 +36,6 @@ func SetupTestHelper(t *testing.T) (*TestHelper, func()) {
 	logger, _ := mlog.NewLogger()
 	sessionToken := "TESTTOKEN"
 	wsserver := ws.NewServer(auth, sessionToken, false, logger, store)
-	metricsService := metrics.NewMetrics(metrics.InstanceInfo{})
 
 	permissions := permissionsMocks.NewMockPermissionsService(ctrl)
 
@@ -45,7 +43,6 @@ func SetupTestHelper(t *testing.T) (*TestHelper, func()) {
 		Auth:             auth,
 		Store:            store,
 		FilesBackend:     filesBackend,
-		Metrics:          metricsService,
 		Logger:           logger,
 		SkipTemplateInit: true,
 		Permissions:      permissions,

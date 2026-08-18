@@ -40,7 +40,6 @@ type Configuration struct {
 	FilesS3Config            AmazonS3Config    `json:"filess3config" mapstructure:"filess3config"`
 	FilesPath                string            `json:"filespath" mapstructure:"filespath"`
 	MaxFileSize              int64             `json:"maxfilesize" mapstructure:"maxfilesize"`
-	PrometheusAddress        string            `json:"prometheusaddress" mapstructure:"prometheusaddress"`
 	Secret                   string            `json:"secret" mapstructure:"secret"`
 	SessionExpireTime        int64             `json:"session_expire_time" mapstructure:"session_expire_time"`
 	SessionRefreshTime       int64             `json:"session_refresh_time" mapstructure:"session_refresh_time"`
@@ -98,7 +97,6 @@ func ReadConfigFile(configFilePath string) (*Configuration, error) {
 	viper.SetDefault("EnableDataRetention", false)
 	viper.SetDefault("FeatureFlags", map[string]string{})
 	viper.SetDefault("DataRetentionDays", 365) // 1 year is default
-	viper.SetDefault("PrometheusAddress", "")
 	viper.SetDefault("TeammateNameDisplay", "username")
 	viper.SetDefault("ShowEmailAddress", false)
 	viper.SetDefault("ShowFullName", false)
