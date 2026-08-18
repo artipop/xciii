@@ -41,6 +41,9 @@
 | --- | --- | --- |
 | `octoClient`: `getUsersList`, `getBlocksWithParent`, `getBlocksWithType`, `patchBlocks`, `getBlocksForBoard`, `createBoard`, `getUserBlockSubscriptions` | `1565b30` | ни одного вызова из живого кода; четыре из них вдобавок бьют в маршруты, которых на сервере уже нет (`/teams/{t}/blocks`, `/teams/{t}/boards/{b}`, `POST /teams/{t}/boards`) |
 | `octoClient.searchLinkableBoards` + `GET /teams/{teamID}/boards/search/linkable` + `TestPermissionsSearchTeamLinkableBoards` | `1565b30` | доски, привязываемые к каналу Mattermost; обработчик и так отвечал «not permitted in standalone mode» |
+| канальная половина «Поделиться»: `searchUserChannels`, `getChannel`, `store/channels.ts`, `onLinkBoard` и диалог привязки в `shareBoard.tsx`, унии `IUser \| Channel` | `d49322a` | список опций строит `loadShareOptions` из `searchTeamUsers` — положить в него `Channel` было нечему; людская половина диалога цела |
+| insights: `getMyTopBoards`, `getTeamTopBoards`, `src/insights/` | `d49322a` | вызывающих нет, маршрутов на сервере тоже давно нет |
+| onboarding: `prepareOnboarding`, `POST /teams/{teamID}/onboard`, `app.PrepareOnboardingTour`, `pages/welcome/`, `src/onboardingTour/index.ts`, `TestPermissionsOnboard` | `d49322a` | оба вызывающих недостижимы — у `welcomePage` нет маршрута, `globalHeader` не монтируется. **Сам тур жив**: `components/onboardingTour/` — другое, прогресс хранится через `patchUserConfig` |
 
 ## Что осталось стоять рядом с удалённым
 
