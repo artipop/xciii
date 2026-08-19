@@ -37,10 +37,10 @@ type Tracer struct {
 }
 
 // newTracer opens the trace file when tracing is on. Tracing is enabled by the
-// acp config (`debugLog`) or by XCIII_ACP_DEBUG in the environment, which
+// acp config (`debugLog`) or by ACP_DEBUG in the environment, which
 // is the one that can be flipped without editing a file the app is reading.
 func newTracer(cfg Config, log *slog.Logger) *Tracer {
-	if !cfg.DebugLog && os.Getenv("XCIII_ACP_DEBUG") == "" {
+	if !cfg.DebugLog && os.Getenv("ACP_DEBUG") == "" {
 		return nil
 	}
 	path := cfg.DebugLogPath
