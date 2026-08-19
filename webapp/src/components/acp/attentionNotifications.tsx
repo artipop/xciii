@@ -4,7 +4,14 @@ import {useIntl} from '../../intl'
 
 import CompassIcon from '../../widgets/icons/compassIcon'
 
-import AttentionAnswers from './attentionAnswers'
+import {useAppSelector} from '../../store/hooks'
+import {getMe} from '../../store/users'
+import {getTeamMode} from '../../store/clientConfig'
+import {getUserBlockSubscriptions} from '../../store/initialLoad'
+import {getCards} from '../../store/cards'
+import {getBoards} from '../../store/boards'
+import {IUser} from '../../user'
+import {Subscription} from '../../wsclient'
 
 import {
     Attention,
@@ -15,6 +22,9 @@ import {
     openWait,
     useAttention,
 } from './attention'
+import AttentionAnswers from './attentionAnswers'
+
+import {waitAudience, waitIsMine} from './attentionAudience'
 
 import './attentionNotifications.scss'
 
@@ -71,6 +81,23 @@ const AttentionNotifications = () => {
     const waiting = useAttention()
     const [busy, setBusy] = createSignal('')
 
+    // Whose wait this is. On an install of one person the question does not
+    // arise; in a team a box saying "an agent is waiting" about somebody else's
+    // card is the noise this is meant to be the opposite of
+    // (attentionAudience.ts, docs/teamwork.md).
+    const teamMode = useAppSelector<boolean>(getTeamMode)
+    const me = useAppSelector<IUser|null>(getMe)
+    const cards = useAppSelector(getCards)
+    const boards = useAppSelector(getBoards)
+    const following = useAppSelector<Subscription[]>(getUserBlockSubscriptions)
+
+    const mine = (a: Attention): boolean => waitIsMine({
+        teamMode: teamMode(),
+        myId: me()?.id,
+        audience: waitAudience(a.cardId ? cards()[a.cardId] : undefined, a.boardId ? boards()[a.boardId] : undefined),
+        following: Boolean(a.cardId) && following().some((s) => s.blockId === a.cardId),
+    })
+
     // Deduped by what identifies a wait, not by the object: the list is rebuilt
     // from events and from a full reload when the socket reconnects, and one
     // wait drawn twice is the notification a person cannot tell from a second
@@ -81,7 +108,7 @@ const AttentionNotifications = () => {
         }
         const byKey = new Map<string, Attention>()
         for (const a of waiting()) {
-            if (!a.acked) {
+            if (!a.acked && mine(a)) {
                 byKey.set(keyOf(a), a)
             }
         }

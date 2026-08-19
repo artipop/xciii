@@ -69,11 +69,21 @@ const BoardPage = (props: Props): JSX.Element => {
         actions.teams.setTeam(teamId())
     })
 
-    const loadAction = (id: string) => {
+    const loadAction = async (id: string) => {
         if (props.readonly) {
             return actions.load.initialReadOnlyLoad(id)
         }
-        return actions.load.initialLoad()
+        const loaded = await actions.load.initialLoad()
+
+        // What this person asked to be told about. Read here rather than in the
+        // load itself because it is keyed by who they are, which the load has
+        // only just found out — and what reads it is who an agent's wait is
+        // announced to (attention.ts, docs/teamwork.md).
+        const myId = me()?.id
+        if (myId) {
+            await actions.users.fetchUserBlockSubscriptions(myId)
+        }
+        return loaded
     }
 
     useWebsockets(teamId, (wsClient) => {

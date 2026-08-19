@@ -2,12 +2,22 @@ import {render, screen, waitFor} from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
-import {wrapIntl} from '../../testUtils'
+import {mockAppStore, wrapIntl} from '../../testUtils'
+import {AppStoreProvider, RootState} from '../../store'
 
 import {setAgentNotifications} from './attention'
 import AttentionNotifications from './attentionNotifications'
 
 const anyWindow = window as any
+
+// The stack reads the store now, to work out whose wait each one is
+// (attentionAudience.ts). An install of one person is the default here, which
+// is the case every test below is about: there is nobody else to address.
+const open = (state: Partial<RootState> = {}) => render(() => wrapIntl(() => (
+    <AppStoreProvider store={mockAppStore(state)}>
+        <AttentionNotifications/>
+    </AppStoreProvider>
+)))
 
 function attentionBindings(waiting: any[] = []) {
     return {
@@ -60,7 +70,7 @@ describe('components/acp/attentionNotifications', () => {
     it('says nothing until an agent is waiting', async () => {
         anyWindow.go = {main: {App: attentionBindings()}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
 
         expect(screen.queryByRole('alert')).toBeNull()
     })
@@ -70,7 +80,7 @@ describe('components/acp/attentionNotifications', () => {
     it('names the card and the agent that is waiting', async () => {
         anyWindow.go = {main: {App: attentionBindings()}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
         handlers['acp:attention'](waitingOnCard)
 
@@ -83,7 +93,7 @@ describe('components/acp/attentionNotifications', () => {
     it('takes the notification back when the wait ends', async () => {
         anyWindow.go = {main: {App: attentionBindings()}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
         handlers['acp:attention'](waitingOnCard)
         expect(await screen.findByRole('alert')).toBeInTheDocument()
@@ -98,7 +108,7 @@ describe('components/acp/attentionNotifications', () => {
     it('says what is being asked and offers the terminal rather than an answer', async () => {
         anyWindow.go = {main: {App: attentionBindings()}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
         handlers['acp:attention'](waitingOnCard)
 
@@ -114,7 +124,7 @@ describe('components/acp/attentionNotifications', () => {
         const bindings = attentionBindings()
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
         handlers['acp:attention'](waitingOnCard)
 
@@ -131,7 +141,7 @@ describe('components/acp/attentionNotifications', () => {
     it('says it again when the same agent stops with a new question', async () => {
         anyWindow.go = {main: {App: attentionBindings()}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
         handlers['acp:attention'](waitingOnCard)
 
@@ -151,7 +161,7 @@ describe('components/acp/attentionNotifications', () => {
         const bindings = attentionBindings()
         anyWindow.go = {main: {App: bindings}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
         handlers['acp:attention'](waitingOnCard)
 
@@ -167,7 +177,7 @@ describe('components/acp/attentionNotifications', () => {
     it('stays quiet when the same wait is raised again', async () => {
         anyWindow.go = {main: {App: attentionBindings()}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
         handlers['acp:attention'](waitingOnCard)
 
@@ -188,7 +198,7 @@ describe('components/acp/attentionNotifications', () => {
     it('says it again when the terminal comes back to life', async () => {
         anyWindow.go = {main: {App: attentionBindings()}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
         handlers['acp:attention'](waitingOnCard)
 
@@ -206,7 +216,7 @@ describe('components/acp/attentionNotifications', () => {
     it('starts quiet about a wait somebody has already seen', async () => {
         anyWindow.go = {main: {App: attentionBindings([{...waitingOnCard, acked: true}])}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
 
         expect(screen.queryByRole('alert')).toBeNull()
@@ -216,7 +226,7 @@ describe('components/acp/attentionNotifications', () => {
         anyWindow.go = {main: {App: attentionBindings([waitingOnCard])}}
         setAgentNotifications(false)
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
         handlers['acp:attention'](waitingOnCard)
 
@@ -229,7 +239,7 @@ describe('components/acp/attentionNotifications', () => {
     it('counts the waits and draws each of them once', async () => {
         anyWindow.go = {main: {App: attentionBindings()}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
         handlers['acp:attention'](waitingOnCard)
         handlers['acp:attention']({...waitingOnCard, key: 'term-2', terminalId: 'term-2', cardId: 'card-3', title: 'Починить логин'})
@@ -246,12 +256,45 @@ describe('components/acp/attentionNotifications', () => {
     // A terminal window is the app too, so it drew the whole stack as well:
     // three windows open meant one wait announced three times, and the copy in
     // the terminal's own window covered the question it was announcing.
+    // In a team the same box would tell everybody about every agent, including
+    // the ones working somebody else's card. What decides is the card's own
+    // «Кто занимается» (attentionAudience.ts, docs/teamwork.md).
+    it('says nothing to a teammate about a card assigned to somebody else', async () => {
+        anyWindow.go = {main: {App: attentionBindings()}}
+
+        open({
+            clientConfig: {value: {teamMode: true}} as any,
+            users: {me: {id: 'me'}} as any,
+            boards: {boards: {'board-1': {id: 'board-1', cardProperties: [{id: 'who', name: 'Кто занимается', type: 'person', options: []}]}}} as any,
+            cards: {cards: {'card-2': {id: 'card-2', fields: {properties: {who: 'somebody-else'}}}}} as any,
+        })
+        await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
+        handlers['acp:attention']({...waitingOnCard, boardId: 'board-1'})
+
+        await waitFor(() => expect(screen.queryByText(/clauuus/)).toBeNull())
+    })
+
+    it('tells the teammate the card is assigned to', async () => {
+        anyWindow.go = {main: {App: attentionBindings()}}
+
+        open({
+            clientConfig: {value: {teamMode: true}} as any,
+            users: {me: {id: 'me'}} as any,
+            boards: {boards: {'board-1': {id: 'board-1', cardProperties: [{id: 'who', name: 'Кто занимается', type: 'person', options: []}]}}} as any,
+            cards: {cards: {'card-2': {id: 'card-2', fields: {properties: {who: 'me'}}}}} as any,
+        })
+        await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
+        handlers['acp:attention']({...waitingOnCard, boardId: 'board-1'})
+
+        expect(await screen.findByText(/clauuus/)).toBeInTheDocument()
+    })
+
     it('says nothing in a window that is drawing a terminal', async () => {
         anyWindow.go = {main: {App: attentionBindings([waitingOnCard])}}
         const where = window.location.pathname
         window.history.replaceState({}, '', '/acp/terminal/term-1')
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
         await waitFor(() => expect(handlers['acp:attention']).toBeDefined())
         handlers['acp:attention'](waitingOnCard)
 
@@ -264,7 +307,7 @@ describe('components/acp/attentionNotifications', () => {
     it('starts from what is already waiting', async () => {
         anyWindow.go = {main: {App: attentionBindings([waitingOnCard])}}
 
-        render(() => wrapIntl(() => <AttentionNotifications/>))
+        open()
 
         expect(await screen.findByText('Выкатить релиз')).toBeInTheDocument()
     })

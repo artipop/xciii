@@ -367,6 +367,20 @@ class OctoClient {
         })
     }
 
+    // Which blocks this person has asked to be told about. The two calls that
+    // change that list have been here all along; this is the one that reads it,
+    // and it is what makes the store's list a fact rather than an empty
+    // placeholder (docs/teamwork.md).
+    async getUserBlockSubscriptions(userId: string): Promise<Subscription[]> {
+        const path = `/api/v2/subscriptions/${userId}`
+        const response = await fetch(this.getBaseURL() + path, {headers: this.headers()})
+        if (response.status !== 200) {
+            return []
+        }
+
+        return (await this.getJson(response, [])) as Subscription[]
+    }
+
     async unfollowBlock(blockId: string, blockType: string, userId: string): Promise<Response> {
         return fetch(this.getBaseURL() + `/api/v2/subscriptions/${blockId}/${userId}`, {
             method: 'DELETE',

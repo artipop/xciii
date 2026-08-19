@@ -387,6 +387,17 @@ thing to do about it, «Открыть терминал», because the answer be
 interface the agent drew it in. `components/acp/attention.ts` is the one
 subscription behind all of it.
 
+**A wait has an addressee once there is more than one person**
+(`attentionAudience.ts`, `docs/teamwork.md`). The card answers it: «Кто
+занимается» is the field the whole board says who a card belongs to in, and it
+already tells a person from an agent. So a wait on a card assigned to a person
+is announced to that person; a card assigned to an agent, or to nobody, names no
+person and its wait goes to everybody — an agent stage is the ordinary case, and
+a wait nobody is told about is a wait nobody answers. Following the card is the
+other way in. It is worked out on the page rather than in Go because the board
+has the card loaded already, and the Go side would be reading one per wait; and
+on an install of one person the question is not asked at all.
+
 **Being told is a thing that happens once** (`internal/acp/attentionack.go`).
 The ✕ and «Открыть терминал» are the same answer to the same question — whether
 anybody still needs telling — and both call `AckAttention(key)`. The ack is

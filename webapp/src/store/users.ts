@@ -87,8 +87,16 @@ export const createUsersActions = ({setState, deps}: StoreContext) => ({
             })
         }
     },
-    fetchUserBlockSubscriptions() {
-        setState('users', 'blockSubscriptions', [])
+
+    // What this person has asked to be told about. It was a stub setting an
+    // empty list, which made every reader of it wrong in the same direction:
+    // nobody follows anything, so nobody is told (docs/teamwork.md).
+    async fetchUserBlockSubscriptions(userId: string): Promise<void> {
+        try {
+            setState('users', 'blockSubscriptions', await deps.client.getUserBlockSubscriptions(userId))
+        } catch (e) {
+            setState('users', 'blockSubscriptions', [])
+        }
     },
 })
 
