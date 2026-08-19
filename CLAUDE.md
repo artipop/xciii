@@ -159,6 +159,19 @@ is owed rather than pretending to take effect. Then `/wails/` and both sockets
 require a live board session (`requireSession`), read off a cookie the page
 writes beside the token it already keeps: the Wails runtime makes its own
 fetches, and a browser lets nobody set a header on a WebSocket handshake.
+**The runtime module itself is the one exception** (`openToEverybody`): it is a
+script with no authority, and every capability it offers goes through the POST
+beside it, which stays guarded. Refusing it refused the login page the ability
+to *become* a logged-in one — a browser caches a rejected dynamic import, and
+logging in navigates without reloading, so one bad moment outlived the session
+it was about.
+
+The guards below are keyed to the authority the page was published under, and
+that authority includes **the loopback names for it**: `sameOrigin` asks
+`hostAllowed`, the same function the Host header goes through. Matching the
+origin as a literal string made `localhost:8080` and `127.0.0.1:8080` two
+different sites, so opening the other one loaded the page and then refused every
+bound method with a 403, with nothing on screen to say why.
 
 The person at the machine keeps their identity across that switch. Everything a
 single-user install made names the user id `single-user`, so turning the mode on
