@@ -106,6 +106,8 @@ class WSClient {
     onUnfollowBlock: FollowChangeHandler = () => {}
     private notificationDelay = 100
     private reopenDelay = 3000
+    // When the current socket opened, so a closure can be told from a refusal.
+    private openedAt = 0
     private reopenRetryCount = 0
     private reopenMaxRetries = 10
     private updatedData: UpdatedData = {Blocks: [], Categories: [], BoardCategories: [], Boards: [], BoardMembers: [], CategoryOrder: []}
@@ -299,7 +301,7 @@ class WSClient {
         ws.onopen = () => {
             Utils.log('WSClient webSocket opened.')
             this.state = 'open'
-            this.reopenRetryCount = 0
+            this.openedAt = Date.now()
 
             // if has a token defined when connecting, authenticate
             if (this.token) {
@@ -331,6 +333,18 @@ class WSClient {
                     handler(this, 'close')
                 }
                 this.state = 'close'
+
+                // A socket that opened and died at once did not work: the
+                // server accepts the upgrade and then closes it when the token
+                // it was handed means nothing (server/ws/server.go — there is no
+                // error message to read, only the close). Resetting the budget
+                // on `open` therefore made a refused session reconnect for ever,
+                // three seconds apart, re-running the whole board load each time.
+                // Living longer than one retry is the evidence that the
+                // connection was real.
+                if (Date.now() - this.openedAt >= this.reopenDelay) {
+                    this.reopenRetryCount = 0
+                }
 
                 if (this.reopenRetryCount < this.reopenMaxRetries) {
                     setTimeout(() => {
