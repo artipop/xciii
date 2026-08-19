@@ -7,7 +7,6 @@ import {BlockIcons} from '../../blockIcons'
 import {Card} from '../../blocks/card'
 import {BoardView} from '../../blocks/boardView'
 import {Board} from '../../blocks/board'
-import {CommentBlock} from '../../blocks/commentBlock'
 import {AttachmentBlock} from '../../blocks/attachmentBlock'
 import {ContentBlock} from '../../blocks/contentBlock'
 import {Block, ContentBlockTypes, createBlock} from '../../blocks/block'
@@ -33,7 +32,6 @@ import type {AppStore} from '../../store'
 import CaseStamp, {isCaseStampAvailable} from '../acp/caseStamp'
 import FlowStrip, {isFlowStripAvailable} from '../acp/flowStrip'
 
-// import CommentsList from './commentsList'
 import {CardDetailProvider} from './cardDetailContext'
 import CardDetailContents from './cardDetailContents'
 import CardDetailContentsMenu from './cardDetailContentsMenu'
@@ -52,7 +50,6 @@ type Props = {
     views: BoardView[]
     cards: Card[]
     card: Card
-    comments: CommentBlock[]
     attachments: AttachmentBlock[]
     contents: Array<ContentBlock|ContentBlock[]>
     readonly: boolean
@@ -128,9 +125,6 @@ const CardDetail = (props: Props): JSX.Element => {
         }
     }
     const canEditBoardCards = useHasCurrentBoardPermissions([Permission.ManageBoardCards])
-
-    // Read by the comments list alone, which is commented out below.
-    // const canCommentBoardCards = useHasCurrentBoardPermissions([Permission.CommentBoardCards])
 
     const intl = useIntl()
 
@@ -287,25 +281,12 @@ const CardDetail = (props: Props): JSX.Element => {
                     <FlowStrip cardId={props.card.id}/>
                 </Show>
 
-                {/* Comments are commented out rather than deleted: they are a
-                    conversation between people, and this app has one person in
-                    it. What a person wants to say about a card they say to the
-                    agent, in the card's own terminal — «Обсудить с агентом» is
-                    where that thinking happens, and a second place to write
-                    prose about the same card only splits it.
-
-                    The list and its store are untouched, because the feature
-                    comes back the moment there is somebody to talk to:
-                    docs/teamwork.md says what turns it on and where it will be
-                    drawn.
-
-                <hr/>
-                <CommentsList
-                    comments={props.comments}
-                    boardId={props.card.boardId}
-                    cardId={props.card.id}
-                    readonly={props.readonly || !canCommentBoardCards()}
-                /> */}
+                {/* Comments are not here, and that is where they were. They
+                    are a conversation about the card rather than part of it —
+                    the body is what a person wrote — so they are drawn in the
+                    panel beside the card, next to the terminal, and switched
+                    on where there is a second person to have one with
+                    (cardComments.tsx, docs/teamwork.md). */}
             </div>
 
             {/* Content blocks */}

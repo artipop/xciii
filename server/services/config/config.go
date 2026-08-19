@@ -45,6 +45,12 @@ type Configuration struct {
 	SessionRefreshTime       int64             `json:"session_refresh_time" mapstructure:"session_refresh_time"`
 	LocalOnly                bool              `json:"localonly" mapstructure:"localonly"`
 	EnablePublicSharedBoards bool              `json:"enablePublicSharedBoards" mapstructure:"enablePublicSharedBoards"`
+
+	// TeamMode says this install has accounts on it. Set by the application
+	// rather than read from a file — it is the same answer the single-user
+	// token is (team.go) — and passed to the page in the client config, which
+	// is how the page knows whether a comment has anybody to be addressed to.
+	TeamMode bool `json:"teamMode" mapstructure:"teamMode"`
 	FeatureFlags             map[string]string `json:"featureFlags" mapstructure:"featureFlags"`
 	TeammateNameDisplay      string            `json:"teammate_name_display" mapstructure:"teammateNameDisplay"`
 	ShowEmailAddress         bool              `json:"show_email_address" mapstructure:"showEmailAddress"`

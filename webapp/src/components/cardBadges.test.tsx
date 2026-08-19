@@ -9,7 +9,11 @@ import {CommentBlock} from '../blocks/commentBlock'
 
 import {CheckboxBlock} from '../blocks/checkboxBlock'
 
+import {ShowUsername} from '../utils'
+
 import CardBadges from './cardBadges'
+
+const defaultConfig = {enablePublicSharedBoards: false, teammateNameDisplay: ShowUsername, featureFlags: {}, maxFileSize: 0, teamMode: false}
 
 describe('components/cardBadges', () => {
     const board = TestBlockFactory.createBoard()
@@ -76,10 +80,28 @@ describe('components/cardBadges', () => {
         ))
         expect(screen.getByTitle(/card has a description/)).toBeInTheDocument()
         expect(screen.getByTitle('Checkboxes')).toHaveTextContent('3/7')
+    })
 
-        // The card carries three comments in the store and says nothing about
-        // them: the list they would open is commented out while this app has
-        // one person in it (docs/teamwork.md).
+    // A count is an invitation to open something, and on an install of one
+    // person there is nothing to open: the panel that draws comments is off
+    // (docs/teamwork.md). The comments are in the store either way — agents
+    // write them in both modes.
+    it('says nothing about comments while one person works the board', () => {
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <CardBadges card={card}/>
+            </AppStoreProvider>,
+        ))
         expect(screen.queryByTitle('Comments')).toBeNull()
+    })
+
+    it('counts the comments once there is somebody to have said them', () => {
+        const team = mockAppStore({...state, clientConfig: {value: {...defaultConfig, teamMode: true}}})
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={team}>
+                <CardBadges card={card}/>
+            </AppStoreProvider>,
+        ))
+        expect(screen.getByTitle('Comments')).toHaveTextContent('3')
     })
 })

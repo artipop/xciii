@@ -18,4 +18,8 @@ type ClientConfig struct {
 	// Required for file upload to check the size of the file
 	// required: true
 	MaxFileSize int64 `json:"maxFileSize"`
+
+	// Whether this install has more than one person on it
+	// required: true
+	TeamMode bool `json:"teamMode"`
 }

@@ -12,6 +12,7 @@ import octoClient from '../octoClient'
 import {getCardAttachments} from '../store/attachments'
 import {getCard} from '../store/cards'
 import {getCardComments} from '../store/comments'
+import {getTeamMode} from '../store/clientConfig'
 import {getCardContents} from '../store/contents'
 import {useAppSelector, useAppStore} from '../store/hooks'
 import {Utils} from '../utils'
@@ -25,10 +26,12 @@ import Button from '../widgets/buttons/button'
 import {AttachmentBlock, createAttachmentBlock} from '../blocks/attachmentBlock'
 import {Block, createBlock} from '../blocks/block'
 import {Permission} from '../constants'
+import {useHasCurrentBoardPermissions} from '../hooks/permissions'
 
 import BoardPermissionGate from './permissions/boardPermissionGate'
 
 import CardTerminal, {isCardTerminalAvailable} from './acp/cardTerminal'
+import CardComments from './cardDetail/cardComments'
 import {cardAgentState, refreshCardAgent} from './acp/cardAgentState'
 import {refreshRegisteredAgents, registeredAgents} from './acp/agentRegistry'
 
@@ -54,12 +57,22 @@ const CardDialog = (props: Props): JSX.Element => {
     const contents = useAppSelector((state) => getCardContents(props.cardId)(state))
     const comments = useAppSelector((state) => getCardComments(props.cardId)(state))
     const attachments = useAppSelector((state) => getCardAttachments(props.cardId)(state))
+    const teamMode = useAppSelector<boolean>(getTeamMode)
+    const canCommentBoardCards = useHasCurrentBoardPermissions([Permission.CommentBoardCards])
     const intl = useIntl()
     const {actions} = useAppStore()
     const isTemplate = () => card() && card()!.fields.isTemplate
 
     const [showConfirmationDialogBox, setShowConfirmationDialogBox] = createSignal<boolean>(false)
-    const [showTerminal, setShowTerminal] = createSignal<boolean>(false)
+
+    // What the panel beside the card is showing, and '' for no panel. One panel
+    // with two things in it rather than two panels: the terminal and the
+    // comments are the same question asked of two readers — what to tell the
+    // agent about this card, and what to tell the person who comes to it later
+    // (docs/teamwork.md).
+    const [side, setSide] = createSignal<'' | 'terminal' | 'comments'>('')
+    const showTerminal = () => side() === 'terminal'
+    const toggleSide = (which: 'terminal' | 'comments') => setSide(side() === which ? '' : which)
     const makeTemplateClicked = async () => {
         const currentCard = card()
         if (!currentCard) {
@@ -247,6 +260,25 @@ const CardDialog = (props: Props): JSX.Element => {
     const offersTerminal = () => isCardTerminalAvailable() && Boolean(card()) && !props.readonly &&
         Boolean(agentState().running || agentState().resume?.available || (registeredAgents() || 0) > 0)
 
+    // Comments are a conversation between people, so they are drawn where there
+    // is a second person to have one with: an install of one person has them
+    // switched off entirely, and everything an agent writes goes on being
+    // written (docs/teamwork.md).
+    const commentsBtn = (): JSX.Element => (
+        <Show when={teamMode() && Boolean(card()) && !isTemplate()}>
+            <Button
+                icon={<CompassIcon icon='message-text-outline'/>}
+                class='cardFollowBtn cardFollowBtn--attach'
+                emphasis='gray'
+                size='medium'
+                active={side() === 'comments'}
+                onClick={() => toggleSide('comments')}
+            >
+                {intl.formatMessage({id: 'CardComments.title', defaultMessage: 'Comments'})}
+            </Button>
+        </Show>
+    )
+
     const terminalBtn = (): JSX.Element => (
         <Show when={offersTerminal()}>
             <Button
@@ -254,7 +286,7 @@ const CardDialog = (props: Props): JSX.Element => {
                 class='cardFollowBtn cardFollowBtn--attach'
                 emphasis='gray'
                 size='medium'
-                onClick={() => setShowTerminal(!showTerminal())}
+                onClick={() => toggleSide('terminal')}
             >
                 {intl.formatMessage({id: 'CardDialog.terminal', defaultMessage: 'Terminal'})}
             </Button>
@@ -268,7 +300,7 @@ const CardDialog = (props: Props): JSX.Element => {
                 class='cardDialog'
                 onClose={props.onClose}
                 toolsMenu={!props.readonly && menu()}
-                toolbar={<>{terminalBtn()}{attachBtn()}</>}
+                toolbar={<>{terminalBtn()}{commentsBtn()}{attachBtn()}</>}
             >
                 <Show when={isTemplate()}>
                     <div class='banner'>
@@ -303,7 +335,6 @@ const CardDialog = (props: Props): JSX.Element => {
                                 cards={props.cards}
                                 card={card()!}
                                 contents={contents()}
-                                comments={comments()}
                                 attachments={attachments()}
                                 readonly={props.readonly}
                                 onClose={props.onClose}
@@ -313,13 +344,26 @@ const CardDialog = (props: Props): JSX.Element => {
                         </Show>
                     </div>
 
-                    <Show when={showTerminal() && offersTerminal()}>
+                    <Show when={(showTerminal() && offersTerminal()) || side() === 'comments'}>
                         <div class='cardDialog__side'>
-                            <CardTerminal
-                                cardId={props.cardId}
-                                board={props.board}
-                                onClose={() => setShowTerminal(false)}
-                            />
+                            <Show
+                                when={side() === 'comments'}
+                                fallback={
+                                    <CardTerminal
+                                        cardId={props.cardId}
+                                        board={props.board}
+                                        onClose={() => setSide('')}
+                                    />
+                                }
+                            >
+                                <CardComments
+                                    cardId={props.cardId}
+                                    boardId={props.board.id}
+                                    comments={comments()}
+                                    readonly={props.readonly || !canCommentBoardCards()}
+                                    onClose={() => setSide('')}
+                                />
+                            </Show>
                         </div>
                     </Show>
                 </div>

@@ -18,6 +18,7 @@ exports[`components/cardBadges > should match snapshot 1`] = `
         />
       </svg>
     </span>
+    
     <span
       title="Checkboxes"
     >

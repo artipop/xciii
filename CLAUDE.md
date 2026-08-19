@@ -541,16 +541,23 @@ leaves when its CLI exits, a session cut off by a restart — and `comment_card`
 which is the agent choosing to say something. A stage's terminal writes no
 report of its own, or one piece of work would be commented twice.
 
-**And the card does not draw them, because there is one person here**
-(`docs/teamwork.md`). A comment is a thing said to somebody who will read it
-later, and the person working this board is talking to the agent instead — in
-the card's terminal, and in the talk conversation beside it. So the list and
-the badge are *commented out* in `cardDetail.tsx` and `cardBadges.tsx`, blocks,
-store and permission untouched, and they come back when there is a second
-person to say something to. What that costs meanwhile is stated where it is
-decided: the writes above still happen, and the `finish_work` summary is
-readable only in the terminal the agent said it in and in the edge conditions
-that match on it.
+**And the card draws them only where somebody can be talked to**
+(`docs/teamwork.md`). A comment is a thing said to a person who will read it
+later, and on an install of one person that is nobody: they are talking to the
+agent instead, in the card's terminal and in the talk conversation beside it. So
+the panel and the badge hang off `teamMode` in the client config — one answer
+from the Go side, the same one the board server was started with — and an
+install of one person writes comments it never draws. What that costs there is
+what it always cost: the `finish_work` summary is readable in the terminal the
+agent said it in and in the edge conditions that match on it, and nowhere else.
+
+**They are in the panel, not in the card.** The body of a card is what a person
+wrote, and the machinery has already been carried out of it; a comment is about
+the card rather than part of it, so it shares the panel the terminal has
+(`cardComments.tsx`, a second button in `cardDialog.tsx`'s toolbar). One panel
+with two things in it is the shape, because the two are one question asked of
+two readers — what to tell the agent about this card, and what to tell the
+person who comes to it later.
 
 **"Nothing happened" is state, never a comment.** A stage that would not start,
 a card refused because a person holds it, a column with no free place, a route

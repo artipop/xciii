@@ -394,4 +394,63 @@ describe('components/cardDialog', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Close the panel'}))
         expect(container.querySelector('.cardDialog__side')).toBeNull()
     })
+
+    // A comment is said to a person who reads it later, so on an install of one
+    // person there is nobody to say it to and the button is not there at all
+    // (docs/teamwork.md).
+    it('offers no comments while one person works the board', async () => {
+        render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={store}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
+                    readonly={false}
+                />
+            </AppStoreProvider>,
+        ))
+        expect(screen.queryByRole('button', {name: 'Comments'})).toBeNull()
+    })
+
+    // The comments share the terminal's panel rather than getting one of their
+    // own: they are the same question asked of the other reader.
+    it('draws the comments in the panel beside the card', async () => {
+        const comment = TestBlockFactory.createComment(card)
+        comment.title = 'проверь ветку'
+        const team = mockAppStore({
+            ...state,
+            clientConfig: {value: {teamMode: true, featureFlags: {}}},
+            comments: {comments: {[comment.id]: comment}, commentsByCard: {[card.id]: [comment]}},
+        })
+
+        const {container} = render(() => wrapDNDIntl(() =>
+            <AppStoreProvider store={team}>
+                <CardDialog
+                    board={board}
+                    activeView={boardView}
+                    views={[boardView]}
+                    cards={[card]}
+                    cardId={card.id}
+                    onClose={vi.fn()}
+                    showCard={vi.fn()}
+                    readonly={false}
+                />
+            </AppStoreProvider>,
+        ))
+
+        await userEvent.click(await screen.findByRole('button', {name: 'Comments'}))
+        expect(container.querySelector('.cardDialog__side')).not.toBeNull()
+
+        // One row for the one comment. What it says is markdown rendered
+        // through Utils, which this file mocks wholesale, so the row itself is
+        // what there is to see here.
+        expect(container.querySelectorAll('.CommentsList .comment-text').length).toBe(1)
+
+        await userEvent.click(screen.getByRole('button', {name: 'Close the panel'}))
+        expect(container.querySelector('.cardDialog__side')).toBeNull()
+    })
 })

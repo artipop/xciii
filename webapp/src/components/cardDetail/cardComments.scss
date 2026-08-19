@@ -1,0 +1,52 @@
+.CardComments {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    width: 100%;
+
+    // The head is the terminal panel's, to the pixel: the two are one panel
+    // with two things in it, and a person switching between them must not see
+    // the frame move.
+    &__head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border-subtle);
+        flex: 0 0 auto;
+    }
+
+    &__title {
+        font-weight: 600;
+    }
+
+    &__actions {
+        margin-left: auto;
+        display: flex;
+        gap: 4px;
+    }
+
+    &__button {
+        border: 0;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        line-height: 1;
+        padding: 4px 6px;
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+    }
+
+    // The list scrolls on its own, so the panel keeps the dialog's height and
+    // the newest comment is reachable without the card travelling with it.
+    &__body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 12px;
+    }
+}

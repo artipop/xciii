@@ -273,6 +273,8 @@
   "CardBadges.title-checkboxes": "Checkboxes",
   "CardBadges.title-comments": "Comments",
   "CardBadges.title-description": "This card has a description",
+  "CardComments.close": "Close the panel",
+  "CardComments.title": "Comments",
   "CardDetail.Attach": "Attach",
   "CardDetail.add-content": "Add content",
   "CardDetail.add-icon": "Add icon",

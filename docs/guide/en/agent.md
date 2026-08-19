@@ -283,9 +283,12 @@ The branch and the directory are in the line under the card title; where the
 card stands on its route and what it waits for — in the route strip; the
 conversation with the agent — in the terminal panel beside the card.
 
-There are no comments on cards at the moment: the app is built for one person,
-and everything that used to be written into a comment is either shown on the
-card itself or said by the agent in the terminal.
+Comments appear once the install is
+[working as a team](./settings/team.md): the card's toolbar grows a
+**«Комментарии»** button, which opens the same panel on the right that the
+terminal uses, and the card's face shows a badge with their count. While one
+person works the board there are none: everything that used to be written into a
+comment is either shown on the card itself or said by the agent in the terminal.
 
 If a stage could not start — no project found, the column is busy, the route
 has no transition — the reason is shown in amber on the route strip and

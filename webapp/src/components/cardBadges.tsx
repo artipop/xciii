@@ -5,8 +5,11 @@ import {useIntl} from '../intl'
 import {Card} from '../blocks/card'
 import {useAppSelector} from '../store/hooks'
 import {getCardContents} from '../store/contents'
+import {getCardComments} from '../store/comments'
+import {getTeamMode} from '../store/clientConfig'
 import {ContentBlock} from '../blocks/contentBlock'
 import {CommentBlock} from '../blocks/commentBlock'
+import MessageIcon from '../widgets/icons/message'
 import TextIcon from '../widgets/icons/text'
 import CheckIcon from '../widgets/icons/check'
 import {Utils} from '../utils'
@@ -74,13 +77,14 @@ const calculateBadges = (contents: ContentsType, comments: CommentBlock[]): Badg
 const CardBadges = (props: Props) => {
     const contents = useAppSelector((state) => getCardContents(props.card.id)(state))
 
-    // No comment badge while this app has one person in it (docs/teamwork.md):
-    // the list is commented out in cardDetail, so a count on the card's face
-    // would be a number pointing at something nobody can open. Agents go on
-    // writing comments — they are just not what the card advertises. Which is
-    // why the comments arrive here as an empty list rather than from
-    // `getCardComments`, and why the badge below is commented out with them.
-    const badges = createMemo(() => calculateBadges(contents(), []))
+    // The comment count is drawn where a comment has somebody to be addressed
+    // to: an install of one person has the panel switched off, so a number on
+    // the card's face would point at something nobody can open (docs/
+    // teamwork.md). Agents write comments in either mode — they are just not
+    // what the card advertises while nobody can read them.
+    const teamMode = useAppSelector<boolean>(getTeamMode)
+    const comments = useAppSelector((state) => getCardComments(props.card.id)(state))
+    const badges = createMemo(() => calculateBadges(contents(), teamMode() ? comments() : []))
     const intl = useIntl()
 
     return (
@@ -91,14 +95,12 @@ const CardBadges = (props: Props) => {
                         <TextIcon/>
                     </span>
                 </Show>
-                {/*
                 <Show when={badges().comments > 0}>
                     <span title={intl.formatMessage({id: 'CardBadges.title-comments', defaultMessage: 'Comments'})}>
                         <MessageIcon/>
                         {badges().comments}
                     </span>
                 </Show>
-                */}
                 <Show when={badges().checkboxes.total > 0}>
                     <span title={intl.formatMessage({id: 'CardBadges.title-checkboxes', defaultMessage: 'Checkboxes'})}>
                         <CheckIcon/>
