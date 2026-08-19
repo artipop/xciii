@@ -10,6 +10,7 @@ import AppLogoIcon from '../../widgets/icons/appLogo'
 import Menu from '../../widgets/menu'
 import MenuWrapper from '../../widgets/menuWrapper'
 import {getMe} from '../../store/users'
+import {getTeamMode} from '../../store/clientConfig'
 import {useAppSelector, useAppStore} from '../../store/hooks'
 
 import ModalWrapper from '../modalWrapper'
@@ -27,6 +28,7 @@ const SidebarUserMenu = () => {
     const navigate = useNavigate()
     const [showRegistrationLinkDialog, setShowRegistrationLinkDialog] = createSignal(false)
     const user = useAppSelector<IUser|null>(getMe)
+    const teamMode = useAppSelector<boolean>(getTeamMode)
     const intl = useIntl()
 
     return (
@@ -35,7 +37,13 @@ const SidebarUserMenu = () => {
                 <MenuWrapper
                     menu={
                         <Menu>
-                            <Show when={user() && user()!.id !== 'single-user'}>
+                            {/* An account's own menu — the name, logging out,
+                                the password, the invite — is drawn where there
+                                are accounts. It used to ask the id, which
+                                stopped being the question once the person at
+                                the machine registered under it
+                                (docs/teamwork.md). */}
+                            <Show when={user() && teamMode()}>
                                 <Menu.Label><b>{user()!.username}</b></Menu.Label>
                                 <Menu.Text
                                     id='logout'

@@ -49,6 +49,9 @@ describe('components/cardDialog', () => {
     card.createdBy = 'user-id-1'
 
     const state = {
+        // One person by default, which is what an install is until somebody
+        // turns team mode on: the tests about what a team offers say so
+        // themselves (docs/teamwork.md).
         clientConfig: {
             value: {},
         },
@@ -277,8 +280,11 @@ describe('components/cardDialog', () => {
     })
 
     test('return cardDialog menu content and do a copy Link', async () => {
+        // A link to a card is worth copying where somebody else can open it,
+        // so this control belongs to a team install (docs/teamwork.md).
+        const team = mockAppStore({...state, clientConfig: {value: {teamMode: true}}})
         render(() => wrapDNDIntl(() =>
-            <AppStoreProvider store={store}>
+            <AppStoreProvider store={team}>
                 <CardDialog
                     board={board}
                     activeView={boardView}

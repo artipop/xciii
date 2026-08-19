@@ -141,6 +141,7 @@ describe('src/components/workspace', () => {
             value: {
                 enablePublicSharedBoards: true,
                 teammateNameDisplay: 'username',
+                teamMode: true,
             },
         },
         contents: {
@@ -259,6 +260,7 @@ describe('src/components/workspace', () => {
                 value: {
                     enablePublicSharedBoards: true,
                     teammateNameDisplay: 'username',
+                    teamMode: true,
                 },
             },
             sidebar: {
@@ -344,6 +346,7 @@ describe('src/components/workspace', () => {
                 value: {
                     enablePublicSharedBoards: true,
                     teammateNameDisplay: 'username',
+                    teamMode: true,
                 },
             },
             contents: {

@@ -86,7 +86,7 @@ const PersonSelector = (props: Props): JSX.Element => {
                         src={profileImg}
                     />
                 </Show>
-                {personName(intl, user, clientConfig().teammateNameDisplay)}
+                {personName(intl, user, clientConfig().teammateNameDisplay, clientConfig().teamMode)}
                 <GuestBadge show={Boolean(user?.is_guest)}/>
 
                 {/* Only the single-person field: a multi one is a row of chips

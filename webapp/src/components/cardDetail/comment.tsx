@@ -14,6 +14,7 @@ import Menu from '../../widgets/menu'
 import MenuWrapper from '../../widgets/menuWrapper'
 import {getUser} from '../../store/users'
 import {useAppSelector} from '../../store/hooks'
+import {getTeamMode} from '../../store/clientConfig'
 import useMomentLocale from '../../hooks/momentLocale'
 import Tooltip from '../../widgets/tooltip'
 import GuestBadge from '../../widgets/guestBadge'
@@ -31,6 +32,11 @@ const Comment: Component<Props> = (props: Props) => {
     const intl = useIntl()
     const html = () => Utils.htmlFromMarkdown(props.comment.title)
     const user = useAppSelector((state) => getUser(props.userId)(state))
+
+    // A comment is only ever drawn on a team install, but the author's name has
+    // to be asked the same question anyway: the person at the machine and the
+    // account they registered share an id (docs/teamwork.md).
+    const teamMode = useAppSelector<boolean>(getTeamMode)
     const date = () => new Date(props.comment.createAt)
 
     // «2 часа назад» is moment's phrasing, and moment only knows it once the
@@ -56,7 +62,7 @@ const Comment: Component<Props> = (props: Props) => {
                     class='comment-avatar'
                     src={props.userImageUrl}
                 />
-                <div class='comment-username'>{user() ? personName(intl, user()!, 'username') : ''}</div>
+                <div class='comment-username'>{user() ? personName(intl, user()!, 'username', teamMode()) : ''}</div>
                 <GuestBadge show={user()?.is_guest}/>
 
                 <Tooltip title={Utils.displayDateTime(date(), intl)}>

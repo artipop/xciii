@@ -13,8 +13,7 @@ import {openMoveCardToBoard} from '../moveCardToBoard'
 import {Utils} from '../../utils'
 import {Permission} from '../../constants'
 import {sendFlashMessage} from '../flashMessages'
-import {IUser} from '../../user'
-import {getMe} from '../../store/users'
+import {getTeamMode} from '../../store/clientConfig'
 import {useAppSelector} from '../../store/hooks'
 
 type Props = {
@@ -25,7 +24,7 @@ type Props = {
 }
 
 export const CardActionsMenu: ParentComponent<Props> = (props): JSX.Element => {
-    const me = useAppSelector<IUser|null>(getMe)
+    const teamMode = useAppSelector<boolean>(getTeamMode)
     const intl = useIntl()
 
     const handleDeleteCard = () => {
@@ -65,7 +64,12 @@ export const CardActionsMenu: ParentComponent<Props> = (props): JSX.Element => {
                     onClick={() => openMoveCardToBoard(props.cardId)}
                 />
             </BoardPermissionGate>
-            <Show when={me()?.id !== 'single-user'}>
+            {/* A link to a card is worth copying where somebody else can open
+                it. On a one-person install the address is a loopback origin
+                with a port picked at launch, and the question was asked of the
+                current user's id — which the owner's account now shares
+                (docs/teamwork.md). */}
+            <Show when={teamMode()}>
                 <Menu.Text
                     icon={<LinkIcon/>}
                     id='copy'

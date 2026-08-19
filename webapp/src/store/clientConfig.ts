@@ -31,5 +31,5 @@ export function getClientConfig(state: RootState): ClientConfig {
 // (docs/teamwork.md) — so it is asked as its own question rather than by
 // reading a config field at every call site.
 export function getTeamMode(state: RootState): boolean {
-    return state.clientConfig.value.teamMode
+    return Boolean(state.clientConfig?.value?.teamMode)
 }

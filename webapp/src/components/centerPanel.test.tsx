@@ -60,8 +60,11 @@ describe('components/centerPanel', () => {
         ],
     }
     const state = {
+        // The header offers to share a board where there is somebody to share
+        // it with, so these fixtures say the install has accounts on it
+        // (docs/teamwork.md).
         clientConfig: {
-            value: {},
+            value: {teamMode: true},
         },
         searchText: '',
         users: {

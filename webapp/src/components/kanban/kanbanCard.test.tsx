@@ -44,6 +44,11 @@ describe('src/components/kanban/kanbanCard', () => {
         ],
     }
     const state = {
+        // The card menu offers "Copy link" where somebody else can open it,
+        // which is a team install (docs/teamwork.md).
+        clientConfig: {
+            value: {teamMode: true},
+        },
         cards: {
             cards: [card],
         },

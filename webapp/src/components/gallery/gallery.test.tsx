@@ -22,6 +22,11 @@ describe('src/components/gallery/Gallery', () => {
     const card2 = TestBlockFactory.createCard(board)
     const contents = [TestBlockFactory.createDivider(card), TestBlockFactory.createDivider(card), TestBlockFactory.createDivider(card2)]
     const state = {
+        // The card menu drawn on a gallery card offers "Copy link", which a
+        // team install has (docs/teamwork.md).
+        clientConfig: {
+            value: {teamMode: true},
+        },
         contents: {
             contents: blocksById(contents),
             contentsByCard: {

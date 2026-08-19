@@ -20,6 +20,7 @@ import Label from '../../widgets/label'
 import {useHasCurrentBoardPermissions} from '../../hooks/permissions'
 import {useSortable} from '../../hooks/sortable'
 import {useAppSelector} from '../../store/hooks'
+import {getTeamMode} from '../../store/clientConfig'
 import {getBoardUsers, getMe} from '../../store/users'
 import {IUser} from '../../user'
 import {personNameById} from '../../userDisplay'
@@ -66,6 +67,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
     // option: «кто создал» groups by user id, and an id is not a heading.
     const boardUsers = useAppSelector<{[key: string]: IUser}>(getBoardUsers)
     const me = useAppSelector<IUser|null>(getMe)
+    const teamMode = useAppSelector<boolean>(getTeamMode)
     const isPersonGroup = () => {
         const type = props.groupByProperty?.type
         return type === 'person' || type === 'createdBy' || type === 'updatedBy'
@@ -79,7 +81,7 @@ export default function KanbanColumnHeader(props: Props): JSX.Element {
         if (isInboxView(props.activeView) && id === me()?.id) {
             return MineColumnTitle
         }
-        return personNameById(props.intl, id, boardUsers())
+        return personNameById(props.intl, id, boardUsers(), 'username', teamMode())
     }
 
     // A person group has no option behind it to rename, so it is a label and

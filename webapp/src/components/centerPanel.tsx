@@ -402,13 +402,18 @@ const CenterPanel = (props: Props) => {
         e.stopPropagation()
     }
 
-    const showShareButton = () => !props.readonly && me()?.id !== 'single-user'
-    const showShareLoginButton = () => props.readonly && me()?.id !== 'single-user'
+    // Sharing a board is offered where there is somebody to share it with, and
+    // the same for the log-in button a shared board shows a stranger. The
+    // question used to be asked of the current user's id — which stopped
+    // answering it when the person at the machine got an account under that
+    // very id (docs/teamwork.md).
+    const showShareButton = () => !props.readonly && clientConfig().teamMode
+    const showShareLoginButton = () => props.readonly && clientConfig().teamMode
 
     const getUserDisplayName = (boardGroup: BoardGroup) => {
         const user = boardUsers()[boardGroup.option.id]
         if (user) {
-            return personName(intl, user, clientConfig().teammateNameDisplay)
+            return personName(intl, user, clientConfig().teammateNameDisplay, clientConfig().teamMode)
         } else if (boardGroup.option.id === 'undefined') {
             return intl.formatMessage({
                 id: 'centerPanel.undefined',
