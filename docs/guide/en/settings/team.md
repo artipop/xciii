@@ -44,6 +44,15 @@ link sent to the wrong person is taken back.
 A new person sees no boards to begin with: access to a board is membership of
 it, and members are added on the board itself.
 
+## Who hears that an agent is waiting
+
+While one person works the board, they see every "an agent is waiting" message.
+In a team the wait gets an addressee, and the card names it:
+
+- a card assigned to a person — that person sees it;
+- a card assigned to an agent, or to nobody — everybody sees it, because that is
+  the ordinary case: a route stage is worked by an agent, and anybody can answer.
+
 ## Going back to one person
 
 **«Вернуться к одному человеку»**, then restart. The accounts and everything
