@@ -393,7 +393,7 @@ The server build is the fastest way to look at the UI in a real browser with
 devtools:
 
 ```
-wails3 task build:server && XCIII_SERVER_PORT=8099 bin/XCIII-server
+wails3 task build:server && SERVER_PORT=8099 bin/XCIII-server
 ```
 
 For pure webapp/CSS iteration the browser loop is still faster than the webview:
@@ -435,7 +435,7 @@ Installer configs live in `build/` (`darwin/`, `windows/nsis/`,
 build-assets` from `build/config.yml` — edit the config, not the assets.
 
 The server binary has no window: it publishes the board at
-`XCIII_SERVER_HOST`/`XCIII_SERVER_PORT` (default `localhost:8080`) and
+`SERVER_HOST`/`SERVER_PORT` (default `localhost:8080`) and
 is opened in a browser. Keep it on localhost unless something in front of it
 authenticates: the bound methods start agents and read the filesystem, and the
 runtime endpoint has no credential of its own — the front door's cross-origin

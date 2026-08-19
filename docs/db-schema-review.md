@@ -83,8 +83,9 @@ upsert'ы, WAL + busy_timeout, индексы совпадают с запрос
 6. `SessionsForCard` — N+1 по событиям; один JOIN или IN закрыл бы.
 7. В DSN стоит добавить `_synchronous=NORMAL` — рекомендованная пара к WAL;
    дефолтный FULL заметно медленнее на частых одиночных INSERT'ах событий.
-8. Косметика: колонка `repo_path` против Go-поля `ProjectPath` (`flow_state`,
-   `terminal_session`) — дрейф имён.
+8. Косметика: колонка `repo_path` против Go-имени рабочей папки — дрейф имён.
+   Go-поля `ProjectPath` больше нет; хранимые ключи (`repo_path`,
+   `project_path`) остались, и это осознанно — чужие сохранённые данные.
 
 ## sources.db
 

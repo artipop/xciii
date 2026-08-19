@@ -375,7 +375,7 @@
   "DeleteBoardDialog.confirm-cancel": "Отмена",
   "DeleteBoardDialog.confirm-delete": "Удалить",
   "DeleteBoardDialog.confirm-info": "Вы уверены, что хотите удалить доску «{boardTitle}»? Её удаление приведет к удалению всех карточек на доске.",
-  "DeleteBoardDialog.confirm-info-template": "Вы уверены, что хотите удалить шаблон доски “{boardTitle}”?",
+  "DeleteBoardDialog.confirm-info-template": "Вы уверены, что хотите удалить шаблон доски «{boardTitle}»?",
   "DeleteBoardDialog.confirm-tite": "Подтвердить удаление доски",
   "DeleteBoardDialog.confirm-tite-template": "Подтвердите удаление шаблона Доски",
   "DeployTargets.add": "Добавить цель…",

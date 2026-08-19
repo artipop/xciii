@@ -643,7 +643,7 @@ flowchart LR
 самой доски, и группировать по нему она умеет из коробки
 (`boardUtils.getPersonGroups` по `createdBy`, `CreatedByProperty.canGroup`).
 Свойство `createdBy` заводится на доске, если его нет, — по тому же правилу
-«только добавление» (`ensureAuthorProperty`, «Автор»).
+«только добавление» (`AuthorPropertyTitle`, «Автор»).
 
 Отсюда §17 меняется: свойство «Источник» (select) не нужно и не заводится —
 это был бы второй ответ на тот же вопрос, да ещё и с синхронизацией опций с
@@ -790,9 +790,9 @@ Secret Service на Linux). Запасная — файл `<dataDir>/secrets.jso
 
 ## 18. Размещение кода
 
-- `internal/sources` — сторона приложения: реестр, БД (`sources.db` рядом с
-  ACP-шной, той же структуры — `OpenStore` и идемпотентный `migrate()` без
-  версий), конвейер, правила, расписание.
+- `internal/sources` — сторона приложения: реестр, таблицы (`NewStore(db)` — с
+  переездом в одну базу свои файлы кончились, а `ImportLegacyStore` переносит
+  старый `sources.db`), конвейер, правила, расписание.
 - `sources/protocol` — сами сообщения. Вне `internal` не по вкусу, а по
   необходимости: автор плагина обязан уметь назвать эти типы, а Go запрещает
   импортировать `internal` снаружи. Одно объявление на оба конца — иначе они
@@ -816,7 +816,7 @@ Secret Service на Linux). Запасная — файл `<dataDir>/secrets.jso
 По образцу остальных реестров: `webapp/src/components/acp/sourcesDialog.tsx` из
 меню вида «Входящие» (на доске без «Входящих» — из меню доски: иначе первый
 источник заводить негде), локальные сигналы, feature-detect биндингов, вызовы
-`ListSources`/`AddSource`/`UpdateSource`/`RemoveSource`/`ConnectSource`. Слайс
+`ListSources`/`AddSource`/`UpdateSource`/`RemoveSource`/`SetSourceCredential`. Слайс
 стора не заводится: экраны этой части в сторе не живут.
 
 Форма настройки источника **строится по `fields` манифеста**, а не пишется под
