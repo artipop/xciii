@@ -2,16 +2,13 @@ package acp
 
 import "strings"
 
-// ACP has no field for "which tool is this". A permission request describes the
-// call the way a human would read it — a title, a kind, and the raw input the
-// agent sent — and that is deliberate: the protocol is about showing the user
-// what is about to happen, not about letting the client re-implement the
-// agent's tool list.
+// ACP has no field for "which tool is this": a permission request describes the
+// call the way a human reads it, because the protocol is about showing what is
+// about to happen rather than re-implementing the agent's tool list.
 //
-// Our policy (autoAllowTools) is written in tool names, though, and it has to
-// keep working for an unattended card, where "we could not tell what this was"
-// means the agent is refused and the card fails. So the name is recovered in
-// the order it is trustworthy:
+// autoAllowTools is written in tool names, though, and has to keep working
+// unattended, where "could not tell what this was" means the card fails. So the
+// name is recovered in the order it is trustworthy:
 //
 //  1. what the agent said it was, in _meta — the vendor adapters put the name
 //     there on the tool call, though not on the permission request, which is

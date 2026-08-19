@@ -215,18 +215,14 @@ func main() {
 		log.Fatalf("failed to open the front door: %v", err)
 	}
 
-	// Where a credential the app has to *present* is kept — an MCP server's API
-	// token, an OAuth access token, the GitHub token that authorizes
-	// pull-request polling. The environment comes first so a token given from
-	// outside wins over a stored one without anybody having to delete anything,
-	// then the platform's own keychain, and the file only where there is no
-	// keychain to have: it keeps values in plain text at 0600 and says so.
-	// The keychain service is this install's name, not the product's: a token
-	// stored by a development build must not be handed to the app, and a real
-	// token must not be reachable from whatever is being tried out at the time.
+	// Where a credential the app has to *present* is kept. The environment comes
+	// first, so a token given from outside wins without anybody deleting
+	// anything; then the platform keychain; then a 0600 file where there is no
+	// keychain. The keychain service is this install's name, not the product's,
+	// so a development build and the real app cannot reach each other's tokens.
 	//
-	// Built here rather than inside the sources block below, because the agent
-	// integration reads it too and neither half implies the other.
+	// Built here rather than in the sources block below: the agent integration
+	// reads it too, and neither half implies the other.
 	vault := openVault()
 
 	// Sources are wired independently of the agent integration, and on purpose:

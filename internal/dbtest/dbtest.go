@@ -1,18 +1,13 @@
 // Package dbtest starts the database a test suite asked for.
 //
-// It exists because "this code works on SQLite, MySQL and Postgres" was an
-// assertion rather than a fact: the fork's own fixture
-// (sqlstore.PrepareNewTestDatabase) has always been able to use a MySQL or a
-// Postgres given to it on a port, but nothing ever gave it one — no compose
-// file, no CI job — so every run went down the SQLite branch and passed. A
-// green run that proved nothing is the worst kind, and it is what hid a MySQL
-// upsert that updates a different set of columns from the other two
-// (category_boards, docs/sql-plan.md).
+// The fork's fixture (sqlstore.PrepareNewTestDatabase) can use a MySQL or a
+// Postgres given to it on a port, and nothing ever gave it one — so every run
+// took the SQLite branch and "works on three dialects" was an assertion rather
+// than a fact.
 //
 // The contract is unchanged, only who satisfies it: the fixture still reads
-// FOCALBOARD_STORE_TEST_DB_TYPE and FOCALBOARD_STORE_TEST_DOCKER_PORT. This
-// package fills in the second when the first asks for a vendor and nobody has
-// brought a database of their own.
+// FOCALBOARD_STORE_TEST_DB_TYPE and FOCALBOARD_STORE_TEST_DOCKER_PORT, and this
+// fills in the second when the first asks for a vendor.
 package dbtest
 
 import (

@@ -1,10 +1,9 @@
-// Package acp implements the board-to-coding-agent integration described in
-// TZ_ACP_wails_v0.2.md: moving a card into a trigger column starts an ACP
-// session in a dedicated git worktree and reports progress back to the card.
+// Package acp is the board-to-coding-agent integration: a card entering a
+// column starts work on it, and what happens is reported back to the card.
 //
-// The package deliberately knows nothing about the board server. It talks
-// to the board only through the BoardEvents/BoardWriter interfaces below, whose
-// implementations live in internal/boardadapter.
+// It knows nothing about the board server — only the interfaces below, whose
+// implementations live in internal/boardadapter. The reasoning behind the
+// shapes here is in CLAUDE.md and docs/decisions.md.
 package acp
 
 import (
@@ -22,32 +21,17 @@ type Column struct {
 
 // CardMoved is the normalized "card changed column" event.
 type CardMoved struct {
-	EventID string
-	CardID  string
-	BoardID string
-	Title   string
-	Body    string            // card description text, if any
-	Props   map[string]string // lowercased property name → display value
-	// Values is the same card keyed by property id, which is how this app finds
-	// the fields it made: the board records which property is the branch and
-	// which is the folder, and what they are called belongs to whoever owns the
-	// board.
-	Values      map[string]string
-	OptionNames []string // display names of every selected select/multiSelect option (tags included)
-	// PersonNames are the usernames behind every person/multiPerson value on the
-	// card — what a person reads, and what a message about the card says.
-	PersonNames []string
-	// PersonIDs are the same values as the card actually stores them: board
-	// account ids. They are how an assigned card finds its agent, because the
-	// username is derived from the agent's name and renaming an agent would
-	// otherwise unassign every card it was working on.
-	PersonIDs []string
-	// SelectedOptions is every single-select value currently set on the card,
-	// with the property and option ids OptionNames drops. It is how a card read
-	// on demand (CardByID, which carries no columns because nothing moved)
-	// still says which node it stands on: the value of the trigger property is
-	// the card's current column, and its option id is the conversation's key.
-	SelectedOptions []Column
+	EventID         string
+	CardID          string
+	BoardID         string
+	Title           string
+	Body            string            // card description text, if any
+	Props           map[string]string // lowercased property name → display value
+	Values          map[string]string // by property id — how this app finds the fields it made
+	OptionNames     []string          // display names of every selected select/multiSelect option
+	PersonNames     []string          // usernames behind person values, for reading
+	PersonIDs       []string          // the same values as ids — what an assigned card is matched by
+	SelectedOptions []Column          // every single-select value, with the ids OptionNames drops
 	FromColumn      Column
 	ToColumn        Column
 	At              time.Time
@@ -58,124 +42,75 @@ type BoardEvents interface {
 	Subscribe(ctx context.Context) (<-chan CardMoved, error)
 }
 
-// BoardWriter performs the mutations the integration needs.
+// BoardWriter performs the mutations the integration needs. Every write here is
+// silent except UpdateCard — see CardEdit.
 type BoardWriter interface {
 	AddComment(ctx context.Context, cardID, text string) error
 	MoveCard(ctx context.Context, cardID, optionID string) error
-	// MoveCardByOptionName moves a card to a column the config names rather than
-	// identifies: "Tested", not an option id.
+	// MoveCardByOptionName moves by name rather than by option id.
 	MoveCardByOptionName(ctx context.Context, cardID, propertyName, optionName string) error
-	// AttachFile adds a file to the card's content — how a test run's
-	// screenshots reach the person reading the result.
 	AttachFile(ctx context.Context, cardID, filename, mime string, data []byte) error
-	// CreateCard puts a new card on a board. This is the one way work gets onto
-	// the board from outside a person's hands, and it exists for the planning
-	// conversation: it ends in tasks, and until now somebody had to retype them.
 	CreateCard(ctx context.Context, card NewCard) (string, error)
-	// UpdateCard changes an existing card: its title, its select values, the
-	// column it stands in. Alone among the writes here it is *not* silent — see
-	// CardEdit for why.
 	UpdateCard(ctx context.Context, cardID string, edit CardEdit) error
-	// SetCardText writes one text property of a card, by id. Silent, like every
-	// other write the machine makes about its own bookkeeping: this is how the
-	// branch a card's work is on gets onto the card, where it survives the card
-	// being carried to another board — or another machine — and where a deploy
-	// reads it before anything of ours.
-	//
-	// By id and never by name, because the name is the board's to choose: the
-	// board records which property this is (BoardPropBranch), and a board that
-	// records none has no field to keep truthful, which is not an error.
+	// SetCardText writes one text property by id — never by name, which is the
+	// board's to choose (BoardPropBranch records which property this is).
 	SetCardText(ctx context.Context, cardID, propertyID, value string) error
-	// SetCardFields writes named properties of a card — a select by one of its
-	// option names, anything else as text. Silent on purpose: these are a
-	// stage's declared outputs, and the outcome that follows them is the one
-	// event the route acts on — a write that notified would race it with a
-	// second trigger. The names are the board's own, because they are what a
-	// person typed into the builder and what an agent answers with.
+	// SetCardFields writes named properties: a select by one of its option
+	// names, anything else as text.
 	SetCardFields(ctx context.Context, cardID string, fields map[string]string) error
 }
 
 // NewCard is a card asked for from outside the board — by an agent through the
-// board MCP server today. The board is not a field an agent fills in: it comes
-// from the grant its tools were started with, so a conversation about one board
-// cannot leave cards on another.
+// board MCP server. BoardID comes from the run's grant rather than the caller,
+// so a conversation about one board cannot leave cards on another.
 type NewCard struct {
-	BoardID string
-	Title   string
-	Body    string
-	// Column is the name of the option in the board's trigger property. It is
-	// what decides whether anything happens to the card next, so a card asked
-	// for without one lands wherever a card with no column lands.
+	BoardID  string
+	Title    string
+	Body     string
 	Property string
 	Column   string
-	// Options are the card's other select values by option name — a folder, an
-	// agent, a route. Which property each belongs to is the board's business,
-	// not the caller's: that is already how a card is read back (CardMoved
-	// carries OptionNames, and folder/agent/flow resolution matches against
-	// them without caring which property they came from).
+	// Options are the card's other select values by option name. Which property
+	// each belongs to is the board's business, not the caller's.
 	Options []string
 }
 
-// CardEdit is a change to a card asked for from outside the board — by an agent
-// through the board MCP server today. Every field is empty-means-unchanged, so a
-// caller that only knows the column does not have to send the title back with it.
+// CardEdit is a change asked for from outside the board. Empty means unchanged.
 //
-// The rest of BoardWriter writes with notifications off, because those writes
-// are the integration's own bookkeeping and must not re-trigger the agent that
-// produced them. This one is the opposite: an agent asking for a card to move is
-// somebody asking the board for something, exactly as a person dragging it is,
-// and the automation has to see it or the request means nothing.
-//
-// The card's description is deliberately not here. It is a person's content —
-// arbitrary blocks a person wrote — and an agent that has something to say about
-// a card says it in a comment, which is where everything else a session says
-// already goes.
+// It is the one write in BoardWriter that notifies: an agent asking for a card
+// to move is a request to the board exactly as a person's drag is, and the
+// automation has to see it. The description is deliberately absent — that is a
+// person's content, and an agent says what it has to say in a comment.
 type CardEdit struct {
-	Title string
-	// Property/Column name the column the card should stand in, the way the
-	// config names it rather than by option id.
+	Title    string
 	Property string
 	Column   string
-	// Options are the card's other select values by option name — a folder, a
-	// route, the answer a stage is waiting for. Which property each belongs to
-	// is the board's business, as it is for NewCard.
-	Options []string
+	Options  []string
 }
 
-// BoardReader reads a card on demand, so a session can be opened from the UI
-// without waiting for the card to be moved into the trigger column. The
-// returned event carries no columns — nothing was moved.
+// BoardReader reads a card on demand, so work can be started from the UI
+// without moving the card. The returned event carries no columns.
 type BoardReader interface {
 	CardByID(ctx context.Context, cardID string) (CardMoved, error)
-	// CardsForBoard is every card on a board. The events it returns carry no
-	// Body: reading one costs a query per card, and a list is read to pick a
-	// card out, not to work from it — CardByID is what answers about one card.
+	// CardsForBoard carries no Body: a body is a query per card, and a listing
+	// is read to pick a card out rather than to work from it.
 	CardsForBoard(ctx context.Context, boardID string) ([]CardMoved, error)
 }
 
-// BoardCardState keeps what this integration knows about one card on the card
-// itself, beside the properties a person filled in. Today that is where the
-// card stands on its route (FlowState).
+// BoardCardState keeps where a card stands on its route on the card itself, so
+// it travels with the board. Separate from BoardWriter because it never
+// notifies and shows nothing to anybody.
 //
-// It is a separate interface from BoardWriter because it is not a write a
-// person asked for: it never notifies, so it cannot set off the automation that
-// produced it, and it never touches anything a person can see.
-//
-// Optional. A manager without it keeps the position in its own store only,
-// which is what every test that does not care about the board does.
+// Optional: without it the position lives in this machine's store alone.
 type BoardCardState interface {
 	CardFlow(ctx context.Context, cardID string) (FlowState, bool, error)
 	SetCardFlow(ctx context.Context, cardID string, st FlowState) error
 	ClearCardFlow(ctx context.Context, cardID string) error
-	// BoardCardFlows is every parked card of one board, which is how this
-	// machine refills its index for a board it has not seen before — an
-	// imported one, or one somebody else's machine has been moving.
+	// BoardCardFlows refills this machine's index for a board it has not seen.
 	BoardCardFlows(ctx context.Context, boardID string) ([]FlowState, error)
 }
 
-// AgentUser is a registry entry seen as a board account: the user an agent is
-// assigned as. Username is derived from Name (see AgentUsername); UserID and
-// Created are filled in by BoardUsers.
+// AgentUser is a registry entry seen as a board account. Username is derived
+// from Name (AgentUsername); UserID and Created are filled in by BoardUsers.
 type AgentUser struct {
 	Name     string `json:"name"`
 	Username string `json:"username"`
@@ -183,33 +118,22 @@ type AgentUser struct {
 	Created  bool   `json:"created,omitempty"`
 }
 
-// BoardUsers keeps the board-side accounts in step with the agent registry, so
-// an agent can be picked in a person property ("Assignee") like any other
-// member — and stops being offered once it is unregistered. Optional, but a
-// board without it has no way left to name an agent on a card: assigning one
-// is the way.
+// BoardUsers keeps board accounts in step with the agent registry, so an agent
+// can be picked in a person property like any other member. Assigning one is
+// how a card names its agent, so a board without this cannot name one at all.
 type BoardUsers interface {
-	// EnsureAgentAccounts gives every agent the account it is named by, and
-	// nothing else. An account is the machine's, like the registry it comes
-	// from, so this needs no board: it runs when an agent is registered, which
-	// is the one moment there is something new to write.
+	// EnsureAgentAccounts needs no board: an account is the machine's, made when
+	// an agent is registered.
 	EnsureAgentAccounts(ctx context.Context, agents []AgentUser) ([]AgentUser, error)
-
 	EnsureAgentUsers(ctx context.Context, boardID string, agents []AgentUser) ([]AgentUser, error)
-	// RetireAgentUser drops the account's board memberships and reports how
-	// many were removed. The account itself stays: cards may still name it, and
-	// re-registering the agent should give it its identity back.
+	// RetireAgentUser drops board memberships and reports how many. The account
+	// stays: cards may still name it.
 	RetireAgentUser(ctx context.Context, agent AgentUser) (int, error)
-
-	// AssignCardAgent puts the agent into the card's person property — the one
-	// «Кто занимается» the whole board asks with. The write is silent: it is
-	// the machine keeping the field truthful, not an edit that should set
-	// anything else off.
 	AssignCardAgent(ctx context.Context, cardID string, agent AgentUser) error
 }
 
-// UIEmitter pushes events to the desktop UI. Implementations must be safe to
-// call before the UI is ready (drop and log).
+// UIEmitter pushes events to the desktop UI. Must be safe to call before the UI
+// is ready (drop and log).
 type UIEmitter interface {
 	Emit(event string, payload any)
 }
@@ -220,10 +144,8 @@ type SessionStatus string
 const (
 	StatusQueued  SessionStatus = "queued"
 	StatusRunning SessionStatus = "running"
-	// StatusIdle and StatusWaitingPermission are no longer reached: a session
-	// runs its task and ends, and a tool outside the policy is refused rather
-	// than put to a person. They stay because rows written before that still
-	// say so, and a status read back from the database has to mean something.
+	// Idle and WaitingPermission are never reached now; rows written before
+	// still say so, and a status read back has to mean something.
 	StatusIdle              SessionStatus = "idle"
 	StatusWaitingPermission SessionStatus = "waiting_permission"
 	StatusDone              SessionStatus = "done"
@@ -236,17 +158,11 @@ func (s SessionStatus) Terminal() bool {
 	return s == StatusDone || s == StatusFailed || s == StatusCancelled
 }
 
-// UI event names emitted through UIEmitter. There are two: a session changed
-// state, and a terminal appeared or ended. What a session *says* is not among
-// them — that is the card's comments, and, while an agent is working with a
-// person, the terminal window it runs in.
+// UI event names emitted through UIEmitter. What a session *says* is not among
+// them: that is the card's comments and the terminal it runs in.
 const (
-	EventSession = "acp:session"
-	// EventTerminal says a terminal session (an agent CLI in a window) started
-	// or ended, so a card can offer to open or to resume it.
+	EventSession  = "acp:session"
 	EventTerminal = "acp:terminal"
-	// EventAttention says an agent stopped and is waiting for a person — the
-	// one state a card cannot infer from anything it already has, because it
-	// happens inside a terminal nobody may be looking at.
+	// EventAttention says an agent stopped and is waiting for a person.
 	EventAttention = "acp:attention"
 )

@@ -14,15 +14,11 @@ import (
 
 // The board as internal/sources writes to it.
 //
-// It is a type of its own rather than more methods on Writer for one blunt
-// reason: both halves of this app create cards from outside the board, and they
-// mean different things by it. An agent creating a card from a planning
-// conversation names a column and a property (acp.NewCard); a source filing what
-// arrived names none — it is authored by the source, lands in «Входящие», and
-// carries the body a service wrote. Two callers, two shapes, and Go allows one
-// method of a name — so the source's half sits here, over the same Writer, and
-// everything else it needs (comments, moves, the inbox, the column property) is
-// promoted from it unchanged.
+// A type of its own rather than more methods on Writer, because both halves of
+// the app create cards from outside the board and mean different things by it:
+// an agent names a column and a property (acp.NewCard), a source names none. Two
+// shapes, and Go allows one method of a name — so the source's half sits here
+// over the same Writer, and the rest is promoted from it unchanged.
 type SourceWriter struct {
 	*Writer
 }
@@ -184,16 +180,13 @@ func cardProperties(schema model.PropSchema, props map[string]string) map[string
 // bargain as xciiiFlow (cardstate.go): a card block is what an export carries and
 // an import renumbers, and a table keyed by card id is neither.
 //
-// It holds the source's name as well as the item's id, because the question
-// asked of it is "did *this* source bring this id" and two sources may well use
-// the same id space. The card's author answers the same question, but only for
-// a source that was given a board account, and losing the account is allowed to
-// lose the author — not the dedup.
-// The prefix is the app's, not the agent integration's: sources are not part of
-// it and must keep working with it switched off (docs/sources.md §18), so a
-// card brought by a phone onto a household board has no business carrying an
-// `acp` key. The board marker `xciiiTemplate` (templates.go) is the same case
-// and the same prefix.
+// It holds the source's name as well as the item's id: the question is "did
+// *this* source bring this id", and two sources may share an id space. The
+// card's author answers the same question only while the account exists, and
+// losing the account may lose the author — not the dedup.
+//
+// The prefix is the app's, not the agent integration's: sources must keep
+// working with it switched off (docs/sources.md §18).
 const cardFieldSource = "xciiiSource"
 
 var _ sources.BoardItems = (*SourceWriter)(nil)

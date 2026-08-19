@@ -15,55 +15,32 @@ import (
 
 // WorkdirEntry is one named local folder in the registry.
 type WorkdirEntry struct {
-	// ID is what a card points at, and the one field of an entry that never
-	// changes. A card used to name its folder by *name*, which made the name
-	// undeletable and unrenameable and tied the whole idea to something a
-	// person typed; and a name is the wrong identity for what is coming — a
-	// place to work need not be a folder on this disk at all (a repository to
-	// clone, a drive, a machine over ssh), and for those the "name" is exactly
-	// the part somebody will want to change.
-	//
-	// It is also the id of the option the board offers for this folder
-	// (workdirSync.ts), so the card stores it by storing an ordinary select
-	// value. An entry written before this field is given one at startup.
+	// ID is what a card points at, and the one field that never changes. It is
+	// also the id of the option the board offers for this folder
+	// (workdirSync.ts), so the card holds an ordinary select value.
 	ID   string `json:"id,omitempty"`
 	Name string `json:"name"`
 	Path string `json:"path"`
-	// BoardID is the board the folder was added on, and the only board that
-	// offers it. A folder of household notes has no business being on the board
-	// about code, and the registry is per machine, so without this every board
-	// ends up offering every folder anybody ever added.
-	//
-	// Empty means no board has claimed it — an entry written before folders
-	// belonged to a board. Such an entry is offered nowhere and worked in by
-	// nothing; the folders dialog lists it apart and attaches it to the board
-	// somebody is on (Attached), which is the only way back into use.
+	// BoardID is the board the folder was added on and the only one that offers
+	// it: the registry is per machine, so without this every board offers every
+	// folder anybody ever added. Empty means nobody has claimed it, and such an
+	// entry is offered nowhere until the folders dialog attaches it.
 	BoardID string `json:"boardId,omitempty"`
 	// Global says the folder belongs to all of them on purpose — the same
 	// checkout worked from several boards.
 	Global bool `json:"global,omitempty"`
 
 	// Kind is what somebody said this folder is, not what it happens to be.
-	// WorkdirGit means a repository was asked for — the board's setup step
-	// demanded one — so a folder that turns out not to be under git is an
-	// error rather than a quiet fall back to working in it as it stands.
-	// Empty is the ordinary case and means nobody said: git is asked at the
-	// moment it matters (IsGitWorkdir), which is what every entry written
-	// before this field does, and what lets a folder become a repository
-	// later without anybody re-adding it.
+	// WorkdirGit means a repository was demanded, so one without git is an error
+	// rather than a quiet fall back. Empty means nobody said, and git is asked
+	// when it matters (IsGitWorkdir) — so a folder can become a repository later
+	// without being re-added.
 	Kind string `json:"kind,omitempty"`
 
-	// Modes is how this folder is worked in when it is a repository, per board
-	// that offers it: board id → WorkModeWorktree (a copy per card) or
-	// WorkModeBranch (a branch in the folder itself). A board with no answer
-	// falls back to the machine's own old default.
-	//
-	// Keyed by board because the answer is about this folder *on this board*.
-	// A folder belongs to one board anyway, so for almost every entry the map
-	// has one key and reads as "the folder's answer"; a folder marked «на всех
-	// досках» is the case the key earns — the same checkout can be a copy per
-	// card on the board where three people work it and a branch in place on the
-	// board where one person does.
+	// Modes is how this folder is worked in when it is a repository, per board:
+	// WorkModeWorktree (a copy per card) or WorkModeBranch (a branch in place).
+	// Keyed by board because a folder marked «на всех досках» can want a copy
+	// per card where three people work it and a branch where one does.
 	Modes map[string]string `json:"modes,omitempty"`
 
 	// BranchPrefix names the branches made here — "feature/", say. Empty is
@@ -160,14 +137,10 @@ type AgentEntry struct {
 	// all, since nothing else can know what its CLI is called.
 	TerminalCommand []string `json:"terminalCommand,omitempty"`
 
-	// MCPServers are the agent's own MCP servers, spawned alongside the one a
-	// deploy session configures itself. This is how a Node-based server such as
-	// @playwright/mcp plugs in without the app depending on Node: the user wires
-	// it per agent, we only pass it on.
-	//
-	// The shape is the one every MCP client uses — name → {command, args, env} —
-	// so an entry can be pasted straight from a server's README, and so the
-	// config file reads the same as the agent's own.
+	// MCPServers are the agent's own, in the shape every MCP client uses, so an
+	// entry can be pasted from a server's README. This is how @playwright/mcp
+	// plugs in without the app depending on Node: the user wires it, we pass it
+	// on.
 	MCPServers MCPServerSet `json:"mcpServers,omitempty"`
 
 	// ProxyID selects an entry of the proxy registry. Network settings live
@@ -186,12 +159,10 @@ type AgentEntry struct {
 	UserID string `json:"userId,omitempty"`
 }
 
-// AgentMCPServer is one MCP server an agent carries of its own, in the standard
-// client shape: a command with its arguments and environment.
+// AgentMCPServer is one MCP server an agent carries of its own.
 //
-// Configuring one is consent to use it: its tools (mcp__<name>__…) run without
-// asking, for the same reason our own server's do — a card-triggered session
-// has no console, and asking nobody means rejecting.
+// Configuring one is consent to use it: its tools run without asking, because a
+// card-triggered session has no console and asking nobody means rejecting.
 //
 // Type and URL exist only to recognise a remote server pasted from a README and
 // say what is wrong: everything here is spawned over stdio.
@@ -508,14 +479,9 @@ var AgentKinds = []string{
 	AgentKindACP,
 }
 
-// acpAdapter is everything that differs between one ACP agent and another: the
-// binary to look for, the package that provides it when it is missing, the
-// flags that select ACP-over-stdio, how a model is asked for, what the process
-// must not inherit, and the mode to switch it into once connected.
-//
-// Everything else — the connection, MCP servers, permissions, cancellation,
-// turn budgets — is the same code for every kind, which is the point of the
-// table: adding an agent is a row, not a branch.
+// acpAdapter is everything that differs between one ACP agent and another.
+// Everything else is the same code for every kind, which is the point: adding
+// an agent is a row, not a branch.
 type acpAdapter struct {
 	// bin is the executable, looked up on PATH and in the usual install spots.
 	bin string
@@ -568,13 +534,10 @@ type acpAdapter struct {
 	// separator belongs to the kind that knows how its own parser spells one.
 	cliPromptArgs func(prompt string) []string
 	// cliHookArgs register a command the CLI runs when it needs a person, so a
-	// stage stops being noticed by its silence alone (toolhook.go). Same
-	// arrangement as cliMCPArgs and for the same reason: a hook is spelled
-	// differently by every vendor, so it is a column rather than a branch, and a
-	// kind that leaves it empty keeps the timer it has always had.
-	//
-	// The argument is a shell command line, because that is what both CLIs that
-	// have hooks accept — hookCommand builds it, quoted.
+	// stage is not noticed by silence alone (toolhook.go). A column rather than
+	// a branch, because every vendor spells hooks differently; a kind that
+	// leaves it empty keeps the timer. The argument is a shell command line,
+	// which is what both CLIs with hooks accept.
 	cliHookArgs func(hookCmd string) []string
 	// dropEnv names variables the process must not inherit from ours.
 	dropEnv []string
@@ -694,16 +657,9 @@ type Config struct {
 
 	TriggerProperty string `json:"triggerProperty"`
 
-	// Workdirs is the registry of named local folders. A card names one by the
-	// entry's id: the board's «Папка» field carries an option created under
-	// that id, so the card holds an ordinary select value that is a reference.
-	//
-	// A folder is not necessarily a git repository — a board that runs agents is
-	// not only for software.
-	//
-	// Not in the file: the folders are the `workspace` table, and this is the
-	// working copy the engine reads on every card move
-	// (loadRegistriesLocked).
+	// Workdirs is the registry of named local folders, not necessarily git ones.
+	// Not in the file: they are the `workspace` table, and this is the working
+	// copy the engine reads on every card move (loadRegistriesLocked).
 	Workdirs []WorkdirEntry `json:"-"`
 
 	// Agents is the registry of named coding agents (claude/codex, with their
@@ -723,14 +679,11 @@ type Config struct {
 	// Not in the file: the `deploy_target` table. See Workdirs.
 	Deploys []DeployEntry `json:"-"`
 
-	// Columns is what happens in each column of a board: the action a card
-	// entering it starts, who works it, how many at once. It is the single
-	// answer to "what does this column do". See columns.go.
+	// Columns is what happens in each column of a board (columns.go).
 	//
-	// Not in the file: a board's automation lives on the board, in its own
-	// properties (`xciiiColumns`), so it travels with the board into an export,
-	// a template and another machine. This is the working copy the engine reads
-	// on every card move; every edit is written through by persistBoardLocked.
+	// Not in the file: a board's automation lives on the board (`xciiiColumns`)
+	// so it travels with it. This is the working copy; every edit is written
+	// through by persistBoardLocked.
 	Columns []ColumnSpec `json:"-"`
 
 	// Flows is the registry of named routes across the board: which column
@@ -854,14 +807,11 @@ func DefaultConfig(dataDir string) Config {
 		ShowThoughts:             true,
 		PermissionTimeoutMinutes: 5,
 		IdempotencyWindowSeconds: 10,
-		// This list is what an agent is *not* asked about, and everything on it
-		// is here because being asked would be noise: reading and editing code,
-		// and the shell a coding agent cannot work without (tests, git, build)
-		// — withholding it while Edit and Write are allowed buys nothing but
-		// interruptions. The dokku tools are the same judgement for a deploy.
-		// destroy_deployment is deliberately absent: deleting an environment is
-		// always worth a human answer, and since a session now waits for one
-		// (question.go) that answer is a person's rather than a rejection.
+		// What an agent is *not* asked about: reading and editing code, and the
+		// shell a coding agent cannot work without — withholding it while Edit
+		// and Write are allowed buys nothing but interruptions. The dokku tools
+		// are the same judgement for a deploy; destroy_deployment is absent
+		// because tearing an environment down is worth a human answer.
 		AutoAllowTools: []string{
 			"Read", "Grep", "Glob", "Edit", "Write", "MultiEdit", "NotebookEdit", "TodoWrite", "Bash", "Skill",
 			"mcp__dokku__deploy_branch", "mcp__dokku__app_logs",
@@ -874,17 +824,14 @@ func DefaultConfig(dataDir string) Config {
 	}
 }
 
-// DefaultPlanningPrompt is what a planning terminal is opened with. It is a
-// conversation about a task that does not exist yet, so the one rule is that
-// nothing is to be changed — and unlike a session, where the tool policy holds
-// the agent to that, a terminal is the CLI's own with the person's own
-// permissions. Here the instruction is all there is, which is also why it is
-// editable: whoever plans is the one who knows what "don't touch" means for
-// their folder.
+// DefaultPlanningPrompt opens a planning terminal: a conversation about a task
+// that does not exist yet, so the one rule is that nothing is to be changed.
+// Unlike a session there is no tool policy holding the agent to it — a terminal
+// runs with the person's own permissions — so the instruction is all there is,
+// and editable by whoever knows what "don't touch" means for their folder.
 //
 // It says nothing about creating cards on purpose: an MCP server's instructions
-// arrive with its tool list, so an agent that has the board tools is already
-// told what they are for, and one that has not is not sent looking.
+// arrive with its tool list.
 const DefaultPlanningPrompt = `We are planning a new task.
 
 The code in this folder is yours to read — open files, search them, read the git

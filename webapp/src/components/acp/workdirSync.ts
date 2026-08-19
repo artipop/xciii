@@ -182,16 +182,14 @@ export function soleWorkdirOption(board: Board): {propertyId: string, optionId: 
 // narrowWorkdirProperty makes the folder field a single choice on a board that
 // still carries it as a multiSelect.
 //
-// Two folders on a card never meant two. A card claims one workspace, works one
-// branch — which the board keeps in one text field — and hands its agent one
-// cwd; `resolveWorkdir` took the first of the selected options and dropped the
-// rest, so the choice was already being made for the person, and made in
-// silence. Narrowing the field is what puts that choice back on the card, and
-// it is why this edits somebody's board rather than leaving the two types to
-// live side by side.
+// Two folders on a card never meant two: a card claims one workspace, works one
+// branch and hands its agent one cwd, so `resolveWorkdir` took the first and
+// dropped the rest — a choice made for the person, in silence. Narrowing puts
+// it back on the card, which is why this edits somebody's board rather than
+// letting both types live side by side.
 //
-// The rename rides along: the plural was the type talking. A field somebody
-// renamed keeps their name — that half was never ours.
+// The rename rides along, because the plural was the type talking; a name
+// somebody typed is theirs and is kept.
 //
 // Idempotent, and it writes only for a board that still has the old field.
 export async function narrowWorkdirProperty(board: Board, cards: Card[]): Promise<boolean> {

@@ -17,13 +17,11 @@ import (
 // the Wails runtime (/wails/runtime.js, the IPC endpoint, and in a server build
 // the event socket).
 //
-// That single origin is what removes window.webSocketBaseURL. Wails' asset
-// server answers a WebSocket upgrade with 501 Not Implemented, and its response
-// writer cannot be hijacked, so /ws can never be served through it — which is
-// why the desktop app used to send the socket to the board server on a second
-// port and had to tell the webapp that port's address. Routing /wails/ to Wails
-// and everything else to the board leaves the socket on a plain net/http server
-// of ours, where an upgrade is ordinary.
+// One origin is what removes window.webSocketBaseURL. Wails' asset server
+// answers a WebSocket upgrade with 501 and its response writer cannot be
+// hijacked, so /ws can never be served through it; routing /wails/ to Wails and
+// everything else to the board leaves the socket on a plain net/http server of
+// ours, where an upgrade is ordinary.
 
 // newFrontDoor routes /wails/ to the Wails runtime, /acp/ to our own sockets
 // (the terminal windows), /sources/ to the ingest endpoint and everything else
@@ -77,19 +75,15 @@ func requestLog(next http.Handler) http.Handler {
 }
 
 // sameOrigin refuses a cross-site request to the Wails runtime. The bound
-// methods start agents and read the filesystem, and the runtime endpoint
-// carries no credential of its own, so without this any page open in any
-// browser could POST to the front door while the app is running and have the
-// call go through — the response would be unreadable to it, the side effect
-// would not.
+// methods start agents and read the filesystem, and the endpoint carries no
+// credential of its own: without this any page in any browser could POST to the
+// front door and have the call go through — unreadable to it, but done.
 //
-// A same-origin fetch either sends no Origin header at all (a GET) or sends
-// ours; anything else is somebody else's page.
+// A same-origin fetch sends no Origin header (a GET) or sends ours.
 //
-// Both schemes are ours, because the same handler is published twice: over
-// plain HTTP on loopback, where the window opens it, and over TLS on the
-// tailnet (tsnetdoor.go), where a phone does. What this guard is about is
-// *which site* is calling, and that is the host.
+// Both schemes count, because the same handler is published twice: HTTP on
+// loopback for the window, TLS on the tailnet for a phone. The guard is about
+// which *site* is calling, and that is the host.
 func sameOrigin(next http.Handler, allowedHost string) http.Handler {
 	allowed := map[string]bool{
 		"http://" + allowedHost:  true,
