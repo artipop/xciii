@@ -146,11 +146,32 @@ origin for the page, the API and the socket is what removes the
 
 Since a loopback port is reachable by anything on the machine, `/wails/` and `/acp/`
 refuse a request whose `Origin`/`Sec-Fetch-Site` names another site, and the front
-door refuses a `Host` it was not published under. That is the whole of the
-protection: **nothing authenticates a user**. Keep the server build on localhost
-unless something in front of it does.
+door refuses a `Host` it was not published under. In the mode every install
+starts in that is the whole of the protection: **nothing authenticates a user**.
+Keep such a server build on localhost unless something in front of it does.
 
-`tsnetdoor.go` is that something, and the only supported way off this machine: the
+**Team mode is what changes that answer** (`team.go`, `docs/teamwork.md`), and it
+is a mode of the install rather than a build: `<dataDir>/team/settings.json`,
+read once at startup because the board server is *constructed* with the answer —
+with a single-user token the API synthesizes a session for every request and
+`/login` is closed, without one everybody logs in. So the switch says a restart
+is owed rather than pretending to take effect. Then `/wails/` and both sockets
+require a live board session (`requireSession`), read off a cookie the page
+writes beside the token it already keeps: the Wails runtime makes its own
+fetches, and a browser lets nobody set a header on a WebSocket handshake.
+
+The person at the machine keeps their identity across that switch. Everything a
+single-user install made names the user id `single-user`, so turning the mode on
+registers the owner's account **under that id** and nothing has to be moved —
+which is also why the API's synthesizers for that id (`api/users.go`,
+`api/teams.go`) are gated on single-user mode: unguarded, they answer every
+question about the owner with a made-up user called «Вы». What it costs is that a
+write the machine makes is authored by the owner (`docs/deferred.md`).
+
+The tailnet door below is untouched by any of this and is not the team
+mechanism: it answers *where from*, team mode answers *who*.
+
+`tsnetdoor.go` is the way off this machine, and the only supported one: the
 same front door published a second time as a node of the user's own tailnet
 (`tailscale.com/tsnet` — userspace, no daemon, no root), with `ListenTLS` so a phone
 webview gets a real certificate. A port on an interface would have been reachable by
@@ -1782,10 +1803,8 @@ and it made every board of shopping lists look like it was missing one.
   knows. `python3 tools/schemapage.py` dresses the same markdown as
   `docs/schema/erd.html` — a page to open in a browser, presentation only, and
   nothing in the Go build calls it. `docs/db-erd.md` is what is stored where in words,
-  `docs/model-graph.md` is how one thing finds another — every reference by id
-  now, with the nine that were not written up where a new one can be checked
-  against them — `docs/db-schema-review.md` is the decisions
-  behind it, and
+  and how one thing finds another — every reference by id;
+  `docs/db-schema-review.md` is the decisions behind it, and
   `docs/sql-dialects.md` is the inventory of what is still written per vendor —
   fifteen branches in the queries, ten of them the same upsert, two of them
   functions only a test calls. `docs/sql-plan.md` is that half's plan and its

@@ -74,6 +74,11 @@ func sourcesDataDir() (string, error) { return appDataDir("sources", 0o750) }
 // node's own state. Tighter than the rest: it holds an auth key.
 func tailnetDataDir() (string, error) { return appDataDir("tailnet", 0o700) }
 
+// teamDataDir returns where the switch between one person and a team is kept.
+// Tight like the tailnet's, and for a milder version of the same reason: it
+// says whether this install has accounts on it.
+func teamDataDir() (string, error) { return appDataDir("team", 0o700) }
+
 // ignoreViteDevServer removes the variable `wails3 dev` sets to point the app at
 // a Vite dev server. This app never has one: the page is the board webapp,
 // served by the in-process board server behind the front door, in a dev build
@@ -123,7 +128,27 @@ func main() {
 		}
 	}
 
+	// Which mode this install runs in — one person or a team — is a file under
+	// the data directory, read once here because the board server is
+	// constructed with the answer (team.go). A settings file that cannot be
+	// read costs the team, not the app: an install that has never been one
+	// reads exactly the same.
+	var team *teamController
+	if dir, err := teamDataDir(); err != nil {
+		log.Printf("team: disabled, no data dir: %v", err)
+	} else if team, err = newTeamController(filepath.Join(dir, "settings.json")); err != nil {
+		log.Printf("team: disabled, settings error: %v", err)
+		team = nil
+	}
+
+	// A single-user token is what makes the API synthesize a session for every
+	// request and refuse /login. In team mode there is none, and everybody logs
+	// in.
 	sessionToken := "su-" + uuid.New().String()
+	if team.enabled() {
+		sessionToken = ""
+		log.Printf("team mode: everybody logs in; /login and /register are open")
+	}
 
 	port, err := getFreePort()
 	if err != nil {
@@ -162,6 +187,8 @@ func main() {
 	// templates); the server module's are the upstream's examples and carry no
 	// automation. Failing to install them costs the selector its contents, not
 	// the app, so it is logged rather than fatal.
+	team.setApp(srv.App())
+
 	if err := boardadapter.ImportTemplates(srv.App(), logger); err != nil {
 		log.Printf("templates: %v", err)
 	}
@@ -206,11 +233,19 @@ func main() {
 		tailnet = nil
 	}
 	app.tailnet = tailnet
+	app.team = team
 
 	// The front door is the origin the page is served under — a loopback
 	// listener of ours in a desktop build, the published address in a server
 	// build. Its listener is bound here so the window can be pointed at it.
-	front, err := newOrigin(handler, acpSockets, ingest, tailnet)
+	// The guard on the routes that are about this machine rather than about a
+	// board. Nil in single-user mode, which is what "nothing authenticates a
+	// user" means (frontdoor.go).
+	var sessionGuard func(string) bool
+	if team.enabled() {
+		sessionGuard = team.sessionValid
+	}
+	front, err := newOrigin(handler, acpSockets, ingest, tailnet, sessionGuard)
 	if err != nil {
 		log.Fatalf("failed to open the front door: %v", err)
 	}

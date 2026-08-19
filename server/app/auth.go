@@ -160,6 +160,17 @@ func (a *App) Logout(sessionID string) error {
 
 // RegisterUser creates a new user if the provided data is valid.
 func (a *App) RegisterUser(username, email, password string) error {
+	return a.RegisterUserWithID(utils.NewID(utils.IDTypeUser), username, email, password)
+}
+
+// RegisterUserWithID is the same registration under an id the caller names.
+//
+// The one caller that names one is the app turning on team mode: the person at
+// the machine already has an identity — the id every board, membership and
+// assignment made in single-user mode points at — and being asked for a name
+// and a password gives that identity an account rather than a second one. A
+// fresh id would have meant moving every row that names the old one.
+func (a *App) RegisterUserWithID(id, username, email, password string) error {
 	var user *model.User
 	if username != "" {
 		var err error
@@ -194,7 +205,7 @@ func (a *App) RegisterUser(username, email, password string) error {
 	}
 
 	_, err = a.store.CreateUser(&model.User{
-		ID:          utils.NewID(utils.IDTypeUser),
+		ID:          id,
 		Username:    username,
 		Email:       email,
 		Password:    auth.HashPassword(password),

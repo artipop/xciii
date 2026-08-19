@@ -157,6 +157,14 @@ export interface IAppWindow extends Window {
                 GetTailnetAccess?(): Promise<string>
                 SetTailnetAccess?(entryJson: string): Promise<string>
 
+                // Whether this install has accounts on it, and the link the
+                // second person registers with. Unlike the tailnet pair above,
+                // the switch takes effect at the next launch: which mode the
+                // board server runs in is decided when it is constructed.
+                GetTeamAccess?(): Promise<string>
+                SetTeamAccess?(entryJson: string): Promise<string>
+                RegenerateTeamInvite?(): Promise<string>
+
                 // Replacing this app with a newer one. Everything except the
                 // state read is fire-and-forget: what came of it arrives as the
                 // acp:update event, so a check somebody else started looks the

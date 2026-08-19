@@ -37,6 +37,10 @@ type App struct {
 	// board is how the page at /m reads the board, since it is served the
 	// bindings and the event socket and no board API of its own.
 	board *boardadapter.Writer
+	// team is the switch between one person and several, and the account the
+	// person at this machine is known by once there are several. Nil when its
+	// settings could not be read; safe on a nil receiver like the tailnet's.
+	team *teamController
 	// updates is how this app replaces itself; nil in a headless build and
 	// whenever the release feed could not be configured. Its methods are safe
 	// on a nil receiver, as the tailnet controller's are.
@@ -842,6 +846,68 @@ func (a *App) SetTailnetAccess(entryJSON string) (string, error) {
 	next.Hostname = strings.TrimSpace(want.Hostname)
 
 	state, err := a.tailnet.update(next)
+	if err != nil {
+		return "", err
+	}
+	out, err := json.Marshal(state)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// GetTeamAccess reports whether this install is a team and who it belongs to.
+// JSON: {"enabled":…,"running":…,"owner":…,"invite":…} — see team.go, where
+// enabled and running disagreeing is the app saying it has to be restarted.
+func (a *App) GetTeamAccess() (string, error) {
+	out, err := json.Marshal(a.team.state())
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// SetTeamAccess turns the team on or off. Turning it on the first time is also
+// where the person at this machine names themselves: the account is made under
+// the id everything they have already done points at, so nothing moves.
+//
+// Unlike the tailnet switch beside it, this one does not take effect until the
+// app is restarted — which mode the board server runs in is decided when it is
+// constructed, and a switch that pretended otherwise would be a switch that
+// lies.
+func (a *App) SetTeamAccess(entryJSON string) (string, error) {
+	var want struct {
+		Enabled  bool   `json:"enabled"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := json.Unmarshal([]byte(entryJSON), &want); err != nil {
+		return "", err
+	}
+
+	var (
+		state teamState
+		err   error
+	)
+	if want.Enabled {
+		state, err = a.team.enable(want.Username, want.Password)
+	} else {
+		state, err = a.team.disable()
+	}
+	if err != nil {
+		return "", err
+	}
+	out, err := json.Marshal(state)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// RegenerateTeamInvite mints a new signup token, which is how a link handed to
+// the wrong person is taken back: the old one stops registering anybody.
+func (a *App) RegenerateTeamInvite() (string, error) {
+	state, err := a.team.regenerateInvite()
 	if err != nil {
 		return "", err
 	}

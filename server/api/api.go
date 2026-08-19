@@ -57,6 +57,18 @@ func NewAPI(
 	}
 }
 
+// synthesizesSingleUser reports whether the id `single-user` names a session
+// this API makes up rather than an account somebody registered.
+//
+// The two are the same id on purpose: turning on team mode gives the person at
+// the machine an account under the identity everything they have already made
+// points at (team.go), so nothing has to be moved. What must not survive that
+// is the synthesizer — it would answer every question about that id with a made
+// up user called «Вы» and shadow the real row, name, permissions and all.
+func (a *API) synthesizesSingleUser() bool {
+	return len(a.singleUserToken) > 0
+}
+
 func (a *API) RegisterRoutes(r *web.Router) {
 	apiv2 := r.Group("/api/v2", a.panicHandler, a.requireCSRFToken)
 

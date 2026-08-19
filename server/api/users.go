@@ -66,14 +66,16 @@ func (a *API) handleGetUsersList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// The single-user id has no row in the users table, so it is synthesized
-	// here. The rest of the requested ids are looked up as usual: a single-user
-	// install can still hold real accounts (the desktop app provisions one per
-	// coding agent), and they have to come back alongside it.
+	// In single-user mode that id has no row in the users table and is
+	// synthesized here; in team mode it is the owner's own account and is looked
+	// up like anybody else's (team.go). The rest of the requested ids are looked
+	// up as usual either way: a single-user install can still hold real accounts
+	// — the desktop app provisions one per coding agent — and they have to come
+	// back alongside it.
 	realIDs := make([]string, 0, len(userIDs))
 	singleUserRequested := false
 	for _, id := range userIDs {
-		if id == model.SingleUser {
+		if id == model.SingleUser && a.synthesizesSingleUser() {
 			singleUserRequested = true
 			continue
 		}
@@ -176,7 +178,7 @@ func (a *API) handleGetMe(w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	var err error
 
-	if userID == model.SingleUser {
+	if userID == model.SingleUser && a.synthesizesSingleUser() {
 		ws, _ := a.app.GetRootTeam()
 		now := utils.GetMillis()
 		user = &model.User{

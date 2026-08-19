@@ -1,0 +1,100 @@
+@import '../../styles/typography';
+
+.TeamPanel {
+    .TeamPanel__content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    // The status is the machine reporting on itself, so it wears the machine's
+    // voice. Only the state that wants something from a person — a restart —
+    // carries a colour.
+    .TeamPanel__status {
+        @include label;
+
+        &--on {
+            color: rgb(var(--success-rgb));
+        }
+
+        &--restart {
+            color: rgb(var(--warning-rgb));
+        }
+    }
+
+    .TeamPanel__owner {
+        @include prose;
+
+        font-size: var(--text-body);
+    }
+
+    .TeamPanel__field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        span {
+            @include label;
+        }
+
+        input {
+            padding: 8px 10px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            background: rgb(var(--canvas-rgb));
+            color: rgb(var(--ink-rgb));
+
+            &:disabled {
+                opacity: 0.6;
+            }
+        }
+    }
+
+    // The invite is the one thing here somebody carries to another person, so
+    // it is given room and the data voice — the same shape the tailnet address
+    // has, and for the same reason.
+    .TeamPanel__address {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        background: rgb(var(--surface-rgb));
+
+        code {
+            @include data;
+
+            flex: 1;
+            font-size: var(--text-body);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .TeamPanel__addressLabel {
+        @include label;
+
+        opacity: 0.7;
+        white-space: nowrap;
+    }
+
+    .TeamPanel__hint {
+        @include prose;
+
+        margin: 0;
+        font-size: var(--text-small);
+        opacity: 0.64;
+    }
+
+    .TeamPanel__error {
+        color: rgb(var(--error-text-rgb));
+    }
+
+    .TeamPanel__actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+    }
+}

@@ -39,11 +39,14 @@ type origin struct {
 	tailnet     *tailnetController
 	privatePort int
 	host        string
+	// session says whether a request carries a live board session; nil in
+	// single-user mode, where nothing does. See team.go.
+	session func(string) bool
 }
 
 const defaultServerPort = 8080
 
-func newOrigin(board, acp, ingest http.Handler, tailnet *tailnetController) (*origin, error) {
+func newOrigin(board, acp, ingest http.Handler, tailnet *tailnetController, session func(string) bool) (*origin, error) {
 	host := envOnce("XCIII_SERVER_HOST", "WAILS_SERVER_HOST")
 	if host == "" {
 		host = "localhost"
@@ -78,6 +81,7 @@ func newOrigin(board, acp, ingest http.Handler, tailnet *tailnetController) (*or
 		tailnet:     tailnet,
 		privatePort: private,
 		host:        net.JoinHostPort(host, strconv.Itoa(port)),
+		session:     session,
 	}, nil
 }
 
@@ -111,7 +115,7 @@ func (o *origin) start() {
 		log.Fatalf("front door: %v", err)
 	}
 	wails := httputil.NewSingleHostReverseProxy(target)
-	server := &http.Server{Handler: newFrontDoor(wails, o.acp, o.ingest, o.board, o.host)}
+	server := &http.Server{Handler: newFrontDoor(wails, o.acp, o.ingest, o.board, o.host, o.session)}
 	go func() {
 		if err := server.Serve(o.listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("front door: %v", err)
@@ -121,7 +125,7 @@ func (o *origin) start() {
 	// are keyed to the authority the page is served under, and there it is a
 	// tailnet name, not the address this build was published under.
 	o.tailnet.publish(func(allowedHost string) http.Handler {
-		return newFrontDoor(wails, o.acp, o.ingest, o.board, allowedHost)
+		return newFrontDoor(wails, o.acp, o.ingest, o.board, allowedHost, o.session)
 	})
 }
 

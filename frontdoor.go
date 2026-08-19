@@ -29,18 +29,25 @@ import (
 // request for any other Host is refused, since a name that resolves to this
 // listener but isn't the one we handed out is somebody else's DNS entry
 // pointing here.
-func newFrontDoor(wails, acpRoutes, ingest, board http.Handler, allowedHost string) http.Handler {
+//
+// session says whether a request carries a live board session, and is nil in
+// single-user mode, where there is nothing to carry: the routes that are about
+// this machine rather than about a board — the bound methods, the terminal
+// sockets — are then guarded by the origin and the Host alone. In team mode it
+// is what stops a person who has not logged in from starting an agent
+// (team.go).
+func newFrontDoor(wails, acpRoutes, ingest, board http.Handler, allowedHost string, session func(string) bool) http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle("/wails/", sameOrigin(wails, allowedHost))
+	mux.Handle("/wails/", requireSession(sameOrigin(wails, allowedHost), session))
 	// Only the socket, not the path around it: /acp/terminal/{id} is the page
 	// that draws the terminal, and that is the webapp, which the board serves
 	// like any other of its routes. A terminal socket is a shell in the user's
 	// project, so it is guarded exactly as the runtime is — more so, if
 	// anything.
-	mux.Handle("/acp/terminal/{id}/ws", sameOrigin(acpRoutes, allowedHost))
+	mux.Handle("/acp/terminal/{id}/ws", requireSession(sameOrigin(acpRoutes, allowedHost), session))
 	// The UI event socket is guarded the same way and for the same reason: it
 	// says what the agents are doing on this machine.
-	mux.Handle("/acp/events/ws", sameOrigin(acpRoutes, allowedHost))
+	mux.Handle("/acp/events/ws", requireSession(sameOrigin(acpRoutes, allowedHost), session))
 	// The board tools an agent calls (boardapi.go). Same origin guard — a page
 	// has no business calling these — on top of the grant token they actually
 	// authenticate with: the caller is a local process, and a local process

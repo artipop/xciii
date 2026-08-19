@@ -5,6 +5,7 @@ import {OctoUtils} from './octoUtils'
 import {IUser, UserConfigPatch, UserPreference} from './user'
 import {Utils} from './utils'
 import {ClientConfig} from './config/clientConfig'
+import {forgetSession, rememberSession, sessionToken} from './session'
 import {UserSettings} from './userSettings'
 import {Category, CategoryBoards} from './store/sidebar'
 import {Team} from './store/teams'
@@ -37,10 +38,10 @@ class OctoClient {
     }
 
     get token(): string {
-        return localStorage.getItem('xciiiSessionId') || ''
+        return sessionToken()
     }
     set token(value: string) {
-        localStorage.setItem('xciiiSessionId', value)
+        rememberSession(value)
     }
 
     constructor(serverUrl?: string, public teamId = Constants.globalTeamId, public channelId = Constants.noChannelID) {
@@ -71,7 +72,7 @@ class OctoClient {
 
         const responseJson = (await this.getJson(response, {})) as {token?: string}
         if (responseJson.token) {
-            localStorage.setItem('xciiiSessionId', responseJson.token)
+            rememberSession(responseJson.token)
             return true
         }
         return false
@@ -83,7 +84,7 @@ class OctoClient {
             method: 'POST',
             headers: this.headers(),
         })
-        localStorage.removeItem('xciiiSessionId')
+        forgetSession()
 
         if (response.status !== 200) {
             return false

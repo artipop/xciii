@@ -13,6 +13,7 @@ import MachineMiscPanel from '../acp/machineMiscPanel'
 
 import AppPanel from './appPanel'
 import DataPanel from './dataPanel'
+import TeamPanel, {isTeamAvailable} from './teamPanel'
 import UpdatesPanel, {isUpdatesAvailable} from './updatesPanel'
 
 import './appSettingsDialog.scss'
@@ -91,6 +92,16 @@ const AppSettingsDialog = (props: Props) => {
             name: () => intl.formatMessage({id: 'Proxies.title', defaultMessage: 'Proxy configurations'}),
             when: isProxiesAvailable,
             body: ProxiesPanel,
+        },
+        {
+
+            // Beside the tailnet rather than among the registries: the two are
+            // the same kind of question — who may reach this board — asked
+            // about people and about devices.
+            id: 'team',
+            name: () => intl.formatMessage({id: 'Team.title', defaultMessage: 'Working as a team'}),
+            when: isTeamAvailable,
+            body: TeamPanel,
         },
         {
             id: 'tailnet',

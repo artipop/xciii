@@ -177,7 +177,7 @@ func TestBeforeTheSubsystemIsUpTheEndpointSaysSo(t *testing.T) {
 // this is where that is proven, together with the door not swallowing it.
 func TestIngestWorksThroughTheFrontDoor(t *testing.T) {
 	routes, board := ingestRoutes(t)
-	door := newFrontDoor(named("wails"), named("acp"), routes, named("board"), "127.0.0.1:9000")
+	door := newFrontDoor(named("wails"), named("acp"), routes, named("board"), "127.0.0.1:9000", nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/sources/ingest/телефон",
 		strings.NewReader(`{"v":1,"id":"n1","title":"Доставка завтра"}`))
@@ -202,7 +202,7 @@ func TestIngestWorksThroughTheFrontDoor(t *testing.T) {
 // answer to DNS rebinding covers this route like every other.
 func TestIngestIsStillBehindTheHostGuard(t *testing.T) {
 	routes, board := ingestRoutes(t)
-	door := newFrontDoor(named("wails"), named("acp"), routes, named("board"), "127.0.0.1:9000")
+	door := newFrontDoor(named("wails"), named("acp"), routes, named("board"), "127.0.0.1:9000", nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/sources/ingest/телефон",
 		strings.NewReader(`{"v":1,"id":"n1","title":"Доставка"}`))

@@ -10,6 +10,8 @@ Sections:
 - **"Agents"** — this machine's agents and what launches them, see
   [Agents, npx and Node.js](./agents.md);
 - **"Proxy configurations"** — named network settings that agents refer to;
+- **"Working as a team"** — accounts and logging in, see
+  ["Working as a team"](./team.md);
 - **"Access from a phone"** — see below;
 - **"Import and export"** — board archive export and import, see
   [Moving](../transfer.md);
