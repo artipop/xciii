@@ -6,7 +6,7 @@ import (
 )
 
 // The registries — folders, agents, proxies, deploy targets — as tables rather
-// than as arrays in config.json (docs/model-graph.md).
+// than as arrays in config.json.
 //
 // Why they moved: a settings file is a thing nothing can point at. A card named
 // its folder by an id that happened to be written in that file, a column named

@@ -73,7 +73,7 @@ type Session struct {
 
 	// FlowID/FlowNodeID are set when a flow stage started this session. Its
 	// outcome is then the event that moves the card on.
-	FlowID   string
+	FlowID     string
 	FlowNodeID string
 	// NodeID is the node this session's conversation is keyed under: the flow
 	// node when a route started it, else the option id of the column that did.

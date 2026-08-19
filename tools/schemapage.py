@@ -427,8 +427,7 @@ page = f"""<title>Схема базы XCIII</title>
   <code>go generate ./tools/schemagen</code> из той же Go-схемы, что и миграцию, — устареть ей негде.
   Остальное про модель:
   <ul>
-    <li><code>docs/db-erd.md</code> — что где лежит и почему так ключуется.</li>
-    <li><code>docs/model-graph.md</code> — как одно находит другое.</li>
+    <li><code>docs/db-erd.md</code> — что где лежит, чем что адресуется и почему так.</li>
     <li><code>docs/db-schema-review.md</code> — разбор решений.</li>
     <li><code>docs/schema/app.hcl</code> — та же схема как Atlas HCL.</li>
   </ul>

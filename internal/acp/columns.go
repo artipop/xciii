@@ -69,7 +69,7 @@ type ColumnSpec struct {
 
 	// DeployID pins the deploy target for a "deploy" column, by the registry
 	// entry's own id: renaming a target must not silently unpin every column
-	// that sends work to it (docs/model-graph.md, contradiction 8).
+	// that sends work to it.
 	DeployID string `json:"deployId,omitempty"`
 	// DeployName is what pinning used to be written as. Read once and folded
 	// into DeployID (bindrefs.go); never written back.

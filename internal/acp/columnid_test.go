@@ -4,7 +4,7 @@ import "testing"
 
 // Renaming a column, or the property it lives on, must cost a card nothing.
 // This was the last load-bearing place a name decided something (contradiction
-// 1 of docs/model-graph.md): the check was the property's name against the
+// 1 of docs/db-erd.md): the check was the property's name against the
 // option's name, so a board where somebody renamed «Статус» — or a board in
 // English — matched nothing, and every conversation on it read as belonging to a
 // column the card had already left.

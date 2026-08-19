@@ -21,7 +21,7 @@ export type DeployTarget = {
 
     // The registry entry's own id. What a column or a route stage pins by: a
     // name is the part somebody renames, and pinning by one silently unpinned
-    // every stage that used it (docs/model-graph.md, contradiction 8). Absent
+    // every stage that used it. Absent
     // on a form that has not been saved yet.
     id?: string
     name: string

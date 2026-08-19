@@ -131,7 +131,7 @@ func newServerLogger() mlog.LoggerIFace {
 
 // board is the running board server and the database under it. The handle and
 // the prefix travel with it because this application's own tables live in that
-// same database (docs/model-graph.md): one file to back up, one connection, and
+// same database: one file to back up, one connection, and
 // a composite write that can be one transaction.
 type board struct {
 	srv *server.Server
@@ -149,22 +149,25 @@ func runServerWithLogger(logger mlog.LoggerIFace, port int, sessionToken string,
 	}
 
 	cfg := &config.Configuration{
-		ServerRoot:              fmt.Sprintf("http://localhost:%d", port),
-		Port:                    port,
-		DBType:                  "sqlite3",
-		DBConfigString:          path.Join(data, "xciii.db"),
-		UseSSL:                  false,
-		SecureCookie:            true,
-		WebPath:                 resolveWebPath(logger),
-		FilesDriver:             "local",
-		FilesPath:               path.Join(data, "files"),
-		SessionExpireTime:       259200000000,
-		SessionRefreshTime:      18000,
-		LocalOnly:               false,
-		AuthMode:                "native",
+		ServerRoot:         fmt.Sprintf("http://localhost:%d", port),
+		Port:               port,
+		DBType:             "sqlite3",
+		DBConfigString:     path.Join(data, "xciii.db"),
+		UseSSL:             false,
+		SecureCookie:       true,
+		WebPath:            resolveWebPath(logger),
+		FilesDriver:        "local",
+		FilesPath:          path.Join(data, "files"),
+		SessionExpireTime:  259200000000,
+		SessionRefreshTime: 18000,
+		LocalOnly:          false,
+		AuthMode:           "native",
 	}
 
 	singleUser := len(sessionToken) > 0
+	// The page is told, because whether a comment has anybody to be addressed
+	// to is a question about the install and not about the board.
+	cfg.TeamMode = !singleUser
 	db, handle, err := server.NewStore(cfg, singleUser, logger)
 	if err != nil {
 		return board{}, fmt.Errorf("initializing store: %w", err)

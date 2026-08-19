@@ -66,7 +66,7 @@ const (
 	// It is the last of the three "which field is which" records, and the one
 	// that took longest to arrive: which property held the columns was a *name*
 	// in the machine's settings, matched against every board this machine ever
-	// saw (contradiction 1 of docs/model-graph.md). A board in English, or one
+	// saw. A board in English, or one
 	// where somebody renamed «Статус», matched nothing.
 	//
 	// Written here rather than by the page, unlike the folder and branch
@@ -616,7 +616,7 @@ func (m *Manager) BoardAutomation(boardID string) BoardAutomation {
 // A board that cannot be written to is not a lost edit: the entries stay in the
 // registry for this run, and the next edit tries again. They are not in
 // config.json any more, so the run is as long as they last — which is the
-// trade the move onto the board bought (docs/model-graph.md, contradiction 9).
+// trade the move onto the board bought.
 func (m *Manager) persistBoardLocked(boardID string) {
 	if boardID == "" || m.meta == nil {
 		return

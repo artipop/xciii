@@ -242,7 +242,7 @@ func TestResolveRepoByTag(t *testing.T) {
 // What used to stand here: a test that a card could name a directory outright
 // in `repo_path`, and that such a path won over the folder it had been tagged
 // with. Both are gone — a card says where it works by naming a folder, and only
-// that (contradiction 6 of docs/model-graph.md, closed by step 3 of the store
+// that (, closed by step 3 of the store
 // plan). The whitelist that fenced those paths went with them.
 
 func TestTriggerSessionViaTag(t *testing.T) {

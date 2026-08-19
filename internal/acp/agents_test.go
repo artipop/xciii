@@ -568,7 +568,7 @@ func TestResolveAgentSingleAndFallback(t *testing.T) {
 // What used to stand here: two tests of config migrations that no longer exist
 // — the abandoned trigger-column default being rewritten, and the one
 // machine-wide system prompt being spread onto the boards that ran something.
-// Both keys are gone (docs/model-graph.md, contradiction 9), and with no release there is
+// Both keys are gone, and with no release there is
 // no config file in the world that still carries them.
 
 func TestAgentMCPServersValidation(t *testing.T) {

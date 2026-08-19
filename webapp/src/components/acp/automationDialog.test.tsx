@@ -16,7 +16,7 @@ vi.mock('../../mutator')
 const anyWindow = window as any
 
 const board: Board = {
-    ...createBoard(),
+...createBoard(),
     id: 'board-1',
     cardProperties: [{
         id: 'prop-status',
@@ -58,7 +58,7 @@ function stubBindings(overrides: Record<string, unknown> = {}) {
         AddFlow: vi.fn().mockResolvedValue('{}'),
         UpdateFlow: vi.fn().mockResolvedValue('{}'),
         RemoveFlow: vi.fn().mockResolvedValue(undefined),
-        ...overrides,
+...overrides,
     }
     anyWindow.go = {main: {App: bindings}}
     return bindings
@@ -133,7 +133,7 @@ describe('components/acp/automationDialog', () => {
         userEvent.click(screen.getByRole('button', {name: 'Save'}))
 
         // By id: a route being deleted is the one on screen, and its name is not
-        // what identifies it (docs/model-graph.md, contradiction 4).
+        // what identifies it.
         await waitFor(() => expect(bindings.RemoveFlow).toHaveBeenCalledWith('board-1', 'flow-1'))
     })
 

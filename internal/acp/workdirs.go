@@ -363,7 +363,7 @@ func (m *Manager) CardFolder(cardID string) (string, bool) {
 // There used to be a step in front of this one: a card could name a directory
 // outright, in a `project_path` or `repo_path` field, and that path won over
 // the folder field. It was the second way to say the same thing (contradiction
-// 6 of docs/model-graph.md) and the worse one — nothing creates such a field,
+// 6 of docs/db-erd.md) and the worse one — nothing creates such a field,
 // it means nothing on another machine, and being a path rather than a reference
 // it tied to no registry entry, so the only thing standing between a card and
 // any directory on the disk was a whitelist in the settings file. Both are

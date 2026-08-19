@@ -82,10 +82,9 @@ var FlowTriggers = []FlowTrigger{
 
 // FlowEntry is one named route in the registry.
 type FlowEntry struct {
-	// ID is what a card's place on its route points at. The name used to be the
-	// key, so renaming a route lost the position of every card standing on it
-	// (docs/model-graph.md, contradiction 4). Minted when a route without one is
-	// first validated.
+	// ID is what a card's place on its route points at: keyed by name, renaming
+	// a route lost the place of every card standing on it. Minted when a route
+	// without one is first validated.
 	ID   string `json:"id,omitempty"`
 	Name string `json:"name"` // shown on screen; matches the card "Flow" option
 
@@ -769,7 +768,6 @@ func hasAgent(agents []AgentEntry, name string) bool {
 	}
 	return false
 }
-
 
 // flowNameTaken reports whether an existing route already goes by this name on
 // a board that would see it. Names stay unique because a card names its route

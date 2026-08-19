@@ -211,7 +211,7 @@ func TestTheCollapsedMigrationBuildsTheSchemaTheLadderBuilt(t *testing.T) {
 
 // routeByID is why the three tables that record a card's place on a route no
 // longer carry the route's name. Renaming a route lost the place of every card
-// standing on it (docs/model-graph.md, contradiction 4).
+// standing on it.
 const routeByID = "flow (the route's name) became flow_id"
 
 // deadColumns is why five tables are narrower than the ladder left them.

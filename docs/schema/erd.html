@@ -348,7 +348,7 @@ erDiagram
         bool scheme_viewer &quot;nullable&quot;
     }
     users {
-        name_100 id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_100 id PK &quot;nullable&quot;
         name_100 username &quot;nullable&quot;
         name_255 email &quot;nullable&quot;
         name_100 password &quot;nullable&quot;
@@ -361,7 +361,7 @@ erDiagram
         millis delete_at &quot;nullable&quot;
     }
     sessions {
-        name_100 id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_100 id PK &quot;nullable&quot;
         name_100 token &quot;nullable&quot;
         name_100 user_id &quot;nullable&quot;
         text props &quot;nullable&quot;
@@ -393,7 +393,7 @@ erDiagram
         bool hidden &quot;nullable&quot;
     }
     sharing {
-        name_36 id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_36 id PK &quot;nullable&quot;
         bool enabled &quot;nullable&quot;
         name_100 token &quot;nullable&quot;
         name_36 modified_by &quot;nullable&quot;
@@ -401,16 +401,16 @@ erDiagram
     }
     subscriptions {
         name_10 block_type &quot;nullable&quot;
-        name_36 block_id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_36 block_id PK &quot;nullable&quot;
         name_10 subscriber_type &quot;nullable&quot;
-        name_36 subscriber_id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_36 subscriber_id PK &quot;nullable&quot;
         millis notified_at &quot;nullable&quot;
         millis create_at &quot;nullable&quot;
         millis delete_at &quot;nullable&quot;
     }
     notification_hints {
         name_10 block_type &quot;nullable&quot;
-        name_36 block_id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_36 block_id PK &quot;nullable&quot;
         name_36 modified_by_id &quot;nullable&quot;
         millis create_at &quot;nullable&quot;
         millis notify_at &quot;nullable&quot;
@@ -432,14 +432,14 @@ erDiagram
         text value &quot;nullable&quot;
     }
     teams {
-        name_36 id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_36 id PK &quot;nullable&quot;
         name_100 signup_token
         text settings &quot;nullable&quot;
         name_36 modified_by &quot;nullable&quot;
         millis update_at &quot;nullable&quot;
     }
     system_settings {
-        name_100 id PK &quot;The fork&#x27;s SQLite CREATE left this nullable; build() makes key columns NOT NULL.&quot;
+        name_100 id PK &quot;nullable&quot;
         text value &quot;nullable&quot;
     }</pre>
         </figure>
@@ -631,7 +631,7 @@ erDiagram
     flow_state {
         id card_id PK, FK
         id board_id FK &quot;nullable&quot;
-        name_200 flow &quot;The route&#x27;s name. It has no id of its own yet — contradiction 4 of docs/model-graph.md, which lives inside…&quot;
+        id flow_id &quot;The route the card is on. An id rather than the route&#x27;s name, so renaming a route does not lose the place of…&quot;
         name_64 node_id
         name_255 branch &quot;nullable&quot;
         text workdir_path &quot;nullable&quot;
@@ -640,7 +640,7 @@ erDiagram
     flow_event {
         id id PK
         id card_id FK
-        name_200 flow
+        id flow_id &quot;nullable&quot;
         name_64 from_node &quot;nullable&quot;
         name_64 to_node
         name_32 on_kind
@@ -659,7 +659,7 @@ erDiagram
         id card_id PK, FK
         id board_id FK &quot;nullable&quot;
         name_128 column_key &quot;board|option — the queue belongs to one column of one board.&quot;
-        name_200 flow &quot;nullable&quot;
+        id flow_id &quot;nullable&quot;
         name_64 node_id &quot;nullable&quot;
         millis queued_at
     }</pre>
@@ -758,8 +758,7 @@ erDiagram
   <code>go generate ./tools/schemagen</code> из той же Go-схемы, что и миграцию, — устареть ей негде.
   Остальное про модель:
   <ul>
-    <li><code>docs/db-erd.md</code> — что где лежит и почему так ключуется.</li>
-    <li><code>docs/model-graph.md</code> — как одно находит другое.</li>
+    <li><code>docs/db-erd.md</code> — что где лежит, чем что адресуется и почему так.</li>
     <li><code>docs/db-schema-review.md</code> — разбор решений.</li>
     <li><code>docs/schema/app.hcl</code> — та же схема как Atlas HCL.</li>
   </ul>

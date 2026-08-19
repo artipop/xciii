@@ -20,7 +20,7 @@ const (
 	// The columns a template route stands on. They live here, with the thing
 	// that creates boards, rather than in the machine's settings — where they
 	// used to be five keys naming the columns of anybody's board and matching
-	// them by name (contradiction 9 of docs/model-graph.md).
+	// them by name.
 	TemplateWorkColumn     = "В работе"
 	TemplateDeployColumn   = "Деплой"
 	TemplateTestColumn     = "QA"

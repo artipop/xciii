@@ -83,7 +83,7 @@ func TestColumnPrefersTheBoardsOwnSpec(t *testing.T) {
 // specs saying exactly what they said before.
 // What used to stand here: a test that the five column-name keys in the
 // machine's settings became a column registry. Those keys named the columns of
-// anybody's board and are gone (docs/model-graph.md, contradiction 9).
+// anybody's board and are gone.
 
 func TestSaveColumnValidatesAndReplaces(t *testing.T) {
 	m := agentManager(t, "", AgentEntry{Name: "claude-1", Kind: "claude"})

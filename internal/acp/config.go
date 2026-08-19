@@ -920,7 +920,7 @@ func LoadConfig(path, dataDir string) (Config, error) {
 	// predated something. The trigger column was rewritten off an abandoned
 	// default; columns were built from the five column-name keys this file used
 	// to carry; routes were built from those columns. All three are gone with
-	// the keys (docs/model-graph.md, contradiction 9): a board carries
+	// the keys: a board carries
 	// its own columns and routes, and the machine's settings no longer name the
 	// columns of anybody's board.
 	return cfg, nil

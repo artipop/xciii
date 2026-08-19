@@ -128,7 +128,7 @@ func New(params Params) (*Server, error) {
 
 // NewStore opens the database and hands back both the board's store and the
 // handle under it. The handle is returned rather than kept private because the
-// application's own tables live in this same database now (docs/model-graph.md):
+// application's own tables live in this same database now:
 // one file, one connection, one transaction — and on SQLite the pool below is
 // capped at one connection, so a second handle would be a second writer.
 func NewStore(config *config.Configuration, isSingleUser bool, logger mlog.LoggerIFace) (store.Store, *sql.DB, error) {

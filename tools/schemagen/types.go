@@ -4,7 +4,7 @@
 // It exists because of one rule the board's migrations break on every line:
 // a difference between SQLite, MySQL and Postgres must not be written by hand.
 // Eighty-one hand-templated migrations is how the fork got here, and every one
-// of `{{if .postgres}}JSON{{else}}TEXT{{end}}` is a place somebody has to
+// of `{{if.postgres}}JSON{{else}}TEXT{{end}}` is a place somebody has to
 // remember three answers to one question. Here the question is asked once —
 // what *is* this column — and the three answers come out of one table.
 //
@@ -14,9 +14,9 @@
 // other two put them beside it, Postgres spelling varchar `character varying`,
 // the charset clause MySQL needs or Cyrillic comes back as question marks.
 // Atlas is a build-time dependency: what ships is the SQL it wrote, checked in
-// and reviewable, and `go test ./tools/schemagen` fails when the two disagree.
+// and reviewable, and `go test./tools/schemagen` fails when the two disagree.
 //
-// Run it with `go generate ./tools/schemagen`.
+// Run it with `go generate./tools/schemagen`.
 package main
 
 // Type is what a column *is*, before any dialect has an opinion about it. The
@@ -138,7 +138,7 @@ type Action string
 
 const (
 	// Cascade takes the row with it. What our tables know about a card is only
-	// true while the card is: this is the leak docs/model-graph.md is about.
+	// true while the card is: this is the leak docs/db-erd.md is about.
 	Cascade Action = "CASCADE"
 	// SetNull keeps the row and forgets the reference. A conversation
 	// outlives the agent that held it: it happened.

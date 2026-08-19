@@ -30,7 +30,7 @@ export type FlowNode = {
 
     // The deploy target this stage publishes to, by the registry entry's id.
     // It used to be the entry's name, and renaming a target then unpinned every
-    // stage that sent work to it (docs/model-graph.md, contradiction 8).
+    // stage that sent work to it.
     deployId?: string
 
     // The stage's own instructions, said to whoever works it here — overriding
@@ -278,7 +278,7 @@ export function withColumn(flow: Flow, column: BoardColumn, at?: {x: number, y: 
         column: column.name,
         optionId: column.optionId,
         action: '',
-        ...(at || {}),
+...(at || {}),
     }
     return {...flow, nodes: [...flow.nodes, node]}
 }
@@ -287,7 +287,7 @@ export function withColumn(flow: Flow, column: BoardColumn, at?: {x: number, y: 
 // edge to nowhere is exactly what the engine refuses to save.
 export function withoutColumn(flow: Flow, id: string): Flow {
     return {
-        ...flow,
+...flow,
         nodes: flow.nodes.filter((n) => n.id !== id),
         edges: flow.edges.filter((e) => e.from !== id && e.to !== id),
     }

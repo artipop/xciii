@@ -3,7 +3,7 @@ package acp
 import "fmt"
 
 // Getting the registries out of config.json and into the tables
-// (docs/model-graph.md), and keeping them there.
+//, and keeping them there.
 //
 // The arrangement is the one the board's automation already has: the table is
 // where the registry lives, and Config holds the same entries as a slice

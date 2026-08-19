@@ -521,7 +521,7 @@ func (m *Manager) startSession(ev CardMoved, opts startOptions) (*Session, error
 		ColumnName:   opts.column.Column,
 		Test:         test,
 		Artifacts:    artifacts,
-		FlowID:     opts.flowID,
+		FlowID:       opts.flowID,
 		FlowNodeID:   opts.flowNodeID,
 		NodeID:       firstNonEmpty(opts.flowNodeID, ev.ToColumn.OptionID, opts.column.OptionID, nodeNone),
 		Writes:       opts.declaredWrites(),

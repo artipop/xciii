@@ -251,7 +251,7 @@ func testManagerWithEmitter(t *testing.T, scenario string, mutate func(*Config))
 	// now, so a config built in code has to say so itself — and before the
 	// test's own mutate, which is entitled to replace them.
 	// With their option ids, because a column is its option and nothing is
-	// matched by name any more (docs/model-graph.md, contradiction 5). The ids
+	// matched by name any more. The ids
 	// are the ones moveEvent sends.
 	cfg.Columns = []ColumnSpec{
 		workColumn(cfg.TriggerProperty, FlowActionAgent),
