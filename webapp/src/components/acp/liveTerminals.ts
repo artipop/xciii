@@ -13,15 +13,12 @@ import {onAgentEvent} from './agentEvents'
 // panel does, for one card at a time — would be a round trip to Go for every
 // card drawn.
 //
-// Two facts, one subscription. A CLI working right now is the first; the second
-// is a conversation that stopped without a verdict — the CLI was closed, or the
-// app was, and nobody picked the stage back up. That one is worth the board's
-// attention for the same reason the first is: it is a card in the middle of
-// something, and until it was drawn here it was visible only from inside the
-// card, on a session status nobody goes looking for.
+// Two facts, one subscription: a CLI working right now, and a conversation that
+// stopped without a verdict — the CLI was closed, or the app was. Both are a
+// card in the middle of something.
 //
-// Merely resumable is still not news: a card whose worktree could be continued
-// says nothing about whether anybody meant to.
+// Merely resumable is not news: a card whose worktree could be continued says
+// nothing about whether anybody meant to.
 
 const [byCard, setByCard] = createSignal<Record<string, string>>({})
 
@@ -124,13 +121,12 @@ export function isCardTerminalAvailable(): boolean {
 //
 // A live terminal is shown by its id, not reopened by its card: the card's
 // terminal is the conversation of the stage it stands on, and the live CLI may
-// be a passed stage's still running — opening "the card's terminal" would
-// start a second one beside it instead of showing the one the dot is for.
-// It answers false when Go refused — the card names no folder, so there is
-// nothing for work to happen in. A window is an interface with no way to ask
-// anything, so the question belongs to the panel beside the card, and the
-// caller opens the card instead of a CLI in a directory nobody chose. That
-// silent fallback is what this replaces.
+// belong to a passed stage still running, so "the card's terminal" would start
+// a second one beside it.
+//
+// It answers false when Go refused for want of a folder. A window has no way to
+// ask anything, so that question belongs to the panel beside the card, and the
+// caller opens the card rather than a CLI in a directory nobody chose.
 export async function openCardTerminalWindow(cardId: string, terminalId?: string): Promise<boolean> {
     const bindings = agentBindings()
     let handle: {windowed?: boolean, url?: string} | null = null

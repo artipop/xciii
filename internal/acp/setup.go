@@ -467,13 +467,11 @@ func (m *Manager) BoardAgentNames(boardID string) []string {
 // Both writes belong to that one answer. A test session refuses to start
 // without a browser MCP server on the agent it resolved (startSession), and
 // which agent it resolves is the column's business — so the server goes on the
-// agent, and the agent goes on the test column as its crew. Putting the server
-// on whichever agent the registry happened to list first is what this replaces:
-// on a board with two agents the browser landed on one and the QA column ran
-// the other, and the session died saying it had nothing to test with.
+// agent, and that agent goes on the test column as its crew. Split, the browser
+// lands on one agent and the column runs another.
 //
 // The rest of the agent's entry is kept: the wizard knows about a browser and
-// nothing else, and rebuilding the entry from that dropped the model, the
+// nothing else, so rebuilding the entry from that would drop the model, the
 // environment and the proxy of an agent already set up.
 func (m *Manager) SetTestAgent(boardID, agentName string, servers MCPServerSet) error {
 	return m.setStageCrew(boardID, []string{agentName}, FlowActionTest, servers)

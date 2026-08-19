@@ -27,11 +27,10 @@ import './attentionNotifications.scss'
 // board — so the wait says itself, here.
 //
 // It says it and does not answer it. The agent is asking inside its own CLI, in
-// the card's terminal, and that is where the answer belongs: a copy of the
-// question with a row of our buttons under it was a second interface for one
-// exchange, and the one that could not show what the agent had already drawn on
-// the screen. So this carries what is being asked and one way to act on it —
-// open the terminal.
+// the card's terminal, and that is where the answer belongs — a copy of the
+// question with our own buttons under it is a second interface for one
+// exchange, and the one that cannot show what the agent has already drawn. So
+// this carries what is being asked and one way to act on it: open the terminal.
 //
 // It is a setting because it interrupts: a person who would rather find out by
 // looking turns it off, and the card keeps its button.
@@ -55,17 +54,12 @@ const stackLimit = 3
 // terminalScreen is a window that draws one terminal and nothing else — the
 // desktop app's own, and «Терминалы» on a phone.
 //
-// This stack is outside the router, which is what puts it wherever in the app a
-// person happens to be — and a terminal window is the app too, so every one of
-// them drew the whole stack as well. Two conversations waiting meant the same
-// notification in the board's window and in each terminal window: it read as
-// the first one being announced twice.
-//
-// One of those copies was worse than a repeat. A terminal window drawing «агент
-// ждёт ответа» about the terminal it is *showing* covers the question with a
-// box saying there is one — the same reason nothing of ours is drawn over that
-// screen (terminalPage.tsx). So the stack belongs to the window with the board
-// in it, and a terminal window is left to draw the CLI.
+// The stack is outside the router, so it follows a person wherever they are in
+// the app — and a terminal window is the app too. It belongs to the window with
+// the board in it: drawn in a terminal window it announces the same wait twice,
+// and the copy drawn over the terminal it is *about* covers the question with a
+// box saying there is one (the reason nothing of ours is drawn on that screen —
+// terminalPage.tsx).
 //
 // Read once rather than watched: a window opened on a terminal stays on it, and
 // the board's window never navigates there — the button opens a window of its

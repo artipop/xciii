@@ -54,12 +54,10 @@ func (m *Manager) WorkdirsForBoard(boardID string) []WorkdirEntry {
 // basename) and persists the config. Any folder will do — see IsGitWorkdir for
 // what being under git adds.
 //
-// kind is what the person adding it was asked for, and the only value with a
-// meaning is WorkdirGit: the setup step of a board that publishes a branch or
-// waits for one demands a repository, so answering it with a folder that has
-// no git is refused here, where the answer is given, rather than three days
-// later when a card cannot find a branch. Everywhere else passes "" — what a
-// folder is gets asked when it matters, so a folder that becomes a repository
+// kind is what the person adding it was asked for, and only WorkdirGit means
+// anything: a board whose setup step demands a repository refuses a folder with
+// no git here, where the answer is given, rather than when a card cannot find a
+// branch. Everywhere else passes "", so a folder that becomes a repository
 // later needs nobody to re-add it.
 //
 // TODO: validate the name as a hostname label. A deploy target names its apps
@@ -398,17 +396,13 @@ func (m *Manager) resolveWorkdir(ev CardMoved) (string, error) {
 // cardWorkdir is the registry entry a card points at, among the ones this board
 // offers.
 //
-// The option's **id** is the entry's id: the board's folder options are created
-// under it (workdirSync.ts), so a card that names a folder is a card holding
-// that id, and what the folder is called is free to change — or to stop being a
-// folder name at all, which is where this is going: a place to work need not be
-// a directory on this disk.
+// The option's **id** is the entry's id (workdirSync.ts), so a card naming a
+// folder holds that id and the folder's name is free to change — or to stop
+// being a folder name at all: a place to work need not be a directory here.
 //
-// Two fallbacks, both for data that predates the id. An option made before this
-// carries an id of the board's own, so the entry is matched by the option's
-// *name*; and a board that never recorded which property holds the folder gets
-// the old scan across everything selected on the card, which is the only thing
-// such a board can say.
+// Two fallbacks for data that predates the id: an option made before it is
+// matched by *name*, and a board that recorded no folder property gets a scan
+// across everything selected on the card, which is all such a board can say.
 func (m *Manager) cardWorkdir(ev CardMoved, workdirs []WorkdirEntry) (WorkdirEntry, bool) {
 	if propID := m.boardProperty(ev.BoardID, BoardPropProject); propID != "" {
 		for _, sel := range ev.SelectedOptions {

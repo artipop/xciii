@@ -398,13 +398,10 @@ func (m *Manager) removeAgentEntry(name string) (AgentUser, error) {
 // and the account "my-agent" are the same agent. Also used for matching, which
 // is why it must stay deterministic.
 //
-// A letter is any letter, not only a Latin one. This kept `a-z0-9` once, on a
-// board whose every label is Russian, so an agent called «клаус» folded to the
-// empty string, was skipped by AgentUsers, got no account and could therefore
-// never be put in «Кто занимается» — the one field that says who works a card.
-// It failed in silence, and «клаус 2» was worse: it folded to "2" and made an
-// account under that name. Nothing here needs ASCII — the username is stored
-// in the board's own table and read back by the same fold.
+// A letter is any letter, not only a Latin one: folded to `a-z0-9`, an agent
+// called «клаус» becomes the empty string and can never be put in «Кто
+// занимается» at all. Nothing here needs ASCII — the username is stored in the
+// board's own table and read back by the same fold.
 func AgentUsername(name string) string {
 	var b strings.Builder
 	for _, r := range strings.ToLower(strings.TrimSpace(name)) {
