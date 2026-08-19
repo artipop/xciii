@@ -169,13 +169,6 @@ func NewManager(cfg Config, cfgPath string, st *Store, w BoardWriter, ui UIEmitt
 		byCard:  make(map[string]*Session),
 		sem:     make(chan struct{}, maxConc),
 	}
-	// Every registry entry has an id, and this is where that becomes true
-	// rather than hoped for. The store mints one on save, but a config handed
-	// straight to the manager — a hand-edited file, a test fixture — has not
-	// been through a save, and a crew or a stage pointing at an entry without
-	// an id points at nothing (docs/model-graph.md, contradictions 2 and 8).
-	bindConfigRefs(&m.cfg)
-
 	// After the struct, because the GitHub watcher asks for a token and the
 	// token comes off the manager's own secret store (SetSecrets, which the
 	// caller may not have called yet — an absent token is the ordinary case).

@@ -36,7 +36,7 @@ func sampleFlow() FlowEntry {
 }
 
 func TestValidateFlow(t *testing.T) {
-	workdirs := []WorkdirEntry{{Name: "webapp", Path: "/projects/webapp"}}
+	workdirs := []WorkdirEntry{{ID: "ws-webapp", Name: "webapp", Path: "/projects/webapp"}}
 	agents := []AgentEntry{{ID: "ag-claude-1", Name: "claude-1", Kind: AgentKindClaude}}
 	deploys := []DeployEntry{deployEntry("prod")}
 
@@ -57,9 +57,13 @@ func TestValidateFlow(t *testing.T) {
 		"два перехода по одному событию": func(f *FlowEntry) {
 			f.Edges = append(f.Edges, FlowEdge{From: "work", To: "blocked", On: TriggerSuccess})
 		},
-		"неизвестный проект": func(f *FlowEntry) { f.WorkdirName = "nosuchproject" },
-		"неизвестный агент":  func(f *FlowEntry) { f.Nodes[0].AgentName = "nosuchagent" },
-		"неизвестная цель":   func(f *FlowEntry) { f.Nodes[0].DeployID = "nosuchtarget" },
+		"неизвестная папка": func(f *FlowEntry) { f.WorkspaceID = "nosuchworkspace" },
+		"неизвестный агент": func(f *FlowEntry) { f.Nodes[0].AgentIDs = []string{"nosuchagent"} },
+		"неизвестная цель":  func(f *FlowEntry) { f.Nodes[0].DeployID = "nosuchtarget" },
+		// A name that could not be bound to an id is refused here, which is what
+		// keeps the board's own copy of the route untouched (rememberUnadopted).
+		"неразрешённое имя агента": func(f *FlowEntry) { f.Nodes[0].AgentNames = []string{"nosuchagent"} },
+		"неразрешённое имя цели":   func(f *FlowEntry) { f.Nodes[0].DeployName = "nosuchtarget" },
 		"пустое условие":     func(f *FlowEntry) { f.Edges[0].If = &EdgeCond{} },
 		"условие про оба сразу": func(f *FlowEntry) {
 			f.Edges[0].If = &EdgeCond{Property: "Приоритет", Value: "Высокий", CommentContains: "готово"}
@@ -85,11 +89,10 @@ func TestValidateFlow(t *testing.T) {
 
 	// References that do exist are accepted, and an empty action defaults to none.
 	f := sampleFlow()
-	f.WorkdirName = "WEBAPP"
-	// A stage that named one agent becomes a stage with a crew of one.
-	f.Nodes[0].AgentName = "claude-1"
-	// And an empty action is kept as it is: the stage does whatever its column
-	// does, which is not the same as doing nothing.
+	f.WorkspaceID = "ws-webapp"
+	f.Nodes[0].AgentIDs = []string{"ag-claude-1"}
+	// An empty action is kept as it is: the stage does whatever its column does,
+	// which is not the same as doing nothing.
 	f.Nodes[1].Action = ""
 	got, err := validateFlow(f, workdirs, agents, deploys)
 	if err != nil {
@@ -98,9 +101,8 @@ func TestValidateFlow(t *testing.T) {
 	if got.Nodes[1].Action != "" {
 		t.Fatalf("an empty action must stay empty: %+v", got.Nodes[1])
 	}
-	if len(got.Nodes[0].AgentIDs) != 1 || got.Nodes[0].AgentIDs[0] != "ag-claude-1" ||
-		got.Nodes[0].AgentName != "" || len(got.Nodes[0].AgentNames) != 0 {
-		t.Fatalf("the old single agent was not folded into the crew: %+v", got.Nodes[0])
+	if got.ID == "" {
+		t.Error("a route was accepted without being given an id")
 	}
 
 	// Several conditional edges on one event are the point of conditions: the

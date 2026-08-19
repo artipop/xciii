@@ -144,13 +144,9 @@ func (m *Manager) columnFor(boardID string, c Column) (ColumnSpec, bool) {
 // validateColumn normalizes and checks one spec against the registries it may
 // reference.
 func validateColumn(c ColumnSpec, agents []AgentEntry, deploys []DeployEntry) (ColumnSpec, error) {
-	// Names are accepted at the door and folded here, so every writer — the
-	// editor, a template, the wizard — may speak the names a person typed while
-	// what gets stored is only ever ids. A name that folds into nothing is
-	// refused: at this door it is a typo, and at the board's door it is a
-	// column the machine cannot use, which adoptColumns hands back to be kept
-	// on the board verbatim.
-	bindColumnRefs(&c, agents, deploys)
+	// A leftover name means the board's own copy could not be bound to this
+	// machine's registry (adoptColumns); refusing here is what routes the column
+	// back to being kept on the board verbatim.
 	if len(c.Agents) > 0 {
 		return ColumnSpec{}, fmt.Errorf("агент %q не найден в реестре (%s)", c.Agents[0], agentNames(agents))
 	}

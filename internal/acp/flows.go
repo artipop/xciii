@@ -437,10 +437,8 @@ func boardFlows(flows []FlowEntry, boardID string) []FlowEntry {
 // validateFlow normalizes and checks one route. folders/agents/deploys are the
 // registries its nodes may reference.
 func validateFlow(f FlowEntry, workdirs []WorkdirEntry, agents []AgentEntry, deploys []DeployEntry) (FlowEntry, error) {
-	// See validateColumn: names in, ids stored, and a name that folds into
-	// nothing is refused here so the board keeps its own copy untouched.
-	bindFlowRefs(&f, agents, deploys)
-	bindFlowWorkspace(&f, workdirs)
+	// See validateColumn: a leftover name is refused so the board keeps its own
+	// copy untouched.
 	for _, n := range f.Nodes {
 		if len(n.AgentNames) > 0 {
 			return FlowEntry{}, fmt.Errorf("агент %q стадии %q не найден в реестре (%s)", n.AgentNames[0], n.ID, agentNames(agents))

@@ -2,27 +2,18 @@ package acp
 
 import "strings"
 
-// Binding a board's automation to the ids it should have been written with.
+// Binding a board's automation to registry ids.
 //
-// A column's crew, a stage's deploy target and a route's folder were all
-// written as *names* — the string a person typed into the editor — and a name
-// is the one part of a registry entry somebody is entitled to change. Renaming
-// a deploy target unpinned every column that sent work to it, silently, because
-// nothing can check a name against a name (docs/model-graph.md).
+// This is for data the app does not insert: columns and routes live in the
+// board's JSON, written by a template, by another machine, or by an older
+// version, so there is no write that could have handed out an id. Everything
+// here runs once, where a board is read (boardseed.go), and what it resolves is
+// written back to the board.
 //
-// The entries have had ids since the registries became tables, so the fix is
-// not to invent an identity but to start using the one that is already there.
-// That leaves the automation already written on boards, which travels with the
-// board and its templates and cannot simply be declared wrong. So the old name
-// fields survive as read-once: bindRefs resolves each into its id the first
-// time the board is read, the caller writes the board back, and nothing writes
-// a name again. It is the shape FlowNode.AgentName → AgentNames already has.
-//
-// Unresolvable names are left exactly as they are rather than cleared. A board
-// imported from another machine names a target registered there and not here,
-// and that is the case rememberUnadopted exists for: the machine's ignorance is
-// not the board's error, and erasing the name would turn "register this target"
-// into "set this column up again from memory".
+// An unresolvable name is left alone rather than cleared: a board from another
+// machine names a target registered there, and erasing it would turn "register
+// this target" into "set this column up again from memory". validateColumn
+// then refuses it, which is what routes the column into rememberUnadopted.
 
 // bindColumnRefs folds a column's legacy name references into ids. It reports
 // whether anything changed, which is what tells the caller the board is worth
@@ -251,28 +242,6 @@ func deployByID(deploys []DeployEntry, id string) (DeployEntry, bool) {
 	return DeployEntry{}, false
 }
 
-// bindConfigRefs folds the names in a config handed straight to the manager —
-// a hand-edited file, a test fixture — into ids, after minting the ids they
-// point at. Automation that came off a board goes through adoptColumns instead.
-func bindConfigRefs(cfg *Config) {
-	mintRegistryIDs(cfg)
-	for i := range cfg.Columns {
-		bindColumnRefs(&cfg.Columns[i], cfg.Agents, cfg.Deploys)
-	}
-	for i := range cfg.Flows {
-		// A route needs an id before anything can stand on it, and a config
-		// handed straight to the manager has not been through validateFlow.
-		if cfg.Flows[i].ID == "" {
-			cfg.Flows[i].ID = newID()
-		}
-		bindFlowRefs(&cfg.Flows[i], cfg.Agents, cfg.Deploys)
-		bindFlowWorkspace(&cfg.Flows[i], cfg.Workdirs)
-	}
-	for i := range cfg.Agents {
-		bindAgentRefs(&cfg.Agents[i], cfg.Proxies)
-	}
-}
-
 // bindColumnOption gives a spec the option id it always meant. A spec written
 // before columns carried ids knows the column's name and nothing else, and that
 // name is what three separate places were still matching on (contradiction 5).
@@ -316,30 +285,6 @@ func optionNamed(options []Column, name string) (Column, bool) {
 		}
 	}
 	return Column{}, false
-}
-
-// mintRegistryIDs gives an id to every registry entry that arrived without one.
-func mintRegistryIDs(cfg *Config) {
-	for i := range cfg.Agents {
-		if cfg.Agents[i].ID == "" {
-			cfg.Agents[i].ID = newID()
-		}
-	}
-	for i := range cfg.Proxies {
-		if cfg.Proxies[i].ID == "" {
-			cfg.Proxies[i].ID = newID()
-		}
-	}
-	for i := range cfg.Deploys {
-		if cfg.Deploys[i].ID == "" {
-			cfg.Deploys[i].ID = newID()
-		}
-	}
-	for i := range cfg.Workdirs {
-		if cfg.Workdirs[i].ID == "" {
-			cfg.Workdirs[i].ID = newID()
-		}
-	}
 }
 
 // workdirForPath is the registry entry that lives at this path.

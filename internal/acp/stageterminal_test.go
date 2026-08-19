@@ -39,7 +39,7 @@ func stageManager(t *testing.T, script string, mutate func(*Config)) (*Manager, 
 	t.Helper()
 	fakeCLIOnPath(t, "claude", script)
 	m, writer, events, project, emitter := testManagerWithEmitter(t, "idle", func(cfg *Config) {
-		cfg.Agents = []AgentEntry{{ID: newID(), Name: "clauuus", Kind: AgentKindClaude}}
+		cfg.Agents = []AgentEntry{{ID: "ag-clauuus", Name: "clauuus", Kind: AgentKindClaude}}
 		if mutate != nil {
 			mutate(cfg)
 		}
@@ -549,7 +549,7 @@ func TestDeclaredReadsOpenTheBrief(t *testing.T) {
 func TestAStageRunsWithTheColumnsOwnTools(t *testing.T) {
 	m, _, events, _, _ := stageManager(t, "sleep 30", func(cfg *Config) {
 		spec := workColumn(cfg.TriggerProperty, FlowActionAgent)
-		spec.Agents = []string{"clauuus"}
+		spec.AgentIDs = []string{"ag-clauuus"}
 		spec.MCPServers = MCPServerSet{"playwright": {Command: "npx", Args: []string{"-y", "@playwright/mcp@latest"}}}
 		cfg.Columns = []ColumnSpec{spec}
 	})

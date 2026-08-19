@@ -1,8 +1,7 @@
 @import '../../styles/typography';
 
-// The automation on one screen: routes across the top, the board's columns on
-// the canvas, and one panel that is about whatever is selected. The canvas is
-// the wide half on purpose — the picture is the point, the panel is a caption.
+// The canvas is the wide half on purpose: the picture is the point, the panel
+// is a caption.
 .AutomationEditor {
     display: flex;
     flex-direction: column;
@@ -50,9 +49,9 @@
         flex: 1 1 auto;
     }
 
-    // Making a column: one line above the canvas. The buttons carry the colour
-    // of the stage they become and nothing else — what each kind does is a
-    // sentence, and the panel is where a sentence belongs.
+    // The buttons carry the colour of the stage they become and nothing else:
+    // what each kind does is a sentence, and the panel is where a sentence
+    // belongs.
     .AutomationEditor__add {
         display: flex;
         align-items: center;
@@ -165,8 +164,6 @@
             accent-color: rgb(var(--button-bg-rgb));
         }
 
-        // A stage's declared outputs and inputs: rows of property names with
-        // the smallest controls that say required/remove.
         .AutomationEditor__writes {
             display: flex;
             flex-direction: column;
@@ -211,8 +208,6 @@
             }
         }
 
-        // The stage's instructions: a small page of text in a panel of selects,
-        // dressed like the inputs above and allowed to grow downward only.
         .AutomationEditor__prompt {
             width: 100%;
             min-width: 0;

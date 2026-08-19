@@ -89,16 +89,16 @@ func TestSaveColumnValidatesAndReplaces(t *testing.T) {
 	m := agentManager(t, "", AgentEntry{Name: "claude-1", Kind: "claude"})
 	m.cfg.Columns = nil
 
+	claude := crewIDs(t, m, "claude-1")[0]
 	spec := ColumnSpec{BoardID: "board1", PropertyID: "p", OptionID: "opt-work", Property: "Status",
-		Column: "In Progress", Action: FlowActionAgent, Agents: []string{"claude-1", "claude-1", " "}, MaxRunning: 2}
+		Column: "In Progress", Action: FlowActionAgent, AgentIDs: []string{claude, claude, " "}, MaxRunning: 2}
 	saved, err := m.SaveColumn(spec)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Names go in and ids come out: the roster is stored by id, and the same
-	// agent named twice is one member of the crew.
-	if len(saved.AgentIDs) != 1 || len(saved.Agents) != 0 {
-		t.Fatalf("the roster should be one id and no names: %+v", saved)
+	// The same agent twice, and a blank, are one member of the crew.
+	if len(saved.AgentIDs) != 1 || saved.AgentIDs[0] != claude {
+		t.Fatalf("the roster should be one id: %+v", saved)
 	}
 
 	// Saving the same column again replaces it rather than piling up.
@@ -110,13 +110,13 @@ func TestSaveColumnValidatesAndReplaces(t *testing.T) {
 		t.Fatalf("columns: %+v", m.cfg.Columns)
 	}
 
-	// A roster naming somebody who is not registered is refused here, where it
-	// is typed, rather than when a card lands in the column.
-	spec.Agents = []string{"ghost"}
+	// A roster pointing at somebody who is not registered is refused here rather
+	// than when a card lands in the column.
+	spec.AgentIDs = []string{"ghost"}
 	if _, err := m.SaveColumn(spec); err == nil {
 		t.Fatal("an unregistered agent must be refused")
 	}
-	spec.Agents = nil
+	spec.AgentIDs = nil
 	spec.Action = "sing"
 	if _, err := m.SaveColumn(spec); err == nil {
 		t.Fatal("an unknown action must be refused")
@@ -453,9 +453,9 @@ func TestCardAssignedToAPersonIsLeftAlone(t *testing.T) {
 // nothing is written twice.
 func TestCrewedColumnWritesItsWorkerIntoTheAssignee(t *testing.T) {
 	m, _, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
-		c.Agents = []AgentEntry{{ID: newID(), Name: "клаус", Kind: "claude"}}
+		c.Agents = []AgentEntry{{ID: "ag-klaus", Name: "клаус", Kind: "claude"}}
 		spec := workColumn(c.TriggerProperty, FlowActionAgent)
-		spec.Agents = []string{"клаус"}
+		spec.AgentIDs = []string{"ag-klaus"}
 		c.Columns = []ColumnSpec{spec}
 	})
 	users := &fakeBoardUsers{}
@@ -486,11 +486,11 @@ func TestCrewedColumnWritesItsWorkerIntoTheAssignee(t *testing.T) {
 func TestCrewedTestColumnWritesItsTesterIntoTheAssignee(t *testing.T) {
 	m, _, events, _ := testManager(t, fakeClaudeHappy, func(c *Config) {
 		c.Agents = []AgentEntry{{
-			Name: "тестер", Kind: "claude",
+			ID: "ag-tester", Name: "тестер", Kind: "claude",
 			MCPServers: MCPServerSet{"playwright": {Command: "npx"}},
 		}}
 		spec := workColumn(c.TriggerProperty, FlowActionTest)
-		spec.Agents = []string{"тестер"}
+		spec.AgentIDs = []string{"ag-tester"}
 		c.Columns = []ColumnSpec{spec}
 	})
 	users := &fakeBoardUsers{}

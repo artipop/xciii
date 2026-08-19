@@ -439,6 +439,7 @@ func (m *Manager) adoptFlows(boardID string, flows []FlowEntry) (int, []FlowEntr
 	for _, f := range flows {
 		f.BoardID = boardID
 		bindFlowRefs(&f, m.cfg.Agents, m.cfg.Deploys)
+		bindFlowWorkspace(&f, m.cfg.Workdirs)
 		valid, err := validateFlow(f, m.cfg.Workdirs, m.cfg.Agents, m.cfg.Deploys)
 		if err != nil {
 			m.log.Warn("acp: the board offers a route that cannot be used", "board", boardID, "flow", f.Name, "err", err)
@@ -455,6 +456,7 @@ func (m *Manager) adoptFlows(boardID string, flows []FlowEntry) (int, []FlowEntr
 				if bindFlowRefs(&m.cfg.Flows[i], m.cfg.Agents, m.cfg.Deploys) {
 					added++
 				}
+				bindFlowWorkspace(&m.cfg.Flows[i], m.cfg.Workdirs)
 				break
 			}
 		}

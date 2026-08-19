@@ -272,6 +272,7 @@ func testManagerWithEmitter(t *testing.T, scenario string, mutate func(*Config))
 	events := &fakeEvents{ch: make(chan CardMoved, 16)}
 	emitter := &fakeEmitter{}
 	m := NewManager(cfg, "", st, writer, emitter, nil)
+	registerFixtures(t, m)
 	m.SetBoardReader(&fakeReader{ev: CardMoved{
 		BoardID:     "board1",
 		Title:       "Test task",
@@ -785,5 +786,28 @@ func TestTheClientTellsAgentsItCanShowAForm(t *testing.T) {
 	}
 	if caps.Elicitation.Url != nil {
 		t.Error("URL elicitation is claimed, and a board has nowhere to send somebody")
+	}
+}
+
+// registerFixtures puts what a fixture built in code through the doors the
+// product uses, so the ids come from where they come from in production: the
+// store mints a registry entry's, validateFlow mints a route's. Nothing in the
+// product hands these out for a config that skipped a save, and it should not:
+// a second place ids are born is the thing the id work was removing.
+func registerFixtures(t *testing.T, m *Manager) {
+	t.Helper()
+	m.cfgMu.Lock()
+	err := m.persistConfigLocked()
+	for i := range m.cfg.Flows {
+		f, ferr := validateFlow(m.cfg.Flows[i], m.cfg.Workdirs, m.cfg.Agents, m.cfg.Deploys)
+		if ferr != nil {
+			m.cfgMu.Unlock()
+			t.Fatalf("fixture route %q is not valid: %v", m.cfg.Flows[i].Name, ferr)
+		}
+		m.cfg.Flows[i] = f
+	}
+	m.cfgMu.Unlock()
+	if err != nil {
+		t.Fatal(err)
 	}
 }

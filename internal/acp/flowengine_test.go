@@ -28,7 +28,19 @@ func flowEvent(cardID, project, from, to string) CardMoved {
 // flowManager is testManager with one route registered.
 func flowManager(t *testing.T, scenario string, flow FlowEntry) (*Manager, *fakeWriter, *fakeEvents, string) {
 	t.Helper()
-	m, w, ev, project := testManager(t, scenario, func(c *Config) { c.Flows = []FlowEntry{flow} })
+	return flowManagerWith(t, scenario, flow, nil)
+}
+
+// flowManagerWith is flowManager for a test that also has to say what the
+// registry holds: the route is validated against it while the manager is built.
+func flowManagerWith(t *testing.T, scenario string, flow FlowEntry, mutate func(*Config)) (*Manager, *fakeWriter, *fakeEvents, string) {
+	t.Helper()
+	m, w, ev, project := testManager(t, scenario, func(c *Config) {
+		c.Flows = []FlowEntry{flow}
+		if mutate != nil {
+			mutate(c)
+		}
+	})
 	// Re-reading a card gives back what it says, branch included — the real
 	// reader does, and the route asks it again on every transition.
 	m.SetBoardReader(&fakeReader{ev: CardMoved{
@@ -135,18 +147,20 @@ func TestQueuedStageKeepsItsCrew(t *testing.T) {
 	const stageAgent = "ag-stage"
 	flow := sampleFlow()
 	flow.Nodes[0].AgentIDs = []string{stageAgent}
-	m, _, events, project := flowManager(t, fakeClaudeHang, flow)
-	m.cfgMu.Lock()
-	m.cfg.Agents = []AgentEntry{
-		{ID: stageAgent, Name: "агент-стадии", Kind: "claude"},
-		{ID: newID(), Name: "другой", Kind: "claude"},
-	}
-	// One at a time in the column, so the second card has to queue.
-	m.cfg.Columns = []ColumnSpec{{
-		BoardID: "board1", PropertyID: "p1", OptionID: "opt-to agent",
-		Property: "Status", Column: "To Agent", Action: FlowActionAgent, MaxRunning: 1,
-	}}
-	m.cfgMu.Unlock()
+	// The registry has to be in place before the route is validated, so it goes
+	// into the config the manager is built from rather than being assigned over
+	// it afterwards.
+	m, _, events, project := flowManagerWith(t, fakeClaudeHang, flow, func(c *Config) {
+		c.Agents = []AgentEntry{
+			{ID: stageAgent, Name: "агент-стадии", Kind: "claude"},
+			{ID: "ag-other", Name: "другой", Kind: "claude"},
+		}
+		// One at a time in the column, so the second card has to queue.
+		c.Columns = []ColumnSpec{{
+			BoardID: "board1", PropertyID: "p1", OptionID: "opt-to agent",
+			Property: "Status", Column: "To Agent", Action: FlowActionAgent, MaxRunning: 1,
+		}}
+	})
 	users := &fakeBoardUsers{}
 	m.SetBoardUsers(users)
 
