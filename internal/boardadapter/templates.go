@@ -67,36 +67,8 @@ func readShippedTemplate(file string) ([]byte, error) {
 // TemplateVersion is bumped to push edited templates into installs that already
 // have them. Nothing else re-imports: a template somebody has since changed is
 // theirs until this number moves, and then it is replaced.
-// 11: the board keys the templates carry were renamed acp* → xciii*. A stale
-// template would go on making boards under the old names — read, but never the
-// ones anything writes, so every such board would carry both.
-// 12: the developer template's test column is «QA», and its route names the
-// stage `qa` rather than `test`.
-// 13: the board's description is hidden until somebody asks for it.
-// 14: «Контент» joins the set — content making with an agent writing the brief
-// and the draft and a person reading them; no deploy, no browser test, so its
-// setup wizard asks for a folder and an agent and nothing else.
-// 15: «Мои задачи» stands beside «Входящие» — the column a card made with the
-// inbox's own «Создать» button lands in, so what a person typed is not filed
-// among what arrived and nobody has read.
-// 16: the developer template's main view is «Задачи» — «Progress Tracker» was
-// the one English name left on a Russian screen, inherited from the upstream
-// board the template was built from.
-// 17: «Мои задачи» is hidden from the main kanban, exactly as «Входящие» is —
-// a person's unprocessed tasks are read on the inbox view, and the main board
-// stays the board of work it was before version 15 put the column at its
-// front.
-// 18: «Покупки и меню» is gone, and the three that remain carry three cards
-// each instead of five — «С чего начать» and two tasks an agent can actually
-// be given, all in the first column. Placeholders («Утвердить бюджет», a
-// checklist of «[Подзадача 1]») and errands no agent can run («Полить цветы»)
-// taught the board wrong on the first screen anybody sees.
-// 19: no card promises a comment any more. «Что сделал агент» used to be
-// «напишет в комментарии», and the comments are not drawn while this app has
-// one person in it (docs/teamwork.md) — a first card that points at a place
-// nobody can open is the worst possible place to be wrong. The lifetime
-// edition's own two boards join the set at this version; they are a separate
-// glob, so a base install sees no change from them.
+//
+// What each past bump changed is in the log, not here.
 const TemplateVersion = 19
 
 // TemplateMarkerProperty is the board property each template carries its slug

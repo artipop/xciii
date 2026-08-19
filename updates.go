@@ -20,33 +20,22 @@ import (
 
 // How this app updates itself.
 //
-// The machinery is the framework's: `app.Updater` is on every Wails v3
-// application without registering anything, and it owns the whole of the risky
-// part — streaming the artifact, checking its signature, unpacking it, and the
-// helper process that waits for us to exit and renames the new bundle into
-// place. Nothing here reimplements any of that. What this file adds is the
-// three things the framework deliberately leaves to the application: which
-// release feed to trust, what to remember between launches, and what a person
-// sees.
+// `app.Updater` owns the risky part — streaming, checking, unpacking, and the
+// helper that renames the bundle in once we exit. This file adds the three
+// things the framework leaves to the application: which feed to trust, what
+// survives a restart, and what a person sees.
 //
-// **The feed is a signed manifest on an address of ours.** The framework's
-// `github` provider reads a release's assets and can verify a SHA256SUMS
-// sidecar, which catches a corrupted download and nothing else: the hash and
-// the file come from the same place, so a release that was tampered with
-// carries a hash that agrees with it. It also ties the app to a public
-// repository for ever, and this one is not public. The `endpoint` provider
-// reads a manifest.json whose artifacts are signed, the signature is checked
-// against updaterPublicKey below — compiled into this binary, so the feed has
-// no say in which key authenticates it — and the manifest is a two-kilobyte
-// file that can be served from anywhere. The whole publishing side is one
-// `wails3 updater manifest` in CI.
+// **The feed is a signed manifest on an address of ours.** The `github`
+// provider verifies a SHA256SUMS sidecar, which catches a corrupted download
+// and nothing else — the hash and the file come from the same place — and it
+// ties the app to a public repository, which this is not. `endpoint` reads a
+// manifest whose artifacts are signed against updaterPublicKey below, compiled
+// in, so the feed has no say in which key authenticates it.
 //
-// **The framework's own window is not used** (updater.WindowNone). It is a
-// good window and it is entirely in English, hard-coded; this product is
-// Russian. So Go subscribes to the framework's events and re-emits one event
-// of ours carrying the whole state, through emitter.go — which means the front
-// door's socket, which is the only path that reaches a page opened on a phone
-// through the tailnet door as well as the desktop window.
+// **The framework's own window is not used** (updater.WindowNone): it is
+// hard-coded English. Go re-emits one event of ours carrying the whole state
+// through emitter.go — the front door's socket, which is the only path that
+// also reaches a page opened on a phone.
 
 //go:embed build/updater.key.pub
 var updaterPublicKey []byte
@@ -61,11 +50,10 @@ var updaterPublicKey []byte
 // Nothing answering, or a 404, is read as "nothing newer", so a bucket that is
 // not there yet costs a log line rather than an error on the panel.
 //
-// **Which address it is belongs to the edition** (internal/edition), because
-// the two editions are two builds: one manifest names one artifact per
-// platform, so a shared feed would hand a lifetime install the base app under
-// the version number it was waiting for. The workflow reads the same constant
-// to build the artifact URLs, so the app and the release cannot come to
+// **Which address it is belongs to the edition** (internal/edition): one
+// manifest names one artifact per platform, so a shared feed would hand a
+// lifetime install the base app under the version number it was waiting for.
+// The workflow reads the same constant, so the app and the release cannot
 // disagree about where a release lives.
 const updateManifestURL = edition.ManifestURL
 

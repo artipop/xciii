@@ -46,15 +46,12 @@
         }
 
         // …except the editor, which may grow — its canvas is the one part that
-        // can use every spare pixel — and still may not compress: grown or
-        // not, its height is at least its content, so the canvas stands at its
-        // own minimum and the scrollbar answers a window shorter than that. A
-        // fixed-height canvas was the clipping the folded sections and the
-        // window's own size kept re-creating: on a 768-tall screen its bottom
-        // — zoom buttons included — sat under the sticky Save row. Allowing
-        // shrink instead of scroll was tried and lost: a content-based flex
-        // minimum does not survive this depth of nesting, the editor shrank
-        // past its canvas, and the canvas painted over the folded sections.
+        // can use every spare pixel — and still may not compress: its height is
+        // at least its content, so the canvas stands at its own minimum and the
+        // scrollbar answers a window shorter than that. Allowing shrink instead
+        // of scroll does not work here: a content-based flex minimum does not
+        // survive this depth of nesting, and the canvas paints over the folded
+        // sections.
         > .AutomationEditor {
             flex: 1 0 auto;
         }

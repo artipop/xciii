@@ -25,9 +25,7 @@ import './boardSetupWizard.scss'
 // A board made from a template arrives knowing how the work is organised — its
 // columns, its routes, the fields a card picks a folder and an agent with.
 // What it cannot know is the machine: which agent runs, in which folder, where
-// it deploys, what it tests with. That lives in the desktop registries, and
-// until this existed the only way to find out one was empty was to drag a card
-// and read the complaint afterwards.
+// it deploys, what it tests with. That lives in the desktop registries.
 //
 // Which questions this board has is not decided here: Go resolves them into a
 // plan (internal/acp/setup.go) out of what the board asks for, what its

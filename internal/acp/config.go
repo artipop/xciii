@@ -242,18 +242,15 @@ func (s *AgentMCPServer) UnmarshalJSON(data []byte) error {
 }
 
 // MCPServerSet is how an agent's servers are stored: name → server, the shape
-// every MCP client uses. It reads more than it writes, because the file is
-// edited by hand as often as by us and the same servers are written differently
-// in the wild:
+// every MCP client uses. It reads more than it writes, because entries are
+// pasted out of other clients' configs, which spell the same thing three ways:
 //
 //	{"playwright": {"command": "npx", …}}                  the canonical shape
 //	[{"name": "playwright", "command": "npx", …}]          a list of named ones
 //	{"mcpServers": {"playwright": {…}}}                    the whole client file
 //
-// All three mean the same thing, so all three are accepted rather than
-// disabling the integration over the punctuation. Anything else is reported
-// with the name of the field, since a config that cannot be read stops
-// everything.
+// All three are accepted rather than disabling the integration over
+// punctuation. Anything else is reported with the field's name.
 type MCPServerSet map[string]AgentMCPServer
 
 func (s *MCPServerSet) UnmarshalJSON(data []byte) error {
@@ -699,17 +696,14 @@ type Config struct {
 
 	// Workdirs is the registry of named local folders. A card names one by the
 	// entry's id: the board's «Папка» field carries an option created under
-	// that id, so a card holds an ordinary select value that is a reference.
-	// Matching by name is gone — it let a label spelled like a repository
-	// decide where an agent worked.
+	// that id, so the card holds an ordinary select value that is a reference.
 	//
-	// A folder is not necessarily a git repository; the product stopped calling
-	// it one because a board that runs agents is not only for software.
+	// A folder is not necessarily a git repository — a board that runs agents is
+	// not only for software.
 	//
-	// Not in the file: the folders are the `workspace` table. This is the
-	// working copy, read at startup (loadRegistriesLocked) and written back on
-	// every edit — the registry is read on every card move, and the whole of it
-	// is four handfuls of rows.
+	// Not in the file: the folders are the `workspace` table, and this is the
+	// working copy the engine reads on every card move
+	// (loadRegistriesLocked).
 	Workdirs []WorkdirEntry `json:"-"`
 
 	// Agents is the registry of named coding agents (claude/codex, with their
@@ -888,16 +882,9 @@ func DefaultConfig(dataDir string) Config {
 // editable: whoever plans is the one who knows what "don't touch" means for
 // their folder.
 //
-// It says nothing about creating cards on purpose. The board tools describe
-// themselves — an MCP server's instructions arrive with its tool list — so an
-// agent that has them is already told what they are for, and one that has not
-// is not told to reach for something it does not have. Naming them here would
-// be the same sentence written twice, in the one place a person edits by hand.
-// It is English, as everything this application says to an agent is: the app is
-// used in more than one language, and this text is read by a model rather than
-// by a person. What the person writes — the card, the board's own prompt, their
-// own rewrite of this one — carries the language along with it, and the agent
-// answers in it.
+// It says nothing about creating cards on purpose: an MCP server's instructions
+// arrive with its tool list, so an agent that has the board tools is already
+// told what they are for, and one that has not is not sent looking.
 const DefaultPlanningPrompt = `We are planning a new task.
 
 The code in this folder is yours to read — open files, search them, read the git
@@ -991,10 +978,6 @@ func LoadConfig(path, dataDir string) (Config, error) {
 	// columns of anybody's board.
 	return cfg, nil
 }
-
-// What used to stand here: withBoardPrompts, withColumns and withTemplateFlows
-// — the three functions that carried an older config forward. Removed with the
-// keys they read, since none of the installs they were for exist.
 
 // GithubSecretKey is where the pull-request token is kept: internal/secrets,
 // which is the keychain where there is one and a 0600 file where there is not.

@@ -450,21 +450,16 @@ func (m *Manager) WorkspaceModeForCard(cardID string) (mode, branch, base string
 	return mode, branch, base
 }
 
-// CardWork is the one answer to "where is this card's work", and it exists
-// because there were two.
+// CardWork is the one answer to "where is this card's work", merged from two
+// records that each know half of it.
 //
-// The claim in this app's own database knows the whole of it — the directory,
-// the branch, what it was cut from, how the folder is worked in — and knows it
-// only here: it is a row on this machine. The card knows one thing, its branch,
-// and knows it everywhere, because a card travels (to another board, to another
-// machine) and its fields travel with it. Both are right, and every reader that
-// picked one of them was wrong somewhere: the lock on the folder read the claim
-// and so let go on the second machine, while the branch on the card's stamp
-// read the card and so appeared before anything had been claimed.
-//
-// So they are merged once, here, with the precedence stated: the claim wins
-// where it exists, because it is the fuller record of the same fact; the card
-// answers where it does not.
+// The claim knows the whole of it — directory, branch, base, mode — and knows
+// it only on this machine. The card knows its branch, and knows it everywhere,
+// because a card travels and its fields travel with it. A reader that picks one
+// is wrong somewhere: the folder lock read the claim and let go on the second
+// machine; the card's stamp read the card and spoke before anything was
+// claimed. The claim wins where it exists, being the fuller record of the same
+// fact.
 type CardWork struct {
 	// Branch the card works on, wherever that was learned.
 	Branch string `json:"branch,omitempty"`

@@ -12,18 +12,15 @@ import (
 // Store is what this application knows about a card: its conversations, its
 // place on a route, why it is standing still, the workspace it holds.
 //
-// It lives in the board's own database and not beside it. Everything here is
-// about a card or a board, and while it was a file of its own there was nowhere
-// for a foreign key to point: deleting a card is a real DELETE FROM blocks, and
-// this side never heard about it, so a deleted card left its conversations, its
-// stall and its place in the queue behind for ever. The keys are in the schema
-// now (tools/schemagen) and enforced: `foreign_keys` travels in the SQLite
-// DSN the board opens the handle with (server.NewStore).
+// It lives in the board's own database so that a foreign key has somewhere to
+// point: deleting a card is a real DELETE FROM blocks, and nothing tells this
+// side about it, so the keys are what stop a deleted card leaving its
+// conversations and its queue place behind. They are enforced — `foreign_keys`
+// travels in the DSN the board opens the handle with (server.NewStore).
 //
-// It does not own the handle. The board opened it, the board closes it, and on
-// SQLite it is one connection for the whole application — which is what makes a
-// card moving, its route being recorded and its stall being lifted able to
-// become one transaction rather than three writes that can stop halfway.
+// It does not own the handle. On SQLite it is one connection for the whole
+// application, which is what lets a card moving, its route being recorded and
+// its stall being lifted become one transaction.
 type Store struct {
 	db *sql.DB
 
@@ -53,10 +50,9 @@ func (s *Store) queryRow(q string, args ...any) *sql.Row {
 	return s.db.QueryRow(q, args...)
 }
 
-// newID is what a row of ours is called. UUIDv7 rather than an autoincrement,
-// because v7 sorts by the time it was made: `ORDER BY id` still means "as it
-// happened" in the journals, and the three spellings of AUTO_INCREMENT are
-// gone with the single column that needed them.
+// newID is what a row of ours is called: UUIDv7, which sorts by the time it was
+// made, so `ORDER BY id` means "as it happened" in the journals and no dialect
+// needs its own spelling of AUTO_INCREMENT.
 func newID() string {
 	id, err := uuid.NewV7()
 	if err != nil {
@@ -820,9 +816,8 @@ func (s *Store) CheckoutOf(workspaceID, cardID, boardID string) (Checkout, bool,
 }
 
 // WorkspaceHeldBy is whoever holds this workspace now — and only a branch in
-// the folder itself holds one. A copy per card holds nothing: that is the whole
-// point of it, and counting those made a card finished months ago keep every
-// later card out of a folder it was never standing in.
+// the folder itself holds one. A copy per card holds nothing, which is the
+// whole point of it.
 func (s *Store) WorkspaceHeldBy(workspaceID string) (Checkout, bool, error) {
 	row := s.queryRow(`SELECT `+checkoutColumns+` FROM checkout
 		WHERE workspace_id=? AND released_at IS NULL AND mode=?

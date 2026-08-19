@@ -601,25 +601,17 @@ func (m *Manager) agentNamed(name string) (AgentEntry, bool) {
 // setupSteps is what this board asks to be asked: what the stages it has now
 // need, with what the board said about them laid over it.
 //
-// A declaration used to *replace* the inference, and a declaration is written
-// once — by the template, before the board existed. So a board of household
-// chores that grew a deploy stage a month later was never asked for a Dokku
-// host and was never offered «Куда деплоить…» in its menu either, since that
-// item is this plan: the stage stood there when a card reached it, with no door
-// anywhere to fix it. It ran stale the other way too — «Разработка» with its
-// deploy column deleted went on asking for a host for ever.
+// The stages decide *which* questions there are, because they are the board as
+// it is now; a declaration is written once, before the board exists, and would
+// run stale in both directions — a board that grew a deploy stage later never
+// asked for a host, and one whose deploy column was deleted asked for ever.
+// The declaration decides what the questions *say*: a hint, a step the board
+// insists on, and the one kind nothing implies (a source feeds a board rather
+// than working on it).
 //
-// So the stages decide *which* questions there are, being the board as it is
-// now, and the declaration decides what those questions say: a hint of the
-// board's own, a step it insists on, and the one kind nothing can be inferred
-// from — a source feeds a board rather than working on it, so no arrangement of
-// columns implies one.
-//
-// None of this makes a question an obligation. Every inferred step keeps the
-// closed set's own answer about being optional (SetupStepDefs), because a stage
-// nobody has configured is not a broken board: it runs nothing by itself and a
-// person works the card there by hand, which is a perfectly good way to use a
-// column.
+// None of it makes a question an obligation. An inferred step keeps the closed
+// set's answer about being optional, because a stage nobody has configured runs
+// nothing and a person works the card there by hand.
 func setupSteps(declared BoardSetup, columns []ColumnSpec, flows []FlowEntry) []BoardSetupStep {
 	// A board with no stages at all has nothing to infer from, and inference
 	// answers that case by offering everything — a guess for a board that has

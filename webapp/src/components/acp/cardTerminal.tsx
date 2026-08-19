@@ -19,34 +19,23 @@ import FolderChoices from './folderChoices'
 
 import './cardTerminal.scss'
 
-// The agent, beside the card rather than inside it.
+// The agent, beside the card rather than inside it: a card is a person's own
+// writing, and anything of the machine's put in the middle of it is the machine
+// talking over them.
 //
-// There was a row in the card's body once — the agent's name, the session
-// status, the branch with a deploy button, a form asking which folder and which
-// agent to use, and a chevron that opened the terminal downwards. All of it is
-// gone, and for one reason: a card is a person's own writing, and every one of
-// those was the machine talking in the middle of it. The card was overloaded,
-// and the thing a person actually wanted there — the terminal — was the part
-// hardest to find.
+// The panel is the card's conversations with one of them open. **The card's
+// own** — «Обсуждение» — is where a person thinks about the card, and needs
+// nothing of it to open: no folder, no route, nobody assigned. **The work** is
+// one conversation per column the card has stood on, the current one first, so
+// a person who sits down at a stage and the stage itself are in one place —
+// which is what lets a route join a conversation somebody already opened.
 //
-// What is left is the card's conversations and one of them open. **The card's
-// own** — «Обсуждение» — is where a person thinks about the card: the wording,
-// the plan, the brief. It needs nothing of the card to open (no folder, no
-// route, no agent assigned) and it is kept, so tomorrow it carries on where it
-// stopped. **The work** is one conversation per column the card has stood on,
-// the current one first: a person who sits down at a stage and the stage itself
-// are in the same place, which is what lets the route join a conversation
-// somebody already opened.
+// Which kind a row is, is declared rather than inferred from where the card
+// stands (nodeTalk, and a door of its own), and its glyph says which.
 //
-// The two used to be told apart by where the card happened to be standing, and
-// a stage starting while somebody was talking typed the card's task into their
-// conversation. The kind is declared now (nodeTalk, and a door of its own),
-// and the glyph on each row is what says which is which.
-//
-// The list is the same one «Обсудить с агентом» draws (conversationRow.tsx),
-// because it lists the same thing. What the card's own list adds is the
-// terminal underneath it: this panel sits beside a card and is read, not just
-// picked from.
+// The rows are the ones «Обсудить с агентом» draws (conversationRow.tsx). What
+// this list adds is the terminal underneath: the panel is read, not just picked
+// from.
 
 // Lazily, like the terminal's own route: xterm is a large chunk, and a card
 // whose panel is never opened should not pay for the emulator.

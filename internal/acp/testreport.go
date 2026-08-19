@@ -162,15 +162,7 @@ func (m *Manager) attachTestArtifacts(s *Session, res TestResult) {
 	}
 }
 
-// What used to stand here: moveAfterTest, which read «Проверено» and «Не
-// прошло» out of the machine's settings and moved the card into whichever one
-// the verdict named.
-//
-// It went with those keys (contradiction 9 of docs/model-graph.md): they were
-// column names in a settings file, matched against every board this machine
-// ever saw, so a board that called its columns anything else was moved by
-// accident or not at all. What replaces it is what a card already had — the
-// stage writes its verdict onto the card (writeStageFields), and a route's edge
-// reads that property and moves the card. A board with a test column and no
-// route now leaves the card where it is, which is the same answer every other
-// unconfigured column gives: a person works it there.
+// A test moves no card by itself: the stage writes its verdict onto the card
+// (writeStageFields) and a route's edge reads that property. A board with a
+// test column and no route leaves the card where it is, which is the answer
+// every unconfigured column gives — a person works it there.

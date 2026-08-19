@@ -1,18 +1,12 @@
 // Package appschema opens a database with this application's own tables in it,
 // for tests and for tools.
 //
-// It exists because the tables moved: internal/acp and internal/sources used to
-// create their own SQLite files and so could open one anywhere, and now their
-// schema is a rung on the board's migration ladder. A test that wants a store
-// needs that rung, and the one thing it must not do is carry a second copy of
-// the DDL — a copy is a schema that drifts, and drift here is exactly the class
-// of bug docs/model-graph.md is about.
+// The app's tables are a rung on the board's migration ladder, so a test that
+// wants a store needs that rung — and must not carry a second copy of the DDL,
+// which would be a schema that drifts. So this renders the migration itself,
+// out of the same embedded filesystem through the same template.
 //
-// So it renders the migration itself. The SQL is the file the application runs,
-// read out of the same embedded filesystem, through the same template.
-//
-// Nothing in the running application uses this: the app's tables are made by
-// the migration engine on the board's own database.
+// Nothing in the running application uses it.
 package appschema
 
 import (

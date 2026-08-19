@@ -401,23 +401,17 @@ func carryVCSSeen(s *Store, old *sql.DB) (int, error) {
 	return 0, nil
 }
 
-// carryClaims does not carry them, and this is the one thing the import
-// deliberately drops.
+// carryClaims is the one thing the import deliberately drops.
 //
-// The old rows are keyed by the folder's path; a checkout is keyed by the
-// workspace's id. Resolving one to the other needs the registry, and the
-// registry is not there yet: the import runs when the store is opened, and the
-// registries are settled later, when the manager starts. Deferring the claims
-// until then would be a second import with its own ordering to get wrong, for
-// data that rebuilds itself.
+// The old rows are keyed by the folder's path and a checkout by the workspace's
+// id, and resolving one to the other needs a registry that is not settled until
+// the manager starts — later than this.
 //
-// Because it does rebuild itself, and that is what makes this safe. None of a
-// person's work is in these rows: the branch is on the card and in git, the
-// copy is on disk, and the branch name is derived from the card and its owner
-// rather than remembered — so the next time the card is worked on, the same
-// name is computed and the same worktree is picked up. What is lost is this
-// machine's note of which folder was held, so a card that had a folder to
-// itself in branch mode stops holding it until it is worked on again.
+// Safe because the rows rebuild themselves: none of a person's work is in them.
+// The branch is on the card and in git, the copy is on disk, and the branch name
+// is derived rather than remembered, so the next time the card is worked on the
+// same worktree is picked up. What is lost is this machine's note of which
+// folder was held, so a card holding one in branch mode stops holding it.
 func carryClaims(s *Store, old *sql.DB) (int, error) {
 	return 0, nil
 }

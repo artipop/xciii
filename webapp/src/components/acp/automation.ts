@@ -188,11 +188,8 @@ export function columnProperty(board: Board, name?: string): IPropertyTemplate |
 // which is a fact about the order somebody added fields in, and would have the
 // editor draw one property's options while the engine runs another's.
 //
-// The editor used to offer a dropdown to fix that by hand. It stood at the end
-// of the row of route tabs showing one bare word, with its caption («Колонки —
-// это») only in the aria-label, so the control that decides what the whole
-// canvas is made of read as another tab. The answer is not a preference — it is
-// a fact about the board, and this is where it is read.
+// It is not a preference and there is no control for it: it is a fact about the
+// board, read here.
 export function automationProperty(board: Board, automation?: Automation): IPropertyTemplate | undefined {
     const properties = selectProperties(board)
     for (const spec of automation?.columns || []) {

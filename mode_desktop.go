@@ -120,12 +120,9 @@ const mainWindowName = "main"
 
 // The app outlives its windows.
 //
-// Closing the board is not quitting: the agents go on working, a stage of a
-// route that was running goes on running, and the icon in the menu bar is what
-// says so and what leads back. Without this the icon was a decoration on a
-// window — it died with the last one, and every conversation died with it,
-// which is the reason a stage cut off by a shutdown needed a state of its own
-// on the card at all.
+// Closing the board is not quitting: the agents go on working, a running stage
+// goes on running, and the icon in the menu bar is what says so and what leads
+// back.
 //
 // Two mechanisms, because the platforms disagree about whose question this is.
 // macOS asks whether to terminate once the last window has closed;

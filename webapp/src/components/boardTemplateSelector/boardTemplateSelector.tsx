@@ -47,9 +47,8 @@ type Props = {
 // makes a board from it run without any setup — an upstream template would land
 // here as a board the automation knows nothing about.
 //
-// A template the user made is a different matter and is always offered,
-// whatever it carries: it is theirs, they can see what is in it, and hiding it
-// is how "Create new template" used to lead nowhere at all.
+// A template the user made is always offered, whatever it carries: it is
+// theirs, and hiding it would make "Create new template" lead nowhere.
 //
 // They are named by the marker each one carries rather than by its title. The
 // title is Russian prose somebody may reword, and a filter keyed on it would

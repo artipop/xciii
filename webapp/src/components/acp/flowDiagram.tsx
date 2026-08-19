@@ -24,16 +24,12 @@ import {BoardColumn, CARD_CHANGED, EdgeCond, FlowEdge, FlowNode, FlowTrigger, SU
 import '@dschz/solid-flow/dist/style.css'
 import './flowDiagram.scss'
 
-// The route drawn as a graph, which is what it is: the board's columns left to
-// right in the order the card travels, transitions as arrows — green for
-// success, red for failure, grey and labelled for anything the stage waits on.
-// Pan, zoom and drag are Solid Flow's; the layout below is ours.
+// The route as a graph. Pan, zoom and drag are Solid Flow's; the layout is ours.
 //
-// Every box on this canvas is a column of the board, including the ones the
-// route does not go through: those are drawn faded, under the route, and
-// joining one to the route is what puts it on the route. There is no "add a
-// stage, now choose its column" — a stage cards can stand on is a column, and
-// the picture says so.
+// Every box is a column of the board, including the ones the route does not go
+// through — drawn faded, and joining one to the route is what puts it on the
+// route. There is no "add a stage, then choose its column": a stage cards can
+// stand on is a column, and the picture says so.
 
 export const NODE_WIDTH = 190
 export const NODE_HEIGHT = 58
@@ -456,14 +452,12 @@ const FlowDiagram = (props: Props) => {
             // its handles sit at fixed points, so the arrows are drawn on the
             // first paint instead of after the browser reports a layout.
             //
-            // Every handle states its own size too, and must. The canvas works
-            // out where an arrow starts by adding the handle's width and height
-            // to its corner, and the library's own defaulting of those two
-            // writes them back into the node — but these nodes live in a Solid
-            // store, whose proxy ignores a write from outside its setter. The
-            // defaults were dropped silently, `x + undefined` came out NaN, and
-            // every path was drawn as `MNaN NaN…`, which a browser renders as
-            // nothing at all: the stages appeared and not one arrow between them.
+            // Every handle must state its own size too. The canvas finds where
+            // an arrow starts by adding the handle's width and height to its
+            // corner, and the library defaults those by writing them back into
+            // the node — which a Solid store's proxy ignores, silently. The sum
+            // is then NaN and the path is drawn as `MNaN NaN…`, which renders
+            // as nothing.
             width: NODE_WIDTH,
             height: NODE_HEIGHT,
             handles: [
@@ -622,18 +616,15 @@ const FlowDiagram = (props: Props) => {
     // stage exactly under the pointer.
     const [flowHandle, setFlowHandle] = createSignal<FlowHandle | null>(null)
 
-    // The picture is fitted to what is on the canvas, and what is on the canvas
-    // changes after the canvas is built: the editor opens on the columns and
-    // moves to the first route the moment the routes arrive, and every tab
-    // click replaces every box. `fitView` is an init option, so that one fit
-    // was of the columns grid — a route was then drawn at the grid's zoom, off
-    // centre and 72px past the right-hand edge, with a third of the canvas
-    // empty above it.
+    // `fitView` is an init option, and what is on the canvas changes after the
+    // canvas is built: the editor opens on the columns, moves to the first route
+    // when the routes arrive, and every tab click replaces every box. So the fit
+    // is redone rather than configured once.
     //
     // Keyed on the *set* of stages and never on where they are: a fit in the
     // middle of a drag would pull the canvas out from under the pointer. The
-    // handle is in the key too, because it arrives from inside the canvas and
-    // may not be there yet on the first run.
+    // handle is in the key because it arrives from inside the canvas and may not
+    // be there on the first run.
     const shape = createMemo(() => drawnNodes.map((n) => n.id).join('|'))
     const [paneSize, setPaneSize] = createSignal('')
     createEffect(() => {

@@ -264,11 +264,6 @@ func sameColumn(a, b ColumnSpec) bool {
 		(a.BoardID == b.BoardID || a.BoardID == "" || b.BoardID == "")
 }
 
-// What used to stand here: migratedColumns, which built a column registry out
-// of the five column-name keys the machine's settings carried. Those keys named
-// the columns of whatever board a card happened to move on, matched by name
-// (contradiction 9 of docs/model-graph.md), and they are gone.
-
 // errStageBusy is not a failure: the column's crew is fully occupied, so the
 // card waits for a free member instead of taking its failure branch.
 var errStageBusy = errors.New("состав колонки занят")

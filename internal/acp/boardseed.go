@@ -14,14 +14,10 @@ import (
 // made from the «Разработка» template works before anything is configured, and
 // why a template can carry automation at all.
 //
-// It used to live in config.json beside the app, and that was the wrong shelf:
-// the file went stale when a board was deleted, no backup or export of the
-// boards contained it, and a board carried to another machine arrived without
-// the thing that makes it run. The registry in memory is still what the engine
-// reads on every card move — a board read per move would be absurd — but it is
-// a cache of what the boards say, and every edit is written through to the
-// board it belongs to (persistBoardLocked). What stays in the file is what the
-// machine owns: agents, folders, deploy targets, prompts.
+// The registry in memory is what the engine reads on every card move — a board
+// read per move would be absurd — but it is a cache of what the boards say, and
+// every edit is written through to the board it belongs to
+// (persistBoardLocked).
 //
 // A template's automation is still a **seed** for a board made from it: it is
 // imported once, tagged with the new board's id, and from then on that board
@@ -33,19 +29,10 @@ import (
 // can run — see setup.go; it is read there rather than adopted here, because it
 // is about this machine and nothing about it belongs in the registry.
 //
-// The prefix is the app's, not the agent integration's. These keys used to
-// start with `acp`, and that was wrong about what they are.
-//
-// A route does not presuppose an agent. Of the twelve triggers an edge can
-// wait on (FlowTriggers), three come from a session outcome and nine come from
-// git, GitHub or the board itself; a stage whose action is FlowActionNone runs
-// nothing at all and only waits. So a board can carry a working route made of
-// deterministic transitions — merged the branch, changed a property — with no
-// agent anywhere in it. An agent is one of the things a stage may do, not the
-// premise of the whole mechanism.
-//
-// Columns are the same case, and `xciiiTemplate`
-// (internal/boardadapter/templates.go) had the right prefix from the start.
+// The prefix is the app's, not the agent integration's, because a route does
+// not presuppose an agent: of the twelve triggers an edge can wait on, nine
+// come from git, GitHub or the board itself, and a FlowActionNone stage runs
+// nothing at all. A board can carry a working route with no agent in it.
 const (
 	BoardPropColumns = "xciiiColumns"
 	BoardPropFlows   = "xciiiFlows"
